@@ -17,54 +17,54 @@
 package org.gradle.test.fixtures
 
 
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.Range
 import org.gradle.util.internal.VersionNumber
-
-import javax.annotation.Nullable
 
 /**
  * Provides utility methods for filtering versions for "Coverage" classes.
  */
 class VersionCoverage {
     static Set<String> versionsAtLeast(Collection<String> versionsToFilter, String fromVersion) {
-        versionsBetweenInclusive(versionsToFilter, fromVersion, null)
+        filterVersions(versionsToFilter, Range.atLeast(VersionNumber.parse(fromVersion)))
     }
 
     static Set<String> versionsAtMost(Collection<String> versionsToFilter, String toVersion) {
-        versionsBetweenInclusive(versionsToFilter, null, toVersion)
+        filterVersions(versionsToFilter, Range.atMost(VersionNumber.parse(toVersion)))
     }
 
     static Set<String> versionsAbove(Collection<String> versionsToFilter, String fromVersion) {
-        versionsBetweenExclusive(versionsToFilter, fromVersion, null)
+        filterVersions(versionsToFilter, Range.greaterThan(VersionNumber.parse(fromVersion)))
     }
 
     static Set<String> versionsBelow(Collection<String> versionsToFilter, String toVersion) {
-        versionsBetweenExclusive(versionsToFilter, null, toVersion)
+        filterVersions(versionsToFilter, Range.lessThan(VersionNumber.parse(toVersion)))
     }
 
-    static Set<String> versionsBetweenInclusive(Collection<String> versionsToFilter, @Nullable String from, @Nullable String to) {
-        return filterVersions(versionsToFilter, from, to) { version, fromVersion, toVersion ->
-            return (fromVersion == null || fromVersion <= version) && (toVersion == null || version <= toVersion)
-        }
+
+    /**
+     * Filters the given versions to those that are between the given closed bounds.
+     *
+     * @param versionsToFilter the versions to filter
+     * @param from the lower bound, inclusive
+     * @param to the upper bound, inclusive
+     */
+    static Set<String> versionsBetweenInclusive(Collection<String> versionsToFilter, String from, String to) {
+        return filterVersions(versionsToFilter, Range.closed(VersionNumber.parse(from), VersionNumber.parse(to)))
     }
 
     /**
-     * Like [versionsBetweenInclusive], but excludes the `to`. `from` is still included. This is useful for semver-range-like behavior.
+     * Filters the given versions to those that are between the given closed-open bounds. This is useful for semver-range-like behavior.
+     *
+     * @param versionsToFilter the versions to filter
+     * @param from the lower bound, inclusive
+     * @param to the upper bound, exclusive
      */
-    static Set<String> versionsBetweenRange(Collection<String> versionsToFilter, @Nullable String from, @Nullable String to) {
-        return filterVersions(versionsToFilter, from, to) { version, fromVersion, toVersion ->
-            return (fromVersion == null || fromVersion < version) && (toVersion == null || version < toVersion)
-        }
+    static Set<String> versionsBetweenExclusive(Collection<String> versionsToFilter, String from, String to) {
+        return filterVersions(versionsToFilter, Range.closedOpen(VersionNumber.parse(from), VersionNumber.parse(to)))
     }
 
-    private static Set<String> versionsBetweenExclusive(Collection<String> versionsToFilter, @Nullable String from, @Nullable String to) {
-        return filterVersions(versionsToFilter, from, to) { version, fromVersion, toVersion ->
-            return (fromVersion == null || fromVersion < version) && (toVersion == null || version < toVersion)
-        }
-    }
-
-    static Set<String> filterVersions(Collection<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound, Closure filter) {
-        def fromVersion = lowerBound == null ? null : VersionNumber.parse(lowerBound)
-        def toVersion = upperBound == null ? null : VersionNumber.parse(upperBound)
-        versionsToFilter.findAll { filter(VersionNumber.parse(it), fromVersion, toVersion) }.toSet().asImmutable()
+    static Set<String> filterVersions(Collection<String> versionsToFilter, Range<VersionNumber> range) {
+        versionsToFilter.stream().map(VersionNumber::parse).filter(range).collect(ImmutableSet.toImmutableSet())
     }
 }

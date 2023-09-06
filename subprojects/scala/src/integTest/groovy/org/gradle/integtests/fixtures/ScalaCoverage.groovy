@@ -47,7 +47,7 @@ class ScalaCoverage {
             return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.11")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
-            return VersionCoverage.versionsBetweenRange(SCALA_2, "2.11.12", "2.12.0") +
+            return VersionCoverage.versionsBetweenExclusive(SCALA_2, "2.11.12", "2.12.0") +
                 VersionCoverage.versionsAtMost(SCALA_2, "2.12.18")
         }
         return SCALA_2
