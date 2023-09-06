@@ -15,3 +15,12 @@
 [[plugin_basics]]
 = Plugin Basics
 
+Plugins are used to extend build capability and customize Gradle.
+
+Using plugins is the **primary mechanism for organizing build logic**.
+
+Plugin authors can either keep their plugins private or distribute them to the public. As such, plugins are distributed three ways:
+
+1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
+2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
+3. **Custom plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
