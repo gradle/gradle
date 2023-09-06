@@ -23,6 +23,7 @@ import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRing;
 import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpKeyId;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
@@ -43,26 +44,24 @@ public class BaseInMemoryPgpSignatoryProvider implements BaseSignatoryProvider<P
 
     private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<>();
-    private final String defaultKeyId;
-    private final String defaultSecretKey;
-    private final String defaultPassword;
+    private final Lazy<PgpSignatory> defaultSignatory;
 
     public BaseInMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
         this(null, defaultSecretKey, defaultPassword);
     }
 
     public BaseInMemoryPgpSignatoryProvider(String defaultKeyId, String defaultSecretKey, String defaultPassword) {
-        this.defaultKeyId = defaultKeyId;
-        this.defaultSecretKey = defaultSecretKey;
-        this.defaultPassword = defaultPassword;
+        this.defaultSignatory = Lazy.locking().of(() -> {
+            if (defaultSecretKey != null && defaultPassword != null) {
+                return createSignatory("default", defaultKeyId, defaultSecretKey, defaultPassword);
+            }
+            return null;
+        });
     }
 
     @Override
     public PgpSignatory getDefaultSignatory(Project project) {
-        if (defaultSecretKey != null && defaultPassword != null) {
-            return createSignatory("default", defaultKeyId, defaultSecretKey, defaultPassword);
-        }
-        return null;
+        return defaultSignatory.get();
     }
 
     @Override
