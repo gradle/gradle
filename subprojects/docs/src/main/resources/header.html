@@ -98,6 +98,7 @@
         <ul>
             <li><a href="../release-notes.html">Release Notes</a></li>
             <li><a href="../userguide/compatibility.html">Compatibility Notes</a></li>
+            <li><a href="../userguide/installation.html">Installing Gradle</a></li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#upgrading-gradle" aria-expanded="false" aria-controls="upgrading-gradle">Upgrading Gradle</a>
                 <ul id="upgrading-gradle">
                     <li><a href="../userguide/upgrading_version_8.html">version 8.X to latest</a></li>
@@ -116,12 +117,25 @@
             <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
         </ul>
 
-        <h3 id="quick-start">Getting Started</h3>
+        <h3 id="running-gradle-builds">Running Gradle Builds</h3>
         <ul>
-            <li><a href="../userguide/introduction.html">Introduction</a></li>
-            <li><a href="../userguide/installation.html">Installation</a></li>
+            <li><a href="../userguide/introduction.html">Getting Started</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Introduction</a>
+                <ul id="running-introduction">
+                    <li><a href="../userguide/gradle_basics.html">Gradle Basics</a></li>
+                    <li><a href="../userguide/command_line_interface.html">Gradle Command-Line Interface</a></li>
+                    <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
+                    <li><a href="../userguide/gradle_init.html">Gradle Init</a></li>
+                    <li><a href="../userguide/settings_file.html">Settings File Basics</a></li>
+                    <li><a href="../userguide/build_file.html">Build File Basics</a></li>
+                    <li><a href="../userguide/tasks.html">Task Basics</a></li>
+                    <li><a href="../userguide/plugins.html">Plugins Basics</a></li>
+                    <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
+                    <li><a href="../userguide/intro_multi_project_builds.html">Configuring Multi-Project Builds</a></li>
+                </ul>
+            </li>
             <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Tutorial</a>
-                <ul id="tutorial">
+                <ul id="running-tutorial">
                     <li><a href="../userguide/part1_gradle_init.html">1. Initializing the Project</a></li>
                     <li><a href="../userguide/part2_gradle_tasks.html">2. Running Tasks</a></li>
                     <li><a href="../userguide/part3_gradle_dep_man.html">3. Understanding Dependencies</a></li>
@@ -133,37 +147,29 @@
             </li>
         </ul>
 
-        <h3 id="running-gradle-builds">Running Gradle Builds</h3>
-        <ul>
-            <li><a href="../userguide/build_environment.html">Configuring the Build Environment</a></li>
-            <li><a href="../userguide/command_line_interface.html">Command-Line Interface</a></li>
-            <li><a href="../userguide/gradle_wrapper.html">Gradle Wrapper</a></li>
-            <li><a href="../userguide/init_scripts.html">Initialization Scripts</a></li>
-            <li><a href="../userguide/intro_multi_project_builds.html">Multi-Project Builds</a></li>
-        </ul>
-
         <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
         <ul>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#introduction" aria-expanded="false" aria-controls="introduction">Introduction</a>
-                <ul id="introduction">
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-introduction" aria-expanded="false" aria-controls="introduction">Introduction</a>
+                <ul id="authoring-introduction">
                     <li><a href="../userguide/directory_layout.html">Gradle Directories</a></li>
-                    <li><a href="../userguide/build_lifecycle.html">Build Lifecycle</a></li>
-                    <li><a href="../userguide/writing_settings_scripts.html">Settings Script Basics</a></li>
-                    <li><a href="../userguide/writing_build_scripts.html">Build Script Basics</a></li>
-                    <li><a href="../userguide/writing_tasks.html">Task Basics</a></li>
-                    <li><a href="../userguide/writing_plugins.html">Plugin Basics</a></li>
+                    <li><a href="../userguide/build_lifecycle.html">Gradle Build Lifecycle</a></li>
+                    <li><a href="../userguide/writing_settings_scripts.html">Writing Settings Scripts</a></li>
+                    <li><a href="../userguide/writing_build_scripts.html">Writing Build Scripts</a></li>
+                    <li><a href="../userguide/writing_tasks.html">Writing Tasks</a></li>
+                    <li><a href="../userguide/writing_plugins.html">Writing Plugins</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Tutorial</a>
-                <ul id="author-tutorial">
+                <ul id="authoring-tutorial">
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics" aria-expanded="false" aria-controls="learning-the-basics">Learning the Basics</a>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics" aria-expanded="false" aria-controls="learning-the-basics">Additional Topics</a>
                 <ul id="learning-the-basics">
                     <li><a href="../userguide/plugins.html">Using Gradle Plugins</a></li>
                     <li><a href="../userguide/working_with_files.html">Working with Files</a></li>
                     <li><a href="../userguide/logging.html">Working with Logging</a></li>
                     <li><a href="../userguide/potential_traps.html">Avoiding Traps</a></li>
+                    <li><a href="../userguide/init_scripts.html">Initialization Scripts</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-multi-project-builds" aria-expanded="false" aria-controls="authoring-multi-project-builds">Structuring Individual Builds</a>

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[command_line_interface]]
-= Command-Line Interface
+= Gradle Command-Line Interface
 
 The command-line interface is the **primary method of interacting with Gradle**.
 
@@ -356,8 +356,6 @@ If you need to be more precise, you can display only the tasks from a specific g
 ----
 $ gradle tasks --group="build setup"
 ----
-
-
 
 [[sec:show_task_details]]
 === Show task usage details
@@ -836,7 +834,7 @@ Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,unt
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories
 Gradle only watches for changes to files inside the project directory.
-Changes to files outside of the project directory will go undetected and not trigger a build.
+Changes to files outside the project directory will go undetected and not trigger a build.
 
 [[sec:build_cycles]]
 ==== Build cycles

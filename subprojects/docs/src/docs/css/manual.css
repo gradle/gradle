@@ -15,9 +15,9 @@
  */
  /* Custom Admonition Blocks */
 :root {
-    --caution-color: #802392;
+    --caution-color: #e40046;
     --caution-on-color: #fff;
-    --important-color: #e40046;
+    --important-color: #802392;
     --important-on-color: #fff;
     --note-color: #2d7dd2;
     --note-on-color: #fff;

@@ -1,0 +1,102 @@
+// Copyright 2023 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_init]]
+= Gradle Init
+
+Gradle comes with a built-in task called `init` that initializes a new Gradle project.
+
+The `init` task uses the built-in `wrapper` task to create a Gradle wrapper script, `gradlew` and `gradle.bat`.
+
+The task must be run in an empty folder.
+
+== The init task
+
+Run the `init` task using the following command in a terminal:
+
+----
+$ gradle init
+----
+
+== Task options
+
+The task prompts the user for information about the project:
+
+----
+$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4]
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Kotlin) [1..2]
+
+Project name (default: project):
+
+Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
+----
+
+There are 4 types of project:
+
+1. *Basic* - a basic project with one settings file and one build file.
+2. *Application* - a C++, Groovy, Java, Kotlin, Scala or Swift project with an `app` folder.
+3. *Library* - a library such as an API with a `lib` folder.
+4. *Gradle Plugin* - a Gradle plugin with a `plugin` folder.
+
+You may be asked about the language your project is based on such as C++, Scala, Java or Kotlin if you choose option 2, 3, or 4 for the type of project.
+
+You may also be asked for your target Java version.
+
+You will be asked if your scripts are written in Groovy or Kotlin.
+Kotlin is the recommended default.
+Your choice determines which DSL you will use to configure Gradle and this can be changed at any time.
+
+If you choose `yes` for `Generate build using new APIs and behavior?`, Gradle will setup the build to use Test Suites.
+
+== Task results
+
+The `init` task generates the new basic project with the following structure:
+
+[source.multi-language-sample,kotlin]
+----
+├── gradle                              // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle                     // <3>
+└── build.gradle                        // <4>
+----
+[source.multi-language-sample,groovy]
+----
+├── gradle                              // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle                     // <3>
+└── build.gradle                        // <4>
+----
+<1> Generated folder for wrapper files
+<2> Gradle wrapper start scripts
+<3> Settings file to define build name and subprojects
+<4> Build script of project

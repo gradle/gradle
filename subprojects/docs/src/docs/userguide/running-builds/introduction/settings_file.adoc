@@ -1,0 +1,213 @@
+// Copyright 2023 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[settings_file_basics]]
+= Settings File Basics
+
+The settings file is the entry point of every Gradle project.
+
+The default name of this file is either settings.gradle( for Groovy) or settings.gradle.kts( for Kotlin). The primary purpose of the settings file is to register sub-projects, which will be part of the build process. We can register sub-projects in the settings file using the include method.
+
+How does the Gradle know that the current build process is part of a single or multi-project build?
+
+As we know, the Gradle supports both single and multi-project build, To determine the type of current build process, it searches for the settings file first in the current directory and then in its parent hierarchy and follow the below steps to determine the type of build:
+
+If both parent and current directory don’t contain settings file, then the Gradle will consider the build as a single project build.
+If a current directory has the settings file, then the Gradle will consider it as multi-project build and considers the current directory as a parent(root) project. Then it reads settings file to determine the sub-projects which need to include in the build process.
+If a current directory doesn’t contain the settings file, but if settings file is in the parent directory, then the Gradle will consider it as multi-project build. Then it checks whether or not the current subdirectory is registered as a subproject in the root project’s settings file. If the current project is part of the root project, then it is executed as a part of the multi-project build, otherwise, as a single project build.
+
+Things to keep in mind about settings file are:
+
+We have access to gradle and rootProject instances in this file.
+We have access to properties, both declared in gradle.properties, and provided from command line.
+
+[[sec:settings_script]]
+== Settings scripts
+
+The settings script is either a `settings.gradle` file when written in Groovy or a `settings.gradle.kts` file when written in Kotlin.
+
+== Settings script structure
+
+Let's take a look at an example and break it down:
+
+====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+pluginManagement {                                          // <1>
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
+    includeBuild("../build-logic")
+}
+
+plugins {                                                   // <2>
+    id("org.gradle.toolchains.fake") version "0.6.0"
+}
+
+rootProject.name = "root-project"                           // <3>
+
+dependencyResolutionManagement {                            // <4>
+    repositories {
+        mavenCentral()
+    }
+    includeBuild("../other-project")
+}
+
+include("sub-project-a")                                    // <5>
+include("sub-project-b")
+include("sub-project-c")
+----
+<1> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-settings-script-api/plugin-management.html[`pluginManagement()`] method from `KotlinSettingsScript` to locate plugins.
+<2> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/plugins.html[`plugins()`] method from `KotlinSettingsScript` to apply plugins.
+<3> There is always a root project included in a build.
+<4> Add components to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.dependencyResolutionManagement()`] method.
+<5> Add projects to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.include()`] method.
+=====
+
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+pluginManagement {                                          // <1>
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
+    includeBuild('../build-logic')
+}
+
+plugins {                                                   // <2>
+    id 'org.gradle.toolchains.fake' version '0.6.0'
+}
+
+rootProject.name = 'root-project'                           // <3>
+
+dependencyResolutionManagement {                            // <4>
+    repositories {
+        mavenCentral()
+    }
+    includeBuild('../other-project')
+}
+
+include('sub-project-a')                                    // <5>
+include('sub-project-b')
+include('sub-project-c')
+----
+<1> Uses the link:{javadocPath}/org/gradle/api/initialization/Settings.html#pluginManagement-org.gradle.api.Action-[`pluginManagement`] block to locate plugins.
+<2> Uses the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:plugins[`plugins()`] method to apply plugins.
+<3> There is always a root project included in a build.
+<4> Add components to the build using the link:{javadocPath}/org/gradle/api/initialization/Settings.html#dependencyResolutionManagement-org.gradle.api.Action-[`dependencyResolutionManagement`] block.
+<5> Add projects to the build using the link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[`include()`] method.
+=====
+====
+
+=== Define the name
+
+The settings file defines your project name using the `rootProject.name` property:
+
+[source]
+----
+rootProject.name = "root-project" // settings.rootProject.name = "root-project"
+----
+
+There is only one root per project.
+
+=== Define dependency locations
+
+The settings file can optionally define the locations of components your project relies on using `repositories` such as binary repositories like Maven Central and/or other Gradle builds using `includeBuild`:
+
+[source]
+----
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    includeBuild("../other-project")
+}
+----
+
+=== Define shared plugins
+
+The settings file can optionally define the plugins your project uses with `pluginManagement` including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
+
+[source]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
+    includeBuild("../my-build-logic")
+}
+----
+
+=== Define project structure
+
+The settings file defines the structure of the project by adding all the subprojects using the `include` statement:
+
+[source]
+----
+include("app")
+include("business-logic")
+include("data-model")
+----
+
+=== Define shared plugins
+
+The settings file can optionally define the plugins which are used as shared configuration among several builds:
+
+[source]
+----
+plugins {
+    id("org.gradle.toolchains.fake") version "0.6.0"
+}
+----
+
+=== Additional settings
+
+There are many more properties and methods on the `Settings` object which you can use to configure your build.
+
+It's important to remember that while many gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
+
+[source]
+----
+include("app")
+----
+
+Is actually:
+
+[source]
+----
+settings.include("app")
+----
+
+Additionally, the full power of the Groovy and Kotlin languages is available to you.
+
+For example, instead of using `include` many times to add subprojects, you can iterate over the list of directories in the project root folder and include them automatically:
+
+[source]
+----
+// include("app")
+// include("business-logic")
+// include("data-model")
+
+rootDir.listFiles().filter { it.isDirectory && !it.isHidden }.forEach {
+    include{it.name}
+}
+----
