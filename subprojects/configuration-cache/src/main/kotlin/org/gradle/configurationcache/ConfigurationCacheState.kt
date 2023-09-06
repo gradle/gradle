@@ -203,9 +203,7 @@ class ConfigurationCacheState(
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
 
-            graphBuilder?.run {
-                invoke(builder, rootBuildState())
-            }
+            graphBuilder?.invoke(builder, rootBuildState())
 
             for (build in builds) {
                 if (build is BuildWithWork) {
