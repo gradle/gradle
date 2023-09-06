@@ -21,21 +21,21 @@ import org.gradle.test.fixtures.VersionCoverage
 
 class ScalaCoverage {
 
-    static final String LATEST_SCALA_2 = "2.13.11"
-    private static final Set<String> SCALA_2 = [
+    static final List<String> SCALA_2 = [
         "2.11.12",
         "2.12.18",
-    ] + [LATEST_SCALA_2]
-    private static final String LATEST_SCALA_3 = "3.3.0"
-    private static final Set<String> SCALA_3 = [
+        "2.13.11",
+    ]
+    static final List<String> SCALA_3 = [
         "3.1.3",
         "3.2.2",
-    ] + [LATEST_SCALA_3]
+        "3.3.0",
+    ]
 
 
     static final Set<String> SUPPORTED_BY_JDK = scalaVersionsSupportedByJdk(JavaVersion.current())
     static final Set<String> LATEST_IN_MAJOR = SUPPORTED_BY_JDK.findAll {
-        it == LATEST_SCALA_2 || it == LATEST_SCALA_3
+        it == SCALA_2.last() || it == SCALA_3.last()
     }
 
     static Set<String> scalaVersionsSupportedByJdk(JavaVersion javaVersion) {
