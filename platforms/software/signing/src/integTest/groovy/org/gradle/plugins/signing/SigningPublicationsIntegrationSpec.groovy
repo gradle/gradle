@@ -845,4 +845,78 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/26091")
+    def "PublishToMaven task should depend on Sign task automatically"() {
+        given:
+        buildFile.delete()
+        buildKotlinFile << """
+            import org.gradle.jvm.tasks.Jar
+
+            plugins {
+                kotlin("multiplatform") version "1.9.0"
+                id("maven-publish")
+                id("signing")
+            }
+
+            kotlin {
+                jvm()
+                js { browser() }
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            group = "com.example"
+            version = "0.0.1"
+
+            val javadocJar by tasks.registering(Jar::class) {
+                archiveClassifier.set("javadoc")
+            }
+
+            publishing {
+                publications.withType<MavenPublication> {
+                    artifact(javadocJar)
+                }
+            }
+
+            signing {
+                useInMemoryPgpKeys(project.property("secretKey").toString(), project.property("password").toString())
+                sign(publishing.publications)
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars([
+            ORG_GRADLE_PROJECT_secretKey: secretKeyWithPassword,
+            ORG_GRADLE_PROJECT_password: password
+        ])
+        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+        run("publishToMavenLocal")
+
+        then:
+        executedAndNotSkipped(":publishToMavenLocal")
+    }
+
+    final secretKeyWithPassword = '''\
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+
+lIYEZO77gRYJKwYBBAHaRw8BAQdAySQRRd7zbcD87c6A3UBPS7nN0GOI04YUDFKw
+aJKLNRP+BwMCa2MOh3biUtL7Qr85Ktbf06cnuwlypQllufF+C6DQYgXAKSrj4UI2
+gGZFTJHQsTTo+uYR3afcUKkNjyjlZCmR4OkApvhTbGk31nODWLBr5LQfd3V5YW5n
+bmp1IDx3dXlhbmduanVAZ21haWwuY29tPoiZBBMWCgBBFiEE3toNVUf+FmV+rbll
+9yB7ODcqTUoFAmTu+4ECGwMFCQWjmoAFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcC
+F4AACgkQ9yB7ODcqTUpR2gEAtM3oGJgmAnto5gQx6j4DDJZ+FqY54thbdzUvTwKr
+AUMA/RwzW8n2nZvskZQTnjqo0GuY24R5hPNB0BJUw9AotosGnIsEZO77gRIKKwYB
+BAGXVQEFAQEHQMG5+z/5CPVo0ZzrWscNZry83HxS9YcwjIeaC1qeVV9gAwEIB/4H
+AwJOllhmH/XlXvuW7tjaUWgNRCi9IVc5yfQy9+xrcdfxJyuQhzHuYVO8UhzF4mFL
+sn9fgI8tlM7xjBKtqIoj7xbO7pEslZ0EW8pPFUrxuxduiH4EGBYKACYWIQTe2g1V
+R/4WZX6tuWX3IHs4NypNSgUCZO77gQIbDAUJBaOagAAKCRD3IHs4NypNSpjiAQDF
+Kvfr5DNFvzaKoLHANIE+PiRn8G1I4m+cJEmj6j06dQD/fH99P2wC+gEEDYCef5/m
++vVwRLO3W4kx3XlXEw8mYgI=
+=2F+P
+-----END PGP PRIVATE KEY BLOCK-----
+'''
+    final password = 'bar'
 }

@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -175,6 +176,12 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      * @since 4.8
      */
     public void sign(Publication... publications) {
+        getProject().getTasks().withType(AbstractPublishToMaven.class).forEach(
+            abstractPublishToMaven -> {
+                abstractPublishToMaven.dependsOn(this);
+            }
+        );
+
         for (Publication publication : publications) {
             PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
             dependsOn((Callable<Set<? extends PublicationArtifact>>) () -> {
