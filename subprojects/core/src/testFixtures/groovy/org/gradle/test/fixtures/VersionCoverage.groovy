@@ -65,6 +65,6 @@ class VersionCoverage {
     }
 
     static Set<String> filterVersions(Collection<String> versionsToFilter, Range<VersionNumber> range) {
-        versionsToFilter.stream().map(VersionNumber::parse).filter(range).collect(ImmutableSet.toImmutableSet())
+        versionsToFilter.stream().filter { range.contains(VersionNumber.parse(it)) }.collect(ImmutableSet.toImmutableSet())
     }
 }

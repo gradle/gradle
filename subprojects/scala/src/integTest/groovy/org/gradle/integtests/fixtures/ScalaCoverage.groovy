@@ -43,14 +43,21 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala2VersionsSupportedByJdk(JavaVersion javaVersion) {
+        // There are finer grained version requirements, but we don't need to worry about them here, as we use latest patch versions
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.11")
+            // All latest patches of 2.13 work on Java 9+
+            // 2.12 in theory supports it, but doesn't actually take it as a -target so we can't use it
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.0")
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
-            return VersionCoverage.versionsBetweenExclusive(SCALA_2, "2.11.12", "2.12.0") +
-                VersionCoverage.versionsAtMost(SCALA_2, "2.12.18")
+            // Java 8 support not dropped yet
+            return SCALA_2
         }
-        return SCALA_2
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_6)) {
+            // 2.12+ requires Java 8
+            return VersionCoverage.versionsBetweenExclusive(SCALA_2, "2.11.0", "2.12.0")
+        }
+        throw new IllegalArgumentException("Unsupported Java version for Scala 2: " + javaVersion)
     }
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
@@ -63,7 +70,10 @@ class ScalaCoverage {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.1.3")
         }
-        return SCALA_3
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_8)) {
+            return SCALA_3
+        }
+        throw new IllegalArgumentException("Unsupported Java version for Scala 3: " + javaVersion)
     }
 
 }
