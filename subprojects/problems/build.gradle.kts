@@ -32,6 +32,9 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
 
+    implementation(libs.guava)
+    implementation(libs.inject)
+
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))
     integTestDistributionRuntimeOnly(project(":distributions-core"))

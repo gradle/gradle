@@ -32,7 +32,7 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;

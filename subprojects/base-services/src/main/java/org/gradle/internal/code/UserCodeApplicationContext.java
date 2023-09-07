@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+package org.gradle.internal.code;
 
 import org.gradle.api.Action;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,10 +31,10 @@ public interface UserCodeApplicationContext {
     /**
      * Applies some user code, assigning an ID for this particular application.
      *
-     * @param displayName A display name for the user code.
+     * @param source The source of the code being applied.
      * @param action The action to run to apply the user code.
      */
-    void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
+    void apply(UserCodeSource source, Action<? super UserCodeApplicationId> action);
 
     /**
      * Runs some Gradle runtime code.
@@ -61,9 +60,9 @@ public interface UserCodeApplicationContext {
         UserCodeApplicationId getId();
 
         /**
-         * Returns the display name of the user code.
+         * Returns details describing the source of the user code.
          */
-        DisplayName getDisplayName();
+        UserCodeSource getSource();
 
         /**
          * Returns an action that represents some deferred execution of the user code. While the returned action is running, the details of this application are restored.

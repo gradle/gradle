@@ -27,7 +27,7 @@ import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;

@@ -20,7 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.Factory
-import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter

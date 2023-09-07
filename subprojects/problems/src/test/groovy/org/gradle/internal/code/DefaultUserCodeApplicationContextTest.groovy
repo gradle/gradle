@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal
+package org.gradle.internal.code
 
 import org.gradle.api.Action
-import org.gradle.internal.Describables
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -26,19 +25,19 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     def context = new DefaultUserCodeApplicationContext()
 
     def "assigns id and associates with current thread"() {
-        def displayName = Describables.of("thing")
+        def source = Stub(UserCodeSource)
         def action = Mock(Action)
 
         expect:
         context.current() == null
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             assert context.current().id == id
-            assert context.current().displayName == displayName
+            assert context.current().source == source
         }
 
         and:
@@ -46,26 +45,26 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can nest application"() {
-        def displayName = Describables.of("thing 1")
-        def displayName2 = Describables.of("thing 2")
+        def source = Stub(UserCodeSource)
+        def source2 = Stub(UserCodeSource)
         def action = Mock(Action)
         def action2 = Mock(Action)
         def id1
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             id1 = id
-            context.apply(displayName2, action2)
+            context.apply(source2, action2)
             assert context.current().id == id
-            assert context.current().displayName == displayName
+            assert context.current().source == source
         }
         1 * action2.execute(_) >> { UserCodeApplicationId id ->
             assert id != id1
             assert context.current().id == id
-            assert context.current().displayName == displayName2
+            assert context.current().source == source2
         }
 
         and:
@@ -73,20 +72,20 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can nest Gradle code inside application"() {
-        def displayName = Describables.of("thing 1")
+        def source = Stub(UserCodeSource)
         def action = Mock(Action)
         def action2 = Mock(Runnable)
         def id1
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             id1 = id
             context.gradleRuntime(action2)
             assert context.current().id == id
-            assert context.current().displayName == displayName
+            assert context.current().source == source
         }
         1 * action2.run() >> {
             assert context.current() == null
@@ -97,34 +96,34 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can run actions registered by previous application"() {
-        def displayName = Describables.of("thing 1")
-        def displayName2 = Describables.of("thing 2")
+        def source = Stub(UserCodeSource)
+        def source2 = Stub(UserCodeSource)
         def action = Mock(Action)
         def runnable = Mock(Runnable)
         def action2 = Mock(Action)
-        def application1
+        UserCodeApplicationContext.Application application1
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             application1 = context.current()
-            context.apply(displayName2, action2)
+            context.apply(source2, action2)
         }
         1 * action2.execute(_) >> { UserCodeApplicationId id ->
             assert id != application1.id
             assert context.current().id == id
-            assert context.current().displayName == displayName2
+            assert context.current().source == source2
 
             application1.reapply(runnable)
 
             assert context.current().id == id
-            assert context.current().displayName == displayName2
+            assert context.current().source == source2
         }
         1 * runnable.run() >> {
             assert context.current().id == application1.id
-            assert context.current().displayName == displayName
+            assert context.current().source == source
         }
 
         and:
@@ -132,20 +131,20 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can run supplier registered by previous application"() {
-        def displayName = Describables.of("thing 1")
-        def displayName2 = Describables.of("thing 2")
+        def source = Stub(UserCodeSource)
+        def source2 = Stub(UserCodeSource)
         def action = Mock(Action)
         def supplier = Mock(Supplier)
         def action2 = Mock(Action)
-        def application1
+        UserCodeApplicationContext.Application application1
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
             application1 = context.current()
-            context.apply(displayName2, action2)
+            context.apply(source2, action2)
         }
         1 * action2.execute(_) >> { UserCodeApplicationId id ->
             def result = application1.reapply(supplier)
@@ -153,7 +152,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         }
         1 * supplier.get() >> {
             assert context.current().id == application1.id
-            assert context.current().displayName == displayName
+            assert context.current().source == source
             return "result"
         }
 
@@ -162,13 +161,13 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can retain application instance and later run actions against it"() {
-        def displayName = Describables.of("thing 1")
+        def source = Stub(UserCodeSource)
         def action = Mock(Action)
         def supplier = Mock(Supplier)
-        def application1
+        UserCodeApplicationContext.Application application1
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
@@ -189,14 +188,14 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "can create actions for current application that can be run later"() {
-        def displayName = Describables.of("thing 1")
+        def source = Stub(UserCodeSource)
         def action = Mock(Action)
         def deferred = Mock(Action)
         def id1
         def decorated
 
         when:
-        context.apply(displayName, action)
+        context.apply(source, action)
 
         then:
         1 * action.execute(_) >> { UserCodeApplicationId id ->
@@ -214,7 +213,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         then:
         1 * deferred.execute("arg") >> {
             context.current().id == id1
-            context.current().displayName == displayName
+            context.current().source == source
         }
 
         and:
