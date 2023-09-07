@@ -27,6 +27,18 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 
 import javax.annotation.Nullable;
 
+/**
+ * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.
+ * <p>
+ * The adapter is created on check-in in {@link DefaultGradleEnterprisePluginCheckInService} via {@link DefaultGradleEnterprisePluginAdapterFactory}.
+ * Then the adapter is stored on the {@link org.gradle.internal.enterprise.core.GradleEnterprisePluginManager}.
+ * <p>
+ * There is some custom logic to store the adapter from the manager in the configuration cache and restore it afterward.
+ * The pluginServices need to be recreated when loading from the configuration cache.
+ * <p>
+ * This must not be a service, since the configuration cache will not serialize services with state to the configuration cache.
+ * Instead, it would re-use the newly registered services in the new build that causes the loss of pluginServiceFactory.
+ */
 public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePluginAdapter {
 
     private final GradleEnterprisePluginServiceFactory pluginServiceFactory;
