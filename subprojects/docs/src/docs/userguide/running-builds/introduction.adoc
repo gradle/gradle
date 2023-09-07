@@ -25,25 +25,28 @@ You just need to make sure your system <<installation#sec:prerequisites,satisfie
 
 Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately when only working within that IDE.
 
-To create a new build or add a Wrapper to an existing build, you will need to install Gradle <<installation.adoc#installation,according to these instructions>>.
-
 If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
 
-[[getting_started]]
-== Getting Started with Gradle
+[[gradle_intro]]
+== Introduction to Gradle
 
 The introduction section will give you an overview of Gradle:
+
+[sidebar]
+_Gradle level_: **Beginner** +
+_Reading time_: **25 minutes**
 
 <<gradle_basics.adoc#gradle,Part 1.>> Gradle Basics +
 <<command_line_interface.adoc#command_line_interface,Part 2.>> Gradle's Command Line Interface +
 <<gradle_wrapper.adoc#gradle_wrapper,Part 3.>> Gradle's Wrapper +
-<<gradle_init.adoc#gradle_init,Part 4.>> Gradle Init +
-<<settings_file_basics.adoc#settings_file_basics,Part 5.>> Settings File +
-<<build_file_basics.adoc#build_file_basics,Part 6.>> Build Files +
-<<task_basics.adoc#task_basics,Part 7.>> Tasks +
-<<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
-<<build_environment.adoc#build_environment,Part 9.>> Configuring the Build Environment +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 10.>> Configuring Multi-Project Builds +
+<<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
+<<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
+<<task_basics.adoc#task_basics,Part 6.>> Tasks +
+<<plugin_basics.adoc#plugin_basics,Part 7.>> Plugins +
+<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 8.>> Multi-Project Builds +
+
+[[getting_started]]
+== Getting Started Tutorial
 
 The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App. No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
 

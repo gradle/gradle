@@ -17,10 +17,83 @@
 
 Plugins are used to extend build capability and customize Gradle.
 
+In fact, the majority of features, like the ability to compile Java code, are added by _plugins_.
+
 Using plugins is the **primary mechanism for organizing build logic**.
 
-Plugin authors can either keep their plugins private or distribute them to the public. As such, plugins are distributed three ways:
+Plugin are essentially a set of all useful tasks, such as compiling tasks, setting domain objects, setting up source files, etc.
+
+Applying a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
+
+== Plugin distribution
+
+Plugins are available three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Custom plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
+
+[[sec:types_of_plugins]]
+== Types of plugins
+
+There are two general types of plugins in Gradle, _binary_ plugins and _script_ plugins.
+
+Binary plugins can reside within a build script, within the project hierarchy, or externally in a plugin jar.
+
+Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
+They are typically used within a build, although they can be externalized and accessed from a remote location.
+
+A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
+
+[[sec:using_plugins]]
+== Using plugins
+
+To use the build logic encapsulated in a plugin, Gradle needs to perform two steps.
+
+First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the project.
+
+_Resolving_ a plugin means finding the correct version of the jar which contains a given plugin and adding it to the project.
+
+_Applying_ a plugin means executing the plugin on the project.
+
+[[sec:binary_plugins]]
+== Binary plugins
+
+You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins.
+
+[source]
+----
+plugins {
+    application
+    java // Can also be writen id("java")
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+}
+----
+
+Core Gradle plugins are special in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
+
+All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`).
+
+[source]
+----
+plugins {
+    id «plugin id» version «plugin version» [apply «false»]
+}
+----
+
+== Community plugins
+
+Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities.
+
+The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+
+Let's say you want to automatially generate unit tests.
+You can search `generate unit test` in the Gradle Plugin Portal.
+There you will find the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply:
+
+[source]
+----
+plugins {
+    id("org.utbot.gradle.plugin") version "1.0.0-alpha"
+}
+----

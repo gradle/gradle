@@ -22,4 +22,138 @@ This might be compiling some classes, creating a JAR, generating Javadoc, or pub
 
 You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
 
-As part of the build process, Gradle finds all the tasks in your project coded in plugins or build scripts.
+== Available tasks
+
+You can list all the available tasks in the project by running the following command in the terminal:
+
+[source]
+----
+$ ./gradlew tasks
+----
+
+[source]
+----
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+
+...
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+...
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+
+...
+----
+
+[[sec:hello_world]]
+== Hello world task
+
+Let's take a look at a simple "Hello World" task in a build script:
+
+====
+include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+====
+
+You can execute the build script with `./gradlew -q hello`:
+
+====
+----
+$ ./gradlew -q hello
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+----
+====
+
+[TIP]
+====
+The `-q` option suppresses Gradle's log messages, so that only the output of the tasks is shown.
+====
+
+In the example, the build script defines a single task, called `hello`, and adds an action to it.
+
+When you run `./gradlew hello`, Gradle executes the `hello` task, which in turn executes the action you've provided.
+The action is simply a block containing some code to execute: `println("Hello world!")`.
+
+== Task types
+
+There are two types of tasks:
+
+1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
+2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
+
+== Built-in tasks
+
+Gradle provides many _built-in_ tasks that developers can use to enhance build scripts.
+
+This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
+
+[source]
+----
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
+}
+----
+
+This task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
+
+Popular built-in tasks include:
+
+- **Copy** - `Copy` is useful to copy files around.
+- **Delete** -  `Delete` is useful to delete files and directories.
+- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
+- **Zip** - `Zip` is useful to bundle files.
+
+Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
+
+== Dependencies between tasks
+Many times, a task requires another task to run first.
+
+If task B uses the output of task A, then task A must complete before task B begins.
+
+- A task may declare its dependencies explicitly.
+- A task may depend on other tasks implicitly.
+
+Here is an example of explicit task dependency:
+[source]
+----
+tasks.register("hello") {
+    println('Hello!')
+}
+
+tasks.register("greet") {
+    println('How are you?')
+    dependsOn("hello")
+}
+----
+
+In this case, `hello` prints before `greet`. The output is `Hello! How are you?`.
+
+Implicit dependencies are determined based on task inputs and outputs.
+
+In this example, the input of the `doSomethingWithJar` task is the output of the `jar` task:
+
+[source]
+----
+tasks.register("doSomethingWithJar") {
+    inputFile.from(jar)
+}
+----
+
+Thus, `jar` should be executed before `doSomethingWithJar`.
+
+Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
+If there is no dependency between tasks, Gradle enables users to request a specific execution order.

@@ -23,59 +23,74 @@ A Gradle project will look similar to the following:
 
 [source]
 ----
-.
+project
 ├── gradle                              // <1>
+│   ├── libs.versions.toml              // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew                             // <2>
-├── gradlew.bat                         // <2>
-├── settings.gradle(.kts)               // <3>
+├── gradlew                             // <3>
+├── gradlew.bat                         // <3>
+├── settings.gradle(.kts)               // <4>
 ├── subproject-a
-│   ├── build.gradle(.kts)              // <4>
-│   └── src                             // <5>
+│   ├── build.gradle(.kts)              // <5>
+│   └── src                             // <6>
 └── subproject-b
-    ├── build.gradle(.kts)              // <4>
-    └── logic                           // <5>
+    ├── build.gradle(.kts)              // <5>
+    └── logic                           // <6>
 ----
 <1> Gradle wrapper files
-<2> Gradle wrapper scripts
-<3> Gradle settings file to define a root project name and subprojects
-<4> Gradle build scripts of the two subprojects - `subproject-a` and `subproject-b`
-<5> Source code and/or additional files for the projects
+<2> Gradle version catalog for dependency management
+<3> Gradle wrapper scripts
+<4> Gradle settings file to define a root project name and subprojects
+<5> Gradle build scripts of the two subprojects - `subproject-a` and `subproject-b`
+<6> Source code and/or additional files for the projects
 
 == Basic Gradle concepts
 
 Gradle builds Android, Groovy, Scala, Kotlin, or Java (JVM) projects from information contained in build scripts and a settings file.
 
+image::gradle-basic-concept.png[]
+
 === Projects
 
-A Gradle project includes *one root project* and *any number of subprojects* detailed in the settings file - `settings.gradle(.kts)`.
+A Gradle project includes *one root project* and *any number of subprojects* detailed in the settings file, `settings.gradle` or `settings.gradle.kts`.
 
 === Build Scripts
 
-*Each project contains a build script*.
+*Each (sub)project contains a build script*.
 A build script is either a `build.gradle` or `build.gradle.kts` file and details build steps to Gradle using the Groovy or Kotlin DSL respectively.
 
 === Tasks
 
-*Each project contains one or more tasks.*
+*Each (sub)project contains one or more tasks.*
 Tasks are either defined inside a build script or a plugin and detail actions for Gradle to take.
 
 === Plugins
 
-Plugins are used to extend Gradle's capability and the **primary mechanism for organizing build logic**.
+Plugins are used to extend Gradle's capability and are essentially a *bundle of useful tasks*.
 
 == Invoking Gradle
 
 === Command line
 
-Gradle can be invoked in the command line once installed.
+Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>.
 For example:
 
 [source]
 ----
 $ gradle build
+----
+
+=== Gradle Wrapper
+
+The Wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*.
+It is found in the project root directory as a `gradlew` or `gradle.bat` file:
+
+[source]
+----
+$ gradlew build     // Linux or OSX
+$ gradle.bat build  // Windows
 ----
 
 === IDE
@@ -85,16 +100,3 @@ Gradle is built-in to many IDEs including Android Studio, IntelliJ IDEA, Visual 
 Gradle is automatically invoked when you build, clean, or run your app in the IDE.
 
 It is recommended that you consult the manual for the IDE of your choice to learn more about how Gradle is used.
-
-=== Gradle Wrapper
-
-The Wrapper is a script that invokes a declared version of Gradle.
-It is found in the project root directory as a `gradlew` or `gradle.bat` file:
-
-[source]
-----
-$ ./gradlew build   // Linux or OSX
-$ gradle.bat build  // Windows
-----
-
-*The Wrapper the recommended way to execute a Gradle build*.

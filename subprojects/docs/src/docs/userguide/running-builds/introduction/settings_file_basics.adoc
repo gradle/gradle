@@ -17,27 +17,23 @@
 
 The settings file is the entry point of every Gradle project.
 
-The default name of this file is either settings.gradle( for Groovy) or settings.gradle.kts( for Kotlin). The primary purpose of the settings file is to register sub-projects, which will be part of the build process. We can register sub-projects in the settings file using the include method.
+The settings file has two main purposes:
 
-How does the Gradle know that the current build process is part of a single or multi-project build?
+1. Register subprojects which will be part of the build process.
+2. Add libraries to your build.
 
-As we know, the Gradle supports both single and multi-project build, To determine the type of current build process, it searches for the settings file first in the current directory and then in its parent hierarchy and follow the below steps to determine the type of build:
+Gradle supports both single and multi-project builds.
 
-If both parent and current directory don’t contain settings file, then the Gradle will consider the build as a single project build.
-If a current directory has the settings file, then the Gradle will consider it as multi-project build and considers the current directory as a parent(root) project. Then it reads settings file to determine the sub-projects which need to include in the build process.
-If a current directory doesn’t contain the settings file, but if settings file is in the parent directory, then the Gradle will consider it as multi-project build. Then it checks whether or not the current subdirectory is registered as a subproject in the root project’s settings file. If the current project is part of the root project, then it is executed as a part of the multi-project build, otherwise, as a single project build.
+For single project builds, the settings file is optional.
 
-Things to keep in mind about settings file are:
-
-We have access to gradle and rootProject instances in this file.
-We have access to properties, both declared in gradle.properties, and provided from command line.
+For multi project builds, the settings file is mandatory and depicts all subprojects.
 
 [[sec:settings_script]]
 == Settings scripts
 
 The settings script is either a `settings.gradle` file when written in Groovy or a `settings.gradle.kts` file when written in Kotlin.
 
-== Settings script structure
+The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
 Let's take a look at an example and break it down:
 
@@ -117,9 +113,9 @@ include('sub-project-c')
 =====
 ====
 
-=== Define the name
+=== Define the project name
 
-The settings file defines your project name using the `rootProject.name` property:
+The settings file defines your project name:
 
 [source]
 ----
@@ -130,7 +126,7 @@ There is only one root per project.
 
 === Define dependency locations
 
-The settings file can optionally define the locations of components your project relies on using `repositories` such as binary repositories like Maven Central and/or other Gradle builds using `includeBuild`:
+The settings file can optionally define the locations of components your project relies on such as binary repositories like Maven Central and/or other Gradle builds:
 
 [source]
 ----
@@ -144,7 +140,7 @@ dependencyResolutionManagement {
 
 === Define shared plugins
 
-The settings file can optionally define the plugins your project uses with `pluginManagement` including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
+The settings file can optionally define the plugins your project uses including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
 
 [source]
 ----
@@ -159,7 +155,7 @@ pluginManagement {
 
 === Define project structure
 
-The settings file defines the structure of the project by adding all the subprojects using the `include` statement:
+The settings file defines the structure of the project by including the subprojects:
 
 [source]
 ----
@@ -170,44 +166,11 @@ include("data-model")
 
 === Define shared plugins
 
-The settings file can optionally define the plugins which are used as shared configuration among several builds:
+The settings file can optionally define the plugins which are used as shared configuration in the build:
 
 [source]
 ----
 plugins {
     id("org.gradle.toolchains.fake") version "0.6.0"
-}
-----
-
-=== Additional settings
-
-There are many more properties and methods on the `Settings` object which you can use to configure your build.
-
-It's important to remember that while many gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
-
-[source]
-----
-include("app")
-----
-
-Is actually:
-
-[source]
-----
-settings.include("app")
-----
-
-Additionally, the full power of the Groovy and Kotlin languages is available to you.
-
-For example, instead of using `include` many times to add subprojects, you can iterate over the list of directories in the project root folder and include them automatically:
-
-[source]
-----
-// include("app")
-// include("business-logic")
-// include("data-model")
-
-rootDir.listFiles().filter { it.isDirectory && !it.isHidden }.forEach {
-    include{it.name}
 }
 ----
