@@ -16,8 +16,8 @@
 
 package gradlebuild.instrumentation.tasks
 
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.DIRECT_SUPER_TYPES_FILE
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTED_CLASSES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.DIRECT_SUPER_TYPES_FILE
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTED_CLASSES_FILE
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -27,45 +27,47 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.hash.Hashing
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
 
 
+/**
+ * Merges all instrumented super types from multiple projects in to one file.
+ */
 @CacheableTask
-abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
+abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val instrumentationMetadataDirs: ConfigurableFileCollection
 
+    /**
+     * Output with all instrumented super types, merged from multiple projects in to one file.
+     */
     @get:OutputFile
     abstract val instrumentedSuperTypes: RegularFileProperty
 
-    @get:OutputFile
-    abstract val instrumentedSuperTypesHash: RegularFileProperty
-
     @TaskAction
-    fun run() {
+    fun mergeInstrumentedSuperTypes() {
         val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
             instrumentedSuperTypes.asFile.get().toEmptyFile()
-            instrumentedSuperTypesHash.asFile.get().toEmptyFile()
-        } else {
-            // Merge and find all transitive super types
-            val superTypes = mergeSuperTypes()
-            // Keep only instrumented super types as we don't need to others for instrumentation
-            val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
-            writeOutput(onlyInstrumentedSuperTypes)
+            return
         }
+
+        // Merge and find all transitive super types
+        val superTypes = mergeSuperTypes()
+        // Keep only instrumented super types as we don't need to others for instrumentation
+        val onlyInstrumentedSuperTypes = keepOnlyInstrumentedSuperTypes(superTypes, instrumentedClasses)
+        writeSuperTypes(onlyInstrumentedSuperTypes)
     }
 
     /**
      * Finds all instrumented classes from `instrumented-classes.txt` file.
      * That file is created by instrumentation annotation processor and artifact transform.
-     * See :internal-instrumentation-processor project and [gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform].
+     * See :internal-instrumentation-processor project and [gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform].
      */
     private
     fun findInstrumentedClasses(): Set<String> {
@@ -122,25 +124,17 @@ abstract class FindInstrumentedSuperTypesTask : DefaultTask() {
     }
 
     private
-    fun writeOutput(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
+    fun writeSuperTypes(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
         val outputFile = instrumentedSuperTypes.asFile.get()
-        val outputHashFile = instrumentedSuperTypesHash.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
             // If there is no instrumented types just create an empty file
             outputFile.toEmptyFile()
-            outputHashFile.toEmptyFile()
         } else {
-            val properties = Properties()
-            onlyInstrumentedSuperTypes.forEach { (className, superTypes) ->
-                properties.setProperty(className, superTypes.joinToString(","))
+            outputFile.writer().use {
+                onlyInstrumentedSuperTypes.toSortedMap().forEach { (className, superTypes) ->
+                    it.write("$className=${superTypes.sorted().joinToString(",")}\n")
+                }
             }
-            outputFile.outputStream().use { properties.store(it, null) }
-
-            val hasher = Hashing.defaultFunction().newHasher()
-            onlyInstrumentedSuperTypes.entries
-                .sortedBy { it.key }
-                .forEach { hasher.putString(it.key + "=" + it.value.sorted().joinToString(",")) }
-            outputHashFile.outputStream().use { it.write(hasher.hash().toByteArray()) }
         }
     }
 

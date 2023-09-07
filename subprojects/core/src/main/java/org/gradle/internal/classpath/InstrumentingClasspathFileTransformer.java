@@ -123,7 +123,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
-        gradleCoreInstrumentingTypeRegistry.getInstrumentedFileHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
+        gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();

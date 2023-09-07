@@ -23,6 +23,9 @@ import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_METADATA_EXTENSION
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
 import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
@@ -137,11 +140,12 @@ val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
 }
 
 // At runtime, Gradle expects to have instrumentation metadata
-val instrumentationMetadataTask = tasks.named("findInstrumentedSuperTypes")
-extensions.configure<InstrumentationMetadataExtension>("instrumentationMetadata") {
+val instrumentedSuperTypesMergeTask = tasks.named(INSTRUMENTED_SUPER_TYPES_MERGE_TASK)
+val upgradedPropertiesMergeTask = tasks.named(UPGRADED_PROPERTIES_MERGE_TASK)
+extensions.configure<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXTENSION) {
     classpathToInspect = runtimeClasspath.toInstrumentationMetadataView()
     superTypesOutputFile = generatedPropertiesFileFor("instrumented-super-types")
-    superTypesHashFile = generatedTxtFileFor("instrumented-super-types-hash")
+    upgradedPropertiesFile = generatedJsonFileFor("upgraded-properties")
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
@@ -162,7 +166,8 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(pluginsManifest)
     from(implementationPluginsManifest)
     from(emptyClasspathManifest)
-    from(instrumentationMetadataTask)
+    from(instrumentedSuperTypesMergeTask)
+    from(upgradedPropertiesMergeTask)
 }
 
 // A standard Java runtime variant for embedded integration testing
@@ -238,6 +243,9 @@ fun generatedTxtFileFor(name: String) =
 
 fun generatedPropertiesFileFor(name: String) =
     layout.buildDirectory.file("generated-resources/$name/$name.properties")
+
+fun generatedJsonFileFor(name: String) =
+    layout.buildDirectory.file("generated-resources/$name/$name.json")
 
 fun bucket() =
     configurations.creating {
