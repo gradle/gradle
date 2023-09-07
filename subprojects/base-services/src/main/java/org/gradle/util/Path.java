@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
 
@@ -239,8 +240,7 @@ public class Path implements Comparable<Path> {
         if (path.segments.length == segments.length) {
             return path;
         }
-        String[] newSegments = Arrays.copyOfRange(path.segments, segments.length, path.segments.length);
-        return new Path(newSegments, false);
+        return new Path(Arrays.copyOfRange(path.segments, segments.length, path.segments.length), false);
     }
 
     public int segmentCount() {
@@ -265,5 +265,24 @@ public class Path implements Comparable<Path> {
         }
 
         return segments[index];
+    }
+
+    /**
+     * Returns a {@code Path} containing only the first {@code n} segments of this {@code Path}.
+     *
+     * The returned {@code Path} will be absolute if this {@code Path} is absolute.
+     *
+     * @param n number of segments to take from this Path, must be greater than or equal to 1
+     * @since 8.4
+     */
+    @Incubating
+    public Path takeFirstSegments(int n) {
+        if (n < 1) {
+            throw new IllegalArgumentException("Taken path segment count must be >= 1.");
+        }
+        if (n >= segmentCount()) {
+            return this;
+        }
+        return new Path(Arrays.copyOfRange(segments, 0, Math.min(n, segmentCount())), absolute);
     }
 }
