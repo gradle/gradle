@@ -62,6 +62,8 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
 
     @Override
     public void report() {
-        problemService.reportAsProgressEvent(this);
+        if (problemService != null) {
+            problemService.reportAsProgressEvent(this);
+        }
     }
 }

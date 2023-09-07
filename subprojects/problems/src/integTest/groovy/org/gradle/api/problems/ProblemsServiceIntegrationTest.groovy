@@ -41,12 +41,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblemBuilder()
-                        .label("label")
+                    problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
-                        .report();
+                        }.report();
                 }
             }
             """
@@ -73,14 +73,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.userManual("test-id", "test-section")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -110,14 +110,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.upgradeGuide(8, "test-section")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -147,14 +147,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.dslReference(Problem.class, "label")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -182,12 +182,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .location("test-location", 1)
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -217,12 +217,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .location("test-location", 1, 1)
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -252,14 +252,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .solution("solution")
                         .severity(Severity.${severity.name()})
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -288,13 +288,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .solution("solution")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -322,13 +322,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .withException(new RuntimeException("test"))
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -355,13 +355,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .additionalData("key", "value")
-                        .report()
+                        }.report()
                 }
             }
             """

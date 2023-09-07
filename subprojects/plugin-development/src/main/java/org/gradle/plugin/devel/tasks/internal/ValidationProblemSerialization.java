@@ -27,8 +27,9 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemLocation;
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultProblemLocation;
+import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -42,10 +43,10 @@ import java.util.stream.Stream;
 
 @Nonnull
 public class ValidationProblemSerialization {
-    public static List<DefaultProblem> parseMessageList(String lines) {
+    public static List<ReportableProblem> parseMessageList(String lines) {
         GsonBuilder gsonBuilder = createGsonBuilder();
         Gson gson = gsonBuilder.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
+        Type type = new TypeToken<List<DefaultReportableProblem>>() {}.getType();
         return gson.fromJson(lines, type);
     }
 
@@ -59,7 +60,7 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<DefaultProblem> problems) {
+    public static Stream<String> toPlainMessage(List<ReportableProblem> problems) {
         return problems.stream()
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }

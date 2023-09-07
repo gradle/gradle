@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
@@ -207,15 +206,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             return Severity.WARNING;
         }
         return this.severity;
-    }
-
-    public void report() {
-        Problem problem = build();
-        report(problem);
-    }
-
-    private void report(Problem problem) {
-        problemsService.reportAsProgressEvent(problem);
     }
 
     RuntimeException getException() {
