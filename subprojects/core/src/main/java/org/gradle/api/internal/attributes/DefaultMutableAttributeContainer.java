@@ -191,7 +191,17 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
         if (!lazyAttributes.isEmpty()) {
             // As doInsertion will remove an item from lazyAttributes, we can't iterate that collection directly here, or else we'll get ConcurrentModificationException
             final Set<Attribute<?>> savedKeys = new LinkedHashSet<>(lazyAttributes.keySet());
-            savedKeys.forEach(key -> doInsertion(Cast.uncheckedNonnullCast(key), lazyAttributes.get(key).get()));
+            savedKeys.forEach(key -> {
+                Provider<?> value = lazyAttributes.get(key);
+                // Between getting the list of keys and realizing the values
+                // some lazy attributes have been realized and removed from the map
+                // This can happen when a side effect of calculating the value of a Provider
+                // causes dependency resolution or evaluation of the attributes of
+                // the same AttributeContainer
+                if (value != null) {
+                    doInsertion(Cast.uncheckedNonnullCast(key), value.get());
+                }
+            });
         }
     }
 }

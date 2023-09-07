@@ -47,6 +47,22 @@ class DefaultMutableAttributeContainerTest extends Specification {
         actual == expected
     }
 
+    def "realizing the value of lazy attributes may cause other attributes to be realized"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            // side effect is to evaluate the secondAttribute's value and prevent
+            // it from changing by removing it from the list of "lazy attributes"
+            container.getAttribute(secondAttribute)
+            "first"
+        })
+        container.attributeProvider(secondAttribute, Providers.of("second"))
+
+        expect:
+        container.asImmutable()
+    }
+
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
