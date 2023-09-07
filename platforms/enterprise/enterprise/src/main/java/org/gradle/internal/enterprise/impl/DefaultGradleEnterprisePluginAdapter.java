@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePluginAdapter {
 
+    private final GradleEnterprisePluginServiceFactory pluginServiceFactory;
     private final GradleEnterprisePluginConfig config;
     private final DefaultGradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
@@ -36,27 +37,27 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
-    private GradleEnterprisePluginServiceFactory pluginServiceFactory;
-
     private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
+        GradleEnterprisePluginServiceFactory pluginServiceFactory,
         GradleEnterprisePluginConfig config,
         DefaultGradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
+        this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
         this.requiredServices = requiredServices;
         this.buildState = buildState;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
+
+        createPluginService();
     }
 
-    public GradleEnterprisePluginServiceRef register(GradleEnterprisePluginServiceFactory pluginServiceFactory) {
-        this.pluginServiceFactory = pluginServiceFactory;
-        createPluginService();
+    public GradleEnterprisePluginServiceRef getPluginServiceRef() {
         return pluginServiceRef;
     }
 
