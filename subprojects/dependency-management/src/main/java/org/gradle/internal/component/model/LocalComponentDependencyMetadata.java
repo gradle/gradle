@@ -152,7 +152,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             DeprecationLogger.deprecateConfiguration(toConfiguration.getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
     }
