@@ -63,6 +63,38 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container.asImmutable()
     }
 
+    def "realizing the value of lazy attributes cannot add new attributes to the container"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            container.attribute(secondAttribute, "second" )
+            "first"
+        })
+
+        when:
+        container.asImmutable()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
+    }
+
+    def "realizing the value of lazy attributes cannot add new lazy attributes to the container"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            container.attributeProvider(secondAttribute, Providers.of("second"))
+            "first"
+        })
+
+        when:
+        container.asImmutable()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
+    }
+
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
