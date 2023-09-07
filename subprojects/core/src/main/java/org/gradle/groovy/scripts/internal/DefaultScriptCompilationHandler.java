@@ -33,11 +33,11 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
@@ -219,7 +219,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String message = String.format("Could not compile %s.", source.getDisplayName());
         throw getProblemService().throwing(new ProblemBuilderSpec() {
             @Override
-            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+            public ProblemConfigurator apply(ProblemBuilderDefiningLabel builder) {
                 return builder
                     .label(message)
                     .undocumented()

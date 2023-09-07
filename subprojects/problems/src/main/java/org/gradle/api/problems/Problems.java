@@ -48,7 +48,6 @@ public interface Problems {
     /**
      * Configures a new problem with error severity, reports it and uses it to throw a new exception.
      * <p>
-     * Note: The action should not call the {@code build()} method on the builder.
      *
      * @return nothing, the method throws an exception
      */
@@ -57,9 +56,16 @@ public interface Problems {
     /**
      * Configures a new problem with error severity using an existing exception as input, reports it and uses it to throw a new exception.
      * <p>
-     * Note: The action should not call the {@code build()} method on the builder.
      *
      * @return nothing, the method throws an exception
      */
     RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action);
+
+    /**
+     * Configures a new problem and reports it.
+     * <p>
+     *
+     * @since 8.5
+     */
+    ReportableProblem report(ProblemBuilderSpec action);
 }

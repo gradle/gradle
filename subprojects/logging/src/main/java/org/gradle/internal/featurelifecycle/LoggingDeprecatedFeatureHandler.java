@@ -19,9 +19,12 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.ProblemConfigurator;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -74,7 +77,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
@@ -84,16 +87,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            ProblemBuilderDefiningLocation genericDeprecation = problemsService.createProblemBuilder()
-                .label(usage.formattedMessage())
-                .documentedAt(usage.getDocumentationUrl());
-
-            addPossibleLocation(diagnostics, genericDeprecation)
-                .type("generic_deprecation")
-                .group(DEPRECATION_ID)
-                .severity(WARNING)
-                .build()
-                .report();
+            problemsService.report(new ProblemBuilderSpec() {
+                @Override
+                public ProblemConfigurator apply(ProblemBuilderDefiningLabel builder) {
+                    ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
+                        .documentedAt(usage.getDocumentationUrl());
+                    return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
+                        .type("generic_deprecation")
+                        .group(DEPRECATION_ID)
+                        .severity(WARNING);
+                }
+            });
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }

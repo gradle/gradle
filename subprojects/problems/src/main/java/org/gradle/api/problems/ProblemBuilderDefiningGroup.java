@@ -29,9 +29,9 @@ public interface ProblemBuilderDefiningGroup {
     /**
      * Declares the problem group. A problem group defines the main category for the problems (e.g. deprecation, type validation, task selection ,etc.). The available group IDs are declared in
      * {@link ProblemGroup}.
-     * @param group the group ID
      *
+     * @param group the group ID
      * @return the builder for the next required property
      */
-    ProblemBuilder group(String group);
+    ProblemConfigurator group(String group);
 }

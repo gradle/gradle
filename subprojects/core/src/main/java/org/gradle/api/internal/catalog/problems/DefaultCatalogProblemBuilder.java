@@ -49,10 +49,6 @@ public class DefaultCatalogProblemBuilder {
             reportInto(formatter, problem);
         }
         formatter.endChildren();
-
-        for (ReportableProblem problem : problems) {
-            problem.report();
-        }
         throw new InvalidUserDataException(formatter.toString());
     }
 

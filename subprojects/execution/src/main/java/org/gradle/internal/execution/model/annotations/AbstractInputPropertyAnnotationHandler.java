@@ -18,7 +18,7 @@ package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.provider.Provider;
@@ -63,9 +63,9 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
     ) {
         if (valueTypes.stream().anyMatch(unsupportedType::isAssignableFrom)) {
             validationContext.visitPropertyProblem(problem -> {
-                    ProblemBuilder describedProblem = problem
+                    ProblemConfigurator describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .label(String.format("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()))
+                        .label("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName())
                         .documentedAt(userManual("validation_problems", "unsupported_value_type"))
                         .noLocation()
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())

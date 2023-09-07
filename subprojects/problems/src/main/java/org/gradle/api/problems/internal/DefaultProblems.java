@@ -16,10 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -53,16 +54,25 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public RuntimeException throwing(ProblemBuilderSpec action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        ProblemBuilder problemBuilder =action.apply(defaultProblemBuilder);
-        throw throwError(defaultProblemBuilder.getException(), problemBuilder.build());
+        action.apply(defaultProblemBuilder);
+        throw throwError(defaultProblemBuilder.getException(), defaultProblemBuilder.build());
     }
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
+        ProblemConfigurator problemBuilder = action.apply(defaultProblemBuilder);
         problemBuilder.withException(e);
-        throw throwError(e, problemBuilder.build());
+        throw throwError(e, defaultProblemBuilder.build());
+    }
+
+    @Override
+    public ReportableProblem report(ProblemBuilderSpec action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        action.apply(defaultProblemBuilder);
+        ReportableProblem problem = defaultProblemBuilder.build();
+        problem.report();
+        return problem;
     }
 
     public RuntimeException throwError(RuntimeException exception, Problem problem) {

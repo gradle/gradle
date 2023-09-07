@@ -42,5 +42,5 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ProblemBuilderSpec {
 
-    ProblemBuilder apply(ProblemBuilderDefiningLabel builder);
+    ProblemConfigurator apply(ProblemBuilderDefiningLabel builder);
 }
