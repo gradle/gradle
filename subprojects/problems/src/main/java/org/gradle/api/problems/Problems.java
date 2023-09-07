@@ -67,5 +67,13 @@ public interface Problems {
      *
      * @since 8.5
      */
-    ReportableProblem report(ProblemBuilderSpec action);
+    void report(ProblemBuilderSpec action);
+
+    /**
+     * Configures a new problem and reports it.
+     * <p>
+     *
+     * @since 8.5
+     */
+    ReportableProblem createProblem(ProblemBuilderSpec action);
 }
