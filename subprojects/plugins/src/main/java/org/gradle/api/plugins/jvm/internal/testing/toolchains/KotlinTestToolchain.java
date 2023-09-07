@@ -16,19 +16,17 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.plugins.jvm.testing.toolchains.KotlinTestToolchainParameters;
 
-abstract public class KotlinTestToolchain extends AbstractJUnitPlatformTestEngineToolchain<KotlinTestToolchainParameters> {
+import java.util.Collections;
+
+abstract public class KotlinTestToolchain extends JUnitPlatformToolchain<KotlinTestToolchainParameters> {
     public static final String DEFAULT_VERSION = "1.9.0";
     private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
 
-    public KotlinTestToolchain() {
-        super(GROUP_NAME);
-    }
-
     @Override
-    protected String getVersion() {
-        return getParameters().getKotlinTestVersion().get();
+    public Iterable<Dependency> getImplementationDependencies() {
+        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getKotlinTestVersion().get()));
     }
-
 }

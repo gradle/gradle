@@ -16,19 +16,17 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.plugins.jvm.testing.toolchains.JUnitJupiterToolchainParameters;
 
-public abstract class JUnitJupiterToolchain extends AbstractJUnitPlatformTestEngineToolchain<JUnitJupiterToolchainParameters> {
+import java.util.Collections;
+
+public abstract class JUnitJupiterToolchain extends JUnitPlatformToolchain<JUnitJupiterToolchainParameters> {
     public static final String DEFAULT_VERSION = "5.8.2";
     private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 
-    public JUnitJupiterToolchain() {
-        super(GROUP_NAME);
-    }
-
     @Override
-    protected String getVersion() {
-        return getParameters().getJupiterVersion().get();
+    public Iterable<Dependency> getImplementationDependencies() {
+        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getJupiterVersion().get()));
     }
-
 }

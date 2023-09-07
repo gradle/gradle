@@ -16,19 +16,17 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.plugins.jvm.testing.toolchains.SpockToolchainParameters;
 
-abstract public class SpockToolchain extends AbstractJUnitPlatformTestEngineToolchain<SpockToolchainParameters> {
+import java.util.Collections;
+
+abstract public class SpockToolchain extends JUnitPlatformToolchain<SpockToolchainParameters> {
     public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
     private static final String GROUP_NAME = "org.spockframework:spock-core";
 
-    public SpockToolchain() {
-        super(GROUP_NAME);
-    }
-
     @Override
-    protected String getVersion() {
-        return getParameters().getSpockVersion().get();
+    public Iterable<Dependency> getImplementationDependencies() {
+        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getSpockVersion().get()));
     }
-
 }
