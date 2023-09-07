@@ -26,7 +26,6 @@ import org.gradle.api.plugins.jvm.testing.toolchains.JUnit4ToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4ToolchainParameters> {
     public static final String DEFAULT_VERSION = "4.13.2";
@@ -38,16 +37,6 @@ abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4Tool
     @Override
     public TestFramework createTestFramework(Test task) {
         return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
-    }
-
-    @Override
-    public Iterable<Dependency> getCompileOnlyDependencies() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.emptyList();
     }
 
     @Override

@@ -82,12 +82,10 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters
 
             abstract class JUnitPlatformSuiteEngine implements JUnitPlatformTestEngine<JUnitPlatformTestEngineParameters.None> {
-                Iterable<Dependency> getImplementationDependencies() {
-                    return []
-                }
                 Iterable<Dependency> getCompileOnlyDependencies() {
                     return [ getDependencyFactory().create("org.junit.platform:junit-platform-suite-api:1.10.0") ]
                 }
+
                 Iterable<Dependency> getRuntimeOnlyDependencies() {
                     return [ getDependencyFactory().create("org.junit.platform:junit-platform-suite-engine:1.10.0") ]
                 }
@@ -154,12 +152,10 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineConfigurationParameters
 
             abstract class JUnitVintageEngine implements JUnitPlatformTestEngine<JUnitVintageEngine.Parameters> {
-                Iterable<Dependency> getImplementationDependencies() {
-                    return []
-                }
                 Iterable<Dependency> getCompileOnlyDependencies() {
                     return [ getDependencyFactory().create("junit:junit:" + getParameters().getApiVersion().get()) ]
                 }
+
                 Iterable<Dependency> getRuntimeOnlyDependencies() {
                     return [ getDependencyFactory().create("org.junit.vintage:junit-vintage-engine:" + getParameters().getEngineVersion().get()) ]
                 }
@@ -292,14 +288,6 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                         getDependencyFactory().create("org.junit.platform:junit-platform-suite:" + getParameters().getPlatformSuiteVersion().get()),
                         getDependencyFactory().create("org.junit.jupiter:junit-jupiter-api:" + getParameters().getJupiterVersion().get())
                     ]
-                }
-
-                Iterable<Dependency> getCompileOnlyDependencies() {
-                    return []
-                }
-                
-                Iterable<Dependency> getRuntimeOnlyDependencies() {
-                    return []
                 }
 
                 public CommandLineArgumentProvider mapToCommandLineArguments() {

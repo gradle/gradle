@@ -16,33 +16,15 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
-import java.util.Collections;
-
 abstract public class LegacyJUnit4TestToolchain implements JVMTestToolchain<JVMTestToolchainParameters.None> {
     @Override
     public TestFramework createTestFramework(Test task) {
         return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);
-    }
-
-    @Override
-    public Iterable<Dependency> getCompileOnlyDependencies() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.emptyList();
     }
 }

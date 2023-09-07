@@ -16,23 +16,35 @@
 
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.Actions;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 public interface JVMTestToolchain<T extends JVMTestToolchainParameters> {
     TestFramework createTestFramework(Test task);
 
-    Iterable<Dependency> getCompileOnlyDependencies();
+    default Iterable<Dependency> getCompileOnlyDependencies() {
+        return Collections.emptyList();
+    };
 
-    Iterable<Dependency> getRuntimeOnlyDependencies();
+    default Iterable<Dependency> getRuntimeOnlyDependencies() {
+        return Collections.emptyList();
+    };
 
-    Iterable<Dependency> getImplementationDependencies();
+    default Iterable<Dependency> getImplementationDependencies() {
+        return Collections.emptyList();
+    }
 
     @Inject
     T getParameters();
 
+    default Action<Test> getTestTaskConfiguration() {
+        return Actions.doNothing();
+    };
 }

@@ -27,7 +27,6 @@ import org.gradle.api.plugins.jvm.testing.toolchains.TestNGToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
-import java.util.Collections;
 
 abstract public class TestNGToolchain implements JVMTestToolchain<TestNGToolchainParameters> {
     public static final String DEFAULT_VERSION = "7.5";
@@ -42,16 +41,6 @@ abstract public class TestNGToolchain implements JVMTestToolchain<TestNGToolchai
     @Override
     public TestFramework createTestFramework(Test task) {
         return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
-    }
-
-    @Override
-    public Iterable<Dependency> getCompileOnlyDependencies() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Iterable<Dependency> getRuntimeOnlyDependencies() {
-        return Collections.emptyList();
     }
 
     @Override

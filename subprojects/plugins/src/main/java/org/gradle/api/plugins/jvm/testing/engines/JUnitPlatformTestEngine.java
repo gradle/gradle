@@ -21,22 +21,29 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngineParameters<?>> {
     /**
      * Returns the implementation dependencies required by this test engine.
      */
-    Iterable<Dependency> getImplementationDependencies();
+    default Iterable<Dependency> getImplementationDependencies() {
+        return Collections.emptyList();
+    };
 
     /**
      * Returns the compileOnly dependencies required by this test engine.
      */
-    Iterable<Dependency> getCompileOnlyDependencies();
+    default Iterable<Dependency> getCompileOnlyDependencies() {
+        return Collections.emptyList();
+    };
 
     /**
      * Returns the runtimeOnly dependencies required by this test engine.
      */
-    Iterable<Dependency> getRuntimeOnlyDependencies();
+    default Iterable<Dependency> getRuntimeOnlyDependencies() {
+        return Collections.emptyList();
+    };
 
     /**
      * Returns the dependency factory used to create dependencies for this test engine.

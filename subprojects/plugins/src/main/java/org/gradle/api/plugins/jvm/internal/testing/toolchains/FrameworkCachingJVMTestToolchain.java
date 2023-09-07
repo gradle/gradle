@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
@@ -56,5 +57,10 @@ public class FrameworkCachingJVMTestToolchain <T extends JVMTestToolchainParamet
     @Override
     public T getParameters() {
         return delegate.getParameters();
+    }
+
+    @Override
+    public Action<Test> getTestTaskConfiguration() {
+        return delegate.getTestTaskConfiguration();
     }
 }

@@ -36,7 +36,6 @@ import org.gradle.api.plugins.jvm.internal.testing.toolchains.FrameworkCachingJV
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnit4TestToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnitJupiterToolchain;
 import org.gradle.api.plugins.jvm.internal.testing.toolchains.JUnitPlatformToolchain;
-import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngine;
 import org.gradle.api.plugins.jvm.testing.toolchains.TestNGToolchainParameters;
 import org.gradle.api.plugins.jvm.testing.toolchains.JUnit4ToolchainParameters;
 import org.gradle.api.plugins.jvm.testing.toolchains.JUnitJupiterToolchainParameters;
@@ -61,13 +60,10 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -116,14 +112,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
             target.getTestTask().configure(this::initializeTestFramework);
-            target.getTestTask().configure(testTask ->
-                testTask.getJvmArgumentProviders().addAll(
-                    getTestToolchain().map(toolchain ->
-                        toolchain.getParameters() instanceof JUnitPlatformToolchainParameters ?
-                            getCommandLineArgumentProviders((JUnitPlatformToolchainParameters) toolchain.getParameters())
-                            : Collections.<CommandLineArgumentProvider>emptyList()).get()
-                )
-            );
+            target.getTestTask().configure(test ->
+                getTestToolchain().get().getTestTaskConfiguration().execute(test));
         });
 
         // This is a workaround for strange behavior from the Kotlin plugin
@@ -143,12 +133,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             dependenciesSet.addAllLater(getTestToolchain().map(JVMTestToolchain::getCompileOnlyDependencies)
                 .orElse(Collections.emptyList()))
         );
-    }
-
-    private static Collection<? extends CommandLineArgumentProvider> getCommandLineArgumentProviders(JUnitPlatformToolchainParameters parameters) {
-        return parameters.getEngines().get().stream()
-            .map(JUnitPlatformTestEngine::mapToCommandLineArguments)
-            .collect(Collectors.toSet());
     }
 
     private void initializeTestFramework(Test task) {

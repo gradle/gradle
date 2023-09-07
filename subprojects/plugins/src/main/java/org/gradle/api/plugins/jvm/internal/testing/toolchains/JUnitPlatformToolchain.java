@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -68,4 +69,12 @@ abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchainPar
     @Inject
     protected abstract DependencyFactory getDependencyFactory();
 
+    @Override
+    public Action<Test> getTestTaskConfiguration() {
+        return test -> test.getJvmArgumentProviders().addAll(
+            getParameters().getEngines().get().stream()
+                .map(JUnitPlatformTestEngine::mapToCommandLineArguments)
+                .collect(Collectors.toSet())
+        );
+    }
 }
