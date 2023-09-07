@@ -30,6 +30,23 @@ import spock.lang.Specification
 class DefaultMutableAttributeContainerTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
+    def "lazy attributes are evaluated in insertion order"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def actual = []
+        def expected = []
+        (1..100).each { idx ->
+            def testAttribute = Attribute.of("test"+idx, String)
+            expected << idx
+            container.attributeProvider(testAttribute, Providers.<String>changing {
+                actual << idx
+                "value " + idx
+            })
+        }
+        expect:
+        container.asImmutable()
+        actual == expected
+    }
+
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
