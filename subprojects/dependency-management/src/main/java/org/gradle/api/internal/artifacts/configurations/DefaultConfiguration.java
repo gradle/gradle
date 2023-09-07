@@ -105,7 +105,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+package org.gradle.internal.code;
 
 import org.gradle.api.Action;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,7 +26,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
-    private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<>();
+    private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<CurrentApplication>();
 
     @Override
     @Nullable
@@ -36,10 +35,10 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
-    public void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action) {
+    public void apply(UserCodeSource source, Action<? super UserCodeApplicationId> action) {
         CurrentApplication current = currentApplication.get();
         UserCodeApplicationId id = id();
-        currentApplication.set(new CurrentApplication(id, displayName));
+        currentApplication.set(new CurrentApplication(id, source));
         try {
             action.execute(id);
         } finally {
@@ -72,12 +71,12 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     private class CurrentApplication implements Application {
-        final UserCodeApplicationId id;
-        final DisplayName displayName;
+        private final UserCodeApplicationId id;
+        private final UserCodeSource source;
 
-        public CurrentApplication(UserCodeApplicationId id, DisplayName displayName) {
+        public CurrentApplication(UserCodeApplicationId id, UserCodeSource source) {
             this.id = id;
-            this.displayName = displayName;
+            this.source = source;
         }
 
         @Override
@@ -86,8 +85,8 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
 
         @Override
-        public DisplayName getDisplayName() {
-            return displayName;
+        public UserCodeSource getSource() {
+            return source;
         }
 
         @Override
@@ -113,7 +112,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
 
         @Override
-        public <T> Action<T> reapplyLater(Action<T> action) {
+        public <T> Action<T> reapplyLater(final Action<T> action) {
             return new Action<T>() {
                 @Override
                 public void execute(T t) {

@@ -98,7 +98,7 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
 import org.gradle.execution.ProjectConfigurer;

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle;
+package org.gradle.internal.problems;
 
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -42,6 +43,12 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         @Nullable
         @Override
         public Location getLocation() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public UserCodeSource getSource() {
             return null;
         }
     };
