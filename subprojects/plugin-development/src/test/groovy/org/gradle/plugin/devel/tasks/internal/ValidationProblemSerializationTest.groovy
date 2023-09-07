@@ -34,13 +34,13 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -57,13 +57,13 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .location("location", 1, 1)
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .location("location", 1, 1)
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -82,13 +82,13 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .documentedAt(new TestDocLink())
-            .location("location", 1, 1)
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .documentedAt(new TestDocLink())
+                .location("location", 1, 1)
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -125,14 +125,14 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .withException(new RuntimeException("cause"))
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .withException(new RuntimeException("cause"))
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -150,14 +150,14 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(severity)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .severity(severity)
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -178,15 +178,15 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .solution("solution 0")
-            .solution("solution 1")
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .solution("solution 0")
+                .solution("solution 1")
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -205,15 +205,15 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .additionalData("key 1", "value 1")
-            .additionalData("key 2", "value 2")
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .group(ProblemGroup.GENERIC_ID)
+                .additionalData("key 1", "value 1")
+                .additionalData("key 2", "value 2")
+        }
 
         when:
         def json = gson.toJson([problem])
@@ -229,5 +229,4 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"
     }
-
 }

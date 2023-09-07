@@ -20,11 +20,11 @@ package org.gradle.api.problems.internal
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import spock.lang.Specification
 
-class DefaultProblemBuilderTest extends Specification {
+class DefaultBuildableProblemBuilderTest extends Specification {
 
     def buildOperationEmitter = new NoOpBuildOperationProgressEventEmitter()
     def problemService = new DefaultProblems(buildOperationEmitter)
-    def builder = new DefaultProblemBuilder(problemService)
+    def builder = new DefaultBuildableProblemBuilder(problemService)
 
     def "missing location will throw an IllegalArgumentException"() {
         given:

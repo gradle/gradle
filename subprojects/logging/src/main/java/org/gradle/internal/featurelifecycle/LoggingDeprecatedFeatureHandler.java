@@ -19,11 +19,11 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
 import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
@@ -87,17 +87,18 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            problemsService.report(new ProblemBuilderSpec() {
-                @Override
-                public ProblemConfigurator apply(ProblemBuilderDefiningLabel builder) {
-                    ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
-                        .documentedAt(usage.getDocumentationUrl());
-                    return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
-                        .type("generic_deprecation")
-                        .group(DEPRECATION_ID)
-                        .severity(WARNING);
-                }
-            });
+            problemsService.createProblem(new ProblemBuilderSpec() {
+                    @Override
+                    public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                        ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
+                            .documentedAt(usage.getDocumentationUrl());
+                        return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
+                            .type("generic_deprecation")
+                            .group(DEPRECATION_ID)
+                            .severity(WARNING);
+                    }
+                })
+                .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }

@@ -33,5 +33,5 @@ public interface ProblemBuilderDefiningGroup {
      * @param group the group ID
      * @return the builder for the next required property
      */
-    ProblemConfigurator group(String group);
+    ProblemBuilder group(String group);
 }

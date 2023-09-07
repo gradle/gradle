@@ -24,8 +24,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
@@ -138,7 +138,7 @@ public class TomlCatalogFileParser {
     }
 
     @Nonnull
-    private static ProblemConfigurator configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
@@ -245,12 +245,6 @@ public class TomlCatalogFileParser {
                 .details("Expected " + typeLabel + " but " + uncapitalize(ex.getMessage()))
                 .solution("Use " + typeLabel + " instead")));
     }
-
-    @Nonnull
-    public ProblemConfigurator createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return configureVersionCatalogError(problemServiceSupplier.get().createProblemBuilder(), message, catalogProblemId);
-    }
-
 
     @Nullable
     private TomlArray expectArray(String kind, String alias, TomlTable table, String element) {

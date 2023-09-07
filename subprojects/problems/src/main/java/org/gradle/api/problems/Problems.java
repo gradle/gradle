@@ -38,8 +38,8 @@ public interface Problems {
      * <p>
      * The builder uses a stepwise builder pattern forcing the clients to define all mandatory fields in a specific order.
      * <p>
-     * Once all mandatory fields are set, the returned type will allow clients to call {@link ProblemBuilder#build()} to create a new Problem instance.
-     * The {@link ProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
+     * Once all mandatory fields are set, the returned type will allow clients to call {@link BuildableProblemBuilder#build()} to create a new Problem instance.
+     * The {@link BuildableProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
      *
      * @return a new problem builder
      */
@@ -60,14 +60,6 @@ public interface Problems {
      * @return nothing, the method throws an exception
      */
     RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action);
-
-    /**
-     * Configures a new problem and reports it.
-     * <p>
-     *
-     * @since 8.5
-     */
-    void report(ProblemBuilderSpec action);
 
     /**
      * Configures a new problem and reports it.

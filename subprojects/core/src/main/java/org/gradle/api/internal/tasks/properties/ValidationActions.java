@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
-import org.gradle.api.problems.ProblemConfigurator;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.properties.InputFilePropertyType;
@@ -293,7 +293,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
         context.visitPropertyProblem(problem -> {
-                ProblemConfigurator describedProblem = problem
+                ProblemBuilder describedProblem = problem
                     .forProperty(propertyName)
                     .label("has unsupported value '" + value + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_notation"))

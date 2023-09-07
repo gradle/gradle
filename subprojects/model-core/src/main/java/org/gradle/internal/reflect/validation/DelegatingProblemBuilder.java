@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
@@ -24,7 +25,6 @@ import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
-import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 
@@ -37,7 +37,7 @@ class DelegatingProblemBuilder implements
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningType,
     ProblemBuilderDefiningGroup,
-    ProblemBuilder {
+    BuildableProblemBuilder {
 
     private final Object delegate;
 
@@ -109,8 +109,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder group(String group) {
-        ProblemConfigurator newDelegate = ((ProblemBuilderDefiningGroup) delegate).group(group);
+    public BuildableProblemBuilder group(String group) {
+        ProblemBuilder newDelegate = ((ProblemBuilderDefiningGroup) delegate).group(group);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -118,8 +118,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder details(String details) {
-        ProblemConfigurator newDelegate = ((ProblemBuilder) delegate).details(details);
+    public BuildableProblemBuilder details(String details) {
+        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).details(details);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -127,8 +127,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder solution(@Nullable String solution) {
-        ProblemConfigurator newDelegate = ((ProblemBuilder) delegate).solution(solution);
+    public BuildableProblemBuilder solution(@Nullable String solution) {
+        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).solution(solution);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -136,8 +136,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder additionalData(String key, String value) {
-        ProblemConfigurator newDelegate = ((ProblemBuilder) delegate).additionalData(key, value);
+    public BuildableProblemBuilder additionalData(String key, String value) {
+        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).additionalData(key, value);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -145,8 +145,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder withException(RuntimeException e) {
-        ProblemConfigurator newDelegate = ((ProblemBuilder) delegate).withException(e);
+    public BuildableProblemBuilder withException(RuntimeException e) {
+        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).withException(e);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -154,8 +154,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder severity(@Nullable Severity severity) {
-        ProblemConfigurator newDelegate = ((ProblemBuilder) delegate).severity(severity);
+    public BuildableProblemBuilder severity(@Nullable Severity severity) {
+        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).severity(severity);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -164,6 +164,6 @@ class DelegatingProblemBuilder implements
 
     @Override
     public ReportableProblem build() {
-        return ((ProblemBuilder) delegate).build();
+        return ((BuildableProblemBuilder) delegate).build();
     }
 }

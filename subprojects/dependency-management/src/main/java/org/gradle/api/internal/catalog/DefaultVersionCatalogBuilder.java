@@ -42,8 +42,8 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.provider.Property;
@@ -217,7 +217,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
-    private static ProblemConfigurator configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
@@ -483,7 +483,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
                 throw throwVersionCatalogProblemException(getProblemService().createProblem(builder -> {
-                    ProblemConfigurator configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                    ProblemBuilder configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
                         .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {
@@ -514,7 +514,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
                 throw throwVersionCatalogProblemException(getProblemService().createProblem(builder -> {
-                    ProblemConfigurator configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                    ProblemBuilder configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
                         .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
                     if (!versionConstraints.keySet().isEmpty()) {

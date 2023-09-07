@@ -17,8 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.ProblemConfigurator;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -47,36 +47,28 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(this);
+    public DefaultBuildableProblemBuilder createProblemBuilder() {
+        return new DefaultBuildableProblemBuilder(this);
     }
 
     @Override
     public RuntimeException throwing(ProblemBuilderSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
         throw throwError(defaultProblemBuilder.getException(), defaultProblemBuilder.build());
     }
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        ProblemConfigurator problemBuilder = action.apply(defaultProblemBuilder);
+        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
         problemBuilder.withException(e);
         throw throwError(e, defaultProblemBuilder.build());
     }
 
     @Override
-    public void report(ProblemBuilderSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
-        action.apply(defaultProblemBuilder);
-        ReportableProblem problem = defaultProblemBuilder.build();
-        problem.report();
-    }
-
-    @Override
     public ReportableProblem createProblem(ProblemBuilderSpec action) {
-        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }
