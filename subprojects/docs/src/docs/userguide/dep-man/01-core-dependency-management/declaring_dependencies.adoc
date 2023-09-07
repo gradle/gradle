@@ -132,6 +132,14 @@ For example, in the `java` plugin, the created configuration are <<java_plugin.a
 
 As a recommendation, plugins should clearly document the way their configurations are linked together and should strive as much as possible to isolate their <<#sec:resolvable-consumable-configs,roles>>.
 
+[[sec:deprecated-configurations]]
+== Deprecated configurations
+
+In the past, Configurations did not differentiate between roles.
+Some configurations which previously had extra roles enabled may mark one or more roles as _deprecated_ before fully disabling them.
+When a feature associated with a deprecated role is utilized, a deprecation warning is emitted.
+Configurations with deprecated roles will stop supporting the marked role in future versions.
+
 [[sec:defining-custom-configurations]]
 == Defining custom configurations
 
