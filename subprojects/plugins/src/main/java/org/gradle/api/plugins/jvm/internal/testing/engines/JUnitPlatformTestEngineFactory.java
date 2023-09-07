@@ -18,6 +18,8 @@ package org.gradle.api.plugins.jvm.internal.testing.engines;
 
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngine;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineConfigurationParameters;
 import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -38,17 +40,25 @@ public class JUnitPlatformTestEngineFactory {
         this.parentServices = parentServices;
     }
 
-    public <T extends JUnitPlatformTestEngineParameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass) {
-        IsolationScheme<JUnitPlatformTestEngine<?>, JUnitPlatformTestEngineParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JUnitPlatformTestEngine.class), JUnitPlatformTestEngineParameters.class, JUnitPlatformTestEngineParameters.None.class);
+    public <T extends JUnitPlatformTestEngineParameters<?>> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass, Action<T> paramsAction) {
+        JUnitPlatformTestEngine<T> engine = create(engineClass);
+        paramsAction.execute(engine.getParameters());
+        return engine;
+    }
+
+    public <T extends JUnitPlatformTestEngineParameters<?>> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass) {
+        IsolationScheme<JUnitPlatformTestEngine<?>, JUnitPlatformTestEngineParameters<?>> isolationScheme = new IsolationScheme<>(uncheckedCast(JUnitPlatformTestEngine.class), uncheckedCast(JUnitPlatformTestEngineParameters.class), JUnitPlatformTestEngineParameters.None.class);
         Class<T> parametersType = isolationScheme.parameterTypeFor(engineClass);
-        T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
+        T parameters = parametersType == null ? null : createParameters(parametersType);
         ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.emptyList(), p -> true);
         return instantiatorFactory.decorate(lookup).newInstance(engineClass);
     }
 
-    public <T extends JUnitPlatformTestEngineParameters> JUnitPlatformTestEngine<T> create(Class<? extends JUnitPlatformTestEngine<T>> engineClass, Action<T> paramsAction) {
-        JUnitPlatformTestEngine<T> engine = create(engineClass);
-        paramsAction.execute(engine.getParameters());
-        return engine;
+    private <T extends JUnitPlatformTestEngineParameters<?>> T createParameters(Class<T> type) {
+        IsolationScheme<JUnitPlatformTestEngineParameters<?>, JUnitPlatformTestEngineConfigurationParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JUnitPlatformTestEngineParameters.class), JUnitPlatformTestEngineConfigurationParameters.class, JUnitPlatformTestEngineConfigurationParameters.None.class);
+        Class<? extends JUnitPlatformTestEngineConfigurationParameters> configurationParametersType = isolationScheme.parameterTypeFor(type);
+        JUnitPlatformTestEngineConfigurationParameters configurationParameters = configurationParametersType == null ? null : objectFactory.newInstance(configurationParametersType);
+        ServiceLookup lookup = isolationScheme.servicesForImplementation(configurationParameters, parentServices, Collections.emptyList(), p -> true);
+        return instantiatorFactory.decorate(lookup).newInstance(type);
     }
 }

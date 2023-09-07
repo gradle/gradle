@@ -16,6 +16,8 @@
 
 package org.gradle.process;
 
+import java.util.Collections;
+
 /**
  * Provides arguments to a process.
  *
@@ -26,4 +28,11 @@ public interface CommandLineArgumentProvider {
      * The arguments which will be provided to the process.
      */
     Iterable<String> asArguments();
+
+    CommandLineArgumentProvider None = new CommandLineArgumentProvider() {
+        @Override
+        public Iterable<String> asArguments() {
+            return Collections.emptyList();
+        }
+    };
 }

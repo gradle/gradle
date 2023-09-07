@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.internal.testing.engines;
+package org.gradle.api.plugins.jvm.testing.engines;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
-import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
 
-public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngineParameters> {
+public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngineParameters<?>> {
     /**
      * Returns the implementation dependencies required by this test engine.
      */
@@ -48,4 +48,7 @@ public interface JUnitPlatformTestEngine<T extends JUnitPlatformTestEngineParame
     @Inject
     T getParameters();
 
+    default CommandLineArgumentProvider mapToCommandLineArguments() {
+        return CommandLineArgumentProvider.None;
+    }
 }

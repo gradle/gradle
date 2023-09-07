@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.jvm.testing.toolchains;
 
 import org.gradle.api.Action;
-import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngine;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngine;
 import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngineFactory;
 import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngineParameters;
 import org.gradle.api.provider.Property;
@@ -34,15 +34,15 @@ abstract public class JUnitPlatformToolchainParameters implements JVMTestToolcha
     @Inject
     abstract protected JUnitPlatformTestEngineFactory getEngineFactory();
 
-    public <P extends JUnitPlatformTestEngineParameters> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass) {
+    public <P extends JUnitPlatformTestEngineParameters<?>> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass) {
         addEngine(engineClass, Optional.empty());
     }
 
-    public <P extends JUnitPlatformTestEngineParameters> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass, Action<P> action) {
+    public <P extends JUnitPlatformTestEngineParameters<?>> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass, Action<P> action) {
         addEngine(engineClass, Optional.of(action));
     }
 
-    private <P extends JUnitPlatformTestEngineParameters> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass, Optional<Action<P>> optionalAction) {
+    private <P extends JUnitPlatformTestEngineParameters<?>> void addEngine(Class<? extends JUnitPlatformTestEngine<P>> engineClass, Optional<Action<P>> optionalAction) {
         JUnitPlatformTestEngine<P> engine = getEngineFactory().create(engineClass);
         getEngines().add(engine);
         optionalAction.ifPresent(action -> action.execute(engine.getParameters()));

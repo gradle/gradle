@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm.testing.engines;
+@NonNullApi
+package org.gradle.api.plugins.jvm.internal.testing.engines;
 
-import javax.inject.Inject;
-
-public interface JUnitPlatformTestEngineParameters<T extends JUnitPlatformTestEngineConfigurationParameters> {
-    @Inject
-    T getConfigurationParameters();
-
-    abstract class None implements JUnitPlatformTestEngineParameters<JUnitPlatformTestEngineConfigurationParameters.None> { }
-}
+import org.gradle.api.NonNullApi;

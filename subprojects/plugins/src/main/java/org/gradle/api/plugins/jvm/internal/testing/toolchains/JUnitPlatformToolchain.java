@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
-import org.gradle.api.plugins.jvm.internal.testing.engines.JUnitPlatformTestEngine;
+import org.gradle.api.plugins.jvm.testing.engines.JUnitPlatformTestEngine;
 import org.gradle.api.plugins.jvm.testing.toolchains.JUnitPlatformToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
