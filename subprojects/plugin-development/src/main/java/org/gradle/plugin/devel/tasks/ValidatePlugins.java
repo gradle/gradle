@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -106,9 +107,9 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<ReportableProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
-
         Problems problems = getServices().get(Problems.class);
+        List<? extends ReportableProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())), (InternalProblems) problems);
+
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problemMessages).sorted();
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");

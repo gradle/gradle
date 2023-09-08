@@ -30,7 +30,7 @@ import java.util.Map;
 @NonNullApi
 public class DefaultReportableProblem extends DefaultProblem implements ReportableProblem {
 
-    private transient final InternalProblems problemService;
+    private transient InternalProblems problemService;
 
     public DefaultReportableProblem(
         ProblemGroup problemGroup,
@@ -60,10 +60,12 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         this.problemService = problemService;
     }
 
+    public void setProblemService(InternalProblems problemService) {
+        this.problemService = problemService;
+    }
+
     @Override
     public void report() {
-        if (problemService != null) {
-            problemService.reportAsProgressEvent(this);
-        }
+        problemService.reportAsProgressEvent(this);
     }
 }

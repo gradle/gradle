@@ -49,9 +49,15 @@ public interface Problems {
     RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action);
 
     /**
-     * Configures a new problem and reports it.
+     * Configures a new problem.
      * <p>
+     * The method uses a stepwise builder pattern in the provided {@link ProblemBuilderSpec}, forcing the clients to define all mandatory fields in a specific order.
+     * <p>
+     * If all required fields are provided, the method creates and returns a new problem.
+     * Problems should be reported separately with {@link ReportableProblem#report()}.
      *
+     * @return a new problem
+     * <p>
      * @since 8.5
      */
     ReportableProblem createProblem(ProblemBuilderSpec action);

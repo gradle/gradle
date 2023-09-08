@@ -154,11 +154,11 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     }
 
     public ReportableProblem build() {
-        return buildInternal(null, true);
+        return buildInternal(null);
     }
 
     @Nonnull
-    private ReportableProblem buildInternal(@Nullable Severity severity, boolean reportable) {
+    private ReportableProblem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
             throw new IllegalStateException("Problem is not documented: " + label);
         }
@@ -184,7 +184,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             exception,
             problemType,
             additionalMetadata,
-            reportable ? problemsService : null);
+            problemsService);
     }
 
 
