@@ -32,7 +32,7 @@ import javax.inject.Inject;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchainParameters> implements JVMTestToolchain<T> {
+abstract public class JUnitPlatformToolchain<T extends JUnitPlatformToolchainParameters> implements JvmTestToolchain<T> {
     public static final String DEFAULT_VERSION = "1.10.0";
     private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
 

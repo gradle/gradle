@@ -19,14 +19,14 @@ package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
+import org.gradle.api.plugins.jvm.testing.toolchains.JvmTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Actions;
 
 import javax.inject.Inject;
 import java.util.Collections;
 
-public interface JVMTestToolchain<T extends JVMTestToolchainParameters> {
+public interface JvmTestToolchain<T extends JvmTestToolchainParameters> {
     TestFramework createTestFramework(Test task);
 
     default Iterable<Dependency> getCompileOnlyDependencies() {

@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins.jvm.testing.toolchains;
 
-import org.gradle.api.plugins.jvm.internal.testing.toolchains.JVMTestToolchain;
-
-public interface JVMTestToolchainParameters {
-    final class None implements JVMTestToolchainParameters {}
+public interface JvmTestToolchainParameters {
+    final class None implements JvmTestToolchainParameters {}
 }

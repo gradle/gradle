@@ -66,7 +66,7 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     test {
                         useJUnitJupiter {
-                            addEngine(JUnitPlatformSuiteEngine)
+                            withEngine(JUnitPlatformSuiteEngine)
                         }
                         targets.all {
                             testTask.configure {
@@ -138,7 +138,7 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     test {
                         useJUnitPlatform {
-                            addEngine(JUnitVintageEngine) {
+                            withEngine(JUnitVintageEngine) {
                                 apiVersion = '4.13.2'
                                 engineVersion = '5.9.2'
                             }
@@ -263,7 +263,7 @@ class JUnitPlatformTestEngineIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     test {
                         useJUnitPlatform {
-                            addEngine(CucumberTestEngine) {
+                            withEngine(CucumberTestEngine) {
                                 cucumberVersion = '7.13.0'
                                 platformSuiteVersion = '1.10.0'
                                 jupiterVersion = '5.9.2'

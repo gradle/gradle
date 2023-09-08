@@ -19,10 +19,10 @@ package org.gradle.api.plugins.jvm.internal.testing.toolchains;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
+import org.gradle.api.plugins.jvm.testing.toolchains.JvmTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 
-abstract public class LegacyJUnit4TestToolchain implements JVMTestToolchain<JVMTestToolchainParameters.None> {
+abstract public class LegacyJUnit4TestToolchain implements JvmTestToolchain<JvmTestToolchainParameters.None> {
     @Override
     public TestFramework createTestFramework(Test task) {
         return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);

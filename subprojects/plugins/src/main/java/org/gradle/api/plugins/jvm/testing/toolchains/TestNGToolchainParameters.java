@@ -16,9 +16,8 @@
 
 package org.gradle.api.plugins.jvm.testing.toolchains;
 
-import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
 import org.gradle.api.provider.Property;
 
-public interface TestNGToolchainParameters extends JVMTestToolchainParameters {
+public interface TestNGToolchainParameters extends JvmTestToolchainParameters {
     Property<String> getVersion();
 }

@@ -18,6 +18,6 @@ package org.gradle.api.plugins.jvm.testing.toolchains;
 
 import org.gradle.api.provider.Property;
 
-public interface JUnit4ToolchainParameters extends JVMTestToolchainParameters {
+public interface JUnit4ToolchainParameters extends JvmTestToolchainParameters {
     Property<String> getVersion();
 }

@@ -27,7 +27,7 @@ import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
 
-abstract public class JUnit4TestToolchain implements JVMTestToolchain<JUnit4ToolchainParameters> {
+abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4ToolchainParameters> {
     public static final String DEFAULT_VERSION = "4.13.2";
     private static final String GROUP_NAME = "junit:junit";
 

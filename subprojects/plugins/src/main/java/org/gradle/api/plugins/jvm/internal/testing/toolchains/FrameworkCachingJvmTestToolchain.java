@@ -20,17 +20,17 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.plugins.jvm.testing.toolchains.JVMTestToolchainParameters;
+import org.gradle.api.plugins.jvm.testing.toolchains.JvmTestToolchainParameters;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.Path;
 
 import java.util.Map;
 
-public class FrameworkCachingJVMTestToolchain <T extends JVMTestToolchainParameters> implements JVMTestToolchain<T> {
-    private final JVMTestToolchain<T> delegate;
+public class FrameworkCachingJvmTestToolchain<T extends JvmTestToolchainParameters> implements JvmTestToolchain<T> {
+    private final JvmTestToolchain<T> delegate;
     private final Map<Path, TestFramework> testFrameworks = Maps.newHashMap();
 
-    public FrameworkCachingJVMTestToolchain(JVMTestToolchain<T> delegate) {
+    public FrameworkCachingJvmTestToolchain(JvmTestToolchain<T> delegate) {
         this.delegate = delegate;
     }
 

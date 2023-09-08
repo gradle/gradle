@@ -28,7 +28,7 @@ import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
 
-abstract public class TestNGToolchain implements JVMTestToolchain<TestNGToolchainParameters> {
+abstract public class TestNGToolchain implements JvmTestToolchain<TestNGToolchainParameters> {
     public static final String DEFAULT_VERSION = "7.5";
     private static final String GROUP_NAME = "org.testng:testng";
 
