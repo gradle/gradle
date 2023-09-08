@@ -48,6 +48,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
             id.startsWith('Gradlebuild') ||
             id in [
                 'com.diffplug.spotless',
+                'com.gradleup.gr8',
                 'org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin',
                 'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin',
                 'me.champeau.jmh',
