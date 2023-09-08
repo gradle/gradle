@@ -180,7 +180,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsO
             dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
-    if (buildType !is CompileAll && buildType !is CompileAllBuildCacheNG) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))
         }
