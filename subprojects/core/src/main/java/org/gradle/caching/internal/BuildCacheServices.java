@@ -20,13 +20,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -37,13 +35,10 @@ import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.internal.services.LegacyBuildCacheControllerFactory;
-import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
-import org.gradle.caching.local.internal.H2BuildCacheServiceFactory;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
@@ -112,12 +107,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-                Class<? extends BuildCacheServiceFactory<?>> localCacheServiceFactory = NextGenBuildCacheController.isNextGenCachingEnabled()
-                    ? H2BuildCacheServiceFactory.class
-                    : DirectoryBuildCacheServiceFactory.class;
-                return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, localCacheServiceFactory);
+                return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
             }
-
         });
     }
 
@@ -192,35 +183,17 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 FileSystemAccess fileSystemAccess,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
-                StringInterner stringInterner,
-                Deleter deleter,
-                BuildInvocationScopeId buildInvocationScopeId,
-                ExecutorFactory executorFactory,
-                BufferProvider bufferProvider
+                StringInterner stringInterner
             ) {
-                if (NextGenBuildCacheController.isNextGenCachingEnabled()) {
-                    return new NextGenBuildCacheControllerFactory(
-                        startParameter,
-                        buildOperationExecutor,
-                        originMetadataFactory,
-                        fileSystemAccess,
-                        stringInterner,
-                        deleter,
-                        buildInvocationScopeId,
-                        executorFactory,
-                        bufferProvider
-                    );
-                } else {
-                    return new LegacyBuildCacheControllerFactory(
-                        startParameter,
-                        buildOperationExecutor,
-                        originMetadataFactory,
-                        fileSystemAccess,
-                        stringInterner,
-                        temporaryFileProvider,
-                        packer
-                    );
-                }
+                return new LegacyBuildCacheControllerFactory(
+                    startParameter,
+                    buildOperationExecutor,
+                    originMetadataFactory,
+                    fileSystemAccess,
+                    stringInterner,
+                    temporaryFileProvider,
+                    packer
+                );
             }
         });
     }

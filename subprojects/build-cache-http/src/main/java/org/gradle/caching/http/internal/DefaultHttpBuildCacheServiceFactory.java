@@ -23,8 +23,6 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
-import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
-import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
@@ -96,12 +94,6 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             builder.allowUntrustedConnections();
         } else {
             builder.withSslContextFactory(sslContextFactory);
-        }
-
-        if (NextGenBuildCacheController.isNextGenCachingEnabled()) {
-            // Allow next-gen build cache to use all threads to access the cache backend
-            builder.maxConnTotal(DefaultNextGenBuildCacheAccess.THREAD_POOL_SIZE);
-            builder.maxConnPerRoute(DefaultNextGenBuildCacheAccess.THREAD_POOL_SIZE);
         }
 
         HttpClientHelper httpClientHelper = httpClientHelperFactory.create(builder.build());

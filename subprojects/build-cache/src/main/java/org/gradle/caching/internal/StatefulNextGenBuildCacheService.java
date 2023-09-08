@@ -16,13 +16,71 @@
 
 package org.gradle.caching.internal;
 
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.cache.HasCleanupAction;
+import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public interface StatefulNextGenBuildCacheService extends NextGenBuildCacheService, HasCleanupAction, Closeable {
+/**
+ * Left to keep H2BuildCacheService logic
+ */
+public interface StatefulNextGenBuildCacheService extends BuildCacheService, HasCleanupAction, Closeable {
+    /**
+     * Returns whether the given entry exists in the cache.
+     *
+     * @param key the cache key.
+     * @return {code true} if the entry exists in the cache.
+     */
+    boolean contains(BuildCacheKey key);
+
+    @Override
+    default void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
+        NextGenWriter writer;
+        if (legacyWriter instanceof NextGenWriter) {
+            writer = (NextGenWriter) legacyWriter;
+        } else {
+            writer = new NextGenWriter() {
+                @Override
+                public InputStream openStream() throws IOException {
+                    UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
+                    writeTo(data);
+                    return data.toInputStream();
+                }
+
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    legacyWriter.writeTo(output);
+                }
+
+                @Override
+                public long getSize() {
+                    return legacyWriter.getSize();
+                }
+            };
+        }
+        store(key, writer);
+    }
+
+    void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException;
+
     void open();
 
     @Override
     void close();
+
+    /**
+     * A {@link BuildCacheEntryWriter} that can open an {@link InputStream} to the data instead of writing it to an {@link OutputStream}.
+     *
+     * In some backend implementations this results in better performance.
+     */
+    interface NextGenWriter extends BuildCacheEntryWriter {
+        InputStream openStream() throws IOException;
+    }
 }
