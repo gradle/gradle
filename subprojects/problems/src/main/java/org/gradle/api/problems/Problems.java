@@ -32,19 +32,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @Incubating
 @ServiceScope(Scope.Global.class)
 public interface Problems {
-
-    /**
-     * Returns a new problem builder which can configure and create Problem instances.
-     * <p>
-     * The builder uses a stepwise builder pattern forcing the clients to define all mandatory fields in a specific order.
-     * <p>
-     * Once all mandatory fields are set, the returned type will allow clients to call {@link BuildableProblemBuilder#build()} to create a new Problem instance.
-     * The {@link BuildableProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
-     *
-     * @return a new problem builder
-     */
-    ProblemBuilderDefiningLabel createProblemBuilder();
-
     /**
      * Configures a new problem with error severity, reports it and uses it to throw a new exception.
      * <p>
