@@ -27,8 +27,11 @@ import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
- * Smoke test verifying the external plugins.
+ * Smoke test verifying the external plugins used during the Gradle build itself.
  *
+ * We validate the plugins during runtime, too. However, this test ensures that we learn about failures early,
+ * i.e. the test is important since it shows if we need to change something in our build when we do the next
+ * major version bump. Either by having the external plugins been fixed or by switching to different plugins.
  */
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
