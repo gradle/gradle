@@ -16,6 +16,8 @@
 
 package org.gradle.api.configuration;
 
+import org.gradle.api.Incubating;
+
 /**
  * Status of a feature in a build that affects Gradle behavior,
  * and may impose additional requirements on plugins or build scripts.
@@ -32,6 +34,7 @@ package org.gradle.api.configuration;
  * @see BuildFeatures
  * @since 8.5
  */
+@Incubating
 public interface BuildFeature {
 
     /**
