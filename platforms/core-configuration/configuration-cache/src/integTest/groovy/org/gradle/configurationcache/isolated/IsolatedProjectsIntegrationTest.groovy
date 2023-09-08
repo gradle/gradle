@@ -26,22 +26,27 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
         buildFile """
             println "configuring root project"
-            task thing { }
+            def startParameter = gradle.startParameter
+            tasks.register("thing") {
+                doLast {
+                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                }
+            }
         """
 
         when:
         isolatedProjectsRun("thing")
-
         then:
         fixture.assertStateStored {
             projectConfigured(":")
         }
+        outputContains("isConfigurationCacheRequested=true")
 
         when:
         isolatedProjectsRun("thing")
-
         then:
         fixture.assertStateLoaded()
+        outputContains("isConfigurationCacheRequested=true")
     }
 
     def "cannot disable configuration cache when option is enabled"() {
