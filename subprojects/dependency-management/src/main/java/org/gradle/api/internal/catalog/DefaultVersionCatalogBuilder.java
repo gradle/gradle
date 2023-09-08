@@ -178,10 +178,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(ReportableProblem problem) {
-        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem));
-    }
-
     private DefaultVersionCatalog doBuild() {
         maybeImportCatalogs();
         if (!aliasesInProgress.isEmpty()) {
@@ -224,6 +220,10 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             .type(catalogProblemId.name())
             .group(VERSION_CATALOG_ID)
             .severity(ERROR);
+    }
+
+    private static RuntimeException throwVersionCatalogProblemException(ReportableProblem problem) {
+        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem));
     }
 
     @Nonnull
