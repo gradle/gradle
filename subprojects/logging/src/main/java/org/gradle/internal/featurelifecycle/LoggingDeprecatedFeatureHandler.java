@@ -26,6 +26,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;

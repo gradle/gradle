@@ -122,7 +122,6 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
-        1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
 

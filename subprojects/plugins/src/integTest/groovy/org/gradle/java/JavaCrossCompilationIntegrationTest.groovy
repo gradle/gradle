@@ -32,7 +32,7 @@ import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersi
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     static List<String> javaVersionsToCrossCompileAgainst() {
-        return ["1.6", "1.7", "1.8", "11", "15", "16", "17"]
+        return ["1.6", "1.7", "1.8", "11", "15", "16", "17", "18", "19", "20", "21"]
     }
 
     static JavaVersion toJavaVersion(String version) {

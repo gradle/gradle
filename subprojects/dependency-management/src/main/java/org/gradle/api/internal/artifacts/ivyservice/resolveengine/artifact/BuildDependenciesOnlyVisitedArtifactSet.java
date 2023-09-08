@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -48,8 +48,8 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
 
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
-        VariantSelector variantSelector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariant, selectFromAllVariants, dependenciesResolverFactory);
-        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector).getArtifacts();
+        ArtifactVariantSelector variantSelector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariant, dependenciesResolverFactory);
+        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector, selectFromAllVariants).getArtifacts();
         return new BuildDependenciesOnlySelectedArtifactSet(unresolvedDependencies, selectedArtifacts);
     }
 

@@ -22,11 +22,11 @@ import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
-import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
-import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
-import org.gradle.internal.DisplayName
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationId
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.metaobject.ConfigureDelegate
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.TestUtil
@@ -1770,7 +1770,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         containerSupportsBuildOperations()
 
         UserCodeApplicationId id1 = null
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id1 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id1
@@ -1787,7 +1787,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         when:
         UserCodeApplicationId id2 = null
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id2 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id2
@@ -1808,7 +1808,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             container.withType(otherType).whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1825,7 +1825,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             container.matching { !it.is(a) }.whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1848,7 +1848,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         when:
         UserCodeApplicationId id = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id = it
             container.matching { !it.is(a) }.all {
                 ids << userCodeApplicationContext.current().id
@@ -1888,12 +1888,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(DisplayName)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
             id1 = it
             container.all {
                 ids << userCodeApplicationContext.current()
                 if (it.is(a)) {
-                    userCodeApplicationContext.apply(Stub(DisplayName)) {
+                    userCodeApplicationContext.apply(Stub(UserCodeSource)) {
                         id2 = it
                         container.all {
                             ids << userCodeApplicationContext.current()

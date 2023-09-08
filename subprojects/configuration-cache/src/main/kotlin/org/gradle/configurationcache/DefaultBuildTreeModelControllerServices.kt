@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
@@ -146,6 +147,21 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
         }
+        if (modelParameters.isIntermediateModelCache) {
+            registration.addProvider(ConfigurationCacheModelProvider())
+        } else {
+            registration.addProvider(VintageModelProvider())
+        }
+    }
+
+    private
+    class ConfigurationCacheModelProvider {
+        fun createLocalComponentCache(cache: BuildTreeConfigurationCache): LocalComponentCache = ConfigurationCacheAwareLocalComponentCache(cache)
+    }
+
+    private
+    class VintageModelProvider {
+        fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_CACHE
     }
 
     private

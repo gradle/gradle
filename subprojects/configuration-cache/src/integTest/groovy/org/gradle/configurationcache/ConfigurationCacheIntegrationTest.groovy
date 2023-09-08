@@ -352,4 +352,60 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("name: ${projectName2}")
         projectName1 != projectName2
     }
+
+    def "start parameter indicates whether configuration cache was requested"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def startParameter = gradle.startParameter
+            tasks.help {
+                doLast {
+                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                }
+            }
+        """
+
+        when:
+        run "help"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=false")
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        outputContains("isConfigurationCacheRequested=true")
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("isConfigurationCacheRequested=true")
+    }
+
+    def "configuration cache is marked requested even if disabled due to --export-keys"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def startParameter = gradle.startParameter
+            tasks.help {
+                doLast {
+                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                }
+            }
+        """
+
+        when:
+        run "help"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=false")
+
+        when:
+        configurationCacheRun "help", "--export-keys"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=true")
+    }
 }

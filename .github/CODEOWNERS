@@ -67,9 +67,6 @@ subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
-subprojects/language-groovy/                @gradle/bt-jvm
-subprojects/language-java/                  @gradle/bt-jvm
-subprojects/language-jvm/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm

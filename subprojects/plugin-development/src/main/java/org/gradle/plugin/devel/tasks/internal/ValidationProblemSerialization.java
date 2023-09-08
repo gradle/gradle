@@ -245,8 +245,8 @@ public class ValidationProblemSerialization {
             }
 
             out.beginObject();
-            out.name("url").value(value.url());
-            out.name("consultDocumentationMessage").value(value.consultDocumentationMessage());
+            out.name("url").value(value.getUrl());
+            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -276,12 +276,12 @@ public class ValidationProblemSerialization {
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
             return new DocLink() {
                 @Override
-                public String url() {
+                public String getUrl() {
                     return finalUrl;
                 }
 
                 @Override
-                public String consultDocumentationMessage() {
+                public String getConsultDocumentationMessage() {
                     return finalConsultDocumentationMessage;
                 }
             };

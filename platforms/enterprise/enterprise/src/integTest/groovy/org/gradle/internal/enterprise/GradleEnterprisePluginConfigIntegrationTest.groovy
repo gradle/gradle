@@ -17,10 +17,10 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.annotation.Nullable
@@ -178,7 +178,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue('https://github.com/gradle/gradle/issues/24023')
-    @IgnoreIf({ GradleContextualExecuter.notConfigCache })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def 'is correctly requested by the configuration cache'() {
         when:
         succeeds('t', *firstBuildArgs)

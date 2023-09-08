@@ -18,17 +18,16 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.time.Duration
 
-// https://github.com/gradle/gradle-private/issues/3433
-@IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
+@Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "https://github.com/gradle/gradle-private/issues/3433")
 @IntegrationTestTimeout(60)
 class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 

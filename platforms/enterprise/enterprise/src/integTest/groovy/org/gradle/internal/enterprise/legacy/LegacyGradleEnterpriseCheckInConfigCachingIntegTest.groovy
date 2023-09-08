@@ -17,10 +17,10 @@
 package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.configCache })
+@Requires(IntegTestPreconditions.NotConfigCached)
 class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())

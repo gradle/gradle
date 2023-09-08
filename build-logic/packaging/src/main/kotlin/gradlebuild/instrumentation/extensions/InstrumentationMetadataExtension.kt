@@ -17,7 +17,7 @@
 package gradlebuild.instrumentation.extensions
 
 import gradlebuild.basics.classanalysis.Attributes
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTATION_METADATA
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTATION_METADATA
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -28,9 +28,15 @@ import org.gradle.api.file.RegularFileProperty
 
 abstract class InstrumentationMetadataExtension(private val configurations: ConfigurationContainer) {
 
+    companion object {
+        const val INSTRUMENTED_SUPER_TYPES_MERGE_TASK = "mergeInstrumentedSuperTypes"
+        const val UPGRADED_PROPERTIES_MERGE_TASK = "mergeUpgradedProperties"
+        const val INSTRUMENTED_METADATA_EXTENSION = "instrumentationMetadata"
+    }
+
     abstract val classpathToInspect: ConfigurableFileCollection
     abstract val superTypesOutputFile: RegularFileProperty
-    abstract val superTypesHashFile: RegularFileProperty
+    abstract val upgradedPropertiesFile: RegularFileProperty
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun createInstrumentationMetadataViewOf(other: Configuration): FileCollection {

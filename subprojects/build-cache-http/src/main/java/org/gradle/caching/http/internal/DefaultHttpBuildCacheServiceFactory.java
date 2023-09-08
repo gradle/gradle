@@ -125,7 +125,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                     throw new InsecureProtocolException(
                         "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.",
                         "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.",
-                        Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").consultDocumentationMessage()
+                        Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").getConsultDocumentationMessage()
                     );
                 },
                 redirect -> {

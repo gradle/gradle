@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
+    public static final String NOT_EMBEDDED_REASON = "wrapperExecuter requires a real distribution"
     void installationIn(TestFile userHomeDir) {
         def distDir = userHomeDir.file("wrapper/dists/${FilenameUtils.getBaseName(distribution.binDistribution.absolutePath)}").assertIsDir()
         assert distDir.listFiles().length == 1

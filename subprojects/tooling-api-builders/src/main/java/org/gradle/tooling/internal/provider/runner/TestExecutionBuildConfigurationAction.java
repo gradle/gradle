@@ -88,7 +88,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void configureTestTask(AbstractTestTask test) {
-        test.setIgnoreFailures(true);
         test.getFilter().setFailOnNoMatchingTests(false);
         test.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         if (test instanceof Test) {

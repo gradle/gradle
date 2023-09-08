@@ -89,7 +89,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
         Test method org.acme.SomeBazTest.bazMethod()"""
 
         and:
-        1 * testExecutionRequest.getTestExecutionDescriptors() >> [defaultTestDescriptor]
+        2 * testExecutionRequest.getTestExecutionDescriptors() >> [defaultTestDescriptor]
         1 * testExecutionRequest.getInternalJvmTestRequests() >> [testClassRequest, testMethodRequest, testMethodRequest2]
     }
 
@@ -98,6 +98,9 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def ancestryTracker = Mock(BuildOperationAncestryTracker)
         1 * ancestryTracker.findClosestExistingAncestor(_, _) >> Optional.of(":someproject:someTestTask")
         def testExecutionRequest = Mock(TestExecutionRequestAction)
+        1 * testExecutionRequest.getInternalJvmTestRequests() >> []
+        1 * testExecutionRequest.testExecutionDescriptors >> []
+        1 * testExecutionRequest.taskSpecs >> []
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)

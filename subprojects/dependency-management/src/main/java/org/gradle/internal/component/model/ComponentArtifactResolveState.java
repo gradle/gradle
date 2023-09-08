@@ -21,6 +21,9 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * State for a component instance that is used to perform artifact resolution.
  *
@@ -45,4 +48,9 @@ public interface ComponentArtifactResolveState {
      * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
      */
     void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
+
+    /**
+     * Return the artifact resolution state for each variant in this component, used for selecting artifacts.
+     */
+    Optional<List<VariantArtifactResolveState>> getVariantsForArtifactSelection();
 }

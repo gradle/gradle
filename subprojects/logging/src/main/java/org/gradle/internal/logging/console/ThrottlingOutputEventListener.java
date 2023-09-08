@@ -22,6 +22,8 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.time.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,8 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThrottlingOutputEventListener.class);
+
     private final OutputEventListener listener;
 
     private final ScheduledExecutorService executor;
@@ -58,7 +62,13 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
         executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                onOutput(new UpdateNowEvent(clock.getCurrentTime()));
+                try {
+                    onOutput(new UpdateNowEvent(clock.getCurrentTime()));
+                } catch (Throwable t) {
+                    // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                    // otherwise the further invocations of this task get automatically and silently cancelled
+                    LOGGER.debug("Exception while displaying output", t);
+                }
             }
         }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
     }

@@ -526,21 +526,21 @@
   },
   {
     "name": "language-groovy",
-    "path": "subprojects/language-groovy",
+    "path": "platforms/jvm/language-groovy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "language-java",
-    "path": "subprojects/language-java",
+    "path": "platforms/jvm/language-java",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "language-jvm",
-    "path": "subprojects/language-jvm",
+    "path": "platforms/jvm/language-jvm",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -836,7 +836,7 @@
     "name": "toolchains-jvm",
     "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

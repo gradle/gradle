@@ -17,6 +17,8 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 import org.gradle.internal.time.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -25,6 +27,7 @@ import java.lang.management.MemoryType;
 import java.util.List;
 
 public class GarbageCollectionCheck implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GarbageCollectionCheck.class);
 
     private final Clock clock;
     private final GarbageCollectorMXBean garbageCollectorMXBean;
@@ -46,20 +49,26 @@ public class GarbageCollectionCheck implements Runnable {
 
     @Override
     public void run() {
-        List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
-        for (MemoryPoolMXBean memoryPoolMXBean : memoryPoolMXBeans) {
-            String poolName = memoryPoolMXBean.getName();
-            if (memoryPoolMXBean.getType() == MemoryType.HEAP && poolName.equals(heapMemoryPool)) {
-                GarbageCollectionEvent latest = heapEvents.latest();
-                long currentCount = garbageCollectorMXBean.getCollectionCount();
-                // There has been a GC event
-                if (latest == null || latest.getCount() != currentCount) {
-                    heapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getCollectionUsage(), currentCount));
+        try {
+            List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
+            for (MemoryPoolMXBean memoryPoolMXBean : memoryPoolMXBeans) {
+                String poolName = memoryPoolMXBean.getName();
+                if (memoryPoolMXBean.getType() == MemoryType.HEAP && poolName.equals(heapMemoryPool)) {
+                    GarbageCollectionEvent latest = heapEvents.latest();
+                    long currentCount = garbageCollectorMXBean.getCollectionCount();
+                    // There has been a GC event
+                    if (latest == null || latest.getCount() != currentCount) {
+                        heapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getCollectionUsage(), currentCount));
+                    }
+                }
+                if (memoryPoolMXBean.getType() == MemoryType.NON_HEAP && poolName.equals(nonHeapMemoryPool)) {
+                    nonHeapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getUsage(), -1));
                 }
             }
-            if (memoryPoolMXBean.getType() == MemoryType.NON_HEAP && poolName.equals(nonHeapMemoryPool)) {
-                nonHeapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getUsage(), -1));
-            }
+        } catch (Throwable t) {
+            // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+            // otherwise the further invocations of this task get automatically and silently cancelled
+            LOGGER.debug("Exception while checking garbage collection", t);
         }
     }
 }

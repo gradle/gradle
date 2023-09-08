@@ -21,8 +21,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.IgnoreIf
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -227,7 +227,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
         completeBuild()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()

@@ -23,13 +23,14 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.internal.DefaultExecHandleBuilder
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.util.concurrent.Executors
 
 class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "works on real installation"() {
         when:
         def detector = new DefaultJvmMetadataDetector(

@@ -18,10 +18,10 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
@@ -53,7 +53,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
 """
     }
 
-    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     @ToBeFixedForConfigurationCache
     def "can specify location of generated files"() {
         when:

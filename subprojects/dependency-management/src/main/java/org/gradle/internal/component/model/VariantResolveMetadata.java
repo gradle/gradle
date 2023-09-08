@@ -49,6 +49,8 @@ public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subv
      * Is this variant eligible for caching?
      *
      * Only variants from a project component are eligible for caching.
+     *
+     * @see <a href="https://github.com/gradle/gradle/pull/23500#discussion_r1073224819">Context</a>
      */
     default boolean isEligibleForCaching() {
         return false;

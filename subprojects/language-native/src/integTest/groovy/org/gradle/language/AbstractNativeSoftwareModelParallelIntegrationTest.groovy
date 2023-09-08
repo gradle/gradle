@@ -17,12 +17,13 @@
 package org.gradle.language
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
-// no point, always runs in parallel
+@Requires(value = [IntegTestPreconditions.NotParallelExecutor, UnitTestPreconditions.NotMacOs],
+    reason = "always runs in parallel, our mac currently lacks proper toolchain installations")
 abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends AbstractNativeParallelIntegrationTest {
     abstract HelloWorldApp getApp()
 
