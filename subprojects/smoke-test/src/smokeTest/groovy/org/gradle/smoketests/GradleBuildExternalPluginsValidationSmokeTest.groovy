@@ -45,7 +45,10 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
     }
 
     def "performs static validation of plugins used by the Gradle build"() {
-        expect:
+        when:
+        allPlugins.passing { true }
+
+        then:
         allPlugins.performValidation([
             "--no-parallel" // make sure we have consistent execution ordering as we skip cached tasks
         ])
