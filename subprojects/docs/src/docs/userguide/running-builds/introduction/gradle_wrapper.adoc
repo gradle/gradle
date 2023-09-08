@@ -49,3 +49,10 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
+
+[[sec:adding_wrapper]]
+[[sec:upgrading_wrapper]]
+[[customizing_wrapper]]
+[[sec:authenticated_download]]
+[[sec:verification]]
+[[wrapper_checksum_verification]]
