@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.IncludedBuild;
@@ -125,6 +126,15 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @return The start parameter. Never returns null.
      */
     StartParameter getStartParameter();
+
+    /**
+     * Returns the {@link BuildFeatures} for this build.
+     * <p>
+     * The build features are applicable to the main build as well as to any included builds.
+     *
+     * @since 8.5
+     */
+    BuildFeatures getBuildFeatures();
 
     /**
      * Adds a listener to this build, to receive notifications as projects are evaluated.
