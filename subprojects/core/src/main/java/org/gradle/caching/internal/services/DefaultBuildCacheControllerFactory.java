@@ -34,12 +34,12 @@ import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 
-public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
+public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
 
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
 
-    public LegacyBuildCacheControllerFactory(
+    public DefaultBuildCacheControllerFactory(
         StartParameter startParameter,
         BuildOperationExecutor buildOperationExecutor,
         OriginMetadataFactory originMetadataFactory,

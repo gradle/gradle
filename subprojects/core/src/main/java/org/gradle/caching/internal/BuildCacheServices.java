@@ -34,7 +34,7 @@ import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory;
-import org.gradle.caching.internal.services.LegacyBuildCacheControllerFactory;
+import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
@@ -185,7 +185,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner
             ) {
-                return new LegacyBuildCacheControllerFactory(
+                return new DefaultBuildCacheControllerFactory(
                     startParameter,
                     buildOperationExecutor,
                     originMetadataFactory,
