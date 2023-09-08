@@ -43,7 +43,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
             })
         }
         expect:
-        container.asImmutable()
+        container.asImmutable().keySet().size() == 100
         actual == expected
     }
 
@@ -60,7 +60,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container.attributeProvider(secondAttribute, Providers.of("second"))
 
         expect:
-        container.asImmutable()
+        container.asImmutable().keySet() == [secondAttribute, firstAttribute] as Set
     }
 
     def "realizing the value of lazy attributes cannot add new attributes to the container"() {

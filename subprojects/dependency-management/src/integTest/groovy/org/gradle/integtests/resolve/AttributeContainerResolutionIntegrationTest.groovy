@@ -22,18 +22,6 @@ import spock.lang.Issue
 class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/26298")
     def "lazy attributes provided to a Configuration do not fail resolution when they have side effects"() {
-        settingsFile << """
-            include "sub"
-        """
-        file("sub/build.gradle") << """
-            configurations {
-                consumable("conf") {
-                    attributes {
-                        attribute(Attribute.of("attr", Named), objects.named(Named, "value"))
-                    }
-                }
-            }
-        """
         buildFile << """
             configurations {
                 conf {
@@ -48,10 +36,6 @@ class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpe
                         })
                     }
                 }
-            }
-
-            dependencies {
-                conf(project(":sub"))
             }
 
             task resolve {
