@@ -30,16 +30,16 @@ subprojects/worker-processes/               @gradle/bt-execution
 subprojects/workers/                        @gradle/bt-execution
 
 # Core automation platform (core/configuration)
-subprojects/api-metadata/                       @gradle/bt-configuration-cache
-subprojects/base-annotations/                   @gradle/bt-configuration-cache
-subprojects/base-services-groovy/               @gradle/bt-configuration-cache
-subprojects/configuration-cache/                @gradle/bt-configuration-cache
-subprojects/file-collections/                   @gradle/bt-configuration-cache
-subprojects/instrumentation-agent/              @gradle/bt-configuration-cache
-subprojects/internal-instrumentation-api/       @gradle/bt-configuration-cache
-subprojects/internal-instrumentation-processor/ @gradle/bt-configuration-cache
-subprojects/model-core/                         @gradle/bt-configuration-cache
-subprojects/model-groovy/                       @gradle/bt-configuration-cache
+subprojects/api-metadata/                       @gradle/bt-configuration
+subprojects/base-annotations/                   @gradle/bt-configuration
+subprojects/base-services-groovy/               @gradle/bt-configuration
+subprojects/configuration-cache/                @gradle/bt-configuration
+subprojects/file-collections/                   @gradle/bt-configuration
+subprojects/instrumentation-agent/              @gradle/bt-configuration
+subprojects/internal-instrumentation-api/       @gradle/bt-configuration
+subprojects/internal-instrumentation-processor/ @gradle/bt-configuration
+subprojects/model-core/                         @gradle/bt-configuration
+subprojects/model-groovy/                       @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers

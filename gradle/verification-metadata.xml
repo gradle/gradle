@@ -1064,16 +1064,6 @@
             <pgp value="41a1a08c62fca78b79d3081164a16faaec16a4be"/>
          </artifact>
       </component>
-      <component group="org.apache.ivy" name="ivy" version="2.3.0">
-         <artifact name="ivy-2.3.0.jar">
-            <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
-         </artifact>
-      </component>
-      <component group="org.apache.ivy" name="ivy" version="2.5.0">
-         <artifact name="ivy-2.5.0.jar">
-            <pgp value="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081"/>
-         </artifact>
-      </component>
       <component group="org.apache.maven" name="maven-model" version="3.0.4">
          <artifact name="maven-model-3.0.4.jar">
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>

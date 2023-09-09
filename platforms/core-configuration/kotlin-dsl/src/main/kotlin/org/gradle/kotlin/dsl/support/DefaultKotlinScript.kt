@@ -79,7 +79,7 @@ open class DefaultKotlinScript internal constructor(
         fileOperations.file(path, validation)
 
     override fun files(vararg paths: Any): ConfigurableFileCollection =
-        fileOperations.configurableFiles(paths)
+        fileOperations.configurableFiles(*paths)
 
     override fun files(paths: Any, configuration: Action<ConfigurableFileCollection>): ConfigurableFileCollection =
         fileOperations.configurableFiles(paths).also(configuration::execute)
