@@ -30,6 +30,71 @@ import spock.lang.Specification
 class DefaultMutableAttributeContainerTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
+    def "lazy attributes are evaluated in insertion order"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def actual = []
+        def expected = []
+        (1..100).each { idx ->
+            def testAttribute = Attribute.of("test"+idx, String)
+            expected << idx
+            container.attributeProvider(testAttribute, Providers.<String>changing {
+                actual << idx
+                "value " + idx
+            })
+        }
+        expect:
+        container.asImmutable().keySet().size() == 100
+        actual == expected
+    }
+
+    def "realizing the value of lazy attributes may cause other attributes to be realized"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            // side effect is to evaluate the secondAttribute's value and prevent
+            // it from changing by removing it from the list of "lazy attributes"
+            container.getAttribute(secondAttribute)
+            "first"
+        })
+        container.attributeProvider(secondAttribute, Providers.of("second"))
+
+        expect:
+        container.asImmutable().keySet() == [secondAttribute, firstAttribute] as Set
+    }
+
+    def "realizing the value of lazy attributes cannot add new attributes to the container"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            container.attribute(secondAttribute, "second" )
+            "first"
+        })
+
+        when:
+        container.asImmutable()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
+    }
+
+    def "realizing the value of lazy attributes cannot add new lazy attributes to the container"() {
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def firstAttribute = Attribute.of("first", String)
+        def secondAttribute = Attribute.of("second", String)
+        container.attributeProvider(firstAttribute, Providers.<String>changing {
+            container.attributeProvider(secondAttribute, Providers.of("second"))
+            "first"
+        })
+
+        when:
+        container.asImmutable()
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
+    }
+
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)

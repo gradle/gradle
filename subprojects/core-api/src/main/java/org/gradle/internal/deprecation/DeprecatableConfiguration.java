@@ -74,7 +74,7 @@ public interface DeprecatableConfiguration extends Configuration {
             DeprecationLogger.deprecateConfiguration(getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
     }
@@ -88,7 +88,7 @@ public interface DeprecatableConfiguration extends Configuration {
                 .forDependencyDeclaration()
                 .replaceWith(getDeclarationAlternatives())
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
     }
@@ -102,7 +102,7 @@ public interface DeprecatableConfiguration extends Configuration {
                 .forResolution()
                 .replaceWith(getResolutionAlternatives())
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
     }
