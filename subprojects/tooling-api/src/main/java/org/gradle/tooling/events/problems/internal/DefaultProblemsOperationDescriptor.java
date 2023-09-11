@@ -22,122 +22,21 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final String problemGroup;
-    private final String severity;
-    private final String message;
-    private final String description;
-    private final List<String> solutions;
-    @Nullable
-    private final String path;
-    @Nullable
-    private final Integer line;
-    @Nullable
-    private final Integer column;
-    private final String documentationLink;
-    private final Throwable cause;
-    private final String problemType;
-    private Map<String, String> additionalMetaData;
+    private final String json;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
-        String problemId,
-        String severity,
-        String message,
-        @Nullable String description,
-        List<String> solutions,
-        @Nullable String path,
-        @Nullable Integer line,
-        @Nullable Integer column,
-        @Nullable String documentationLink,
-        @Nullable Throwable cause,
-        String problemType,
-        Map<String, String> additionalMetaData
+        String json
     ) {
         super(internalDescriptor, parent);
-        this.problemGroup = problemId;
-        this.severity = severity;
-        this.message = message;
-        this.description = description;
-        this.solutions = solutions;
-        this.path = path;
-        this.line = line;
-        this.column = column;
-        this.documentationLink = documentationLink;
-        this.cause = cause;
-        this.problemType = problemType;
-        this.additionalMetaData = additionalMetaData;
+        this.json = json;
     }
 
     @Override
-    public String getProblemGroup() {
-        return problemGroup;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getSeverity() {
-        return severity;
-    }
-
-    @Nullable
-    @Override
-    public String getDocumentationLink() {
-        return documentationLink;
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Nullable
-    @Override
-    public Throwable getCause() {
-        return cause;
-    }
-
-    @Override
-    public String getProblemType() {
-        return problemType;
-    }
-
-    @Nullable
-    @Override
-    public Integer getLine() {
-        return line;
-    }
-
-    @Nullable
-    @Override
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Nullable
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Override
-    public Map<String, String> getAdditionalMetaData() {
-        return additionalMetaData;
+    public String getJson() {
+        return json;
     }
 }

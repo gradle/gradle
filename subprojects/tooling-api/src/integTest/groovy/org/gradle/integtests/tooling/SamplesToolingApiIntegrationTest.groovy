@@ -21,15 +21,17 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 @LeaksFileHandles
-@IgnoreIf({ GradleContextualExecuter.embedded }) // These test run independent applications that connect to a Gradle distribution through the Tooling API
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "These test run independent applications that connect to a Gradle distribution through the Tooling API")
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('toolingApi/eclipse/groovy')
     def "can use tooling API to build Eclipse model"() {
@@ -132,8 +134,8 @@ repositories {
 
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         result = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
-                .inDirectory(dir)
-                .withTasks(task)
-                .run()
+            .inDirectory(dir)
+            .withTasks(task)
+            .run()
     }
 }

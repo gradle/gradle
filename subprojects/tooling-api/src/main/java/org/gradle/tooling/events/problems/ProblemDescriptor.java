@@ -19,44 +19,21 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Describes a problem operation.
+ * <p>
+ * The Problems API in an incubating stage and the associated classes are likely to change in a non-compatible way.
+ * Consequently, the Tooling API only exposes problem instances with dynamic data in json format without any guarantees.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemDescriptor extends OperationDescriptor {
-    String getProblemGroup();
 
-    String getMessage();
-
-    String getSeverity();
-
-    @Nullable
-    String getPath();
-
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
-
-    @Nullable
-    String getDocumentationLink();
-
-    @Nullable
-    String getDescription();
-
-    List<String> getSolutions();
-
-    @Nullable
-    Throwable getCause();
-
-    String getProblemType();
-
-    Map<String, String> getAdditionalMetaData();
+    /**
+     * The problem properties in JSON format.
+     *
+     * @return the problem properties.
+     */
+    String getJson();
 }

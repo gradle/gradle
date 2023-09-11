@@ -384,7 +384,7 @@ subprojects {
                 mavenCentral()
             }
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
+                implementation(kotlin("stdlib"))
             }
             publishing {
                 publications {
@@ -424,7 +424,7 @@ subprojects {
                 mavenCentral()
             }
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
+                implementation(kotlin("stdlib"))
             }
             publishing {
                 publications {

@@ -43,7 +43,7 @@ public interface TestFixturesDependencyModifiers {
      * @return the dependency modifier
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
-     * @see TestFixturesDependencyModifier#modify(ModuleDependency)
+     * @see TestFixturesDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
     TestFixturesDependencyModifier getTestFixtures();
@@ -52,20 +52,22 @@ public interface TestFixturesDependencyModifiers {
      * Implementation for the test fixtures dependency modifier.
      *
      * @since 8.0
-     * @see #modify(ModuleDependency)
+     * @see #modifyImplementation(ModuleDependency)
      */
     @Incubating
-    abstract class TestFixturesDependencyModifier implements DependencyModifier {
+    abstract class TestFixturesDependencyModifier extends DependencyModifier {
         /**
          * {@inheritDoc}
          *
          * Selects the test fixtures variant of the given dependency.
          */
         @Override
-        public <D extends ModuleDependency> D modify(D dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             if (dependency instanceof ExternalDependency) {
+                String group = dependency.getGroup();
+                String name = dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
                 dependency.capabilities(capabilities -> {
-                    capabilities.requireCapability(new DefaultImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+                    capabilities.requireCapability(new DefaultImmutableCapability(group, name, null));
                 });
             } else if (dependency instanceof ProjectDependency) {
                 ProjectDependency projectDependency = Cast.uncheckedCast(dependency);
@@ -73,7 +75,6 @@ public interface TestFixturesDependencyModifiers {
             } else {
                 throw new IllegalStateException("Unknown dependency type: " + dependency.getClass());
             }
-            return dependency;
         }
     }
 }

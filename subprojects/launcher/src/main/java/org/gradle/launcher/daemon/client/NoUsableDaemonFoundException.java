@@ -25,7 +25,7 @@ import java.util.List;
 
 public class NoUsableDaemonFoundException extends DefaultMultiCauseException implements ResolutionProvider {
 
-    private static final List<String> RESOLUTION = Collections.singletonList(Documentation.userManual("troubleshooting", "network_connection").consultDocumentationMessage());
+    private static final List<String> RESOLUTION = Collections.singletonList(Documentation.userManual("troubleshooting", "network_connection").getConsultDocumentationMessage());
 
     public NoUsableDaemonFoundException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);

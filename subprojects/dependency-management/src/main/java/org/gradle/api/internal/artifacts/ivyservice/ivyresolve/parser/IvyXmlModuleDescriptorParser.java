@@ -31,6 +31,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ExtraInfoHolder;
 import org.apache.ivy.core.module.descriptor.IncludeRule;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -1174,7 +1175,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"deprecation"})
         public void endElement(String uri, String localName, String qName) {
             if (state == State.PUB && "artifact".equals(qName)) {
                 if (artifact.getConfigurations().isEmpty()) {
@@ -1222,7 +1223,10 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
+                getMd().addExtraInfo(new ExtraInfoHolder(
+                    new NamespaceId(uri, localName).encode(),
+                    buffer == null ? "" : buffer.toString())
+                );
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {

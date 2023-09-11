@@ -17,8 +17,9 @@
 package org.gradle.configurationcache.problems
 
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import java.util.function.Supplier
@@ -31,16 +32,8 @@ class DefaultProblemFactory(
     private
     val problemStream = problemDiagnosticsFactory.newStream()
 
-    override fun locationForCaller(consumer: String?): PropertyTrace {
-        val currentApplication = userCodeContext.current()
-        return if (currentApplication != null) {
-            PropertyTrace.BuildLogic(currentApplication.displayName, null)
-        } else if (consumer != null) {
-            PropertyTrace.BuildLogicClass(consumer)
-        } else {
-            PropertyTrace.Unknown
-        }
-    }
+    override fun locationForCaller(consumer: String?): PropertyTrace =
+        locationForCaller(consumer, userCodeContext.current()?.source)
 
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
         val trace = locationForCaller(null, problemStream.forCurrentCaller(exception))
@@ -97,7 +90,18 @@ class DefaultProblemFactory(
         return if (location != null) {
             PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
         } else {
-            locationForCaller(consumer)
+            locationForCaller(consumer, diagnostics.source)
+        }
+    }
+
+    private
+    fun locationForCaller(consumer: String?, source: UserCodeSource?): PropertyTrace {
+        return if (source != null) {
+            PropertyTrace.BuildLogic(source.displayName, null)
+        } else if (consumer != null) {
+            PropertyTrace.BuildLogicClass(consumer)
+        } else {
+            PropertyTrace.Unknown
         }
     }
 }

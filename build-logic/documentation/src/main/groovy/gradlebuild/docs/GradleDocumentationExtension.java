@@ -59,6 +59,12 @@ public abstract class GradleDocumentationExtension {
     public abstract ConfigurableFileCollection getDocumentedSource();
 
     /**
+     * Source code root folders. Java, Groovy & Kotlin public API sources, including
+     * generated code.
+     */
+    public abstract ConfigurableFileCollection getSourceRoots();
+
+    /**
      * Kotlin DSL source code to be documented. This should be the "public" Kotlin APIs,
      * including generated code.
      */

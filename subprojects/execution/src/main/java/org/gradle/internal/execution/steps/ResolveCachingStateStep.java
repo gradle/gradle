@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
@@ -92,9 +91,8 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);
-        String cacheSalt = NextGenBuildCacheController.isNextGenCachingEnabled() ? "next-gen" : null;
 
-        return cachingStateFactory.createCachingState(beforeExecutionState, cacheSalt, cachingDisabledReasonsBuilder.build());
+        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
     }
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {

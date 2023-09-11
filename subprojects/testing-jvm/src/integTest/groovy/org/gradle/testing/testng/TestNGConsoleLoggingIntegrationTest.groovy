@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
@@ -90,7 +91,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "defaultLifecycleLogging"() {
+    def "can log with default lifecycle logging"() {
         when:
         fails "test"
 
@@ -101,7 +102,7 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         """)
     }
 
-    def customQuietLogging() {
+    def "can log with custom quiet logging"() {
         when:
         executer.withStackTraceChecksDisabled()
         args "-q"
@@ -122,7 +123,7 @@ Gradle suite FAILED
         """)
     }
 
-    def "standardOutputLogging"() {
+    def "can log to stdout"() {
         given:
         buildFile.text = """
             apply plugin: "groovy"
@@ -180,6 +181,50 @@ Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
     line 2
     line 3
         """)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25857")
+    def "failure during TestNG initialization is written to console when granularity is set"() {
+        given:
+        buildFile.text = """
+            apply plugin: "groovy"
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.codehaus.groovy:groovy:2.4.10"
+            }
+
+            testing {
+                suites {
+                    test {
+                        useTestNG('6.3.1')
+
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        listeners.add("com.listeners.DoesNotExist")
+                                    }
+                                    testLogging {
+                                        minGranularity = 1
+                                        exceptionFormat = "FULL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails "test"
+
+        then:
+        outputContains("org.gradle.api.GradleException: Could not add a test listener with class 'com.listeners.DoesNotExist'")
+        outputContains("java.lang.ClassNotFoundException: com.listeners.DoesNotExist")
     }
 
 }

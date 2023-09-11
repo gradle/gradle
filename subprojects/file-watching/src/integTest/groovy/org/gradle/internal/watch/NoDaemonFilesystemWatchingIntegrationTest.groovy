@@ -24,7 +24,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @LocalOnly
-@Requires(IntegTestPreconditions.NotDaemonExecutor)
+@Requires(IntegTestPreconditions.IsNoDaemonExecutor)
 class NoDaemonFilesystemWatchingIntegrationTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 
     def "is disabled by default for --no-daemon"() {

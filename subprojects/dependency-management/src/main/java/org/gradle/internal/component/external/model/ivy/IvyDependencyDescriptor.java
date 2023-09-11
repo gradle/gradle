@@ -30,12 +30,12 @@ import org.gradle.internal.component.external.model.ExternalDependencyDescriptor
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ConfigurationNotFoundException;
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.model.VariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -125,7 +125,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      *   - '@' and '#' are special values for matching target configurations. See <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html">the Ivy docs</a> for details.
      */
     @Override
-    public VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent) {
+    public GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
         List<ConfigurationGraphResolveState> targets = Lists.newLinkedList();
         boolean matched = false;
@@ -169,7 +169,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
             builder.add(target.asVariant());
         }
 
-        return new VariantSelectionResult(builder.build(), false);
+        return new GraphVariantSelectionResult(builder.build(), false);
     }
 
     private void findMatches(ComponentIdentifier fromComponent, ComponentGraphResolveState targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, List<ConfigurationGraphResolveState> targetConfigurations) {
@@ -204,7 +204,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
         ConfigurationGraphResolveState configuration = targetComponent.getConfiguration(targetPattern);
         if (configuration == null) {
-            throw new ConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
+            throw new ExternalConfigurationNotFoundException(fromComponent, fromConfiguration, targetPattern, targetComponent.getId());
         }
         maybeAddConfiguration(targetConfigurations, configuration);
     }

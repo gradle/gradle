@@ -19,17 +19,16 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -49,8 +48,8 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
-import static org.gradle.api.problems.interfaces.Severity.WARNING;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
@@ -80,15 +79,18 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
-        List<Problem> problems = validationContext.getProblems();
-        problemService.collectErrors(problems);
+        List<ReportableProblem> problems = validationContext.getProblems();
+        for (ReportableProblem problem : problems) {
+            problem.report();
+        }
 
-        Map<Severity, ImmutableList<Problem>> problemsMap = problems.stream()
+        Map<Severity, ImmutableList<ReportableProblem>> problemsMap = problems.stream()
+
             .collect(
                 groupingBy(Problem::getSeverity,
                     mapping(identity(), toImmutableList())));
-        ImmutableList<Problem> warnings = problemsMap.getOrDefault(WARNING, of());
-        ImmutableList<Problem> errors = problemsMap.getOrDefault(ERROR, of());
+        ImmutableList<ReportableProblem> warnings = problemsMap.getOrDefault(WARNING, of());
+        ImmutableList<ReportableProblem> errors = problemsMap.getOrDefault(ERROR, of());
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -135,14 +137,17 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyProblem(problem ->
-                configureImplementationValidationProblem(problem.forProperty(propertyName))
-                    .message(unknownImplSnapshot.getProblemDescription())
-                    .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
-                    .description(unknownImplSnapshot.getReasonDescription())
-                    .solution(unknownImplSnapshot.getSolutionDescription())
-                    .severity(ERROR)
+            workValidationContext.visitPropertyProblem(problem -> problem
+                .forProperty(propertyName)
+                .typeIsIrrelevantInErrorMessage()
+                .label(unknownImplSnapshot.getProblemDescription())
+                .documentedAt(userManual("validation_problems", "implementation_unknown"))
+                .noLocation()
+                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .details(unknownImplSnapshot.getReasonDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
+                .severity(ERROR)
             );
         }
     }
@@ -150,26 +155,21 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
-            workValidationContext.visitPropertyProblem(problem ->
-                configureImplementationValidationProblem(problem)
-                    .message(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
-                    .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
-                    .description(unknownImplSnapshot.getReasonDescription())
-                    .solution(unknownImplSnapshot.getSolutionDescription())
-                    .severity(ERROR)
+            workValidationContext.visitPropertyProblem(problem -> problem
+                .typeIsIrrelevantInErrorMessage()
+                .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                .documentedAt(userManual("validation_problems", "implementation_unknown"))
+                .noLocation()
+                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .details(unknownImplSnapshot.getReasonDescription())
+                .solution(unknownImplSnapshot.getSolutionDescription())
+                .severity(ERROR)
             );
         }
     }
 
-    private ProblemBuilderDefiningMessage configureImplementationValidationProblem(TypeAwareProblemBuilder problem) {
-        return problem
-            .typeIsIrrelevantInErrorMessage()
-            .documentedAt(userManual("validation_problems", "implementation_unknown"))
-            .noLocation();
-    }
-
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<Problem> validationErrors) {
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends Problem> validationErrors) {
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
@@ -179,6 +179,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<Problem> warnings);
+        void recordValidationWarnings(UnitOfWork work, Collection<? extends Problem> warnings);
     }
 }

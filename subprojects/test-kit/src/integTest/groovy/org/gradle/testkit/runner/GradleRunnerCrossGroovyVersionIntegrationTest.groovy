@@ -16,17 +16,15 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
+@Requires([IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.Jdk15OrEarlier])
 @NonCrossVersion
-@Requires(UnitTestPreconditions.Jdk15OrEarlier)
 class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "current TestKit can run build with old Gradle version that uses Groovy 2"() {

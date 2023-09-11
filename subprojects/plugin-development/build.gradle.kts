@@ -59,6 +59,7 @@ dependencies {
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.gson)
+    testFixturesImplementation(project(":base-services"))
 }
 
 integTest.usesJavadocCodeSnippets = true

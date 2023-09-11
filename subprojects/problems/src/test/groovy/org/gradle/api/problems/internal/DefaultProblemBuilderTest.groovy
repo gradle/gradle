@@ -16,18 +16,19 @@
 
 package org.gradle.api.problems.internal
 
-import org.gradle.api.problems.Problems
+
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
 import spock.lang.Specification
 
 class DefaultProblemBuilderTest extends Specification {
 
     def buildOperationEmitter = new NoOpBuildOperationProgressEventEmitter()
-    def builder = new DefaultProblemBuilder(Mock(Problems),buildOperationEmitter)
+    def problemService = new DefaultProblems(buildOperationEmitter)
+    def builder = new DefaultProblemBuilder(problemService)
 
     def "missing location will throw an IllegalArgumentException"() {
         given:
-        builder = builder.message("message")
+        builder = builder.label("message")
         builder = builder.undocumented()
         builder = builder.location(null, null)
 
@@ -40,7 +41,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "missing line number will throw an IllegalArgumentException"() {
         given:
-        builder = builder.message("message")
+        builder = builder.label("message")
         builder = builder.undocumented()
         builder = builder.location("file", null)
 
@@ -53,7 +54,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "missing column number will not throw an IllegalArgumentException"() {
         given:
-        builder.message("message")
+        builder.label("message")
         builder = builder.undocumented()
         builder.location("file", 1, null)
 

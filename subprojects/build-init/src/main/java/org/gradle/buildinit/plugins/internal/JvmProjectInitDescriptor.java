@@ -144,6 +144,10 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             } else {
                 addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
+
+            settings.getJavaLanguageVersion().ifPresent(languageVersion -> {
+                buildScriptBuilder.javaToolchainFor(languageVersion);
+            });
         } else {
             buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
             if ("library".equals(conventionPluginName)) {

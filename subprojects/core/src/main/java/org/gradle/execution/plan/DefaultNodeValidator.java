@@ -18,7 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -41,7 +41,7 @@ public class DefaultNodeValidator implements NodeValidator {
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
-        List<Problem> problems = validationContext.getProblems();
+        List<? extends Problem> problems = validationContext.getProblems();
         logWarnings(problems);
         reportErrors(problems, node.getTask(), validationContext);
         return !problems.isEmpty();
@@ -56,7 +56,7 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<Problem> problems) {
+    private void logWarnings(List<? extends Problem> problems) {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
             .forEach(problem -> {
@@ -71,7 +71,7 @@ public class DefaultNodeValidator implements NodeValidator {
             });
     }
 
-    private void reportErrors(List<Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
+    private void reportErrors(List<? extends Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
         Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
@@ -80,7 +80,7 @@ public class DefaultNodeValidator implements NodeValidator {
         }
     }
 
-    private static Set<String> getUniqueErrors(List<Problem> problems) {
+    private static Set<String> getUniqueErrors(List<? extends Problem> problems) {
         return problems.stream()
             .filter(problem -> !problem.getSeverity().isWarning())
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)

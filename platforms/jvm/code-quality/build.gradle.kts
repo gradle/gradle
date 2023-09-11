@@ -57,6 +57,9 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     integTestImplementation(testFixtures(project(":language-groovy")))
+    integTestImplementation(libs.jsoup) {
+        because("We need to validate generated HTML reports")
+    }
 }
 
 packageCycles {

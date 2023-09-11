@@ -19,125 +19,26 @@ package org.gradle.internal.build.event.types;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
 @NonNullApi
 public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
-
-    private String problemId;
-    private String message;
-    private String severity;
-    private String docLink;
-    private String description;
-    private List<String> solutions;
-    private Throwable cause;
-    private Integer line;
-    private Integer column;
-    private String path;
-    private String problemType;
-    private Map<String, String> additionalMetaData;
+    private final InternalProblemDetails details;
 
     public DefaultProblemEvent(
         InternalProblemDescriptor descriptor,
-        String problemId,
-        String message,
-        String severity,
-        @Nullable String path,
-        @Nullable Integer line,
-        @Nullable Integer column,
-        @Nullable String docLink,
-        @Nullable String description,
-        List<String> solutions,
-        @Nullable Throwable cause,
-        String problemType,
-        Map<String, String> additionalMetaData
+        InternalProblemDetails details
     ) {
         super(System.currentTimeMillis(), descriptor);
-        this.problemId = problemId;
-        this.message = message;
-        this.severity = severity;
-        this.path = path;
-        this.line = line;
-        this.column = column;
-        this.docLink = docLink;
-        this.description = description;
-        this.solutions = solutions;
-        this.cause = cause;
-        this.problemType = problemType;
-        this.additionalMetaData = additionalMetaData;
+        this.details = details;
     }
 
-
-    @Override
     public String getDisplayName() {
-        return "Problem kdkdkd";
+        return "problem";
     }
 
     @Override
-    public String getProblemGroup() {
-        return problemId;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getSeverity() {
-        return severity;
-    }
-
-    @Nullable
-    @Override
-    public String getPath() {
-        return path;
-    }
-
-    @Nullable
-    @Override
-    public Integer getLine() {
-        return line;
-    }
-
-    @Nullable
-    @Override
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Nullable
-    @Override
-    public String getDocumentationLink() {
-        return docLink;
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Nullable
-    @Override
-    public Throwable getCause() {
-        return cause;
-    }
-
-    @Override
-    public String getProblemType() {
-        return problemType;
-    }
-
-    public Map<String, String> getAdditionalMetaData() {
-        return additionalMetaData;
+    public InternalProblemDetails getDetails() {
+        return details;
     }
 }

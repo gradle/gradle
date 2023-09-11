@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
@@ -44,15 +42,15 @@ public class DefaultDependencyMetadataFactory implements DependencyMetadataFacto
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer attributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
         DependencyMetadataConverter factoryInternal = findFactoryForDependency(dependency);
-        return factoryInternal.createDependencyMetadata(componentId, clientConfiguration, attributes, dependency);
+        return factoryInternal.createDependencyMetadata(dependency);
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
+    public LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint) {
         ComponentSelector selector = createSelector(dependencyConstraint);
-        return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, dependencyConstraint.getAttributes(), null,
+        return new LocalComponentDependencyMetadata(selector, dependencyConstraint.getAttributes(), null,
                 Collections.emptyList(), Collections.emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
     }
 

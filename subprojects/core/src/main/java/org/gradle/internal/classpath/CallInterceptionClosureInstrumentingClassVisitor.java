@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -112,13 +113,23 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                     public void visitCode() {
                         /*
                          * enterInstrumentedClosure(this);
-                         * doCall$original(<args>);
-                         * leaveInstrumentedClosure(this);
+                         * try {
+                         *     return doCall$original(<args>);
+                         * } finally { // similar to what javac produces, this block is inlined at the normal return and catch+rethrow exit points;
+                         *     leaveInstrumentedClosure(this);
+                         * }
                          */
                         _ALOAD(0);
                         String enterLeaveDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, getType(InstrumentableClosure.class));
                         _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "enterInstrumentedClosure", enterLeaveDescriptor, false);
 
+                        Label tryBlockStart = new Label();
+                        Label tryBlockEnd = new Label();
+                        Label catchBlockStart = new Label();
+
+                        mv.visitTryCatchBlock(tryBlockStart, tryBlockEnd, catchBlockStart, "java/lang/Throwable");
+
+                        mv.visitLabel(tryBlockStart);
                         _ALOAD(0); // receiver reference to this
                         // Invoke the original method:
                         Type[] argumentTypes = Type.getArgumentTypes(methodData.descriptor);
@@ -126,11 +137,26 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                             visitVarInsn(argumentTypes[argIndex - 1].getOpcode(Opcodes.ILOAD), argIndex);
                         }
                         _INVOKESPECIAL(clazz.className, methodNameToVisit, methodData.descriptor, false);
+                        mv.visitLabel(tryBlockEnd);
 
+                        // finally block inlined before normal return:
                         _ALOAD(0);
                         _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
-
+                        // and return:
                         visitInsn(Type.getReturnType(methodData.descriptor).getOpcode(IRETURN));
+
+                        // start exception handler:
+                        mv.visitLabel(catchBlockStart);
+                        Object[] locals = new Object[]{clazz.className.replaceAll("\\.", "/")};
+                        // Must use an F_NEW frame, as we may encounter class versions <= V1_5, see ASM MethodWriter
+                        mv.visitFrame(Opcodes.F_NEW, 1, locals, 1, new Object[]{"java/lang/Throwable"});
+
+                        // finally block inlined before rethrowing a caught exception:
+                        _ALOAD(0);
+                        _INVOKESTATIC(Type.getType(InstrumentedClosuresHelper.class).getInternalName(), "leaveInstrumentedClosure", enterLeaveDescriptor, false);
+                        // and rethrow:
+                        mv.visitInsn(Opcodes.ATHROW);
+
                         visitMaxs(argumentTypes.length * 2 + 1, argumentTypes.length + 1);
                     }
                 }

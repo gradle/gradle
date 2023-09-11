@@ -18,19 +18,18 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningDocumentation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningGroup;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningMessage;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ProblemLocation;
-import org.gradle.api.problems.interfaces.Severity;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
+import org.gradle.api.problems.ProblemBuilderDefiningGroup;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -38,8 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.gradle.api.problems.interfaces.Severity.ERROR;
 
 /**
  * Builder for problems.
@@ -51,14 +48,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningGroup,
-    ProblemBuilderDefiningMessage,
+    ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningType {
 
     private ProblemGroup problemGroup;
-    private String message;
+    private String label;
     private String problemType;
-    private final Problems problemsService;
-    private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
+    private final InternalProblems problemsService;
     private Severity severity;
     private String path;
     private Integer line;
@@ -68,19 +64,11 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
-    private Throwable cause;
     private RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(@Nullable Problems problemsService, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+    public DefaultProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
-        this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
-    }
-
-    @Override
-    public ProblemBuilder group(ProblemGroup group) {
-        this.problemGroup = group;
-        return this;
     }
 
     @Override
@@ -90,14 +78,14 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             if (existingGroup == null) {
                 throw new GradleException("Problem group " + group + " does not exist, either use existing group or register a new one");
             }
-            group(existingGroup);
+            this.problemGroup = existingGroup;
         }
         return this;
     }
 
     @Override
-    public ProblemBuilderDefiningType message(String message, Object... args) {
-        this.message = String.format(message, args);
+    public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
+        this.label = String.format(label, args);
         return this;
     }
 
@@ -107,13 +95,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line) {
+    public ProblemBuilderDefiningType location(String path, Integer line) {
         this.path = path;
         this.line = line;
         return this;
     }
 
-    public ProblemBuilderDefiningMessage location(String path, Integer line, Integer column) {
+    public ProblemBuilderDefiningType location(String path, Integer line, Integer column) {
         this.path = path;
         this.line = line;
         this.column = column;
@@ -121,13 +109,13 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningMessage noLocation() {
+    public ProblemBuilderDefiningType noLocation() {
         this.noLocation = true;
         return this;
     }
 
-    public ProblemBuilder description(String description) {
-        this.description = description;
+    public ProblemBuilder details(String details) {
+        this.description = details;
         return this;
     }
 
@@ -155,12 +143,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder cause(Throwable cause) {
-        this.cause = cause;
-        return this;
-    }
-
-    public ProblemBuilder withMetadata(String key, String value) {
+    public ProblemBuilder additionalData(String key, String value) {
         this.additionalMetadata.put(key, value);
         return this;
     }
@@ -171,29 +154,29 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public Problem build() {
-        return buildInternal(null);
+    public ReportableProblem build() {
+        return buildInternal(null, true);
     }
 
     @Nonnull
-    private DefaultProblem buildInternal(@Nullable Severity severity) {
+    private ReportableProblem buildInternal(@Nullable Severity severity, boolean reportable) {
         if (!explicitlyUndocumented && documentationUrl == null) {
-            throw new IllegalStateException("Problem is not documented: " + message);
+            throw new IllegalStateException("Problem is not documented: " + label);
         }
 
         if (!noLocation) {
             if (path == null) {
-                throw new IllegalStateException("Problem location path is not set: " + message);
+                throw new IllegalStateException("Problem location path is not set: " + label);
             }
             if (line == null) {
-                throw new IllegalStateException("Problem location line is not set: " + message);
+                throw new IllegalStateException("Problem location line is not set: " + label);
             }
             // Column is optional field, so we don't need to check it
         }
 
-        return new DefaultProblem(
+        return new DefaultReportableProblem(
             problemGroup,
-            message,
+            label,
             getSeverity(severity),
             getProblemLocation(),
             documentationUrl,
@@ -201,7 +184,8 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             solution,
             exception,
             problemType,
-            additionalMetadata);
+            additionalMetadata,
+            reportable ? problemsService : null);
     }
 
 
@@ -230,20 +214,11 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         report(problem);
     }
 
-    public RuntimeException throwIt() {
-        throw throwError(exception, buildInternal(ERROR));
-    }
-
-    private RuntimeException throwError(RuntimeException exception, DefaultProblem problem) {
-        throw throwError(exception, (Problem) problem);
-    }
-
-    public RuntimeException throwError(RuntimeException exception, Problem problem) {
-        report(problem);
-        throw exception;
-    }
-
     private void report(Problem problem) {
-        buildOperationProgressEventEmitter.emitNowIfCurrent(problem);
+        problemsService.reportAsProgressEvent(problem);
+    }
+
+    RuntimeException getException() {
+        return exception;
     }
 }

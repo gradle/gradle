@@ -91,11 +91,16 @@ public class InstrumentationCodeGeneratorHost {
     }
 
     private void generateResource(InstrumentationResourceGenerator resourceGenerator, Collection<CallInterceptionRequest> interceptionRequests) {
-        InstrumentationResourceGenerator.GenerationResult result = resourceGenerator.generateResourceForRequestedInterceptors(interceptionRequests);
+        Collection<CallInterceptionRequest> filteredRequests = resourceGenerator.filterRequestsForResource(interceptionRequests);
+        if (filteredRequests.isEmpty()) {
+            return;
+        }
+
+        InstrumentationResourceGenerator.GenerationResult result = resourceGenerator.generateResourceForRequests(filteredRequests);
         if (result instanceof CanGenerateResource) {
             CanGenerateResource resourceResult = (CanGenerateResource) result;
             try {
-                Element[] originatingElements = getOriginatingElements(resourceResult.getCoveredRequests()).toArray(new Element[0]);
+                Element[] originatingElements = getOriginatingElements(filteredRequests).toArray(new Element[0]);
                 FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, resourceResult.getPackageName(), resourceResult.getName(), originatingElements);
                 try (OutputStream outputStream = resource.openOutputStream()) {
                     ((CanGenerateResource) result).write(outputStream);

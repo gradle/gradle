@@ -17,8 +17,8 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;

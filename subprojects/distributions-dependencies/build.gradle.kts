@@ -25,7 +25,7 @@ val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
-val mavenVersion = "3.6.3"
+val mavenVersion = "3.9.3"
 val nativePlatformVersion = "0.22-snapshot-20230807182135+0000"
 val slf4jVersion = "1.7.30"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
-        api(libs.guava)                 { version { strictly("31.1-jre"); because("our Google API Client version requires 31.1-jre")  }}
+        api(libs.guava)                 { version { strictly("32.1.2-jre"); because("our Google API Client version requires at least 31.1-jre")  }}
         api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
         api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
         api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
@@ -97,7 +97,7 @@ dependencies {
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
-        api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}
+        api(libs.ivy)                   { version { strictly("2.5.2") }}
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
@@ -136,10 +136,10 @@ dependencies {
         api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
         api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.objenesis)             { version { strictly("2.6") }}
-        api(libs.plexusCipher)          { version { strictly("1.7"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusCipher)          { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusSecDispatcher)   { version { strictly("1.4"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.3.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}

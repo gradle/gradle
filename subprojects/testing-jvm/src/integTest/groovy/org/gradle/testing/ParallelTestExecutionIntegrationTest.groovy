@@ -16,12 +16,12 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
@@ -130,10 +130,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // TODO:configuration-cache test currently flaky since cc might run tests in parallel
-    @IgnoreIf(
-        reason = "cc might cause tests to run in parallel",
-        value = { GradleContextualExecuter.configCache }
-    )
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "cc might cause tests to run in parallel")
     def "does not run tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")

@@ -17,8 +17,8 @@
 package org.gradle.internal.logging.console.taskgrouping
 
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseBasicFunctionalTest {
 
@@ -44,7 +44,7 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':upToDate').outcome == 'UP-TO-DATE'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task headers for long running tasks are printed only once when there is no output"() {
         given:
         settingsFile << """

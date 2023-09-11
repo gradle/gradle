@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.problems.interfaces.Problem
+import org.gradle.api.problems.Problem
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory

@@ -69,7 +69,7 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
@@ -220,7 +220,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
         return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getOwner().applyToMutableState(p -> run.run()));
     }
-
 
     protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(

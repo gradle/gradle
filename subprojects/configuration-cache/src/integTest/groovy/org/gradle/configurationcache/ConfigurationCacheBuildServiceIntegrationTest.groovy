@@ -31,17 +31,17 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.inject.Inject
@@ -353,7 +353,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         executer.inDirectory(file("plugin")).withTasks("publish").run()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
+    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
     def "build service from included build is loaded in reused classloader"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

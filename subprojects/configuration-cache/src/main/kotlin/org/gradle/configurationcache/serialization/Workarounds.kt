@@ -24,13 +24,19 @@ internal
 object Workarounds {
 
     private
-    val ignoredBeanFields: List<Pair<String, String>> = listOf(
+    val ignoredBeanFields = arrayOf(
         // TODO:configuration-cache remove once fixed
         "ndkLocation" to "com.android.build.gradle.tasks.ShaderCompile"
     )
 
-    fun isIgnoredBeanField(field: Field) =
-        ignoredBeanFields.contains(field.name to field.declaringClass.name)
+    fun isIgnoredBeanField(field: Field): Boolean {
+        for (f in ignoredBeanFields) {
+            if (field.name == f.first && field.declaringClass.name == f.second) {
+                return true
+            }
+        }
+        return false
+    }
 
     fun canReadSystemProperty(from: String): Boolean =
         withWorkaroundsFor("systemProps") {
@@ -54,10 +60,11 @@ object Workarounds {
 
     fun canAccessProjectAtExecutionTime(task: TaskInternal) =
         withWorkaroundsFor("task-project") {
-            val className = task.javaClass.name
-            className.startsWith("com.android.build.gradle.tasks.ShaderCompile") ||
-                className.startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask") ||
-                className.startsWith("com.android.build.gradle.tasks.MergeResources")
+            task.javaClass.name.run {
+                startsWith("com.android.build.gradle.tasks.ShaderCompile")
+                    || startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask")
+                    || startsWith("com.android.build.gradle.tasks.MergeResources")
+            }
         }
 
     fun canAccessConventions(from: String, area: String) =

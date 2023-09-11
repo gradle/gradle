@@ -38,12 +38,14 @@ import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 class TestExecutionResultEvaluator implements BuildOperationListener {
     private static final String INDENT = "    ";
@@ -64,7 +66,39 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
     }
 
     public boolean hasUnmatchedTests() {
-        return resultCount.get() == 0;
+        if (noTestsSelected()) {
+             return false;
+        } else {
+            return resultCount.get() == 0;
+        }
+    }
+
+    private boolean noTestsSelected() {
+        return noTestDescriptorsSelected() && noTestsClassesNorMethodsSelected() && noTestsSelectedInTaskSpecs();
+    }
+
+    private boolean noTestDescriptorsSelected() {
+        return internalTestExecutionRequest.getTestExecutionDescriptors().isEmpty();
+    }
+
+    private boolean noTestsClassesNorMethodsSelected() {
+        return internalTestExecutionRequest.getInternalJvmTestRequests().isEmpty();
+    }
+
+    private boolean noTestsSelectedInTaskSpecs() {
+        return internalTestExecutionRequest.getTaskSpecs()
+            .stream()
+            .filter(InternalTestSpec.class::isInstance)
+            .map(InternalTestSpec.class::cast)
+            .allMatch(emptyTestSpec());
+    }
+
+    private static Predicate<InternalTestSpec> emptyTestSpec() {
+        return spec -> allEmpty(spec.getClasses(), spec.getMethods().keySet(), spec.getPackages(), spec.getPatterns());
+    }
+
+    private static boolean allEmpty(Collection<?>... collections) {
+        return Arrays.stream(collections).allMatch(Collection::isEmpty);
     }
 
     public boolean hasFailedTests() {

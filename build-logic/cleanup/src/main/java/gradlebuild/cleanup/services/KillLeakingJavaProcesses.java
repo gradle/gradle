@@ -52,10 +52,17 @@ public class KillLeakingJavaProcesses {
         String quotedRootProjectDir = Pattern.quote(rootProjectDir);
         String mainClassPattern = "(org\\.gradle\\.|[a-zA-Z]+)";
         String playServerPattern = "(play\\.core\\.server\\.NettyServer)";
+        String javaProcessStackTracesMonitorPattern = "(JavaProcessStackTracesMonitor\\.java)";
         String classPathPattern1 = "(?:-cp.+" + "(" + quotedRootProjectDir + "|build\\\\tmp\\\\performance-test-files)" + ".+?" + mainClassPattern + ")";
         String classPathPattern2 = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + Pattern.quote("\\build\\") + ".+?" + mainClassPattern + ")";
         String classPathPattern3 = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + playServerPattern + ")";
-        return "(?i)[/\\\\]" + "(" + javaExecutable + ".+?" + "(?:" + classPathPattern1 + "|" + classPathPattern2 + "|" + classPathPattern3 + "|" + kotlinCompilerDaemonPattern + ").+)";
+        return "(?i)[/\\\\]" + "(" + javaExecutable + ".+?" + "(?:" +
+            classPathPattern1 + "|" +
+            classPathPattern2 + "|" +
+            classPathPattern3 + "|" +
+            kotlinCompilerDaemonPattern + "|" +
+            javaProcessStackTracesMonitorPattern +
+            ").+)";
     }
 
     public static void main(String[] args) {

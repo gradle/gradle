@@ -25,42 +25,38 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
-import org.gradle.internal.deprecation.Documentation;
+import org.gradle.api.problems.internal.DefaultProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
+@Nonnull
 public class ValidationProblemSerialization {
     public static List<DefaultProblem> parseMessageList(String lines) {
         GsonBuilder gsonBuilder = createGsonBuilder();
-//        gsonBuilder.registerTypeAdapter(Problem.class, (InstanceCreator<Problem>) type -> new DefaultProblem());
         Gson gson = gsonBuilder.create();
         Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
         return gson.fromJson(lines, type);
     }
 
-    @Nonnull
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeAdapterFactory(new Factory());
-        gsonBuilder.registerTypeAdapter(DocLink.class, new Documentation.DocLinkJsonDeserializer());
-
-        gsonBuilder.registerTypeAdapter(DocLink.class, new Documentation.DocLinkJsonSerializer());
+        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter());
+        gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
-    }
-
-    public static Stream<String> toMessages(List<DefaultProblem> problems) {
-        return toPlainMessage(problems);
-//            .map(msg -> String.format("%n  - %s", msg));
     }
 
     public static Stream<String> toPlainMessage(List<DefaultProblem> problems) {
@@ -68,9 +64,15 @@ public class ValidationProblemSerialization {
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
-    public static class Factory implements TypeAdapterFactory {
+    /**
+     * A type adapter factory for {@link Throwable} that supports serializing and deserializing {@link Throwable} instances to JSON using GSON.
+     * <p>
+     * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
+     */
+    public static class ThrowableAdapterFactory implements TypeAdapterFactory {
 
         @SuppressWarnings({"unchecked"})
+        @Nullable
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
             if (!Throwable.class.isAssignableFrom(typeToken.getRawType())) {
@@ -82,6 +84,11 @@ public class ValidationProblemSerialization {
 
     }
 
+    /**
+     * A type adapter for {@link Throwable} that supports serializing and deserializing {@link Throwable} instances to JSON using GSON.
+     * <p>
+     * from <a href="https://github.com/eclipse-lsp4j/lsp4j/blob/main/org.eclipse.lsp4j.jsonrpc/src/main/java/org/eclipse/lsp4j/jsonrpc/json/adapters/ThrowableTypeAdapter.java">here</a>
+     */
     public static class ThrowableTypeAdapter extends TypeAdapter<Throwable> {
         private final TypeToken<Throwable> typeToken;
 
@@ -90,6 +97,7 @@ public class ValidationProblemSerialization {
         }
 
         @SuppressWarnings("unchecked")
+        @Nullable
         @Override
         public Throwable read(JsonReader in) throws IOException {
             if (in.peek() == JsonToken.NULL) {
@@ -150,7 +158,7 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public void write(JsonWriter out, Throwable throwable) throws IOException {
+        public void write(JsonWriter out, @Nullable Throwable throwable) throws IOException {
             if (throwable == null) {
                 out.nullValue();
             } else if (throwable.getMessage() == null && throwable.getCause() != null) {
@@ -169,7 +177,7 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private boolean shouldWriteCause(Throwable throwable) {
+        private static boolean shouldWriteCause(Throwable throwable) {
             Throwable cause = throwable.getCause();
             if (cause == null || cause.getMessage() == null || cause == throwable) {
                 return false;
@@ -177,6 +185,107 @@ public class ValidationProblemSerialization {
             return throwable.getMessage() == null || !throwable.getMessage().contains(cause.getMessage());
         }
 
+    }
+
+    public static class ProblemLocationAdapter extends TypeAdapter<ProblemLocation> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable ProblemLocation value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("path").value(value.getPath());
+            out.name("line").value(value.getLine());
+            out.name("column").value(value.getColumn());
+            out.endObject();
+        }
+
+        @Override
+        public ProblemLocation read(JsonReader in) throws IOException {
+            in.beginObject();
+            String path = null;
+            Integer line = null;
+            Integer column = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                switch (name) {
+                    case "path": {
+                        path = in.nextString();
+                        break;
+                    }
+                    case "line": {
+                        line = in.nextInt();
+                        break;
+                    }
+                    case "column": {
+                        column = in.nextInt();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+
+            Objects.requireNonNull(path, "path must not be null");
+            return new DefaultProblemLocation(path, line, column);
+        }
+    }
+
+    public static class DocLinkAdapter extends TypeAdapter<DocLink> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable DocLink value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("url").value(value.getUrl());
+            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
+            out.endObject();
+        }
+
+        @Override
+        public DocLink read(JsonReader in) throws IOException {
+            in.beginObject();
+            String url = null;
+            String consultDocumentationMessage = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                switch (name) {
+                    case "url": {
+                        url = in.nextString();
+                        break;
+                    }
+                    case "consultDocumentationMessage": {
+                        consultDocumentationMessage = in.nextString();
+                        break;
+                    }
+                    default:
+                        in.skipValue();
+                }
+            }
+            in.endObject();
+
+            final String finalUrl = url;
+            final String finalConsultDocumentationMessage = consultDocumentationMessage;
+            return new DocLink() {
+                @Override
+                public String getUrl() {
+                    return finalUrl;
+                }
+
+                @Override
+                public String getConsultDocumentationMessage() {
+                    return finalConsultDocumentationMessage;
+                }
+            };
+        }
     }
 
 }

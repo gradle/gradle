@@ -23,7 +23,6 @@ import org.gradle.cache.HasCleanupAction;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.StatefulNextGenBuildCacheService;
 import org.gradle.internal.time.Clock;
 import org.h2.Driver;
@@ -41,9 +40,11 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * This was used in Build cache next gen prototype, but it's was not deleted, since most of logic will be reused for new local cache.
+ *
  * TODO: Extract H2 specific code to a generic "H2Cache" class
  */
-public class H2BuildCacheService implements NextGenBuildCacheService, StatefulNextGenBuildCacheService {
+public class H2BuildCacheService implements StatefulNextGenBuildCacheService {
 
     private static final String DATABASE_NAME = "filestore";
 

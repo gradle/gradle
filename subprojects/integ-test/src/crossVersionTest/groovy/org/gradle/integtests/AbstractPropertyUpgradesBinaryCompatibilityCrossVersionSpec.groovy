@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.internal.lazy.Lazy
+
 import java.util.function.Supplier
 
 /**
@@ -41,13 +42,15 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
      */
     private static final List<String> BLACKLISTED_PACKAGES = [
         // Testkit is not available on compile classpath for plugin
-        "org.gradle.testkit",
-        // Flow API is not available in Gradle 8.0.2 that we use to produce a plugin
-        "org.gradle.api.flow",
+        "org.gradle.testkit"
     ]
 
-    private static final Supplier<List<String>> DEFAULT_GRADLE_IMPORTS = Lazy.unsafe().of {
-        return new DefaultImportsReader().importPackages.findAll {
+    private final Supplier<List<String>> defaultGradleImports = Lazy.unsafe().of {
+        def runtimeInfoJar = previous.gradleHomeDir.file("lib/gradle-runtime-api-info-${previous.version.baseVersion.version}.jar")
+        def importsReader = runtimeInfoJar.exists() ?
+            new DefaultImportsReader(new URL("jar:file:" + runtimeInfoJar.absolutePath + "!" + DefaultImportsReader.RESOURCE)) :
+            new DefaultImportsReader()
+        return importsReader.importPackages.findAll {
             !BLACKLISTED_PACKAGES.any { packageName -> it.startsWith(packageName) }
         }.collect { it + ".*" }
     }
@@ -61,7 +64,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
     }
 
     protected List<String> getDefaultImports() {
-        return DEFAULT_GRADLE_IMPORTS.get() + DEFAULT_JAVA_IMPORTS
+        return defaultGradleImports.get() + DEFAULT_JAVA_IMPORTS
     }
 
     protected void prepareGroovyPluginTest(String pluginApplyBody) {

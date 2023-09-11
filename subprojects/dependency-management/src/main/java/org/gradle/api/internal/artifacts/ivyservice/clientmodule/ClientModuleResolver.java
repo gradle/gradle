@@ -75,7 +75,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         org.gradle.api.artifacts.ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
             ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getState().getMetadata();
-            List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
+            List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(clientModule);
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
@@ -89,10 +89,10 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
     }
 
     @SuppressWarnings("deprecation")
-    private List<ModuleDependencyMetadata> createClientModuleDependencies(ComponentIdentifier identifier, org.gradle.api.artifacts.ClientModule clientModule) {
+    private List<ModuleDependencyMetadata> createClientModuleDependencies(org.gradle.api.artifacts.ClientModule clientModule) {
         List<ModuleDependencyMetadata> dependencies = Lists.newArrayList();
         for (ModuleDependency moduleDependency : clientModule.getDependencies()) {
-            ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(identifier, moduleDependency);
+            ModuleDependencyMetadata dependencyMetadata = createDependencyMetadata(moduleDependency);
             dependencies.add(dependencyMetadata);
         }
         return dependencies;
@@ -102,8 +102,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         return metadata.artifact("jar", "jar", null);
     }
 
-    private ModuleDependencyMetadata createDependencyMetadata(ComponentIdentifier identifier, ModuleDependency moduleDependency) {
-        LocalOriginDependencyMetadata dependencyMetadata = dependencyMetadataFactory.createDependencyMetadata(identifier, moduleDependency.getTargetConfiguration(), null, moduleDependency);
+    private ModuleDependencyMetadata createDependencyMetadata(ModuleDependency moduleDependency) {
+        LocalOriginDependencyMetadata dependencyMetadata = dependencyMetadataFactory.createDependencyMetadata(moduleDependency);
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             return new ClientModuleDependencyMetadataWrapper((DslOriginDependencyMetadata) dependencyMetadata);
         }

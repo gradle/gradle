@@ -38,19 +38,19 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(message)
 
         where:
-        methodName                   | role                | methodCall                                                                                                                           || message
-        'resolve()'                  | 'consumable'        | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'resolve()'                  | 'dependencyScope'   | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'             | 'consumable'        | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'             | 'dependencyScope'   | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'    | 'consumable'        | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Closure)'    | 'dependencyScope'   | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)' | 'consumable'        | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'fileCollection(Dependency)' | 'dependencyScope'   | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()' | 'consumable'        | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getResolvedConfiguration()' | 'dependencyScope'   | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'consumable'        | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'getBuildDependencies()'     | 'dependencyScope'   | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                   | role              | methodCall                                                                                                                           || message
+        'resolve()'                  | 'consumable'      | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'resolve()'                  | 'dependencyScope' | 'resolve()'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'consumable'      | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'             | 'dependencyScope' | 'files { }'                                                                                                                          || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'consumable'      | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'    | 'dependencyScope' | 'fileCollection { }'                                                                                                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'consumable'      | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)' | 'dependencyScope' | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))' || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'consumable'      | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()' | 'dependencyScope' | 'getResolvedConfiguration()'                                                                                                         || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'consumable'      | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'dependencyScope' | 'getBuildDependencies()'                                                                                                             || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
@@ -112,8 +112,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
         'resetResolutionState()'           | 'consumable'      | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
         'resetResolutionState()'           | 'dependencyScope' | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponentMetaData()'        | 'consumable'   |    "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
-        'toRootComponentMetaData()'        | 'dependencyScope' | "toRootComponentMetaData()"        || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponent()'                | 'consumable'      | "toRootComponent()"                || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponent()'                | 'dependencyScope' | "toRootComponent()"                || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "forcing resolve of a non-resolvable configuration via calling invalid internal API method #methodName for role #role warns and then throws an exception"() {
@@ -180,8 +180,8 @@ This method is only meant to be called on configurations which allow the usage(s
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
     }
 

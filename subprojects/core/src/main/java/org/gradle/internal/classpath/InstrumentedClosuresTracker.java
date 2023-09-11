@@ -24,8 +24,8 @@ import org.gradle.api.NonNullApi;
  * right before it leaves the call stack. <p>
  *
  * {@link InstrumentedClosuresTracker#hitInstrumentedDynamicCall} is invoked by the instrumentation infrastructure on every invocation that is dynamically dispatched
- * to the current closures chain. The implementation must ensure that all the closures in the scope are processed in a way that ensures call interception if a call
- * is dispatched to them.
+ * to the current closures chain and can potentially be intercepted. The implementation must ensure that all the closures in the scope are processed in a way that
+ * ensures call interception if a call is dispatched to them.
  */
 @NonNullApi
 public interface InstrumentedClosuresTracker {

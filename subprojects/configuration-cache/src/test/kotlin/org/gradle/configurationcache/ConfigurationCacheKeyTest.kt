@@ -18,25 +18,21 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 
 class ConfigurationCacheKeyTest {
@@ -44,11 +40,6 @@ class ConfigurationCacheKeyTest {
     @JvmField
     @Rule
     val testDirectoryProvider = TestNameTestDirectoryProvider(javaClass)
-
-    @Before
-    fun before() {
-        Problems.init(DefaultProblems(Mockito.mock(BuildOperationProgressEventEmitter::class.java)))
-    }
 
     @Test
     fun `cache key honours --include-build`() {
@@ -126,6 +117,38 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours isolated projects option`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            },
+            equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            })
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(false)
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.defaultValue(false)
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(false)
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},
@@ -146,7 +169,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, false, true, false, false, false, false, false, LogLevel.LIFECYCLE)
+                BuildModelParameters(false, false, true, startParameter.isolatedProjects.get(), false, false, false, false, LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

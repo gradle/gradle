@@ -19,11 +19,11 @@ package org.gradle.api.tasks
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -294,7 +294,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         failure.assertHasCause("Could not evaluate spec for 'on CI'.")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can load twice from the cache with no changes"() {
         given:
         buildFile << """

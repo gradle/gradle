@@ -19,7 +19,7 @@ package org.gradle.internal.execution.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -37,7 +37,7 @@ import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffec
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<Problem> problems = builder();
+    private final ImmutableList.Builder<ReportableProblem> problems = builder();
     private final TypeOriginInspector typeOriginInspector;
     private final Problems problemsService;
 
@@ -50,9 +50,9 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
-        return new ProblemRecordingTypeValidationContext(problemsService, type, pluginId) {
+        return new ProblemRecordingTypeValidationContext(type, pluginId) {
             @Override
-            protected void recordProblem(Problem problem) {
+            protected void recordProblem(ReportableProblem problem) {
                 if (onlyAffectsCacheableWork(problem.getProblemType()) && !cacheable) {
                     return;
                 }
@@ -62,7 +62,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     }
 
     @Override
-    public List<Problem> getProblems() {
+    public List<ReportableProblem> getProblems() {
         return problems.build();
     }
 

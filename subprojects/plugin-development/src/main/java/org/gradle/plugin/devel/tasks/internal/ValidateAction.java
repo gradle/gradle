@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -32,9 +31,9 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemBuilder;
-import org.gradle.api.problems.interfaces.ProblemGroup;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -55,9 +54,8 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-import static org.gradle.api.problems.interfaces.Severity.WARNING;
+import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
@@ -73,8 +71,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     }
 
-    //    @Inject
-//    protected abstract Problems getProblemsService();
     @Override
     public void execute() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -118,7 +114,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 }
             }
         });
-//        List<String> problemMessages = toProblemMessages(taskValidationProblems);
         storeResults(taskValidationProblems, params.getOutputFile());
     }
 
@@ -137,20 +132,20 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         if (TransformAction.class.isAssignableFrom(topLevelBean)) {
             return createValidationContextAndValidateCacheableAnnotations(problemService, topLevelBean, CacheableTransform.class, enableStricterValidation);
         }
-        return createValidationContext(problemService, topLevelBean, enableStricterValidation);
+        return createValidationContext(topLevelBean, enableStricterValidation);
     }
 
     private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Problems problems, Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation) {
         boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
-        DefaultTypeValidationContext validationContext = createValidationContext(problems, topLevelBean, cacheable || enableStricterValidation);
+        DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation);
         if (enableStricterValidation) {
             validateCacheabilityAnnotationPresent(topLevelBean, cacheable, cacheableAnnotationClass, validationContext);
         }
         return validationContext;
     }
 
-    private static DefaultTypeValidationContext createValidationContext(Problems problems, Class<?> topLevelBean, boolean reportCacheabilityProblems) {
-        return DefaultTypeValidationContext.withRootType(problems, topLevelBean, reportCacheabilityProblems);
+    private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems) {
+        return DefaultTypeValidationContext.withRootType(topLevelBean, reportCacheabilityProblems);
     }
 
     private static void validateCacheabilityAnnotationPresent(Class<?> topLevelBean, boolean cacheable, Class<? extends Annotation> cacheableAnnotationClass, DefaultTypeValidationContext validationContext) {
@@ -170,13 +165,13 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             validationContext.visitTypeProblem(problem -> {
                     ProblemBuilder builder = problem
                         .withAnnotationType(topLevelBean)
+                        .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
-                        .message("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
                         .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(WARNING)
-                        .description("The " + workType + " author should make clear why a " + workType + " is not cacheable")
+                        .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")
                         .solution("Add " + cacheableAnnotation);
                     if (isTask) {
@@ -199,19 +194,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 throw new java.io.UncheckedIOException(ex);
             }
         }
-    }
-
-    private static List<String> toProblemMessages(Map<String, Boolean> problems) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (Map.Entry<String, Boolean> entry : problems.entrySet()) {
-            String problem = entry.getKey();
-            Boolean error = entry.getValue();
-            builder.add(String.format("%s: %s",
-                Boolean.TRUE.equals(error) ? "Error" : "Warning",
-                problem
-            ));
-        }
-        return builder.build();
     }
 
     private static class TaskNameCollectorVisitor extends ClassVisitor {

@@ -611,7 +611,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties that are defined at runtime: <<build_environment#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
+Gradle has two main sources of properties that are defined at runtime: <<project_properties.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
 The Kotlin DSL provides specific syntax for working with these types of properties, which we look at in the following sections.
 
 === Project properties
@@ -757,7 +757,7 @@ That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>
 The plugin achieves this by doing the following:
 
  * Applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin Plugin], which adds support for compiling Kotlin source files.
- * Adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
+ * Adds the `kotlin-stdlib`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
  ** adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
  ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].

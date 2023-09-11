@@ -17,7 +17,7 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;

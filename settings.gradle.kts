@@ -26,7 +26,7 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
 includeBuild("build-logic-commons")
@@ -99,10 +99,7 @@ unassigned {
     subproject("platform-base")
     subproject("platform-native")
     subproject("platform-jvm")
-    subproject("language-jvm")
-    subproject("language-java")
     subproject("java-compiler-plugin")
-    subproject("language-groovy")
     subproject("language-native")
     subproject("tooling-native")
     subproject("plugin-use")
@@ -163,6 +160,9 @@ platform("ide") {
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("language-groovy")
+    subproject("language-java")
+    subproject("language-jvm")
     subproject("toolchains-jvm")
     subproject("java-platform")
     subproject("war")

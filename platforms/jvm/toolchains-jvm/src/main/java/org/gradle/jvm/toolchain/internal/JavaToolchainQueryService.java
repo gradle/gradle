@@ -163,12 +163,12 @@ public class JavaToolchainQueryService {
         boolean autoDetectedToolchain = javaHome.isAutoProvisioned();
         if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
             DeprecationLogger.warnOfChangedBehaviour(
-                "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
-                "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
-                "see " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl()
-            )
-            .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
-            .nagUser();
+                    "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
+                    "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                        "see " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl()
+                )
+                .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
+                .nagUser();
         }
     }
 

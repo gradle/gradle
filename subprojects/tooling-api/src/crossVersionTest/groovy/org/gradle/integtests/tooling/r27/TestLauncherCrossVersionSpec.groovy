@@ -16,10 +16,13 @@
 
 package org.gradle.integtests.tooling.r27
 
+
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
+import spock.lang.Issue
 import spock.lang.Timeout
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
@@ -156,6 +159,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test method util.TestUtil.someUtilMethod()"""
     }
 
+    @TargetGradleVersion(">=2.7 <8.4")
     def "throws exception with meaningful error message on failing tests"() {
         setup:
         withFailingTest()
@@ -196,6 +200,51 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     Failed tests:
         Test example.MyFailingTest#fail (Task: :secondTest)
         Test example.MyFailingTest#fail (Task: :test)"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26195")
+    @TargetGradleVersion(">=8.4")
+    def "throws exception with meaningful error message on failing tests with Gradle 8.4+"() {
+        setup:
+        withFailingTest()
+
+        when:
+        launchTests { TestLauncher testLauncher ->
+            // --continue set to run both test tasks
+            testLauncher.withJvmTestClasses("example.MyFailingTest").withArguments("--continue")
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":secondTest")
+        // because of --continue we get a different exception hierarchy
+        def e = thrown(BuildException)
+        normaliseLineSeparators(e.cause.causes[0].cause.message) == "Execution failed for task ':secondTest'."
+        normaliseLineSeparators(e.cause.causes[0].cause.cause.message).startsWith "There were failing tests. See the report at:"
+        normaliseLineSeparators(e.cause.causes[1].cause.message) == "Execution failed for task ':test'."
+        normaliseLineSeparators(e.cause.causes[1].cause.cause.message).startsWith "There were failing tests. See the report at:"
+
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestMethods("example.MyFailingTest", "fail").addArguments("--continue")
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":test")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":secondTest")
+        e = thrown(BuildException)
+        normaliseLineSeparators(e.cause.causes[0].cause.message) == "Execution failed for task ':secondTest'."
+        normaliseLineSeparators(e.cause.causes[0].cause.cause.message).startsWith "There were failing tests. See the report at:"
+        normaliseLineSeparators(e.cause.causes[1].cause.message) == "Execution failed for task ':test'."
+        normaliseLineSeparators(e.cause.causes[1].cause.cause.message).startsWith "There were failing tests. See the report at:"
     }
 
     def testClassRemoved() {

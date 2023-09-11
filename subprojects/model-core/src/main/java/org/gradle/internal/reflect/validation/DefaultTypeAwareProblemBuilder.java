@@ -17,16 +17,14 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblemBuilder;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 
 import javax.annotation.Nullable;
 
 import static java.lang.Boolean.TRUE;
 
 @NonNullApi
-public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implements TypeAwareProblemBuilder {
+public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
     public static final String TYPE_NAME = "typeName";
     public static final String PLUGIN_ID = "pluginId";
@@ -34,27 +32,27 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
     public static final String PROPERTY_NAME = "propertyName";
     public static final String TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE = "typeIsIrrelevantInErrorMessage";
 
-    public DefaultTypeAwareProblemBuilder(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problems) {
-        super(problems, buildOperationProgressEventEmitter);
+    public DefaultTypeAwareProblemBuilder(ProblemBuilderDefiningLabel problemBuilder) {
+        super(problemBuilder);
     }
 
     @Override
-    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) { // TODO (donat) figure out how all functions can return TypeAwareProblemBuilder
+    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
-            withMetadata(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
+            additionalData(TYPE_NAME, classWithAnnotationAttached.getName().replaceAll("\\$", "."));
         }
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder typeIsIrrelevantInErrorMessage() {
-        withMetadata(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
+        additionalData(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE, TRUE.toString());
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        withMetadata(PROPERTY_NAME, propertyName);
+        additionalData(PROPERTY_NAME, propertyName);
         return this;
     }
 
@@ -63,13 +61,17 @@ public class DefaultTypeAwareProblemBuilder extends DefaultProblemBuilder implem
         if (parentProperty == null) {
             return this;
         }
-        withMetadata(PARENT_PROPERTY_NAME, getParentProperty(parentProperty));
+        String pp = getParentProperty(parentProperty);
+        additionalData(PARENT_PROPERTY_NAME, pp);
+        parentPropertyAdditionalData = pp;
         return this;
     }
 
+    private String parentPropertyAdditionalData = null;
+
     private String getParentProperty(String parentProperty) {
-        String existingParentProperty = additionalMetadata.get(PARENT_PROPERTY_NAME);
-        if(existingParentProperty == null) {
+        String existingParentProperty = parentPropertyAdditionalData;
+        if (existingParentProperty == null) {
             return parentProperty;
         }
         return existingParentProperty + "." + parentProperty;

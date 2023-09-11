@@ -16,9 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemsPluginId;
-import org.gradle.api.problems.internal.DefaultPluginId;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
@@ -49,20 +47,16 @@ public class TypeValidationProblemRenderer {
         return renderMinimalInformationAbout(problem, true);
     }
 
-//    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
-//        return renderMinimalInformationAbout(problem.toNewProblem(), renderDocLink, true);
-//    }
-
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
     public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getAdditionalMetadata()) + endLineWithDot(problem.getMessage()));
-        ofNullable(problem.getDescription()).ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(problem.getLabel()));
+        ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDescription())));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
             renderNewSolutions(formatter, problem.getSolutions());
@@ -126,7 +120,7 @@ public class TypeValidationProblemRenderer {
         String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
         boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.get(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE));
         if (typeRelevant) {
             if (pluginId != null) {

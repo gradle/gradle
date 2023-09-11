@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
-import org.gradle.api.problems.interfaces.Severity
+import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -45,8 +45,8 @@ import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.api.problems.interfaces.Severity.ERROR
-import static org.gradle.api.problems.interfaces.Severity.WARNING
+import static org.gradle.api.problems.Severity.ERROR
+import static org.gradle.api.problems.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 

@@ -72,6 +72,15 @@ public interface ComponentGraphResolveState {
     GraphSelectionCandidates getCandidatesForGraphVariantSelection();
 
     /**
+     * Does this instance represent some temporary or mutated view of the component?
+     *
+     * Generally you should avoid retaining ad hoc instances in memory, whereas non-ad hoc instances can safely be cached for the lifetime of the build tree.
+     *
+     * @return true when this instance is ad hoc, false when this instance is not ad hoc and can be cached.
+     */
+    boolean isAdHoc();
+
+    /**
      * Returns the configuration with the given name. A component does not necessarily define any configurations.
      */
     @Nullable

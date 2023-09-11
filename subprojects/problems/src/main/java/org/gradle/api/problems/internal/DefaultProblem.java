@@ -17,11 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ProblemLocation;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ import java.util.Map;
 public class DefaultProblem implements Problem {
 
     private ProblemGroup problemGroup;
-    private String message;
+    private String label;
     private Severity severity;
     private ProblemLocation where;
     private DocLink documentationLink;
@@ -44,11 +44,19 @@ public class DefaultProblem implements Problem {
     private Map<String, String> additionalMetadata;
 
     public DefaultProblem(
-        ProblemGroup problemGroup, String message, Severity severity, @Nullable ProblemLocation location, @Nullable DocLink documentationUrl,
-        @Nullable String description, @Nullable List<String> solutions, @Nullable Throwable cause, String problemType, Map<String, String> additionalMetadata
+        ProblemGroup problemGroup,
+        String label,
+        Severity severity,
+        @Nullable ProblemLocation location,
+        @Nullable DocLink documentationUrl,
+        @Nullable String description,
+        @Nullable List<String> solutions,
+        @Nullable Throwable cause,
+        String problemType,
+        Map<String, String> additionalMetadata
     ) {
         this.problemGroup = problemGroup;
-        this.message = message;
+        this.label = label;
         this.severity = severity;
         this.where = location;
         this.documentationLink = documentationUrl;
@@ -68,8 +76,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getMessage() {
-        return message;
+    public String getLabel() {
+        return label;
     }
 
     @Override
@@ -89,7 +97,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getDescription() {
+    public String getDetails() {
         return description;
     }
 
@@ -99,7 +107,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Throwable getCause() {
+    public Throwable getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 
@@ -109,7 +117,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Map<String, String> getAdditionalMetadata() {
+    public Map<String, String> getAdditionalData() {
         return additionalMetadata;
     }
 
@@ -127,9 +135,10 @@ public class DefaultProblem implements Problem {
         }
         DefaultProblem that = (DefaultProblem) o;
         return equals(problemGroup, that.problemGroup) &&
-            equals(message, that.message) &&
+            equals(label, that.label) &&
             severity == that.severity &&
             equals(where, that.where) &&
+            equals(problemType, that.problemType) &&
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
@@ -139,7 +148,7 @@ public class DefaultProblem implements Problem {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemGroup, message, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{problemGroup, label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
     }
 
     public void setSeverity(Severity severity) {

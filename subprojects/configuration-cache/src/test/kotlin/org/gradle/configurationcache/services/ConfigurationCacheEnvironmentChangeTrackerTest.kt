@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache.services
 
-import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.configurationcache.problems.DefaultProblemFactory
-import org.gradle.internal.featurelifecycle.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.junit.Test
 
 

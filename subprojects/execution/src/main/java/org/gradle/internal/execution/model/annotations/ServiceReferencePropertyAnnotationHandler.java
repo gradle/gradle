@@ -16,8 +16,8 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -64,13 +64,13 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
+                    .label(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
                     .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
                     .noLocation()
-                    .message(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
                     .type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.name())
                     .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
-                    .description(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
+                    .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
                     .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))
                     .solution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
             );
