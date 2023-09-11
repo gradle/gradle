@@ -130,9 +130,7 @@ public class FieldOptionElement {
         private final Class<?> elementType;
 
         public PropertyFieldSetter(Method getter, Field field) {
-            this.getter = getter;
-            this.field = field;
-            this.elementType = ModelType.of(getter.getGenericReturnType()).getTypeVariables().get(0).getRawClass();
+            this(getter, field, ModelType.of(getter.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
         }
 
         public PropertyFieldSetter(Method getter, Field field, Class<?> elementType) {

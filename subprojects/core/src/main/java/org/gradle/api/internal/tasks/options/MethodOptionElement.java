@@ -128,9 +128,9 @@ public class MethodOptionElement {
         private final Class<?> elementType;
 
         public PropertyValueSetter(Method method) {
-            this.method = method;
-            this.elementType = ModelType.of(method.getGenericReturnType()).getTypeVariables().get(0).getRawClass();
+            this(method, ModelType.of(method.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
         }
+
         public PropertyValueSetter(Method method, Class<?> elementType) {
             this.method = method;
             this.elementType = elementType;
