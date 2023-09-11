@@ -20,15 +20,10 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 
-import javax.annotation.Nullable;
-
 public interface CachingStateFactory {
 
     /**
      * Creates a CachingState for beforeExecutionState, that can be either Enabled or Disabled.
-     *
-     * A method accepts also a cacheSalt, that can be used to generate different {@link BuildCacheKey} keys for different build cache types.
-     * CacheSalt is currently set just for "Next Gen" build cache and can be removed once "Next Gen" build cache becomes the only build cache.
      */
-    CachingState createCachingState(BeforeExecutionState beforeExecutionState, @Nullable String cacheSalt, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
+    CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
 }

@@ -92,7 +92,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);
 
-        return cachingStateFactory.createCachingState(beforeExecutionState, null, cachingDisabledReasonsBuilder.build());
+        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
     }
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {
