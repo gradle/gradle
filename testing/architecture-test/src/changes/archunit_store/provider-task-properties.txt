@@ -118,7 +118,6 @@ Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.isPreserveFileTimestam
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.isReproducibleFileOrder()> does not have raw return type assignable to org.gradle.api.provider.Property in (AbstractArchiveTask.java:0)
 Method <org.gradle.api.tasks.bundling.Tar.getCompression()> does not have raw return type assignable to org.gradle.api.provider.Property in (Tar.java:0)
 Method <org.gradle.api.tasks.bundling.War.getWebInf()> does not have raw return type assignable to org.gradle.api.provider.Provider in (War.java:0)
-Method <org.gradle.api.tasks.bundling.War.getWebXml()> does not have raw return type assignable to org.gradle.api.provider.Property in (War.java:0)
 Method <org.gradle.api.tasks.bundling.Zip.getEntryCompression()> does not have raw return type assignable to org.gradle.api.provider.Property in (Zip.java:0)
 Method <org.gradle.api.tasks.bundling.Zip.getMetadataCharset()> does not have raw return type assignable to org.gradle.api.provider.Property in (Zip.java:0)
 Method <org.gradle.api.tasks.bundling.Zip.isZip64()> does not have raw return type assignable to org.gradle.api.provider.Property in (Zip.java:0)
