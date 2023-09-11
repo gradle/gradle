@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.RenamingCopyAction;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -52,7 +54,6 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class War extends Jar {
     public static final String WAR_EXTENSION = "war";
 
-    private File webXml;
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
@@ -74,7 +75,7 @@ public abstract class War extends Jar {
 
         CopySpecInternal renameSpec = webInf.addChild();
         renameSpec.into("");
-        renameSpec.from((Callable<File>) War.this::getWebXml);
+        renameSpec.from((Callable<?>) () -> getWebXml().getOrNull());
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
 
         webAppDirectory = getObjectFactory().directoryProperty();
@@ -168,23 +169,11 @@ public abstract class War extends Jar {
      *
      * @return The {@code web.xml} file.
      */
-    @Nullable
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    @ToBeReplacedByLazyProperty
-    public File getWebXml() {
-        return webXml;
-    }
-
-    /**
-     * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
-     *
-     * @param webXml The {@code web.xml} file. Maybe null.
-     */
-    public void setWebXml(@Nullable File webXml) {
-        this.webXml = webXml;
-    }
+    @ReplacesEagerProperty
+    public abstract RegularFileProperty getWebXml();
 
     /**
      * Returns the app directory of the task. Added to the output web archive by default.
