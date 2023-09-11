@@ -11,13 +11,17 @@ dependencies {
 
     pluginsRuntimeOnly(platform(project(":distributions-basics")))
 
-    pluginsRuntimeOnly(project(":scala"))
-    pluginsRuntimeOnly(project(":ear"))
-    pluginsRuntimeOnly(project(":code-quality"))
-    pluginsRuntimeOnly(project(":jacoco"))
-    pluginsRuntimeOnly(project(":ide"))
     pluginsRuntimeOnly(project(":base-ide-plugins"))
+    pluginsRuntimeOnly(project(":code-quality"))
+    pluginsRuntimeOnly(project(":ear"))
+    pluginsRuntimeOnly(project(":ide"))
     pluginsRuntimeOnly(project(":ide-plugins"))
+    pluginsRuntimeOnly(project(":jacoco"))
+    pluginsRuntimeOnly(project(":plugins-groovy"))
+    pluginsRuntimeOnly(project(":plugins-java"))
+    pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
+    pluginsRuntimeOnly(project(":plugins-jvm-test-suite-base"))
+    pluginsRuntimeOnly(project(":scala"))
     pluginsRuntimeOnly(project(":war"))
 
     pluginsRuntimeOnly(project(":java-platform")) {
