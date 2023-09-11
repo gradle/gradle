@@ -5,19 +5,16 @@
     "linux" : 687000,
     "windows" : 566000,
     "macOs" : 1162000
+  }, {
+    "testProject" : "nowInAndroidBuild",
+    "linux" : 687000,
+    "windows" : 566000,
+    "macOs" : 1162000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
   "durations" : [ {
     "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 699000,
-    "windows" : 667000,
-    "macOs" : 1114000
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.regression.android.NowInAndroidBuildPerformanceTest.run help",
-  "durations" : [ {
-    "testProject" : "nowInAndroidBuild",
     "linux" : 699000,
     "windows" : 667000,
     "macOs" : 1114000

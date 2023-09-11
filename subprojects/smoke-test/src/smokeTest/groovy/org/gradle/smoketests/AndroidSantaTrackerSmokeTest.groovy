@@ -49,7 +49,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
 }
 
 class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTrackerSmokeTest {
-    def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
+    def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() { // todo: not relevant for now in android
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
