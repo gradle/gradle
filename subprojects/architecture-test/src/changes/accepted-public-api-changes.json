@@ -26,6 +26,23 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.getWebXml()",
+            "acceptation": "War.webXml has been converted to lazy",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.setWebXml(java.io.File)",
+            "acceptation": "War.webXml has been converted to lazy",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.getIncremental()",
             "acceptation": "Upgraded property",
