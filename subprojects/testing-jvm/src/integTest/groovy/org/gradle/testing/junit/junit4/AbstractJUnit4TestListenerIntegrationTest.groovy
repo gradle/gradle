@@ -72,4 +72,48 @@ abstract class AbstractJUnit4TestListenerIntegrationTest extends AbstractJUnitTe
         assert containsLine(result.getOutput(), "START [Test testError(SomeTest)] [testError]")
         assert containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
+
+    def "can listen for test events using closures"() {
+        given:
+        file('src/test/java/SomeTest.java') << """
+            ${testFrameworkImports}
+            public class SomeTest {
+                @Test
+                public void testPass() { }
+                @Test
+                public void testFail() { fail("Some reason"); }
+                @Test
+                public void testError() { throw new RuntimeException(\"message\"); }
+            }
+        """.stripIndent()
+
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+                ${configureTestFramework}
+                beforeTest { test -> println "START [\$test] [\$test.name]" }
+                afterTest { test, result -> println "FINISH [\$test] [\$test.name] [\$result.exception]" }
+                beforeSuite { suite -> println "START [\$suite] [\$suite.name]" }
+                afterSuite { suite, result -> println "FINISH [\$suite] [\$suite.name]" }
+                ignoreFailures = true
+            }
+        """.stripIndent()
+
+        when:
+        ExecutionResult result = executer.withTasks("test").run()
+
+        then:
+        assert containsLine(result.getOutput(), "START [Test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "FINISH [Test class SomeTest] [SomeTest]")
+        assert containsLine(result.getOutput(), "START [Test testPass(SomeTest)] [testPass]")
+        assert containsLine(result.getOutput(), "FINISH [Test testPass(SomeTest)] [testPass] [null]")
+        assert containsLine(result.getOutput(), "START [Test testFail(SomeTest)] [testFail]")
+        assert containsLine(result.getOutput(), "FINISH [Test testFail(SomeTest)] [testFail] [java.lang.AssertionError: Some reason]")
+        assert containsLine(result.getOutput(), "START [Test testError(SomeTest)] [testError]")
+        assert containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
+    }
 }

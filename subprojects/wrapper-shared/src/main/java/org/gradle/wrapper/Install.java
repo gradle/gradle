@@ -40,7 +40,7 @@ import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.gradle.util.internal.PathTraversalChecker.safePathName;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 import static org.gradle.wrapper.Download.safeUri;
 
 public class Install {

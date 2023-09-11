@@ -20,13 +20,11 @@ import org.gradle.api.Project
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import spock.lang.IgnoreIf
 
 class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     Set<String> projectConfigurations = ['debug', 'release'] as Set
@@ -528,7 +526,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     @ToBeFixedForConfigurationCache
     def "detects gradle wrapper and uses in vs project"() {
         when:
@@ -557,7 +555,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @IgnoreIf({!(GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon)})
+    @Requires(IntegTestPreconditions.IsDaemonOrNoDaemonExecutor)
     @ToBeFixedForConfigurationCache
     def "detects executing gradle distribution and uses in vs project"() {
         when:
@@ -634,7 +632,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can create Visual Studio solution for multiproject depending on the same prebuilt binary from another project in parallel"() {
         given:
         settingsFile.text = """

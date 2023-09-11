@@ -51,7 +51,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
+                implementation(kotlin("stdlib"))
                 testImplementation("junit:junit:4.13")
                 testImplementation("org.hamcrest:hamcrest-core:1.3")
             }

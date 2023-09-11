@@ -21,8 +21,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.internal.file.Chmod;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.PathTraversalChecker;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,7 +62,7 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
     /**
      * Returns a safe name for the name of a file contained in the archive.
      *
-     * @see org.gradle.util.internal.PathTraversalChecker#safePathName(String)
+     * @see PathTraversalChecker#safePathName(String)
      */
     protected String safeEntryName() {
         return PathTraversalChecker.safePathName(getEntryName());

@@ -17,9 +17,13 @@
 package org.gradle.test.preconditions
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.KillProcessAvailability
+import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 
 class IntegTestPreconditions {
 
@@ -52,6 +56,13 @@ class IntegTestPreconditions {
     }
 
 
+    static final class IsDaemonOrNoDaemonExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isDaemon() || GradleContextualExecuter.isNoDaemon()
+        }
+    }
+
     static final class IsDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -62,7 +73,28 @@ class IntegTestPreconditions {
     static final class NotDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
+            return !GradleContextualExecuter.isDaemon()
+        }
+    }
+
+    static final class IsNoDaemonExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.isNoDaemon()
+        }
+    }
+
+    static final class NotNoDaemonExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return notSatisfied(IsNoDaemonExecutor)
+        }
+    }
+
+    static final class IsParallelExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isParallel()
         }
     }
 
@@ -70,6 +102,13 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return !GradleContextualExecuter.isParallel()
+        }
+    }
+
+    static final class NotParallelOrConfigCacheExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return notSatisfied(IsParallelExecutor) && notSatisfied(IsConfigCached)
         }
     }
 
@@ -84,6 +123,20 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.isNotConfigCache()
+        }
+    }
+
+    static final class IsIsolatedProjects implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isIsolatedProjects()
+        }
+    }
+
+    static final class NotIsolatedProjects implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isNotIsolatedProjects()
         }
     }
 
@@ -118,12 +171,40 @@ class IntegTestPreconditions {
         }
     }
 
-    static class MoreThanOneJava8HomeAvailable implements  TestPrecondition {
+    static class MoreThanOneJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.availableJvms.size() >= 2
+        }
+    }
+
+    static class MoreThanOneJavacAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.availableJdksWithJavac.size() >= 2
+        }
+    }
+
+    static class MoreThanOneJava8HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getAvailableJdks(
                 JavaVersion.toVersion(8)
             ).size() > 1
+        }
+    }
+
+    static class HighestSupportedLTSJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getHighestSupportedLTS()
+        }
+    }
+
+    static class LowestSupportedLTSJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getLowestSupportedLTS()
         }
     }
 
@@ -271,10 +352,24 @@ class IntegTestPreconditions {
         }
     }
 
+    static class BestJreAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.bestJre != null
+        }
+    }
+
     static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.differentVersion != null
+        }
+    }
+
+    static class DifferentJdkAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.differentJdk != null
         }
     }
 
@@ -291,6 +386,41 @@ class IntegTestPreconditions {
         boolean isSatisfied() {
             // The S3 publish tests require the following
             return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
+        }
+    }
+
+    static final class AgentInstrumentationDisabled implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AbstractGradleExecuter.isAgentInstrumentationEnabled()
+        }
+    }
+
+    static final class AnyActiveFeature implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !FeaturePreviewsActivationFixture.inactiveFeatures().isEmpty()
+        }
+    }
+
+    static class CanKillProcess implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return KillProcessAvailability.CAN_KILL
+        }
+    }
+
+    static final class JavaRuntimeVersionSystemPropertyAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getProperty('java.runtime.version') != null
+        }
+    }
+
+    static final class Groovy3OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return VersionNumber.parse(GroovySystem.version).major < 3
         }
     }
 }

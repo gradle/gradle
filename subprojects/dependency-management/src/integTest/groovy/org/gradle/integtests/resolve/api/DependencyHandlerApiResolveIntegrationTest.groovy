@@ -18,9 +18,9 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
@@ -113,7 +113,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Uses a different classpath when embedded
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Uses a different classpath when embedded")
     def "artifact metadata is available for files added by dependency declarations"() {
         given:
         buildFile << """
@@ -149,17 +149,17 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
         def groovyVersion = GroovySystem.version
         def kotlinVersion = getGradleKotlinVersion()
-        def groovyModules = ["groovy-${groovyVersion}.jar","groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-console-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-sql-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-test-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.17.0.jar"]
-        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, kotlin-stdlib-jdk7-${kotlinVersion}.jar, kotlin-stdlib-jdk8-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
+        def groovyModules = ["groovy-${groovyVersion}.jar", "groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-console-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-sql-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-test-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.17.0.jar"]
+        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-stdlib-${kotlinVersion}.jar, kotlin-stdlib-common-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
         def expectedGradleApiIds = { id ->
-            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it +  " ($id)"}).join(", ")}, kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk7-${kotlinVersion}.jar ($id), kotlin-stdlib-jdk8-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
+            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it + " ($id)" }).join(", ")}, kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-stdlib-common-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
         }
         outputContains("gradleApi() files: [$expectedGradleApiFiles]")
         outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")
         outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, $expectedGradleApiFiles]")
         outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), ${expectedGradleApiIds("Gradle TestKit")}]")
         outputContains("localGroovy() files: [${groovyModules.join(", ")}]")
-        outputContains("localGroovy() ids: [${groovyModules.collect({it + " (Local Groovy)"}).join(", ")}]")
+        outputContains("localGroovy() ids: [${groovyModules.collect({ it + " (Local Groovy)" }).join(", ")}]")
     }
 
     private static String getGradleKotlinVersion() {

@@ -16,7 +16,7 @@
 
 package org.gradle.configuration
 
-import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
 import org.gradle.internal.operations.TestBuildOperationExecutor

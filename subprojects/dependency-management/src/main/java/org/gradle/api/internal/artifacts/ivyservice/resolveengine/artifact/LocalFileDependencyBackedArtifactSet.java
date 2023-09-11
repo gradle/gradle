@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -54,19 +54,19 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
+public class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, ArtifactVariantSelector.ResolvedArtifactTransformer {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
-    private final VariantSelector selector;
+    private final ArtifactVariantSelector variantSelector;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
-        this.selector = selector;
+        this.variantSelector = variantSelector;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -83,8 +83,8 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
         return componentFilter;
     }
 
-    public VariantSelector getSelector() {
-        return selector;
+    public ArtifactVariantSelector getVariantSelector() {
+        return variantSelector;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
-            selectedArtifacts.add(selector.select(variant, this));
+            selectedArtifacts.add(variantSelector.select(variant, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
     }
@@ -197,11 +197,6 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
         @Override
         public Set<ResolvedVariant> getVariants() {
             return Collections.singleton(this);
-        }
-
-        @Override
-        public Set<ResolvedVariant> getAllVariants() {
-            return getVariants();
         }
 
         @Override

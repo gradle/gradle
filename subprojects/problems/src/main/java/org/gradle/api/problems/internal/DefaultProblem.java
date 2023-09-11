@@ -17,11 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemGroup;
-import org.gradle.api.problems.interfaces.ProblemLocation;
-import org.gradle.api.problems.interfaces.Severity;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -107,7 +107,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Throwable getCause() {
+    public Throwable getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 

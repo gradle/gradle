@@ -18,15 +18,10 @@ package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
+@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON)
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenRichVersionConstraintsIntegrationTest extends AbstractRichVersionConstraintsIntegrationTest {
     // Test split in two to reduce overall serial time execution

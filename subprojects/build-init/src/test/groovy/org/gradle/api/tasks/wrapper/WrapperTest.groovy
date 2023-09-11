@@ -157,7 +157,7 @@ class WrapperTest extends AbstractTaskTest {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipTo(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
@@ -214,7 +214,7 @@ class WrapperTest extends AbstractTaskTest {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipTo(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:

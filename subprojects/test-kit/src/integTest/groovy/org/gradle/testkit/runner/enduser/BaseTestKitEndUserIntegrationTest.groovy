@@ -25,6 +25,7 @@ import org.gradle.util.UsesNativeServices
 @NonCrossVersion
 @UsesNativeServices
 abstract class BaseTestKitEndUserIntegrationTest extends BaseGradleRunnerIntegrationTest {
+    public static final String NOT_EMBEDDED_REASON = "These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution"
 
     def setup() {
         requireIsolatedTestKitDir = true

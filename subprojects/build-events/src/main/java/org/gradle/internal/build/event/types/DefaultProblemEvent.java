@@ -19,98 +19,26 @@ package org.gradle.internal.build.event.types;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
 @NonNullApi
 public class DefaultProblemEvent extends AbstractProgressEvent<InternalProblemDescriptor> implements InternalProblemEvent {
-
-    private String problemId;
-    private String message;
-    private String severity;
-    private String docLink;
-    private String description;
-    private List<String> solutions;
-    private Throwable cause;
-    private String problemType;
-    private Map<String, String> additionalData;
+    private final InternalProblemDetails details;
 
     public DefaultProblemEvent(
         InternalProblemDescriptor descriptor,
-        String problemId,
-        String message,
-        String severity,
-        @Nullable String docLink,
-        @Nullable String description,
-        List<String> solutions,
-        @Nullable Throwable cause,
-        String problemType,
-        Map<String, String> additionalData
+        InternalProblemDetails details
     ) {
         super(System.currentTimeMillis(), descriptor);
-        this.problemId = problemId;
-        this.message = message;
-        this.severity = severity;
-        this.docLink = docLink;
-        this.description = description;
-        this.solutions = solutions;
-        this.cause = cause;
-        this.problemType = problemType;
-        this.additionalData = additionalData;
+        this.details = details;
     }
 
-
-    @Override
     public String getDisplayName() {
-        return "Problem kdkdkd";
+        return "problem";
     }
 
     @Override
-    public String getProblemGroup() {
-        return problemId;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getSeverity() {
-        return severity;
-    }
-
-    @Nullable
-    @Override
-    public String getDocumentationLink() {
-        return docLink;
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<String> getSolutions() {
-        return solutions;
-    }
-
-    @Nullable
-    @Override
-    public Throwable getCause() {
-        return cause;
-    }
-
-    @Override
-    public String getProblemType() {
-        return problemType;
-    }
-
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
+    public InternalProblemDetails getDetails() {
+        return details;
     }
 }

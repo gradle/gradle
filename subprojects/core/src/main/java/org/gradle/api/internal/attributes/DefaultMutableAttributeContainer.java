@@ -27,8 +27,8 @@ import org.gradle.internal.Cast;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -38,6 +38,7 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
+    private boolean realizingAttributes = false;
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
         this.immutableAttributesFactory = immutableAttributesFactory;
@@ -97,6 +98,9 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
+        if (realizingAttributes) {
+            throw new IllegalStateException("Cannot add new attribute '" + key.getName() + "' while realizing all attributes of the container.");
+        }
         for (Attribute<?> attribute : keySet()) {
             String name = key.getName();
             if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
@@ -190,8 +194,23 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     private void realizeAllLazyAttributes() {
         if (!lazyAttributes.isEmpty()) {
             // As doInsertion will remove an item from lazyAttributes, we can't iterate that collection directly here, or else we'll get ConcurrentModificationException
-            final Set<Attribute<?>> savedKeys = new HashSet<>(lazyAttributes.keySet());
-            savedKeys.forEach(key -> doInsertion(Cast.uncheckedNonnullCast(key), lazyAttributes.get(key).get()));
+            final Set<Attribute<?>> savedKeys = new LinkedHashSet<>(lazyAttributes.keySet());
+            try {
+                realizingAttributes = true;
+                savedKeys.forEach(key -> {
+                    Provider<?> value = lazyAttributes.get(key);
+                    // Between getting the list of keys and realizing the values
+                    // some lazy attributes have been realized and removed from the map
+                    // This can happen when a side effect of calculating the value of a Provider
+                    // causes dependency resolution or evaluation of the attributes of
+                    // the same AttributeContainer
+                    if (value != null) {
+                        doInsertion(Cast.uncheckedNonnullCast(key), value.get());
+                    }
+                });
+            } finally {
+                realizingAttributes = false;
+            }
         }
     }
 }

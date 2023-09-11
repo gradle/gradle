@@ -22,8 +22,16 @@ import groovy.transform.stc.SimpleType
 import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
-import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.*
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestNoArg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestSingleArg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestSingleArgNull
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVararg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithArray
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithNullItem
+import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -33,12 +41,12 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return JvmBytecodeInterceptorSet.DEFAULT + { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+        return DEFAULT + new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
+        return new ClassLoaderSourceGroovyCallInterceptorsProvider(this.getClass().classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     // We don't want to interfere with other tests that modify the meta class

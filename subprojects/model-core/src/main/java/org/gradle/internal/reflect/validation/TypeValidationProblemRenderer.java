@@ -16,9 +16,7 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.interfaces.Problem;
-import org.gradle.api.problems.interfaces.ProblemsPluginId;
-import org.gradle.api.problems.internal.DefaultPluginId;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
@@ -122,7 +120,7 @@ public class TypeValidationProblemRenderer {
         String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        ProblemsPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
         boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.get(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE));
         if (typeRelevant) {
             if (pluginId != null) {

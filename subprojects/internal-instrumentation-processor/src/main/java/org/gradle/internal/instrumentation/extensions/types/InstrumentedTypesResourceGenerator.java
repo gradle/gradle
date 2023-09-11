@@ -26,7 +26,6 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -34,28 +33,28 @@ import java.util.stream.Collectors;
  */
 public class InstrumentedTypesResourceGenerator implements InstrumentationResourceGenerator {
     @Override
-    public GenerationResult generateResourceForRequestedInterceptors(Collection<CallInterceptionRequest> interceptionRequests) {
-        List<CallInterceptionRequest> requestsForInheritedTypes = interceptionRequests.stream()
-                .filter(request -> request.getInterceptedCallable().getOwner().isInterceptSubtypes())
-                .collect(Collectors.toList());
+    public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
+        return interceptionRequests.stream()
+            .filter(request -> request.getInterceptedCallable().getOwner().isInterceptSubtypes())
+            .collect(Collectors.toList());
+    }
 
-        if (requestsForInheritedTypes.isEmpty()) {
-            return new GenerationResult.NoResourceToGenerate();
-        }
+    @Override
+    public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
         return new GenerationResult.CanGenerateResource() {
             @Override
             public String getPackageName() {
-                return "org.gradle.internal.instrumentation";
+                return "";
             }
 
             @Override
             public String getName() {
-                return "instrumented-classes.txt";
+                return "META-INF/gradle/instrumentation/instrumented-classes.txt";
             }
 
             @Override
             public void write(OutputStream outputStream) {
-                String types = requestsForInheritedTypes.stream()
+                String types = filteredRequests.stream()
                     .map(request -> request.getInterceptedCallable().getOwner().getType().getClassName().replace(".", "/"))
                     .distinct()
                     .sorted()
@@ -65,11 +64,6 @@ public class InstrumentedTypesResourceGenerator implements InstrumentationResour
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
-            }
-
-            @Override
-            public Collection<CallInterceptionRequest> getCoveredRequests() {
-                return requestsForInheritedTypes;
             }
         };
     }

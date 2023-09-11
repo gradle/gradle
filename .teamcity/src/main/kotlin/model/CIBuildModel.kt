@@ -13,7 +13,6 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
-import configurations.CompileAllBuildCacheNG
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
@@ -59,7 +58,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK_LINUX_ONLY,
             specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck, SpecificBuild.CompileAllBuildCacheNG, SpecificBuild.CompileAllWithNGRemote
+                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
@@ -347,16 +346,6 @@ enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CompileAll(model, stage)
-        }
-    },
-    CompileAllBuildCacheNG {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllBuildCacheNG(model, stage)
-        }
-    },
-    CompileAllWithNGRemote {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllBuildCacheNG(model, stage, oldCacheWithNgRemote = true)
         }
     },
     SanityCheck {

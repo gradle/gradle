@@ -20,12 +20,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.interfaces.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemBuilderDefiningLocation;
+import org.gradle.api.problems.ProblemBuilderDefiningType;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -39,8 +40,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.interfaces.ProblemGroup.DEPRECATION_ID;
-import static org.gradle.api.problems.interfaces.Severity.WARNING;
+import static org.gradle.api.problems.ProblemGroup.DEPRECATION_ID;
+import static org.gradle.api.problems.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -92,6 +93,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 .type("generic_deprecation")
                 .group(DEPRECATION_ID)
                 .severity(WARNING)
+                .build()
                 .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);

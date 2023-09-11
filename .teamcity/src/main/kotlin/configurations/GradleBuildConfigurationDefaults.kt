@@ -8,6 +8,7 @@ import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.cleanUpPerformanceBuildDir
 import common.compileAllDependency
 import common.dependsOn
 import common.functionalTestParameters
@@ -125,6 +126,7 @@ fun applyDefaults(
     buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os)
+    buildType.cleanUpPerformanceBuildDir(os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -157,9 +159,8 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
-
+    buildType.cleanUpPerformanceBuildDir(os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks)
-
     buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 
     buildType.steps {
@@ -179,7 +180,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsO
             dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
-    if (buildType !is CompileAll && buildType !is CompileAllBuildCacheNG) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))
         }

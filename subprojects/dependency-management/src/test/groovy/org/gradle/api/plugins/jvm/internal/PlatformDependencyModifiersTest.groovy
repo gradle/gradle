@@ -25,25 +25,47 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class PlatformDependencyModifiersTest extends Specification {
-    def "modifies given external dependency to select platform"() {
+    def "copies given external dependency to select platform"() {
+        def modifier = TestUtil.objectFactory().newInstance(PlatformDependencyModifiers.PlatformDependencyModifier)
+        def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
+        dependency.setAttributesFactory(AttributeTestUtil.attributesFactory())
+        when:
+        dependency = modifier.modify(dependency)
+        then:
+        dependency.isEndorsingStrictVersions()
+        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() == "platform"
+    }
+
+    def "copies given external dependency to select enforced platform"() {
+        def modifier = TestUtil.objectFactory().newInstance(PlatformDependencyModifiers.EnforcedPlatformDependencyModifier)
+        def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
+        dependency.setAttributesFactory(AttributeTestUtil.attributesFactory())
+        when:
+        dependency = modifier.modify(dependency)
+        then:
+        dependency.getVersionConstraint().strictVersion == "1.0"
+        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() == "enforced-platform"
+    }
+
+    def "does not modify given external dependency to select platform"() {
         def modifier = TestUtil.objectFactory().newInstance(PlatformDependencyModifiers.PlatformDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setAttributesFactory(AttributeTestUtil.attributesFactory())
         when:
         modifier.modify(dependency)
         then:
-        dependency.isEndorsingStrictVersions()
-        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() == "platform"
+        !dependency.isEndorsingStrictVersions()
+        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() != "platform"
     }
 
-    def "modifies given external dependency to select enforced platform"() {
+    def "does not modify given external dependency to select enforced platform"() {
         def modifier = TestUtil.objectFactory().newInstance(PlatformDependencyModifiers.EnforcedPlatformDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setAttributesFactory(AttributeTestUtil.attributesFactory())
         when:
         modifier.modify(dependency)
         then:
-        dependency.getVersionConstraint().strictVersion == "1.0"
-        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() == "enforced-platform"
+        dependency.getVersionConstraint().requiredVersion == "1.0"
+        dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() != "enforced-platform"
     }
 }

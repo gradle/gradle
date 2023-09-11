@@ -17,12 +17,12 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.resources.ProjectLeaseRegistry
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
     @Issue("https://github.com/gradle/gradle/issues/20975")
     def "transform is applied to project output when project and external library have conflicting group and module name"() {

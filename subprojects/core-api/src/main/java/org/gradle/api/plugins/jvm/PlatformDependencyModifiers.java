@@ -44,7 +44,7 @@ public interface PlatformDependencyModifiers {
      *
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
-     * @see PlatformDependencyModifiers.PlatformDependencyModifier#modify(ModuleDependency)
+     * @see PlatformDependencyModifiers.PlatformDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
     PlatformDependencyModifier getPlatform();
@@ -52,11 +52,11 @@ public interface PlatformDependencyModifiers {
     /**
      * Implementation for the platform dependency modifier.
      *
-     * @see #modify(ModuleDependency)
+     * @see #modifyImplementation(ModuleDependency)
      * @since 8.0
      */
     @Incubating
-    abstract class PlatformDependencyModifier implements DependencyModifier {
+    abstract class PlatformDependencyModifier extends DependencyModifier {
         /**
          * Injected service to create named objects.
          *
@@ -72,10 +72,9 @@ public interface PlatformDependencyModifiers {
          * Selects the platform variant of the given dependency.
          */
         @Override
-        public <D extends ModuleDependency> D modify(D dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             dependency.endorseStrictVersions();
             dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
-            return dependency;
         }
     }
 
@@ -86,7 +85,7 @@ public interface PlatformDependencyModifiers {
      *
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
-     * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modify(ModuleDependency)
+     * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
     EnforcedPlatformDependencyModifier getEnforcedPlatform();
@@ -94,11 +93,11 @@ public interface PlatformDependencyModifiers {
     /**
      * Implementation for the enforced platform dependency modifier.
      *
-     * @see #modify(ModuleDependency)
+     * @see #modifyImplementation(ModuleDependency)
      * @since 8.0
      */
     @Incubating
-    abstract class EnforcedPlatformDependencyModifier implements DependencyModifier {
+    abstract class EnforcedPlatformDependencyModifier extends DependencyModifier {
         /**
          * Injected service to create named objects.
          *
@@ -114,15 +113,12 @@ public interface PlatformDependencyModifiers {
          * Selects the enforced platform variant of the given dependency.
          */
         @Override
-        public <D extends ModuleDependency> D modify(D dependency) {
+        protected void modifyImplementation(ModuleDependency dependency) {
             if (dependency instanceof ExternalDependency) {
-                ((ExternalDependency) dependency).version(constraint -> {
-                    constraint.strictly(dependency.getVersion());
-                });
+                String version = dependency.getVersion();
+                ((ExternalDependency) dependency).version(constraint -> constraint.strictly(version));
             }
             dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
-
-            return dependency;
         }
     }
 }

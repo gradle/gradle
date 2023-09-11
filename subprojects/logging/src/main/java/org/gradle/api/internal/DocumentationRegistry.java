@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.problems.interfaces.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
@@ -79,7 +79,7 @@ public class DocumentationRegistry {
     }
 
     public String getDocumentationRecommendationFor(String topic, DocLink docLink) {
-        String url = docLink.url();
+        String url = docLink.getUrl();
         return getRecommendationString(topic, url == null ? "<N/A>" : url);
     }
 

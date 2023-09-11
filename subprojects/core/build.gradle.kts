@@ -16,6 +16,22 @@ tasks.classpathManifest {
     optionalProjects.add("gradle-runtime-api-info")
 }
 
+// Instrumentation interceptors for tests
+// Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
+sourceSets {
+    val testInterceptors = create("testInterceptors") {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
+    getByName("test") {
+        compileClasspath += testInterceptors.output
+        runtimeClasspath += testInterceptors.output
+    }
+}
+val testInterceptorsImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.implementation.get())
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
@@ -24,6 +40,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
+    implementation(project(":problems"))
     implementation(project(":resources"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
@@ -194,8 +211,9 @@ dependencies {
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
 
-    testAnnotationProcessor(project(":internal-instrumentation-processor"))
-    testAnnotationProcessor(platform(project(":distributions-dependencies")))
+    testInterceptorsImplementation(platform(project(":distributions-dependencies")))
+    "testInterceptorsAnnotationProcessor"(project(":internal-instrumentation-processor"))
+    "testInterceptorsAnnotationProcessor"(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
@@ -209,11 +227,6 @@ packageCycles {
 
 tasks.test {
     setForkEvery(200)
-}
-
-// Disable annotation processing for Groovy, as it is not compatible with Groovy IC
-tasks.withType<GroovyCompile>().configureEach {
-    options.compilerArgs.add("-proc:none")
 }
 
 tasks.compileTestGroovy {

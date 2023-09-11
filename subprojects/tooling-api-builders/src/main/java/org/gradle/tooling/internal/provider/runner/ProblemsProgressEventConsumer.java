@@ -18,10 +18,12 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.gson.Gson;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.interfaces.DocLink;
-import org.gradle.api.problems.interfaces.Problem;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
+import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
@@ -29,10 +31,6 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
-
-import javax.annotation.Nonnull;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -47,41 +45,30 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        if (details instanceof Problem) {
-            Problem problem = (Problem) details;
-            Throwable problemCause = problem.getCause();
+        if (details instanceof DefaultProblemProgressDetails) {
+            Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
+            Throwable problemCause = problem.getException();
             if (seenProblems.containsKey(problemCause)) {
                 return;
             }
             seenProblems.put(problemCause, buildOperationId);
-
-            DefaultProblemDescriptor descriptor = new DefaultProblemDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
-            DefaultProblemEvent event = new DefaultProblemEvent(
-                descriptor,
-                problem.getProblemGroup().toString(),
-                problem.getLabel(),
-                problem.getSeverity().toString(),
-                getDocumentationFor(problem),
-                problem.getDetails(),
-                problem.getSolutions(),
-                problemCause, problem.getProblemType(), problem.getAdditionalData());
-            eventConsumer.progress(event);
+            eventConsumer.progress(
+                new DefaultProblemEvent(
+                    new DefaultProblemDescriptor(
+                        new OperationIdentifier(
+                            idFactory.nextId()
+                        ),
+                        buildOperationId),
+                    new DefaultProblemDetails(
+                        new Gson().toJson(problem)
+                    )
+                )
+            );
         }
-    }
-
-    @Nonnull
-    private static String getDocumentationFor(Problem problem) {
-        DocLink docLink = problem.getDocumentationLink();
-        if (docLink == null) {
-            return "";
-        }
-        return nullToEmpty(docLink.url());
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-        //TODO: this might be solved using DefaultBuildOperationAncestryTracker
-//        seenProblems.inverse().remove(buildOperation.getId());
         super.finished(buildOperation, result);
     }
 

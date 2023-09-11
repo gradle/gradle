@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -39,7 +39,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
     def filter = Mock(Spec)
-    def selector = Mock(VariantSelector)
+    def selector = Mock(ArtifactVariantSelector)
     def artifactTypeRegistry = Mock(ArtifactTypeRegistry)
     def set = new LocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory())
 

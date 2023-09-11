@@ -52,18 +52,24 @@ public interface TestLogging {
     void events(Object... events);
 
     /**
-     * Returns the minimum granularity of the events to be logged. Typically, 0 corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
-     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values will vary if user-defined suites are executed. <p>-1 denotes the highest granularity
-     * and corresponds to an atomic test.
+     * Returns the minimum granularity of the events to be logged. Typically, 0 corresponds to events from the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
+     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values may extend higher if user-defined suites or parameterized test methods are executed.  Events
+     * from levels lower than the specified granularity will be ignored.
+     * <p>The default granularity is -1, which specifies that test events from only the most granular level should be logged.  In other words, if a test method is not parameterized, only events
+     * from the test method will be logged and events from the test class and lower will be ignored.  On the other hand, if a test method is parameterized, then events from the iterations of that test
+     * method will be logged and events from the test method and lower will be ignored.
      *
      * @return the minimum granularity of the events to be logged
      */
     int getMinGranularity();
 
     /**
-     * Sets the minimum granularity of the events to be logged. Typically, 0 corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite for
-     * a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values will vary if user-defined suites are executed. <p>-1 denotes the highest granularity and
-     * corresponds to an atomic test.
+     * Sets the minimum granularity of the events to be logged. Typically, 0 corresponds to events from the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
+     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values may extend higher if user-defined suites or parameterized test methods are executed.  Events
+     * from levels lower than the specified granularity will be ignored.
+     * <p>The default granularity is -1, which specifies that test events from only the most granular level should be logged.  In other words, if a test method is not parameterized, only events
+     * from the test method will be logged and events from the test class and lower will be ignored.  On the other hand, if a test method is parameterized, then events from the iterations of that test
+     * method will be logged and events from the test method and lower will be ignored.
      *
      * @param granularity the minimum granularity of the events to be logged
      */
@@ -71,8 +77,11 @@ public interface TestLogging {
 
     /**
      * Returns the maximum granularity of the events to be logged. Typically, 0 corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
-     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values will vary if user-defined suites are executed. <p>-1 denotes the highest granularity
-     * and corresponds to an atomic test.
+     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values may extend higher if user-defined suites or parameterized test methods are executed.  Events
+     * from levels higher than the specified granularity will be ignored.
+     * <p>The default granularity is -1, which specifies that test events from only the most granular level should be logged.  Setting this value to something lower will cause events
+     * from a higher level to be ignored.  For example, setting the value to 3 will cause only events from the test method level to be logged and any events from iterations of a parameterized test method
+     * will be ignored.
      *
      * @return the maximum granularity of the events to be logged
      */
@@ -80,8 +89,13 @@ public interface TestLogging {
 
     /**
      * Returns the maximum granularity of the events to be logged. Typically, 0 corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
-     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values will vary if user-defined suites are executed. <p>-1 denotes the highest granularity
-     * and corresponds to an atomic test.
+     * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values may extend higher if user-defined suites or parameterized test methods are executed.  Events
+     * from levels higher than the specified granularity will be ignored.
+     * <p>The default granularity is -1, which specifies that test events from only the most granular level should be logged.  Setting this value to something lower will cause events
+     * from a higher level to be ignored.  For example, setting the value to 3 will cause only events from the test method level to be logged and any events from iterations of a parameterized test method
+     * will be ignored.
+     *<p>Note that since the default value of {@link #getMinGranularity()} is -1 (the highest level of granularity) it only makes sense to configure the maximum granularity while also setting the
+     * minimum granularity to a value greater than -1.
      *
      * @param granularity the maximum granularity of the events to be logged
      */
@@ -105,56 +119,58 @@ public interface TestLogging {
     void setDisplayGranularity(int granularity);
 
     /**
-     * Tells whether exceptions that occur during test execution will be logged. Typically these exceptions coincide with a "failed" event.
+     * Tells whether exceptions that occur during test execution will be logged. Typically these exceptions coincide with a "failed" event.  Defaults to true.
      *
      * @return whether exceptions that occur during test execution will be logged
      */
     boolean getShowExceptions();
 
     /**
-     * Sets whether exceptions that occur during test execution will be logged.
+     * Sets whether exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether exceptions that occur during test execution will be logged
      */
     void setShowExceptions(boolean flag);
 
     /**
-     * Tells whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}.
+     * Tells whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}.  Defaults to true.
      *
      * @return whether causes of exceptions that occur during test execution will be logged
      */
     boolean getShowCauses();
 
     /**
-     * Sets whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}.
+     * Sets whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}. Defaults to true.
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
      */
     void setShowCauses(boolean flag);
 
     /**
-     * Tells whether stack traces of exceptions that occur during test execution will be logged.
+     * Tells whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
      */
     boolean getShowStackTraces();
 
     /**
-     * Sets whether stack traces of exceptions that occur during test execution will be logged.
+     * Sets whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether stack traces of exceptions that occur during test execution will be logged
      */
     void setShowStackTraces(boolean flag);
 
     /**
-     * Returns the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     * Returns the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
+     * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @return the format to be used for logging test exceptions
      */
     TestExceptionFormat getExceptionFormat();
 
     /**
-     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
+     * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
      * @since 4.0
@@ -162,7 +178,8 @@ public interface TestLogging {
     void setExceptionFormat(TestExceptionFormat exceptionFormat);
 
     /**
-     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
+     * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
      */

@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.provider
 
-
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
 import spock.lang.Specification
+
+import java.util.function.Predicate
 
 abstract class ProviderSpec<T> extends Specification implements ProviderAssertions {
     abstract Provider<T> providerWithValue(T value)
@@ -165,6 +166,88 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * transform._
     }
 
+    def "filtering provider uses the result of the provider when predicate returns true"() {
+        def predicate = Mock(Predicate)
+
+        given:
+        def provider = providerWithValue(someValue())
+
+        when:
+        def filtered = provider.filter(predicate)
+
+        then:
+        0 * predicate._
+
+        when:
+        def present = filtered.present
+
+        then:
+        present
+
+        and:
+        1 * predicate.test(someValue()) >> true
+        0 * predicate._
+
+        when:
+        def result = filtered.get()
+
+        then:
+        result == someValue()
+
+        and:
+        1 * predicate.test(someValue()) >> true
+        0 * predicate._
+
+        when:
+        assert filtered.getOrNull() == someValue()
+        assert filtered.getOrElse(someOtherValue()) == someValue()
+
+        then:
+        2 * predicate.test(someValue()) >> true
+        0 * predicate._
+    }
+
+    def "filtering provider has no value when predicate returns false"() {
+        given:
+        def predicate = Mock(Predicate)
+        def provider = providerWithValue(someValue())
+
+        when:
+        def filtered = provider.filter(predicate)
+
+        then:
+        0 * predicate._
+
+        when:
+        def present = filtered.present
+
+        then:
+        !present
+
+        and:
+        1 * predicate.test(someValue()) >> false
+        0 * predicate._
+
+        when:
+        filtered.get()
+
+        then:
+        1 * predicate.test(someValue()) >> false
+        0 * predicate._
+
+        and:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot query the value of this provider because it has no value available.'
+
+        when:
+        assert filtered.getOrNull() == null
+        assert filtered.getOrElse(someOtherValue()) == someOtherValue()
+
+        then:
+        2 * predicate.test(someValue()) >> false
+        0 * predicate._
+    }
+
     def "can chain mapped providers"() {
         def transform1 = Mock(Transformer)
         def transform2 = Mock(Transformer)
@@ -203,6 +286,47 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         1 * transform1.transform(someValue()) >> someOtherValue()
         1 * transform2.transform(someOtherValue()) >> someOtherValue2()
         1 * transform3.transform(someOtherValue2()) >> someOtherValue3()
+        0 * _
+    }
+
+    def "can chain mapped providers with filtering providers"() {
+        def transform1 = Mock(Transformer)
+        def predicate = Mock(Predicate)
+        def transform2 = Mock(Transformer)
+
+        given:
+        def provider = providerWithValue(someValue())
+
+        when:
+        def result1 = provider.map(transform1)
+        def result2 = result1.filter(predicate)
+        def result3 = result2.map(transform2)
+
+        then:
+        0 * _
+
+        when:
+        def present = result3.present
+
+        then:
+        present
+
+        and:
+        1 * transform1.transform(someValue()) >> someOtherValue()
+        1 * predicate.test(someOtherValue()) >> true
+        1 * transform2.transform(someOtherValue()) >> someOtherValue3()
+        0 * _
+
+        when:
+        def result = result3.get()
+
+        then:
+        result == someOtherValue3()
+
+        and:
+        1 * transform1.transform(someValue()) >> someOtherValue()
+        1 * predicate.test(someOtherValue()) >> true
+        1 * transform2.transform(someOtherValue()) >> someOtherValue3()
         0 * _
     }
 

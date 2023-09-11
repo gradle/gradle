@@ -1992,6 +1992,98 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     }
     // endregion dependencies - platforms
 
+    // region dependencies - platforms + version catalog
+
+    def 'can add platform dependencies to configurations of a suite via a Version Catalog'() {
+        given:
+        buildKotlinFile << """
+        plugins {
+          `java-library`
+        }
+
+        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+        testing {
+            suites {
+                val integTest by registering(JvmTestSuite::class) {
+                    dependencies {
+                        implementation(platform(libs.junit.bom))
+                        implementation(libs.junit.jupiter.api)
+                    }
+                }
+            }
+        }
+
+        tasks.named("check") {
+            dependsOn(testing.suites.named("integTest"))
+        }
+
+        tasks.register("checkConfiguration") {
+            dependsOn("test", "integTest")
+
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            doLast {
+                assert(integTestCompileClasspathFileNames.containsAll(listOf("junit-jupiter-api-5.10.0.jar")))
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [libraries]
+        junit-bom = "org.junit:junit-bom:5.10.0"
+        junit-jupiter-api.module = "org.junit.jupiter:junit-jupiter-api"
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    def 'can add enforced platform dependencies to configurations of a suite via a Version Catalog'() {
+        given:
+        buildKotlinFile << """
+        plugins {
+          `java-library`
+        }
+
+        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+        testing {
+            suites {
+                val integTest by registering(JvmTestSuite::class) {
+                    dependencies {
+                        implementation(enforcedPlatform(libs.junit.bom))
+                        implementation(libs.junit.jupiter.api)
+                    }
+                }
+            }
+        }
+
+        tasks.named("check") {
+            dependsOn(testing.suites.named("integTest"))
+        }
+
+        tasks.register("checkConfiguration") {
+            dependsOn("test", "integTest")
+
+            val integTestCompileClasspathFileNames = configurations.getByName("integTestCompileClasspath").files.map { it.name }
+            doLast {
+                assert(integTestCompileClasspathFileNames.containsAll(listOf("junit-jupiter-api-5.10.0.jar")))
+            }
+        }
+        """
+
+        versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [libraries]
+        junit-bom = "org.junit:junit-bom:5.10.0"
+        junit-jupiter-api.module = "org.junit.jupiter:junit-jupiter-api"
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
+
+    // endregion dependencies - platforms + version catalog
+
     // region dependencies - file collections
     def "can add file collection dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite"() {
         given:

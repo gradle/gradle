@@ -19,16 +19,18 @@ package org.gradle.testing
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RichConsoleStyling
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.FAILED_RESOURCE
+import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.OTHER_RESOURCE
 
 abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVersionIntegrationTest {
     @Rule
@@ -140,7 +142,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "fail fast console output shows test class in work-in-progress"() {
         given:
         executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$DEFAULT_MAX_WORKERS")

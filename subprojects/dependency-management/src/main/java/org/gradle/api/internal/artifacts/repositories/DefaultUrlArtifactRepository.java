@@ -89,7 +89,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         throw new InsecureProtocolException(
             "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
             String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").consultDocumentationMessage()
+            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
         );
     }
 
@@ -107,7 +107,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         throw new InsecureProtocolException(
             "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported." + contextualAdvice,
             String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").consultDocumentationMessage()
+            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
         );
     }
 

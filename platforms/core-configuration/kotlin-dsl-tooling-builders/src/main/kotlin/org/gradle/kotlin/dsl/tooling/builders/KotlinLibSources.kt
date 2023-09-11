@@ -115,4 +115,4 @@ fun resolveSourcesUsing(dependencyHandler: DependencyHandler, query: ArtifactRes
 
 
 private
-val builtinKotlinModules = listOf("kotlin-stdlib-jdk8", "kotlin-reflect")
+val builtinKotlinModules = listOf("kotlin-stdlib", "kotlin-reflect")

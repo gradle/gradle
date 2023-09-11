@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.Flaky
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 
 import static org.hamcrest.CoreMatchers.allOf
@@ -530,11 +531,19 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
+    private String getKotlinSourcesJarName() {
+        if (targetVersion > GradleVersion.version("8.3")) {
+            return "kotlin-stdlib-${targetKotlinVersion}-sources.jar".toString()
+        } else {
+            return "kotlin-stdlib-jdk8-${targetKotlinVersion}-sources.jar".toString()
+        }
+    }
+
     private void assertSourcePathIncludesKotlinStdlibSourcesGiven(String rootProjectScript, String subProjectScript) {
         assertSourcePathGiven(
             rootProjectScript,
             subProjectScript,
-            hasItems("kotlin-stdlib-jdk8-${targetKotlinVersion}-sources.jar".toString())
+            hasItems(getKotlinSourcesJarName())
         )
     }
 

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.resolve.resolver.ArtifactSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * State that is used for artifact resolution based on a variant that is selected during graph resolution.
@@ -30,18 +29,16 @@ import java.util.List;
  */
 public interface VariantArtifactResolveState {
     /**
-     * Creates a set that will resolve the artifacts specified by the given {@link IvyArtifactName}s.
+     * Resolve the artifacts specified by the given {@link IvyArtifactName}s.
      *
      * This is used to resolve artifacts declared as part of a dependency.
      *
      * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, List<IvyArtifactName> dependencyArtifacts, ImmutableAttributes overriddenAttributes);
+    ResolvedVariant resolveAdhocVariant(VariantArtifactResolver variantResolver, List<IvyArtifactName> dependencyArtifacts);
 
     /**
-     * Creates a set that will resolve the artifacts of this variant, minus those artifacts that are excluded.
-     *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository.
+     * Get all artifact variants, or "sub-variants" of this variant.
      */
-    ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 }

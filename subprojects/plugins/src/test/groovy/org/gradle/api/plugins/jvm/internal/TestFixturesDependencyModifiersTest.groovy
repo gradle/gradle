@@ -26,13 +26,13 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TestFixturesDependencyModifiersTest extends Specification {
-    def "modifies given external dependency to select test fixtures"() {
+    def "copies given external dependency to select test fixtures"() {
         def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
 
         when:
-        modifier.modify(dependency)
+        dependency = modifier.modify(dependency)
         then:
         dependency.getRequestedCapabilities().size() == 1
         dependency.getRequestedCapabilities()[0].with {
@@ -42,7 +42,41 @@ class TestFixturesDependencyModifiersTest extends Specification {
         }
     }
 
-    def "modifies given project dependency to select test fixtures"() {
+    def "copies given project dependency to select test fixtures"() {
+        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+        def projectInternal = Stub(ProjectInternal) {
+            group >> "group"
+            name >> "name"
+            version >> "1.0"
+        }
+        def dependency = new DefaultProjectDependency(projectInternal, false)
+        dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+
+        when:
+        dependency = modifier.modify(dependency)
+        then:
+        dependency.getRequestedCapabilities().size() == 1
+        dependency.getRequestedCapabilities()[0].with {
+            assert it.group == "group"
+            assert it.name == "name-test-fixtures"
+            assert it.version == "1.0"
+        }
+
+        0 * _
+    }
+
+    def "does not modify given external dependency to select test fixtures"() {
+        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+        def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
+        dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+
+        when:
+        modifier.modify(dependency)
+        then:
+        dependency.getRequestedCapabilities().isEmpty()
+    }
+
+    def "does not modify given project dependency to select test fixtures"() {
         def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
         def projectInternal = Stub(ProjectInternal) {
             group >> "group"
@@ -55,12 +89,7 @@ class TestFixturesDependencyModifiersTest extends Specification {
         when:
         modifier.modify(dependency)
         then:
-        dependency.getRequestedCapabilities().size() == 1
-        dependency.getRequestedCapabilities()[0].with {
-            assert it.group == "group"
-            assert it.name == "name-test-fixtures"
-            assert it.version == "1.0"
-        }
+        dependency.getRequestedCapabilities().isEmpty()
 
         0 * _
     }

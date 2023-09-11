@@ -17,23 +17,23 @@
 package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
  */
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
+@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 abstract class AbstractVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    public static final String ONLY_RUN_ON_EMBEDDED_REASON = """
+This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
+infrastructure to simulate everything done here, so we're only going to execute this test in
+embedded mode
+"""
     def baseBuild
     def baseSettings
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")

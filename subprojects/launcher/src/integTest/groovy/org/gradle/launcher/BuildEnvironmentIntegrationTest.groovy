@@ -18,9 +18,9 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -51,7 +51,7 @@ task check {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3145")
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "locale props given on the command line are respected"() {
         given:
         def nonDefaultLocale = getNonDefaultLocale()
@@ -70,7 +70,7 @@ task check {
         succeeds 'check'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "locale props given in gradle.properties are respected"() {
         given:
         def nonDefaultLocale = getNonDefaultLocale()
@@ -89,7 +89,7 @@ task check {
         succeeds 'check'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "default file encoding set in gradle.properties is respected"() {
         given:
         def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
@@ -110,7 +110,7 @@ task check {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3145")
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "default file encoding set on command line is respected"() {
         given:
         def nonDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) }.find { it != Charset.defaultCharset() }
@@ -228,7 +228,7 @@ task check {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1001")
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "system properties from gradle.properties are available to init scripts for buildSrc"() {
         given:
         executer.requireOwnGradleUserHomeDir()

@@ -18,13 +18,12 @@ package org.gradle.scala.compile.daemon
 
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
-import spock.lang.IgnoreIf
-
 
 class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
@@ -50,7 +49,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         return new TestScalaComponent()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a single project across multiple builds when enabled"() {
         withSingleProjectSources()
@@ -77,7 +76,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a multi-project build across multiple builds when enabled"() {
         withMultiProjectSources()
@@ -104,7 +103,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "reuses compiler daemons within a composite build across multiple builds when enabled"() {
         Assume.assumeTrue(supportsCompositeBuilds())
 
@@ -133,7 +132,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "ignores known changing environment variable when persistent compiler daemons are enabled"() {
         withSingleProjectSources()

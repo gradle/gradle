@@ -305,6 +305,44 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
     }
 
+    def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {
+        buildFile """
+            abstract class PluginDeclaration {
+                final String name
+                final Property<String> id
+                abstract Property<String> getDescription()
+                abstract ListProperty<String> getTags()
+                abstract ConfigurableFileCollection getMyFiles()
+
+                PluginDeclaration(String name, ObjectFactory objectFactory) {
+                    this.id = objectFactory.property(String.class)
+                    this.name = name
+                }
+            }
+
+            project.extensions.add('pluginDeclarations', project.container(PluginDeclaration))
+
+            pluginDeclarations {
+                myPlugin {
+                    id = "my-id"
+                    description = "hello"
+                    tags = ["tag1", "tag2"]
+                    myFiles = files("a/b/c")
+                }
+            }
+
+            pluginDeclarations.all {
+                assert it.id.get() == "my-id"
+                assert it.description.get() == "hello"
+                assert it.tags.get() == ["tag1", "tag2"]
+                assert it.myFiles.files == files("a/b/c").files
+            }
+        """
+
+        expect:
+        run("help")
+    }
+
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
         buildFile.text = """
             enum MyEnum {

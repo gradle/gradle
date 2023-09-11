@@ -31,7 +31,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -60,7 +60,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -92,7 +92,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -120,7 +120,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -139,7 +139,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -163,7 +163,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -189,7 +189,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -221,7 +221,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -251,7 +251,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -278,7 +278,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help", ":b:help")
+        isolatedProjectsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -307,7 +307,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":include:help")
+        isolatedProjectsFails(":include:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -333,7 +333,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help", ":b:help")
+        isolatedProjectsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -359,7 +359,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help", ":b:help")
+        isolatedProjectsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -391,7 +391,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheRun(":a:help", ":b:help")
+        isolatedProjectsRun(":a:help", ":b:help")
 
         then:
         fixture.assertStateStored {
@@ -416,7 +416,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":help", ":a:help")
+        isolatedProjectsFails(":help", ":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -455,9 +455,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         if (shouldSucceed) {
-            configurationCacheRun(*tasksToRun)
+            isolatedProjectsRun(*tasksToRun)
         } else {
-            configurationCacheFails(*tasksToRun)
+            isolatedProjectsFails(*tasksToRun)
         }
 
         then:
@@ -498,7 +498,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help")
+        isolatedProjectsFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -534,7 +534,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":sub:sub-a:help", ":sub:sub-b:help")
+        isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -582,7 +582,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         )
 
         when:
-        configurationCacheFails(":sub:sub-sub:help")
+        isolatedProjectsFails(":sub:sub-sub:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -613,7 +613,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help")
+        isolatedProjectsFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -646,7 +646,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheRun("assemble")
+        isolatedProjectsRun("assemble")
 
         then:
         fixture.assertStateStored {
@@ -667,7 +667,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":help")
+        isolatedProjectsFails(":help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -708,7 +708,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:b:help")
+        isolatedProjectsFails(":a:b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -730,7 +730,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheRun("assemble")
+        isolatedProjectsRun("assemble")
 
         then:
         fixture.assertStateStored {

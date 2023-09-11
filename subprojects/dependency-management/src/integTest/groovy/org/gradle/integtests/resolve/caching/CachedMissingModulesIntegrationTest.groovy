@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -543,7 +543,7 @@ Required by:
         run 'retrieve'
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "hit each remote repo only once per build and missing module"() {
         given:
