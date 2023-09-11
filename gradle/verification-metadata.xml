@@ -104,6 +104,16 @@
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="1bd97a6a154e7810ee0bc832e2f38302c8075e3d">
+            <trusting group="com.gradle"/>
+            <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
+            <trusting group="net.rubygrapefruit"/>
+            <trusting group="org.gradle"/>
+            <trusting group="org.gradle.exemplar"/>
+            <trusting group="org.gradle.profiler"/>
+            <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
+            <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
             <trusting group="org.codehaus.groovy"/>
@@ -1441,6 +1451,7 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
+            <pgp value="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6"/>
             <ignored-keys>
                <ignored-key id="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
             </ignored-keys>
