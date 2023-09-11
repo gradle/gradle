@@ -209,13 +209,6 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
-     * Activates the "Next Gen" build cache
-     *
-     * @return this executer
-     */
-    GradleExecuter withBuildCacheNgEnabled();
-
-    /**
      * Don't set native services dir explicitly.
      */
     GradleExecuter withNoExplicitNativeServicesDir();

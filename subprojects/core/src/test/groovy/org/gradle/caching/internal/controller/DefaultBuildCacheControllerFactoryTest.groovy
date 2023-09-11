@@ -32,7 +32,7 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistr
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
-import org.gradle.caching.internal.services.LegacyBuildCacheControllerFactory
+import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -41,7 +41,7 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class LegacyBuildCacheControllerFactoryTest extends Specification {
+class DefaultBuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
     def buildOperationExecuter = new TestBuildOperationExecutor()
@@ -58,7 +58,7 @@ class LegacyBuildCacheControllerFactoryTest extends Specification {
     }
 
     private <T extends BuildCacheController> T createController(Class<T> controllerType) {
-        def controller = new LegacyBuildCacheControllerFactory(
+        def controller = new DefaultBuildCacheControllerFactory(
             Stub(StartParameterInternal) {
                 isBuildCacheEnabled() >> buildCacheEnabled
                 isBuildCacheDebugLogging() >> emitDebugLogging
