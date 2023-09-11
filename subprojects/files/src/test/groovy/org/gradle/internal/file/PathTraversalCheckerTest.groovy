@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.util.internal
+package org.gradle.internal.file
 
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
-import static PathTraversalChecker.isUnsafePathName
+import static org.gradle.internal.file.PathTraversalChecker.isUnsafePathName
 import static org.junit.Assume.assumeFalse
 
 class PathTraversalCheckerTest extends Specification {

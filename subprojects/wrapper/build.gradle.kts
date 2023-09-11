@@ -1,7 +1,10 @@
+import com.gradleup.gr8.EmbeddedJarTask
+import com.gradleup.gr8.Gr8Task
 import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("com.gradleup.gr8") version "0.9"
 }
 
 description = "Bootstraps a Gradle build initiated by the gradlew script"
@@ -9,6 +12,7 @@ description = "Bootstraps a Gradle build initiated by the gradlew script"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    implementation(project(":base-annotations"))
     implementation(project(":cli"))
     implementation(project(":wrapper-shared"))
 
@@ -33,17 +37,40 @@ dependencies {
 }
 
 val executableJar by tasks.registering(Jar::class) {
-    archiveFileName = "gradle-wrapper.jar"
+    archiveFileName = "gradle-wrapper-executable.jar"
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
     from(sourceSets.main.get().output)
-    from(configurations.runtimeClasspath.get().incoming.artifactView {
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-    }.files)
+    // Exclude properties files from this project as they are not needed for the executable JAR
+    exclude("gradle-*-classpath.properties")
+    exclude("gradle-*-parameter-names.properties")
+}
+
+// Using Gr8 plugin with ProGuard to minify the wrapper JAR.
+// This minified JAR is added to the project root when the wrapper task is used.
+// It is embedded in the main JAR as a resource called `/gradle-wrapper.jar.`
+gr8 {
+    create("gr8") {
+        // TODO This should work by passing `executableJar` directly to th Gr8 plugin
+        programJar(executableJar.flatMap { it.archiveFile })
+        archiveName("gradle-wrapper.jar")
+        configuration("runtimeClasspath")
+        proguardFile("src/main/proguard/wrapper.pro")
+        // Exclude META-INF resources from Guava etc. added via transitive dependencies
+        exclude("META-INF/.*")
+        // Exclude properties files from dependency subprojects
+        exclude("gradle-.*-classpath.properties")
+        exclude("gradle-.*-parameter-names.properties")
+    }
+}
+
+// TODO This dependency should be configured by the Gr8 plugin
+tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
+    dependsOn(executableJar)
 }
 
 tasks.jar {
-    from(executableJar)
+    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
 }

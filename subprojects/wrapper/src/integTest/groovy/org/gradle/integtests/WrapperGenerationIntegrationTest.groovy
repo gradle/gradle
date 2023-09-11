@@ -60,7 +60,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 63 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 42 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -77,7 +77,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("0336f591bc0ec9aa0c9988929b93ecc916b3c1d52aed202c7381db144aa0ef15")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("f20286ef7847b3caf30496a5b019a26d67df2e688d7fde87e7403537bf1790d2")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -155,7 +155,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def contents = file('contents')
-        file("gradle/wrapper/gradle-wrapper.jar").unzipTo(contents)
+        // ProGuard removes parent directory entries to keep JARs smaller
+        file("gradle/wrapper/gradle-wrapper.jar").unzipToWithoutCheckingParentDirs(contents)
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {

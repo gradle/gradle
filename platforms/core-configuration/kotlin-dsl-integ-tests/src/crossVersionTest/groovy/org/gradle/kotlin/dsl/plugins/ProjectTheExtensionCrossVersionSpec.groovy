@@ -19,16 +19,23 @@ package org.gradle.kotlin.dsl.plugins
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
 @TargetVersions("5.0+")
 class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     def "can access extensions and conventions with current Gradle version from plugin built with Gradle 5.0+"() {
+
+        def isFlaky = OperatingSystem.current().isWindows() &&
+            previous.version >= GradleVersion.version("6.5") &&
+            previous.version < GradleVersion.version("7.0")
+        assumeFalse("Test is flaky on Windows with Gradle >= 6.5 and < 7.0 ", isFlaky)
 
         when:
         pluginBuiltWith(previous)

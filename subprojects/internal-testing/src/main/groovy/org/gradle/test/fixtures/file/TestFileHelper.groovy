@@ -44,7 +44,7 @@ class TestFileHelper {
         this.file = file
     }
 
-    void unzipTo(File target, boolean nativeTools) {
+    void unzipTo(File target, boolean nativeTools, boolean checkParentDirs = true) {
         // Check that each directory in hierarchy is present
         file.withInputStream { InputStream instr ->
             def dirs = [] as Set
@@ -57,8 +57,10 @@ class TestFileHelper {
                 if (!entry.name.contains('/')) {
                     continue
                 }
-                def parent = StringUtils.substringBeforeLast(entry.name, '/') + '/'
-                assertTrue("Missing dir '$parent'", dirs.contains(parent))
+                if (checkParentDirs) {
+                    def parent = StringUtils.substringBeforeLast(entry.name, '/') + '/'
+                    assertTrue("Missing dir '$parent'", dirs.contains(parent))
+                }
             }
         }
 

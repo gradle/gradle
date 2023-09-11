@@ -34,6 +34,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
@@ -49,7 +50,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
-import org.gradle.util.internal.PathTraversalChecker;
 
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
