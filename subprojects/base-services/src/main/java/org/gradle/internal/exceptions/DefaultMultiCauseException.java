@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -75,6 +76,17 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     private ThreadLocal<Boolean> threadLocal() {
         return new HideStacktrace();
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        List<String> resolutions = new ArrayList<String>(causes.size()); // Typical case is 0 or 1 resolutions/cause
+        for (Throwable cause : causes) {
+            if (cause instanceof ResolutionProvider) {
+                resolutions.addAll(((ResolutionProvider) cause).getResolutions());
+            }
+        }
+        return resolutions;
     }
 
     private static class HideStacktrace extends ThreadLocal<Boolean> {

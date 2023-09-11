@@ -133,10 +133,46 @@ class DefaultMultiCauseExceptionTest extends Specification {
         result.causes.size() == 2
         result.causes*.message == ["cause1", "cause2"]
     }
-}
 
-class TestMultiCauseException extends DefaultMultiCauseException {
-    TestMultiCauseException(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes)
+    def 'when causes include ResolutionProviders, their resolutions are included'() {
+        given:
+        def fail1 = new TestResolutionProviderException('resolution1')
+        def fail2 = new TestResolutionProviderException('resolution2')
+        def multiFail = new DefaultMultiCauseException('failure', fail1, fail2)
+
+        expect:multiFail.getResolutions() == ['resolution1', 'resolution2']
+    }
+
+    def 'when causes include nested ResolutionProviders, all resolutions are included'() {
+        given:
+        def childFail1 = new TestResolutionProviderException('resolutionChild')
+        def childFail2 = new RuntimeException()
+        def childMultiFail = new DefaultMultiCauseException('childFailure', childFail1, childFail2)
+
+        def parentFail1 = new TestResolutionProviderException('resolutionParent')
+        def parentFail2 = new RuntimeException()
+        def parentMultiFail = new DefaultMultiCauseException('parentFailure', parentFail1, parentFail2, childMultiFail)
+
+        expect:
+        parentMultiFail.getResolutions() == ['resolutionParent', 'resolutionChild']
+    }
+
+    private static class TestMultiCauseException extends DefaultMultiCauseException {
+        TestMultiCauseException(String message, Iterable<? extends Throwable> causes) {
+            super(message, causes)
+        }
+    }
+
+    private static class TestResolutionProviderException extends RuntimeException implements ResolutionProvider {
+        private final String resolution
+
+        TestResolutionProviderException(String resolution) {
+            this.resolution = resolution
+        }
+
+        @Override
+        List<String> getResolutions() {
+            return Collections.singletonList(resolution)
+        }
     }
 }
