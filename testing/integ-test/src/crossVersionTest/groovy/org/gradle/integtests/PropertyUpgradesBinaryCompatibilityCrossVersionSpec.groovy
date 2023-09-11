@@ -42,6 +42,11 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
                 int currentMaxErrors = it.getMaxErrors();
                 assert currentMaxErrors == 1;
             });
+            project.getTasks().register("myWar", War.class, it -> {
+                it.setWebXml(project.file("src/someWeb.xml"));
+                File file = it.getWebXml();
+                assert file.getName().equals("someWeb.xml");
+            });
         """
 
         expect:
