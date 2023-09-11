@@ -18,19 +18,21 @@ package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+
 /**
  * Applies the Gradle Enterprise plugin via the `settings.gradle` script.
  */
 class ApplyGradleEnterprisePluginFixture {
     private static final String APPLY_ENTERPRISE_PLUGIN = """plugins {
-        |    id("${AutoAppliedGradleEnterprisePlugin.ID}") version("${AutoAppliedGradleEnterprisePlugin.VERSION}")
+        |    id("${AutoAppliedGradleEnterprisePlugin.ID}") version("${VERSION}")
         |}""".stripMargin()
 
     static void applyEnterprisePlugin(File settingsFile) {
         def settingsText = settingsFile.text
         def matcher = settingsText =~ /id[ (]["']com.gradle.enterprise["'][)]? version[ (]["'](.*)["'][)]?/
         if (matcher.find()) {
-            settingsFile.text = settingsText.substring(0, matcher.start(1)) + AutoAppliedGradleEnterprisePlugin.VERSION + settingsText.substring(matcher.end(1))
+            settingsFile.text = settingsText.substring(0, matcher.start(1)) + VERSION + settingsText.substring(matcher.end(1))
         } else {
             insertIntoFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
         }
@@ -57,7 +59,5 @@ class ApplyGradleEnterprisePluginFixture {
             (pluginManagementBlock == null ? "" : pluginManagementBlock + "\n\n") +
             pluginBlock + "\n\n" +
             settingsText.trim()
-
-        println "settingsFile = $settingsFile.text"
     }
 }

@@ -18,6 +18,8 @@ package org.gradle.internal.scan.config.fixtures
 
 import spock.lang.Specification
 
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+
 class ApplyGradleEnterprisePluginFixtureTest extends Specification {
 
     def "no special blocks"() {
@@ -32,7 +34,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
 
         then:
         file.text =="""plugins {
-            |    id("com.gradle.enterprise") version("3.14")
+            |    id("com.gradle.enterprise") version("${VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()
@@ -62,7 +64,7 @@ class ApplyGradleEnterprisePluginFixtureTest extends Specification {
             |}
             |
             |plugins {
-            |    id("com.gradle.enterprise") version("3.14")
+            |    id("com.gradle.enterprise") version("${VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()
