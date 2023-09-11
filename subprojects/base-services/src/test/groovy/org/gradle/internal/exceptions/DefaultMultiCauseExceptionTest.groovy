@@ -134,7 +134,7 @@ class DefaultMultiCauseExceptionTest extends Specification {
         result.causes*.message == ["cause1", "cause2"]
     }
 
-    def 'when causes include ResolutionProviders, their resolutions are included'() {
+    def "when causes include ResolutionProviders, their resolutions are included"() {
         given:
         def fail1 = new TestResolutionProviderException('resolution1')
         def fail2 = new TestResolutionProviderException('resolution2')
@@ -143,7 +143,7 @@ class DefaultMultiCauseExceptionTest extends Specification {
         expect:multiFail.getResolutions() == ['resolution1', 'resolution2']
     }
 
-    def 'when causes include nested ResolutionProviders, all resolutions are included'() {
+    def "when causes include nested ResolutionProviders, all resolutions are included"() {
         given:
         def childFail1 = new TestResolutionProviderException('resolutionChild')
         def childFail2 = new RuntimeException()
