@@ -19,7 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * A function that can be used to specify a {@link Problem} using a {@link ProblemBuilder}.
+ * A function that can be used to specify a {@link Problem} using a {@link BuildableProblemBuilder}.
  * <p>
  * Usage example:
  *

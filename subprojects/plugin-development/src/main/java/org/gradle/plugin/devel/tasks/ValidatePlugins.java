@@ -22,8 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -55,7 +54,6 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.gradle.api.problems.Severity.ERROR;
 
 /**
@@ -109,9 +107,9 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<DefaultProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
-
         Problems problems = getServices().get(Problems.class);
+        List<? extends ReportableProblem> problemMessages = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())), (InternalProblems) problems);
+
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problemMessages).sorted();
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
@@ -122,8 +120,8 @@ public abstract class ValidatePlugins extends DefaultTask {
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    for (Problem problem : problemMessages.stream().map(Problem.class::cast).collect(toList())) {
-                        ((InternalProblems) problems).reportAsProgressEvent(problem);
+                    for (ReportableProblem problem : problemMessages) {
+                        problem.report();
                     }
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
@@ -138,10 +136,6 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     private String annotateTaskPropertiesDoc() {
         return getDocumentationRegistry().getDocumentationRecommendationFor("on how to annotate task properties", "incremental_build", "sec:task_input_output_annotations");
-    }
-
-    private static CharSequence toMessageList(List<DefaultProblem> problems) {
-        return ValidationProblemSerialization.toPlainMessage(problems).collect(joining());
     }
 
     /**

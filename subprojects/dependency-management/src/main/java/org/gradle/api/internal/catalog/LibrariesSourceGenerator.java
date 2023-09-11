@@ -28,8 +28,11 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -57,7 +60,6 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
-import static org.gradle.api.problems.ProblemGroup.VERSION_CATALOG_ID;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
@@ -503,10 +505,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private String standardErrorLocation() {
-        return "version catalog " + config.getName();
-    }
-
     private void performValidation(List<String> libraries, List<String> bundles, List<String> versions, List<String> plugins) {
         assertUnique(libraries, "library aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
@@ -514,14 +512,30 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            throw throwVersionCatalogProblemException(createVersionCatalogError(gerProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
-                .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
-                .solution("Reduce the number of aliases defined in this catalog")
-                .solution("Split the catalog into multiple catalogs"));
+            throw throwVersionCatalogProblemException(problemService.createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
+                    .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
+                    .solution("Reduce the number of aliases defined in this catalog")
+                    .solution("Split the catalog into multiple catalogs")));
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(ProblemBuilder problem) {
+    private RuntimeException throwVersionCatalogProblemException(ReportableProblem problem) {
+        throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem));
+    }
+
+    @Nonnull
+    private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
+        return builder
+            .label(message)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
+            .noLocation()
+            .type(catalogProblemId.name().toLowerCase())
+            .group(ProblemGroup.VERSION_CATALOG_ID)
+            .severity(ERROR);
+    }
+
+    private RuntimeException throwVersionCatalogProblemException(BuildableProblemBuilder problem) {
         throw throwErrorWithNewProblemsApi(ERROR_HEADER, ImmutableList.of(problem.build()));
     }
 
@@ -533,17 +547,17 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .filter(e -> e.getValue().size() > 1)
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
-                return createVersionCatalogError(gerProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
-                    .details("A name clash was detected")
-                    .solution("Use a different alias for " + errorValues)
-                    .build();
+                return problemService.createProblem(builder ->
+                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
+                        .details("A name clash was detected")
+                        .solution("Use a different alias for " + errorValues));
             })
             .collect(toList());
         maybeThrowError(ERROR_HEADER, errors);
     }
 
     @Nonnull
-    private String gerProblemPrefix() {
+    private String getProblemPrefix() {
         return getProblemInVersionCatalog(config.getName()) + ", ";
     }
 
@@ -802,16 +816,4 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             return variablePrefix + "For" + className;
         }
     }
-
-    @Nonnull
-    public ProblemBuilder createVersionCatalogError(String message, VersionCatalogProblemId catalogProblemId) {
-        return problemService.createProblemBuilder()
-            .label(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .noLocation()
-            .type(catalogProblemId.name().toLowerCase())
-            .group(VERSION_CATALOG_ID)
-            .severity(ERROR);
-    }
-
 }

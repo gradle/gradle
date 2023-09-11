@@ -21,9 +21,9 @@ import org.gradle.api.Task
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.ReportableProblem
 import org.gradle.api.problems.Severity
 import org.gradle.api.services.BuildService
@@ -76,19 +76,15 @@ class FlowParametersInstantiator(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 problems.add(
-                                    problemsService.createProblemBuilder()
-                                        .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                        .undocumented()
-                                        .noLocation()
-                                        .type("validation_type")
-                                        .group(ProblemGroup.TYPE_VALIDATION_ID)
-                                        .severity(Severity.ERROR)
-                                        .build()
-                                )
-//                                problems.put(
-//                                    "Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.",
-//                                    Severity.ERROR
-//                                )
+                                    problemsService.createProblem { builder ->
+                                        builder
+                                            .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
+                                            .undocumented()
+                                            .noLocation()
+                                            .type("validation_type")
+                                            .group(ProblemGroup.TYPE_VALIDATION_ID)
+                                            .severity(Severity.ERROR)
+                                    })
                             }
 
                             override fun getTask(): Task? = null

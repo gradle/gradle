@@ -45,14 +45,11 @@ public class DefaultCatalogProblemBuilder {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (Problem problem : problems) {
-            reportInto(formatter, problem);
-        }
-        formatter.endChildren();
-
         for (ReportableProblem problem : problems) {
+            reportInto(formatter, problem);
             problem.report();
         }
+        formatter.endChildren();
         throw new InvalidUserDataException(formatter.toString());
     }
 

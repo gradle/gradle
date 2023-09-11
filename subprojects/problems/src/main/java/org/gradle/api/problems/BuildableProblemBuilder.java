@@ -19,13 +19,13 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * {@link Problem} instance configurator allowing the specification of all optional fields.
+ * {@link Problem} instance builder allowing the specification of all optional fields.
  *
  * This is the last interface in the builder chain. The order of steps can be traced from the {@link Problems} service interface.
  *
  * An example of how to use the builder:
  * <pre>{@code
- *  <problemService>.report(configurator -> configurator
+ *  <problemService>.createProblemBuilder()
  *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
@@ -38,43 +38,11 @@ import org.gradle.api.Incubating;
  * @since 8.5
  */
 @Incubating
-public interface ProblemBuilder {
+public interface BuildableProblemBuilder extends ProblemBuilder {
     /**
-     * The long description of this problem.
+     * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
      *
-     * @param details the details
-     * @return this
+     * @return the new problem
      */
-    ProblemBuilder details(String details);
-
-    /**
-     * The description of how to solve this problem
-     *
-     * @param solution the solution.
-     * @return this
-     */
-    ProblemBuilder solution(String solution);
-
-    /**
-     * Specifies arbitrary data associated with this problem.
-     *
-     * @return this
-     */
-    ProblemBuilder additionalData(String key, String value);
-
-    /**
-     * The exception causing this problem.
-     *
-     * @param e the exception.
-     * @return this
-     */
-    ProblemBuilder withException(RuntimeException e);
-
-    /**
-     * Declares the severity of the problem.
-     *
-     * @param severity the severity
-     * @return this
-     */
-    ProblemBuilder severity(Severity severity);
+    ReportableProblem build();
 }

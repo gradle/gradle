@@ -18,9 +18,8 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
@@ -44,7 +43,7 @@ import java.util.Map;
  * @since 8.3
  */
 @Incubating
-public class DefaultProblemBuilder implements ProblemBuilder,
+public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningGroup,
@@ -67,12 +66,12 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     private RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<>();
 
-    public DefaultProblemBuilder(InternalProblems problemsService) {
+    public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
     }
 
     @Override
-    public ProblemBuilder group(String group) {
+    public BuildableProblemBuilder group(String group) {
         if (problemsService != null) {
             ProblemGroup existingGroup = problemsService.getProblemGroup(group);
             if (existingGroup == null) {
@@ -90,7 +89,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
     }
 
     @Override
-    public ProblemBuilder severity(Severity severity) {
+    public BuildableProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
     }
@@ -114,7 +113,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder details(String details) {
+    public BuildableProblemBuilder details(String details) {
         this.description = details;
         return this;
     }
@@ -135,7 +134,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder solution(@Nullable String solution) {
+    public BuildableProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
             this.solution = new ArrayList<>();
         }
@@ -143,23 +142,23 @@ public class DefaultProblemBuilder implements ProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder additionalData(String key, String value) {
+    public BuildableProblemBuilder additionalData(String key, String value) {
         this.additionalMetadata.put(key, value);
         return this;
     }
 
     @Override
-    public ProblemBuilder withException(RuntimeException e) {
+    public BuildableProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
     }
 
     public ReportableProblem build() {
-        return buildInternal(null, true);
+        return buildInternal(null);
     }
 
     @Nonnull
-    private ReportableProblem buildInternal(@Nullable Severity severity, boolean reportable) {
+    private ReportableProblem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
             throw new IllegalStateException("Problem is not documented: " + label);
         }
@@ -185,7 +184,7 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             exception,
             problemType,
             additionalMetadata,
-            reportable ? problemsService : null);
+            problemsService);
     }
 
 
@@ -207,15 +206,6 @@ public class DefaultProblemBuilder implements ProblemBuilder,
             return Severity.WARNING;
         }
         return this.severity;
-    }
-
-    public void report() {
-        Problem problem = build();
-        report(problem);
-    }
-
-    private void report(Problem problem) {
-        problemsService.reportAsProgressEvent(problem);
     }
 
     RuntimeException getException() {
