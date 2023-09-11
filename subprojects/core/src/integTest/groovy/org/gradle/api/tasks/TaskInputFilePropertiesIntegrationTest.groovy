@@ -33,15 +33,16 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         enableProblemsApiCheck()
     }
 
-    def "allows optional @#annotation.simpleName to have null value"() {
+    def "allows optional @#annotation.simpleName #property to have unspecified value"() {
         buildFile << """
             import ${GetInputFilesVisitor.name}
             import ${TaskPropertyUtils.name}
             import ${PropertyWalker.name}
             import ${FileCollectionFactory.name}
 
-            class CustomTask extends DefaultTask {
-                @Optional @$annotation.simpleName input
+            abstract class CustomTask extends DefaultTask {
+                @Optional @$annotation.simpleName $property
+
                 @TaskAction void doSomething() {
                     def fileCollectionFactory = services.get(FileCollectionFactory)
                     GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileCollectionFactory)
@@ -53,15 +54,28 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
             }
 
             task customTask(type: CustomTask) {
-                input = null
+                doFirst {}
+            }
+
+            task otherTask {
+                inputs.files(customTask.outputs.files)
+                doFirst {}
             }
         """
 
         expect:
-        succeeds "customTask"
+        succeeds "otherTask"
 
         where:
-        annotation << [InputFile, InputDirectory, InputFiles]
+        [annotation, property] << [
+            [InputFile, InputDirectory, InputFiles],
+            [
+                "Object input",
+                "File input",
+                "abstract RegularFileProperty getInput()",
+                "abstract DirectoryProperty getInput()"
+            ]
+        ].combinations()
     }
 
     def "TaskInputs.#method shows error message when used with complex input"() {
