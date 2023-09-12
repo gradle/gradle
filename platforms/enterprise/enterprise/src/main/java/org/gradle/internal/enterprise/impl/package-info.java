@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
+@NonNullApi
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scopes.BuildTree.class)
-public class GradleEnterprisePluginAutoAppliedStatus {
-
-    private boolean autoApplied;
-
-    public boolean isAutoApplied() {
-        return autoApplied;
-    }
-
-    public void markAsAutoApplied() {
-        this.autoApplied = true;
-    }
-}
+import org.gradle.api.NonNullApi;
