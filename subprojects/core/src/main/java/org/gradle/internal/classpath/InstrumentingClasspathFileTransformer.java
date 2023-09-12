@@ -260,8 +260,4 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             }
         };
     }
-
-    public static boolean isSupportedVersion(int javaMajorVersion) {
-        return javaMajorVersion <= AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
-    }
 }

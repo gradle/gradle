@@ -16,12 +16,11 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.util.internal.JarUtil;
 
 import java.util.OptionalInt;
-
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.isSupportedVersion;
 
 public class MrJarUtils {
     /**
@@ -39,5 +38,9 @@ public class MrJarUtils {
         }
         // The entry is not in the versioned directory at all.
         return false;
+    }
+
+    public static boolean isSupportedVersion(int javaMajorVersion) {
+        return javaMajorVersion <= AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
     }
 }

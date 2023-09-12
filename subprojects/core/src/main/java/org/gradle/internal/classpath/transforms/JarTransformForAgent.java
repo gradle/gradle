@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.isSupportedVersion;
+import static org.gradle.internal.classpath.transforms.MrJarUtils.isSupportedVersion;
 
 /**
  * Transformation for agent-based instrumentation.
