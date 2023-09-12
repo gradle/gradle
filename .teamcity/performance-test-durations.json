@@ -18,6 +18,11 @@
     "linux" : 699000,
     "windows" : 667000,
     "macOs" : 1114000
+  }, {
+      "testProject" : "nowInAndroidBuild",
+      "linux" : 687000,
+      "windows" : 566000,
+      "macOs" : 1162000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
@@ -26,6 +31,11 @@
     "linux" : 381000,
     "windows" : 445000,
     "macOs" : 663000
+  }, {
+      "testProject" : "nowInAndroidBuild",
+      "linux" : 687000,
+      "windows" : 566000,
+      "macOs" : 1162000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change with configuration caching",
@@ -34,6 +44,11 @@
     "linux" : 336000,
     "windows" : 315000,
     "macOs" : 556000
+  }, {
+      "testProject" : "nowInAndroidBuild",
+      "linux" : 687000,
+      "windows" : 566000,
+      "macOs" : 1162000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
