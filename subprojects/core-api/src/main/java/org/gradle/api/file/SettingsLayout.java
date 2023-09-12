@@ -18,6 +18,8 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to important locations for a {@link Settings} instance.
@@ -27,6 +29,7 @@ import org.gradle.api.initialization.Settings;
  * @since 8.5
  */
 @Incubating
+@ServiceScope(Scopes.Gradle.class)
 public interface SettingsLayout extends FileSystemLayout {
     /**
      * Returns the settings directory.
