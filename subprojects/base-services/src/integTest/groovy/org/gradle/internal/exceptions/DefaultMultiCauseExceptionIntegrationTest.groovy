@@ -18,6 +18,11 @@ package org.gradle.internal.exceptions
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec {
     def 'when tasks throw exceptions that offer resolutions, those resolutions are included'() {
         given:
@@ -35,7 +40,13 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         fails 'myTask'
 
         then:
-        assertHasSuggestions('resolution1')
+        failure.assertHasDescription("Execution failed for task ':myTask'.")
+            .assertHasResolutions(
+                'resolution1',
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
     }
 
     def 'when tasks throw multi cause exceptions with resolutions offered by the causes, those resolutions are included'() {
@@ -56,7 +67,43 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         fails 'myTask'
 
         then:
-        assertHasSuggestions('resolution1', 'resolution2')
+        failure.assertHasDescription("Execution failed for task ':myTask'.")
+            .assertHasCause('failure')
+            .assertHasResolutions(
+                'resolution1',
+                'resolution2',
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
+    }
+
+    def 'when tasks throw multi cause exceptions with the same resolution offered by multiple causes, those resolutions are not duplicated'() {
+        given:
+        buildFile << """
+            ${defineTestException()}
+
+            tasks.register('myTask') {
+                doLast {
+                    def fail1 = new TestResolutionProviderException('resolution1')
+                    def fail2 = new TestResolutionProviderException('resolution1')
+                    throw new org.gradle.internal.exceptions.DefaultMultiCauseException('failure', fail1, fail2)
+                }
+            }
+        """
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':myTask'.")
+            .assertHasCause('failure')
+            .assertHasResolutions(
+                'resolution1',
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
     }
 
     private String defineTestException() {
@@ -74,13 +121,5 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
                 }
             }
         """
-    }
-
-    private void assertHasSuggestions(String... suggestions) {
-        def tryIndex = errorOutput.indexOf("* Try:")
-        suggestions.each {suggestion ->
-            def suggestIndex = errorOutput.indexOf("> $suggestion", tryIndex)
-            assert suggestIndex > 0 : "Expected to find suggestion '$suggestion' in error output, but didn't"
-        }
     }
 }
