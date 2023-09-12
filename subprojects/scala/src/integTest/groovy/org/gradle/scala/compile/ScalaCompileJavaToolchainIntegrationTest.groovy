@@ -30,7 +30,7 @@ import org.junit.Assume
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def getTargetJava8() {
