@@ -252,13 +252,21 @@ class PathTest extends Specification {
         !path('a:b').absolute
     }
 
-    def "take"() {
+    def "can take first n segments"() {
         expect:
         path(':').takeFirstSegments(1) == path(':')
         path(':foo').takeFirstSegments(1) == path(':foo')
         path(':foo:bar').takeFirstSegments(1) == path(':foo')
         path(':foo:bar').takeFirstSegments(2) == path(':foo:bar')
         path(':foo:bar:baz').takeFirstSegments(2) == path(':foo:bar')
+    }
+
+    def "can take first n segments without incurring unnecessary copies"() {
+        given:
+        def path = path(':foo:bar')
+
+        expect:
+        path.takeFirstSegments(42) === path
     }
 
     def paths(List<String> paths) {
