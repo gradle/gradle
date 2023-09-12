@@ -339,6 +339,6 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
     }
 
     private boolean noConfigurationCacheAvailableIn(String output) {
-        output.contains('Calculating task graph as no configuration cache is available')
+        output.contains('Calculating task graph as no cached configuration is available')
     }
 }

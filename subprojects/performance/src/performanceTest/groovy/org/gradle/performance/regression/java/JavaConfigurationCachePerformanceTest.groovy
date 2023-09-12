@@ -95,7 +95,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
             void afterBuild(BuildContext context, Throwable error) {
                 if (context.iteration > 1) {
                     def tag = action == storing
-                        ? "Calculating task graph as no configuration cache is available"
+                        ? "Calculating task graph as no cached configuration is available"
                         : "Reusing configuration cache"
                     File buildLog = new File(invocationSettings.projectDir, "profile.log")
 
