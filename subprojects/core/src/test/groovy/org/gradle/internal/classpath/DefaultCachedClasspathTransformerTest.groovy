@@ -29,6 +29,8 @@ import org.gradle.internal.Pair
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.transforms.ClassTransform
+import org.gradle.internal.classpath.transforms.JarTransformFactoryForAgent
+import org.gradle.internal.classpath.transforms.JarTransformFactoryForLegacy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -92,6 +94,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
             }
         }
     }
+    def jarTransformFactoryForAgent = new JarTransformFactoryForAgent(classpathBuilder, classpathWalker)
+    def jarTransformFactoryForLegacy = new JarTransformFactoryForLegacy(classpathBuilder, classpathWalker)
 
     URLClassLoader testClassLoader = null
 
@@ -101,14 +105,15 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         cacheFactory,
         fileAccessTimeJournal,
         classpathWalker,
-        classpathBuilder,
         classpathFingerprinter,
         fileSystemAccess,
         executorFactory,
         globalCacheLocations,
         fileLockManager,
         agentStatus,
-        gradleCoreInstrumenting
+        gradleCoreInstrumenting,
+        jarTransformFactoryForAgent,
+        jarTransformFactoryForLegacy
     )
 
     def cleanup() {

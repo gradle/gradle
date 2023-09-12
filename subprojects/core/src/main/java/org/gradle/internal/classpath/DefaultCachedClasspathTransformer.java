@@ -27,6 +27,9 @@ import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.CompositeClassTransform;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
+import org.gradle.internal.classpath.transforms.JarTransformFactory;
+import org.gradle.internal.classpath.transforms.JarTransformFactoryForAgent;
+import org.gradle.internal.classpath.transforms.JarTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
@@ -63,8 +66,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private final PersistentCache cache;
     private final FileAccessTracker fileAccessTracker;
-    private final ClasspathWalker classpathWalker;
-    private final ClasspathBuilder classpathBuilder;
     private final ClasspathFingerprinter classpathFingerprinter;
     private final FileSystemAccess fileSystemAccess;
     private final GlobalCacheLocations globalCacheLocations;
@@ -74,23 +75,24 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ParallelTransformExecutor parallelTransformExecutor;
     private final InstrumentingTypeRegistryFactory typeRegistryFactory;
     private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry;
+    private final JarTransformFactoryForAgent jarTransformFactoryForAgent;
+    private final JarTransformFactoryForLegacy jarTransformFactoryForLegacy;
 
     public DefaultCachedClasspathTransformer(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
-        ClasspathBuilder classpathBuilder,
         ClasspathFingerprinter classpathFingerprinter,
         FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations,
         FileLockManager fileLockManager,
         AgentStatus agentStatus,
-        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingRegistry,
+        JarTransformFactoryForAgent jarTransformFactoryForAgent,
+        JarTransformFactoryForLegacy jarTransformFactoryForLegacy
     ) {
-        this.classpathWalker = classpathWalker;
-        this.classpathBuilder = classpathBuilder;
         this.classpathFingerprinter = classpathFingerprinter;
         this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
@@ -102,6 +104,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.parallelTransformExecutor = new ParallelTransformExecutor(cache, executor);
         this.gradleCoreInstrumentingRegistry = gradleCoreInstrumentingRegistry;
         this.typeRegistryFactory = new DefaultInstrumentingTypeRegistryFactory(gradleCoreInstrumentingRegistry, cache, parallelTransformExecutor, classpathWalker, fileSystemAccess);
+        this.jarTransformFactoryForAgent = jarTransformFactoryForAgent;
+        this.jarTransformFactoryForLegacy = jarTransformFactoryForLegacy;
     }
 
     @Override
@@ -129,9 +133,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 return copyingPipeline();
             case BuildLogic:
                 if (!agentStatus.isAgentInstrumentationEnabled()) {
-                    return instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader());
+                    return instrumentingPipeline(jarTransformFactoryForLegacy);
                 }
-                return agentInstrumentingPipeline(copyingPipeline(), instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent()));
+                return agentInstrumentingPipeline(copyingPipeline(), instrumentingPipeline(jarTransformFactoryForAgent));
             default:
                 throw new IllegalArgumentException();
         }
@@ -141,8 +145,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return cp -> transformFiles(cp, new CopyingClasspathFileTransformer(globalCacheLocations));
     }
 
-    private TransformPipeline instrumentingPipeline(InstrumentingClasspathFileTransformer.Policy policy) {
-        return cp -> transformFiles(cp, instrumentingClasspathFileTransformerFor(policy, new InstrumentingClassTransform()));
+    private TransformPipeline instrumentingPipeline(JarTransformFactory jarTransformFactory) {
+        return cp -> transformFiles(cp, instrumentingClasspathFileTransformerFor(jarTransformFactory, new InstrumentingClassTransform()));
     }
 
     private TransformPipeline agentInstrumentingPipeline(TransformPipeline originalsPipeline, TransformPipeline transformedPipeline) {
@@ -169,7 +173,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return transformFiles(
             classPath,
             instrumentingClasspathFileTransformerFor(
-                InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(),
+                jarTransformFactoryForLegacy,
                 new CompositeClassTransform(additional, transformerFor(transform))
             )
         );
@@ -209,7 +213,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(), new InstrumentingClassTransform());
+                return instrumentingClasspathFileTransformerFor(jarTransformFactoryForLegacy, new InstrumentingClassTransform());
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
@@ -217,13 +221,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, ClassTransform transform) {
+    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(JarTransformFactory jarTransformFactory, ClassTransform transform) {
         return new InstrumentingClasspathFileTransformer(
             fileLockManager,
-            classpathWalker,
-            classpathBuilder,
             locationSnapshot -> classpathFingerprinter.fingerprint(locationSnapshot, null).getHash(),
-            policy,
+            jarTransformFactory,
             transform,
             gradleCoreInstrumentingRegistry);
     }
