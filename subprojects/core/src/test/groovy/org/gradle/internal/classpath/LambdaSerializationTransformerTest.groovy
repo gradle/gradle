@@ -18,6 +18,7 @@ package org.gradle.internal.classpath
 
 
 import org.gradle.internal.classanalysis.AsmConstants
+import org.gradle.internal.classpath.transforms.LambdaSerializationTransformer
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter

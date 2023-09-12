@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.transforms;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.CallInterceptionClosureInstrumentingClassVisitor;
+import org.gradle.internal.classpath.ClassData;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
-import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
@@ -45,8 +49,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.gradle.internal.classpath.CommonTypes.NO_EXCEPTIONS;
-import static org.gradle.internal.classpath.CommonTypes.STRING_TYPE;
+import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
+import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -59,7 +63,7 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
-class InstrumentingTransformer implements ClassTransform {
+public class InstrumentingClassTransform implements ClassTransform {
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
 
@@ -169,11 +173,11 @@ class InstrumentingTransformer implements ClassTransform {
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
-        hasher.putString(InstrumentingTransformer.class.getSimpleName());
+        hasher.putString(InstrumentingClassTransform.class.getSimpleName());
         hasher.putInt(DECORATION_FORMAT);
     }
 
-    public InstrumentingTransformer() {
+    public InstrumentingClassTransform() {
         this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
     }
 
@@ -181,7 +185,7 @@ class InstrumentingTransformer implements ClassTransform {
      * This constructor can be used in tests with a set of call interceptors complemented by ones generated
      * specifically for the tests.
      */
-    public InstrumentingTransformer(JvmBytecodeInterceptorSet externalInterceptors) {
+    public InstrumentingClassTransform(JvmBytecodeInterceptorSet externalInterceptors) {
         this.externalInterceptors = externalInterceptors;
     }
 

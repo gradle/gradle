@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.transforms;
 
 import org.gradle.api.NonNullApi;
 import org.objectweb.asm.Type;

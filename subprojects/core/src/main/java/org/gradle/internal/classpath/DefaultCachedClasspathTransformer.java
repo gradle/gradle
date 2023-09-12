@@ -25,6 +25,8 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.gradle.internal.classpath.transforms.CompositeClassTransform;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
@@ -140,7 +142,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private TransformPipeline instrumentingPipeline(InstrumentingClasspathFileTransformer.Policy policy) {
-        return cp -> transformFiles(cp, instrumentingClasspathFileTransformerFor(policy, new InstrumentingTransformer()));
+        return cp -> transformFiles(cp, instrumentingClasspathFileTransformerFor(policy, new InstrumentingClassTransform()));
     }
 
     private TransformPipeline agentInstrumentingPipeline(TransformPipeline originalsPipeline, TransformPipeline transformedPipeline) {
@@ -168,7 +170,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             classPath,
             instrumentingClasspathFileTransformerFor(
                 InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(),
-                new CompositeTransformer(additional, transformerFor(transform))
+                new CompositeClassTransform(additional, transformerFor(transform))
             )
         );
     }
@@ -198,7 +200,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private ClassTransform transformerFor(StandardTransform transform) {
         if (transform == StandardTransform.BuildLogic) {
-            return new InstrumentingTransformer();
+            return new InstrumentingClassTransform();
         } else {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -207,7 +209,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(), new InstrumentingTransformer());
+                return instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(), new InstrumentingClassTransform());
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
