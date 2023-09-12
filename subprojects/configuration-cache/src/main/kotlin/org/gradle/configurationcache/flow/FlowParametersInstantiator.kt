@@ -22,7 +22,6 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Problem
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.ReportableProblem
 import org.gradle.api.problems.Severity
@@ -82,7 +81,6 @@ class FlowParametersInstantiator(
                                             .undocumented()
                                             .noLocation()
                                             .type("validation_type")
-                                            .group(ProblemGroup.TYPE_VALIDATION_ID)
                                             .severity(Severity.ERROR)
                                     })
                             }

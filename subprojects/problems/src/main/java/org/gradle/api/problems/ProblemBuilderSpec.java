@@ -29,7 +29,6 @@ import org.gradle.api.Incubating;
  *            .undocumented()
  *            .noLocation()
  *            .type("task_selection")
- *            .group(ProblemGroup.GENERIC_ID)
  *            .details("long message")
  *            .severity(Severity.ERROR)
  *            .withException(new TaskSelectionException(message)));

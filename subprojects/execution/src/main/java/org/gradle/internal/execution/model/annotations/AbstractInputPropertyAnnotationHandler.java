@@ -19,7 +19,6 @@ package org.gradle.internal.execution.model.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
@@ -69,7 +68,6 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                         .documentedAt(userManual("validation_problems", "unsupported_value_type"))
                         .noLocation()
                         .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
                         .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {
