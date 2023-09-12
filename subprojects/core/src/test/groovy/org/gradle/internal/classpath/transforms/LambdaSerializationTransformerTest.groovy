@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
-
+package org.gradle.internal.classpath.transforms
 
 import org.gradle.internal.classanalysis.AsmConstants
-import org.gradle.internal.classpath.transforms.LambdaSerializationTransformer
+import org.gradle.internal.classpath.ClassWithActionLambda
+import org.gradle.internal.classpath.ClassWithCapturelessLambda
+import org.gradle.internal.classpath.ClassWithObjectCapturingLambda
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
