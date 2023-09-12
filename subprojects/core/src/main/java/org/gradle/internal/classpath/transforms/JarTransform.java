@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * A "pending" transformation of the original file/directory.
  */
-public interface Transformation {
+public interface JarTransform {
     /**
      * Transform the file/directory into destination. The destination should be a JAR file name.
      *

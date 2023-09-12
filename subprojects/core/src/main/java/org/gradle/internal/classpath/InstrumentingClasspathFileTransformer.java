@@ -23,11 +23,11 @@ import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classpath.transforms.BaseTransformation;
+import org.gradle.internal.classpath.transforms.BaseJarTransform;
 import org.gradle.internal.classpath.transforms.ClassTransform;
-import org.gradle.internal.classpath.transforms.MultiReleaseTransformationForLegacy;
-import org.gradle.internal.classpath.transforms.Transformation;
-import org.gradle.internal.classpath.transforms.TransformationForAgent;
+import org.gradle.internal.classpath.transforms.JarTransform;
+import org.gradle.internal.classpath.transforms.MultiReleaseJarTransformForLegacy;
+import org.gradle.internal.classpath.transforms.JarTransformForAgent;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
@@ -77,7 +77,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
          * @param file the file/directory to transform
          * @return the transformation that will transform the file upon request.
          */
-        Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry);
+        JarTransform createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry);
     }
 
     public InstrumentingClasspathFileTransformer(
@@ -179,10 +179,10 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     /**
      * A no-op transformation that copies the original file verbatim. Can be used if the original cannot be instrumented under policy.
      */
-    private static class SkipTransformation implements Transformation {
+    private static class SkipJarTransform implements JarTransform {
         private final File source;
 
-        public SkipTransformation(File source) {
+        public SkipJarTransform(File source) {
             this.source = source;
         }
 
@@ -201,7 +201,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             }
 
             @Override
-            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File source, InstrumentingTypeRegistry typeRegistry) {
+            public JarTransform createTransformer(InstrumentingClasspathFileTransformer owner, File source, InstrumentingTypeRegistry typeRegistry) {
                 Boolean isMultiReleaseJar = null;
 
                 if (source.isFile()) {
@@ -213,7 +213,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                                 // TODO(mlopatkin) Manifest of the signed JAR contains signature information and must be the first entry in the JAR.
                                 //  Looking into the manifest here should be more effective.
                                 // This policy doesn't transform signed JARs so no further checks are necessary.
-                                return new SkipTransformation(source);
+                                return new SkipJarTransform(source);
                             }
                             if (isMultiReleaseJar == null && JarUtil.isManifestName(entryName)) {
                                 isMultiReleaseJar = JarUtil.isMultiReleaseJarManifest(JarUtil.readManifest(entry.getContent()));
@@ -226,9 +226,9 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
                     }
                 }
                 if (isMultiReleaseJar != null && isMultiReleaseJar) {
-                    return new MultiReleaseTransformationForLegacy(source, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
+                    return new MultiReleaseJarTransformForLegacy(source, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
                 }
-                return new BaseTransformation(source, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
+                return new BaseJarTransform(source, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
             }
 
             private boolean isJarSignatureFile(String entryName) {
@@ -250,8 +250,8 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
             }
 
             @Override
-            public Transformation createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry) {
-                return new TransformationForAgent(file, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
+            public JarTransform createTransformer(InstrumentingClasspathFileTransformer owner, File file, InstrumentingTypeRegistry typeRegistry) {
+                return new JarTransformForAgent(file, owner.classpathBuilder, owner.classpathWalker, typeRegistry, owner.transform);
             }
 
             @Override

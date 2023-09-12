@@ -37,14 +37,14 @@ import static org.gradle.internal.classpath.InstrumentingClasspathFileTransforme
 /**
  * Transformation for agent-based instrumentation.
  */
-public class TransformationForAgent extends BaseTransformation {
+public class JarTransformForAgent extends BaseJarTransform {
 
-    private static final Logger LOGGER = Logging.getLogger(TransformationForAgent.class);
+    private static final Logger LOGGER = Logging.getLogger(JarTransformForAgent.class);
 
     private int lowestUnsupportedVersionInJar = Integer.MAX_VALUE;
     private boolean isMultiReleaseJar;
 
-    public TransformationForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, ClassTransform transform) {
+    public JarTransformForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, ClassTransform transform) {
         super(source, classpathBuilder, classpathWalker, typeRegistry, transform);
     }
 
