@@ -20,7 +20,6 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
@@ -46,14 +45,14 @@ public class BaseTransformation implements Transformation {
     private final InstrumentingTypeRegistry typeRegistry;
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
-    private final CachedClasspathTransformer.Transform transform;
+    private final ClassTransform transform;
 
     public BaseTransformation(
         File source,
         ClasspathBuilder classpathBuilder,
         ClasspathWalker classpathWalker,
         InstrumentingTypeRegistry typeRegistry,
-        CachedClasspathTransformer.Transform transform
+        ClassTransform transform
     ) {
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
@@ -97,7 +96,7 @@ public class BaseTransformation implements Transformation {
 
     /**
      * Processes a class file. The type of file is determined solely by name, so it may not be a well-formed class file.
-     * Base class implementation applies the {@link InstrumentingClasspathFileTransformer#transform} to the code.
+     * Base class implementation applies the {@link ClassTransform} to the code.
      *
      * @param builder the builder for the transformed output
      * @param classEntry the entry to process

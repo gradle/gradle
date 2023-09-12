@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -45,7 +44,7 @@ public class TransformationForAgent extends BaseTransformation {
     private int lowestUnsupportedVersionInJar = Integer.MAX_VALUE;
     private boolean isMultiReleaseJar;
 
-    public TransformationForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, CachedClasspathTransformer.Transform transform) {
+    public TransformationForAgent(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, ClassTransform transform) {
         super(source, classpathBuilder, classpathWalker, typeRegistry, transform);
     }
 

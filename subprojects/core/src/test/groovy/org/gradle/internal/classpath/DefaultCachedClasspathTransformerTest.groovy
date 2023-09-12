@@ -28,6 +28,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classpath.transforms.ClassTransform
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -399,7 +400,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def "applies client provided transform to file"() {
         given:
-        def transform = Mock(CachedClasspathTransformer.Transform)
+        def transform = Mock(ClassTransform)
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)

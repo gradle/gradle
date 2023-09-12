@@ -22,6 +22,7 @@ import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
@@ -58,7 +59,7 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
-class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
+class InstrumentingTransformer implements ClassTransform {
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
 

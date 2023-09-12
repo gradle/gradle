@@ -24,6 +24,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.types.DefaultInstrumentingTypeRegistryFactory;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
@@ -159,7 +160,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Override
-    public ClassPath transform(ClassPath classPath, StandardTransform transform, Transform additional) {
+    public ClassPath transform(ClassPath classPath, StandardTransform transform, ClassTransform additional) {
         if (classPath.isEmpty()) {
             return classPath;
         }
@@ -195,7 +196,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         );
     }
 
-    private Transform transformerFor(StandardTransform transform) {
+    private ClassTransform transformerFor(StandardTransform transform) {
         if (transform == StandardTransform.BuildLogic) {
             return new InstrumentingTransformer();
         } else {
@@ -214,7 +215,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, Transform transform) {
+    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, ClassTransform transform) {
         return new InstrumentingClasspathFileTransformer(
             fileLockManager,
             classpathWalker,

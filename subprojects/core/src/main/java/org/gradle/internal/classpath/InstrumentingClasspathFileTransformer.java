@@ -24,6 +24,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.BaseTransformation;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.MultiReleaseTransformationForLegacy;
 import org.gradle.internal.classpath.transforms.Transformation;
 import org.gradle.internal.classpath.transforms.TransformationForAgent;
@@ -56,7 +57,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathFileHasher fileHasher;
     private final Policy policy;
-    private final CachedClasspathTransformer.Transform transform;
+    private final ClassTransform transform;
 
     /**
      * Instrumentation policy. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
@@ -85,7 +86,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         ClasspathBuilder classpathBuilder,
         ClasspathFileHasher classpathFileHasher,
         Policy policy,
-        CachedClasspathTransformer.Transform transform,
+        ClassTransform transform,
         GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.fileLockManager = fileLockManager;
@@ -99,7 +100,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         this.transform = transform;
     }
 
-    private static HashCode configHashFor(Policy policy, CachedClasspathTransformer.Transform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+    private static HashCode configHashFor(Policy policy, ClassTransform transform, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);

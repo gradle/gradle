@@ -18,16 +18,17 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.ClassVisitor;
 
 import java.io.IOException;
 
-public class CompositeTransformer implements CachedClasspathTransformer.Transform {
-    private final CachedClasspathTransformer.Transform first;
-    private final CachedClasspathTransformer.Transform second;
+public class CompositeTransformer implements ClassTransform {
+    private final ClassTransform first;
+    private final ClassTransform second;
 
-    public CompositeTransformer(CachedClasspathTransformer.Transform first, CachedClasspathTransformer.Transform second) {
+    public CompositeTransformer(ClassTransform first, ClassTransform second) {
         this.first = first;
         this.second = second;
     }

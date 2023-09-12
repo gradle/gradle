@@ -23,6 +23,7 @@ import org.gradle.internal.Pair
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource
 import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Policy
+import org.gradle.internal.classpath.transforms.ClassTransform
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
@@ -300,7 +301,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
     }
 
-    private static class NoOpTransformer implements CachedClasspathTransformer.Transform {
+    private static class NoOpTransformer implements ClassTransform {
         @Override
         void applyConfigurationTo(Hasher hasher) {
         }
