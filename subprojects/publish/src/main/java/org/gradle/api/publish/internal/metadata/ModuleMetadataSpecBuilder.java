@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -38,11 +39,13 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
+import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -56,7 +59,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
@@ -74,7 +76,7 @@ public class ModuleMetadataSpecBuilder {
     private final Provider<SoftwareComponentInternal> component;
     private final Collection<? extends PublicationInternal<?>> publications;
     private final Map<SoftwareComponent, ComponentData> componentCoordinates = new HashMap<>();
-    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
+    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
     private final InvalidPublicationChecker checker;
     private final List<DependencyAttributesValidator> dependencyAttributeValidators;
 
@@ -82,7 +84,7 @@ public class ModuleMetadataSpecBuilder {
         PublicationInternal<?> publication,
         Collection<? extends PublicationInternal<?>> publications,
         InvalidPublicationChecker checker,
-        VariantDependencyResolverFactory variantDependencyResolverFactory,
+        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory,
         List<DependencyAttributesValidator> dependencyAttributeValidators
     ) {
         this.component = publication.getComponent();
@@ -90,7 +92,7 @@ public class ModuleMetadataSpecBuilder {
         this.publication = publication;
         this.publications = publications;
         this.checker = checker;
-        this.variantDependencyResolverFactory = variantDependencyResolverFactory;
+        this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
         this.dependencyAttributeValidators = dependencyAttributeValidators;
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         collectCoordinates(componentCoordinates);
@@ -206,7 +208,7 @@ public class ModuleMetadataSpecBuilder {
     private ModuleMetadataSpec.Dependency dependencyFor(
         ModuleDependency dependency,
         Set<ExcludeRule> additionalExcludes,
-        VariantDependencyResolver dependencyResolver,
+        ComponentDependencyResolver dependencyResolver,
         DependencyArtifact dependencyArtifact,
         String variant) {
         return new ModuleMetadataSpec.Dependency(
@@ -220,13 +222,64 @@ public class ModuleMetadataSpecBuilder {
         );
     }
 
+    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(
+        DependencyConstraint dependencyConstraint,
+        ComponentDependencyResolver dependencyResolver,
+        String variant
+    ) {
+        return new ModuleMetadataSpec.DependencyConstraint(
+            dependencyConstraintCoordinatesFor(dependencyConstraint, dependencyResolver),
+            dependencyAttributesFor(variant, dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getAttributes()),
+            isNotEmpty(dependencyConstraint.getReason()) ? dependencyConstraint.getReason() : null
+        );
+    }
+
     private ModuleMetadataSpec.DependencyCoordinates dependencyCoordinatesFor(
         ModuleDependency dependency,
-        VariantDependencyResolver dependencyResolver
+        ComponentDependencyResolver resolver
     ) {
-        return dependency instanceof ProjectDependency
-            ? projectDependencyCoordinatesFor((ProjectDependency) dependency, dependencyResolver)
-            : moduleDependencyCoordinatesFor(dependency, dependencyResolver);
+        if (dependency instanceof ProjectDependency) {
+            ResolvedCoordinates identifier = resolver.resolveComponentCoordinates((ProjectDependency) dependency);
+            return projectDependencyCoordinatesFor(identifier);
+        } else if (dependency instanceof ExternalDependency) {
+            ResolvedCoordinates identifier = resolver.resolveComponentCoordinates((ExternalDependency) dependency);
+            if (identifier == null) {
+                identifier = ResolvedCoordinates.create(dependency.getGroup(), dependency.getName(), null);
+            }
+            return moduleDependencyCoordinatesFor(identifier, ((ExternalDependency) dependency).getVersionConstraint());
+        } else {
+            throw new UnsupportedOperationException("Unsupported dependency type: " + dependency.getClass().getName());
+        }
+    }
+
+    private ModuleMetadataSpec.DependencyCoordinates dependencyConstraintCoordinatesFor(
+        DependencyConstraint dependencyConstraint,
+        ComponentDependencyResolver resolver
+    ) {
+        if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
+            ResolvedCoordinates identifier = resolver.resolveComponentCoordinates((DefaultProjectDependencyConstraint) dependencyConstraint);
+            return projectDependencyCoordinatesFor(identifier);
+        } else {
+            ResolvedCoordinates identifier = resolver.resolveComponentCoordinates(dependencyConstraint);
+            if (identifier == null) {
+                identifier = ResolvedCoordinates.create(dependencyConstraint.getGroup(), dependencyConstraint.getName(), null);
+            }
+            return moduleDependencyCoordinatesFor(identifier, dependencyConstraint.getVersionConstraint());
+        }
+    }
+
+    private ModuleMetadataSpec.DependencyCoordinates moduleDependencyCoordinatesFor(ResolvedCoordinates identifier, VersionConstraint dependencyConstraint) {
+        ImmutableVersionConstraint constraint = DefaultImmutableVersionConstraint.of(dependencyConstraint);
+        ModuleMetadataSpec.Version version = versionFor(constraint, identifier.getVersion());
+
+        return new ModuleMetadataSpec.DependencyCoordinates(identifier.getGroup(), identifier.getName(), version);
+    }
+
+    private ModuleMetadataSpec.DependencyCoordinates projectDependencyCoordinatesFor(ResolvedCoordinates identifier) {
+        ImmutableVersionConstraint constraint = DefaultImmutableVersionConstraint.of(identifier.getVersion());
+        ModuleMetadataSpec.Version version = versionFor(constraint, identifier.getVersion());
+
+        return new ModuleMetadataSpec.DependencyCoordinates(identifier.getGroup(), identifier.getName(), version);
     }
 
     private ModuleMetadataSpec.ArtifactSelector artifactSelectorFor(DependencyArtifact dependencyArtifact) {
@@ -298,40 +351,13 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
-    private ModuleMetadataSpec.DependencyCoordinates moduleDependencyCoordinatesFor(
-        ModuleDependency dependency,
-        VariantDependencyResolver dependencyResolver
-    ) {
-        VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveComponentCoordinates(dependency);
-        return new ModuleMetadataSpec.DependencyCoordinates(
-            coordinates.getGroup(),
-            coordinates.getName(),
-            versionFor(versionConstraintFor(dependency), coordinates.getVersion())
-        );
-    }
-
-    private ModuleMetadataSpec.DependencyCoordinates projectDependencyCoordinatesFor(
-        ProjectDependency projectDependency,
-        VariantDependencyResolver variantDependencyResolver
-    ) {
-        VariantDependencyResolver.ResolvedCoordinates identifier = variantDependencyResolver.resolveComponentCoordinates(projectDependency);
-        return new ModuleMetadataSpec.DependencyCoordinates(
-            identifier.getGroup(),
-            identifier.getName(),
-            versionFor(
-                DefaultImmutableVersionConstraint.of(identifier.getVersion()),
-                identifier.getVersion()
-            )
-        );
-    }
-
     private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant) {
         if (variant.getDependencies().isEmpty()) {
             return emptyList();
         }
         ArrayList<ModuleMetadataSpec.Dependency> dependencies = new ArrayList<>();
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
-        VariantDependencyResolver dependencyResolver = variantDependencyResolverFor(variant);
+        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createComponentResolver(variant);
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
             if (moduleDependency.getArtifacts().isEmpty()) {
                 dependencies.add(
@@ -362,7 +388,7 @@ public class ModuleMetadataSpecBuilder {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();
         }
-        VariantDependencyResolver dependencyResolver = variantDependencyResolverFor(variant);
+        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createComponentResolver(variant);
         ArrayList<ModuleMetadataSpec.DependencyConstraint> dependencyConstraints = new ArrayList<>();
         for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencyConstraints.add(
@@ -370,24 +396,6 @@ public class ModuleMetadataSpecBuilder {
             );
         }
         return dependencyConstraints;
-    }
-
-    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(
-        DependencyConstraint dependencyConstraint,
-        VariantDependencyResolver dependencyResolver,
-        String variant
-    ) {
-        VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveComponentCoordinates(dependencyConstraint);
-        return new ModuleMetadataSpec.DependencyConstraint(
-            identifier.getGroup(),
-            identifier.getName(),
-            versionFor(
-                DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()),
-                identifier.getVersion()
-            ),
-            dependencyAttributesFor(variant, dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getAttributes()),
-            isNotEmpty(dependencyConstraint.getReason()) ? dependencyConstraint.getReason() : null
-        );
     }
 
     @Nullable
@@ -460,12 +468,6 @@ public class ModuleMetadataSpecBuilder {
         );
     }
 
-    private ImmutableVersionConstraint versionConstraintFor(ModuleDependency dependency) {
-        return dependency instanceof ExternalDependency
-            ? DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint())
-            : DefaultImmutableVersionConstraint.of(nullToEmpty(dependency.getVersion()));
-    }
-
     private Set<ExcludeRule> excludedRulesFor(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes) {
         return moduleDependency.isTransitive()
             ? Sets.union(additionalExcludes, moduleDependency.getExcludeRules())
@@ -489,14 +491,6 @@ public class ModuleMetadataSpecBuilder {
             return componentData.coordinates;
         }
         return null;
-    }
-
-    private VariantDependencyResolver variantDependencyResolverFor(SoftwareComponentVariant variant) {
-        return variantDependencyResolverFactory.createResolver(variant, (group, name, declaredVersion) -> {
-            // If we did not resolve a version, do not publish the declared version in the resolved field
-            // GMM already publishes the declared version regardless of the resolved version.
-            return null;
-        });
     }
 
     private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {

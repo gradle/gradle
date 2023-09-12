@@ -226,22 +226,16 @@ public class ModuleMetadataSpec {
 
     static class DependencyConstraint {
 
-        final String group;
-        final String module;
-        final Version version;
+        final DependencyCoordinates coordinates;
         final List<Attribute> attributes;
         final String reason;
 
         public DependencyConstraint(
-            String group,
-            String module,
-            Version version,
+            DependencyCoordinates coordinates,
             List<Attribute> attributes,
             String reason
         ) {
-            this.group = group;
-            this.module = module;
-            this.version = version;
+            this.coordinates = coordinates;
             this.attributes = attributes;
             this.reason = reason;
         }

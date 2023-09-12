@@ -24,11 +24,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -52,11 +49,11 @@ import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
+import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactInternal;
+import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
-import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
-import org.gradle.api.publish.ivy.internal.artifact.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -109,13 +106,10 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         ObjectFactory objectFactory,
         IvyPublicationCoordinates publicationCoordinates,
         NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
         FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         VersionMappingStrategyInternal versionMappingStrategy,
-        PlatformSupport platformSupport,
-        DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providerFactory
     ) {
@@ -125,14 +119,8 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
 
-        IvyComponentParser ivyComponentParser = new IvyComponentParser(
-            instantiator,
-            platformSupport,
-            projectDependencyResolver,
-            ivyArtifactNotationParser,
-            documentationRegistry,
-            versionMappingStrategy,
-            collectionCallbackActionDecorator
+        IvyComponentParser ivyComponentParser = objectFactory.newInstance(
+            IvyComponentParser.class, ivyArtifactNotationParser, versionMappingStrategy
         );
 
         this.componentArtifacts = objectFactory.setProperty(IvyArtifact.class);

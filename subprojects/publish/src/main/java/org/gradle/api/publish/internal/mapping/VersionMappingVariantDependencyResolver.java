@@ -18,7 +18,7 @@ package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
 
@@ -42,84 +41,58 @@ import java.util.Set;
 
 /**
  * A {@link VariantDependencyResolver} that performs version mapping.
+ *
+ * @see org.gradle.api.publish.VersionMappingStrategy
  */
-public class VersionMappingVariantDependencyResolver implements VariantDependencyResolver {
+public class VersionMappingVariantDependencyResolver implements ComponentDependencyResolver {
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final Configuration versionMappingConfiguration;
-    private final VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer;
 
     public VersionMappingVariantDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
-        @Nullable Configuration versionMappingConfiguration,
-        VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer
+        Configuration versionMappingConfiguration
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.versionMappingConfiguration = versionMappingConfiguration;
-        this.declaredVersionTransformer = declaredVersionTransformer;
+    }
+
+    @Nullable
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(ExternalDependency dependency) {
+        return resolveModule(dependency.getGroup(), dependency.getName());
     }
 
     @Override
-    public ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
-        if (!dependency.getAttributes().isEmpty()) {
-            warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-        }
-        if (!dependency.getRequestedCapabilities().isEmpty()) {
-            warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-        }
-
-        // Traditional version mapping does not support variant-level precision.
-        // Just return the component-level coordinates.
-        return resolveComponentCoordinates(dependency);
-    }
-
-    @Override
-    public ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
-        if (!dependency.getAttributes().isEmpty()) {
-            warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-        }
-
-        // Traditional version mapping does not support variant-level precision.
-        // Just return the component-level coordinates.
-        return resolveComponentCoordinates(dependency);
-    }
-
-    @Override
-    public ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency) {
-        if (dependency instanceof ProjectDependency) {
-            return resolveProject((ProjectDependency) dependency);
-        }
-        return resolveModule(dependency.getGroup(), dependency.getName(), dependency.getVersion());
-    }
-
-    @Override
-    public ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
-        if (dependency instanceof DefaultProjectDependencyConstraint) {
-            return resolveProject(((DefaultProjectDependencyConstraint) dependency).getProjectDependency());
-        }
-        return resolveModule(dependency.getGroup(), dependency.getName(), dependency.getVersion());
-    }
-
-    public ResolvedCoordinates resolveProject(ProjectDependency dependency) {
+    public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
         return ResolvedCoordinates.from(resolved != null ? resolved : coordinates);
     }
 
-    private ResolvedCoordinates resolveModule(String group, String name, @Nullable String declaredVersion) {
+    @Nullable
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
+        return resolveModule(dependency.getGroup(), dependency.getName());
+    }
+
+    @Override
+    public ResolvedCoordinates resolveComponentCoordinates(DefaultProjectDependencyConstraint dependency) {
+        return resolveComponentCoordinates(dependency.getProjectDependency());
+    }
+
+    @Nullable
+    public ResolvedCoordinates resolveModule(String group, String name) {
         ModuleVersionIdentifier resolved = maybeResolveVersion(group, name, null);
-        return resolved != null
-            ? ResolvedCoordinates.from(resolved)
-            : ResolvedCoordinates.create(group, name, declaredVersionTransformer.transform(group, name, declaredVersion));
+        if (resolved != null) {
+            return ResolvedCoordinates.from(resolved);
+        }
+        return null;
     }
 
     @Nullable
     public ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable Path identityPath) {
-        if (versionMappingConfiguration == null) {
-            return null;
-        }
-
         ResolutionResult resolutionResult = versionMappingConfiguration
             .getIncoming()
             .getResolutionResult();

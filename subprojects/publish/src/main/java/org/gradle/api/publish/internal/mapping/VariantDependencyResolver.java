@@ -16,101 +16,37 @@
 
 package org.gradle.api.publish.internal.mapping;
 
-import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 
 import javax.annotation.Nullable;
 
 /**
- * Given declared dependencies and dependency constraints, determines the coordinates
- * that should be used to reference the dependency in published metadata. Instances
- * of this interface are scoped to a given published variant, as each variant may
- * have different rules for resolving published dependencies.
+ * Given a declared dependency to be published, determines the coordinates
+ * that should be used to reference the dependency in published metadata. Dependencies
+ * are resolved to variant-level precision, meaning that if resolved variant
+ * is published to different coordinates than the declared component, the
+ * variant coordinates are returned.
  *
- * <p>This resolver can resolve dependencies to either component or variant precision.
- * When resolving to component precision, the returned coordinates will reference the
- * root coordinates of a multi-coordinate publication. When resolving to variant precision,
- * the returned coordinates will reference the child coordinates of the variant selected by
- * the resolved dependency.</p>
+ * <p>Implementations of this class may fall-back to component-level precision when
+ * variant-level precision is not available for a given dependency.</p>
  */
 public interface VariantDependencyResolver {
 
     /**
-     * Determines the published coordinates for a dependency to variant-level precision.
+     * Determines the published coordinates for an external dependency to variant-level precision.
      *
-     * @throws RuntimeException If {@code dependency} is a project dependency and the project cannot be resolved.
+     * @return null if the external dependency could not be resolved.
      */
-    ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings);
+    @Nullable
+    ResolvedCoordinates resolveVariantCoordinates(ExternalDependency dependency, VariantWarningCollector warnings);
 
     /**
-     * Determines the published coordinates for a dependency constraint to variant-level precision.
+     * Determines the published coordinates for a project dependency to variant-level precision.
      *
-     * @throws RuntimeException If {@code dependency} is a project dependency constraint and the project cannot be resolved.
+     * @throws RuntimeException if the project cannot be resolved.
      */
-    ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings);
+    ResolvedCoordinates resolveVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings);
 
-    /**
-     * Determines the published coordinates for a dependency to component-level precision.
-     *
-     * @throws RuntimeException If {@code dependency} is a project dependency and the project cannot be resolved.
-     */
-    ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency);
-
-    /**
-     * Determines the published coordinates for a dependency constraint to component-level precision.
-     *
-     * @throws RuntimeException If {@code dependency} is a project dependency constraint and the project cannot be resolved.
-     */
-    ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency);
-
-    /**
-     * Similar to {@link ModuleVersionIdentifier}, but allows a null version.
-     */
-    interface ResolvedCoordinates {
-        String getGroup();
-        String getName();
-        @Nullable
-        String getVersion();
-
-        static ResolvedCoordinates create(String group, String name, @Nullable String version) {
-            return new ResolvedCoordinates() {
-                @Override
-                public String getGroup() {
-                    return group;
-                }
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                @Override
-                public String getVersion() {
-                    return version;
-                }
-            };
-        }
-
-        // Returns a separate implementation than `create` to avoid deconstructing the identifier.
-        static ResolvedCoordinates from(ModuleVersionIdentifier identifier) {
-            return new ResolvedCoordinates() {
-                @Override
-                public String getGroup() {
-                    return identifier.getGroup();
-                }
-
-                @Override
-                public String getName() {
-                    return identifier.getName();
-                }
-
-                @Override
-                public String getVersion() {
-                    return identifier.getVersion();
-                }
-            };
-        }
-    }
 }

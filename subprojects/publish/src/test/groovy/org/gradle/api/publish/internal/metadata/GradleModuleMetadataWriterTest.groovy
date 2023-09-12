@@ -20,8 +20,8 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Named
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
@@ -33,15 +33,17 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory
+import org.gradle.api.publish.internal.mapping.ResolvedCoordinates
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory
-import org.gradle.api.publish.internal.validation.VariantWarningCollector
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.id.UniqueId
@@ -76,7 +78,7 @@ class GradleModuleMetadataWriterTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
-    def resolverFactory = new TestVariantDependencyResolverFactory()
+    def resolverFactory = new TestDependencyCoordinateResolverFactory()
 
     private writeTo(Writer writer, PublicationInternal publication, List<PublicationInternal> publications) {
         InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), ':task')
@@ -254,10 +256,10 @@ class GradleModuleMetadataWriterTest extends Specification {
         def component = Stub(TestComponent)
         def publication = publication(component, id)
 
-        def d1 = Stub(ModuleDependency)
+        def d1 = Stub(ExternalDependency)
         d1.group >> "g1"
         d1.name >> "m1"
-        d1.version >> "v1"
+        d1.versionConstraint >> requires("v1")
         d1.transitive >> true
         d1.attributes >> ImmutableAttributes.EMPTY
 
@@ -306,10 +308,10 @@ class GradleModuleMetadataWriterTest extends Specification {
         d7.transitive >> true
         d7.attributes >> attributes(foo: 'foo', bar: 'baz')
 
-        def d8 = Stub(ModuleDependency)
+        def d8 = Stub(ExternalDependency)
         d8.group >> "g1"
         d8.name >> "m1"
-        d8.version >> "v1"
+        d8.versionConstraint >> requires("v1")
         d8.transitive >> true
         d8.attributes >> ImmutableAttributes.EMPTY
         d8.requestedCapabilities >> [new DefaultImmutableCapability("org", "test", "1.0")]
@@ -1039,7 +1041,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         def publication = publication(component, id, mappingStrategy)
         resolverFactory.resolveToVersion('v99')
 
-        def d1 = Stub(ModuleDependency)
+        def d1 = Stub(ExternalDependency)
         d1.group >> "g1"
         d1.name >> "m1"
         d1.version >> "v1"
@@ -1285,53 +1287,54 @@ class GradleModuleMetadataWriterTest extends Specification {
         String uri
     }
 
-    class TestVariantDependencyResolver implements VariantDependencyResolver {
+    class TestVariantDependencyResolver implements ComponentDependencyResolver {
 
         String resolvedVersion
-        VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer
 
-        TestVariantDependencyResolver(
-            @Nullable String resolvedVersion,
-            VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer
-        ) {
+        TestVariantDependencyResolver(@Nullable String resolvedVersion) {
             this.resolvedVersion = resolvedVersion
-            this.declaredVersionTransformer = declaredVersionTransformer
         }
 
         @Override
-        ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
+        ResolvedCoordinates resolveComponentCoordinates(ExternalDependency dependency) {
+            if (resolvedVersion == null) {
+                return null
+            }
+            return ResolvedCoordinates.create(dependency.getGroup(), dependency.getName(), resolvedVersion)
+        }
+
+        @Override
+        ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
             throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency) {
-            return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
         }
 
         @Override
         ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
-            return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
+            if (resolvedVersion == null) {
+                return null
+            }
+            return ResolvedCoordinates.create(dependency.getGroup(), dependency.getName(), resolvedVersion)
         }
 
-        private ResolvedCoordinates resolve(String group, String name, String version) {
-            return resolvedVersion == null
-                ? ResolvedCoordinates.create(group, name, declaredVersionTransformer.transform(group, name, version))
-                : ResolvedCoordinates.create(group, name, resolvedVersion)
+        @Override
+        ResolvedCoordinates resolveComponentCoordinates(DefaultProjectDependencyConstraint dependency) {
+            throw new UnsupportedOperationException()
         }
+
     }
 
-    class TestVariantDependencyResolverFactory implements VariantDependencyResolverFactory {
+    class TestDependencyCoordinateResolverFactory implements DependencyCoordinateResolverFactory {
 
         String resolvedVersion
 
         @Override
-        VariantDependencyResolver createResolver(SoftwareComponentVariant variant, DeclaredVersionTransformer declaredVersionTransformer) {
-            return new TestVariantDependencyResolver(resolvedVersion, declaredVersionTransformer)
+        VariantDependencyResolver createVariantResolver(SoftwareComponentVariant variant) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ComponentDependencyResolver createComponentResolver(SoftwareComponentVariant variant) {
+            return new TestVariantDependencyResolver(resolvedVersion)
         }
 
         void resolveToVersion(String resolvedVersion) {

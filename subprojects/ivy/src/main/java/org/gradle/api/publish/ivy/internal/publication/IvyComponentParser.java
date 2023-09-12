@@ -18,9 +18,11 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -30,14 +32,15 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.IvyPublishingAwareVariant;
-import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
+import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
@@ -53,6 +56,8 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -85,12 +90,13 @@ public class IvyComponentParser {
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
     private final DocumentationRegistry documentationRegistry;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
+    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
+    @Inject
     public IvyComponentParser(
         Instantiator instantiator,
+        ObjectFactory objectFactory,
         PlatformSupport platformSupport,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
         DocumentationRegistry documentationRegistry,
         VersionMappingStrategyInternal versionMappingStrategy,
@@ -101,7 +107,7 @@ public class IvyComponentParser {
         this.ivyArtifactParser = ivyArtifactParser;
         this.documentationRegistry = documentationRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(projectDependencyResolver, versionMappingStrategy);
+        this.dependencyCoordinateResolverFactory = objectFactory.newInstance(DefaultDependencyCoordinateResolverFactory.class, versionMappingStrategy);
     }
 
     public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
@@ -182,13 +188,7 @@ public class IvyComponentParser {
         for (SoftwareComponentVariant variant : component.getUsages()) {
             VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
 
-            VariantDependencyResolver dependencyResolver = variantDependencyResolverFactory.createResolver(variant, (organization, module, declaredVersion) -> {
-                if (declaredVersion == null) {
-                    // Version mapping is disabled or did not discover coordinates.
-                    warnings.addUnsupported(String.format("%s:%s declared without version", organization, module));
-                }
-                return declaredVersion;
-            });
+            VariantDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createVariantResolver(variant);
 
             VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(dependencyResolver, warnings);
 
@@ -283,7 +283,7 @@ public class IvyComponentParser {
         }
 
         private IvyDependency convertDependency(ModuleDependency dependency, String confMapping) {
-            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            ResolvedCoordinates coordinates = resolveDependency(dependency);
 
             String revConstraint = null;
             if (!(dependency instanceof ProjectDependency) &&
@@ -303,6 +303,37 @@ public class IvyComponentParser {
                 dependency.getArtifacts(),
                 dependency.getExcludeRules()
             );
+        }
+
+        private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
+
+            if (!dependency.getAttributes().isEmpty()) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            }
+            if (!dependency.getRequestedCapabilities().isEmpty()) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            }
+
+            if (dependency instanceof ProjectDependency) {
+                return dependencyResolver.resolveVariantCoordinates((ProjectDependency) dependency, warnings);
+            } else if (dependency instanceof ExternalDependency) {
+                ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+                if (coordinates != null) {
+                    return coordinates;
+                }
+
+                return convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+            } else {
+                throw new GradleException("Unsupported dependency type: " + dependency.getClass().getName());
+            }
+        }
+
+        private ResolvedCoordinates convertDeclaredCoordinates(String organization, String module, @Nullable String version) {
+            if (version == null) {
+                warnings.addUnsupported(String.format("%s:%s declared without version", organization, module));
+            }
+
+            return ResolvedCoordinates.create(organization, module, version);
         }
 
         private static boolean isDynamicVersion(String version) {
