@@ -42,40 +42,40 @@ public interface VariantDependencyResolver {
      *
      * @throws RuntimeException If {@code dependency} is a project dependency and the project cannot be resolved.
      */
-    Coordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings);
+    ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings);
 
     /**
      * Determines the published coordinates for a dependency constraint to variant-level precision.
      *
      * @throws RuntimeException If {@code dependency} is a project dependency constraint and the project cannot be resolved.
      */
-    Coordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings);
+    ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings);
 
     /**
      * Determines the published coordinates for a dependency to component-level precision.
      *
      * @throws RuntimeException If {@code dependency} is a project dependency and the project cannot be resolved.
      */
-    Coordinates resolveComponentCoordinates(ModuleDependency dependency);
+    ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency);
 
     /**
      * Determines the published coordinates for a dependency constraint to component-level precision.
      *
      * @throws RuntimeException If {@code dependency} is a project dependency constraint and the project cannot be resolved.
      */
-    Coordinates resolveComponentCoordinates(DependencyConstraint dependency);
+    ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency);
 
     /**
      * Similar to {@link ModuleVersionIdentifier}, but allows a null version.
      */
-    interface Coordinates {
+    interface ResolvedCoordinates {
         String getGroup();
         String getName();
         @Nullable
         String getVersion();
 
-        static Coordinates create(String group, String name, @Nullable String version) {
-            return new Coordinates() {
+        static ResolvedCoordinates create(String group, String name, @Nullable String version) {
+            return new ResolvedCoordinates() {
                 @Override
                 public String getGroup() {
                     return group;
@@ -93,8 +93,9 @@ public interface VariantDependencyResolver {
             };
         }
 
-        static Coordinates from(ModuleVersionIdentifier identifier) {
-            return new Coordinates() {
+        // Returns a separate implementation than `create` to avoid deconstructing the identifier.
+        static ResolvedCoordinates from(ModuleVersionIdentifier identifier) {
+            return new ResolvedCoordinates() {
                 @Override
                 public String getGroup() {
                     return identifier.getGroup();

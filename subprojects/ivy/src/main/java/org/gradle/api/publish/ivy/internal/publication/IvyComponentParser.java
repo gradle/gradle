@@ -283,7 +283,7 @@ public class IvyComponentParser {
         }
 
         private IvyDependency convertDependency(ModuleDependency dependency, String confMapping) {
-            VariantDependencyResolver.Coordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
 
             String revConstraint = null;
             if (!(dependency instanceof ProjectDependency) &&

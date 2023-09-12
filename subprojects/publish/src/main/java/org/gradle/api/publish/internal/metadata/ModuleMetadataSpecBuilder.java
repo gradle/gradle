@@ -61,6 +61,12 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
+/**
+ * Builds a {@link ModuleMetadataSpec} from a {@link PublicationInternal} and its {@link SoftwareComponent}.
+ *
+ * <p>This builder extracts the variants, dependencies, artifacts, etc from the component to build
+ * an independent representation of a GMM file that can be published without additional processing.</p>
+ */
 public class ModuleMetadataSpecBuilder {
 
     private final PublicationInternal<?> publication;
@@ -296,7 +302,7 @@ public class ModuleMetadataSpecBuilder {
         ModuleDependency dependency,
         VariantDependencyResolver dependencyResolver
     ) {
-        VariantDependencyResolver.Coordinates coordinates = dependencyResolver.resolveComponentCoordinates(dependency);
+        VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveComponentCoordinates(dependency);
         return new ModuleMetadataSpec.DependencyCoordinates(
             coordinates.getGroup(),
             coordinates.getName(),
@@ -308,7 +314,7 @@ public class ModuleMetadataSpecBuilder {
         ProjectDependency projectDependency,
         VariantDependencyResolver variantDependencyResolver
     ) {
-        VariantDependencyResolver.Coordinates identifier = variantDependencyResolver.resolveComponentCoordinates(projectDependency);
+        VariantDependencyResolver.ResolvedCoordinates identifier = variantDependencyResolver.resolveComponentCoordinates(projectDependency);
         return new ModuleMetadataSpec.DependencyCoordinates(
             identifier.getGroup(),
             identifier.getName(),
@@ -371,7 +377,7 @@ public class ModuleMetadataSpecBuilder {
         VariantDependencyResolver dependencyResolver,
         String variant
     ) {
-        VariantDependencyResolver.Coordinates identifier = dependencyResolver.resolveComponentCoordinates(dependencyConstraint);
+        VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveComponentCoordinates(dependencyConstraint);
         return new ModuleMetadataSpec.DependencyConstraint(
             identifier.getGroup(),
             identifier.getName(),

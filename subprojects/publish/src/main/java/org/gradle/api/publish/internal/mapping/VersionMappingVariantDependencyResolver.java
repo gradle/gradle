@@ -60,7 +60,7 @@ public class VersionMappingVariantDependencyResolver implements VariantDependenc
     }
 
     @Override
-    public Coordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
+    public ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
         if (!dependency.getAttributes().isEmpty()) {
             warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
         }
@@ -74,7 +74,7 @@ public class VersionMappingVariantDependencyResolver implements VariantDependenc
     }
 
     @Override
-    public Coordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
+    public ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
         if (!dependency.getAttributes().isEmpty()) {
             warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
         }
@@ -85,7 +85,7 @@ public class VersionMappingVariantDependencyResolver implements VariantDependenc
     }
 
     @Override
-    public Coordinates resolveComponentCoordinates(ModuleDependency dependency) {
+    public ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency) {
         if (dependency instanceof ProjectDependency) {
             return resolveProject((ProjectDependency) dependency);
         }
@@ -93,25 +93,25 @@ public class VersionMappingVariantDependencyResolver implements VariantDependenc
     }
 
     @Override
-    public Coordinates resolveComponentCoordinates(DependencyConstraint dependency) {
+    public ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
         if (dependency instanceof DefaultProjectDependencyConstraint) {
             return resolveProject(((DefaultProjectDependencyConstraint) dependency).getProjectDependency());
         }
         return resolveModule(dependency.getGroup(), dependency.getName(), dependency.getVersion());
     }
 
-    private Coordinates resolveProject(ProjectDependency dependency) {
+    public ResolvedCoordinates resolveProject(ProjectDependency dependency) {
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
-        return Coordinates.from(resolved != null ? resolved : coordinates);
+        return ResolvedCoordinates.from(resolved != null ? resolved : coordinates);
     }
 
-    private Coordinates resolveModule(String group, String name, @Nullable String declaredVersion) {
+    private ResolvedCoordinates resolveModule(String group, String name, @Nullable String declaredVersion) {
         ModuleVersionIdentifier resolved = maybeResolveVersion(group, name, null);
         return resolved != null
-            ? Coordinates.from(resolved)
-            : Coordinates.create(group, name, declaredVersionTransformer.transform(group, name, declaredVersion));
+            ? ResolvedCoordinates.from(resolved)
+            : ResolvedCoordinates.create(group, name, declaredVersionTransformer.transform(group, name, declaredVersion));
     }
 
     @Nullable

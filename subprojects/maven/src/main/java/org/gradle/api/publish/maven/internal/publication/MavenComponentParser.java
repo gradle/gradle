@@ -117,7 +117,7 @@ public class MavenComponentParser {
         // TODO Artifact names should be determined by the source variant. We shouldn't
         //      blindly "pass-through" the artifact file name.
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
-        return getSortedVariants(component)
+        return createSortedVariantsStream(component)
             .flatMap(variant -> variant.getArtifacts().stream())
             .filter(artifact -> {
                 ArtifactKey key = new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
@@ -143,7 +143,7 @@ public class MavenComponentParser {
         List<MavenDependency> constraints = new ArrayList<>();
         List<MavenDependency> platforms = new ArrayList<>();
 
-        getSortedVariants(component).forEach(variant -> {
+        createSortedVariantsStream(component).forEach(variant -> {
             VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
             MavenPublishingAwareVariant.ScopeMapping scopeMapping = MavenPublishingAwareVariant.scopeForVariant(variant);
             String scope = scopeMapping.getScope();
@@ -235,7 +235,7 @@ public class MavenComponentParser {
         return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
     }
 
-    private static Stream<? extends SoftwareComponentVariant> getSortedVariants(SoftwareComponentInternal component) {
+    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
         return component.getUsages().stream()
             .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
     }
@@ -270,7 +270,7 @@ public class MavenComponentParser {
 
         private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
-            VariantDependencyResolver.Coordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
 
             if (dependency.getArtifacts().isEmpty()) {
                 collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
@@ -278,12 +278,12 @@ public class MavenComponentParser {
             }
 
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
-                VariantDependencyResolver.Coordinates artifactCoordinates = coordinates;
+                VariantDependencyResolver.ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(coordinates.getName())) {
                     // TODO: We should not allow the artifact name to change the coordinates.
                     //  Artifacts with name different from the coordinate name is not supported in Maven.
                     //  This behavior should be deprecated.
-                    artifactCoordinates = VariantDependencyResolver.Coordinates.create(
+                    artifactCoordinates = VariantDependencyResolver.ResolvedCoordinates.create(
                         coordinates.getGroup(),
                         artifact.getName(),
                         coordinates.getVersion()
@@ -295,7 +295,7 @@ public class MavenComponentParser {
         }
 
         private void convertDependencyConstraint(DependencyConstraint dependency, Consumer<MavenDependency> collector) {
-            VariantDependencyResolver.Coordinates identifier = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
             if (identifier.getVersion() == null) {
                 // Constraints with no version have no meaning in Maven.
                 return;
@@ -305,12 +305,12 @@ public class MavenComponentParser {
         }
 
         private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
-            VariantDependencyResolver.Coordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
             collector.accept(newDependency(coordinates, "pom", null, "import", Collections.emptySet(), false));
         }
 
         private static MavenDependency newDependency(
-            VariantDependencyResolver.Coordinates coordinates,
+            VariantDependencyResolver.ResolvedCoordinates coordinates,
             @Nullable String type,
             @Nullable String classifier,
             @Nullable String scope,

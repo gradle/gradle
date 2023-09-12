@@ -1299,29 +1299,29 @@ class GradleModuleMetadataWriterTest extends Specification {
         }
 
         @Override
-        Coordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
+        ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        Coordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
+        ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        Coordinates resolveComponentCoordinates(ModuleDependency dependency) {
+        ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency) {
             return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
         }
 
         @Override
-        Coordinates resolveComponentCoordinates(DependencyConstraint dependency) {
+        ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
             return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
         }
 
-        private Coordinates resolve(String group, String name, String version) {
+        private ResolvedCoordinates resolve(String group, String name, String version) {
             return resolvedVersion == null
-                ? Coordinates.create(group, name, declaredVersionTransformer.transform(group, name, version))
-                : Coordinates.create(group, name, resolvedVersion)
+                ? ResolvedCoordinates.create(group, name, declaredVersionTransformer.transform(group, name, version))
+                : ResolvedCoordinates.create(group, name, resolvedVersion)
         }
     }
 
