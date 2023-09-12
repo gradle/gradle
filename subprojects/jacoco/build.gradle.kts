@@ -14,12 +14,13 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
-    implementation(project(":plugins")) {
-        because("For JvmTestSuitePlugin")
-    }
+    implementation(project(":plugins"))
+    implementation(project(":plugins-java"))
     implementation(project(":platform-jvm"))
     implementation(project(":reporting"))
     implementation(project(":file-collections"))
+    implementation(project(":plugins-jvm-test-suite"))
+    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
