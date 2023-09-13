@@ -76,7 +76,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
-    def "clean #tasks with clean transforms cache"() { //todo here too
+    def "clean #tasks with clean transforms cache"() {
         given:
         def testProject = androidTestProject
         boolean isLargeProject = androidTestProject == LARGE_ANDROID_BUILD
