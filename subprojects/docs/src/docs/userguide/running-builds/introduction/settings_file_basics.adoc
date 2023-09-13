@@ -15,25 +15,28 @@
 [[settings_file_basics]]
 = Settings File Basics
 
-The settings file is the entry point of every Gradle project.
+The settings file is the *entry point* of every Gradle project.
+
+image::gradle-basic-3.png[]
 
 The settings file has two main purposes:
 
 1. Register subprojects which will be part of the build process.
 2. Add libraries to your build.
 
-Gradle supports both single and multi-project builds.
+Gradle supports single and multi-project builds.
 
-For single project builds, the settings file is optional.
-
-For multi project builds, the settings file is mandatory and depicts all subprojects.
+- For single project builds, the settings file is optional.
+- For multi project builds, the settings file is mandatory and declares all subprojects.
 
 [[sec:settings_script]]
-== Settings scripts
+== Settings script
 
 The settings script is either a `settings.gradle` file when written in Groovy or a `settings.gradle.kts` file when written in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
+
+The settings file is typically found in the root directory of the project.
 
 Let's take a look at an example and break it down:
 
@@ -52,7 +55,7 @@ pluginManagement {                                          // <1>
 }
 
 plugins {                                                   // <2>
-    id("org.gradle.toolchains.fake") version "0.6.0"
+    id("org.gradle.toolchains.plugin") version "0.6.0"
 }
 
 rootProject.name = "root-project"                           // <3>
@@ -68,11 +71,11 @@ include("sub-project-a")                                    // <5>
 include("sub-project-b")
 include("sub-project-c")
 ----
-<1> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-settings-script-api/plugin-management.html[`pluginManagement()`] method from `KotlinSettingsScript` to locate plugins.
-<2> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/plugins.html[`plugins()`] method from `KotlinSettingsScript` to apply plugins.
-<3> There is always a root project included in a build.
-<4> Add components to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.dependencyResolutionManagement()`] method.
-<5> Add projects to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.include()`] method.
+<1> Locate plugins.
+<2> Apply shared plugins.
+<3> Name the root project.
+<4> Manage dependencies.
+<5> Add subprojects to the build.
 =====
 
 [.multi-language-sample]
@@ -89,7 +92,7 @@ pluginManagement {                                          // <1>
 }
 
 plugins {                                                   // <2>
-    id 'org.gradle.toolchains.fake' version '0.6.0'
+    id 'org.gradle.toolchains.plugin' version '0.6.0'
 }
 
 rootProject.name = 'root-project'                           // <3>
@@ -105,40 +108,15 @@ include('sub-project-a')                                    // <5>
 include('sub-project-b')
 include('sub-project-c')
 ----
-<1> Uses the link:{javadocPath}/org/gradle/api/initialization/Settings.html#pluginManagement-org.gradle.api.Action-[`pluginManagement`] block to locate plugins.
-<2> Uses the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:plugins[`plugins()`] method to apply plugins.
-<3> There is always a root project included in a build.
-<4> Add components to the build using the link:{javadocPath}/org/gradle/api/initialization/Settings.html#dependencyResolutionManagement-org.gradle.api.Action-[`dependencyResolutionManagement`] block.
-<5> Add projects to the build using the link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[`include()`] method.
+<1> Locate plugins.
+<2> Apply shared plugins.
+<3> Name the root project.
+<4> Manage dependencies and components.
+<5> Add subprojects to the build.
 =====
 ====
 
-=== Define the project name
-
-The settings file defines your project name:
-
-[source]
-----
-rootProject.name = "root-project" // settings.rootProject.name = "root-project"
-----
-
-There is only one root per project.
-
-=== Define dependency locations
-
-The settings file can optionally define the locations of components your project relies on such as binary repositories like Maven Central and/or other Gradle builds:
-
-[source]
-----
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
-    includeBuild("../other-project")
-}
-----
-
-=== Define shared plugins
+=== 1. Locate plugins
 
 The settings file can optionally define the plugins your project uses including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
 
@@ -153,18 +131,7 @@ pluginManagement {
 }
 ----
 
-=== Define project structure
-
-The settings file defines the structure of the project by including the subprojects:
-
-[source]
-----
-include("app")
-include("business-logic")
-include("data-model")
-----
-
-=== Define shared plugins
+=== 2. Define shared plugins
 
 The settings file can optionally define the plugins which are used as shared configuration in the build:
 
@@ -173,4 +140,40 @@ The settings file can optionally define the plugins which are used as shared con
 plugins {
     id("org.gradle.toolchains.fake") version "0.6.0"
 }
+----
+
+=== 3. Define the project name
+
+The settings file defines your project name:
+
+[source]
+----
+rootProject.name = "root-project" // settings.rootProject.name = "root-project"
+----
+
+There is only one root per project.
+
+=== 4. Manage dependencies / components
+
+The settings file can optionally define the locations of components your project relies on such as binary repositories like Maven Central and/or other Gradle builds:
+
+[source]
+----
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    includeBuild("../other-project")
+}
+----
+
+=== 5. Define subprojects
+
+The settings file defines the structure of the project by including the subprojects:
+
+[source]
+----
+include("app")
+include("business-logic")
+include("data-model")
 ----

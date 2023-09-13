@@ -17,38 +17,39 @@
 
 Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
 
-[[gs:installation]]
-== Gradle Installation
-If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
-This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the build.
-You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
+There are two options to get started using Gradle:
 
-Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately when only working within that IDE.
-
-If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+1. Read the <<gradle_intro,introduction chapters>> for a theoretical approach.
+2. Follow the <<getting_started,getting started tutorial>> for a hands-on approach.
 
 [[gradle_intro]]
-== Introduction to Gradle
+== 1. Introduction to Gradle
 
-The introduction section will give you an overview of Gradle:
+The introduction section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on Gradle features, apply plugins, add dependencies to your project and more.
 
 [sidebar]
-_Gradle level_: **Beginner** +
+_Training level_: **Beginner** +
 _Reading time_: **25 minutes**
 
-<<gradle_basics.adoc#gradle,Part 1.>> Gradle Basics +
-<<command_line_interface.adoc#command_line_interface,Part 2.>> Gradle's Command Line Interface +
-<<gradle_wrapper.adoc#gradle_wrapper,Part 3.>> Gradle's Wrapper +
+The introduction covers:
+
+<<gradle_basics.adoc#gradle,Part 1.>> Gradle Overview +
+<<gradle_wrapper.adoc#gradle_wrapper,Part 2.>> Gradle's Wrapper +
+<<command_line_interface.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
 <<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
 <<task_basics.adoc#task_basics,Part 6.>> Tasks +
 <<plugin_basics.adoc#plugin_basics,Part 7.>> Plugins +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 8.>> Multi-Project Builds +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 8.>> Gradle Optimizations +
+<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 9.>> Multi-Project Builds +
 
 [[getting_started]]
-== Getting Started Tutorial
+== 2. Getting Started Tutorial
 
-The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App. No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App.
+No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
 
 [sidebar]
 _Training level_: **Beginner** +

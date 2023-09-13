@@ -15,7 +15,31 @@
 [[gradle]]
 = Gradle Basics
 
-Many developers will interact with Gradle for the first time using an existing project.
+Gradle *builds, test, and deploys projects from* information contained in *build scripts*.
+
+image::gradle-basic-1.png[]
+
+== Gradle core principles
+
+=== Projects
+
+A Gradle project includes *one root project* and *any number of subprojects* detailed in the settings file.
+
+=== Build Scripts
+
+*Each project contains a build script* which details build steps to Gradle using the Groovy or Kotlin DSL.
+
+=== Tasks
+
+*Each project contains one or more tasks* defined inside a build script or a plugin which detail actions to Gradle.
+
+=== Plugins
+
+Plugins are used to *extend Gradle's capability* and are essentially a *bundle of tasks*.
+
+== Gradle project structure
+
+Many developers will interact with Gradle for the first time through an existing project.
 
 The presence of the `gradlew` and `gradle.bat` file in the root directory of a project is a clear indicator that Gradle is used.
 
@@ -45,30 +69,6 @@ project
 <4> Gradle settings file to define a root project name and subprojects
 <5> Gradle build scripts of the two subprojects - `subproject-a` and `subproject-b`
 <6> Source code and/or additional files for the projects
-
-== Basic Gradle concepts
-
-Gradle builds Android, Groovy, Scala, Kotlin, or Java (JVM) projects from information contained in build scripts and a settings file.
-
-image::gradle-basic-concept.png[]
-
-=== Projects
-
-A Gradle project includes *one root project* and *any number of subprojects* detailed in the settings file, `settings.gradle` or `settings.gradle.kts`.
-
-=== Build Scripts
-
-*Each (sub)project contains a build script*.
-A build script is either a `build.gradle` or `build.gradle.kts` file and details build steps to Gradle using the Groovy or Kotlin DSL respectively.
-
-=== Tasks
-
-*Each (sub)project contains one or more tasks.*
-Tasks are either defined inside a build script or a plugin and detail actions for Gradle to take.
-
-=== Plugins
-
-Plugins are used to extend Gradle's capability and are essentially a *bundle of useful tasks*.
 
 == Invoking Gradle
 

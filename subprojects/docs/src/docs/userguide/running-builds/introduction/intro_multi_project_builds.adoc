@@ -13,7 +13,11 @@
 // limitations under the License.
 
 [[intro_multi_project_builds]]
-= Multi-Project Builds
+= Multi-Project Builds Basics
+
+Gradle supports multi project build.
+
+image::gradle-basic-9.png[]
 
 While some small projects and monolithic applications may contain a single build file and source tree, it is often more common for a project to have been split into smaller, interdependent modules.
 The word "interdependent" is vital in this case as you typically want to link the many modules together through a single build.

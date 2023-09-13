@@ -17,12 +17,21 @@
 
 The work that Gradle can do on a project is defined by one or more _tasks_.
 
+image::gradle-basic-5.png[]
+
 A task represents some atomic piece of work which a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
+For example:
+
+[source]
+----
+$ ./gradlew build
+----
 
 == Available tasks
+All available tasks in your project come from Gradle, plugins, and build scrips.
 
 You can list all the available tasks in the project by running the following command in the terminal:
 
@@ -108,7 +117,7 @@ tasks.register("copyTask",Copy) {
 }
 ----
 
-This task, if added to `build.gradle.kts` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
+This task is executed using the command `./gradlew :app:copyTask`.
 
 Popular built-in tasks include:
 
@@ -120,9 +129,10 @@ Popular built-in tasks include:
 Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
 
 == Dependencies between tasks
+
 Many times, a task requires another task to run first.
 
-If task B uses the output of task A, then task A must complete before task B begins.
+If `task B` uses the output of `task A`, then `task A` must complete before `task B` begins.
 
 - A task may declare its dependencies explicitly.
 - A task may depend on other tasks implicitly.

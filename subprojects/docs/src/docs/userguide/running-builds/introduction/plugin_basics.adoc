@@ -15,11 +15,13 @@
 [[plugin_basics]]
 = Plugin Basics
 
-Plugins are used to extend build capability and customize Gradle.
+Plugins are used to *extend build capability and customize Gradle*.
+
+image::gradle-basic-6.png[]
 
 In fact, the majority of features, like the ability to compile Java code, are added by _plugins_.
 
-Using plugins is the **primary mechanism for organizing build logic**.
+Using plugins is also the **primary mechanism for organizing build logic**.
 
 Plugin are essentially a set of all useful tasks, such as compiling tasks, setting domain objects, setting up source files, etc.
 
@@ -27,7 +29,7 @@ Applying a plugin to a project allows the plugin to extend the project's and Gra
 
 == Plugin distribution
 
-Plugins are available three ways:
+Plugins are distributed three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
@@ -43,7 +45,7 @@ Binary plugins can reside within a build script, within the project hierarchy, o
 Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
 They are typically used within a build, although they can be externalized and accessed from a remote location.
 
-A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
+A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it is transformed into a binary plugin that can be easily tested and shared between multiple projects or organizations.
 
 [[sec:using_plugins]]
 == Using plugins
@@ -59,7 +61,7 @@ _Applying_ a plugin means executing the plugin on the project.
 [[sec:binary_plugins]]
 == Binary plugins
 
-You apply plugins by their _plugin id_, which is a globally unique identifier, or name, for plugins.
+You apply plugins in the build script using their _plugin id_, which is a globally unique identifier, or name:
 
 [source]
 ----
@@ -74,6 +76,8 @@ Core Gradle plugins are special in that they provide short names, such as `java`
 
 All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`).
 
+The version should also be called out:
+
 [source]
 ----
 plugins {
@@ -87,9 +91,8 @@ Gradle has a vibrant community of plugin developers who contribute plugins for a
 
 The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
 
-Let's say you want to automatially generate unit tests.
-You can search `generate unit test` in the Gradle Plugin Portal.
-There you will find the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply:
+If you wanted to automatically generate unit tests, you could search `generate unit test` in the Gradle Plugin Portal.
+There you will find many plugins, including the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply as follows:
 
 [source]
 ----
@@ -97,3 +100,24 @@ plugins {
     id("org.utbot.gradle.plugin") version "1.0.0-alpha"
 }
 ----
+
+== Plugin tasks
+Since plugins add tasks to your project when applied, you can view the `utbot` tasks by running:
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'temp'
+------------------------------------------------------------
+....
+Utbot tasks
+-----------
+generateTestsAndSarifReport - Generate a SARIF report
+....
+----
+
+As we can see, the `generateTestsAndSarifReport` has been added to the project.

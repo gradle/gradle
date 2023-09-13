@@ -15,6 +15,14 @@
 [[installation]]
 = Installing Gradle
 
+[[gs:installation]]
+== Gradle Installation
+If all you want to do is run an existing Gradle build, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper,Gradle Wrapper>>.
+This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the build.
+You just need to make sure your system <<installation#sec:prerequisites,satisfies Gradle's prerequisites>>.
+
+Android Studio comes with a working installation of Gradle, so you don't need to install Gradle separately when only working within that IDE.
+
 You can install Gradle Build Tool on Linux, macOS, or Windows.
 
 The installation can be done manually or using a package manager like https://sdkman.io/[SDKMAN!] or https://brew.sh/[Homebrew].

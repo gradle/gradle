@@ -13,20 +13,24 @@
 // limitations under the License.
 
 [[gradle_wrapper]]
-= Gradle Wrapper
+= Gradle Wrapper Basics
 
-The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
+The **recommended way to execute any Gradle build** is with the Gradle Wrapper.
+
+image::gradle-basic-2.png[]
 
 The Wrapper is a script that invokes a declared version of Gradle, downloading it beforehand if necessary.
 As a result, developers can get up and running with a Gradle project quickly.
 
 image::wrapper-workflow.png[]
 
-In a nutshell, you gain the following benefits:
+The Wrapper is available as a `gradlew` or `gradle.bat` file.
 
-- Standardizes a project on a given Gradle version for more reliable and robust builds.
-- Provisioning the Gradle version for different users is done with a simple Wrapper definition change.
-- Provisioning the Gradle version for different execution environments (e.g., IDEs or Continuous Integration servers) is done with a simple Wrapper definition change.
+The Wrapper provides the following benefits:
+
+- Standardizes a project on a given Gradle version.
+- Provisions the same Gradle version for different users.
+- Provisions the Gradle version for different execution environments (IDEs, CI servers...).
 
 [[sec:using_wrapper]]
 == Using the Gradle Wrapper
@@ -41,14 +45,17 @@ To run the Wrapper on a Linux or OSX machine:
 $ ./gradlew build
 ----
 
-The following console output demonstrates the use of the Wrapper on a Windows machine for a Java-based project:
+To run the Wrapper on a Windows machine:
 
 ----
 $ gradlew.bat build
-include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
-If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
+The following console output demonstrates the use of the Wrapper on a Windows machine for a Java-based project:
+
+----
+include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
+----
 
 [[sec:adding_wrapper]]
 [[sec:upgrading_wrapper]]

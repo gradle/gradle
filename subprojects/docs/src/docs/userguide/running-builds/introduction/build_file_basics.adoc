@@ -15,9 +15,12 @@
 [[build_file_basics]]
 = Build File Basics
 
-Every Gradle build is made up of one or more _projects_; a root project and subprojects.
+For every project, there is a build script that details build configuration, tasks, and plugins.
 
-For every project or subproject, there is a build script.
+image::gradle-basic-4.png[]
+
+Every Gradle build is made up of one or more _projects_; a root project and subprojects.
+Each one has at least one build script.
 
 For single project builds, the build file contains dependencies and repository information for the build and the project.
 
@@ -25,8 +28,8 @@ For multi-project build, each subproject has its own build file, and each subpro
 
 In the build file, there are two types of dependencies that can be added:
 
-1. The libraries and/or plugins on which Gradle and our build script is dependent.
-2. The libraries on which the source code and the project is dependent to be built.
+1. The libraries and/or plugins on which Gradle and the build script is dependent.
+2. The libraries on which the project sources are dependent to be built.
 
 [[sec:build_script]]
 == Build scripts
@@ -45,36 +48,33 @@ Let's take a look at an example for a simple Java app and break it down:
 ----
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"                      // <1>
-    application                                                         // <2>
+    application
 }
 
 repositories {
-    mavenCentral()                                                      // <3>
+    mavenCentral()                                                      // <2>
 }
 
 dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")       // <4>
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")  // <5>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")       // <3>
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("com.google.guava:guava:32.1.1-jre")                 // <6>
+    implementation("com.google.guava:guava:32.1.1-jre")
 }
 
 application {
-    mainClass.set("main")                                               // <7>
+    mainClass.set("main")                                               // <4>
 }
 
 tasks.named<Test>("test") {
-    useJUnitPlatform()                                                  // <8>
+    useJUnitPlatform()                                                  // <5>
 }
 ----
-<1> Apply the `org.jetbrains.kotlin.jvm` plugin to add support for Kotlin.
-<2> Apply the application plugin to add support for building a CLI application in Java.
-<3> Use Maven Central for resolving dependencies.
-<4> Use the Kotlin JUnit 5 integration.
-<5> Use the JUnit 5 integration.
-<6> This dependency from Google is used by the application.
-<7> Define the main class for the application.
-<8> Use JUnit Platform for unit tests.
+<1> Apply the plugin to add support for Kotlin and Java (via the application).
+<2> Use Maven Central for resolving dependencies.
+<3> Use the JUnit 5 integration and a dependency from Google used by the application.
+<4> Define the main class for the application.
+<5> Use JUnit Platform for unit tests.
 =====
 
 [.multi-language-sample]
@@ -84,43 +84,38 @@ tasks.named<Test>("test") {
 ----
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.0'                       // <1>
-    id 'application'                                                    // <2>
+    id 'application'
 }
 
 repositories {
-    mavenCentral()                                                      // <3>
+    mavenCentral()                                                      // <2>
 }
 
 dependencies {
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'        // <4>
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'   // <5>
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'        // <3>
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.google.guava:guava:32.1.1-jre'                  // <6>
+    implementation 'com.google.guava:guava:32.1.1-jre'
 }
 
 application {
-    mainClass = 'main'                                                  // <7>
+    mainClass = 'main'                                                  // <4>
 }
 
 tasks.named('test') {
-    useJUnitPlatform()                                                  // <8>
+    useJUnitPlatform()                                                  // <5>
 }
 ----
-<1> Apply the `org.jetbrains.kotlin.jvm` plugin to add support for Kotlin.
-<2> Apply the application plugin to add support for building a CLI application in Java.
-<3> Use Maven Central for resolving dependencies.
-<4> Use the Kotlin JUnit 5 integration.
-<5> Use the JUnit 5 integration.
-<6> This dependency from Google is used by the application.
-<7> Define the main class for the application.
-<8> Use JUnit Platform for unit tests.
+<1> Apply the plugin to add support for Kotlin and Java (via the application).
+<2> Use Maven Central for resolving dependencies.
+<3> Use the JUnit 5 integration and a dependency from Google used by the application.
+<4> Define the main class for the application.
+<5> Use JUnit Platform for unit tests.
 =====
 ====
 
-=== Add extensions via plugins
-
+=== 1. Add extensions via plugins
 Plugins are bundled tasks used to extend Gradle.
-They are also used to modularise and reuse project configuration.
 
 Adding a plugin to a build is called _applying_ a plugin.
 
@@ -132,26 +127,30 @@ plugins {
 }
 ----
 
-Since our example is a Java app, the `application` plugin, which is included with Gradle, has been applied.
+Since our example is a Java app, the `application` plugin, which is included with Gradle, has been applied, adding Java support and more.
 
 The Kotlin gradle plugin, version 1.9.0 has also been applied since our app also contains Kotlin code.
 
-=== Add dependencies and dependency location
+=== 2. Add dependency location
+A project generally has a number of dependencies it needs in order to do its work.
+Many of the dependencies will be used by the source code.
 
-A project generally has a number of dependencies it needs in order to do its work, typically found in the source code.
-
-Those dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
-
-In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binary plugins that Gradle will need to download to function.
-
-Then, a list of dependencies based on configurations (how/when/where Gradle will use it) is added, including the `junit` testing framework which is used to test the Java source code.
+In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binary plugins that Gradle will need to download in order to build the project.
 
 [source]
 ----
 repositories {
     mavenCentral()
 }
+----
 
+=== 3. Add dependencies
+Dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
+
+In the example, a list of dependencies based on configurations (how/when/where Gradle will use it) is added, including the `junit` testing framework which is used to test the Java source code.
+
+[source]
+----
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
@@ -160,9 +159,9 @@ dependencies {
 }
 ----
 
-=== Use convention properties
-
-A plugin adds tasks as well as properties and methods to a project.
+=== 4. Use convention properties
+A plugin adds tasks to a project.
+It also adds properties and methods to a project.
 
 In the example, the `application` plugin has a method that can declare the main class of our Java application which is required to compile and run the code.
 
@@ -173,8 +172,7 @@ application {
 }
 ----
 
-=== Create or update tasks
-
+=== 5. Create or update tasks
 Tasks performs some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
 Tasks either come from plugins or the build script itself.
