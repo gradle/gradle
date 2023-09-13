@@ -45,7 +45,7 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
 
     @Override
     protected void assertConfigurationCacheStateStored() {
-        assert result.output.count("Calculating task graph as no configuration cache is available") == 1
+        assert result.output.count("Calculating task graph as no cached configuration is available") == 1
     }
 
     @Override

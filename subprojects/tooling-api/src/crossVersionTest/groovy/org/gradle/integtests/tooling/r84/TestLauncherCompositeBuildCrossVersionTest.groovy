@@ -25,6 +25,7 @@ import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 import java.util.function.Function
+import java.util.regex.Pattern
 
 import static java.util.Arrays.asList
 
@@ -339,6 +340,11 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
     }
 
     private boolean noConfigurationCacheAvailableIn(String output) {
-        output.contains('Calculating task graph as no configuration cache is available')
+        noConfigCachePattern.matcher(output).find()
     }
+
+    static Pattern noConfigCachePattern = Pattern.compile(
+        'Calculating task graph as no (cached configuration|configuration cache) is available',
+        Pattern.MULTILINE
+    )
 }
