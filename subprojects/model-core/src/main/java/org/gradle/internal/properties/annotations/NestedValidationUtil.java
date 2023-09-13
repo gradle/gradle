@@ -19,7 +19,6 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
@@ -32,6 +31,9 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  */
 @NonNullApi
 public class NestedValidationUtil {
+
+    private static final String NESTED_TYPE_UNSUPPORTED = "NESTED_TYPE_UNSUPPORTED";
+
     /**
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
@@ -60,7 +62,7 @@ public class NestedValidationUtil {
                     .label("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
-                    .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
+                    .type(NESTED_TYPE_UNSUPPORTED)
                     .severity(Severity.WARNING)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
@@ -82,6 +84,8 @@ public class NestedValidationUtil {
         }
     }
 
+    private static final String NESTED_MAP_UNSUPPORTED_KEY_TYPE = "NESTED_MAP_UNSUPPORTED_KEY_TYPE";
+
     /**
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given map key type.
@@ -102,7 +106,7 @@ public class NestedValidationUtil {
                     .label("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .noLocation()
-                    .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
+                    .type(NESTED_MAP_UNSUPPORTED_KEY_TYPE)
                     .severity(Severity.WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())

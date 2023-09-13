@@ -28,7 +28,6 @@ import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -84,6 +83,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return cache.get(type, this::createTypeMetadata);
     }
 
+
+    private static final String ANNOTATION_INVALID_IN_CONTEXT = "ANNOTATION_INVALID_IN_CONTEXT";
+    private static final String MISSING_ANNOTATION = "MISSING_ANNOTATION";
+    private static final String INCOMPATIBLE_ANNOTATIONS = "INCOMPATIBLE_ANNOTATIONS";
+
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         Class<?> publicType = GeneratedSubclasses.unpack(type);
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
@@ -107,7 +111,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .label("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
                         .noLocation()
-                        .type(ValidationProblemId.MISSING_ANNOTATION.name())
+                        .type(MISSING_ANNOTATION)
                         .severity(Severity.ERROR)
                         .details("A property without annotation isn't considered during up-to-date checking")
                         .solution("Add " + displayName)
@@ -122,9 +126,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .label(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
-                        .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
+                        .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                         .noLocation()
-                        .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
+                        .type(ANNOTATION_INVALID_IN_CONTEXT)
                         .severity(Severity.ERROR)
                         .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the property")
@@ -147,7 +151,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .label("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                             .noLocation()
-                            .type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS.name())
+                            .type(INCOMPATIBLE_ANNOTATIONS)
                             .severity(Severity.ERROR)
                             .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
@@ -156,9 +160,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .label(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
-                            .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
+                            .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                             .noLocation()
-                            .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
+                            .type(ANNOTATION_INVALID_IN_CONTEXT)
                             .severity(Severity.ERROR)
                             .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
                             .solution("Remove the annotation")

@@ -29,7 +29,7 @@ import org.gradle.api.Incubating;
  *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
- *          .type(ValidationProblemId.TEST_PROBLEM.name())
+ *          .type("problemType")
  *          .severity(Severity.ERROR)
  *          .details("this is a test")
  *  }</pre>

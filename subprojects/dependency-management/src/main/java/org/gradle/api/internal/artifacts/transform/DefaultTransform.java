@@ -75,7 +75,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
@@ -197,6 +196,8 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
+    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
+
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
@@ -206,7 +207,7 @@ public class DefaultTransform implements Transform {
                         .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
-                        .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
+                        .type(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -287,6 +288,9 @@ public class DefaultTransform implements Transform {
         isolatedParameters.finalizeIfNotAlready();
     }
 
+
+    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
+
     private static void fingerprintParameters(
         Problems problems,
         InputFingerprinter inputFingerprinter,
@@ -364,7 +368,7 @@ public class DefaultTransform implements Transform {
                             .label("declares an output")
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
                             .noLocation()
-                            .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
+                            .type(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")

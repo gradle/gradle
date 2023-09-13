@@ -25,11 +25,11 @@ import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static com.google.common.collect.ImmutableList.of
+import static org.gradle.integtests.fixtures.validation.ValidationProblemPropertyAnnotationHandler.TEST_PROBLEM
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
@@ -83,7 +83,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .details("Test")
                     .severity(Severity.ERROR)
             }
@@ -114,7 +114,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error #1")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -124,7 +124,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error #2")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -146,7 +146,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation warning")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -184,7 +184,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -194,7 +194,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation warning")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }

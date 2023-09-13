@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -29,11 +29,12 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffectsCacheableWork;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
+
+    public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-//    private final ImmutableMap.Builder<Problem, Severity> problems = ImmutableMap.builder();
+    //    private final ImmutableMap.Builder<Problem, Severity> problems = ImmutableMap.builder();
     private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
@@ -47,6 +48,10 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems) {
         super(rootType, Optional::empty);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
+    }
+
+    public static boolean onlyAffectsCacheableWork(String type) {
+        return MISSING_NORMALIZATION_ANNOTATION.equals(type);
     }
 
     @Override

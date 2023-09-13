@@ -17,9 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 
 class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -62,10 +60,10 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         result.assertTaskNotExecuted('myTask')
 
         where:
-        elementType             | elementName   | elementInitialization                                                             | elementRead
-        'File'                  | 'myField'     | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()"   | 'myField.absolutePath'
-        'RegularFile'           | 'myField'     | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"        | 'myField.getAsFile().absolutePath'
-        'RegularFileProperty'   | 'myProp'      | 'abstract RegularFileProperty getMyProp()'                                        | 'myProp.getAsFile().get().absolutePath'
+        elementType           | elementName | elementInitialization                                                           | elementRead
+        'File'                | 'myField'   | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()" | 'myField.absolutePath'
+        'RegularFile'         | 'myField'   | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"      | 'myField.getAsFile().absolutePath'
+        'RegularFileProperty' | 'myProp'    | 'abstract RegularFileProperty getMyProp()'                                      | 'myProp.getAsFile().get().absolutePath'
     }
 
     def "using @Input annotation on #elementType directory elements fails validation with helpful error message"() {
@@ -101,9 +99,9 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         result.assertTaskNotExecuted('myTask')
 
         where:
-        elementType         | elementName   | elementInitialization                                                 | elementRead
-       'Directory'          | 'myField'     | "Directory myField = project.layout.projectDirectory.dir('myDir')"    | 'myField.getAsFile().absolutePath'
-        "DirectoryProperty" | 'myProp'      | "abstract DirectoryProperty getMyProp()"                              | "myProp.getAsFile().get().absolutePath"
+        elementType         | elementName | elementInitialization                                              | elementRead
+        'Directory'         | 'myField'   | "Directory myField = project.layout.projectDirectory.dir('myDir')" | 'myField.getAsFile().absolutePath'
+        "DirectoryProperty" | 'myProp'    | "abstract DirectoryProperty getMyProp()"                           | "myProp.getAsFile().get().absolutePath"
     }
 
     def "using @Input annotation on #propertyType file properties succeeds"() {
@@ -139,12 +137,12 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         succeeds 'myTask'
 
         where:
-        propertyType            | propertyInitialization                                                        | propertyAssignment                                                        | propertyRead
-        "Property<File>"        | "final Property<File> myProp = getObjectFactory().property(File.class)"       | "myProp.set(project.layout.projectDirectory.file('myFile').getAsFile())"  | 'myProp.get().absolutePath'
+        propertyType     | propertyInitialization                                                  | propertyAssignment                                                       | propertyRead
+        "Property<File>" | "final Property<File> myProp = getObjectFactory().property(File.class)" | "myProp.set(project.layout.projectDirectory.file('myFile').getAsFile())" | 'myProp.get().absolutePath'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24979")
-    @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+
     def "cannot annotate type 'java.net.URL' with @Input"() {
 
         executer.beforeExecute {
