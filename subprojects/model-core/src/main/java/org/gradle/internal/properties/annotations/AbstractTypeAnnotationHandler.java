@@ -24,7 +24,6 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.ProblemGroup.GENERIC_ID;
 import static org.gradle.internal.reflect.problems.ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
@@ -52,7 +51,6 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .noLocation()
                 .type(INVALID_USE_OF_TYPE_ANNOTATION.name())
-                .group(GENERIC_ID)
                 .severity(Severity.ERROR)
                 .details(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)

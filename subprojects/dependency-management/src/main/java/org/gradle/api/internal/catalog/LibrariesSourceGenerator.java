@@ -31,7 +31,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.provider.Provider;
@@ -531,7 +530,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
             .type(catalogProblemId.name().toLowerCase())
-            .group(ProblemGroup.VERSION_CATALOG_ID)
             .severity(ERROR);
     }
 

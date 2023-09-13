@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -50,7 +49,6 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .documentedAt(userManual("validation_problems", "value_not_set"))
                 .noLocation()
                 .type(ValidationProblemId.VALUE_NOT_SET.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured")
                 .solution("Assign a value to '" + propertyName + "'")

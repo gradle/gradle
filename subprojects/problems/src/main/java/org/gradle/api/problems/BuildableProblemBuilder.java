@@ -30,7 +30,6 @@ import org.gradle.api.Incubating;
  *          .undocumented()
  *          .noLocation()
  *          .type(ValidationProblemId.TEST_PROBLEM.name())
- *          .group(ProblemGroup.TYPE_VALIDATION)
  *          .severity(Severity.ERROR)
  *          .details("this is a test")
  *  }</pre>

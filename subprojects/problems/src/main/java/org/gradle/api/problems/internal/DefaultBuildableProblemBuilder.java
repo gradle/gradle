@@ -16,16 +16,14 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
-import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
@@ -46,11 +44,9 @@ import java.util.Map;
 public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
-    ProblemBuilderDefiningGroup,
     ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningType {
 
-    private ProblemGroup problemGroup;
     private String label;
     private String problemType;
     private final InternalProblems problemsService;
@@ -68,18 +64,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
 
     public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
-    }
-
-    @Override
-    public BuildableProblemBuilder group(String group) {
-        if (problemsService != null) {
-            ProblemGroup existingGroup = problemsService.getProblemGroup(group);
-            if (existingGroup == null) {
-                throw new GradleException("Problem group " + group + " does not exist, either use existing group or register a new one");
-            }
-            this.problemGroup = existingGroup;
-        }
-        return this;
     }
 
     @Override
@@ -129,7 +113,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningGroup type(String problemType) {
+    public ProblemBuilder type(String problemType) {
         this.problemType = problemType;
         return this;
     }
@@ -174,7 +158,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         }
 
         return new DefaultReportableProblem(
-            problemGroup,
             label,
             getSeverity(severity),
             getProblemLocation(),

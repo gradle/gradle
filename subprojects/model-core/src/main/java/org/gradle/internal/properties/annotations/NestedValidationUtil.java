@@ -25,7 +25,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.problems.ProblemGroup.TYPE_VALIDATION_ID;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -62,7 +61,6 @@ public class NestedValidationUtil {
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
                     .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
-                    .group(TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
@@ -105,7 +103,6 @@ public class NestedValidationUtil {
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .noLocation()
                     .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
-                    .group(TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
