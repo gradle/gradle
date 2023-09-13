@@ -48,6 +48,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         runner.args.addAll(["--no-build-cache", "--no-scan"])
         // use the deprecated property so it works with previous versions
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
+        runner.warmUpRuns = 20
         applyEnterprisePlugin()
     }
 
