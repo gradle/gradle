@@ -24,7 +24,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
-import spock.lang.IgnoreIf
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap

@@ -637,6 +637,11 @@
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
          </artifact>
       </component>
+      <component group="com.gradle" name="gradle-enterprise-gradle-plugin" version="3.15">
+         <artifact name="gradle-enterprise-gradle-plugin-3.15.jar">
+            <pgp value="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86"/>
+         </artifact>
+      </component>
       <component group="com.h2database" name="h2" version="2.2.220">
          <artifact name="h2-2.2.220.jar">
             <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
