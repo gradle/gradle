@@ -37,7 +37,7 @@ class KotlinScriptModelParameters {
         def correlationId = newCorrelationId()
 
         def arguments =
-            ["-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${correlationId}".toString(),
+            ["-D${KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME}=${correlationId}".toString(),
              "-Dorg.gradle.internal.plugins.portal.url.override=${gradlePluginRepositoryMirrorUrl()}".toString()]
 
         if (!scripts.toList().isEmpty()) {

@@ -188,7 +188,7 @@ fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
         forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
         val arguments = parameters.options.toMutableList()
-        arguments += "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${parameters.correlationId}"
+        arguments += "-D${KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME}=${parameters.correlationId}"
 
         parameters.scriptFile?.let {
             arguments += "-P${KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME}=${it.canonicalPath}"

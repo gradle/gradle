@@ -154,7 +154,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
-            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+            System.getProperty(KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME)
         )
 }
 

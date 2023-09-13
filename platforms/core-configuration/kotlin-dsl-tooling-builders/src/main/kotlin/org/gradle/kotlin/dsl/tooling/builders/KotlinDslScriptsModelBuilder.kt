@@ -188,7 +188,7 @@ fun dehydrateScriptModels(
 private
 fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
-        findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
+        System.getProperty(KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME),
         (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
             ?.split("|")
             ?.asSequence()

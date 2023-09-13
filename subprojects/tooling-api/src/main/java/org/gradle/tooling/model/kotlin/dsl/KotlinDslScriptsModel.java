@@ -41,9 +41,9 @@ import java.util.Map;
  * Optionally, it can also be set in a strict mode by providing the system property value <code>-Dorg.gradle.kotlin.dsl.provider.mode=strict-classpath</code>.
  * See {@link KotlinDslModelsParameters#STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
  *
- * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
+ * Optionally, an identifier can be provided as a System property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
  * it can then be used to correlate Gradle and TAPI client log statements.
- * See {@link KotlinDslModelsParameters#CORRELATION_ID_GRADLE_PROPERTY_NAME}.
+ * See {@link KotlinDslModelsParameters#CORRELATION_ID_SYSTEM_PROPERTY_NAME}.
  *
  * @since 6.0
  */

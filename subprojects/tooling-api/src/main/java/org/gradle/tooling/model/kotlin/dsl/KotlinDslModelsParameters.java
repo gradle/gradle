@@ -26,7 +26,7 @@ public final class KotlinDslModelsParameters {
 
     public static final String PREPARATION_TASK_NAME = "prepareKotlinBuildScriptModel";
 
-    public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
+    public static final String CORRELATION_ID_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
     public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
 

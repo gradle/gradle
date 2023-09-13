@@ -20,6 +20,7 @@ import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import spock.lang.Issue
 
 @Issue("GRADLE-2460")
@@ -205,5 +206,32 @@ task verify {
         def dir = temporaryFolder.createDir(folderName)
         dir.mkdirs();
         dir.absolutePath
+    }
+
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    def "reuse daemon for changed kotlin dsl cid sys property"() {
+        setup:
+        buildScript """
+            task verify {
+                doFirst {
+                    println "verified = " + System.getProperty('${KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME}', '0')
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("-Dorg.gradle.kotlin.dsl.provider.cid=24")
+        run("verify")
+
+        then:
+        daemons.daemons.size() == 1
+        output.contains("verified = 24")
+
+        when:
+        executer.withArgument("-Dorg.gradle.kotlin.dsl.provider.cid=42")
+        run "verify"
+        then:
+        output.contains("verified = 42")
+        daemons.daemons.size() == 1
     }
 }
