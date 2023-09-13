@@ -60,4 +60,20 @@ class DefaultResolvedComponentResultTest extends Specification {
         then:
         module.dependencies == [dependency, unresolved] as Set
     }
+
+    def "associating the same result to a variant multiple times does not cause duplicate results"() {
+        given:
+        def module = newModule()
+        def dependency = newDependency()
+        def variant = module.getVariant(1)
+
+        when:
+        module.addDependency(dependency)
+
+        module.associateDependencyToVariant(dependency, variant)
+        module.associateDependencyToVariant(dependency, variant)
+
+        then:
+        module.getDependenciesForVariant(variant) == [dependency]
+    }
 }
