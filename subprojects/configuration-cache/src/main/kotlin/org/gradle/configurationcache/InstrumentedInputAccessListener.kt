@@ -23,6 +23,7 @@ import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import java.io.File
 
 
@@ -58,8 +59,10 @@ val allowedProperties = setOf(
     "line.separator",
     "user.name",
     "user.home",
-    "java.runtime.version"
+    "java.runtime.version",
     // Not java.io.tmpdir and user.dir at this stage
+
+    KotlinDslModelsParameters.CORRELATION_ID_SYSTEM_PROPERTY_NAME // Changing by IDE
 )
 
 
