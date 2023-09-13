@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
+
+import org.gradle.api.provider.Property;
 
 /**
- * Marker interface for parameters of {@link JvmTestToolchain}s.  Imlementations of {@link JvmTestToolchain} be parameterized with
- * an implementation of this type or {@link JvmTestToolchainParameters.None}.
+ * Parameters for configuring a TestNG test toolchain.
  *
  * @since 8.5
  */
-public interface JvmTestToolchainParameters {
-    final class None implements JvmTestToolchainParameters {}
+public interface TestNGToolchainParameters extends JvmTestToolchainParameters {
+    /**
+     * The version of TestNG to use for compiling and executing tests.
+     */
+    Property<String> getVersion();
 }

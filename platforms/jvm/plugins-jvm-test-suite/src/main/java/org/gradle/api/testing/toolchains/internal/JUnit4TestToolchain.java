@@ -14,23 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.tasks.testing.Test;
 
+import javax.inject.Inject;
+
 /**
- * A {@link JvmTestToolchain} that uses JUnit 4 with legacy behavior for the default test suite.  Specifically,
- * it does not provide any dependencies for compiling or executing tests.  Instead, these should be provided by
- * the user.
+ * A {@link JvmTestToolchain} for JUnit 4.
  *
  * @since 8.5
  */
-abstract public class LegacyJUnit4TestToolchain implements JvmTestToolchain<JvmTestToolchainParameters.None> {
+abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4ToolchainParameters> {
+    public static final String DEFAULT_VERSION = "4.13.2";
+    private static final String GROUP_NAME = "junit:junit";
+
+    @Inject
+    protected abstract DependencyFactory getDependencyFactory();
+
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true);
+        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
     }
+
+    @Override
+    public Iterable<Dependency> getImplementationDependencies() {
+        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getVersion().get()));
+    }
+
 }

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters for configuring a TestNG test toolchain.
+ * Parameters for configuring a JUnit Platform test toolchain.
  *
  * @since 8.5
  */
-public interface TestNGToolchainParameters extends JvmTestToolchainParameters {
+public interface JUnitJupiterToolchainParameters extends JUnitPlatformToolchainParameters {
     /**
-     * The version of TestNG to use for compiling and executing tests.
+     * The version of JUnit Jupiter to use for compiling and executing tests.
      */
-    Property<String> getVersion();
+     Property<String> getJupiterVersion();
 }

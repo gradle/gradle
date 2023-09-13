@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
-
-import org.gradle.api.provider.Property;
-
 /**
- * Parameters for configuring a JUnit Platform test toolchain.
- *
- * @since 8.5
+ * This package contains a number of utilities used to facilitate the
+ * integration of Java plugins. It provides the implementation of the
+ * {@link org.gradle.api.plugins.jvm.internal.JvmPluginServices} service.
  */
-public interface JUnitJupiterToolchainParameters extends JUnitPlatformToolchainParameters {
-    /**
-     * The version of JUnit Jupiter to use for compiling and executing tests.
-     */
-     Property<String> getJupiterVersion();
-}
+@NonNullApi
+package org.gradle.api.testing.toolchains.internal;
+
+import org.gradle.api.NonNullApi;

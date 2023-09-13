@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 
-import java.util.Collections;
-
 /**
- * A {@link JUnitPlatformTestToolchain} that uses the KotlinTest test engine.
+ * A {@link JUnitPlatformTestToolchain} that uses the Spock test engine.
  *
  * @since 8.5
  */
-abstract public class KotlinTestTestToolchain extends JUnitPlatformTestToolchain<KotlinTestToolchainParameters> {
-    public static final String DEFAULT_VERSION = "1.9.0";
-    private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
+abstract public class SpockTestToolchain extends JUnitPlatformTestToolchain<SpockToolchainParameters> {
+    public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
+    private static final String GROUP_NAME = "org.spockframework:spock-core";
 
     @Override
     public Iterable<Dependency> getImplementationDependencies() {
-        return Collections.singletonList(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getKotlinTestVersion().get()));
+        return ImmutableSet.of(getDependencyFactory().create(GROUP_NAME + ":" + getParameters().getSpockVersion().get()));
     }
 }

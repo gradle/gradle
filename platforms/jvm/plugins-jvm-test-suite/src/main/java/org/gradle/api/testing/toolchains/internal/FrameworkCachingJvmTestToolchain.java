@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.Dependency;

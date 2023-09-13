@@ -17,7 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.internal.testing.toolchains.JUnit4TestToolchain
+import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture

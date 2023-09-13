@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
-
-import org.gradle.api.provider.Property;
+package org.gradle.api.testing.toolchains.internal;
 
 /**
- * Parameters for configuring a JUnit4 test toolchain.
+ * Marker interface for parameters of {@link JvmTestToolchain}s.  Imlementations of {@link JvmTestToolchain} be parameterized with
+ * an implementation of this type or {@link JvmTestToolchainParameters.None}.
  *
  * @since 8.5
  */
-public interface JUnit4ToolchainParameters extends JvmTestToolchainParameters {
-    /**
-     * The version of JUnit 4 to use for compiling and executing tests.
-     */
-    Property<String> getVersion();
+public interface JvmTestToolchainParameters {
+    final class None implements JvmTestToolchainParameters {}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * This package contains a number of utilities used to facilitate the
- * integration of Java plugins. It provides the implementation of the
- * {@link org.gradle.api.plugins.jvm.internal.JvmPluginServices} service.
- */
-@NonNullApi
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.provider.Property;
+
+/**
+ * Parameters for configuring a Spock test toolchain.
+ *
+ * @since 8.5
+ */
+public interface SpockToolchainParameters extends JUnitPlatformToolchainParameters {
+    /**
+     * The version of Spock to use for compiling and executing tests.
+     */
+    Property<String> getSpockVersion();
+}

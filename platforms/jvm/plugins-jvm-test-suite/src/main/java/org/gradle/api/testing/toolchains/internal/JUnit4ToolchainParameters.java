@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters for configuring a Spock test toolchain.
+ * Parameters for configuring a JUnit4 test toolchain.
  *
  * @since 8.5
  */
-public interface SpockToolchainParameters extends JUnitPlatformToolchainParameters {
+public interface JUnit4ToolchainParameters extends JvmTestToolchainParameters {
     /**
-     * The version of Spock to use for compiling and executing tests.
+     * The version of JUnit 4 to use for compiling and executing tests.
      */
-    Property<String> getSpockVersion();
+    Property<String> getVersion();
 }

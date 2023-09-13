@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.testing.toolchains;
+package org.gradle.api.testing.toolchains.internal;
 
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters for configuring a JUnit Platform test toolchain.
+ * Parameters for configuring a KotlinTest test toolchain.
  *
  * @since 8.5
  */
-public interface JUnitPlatformToolchainParameters extends JvmTestToolchainParameters {
-    /**
-     * The version of the JUnit Platform to use for executing tests.
-     */
-    Property<String> getPlatformVersion();
+public interface KotlinTestToolchainParameters extends JUnitPlatformToolchainParameters {
+    Property<String> getKotlinTestVersion();
 }
