@@ -15,30 +15,30 @@
 [[build_file_basics]]
 = Build File Basics
 
-For every project, there is a build script that details build configuration, tasks, and plugins.
+Every project has a build script that details build configuration, tasks, and plugins.
 
 image::gradle-basic-4.png[]
 
-Every Gradle build is made up of one or more _projects_; a root project and subprojects.
+Every Gradle build comprises one or more _projects_; a root project and subprojects.
 Each one has at least one build script.
 
-For single project builds, the build file contains dependencies and repository information for the build and the project.
+For single-project builds, the build file contains dependencies and repository information for the build and the project.
 
-For multi-project build, each subproject has its own build file, and each subproject will be evaluated by executing its build file.
+For multi-project builds, each subproject has its own build file, and each subproject will be evaluated by executing its build file.
 
-In the build file, there are two types of dependencies that can be added:
+In the build file, two types of dependencies can be added:
 
-1. The libraries and/or plugins on which Gradle and the build script is dependent.
-2. The libraries on which the project sources are dependent to be built.
+1. The libraries and/or plugins on which Gradle and the build script depend.
+2. The libraries on which the project sources depend.
 
 [[sec:build_script]]
 == Build scripts
 
-The build script is either a `build.gradle` file when written in Groovy or a `build.gradle.kts` file when written in Kotlin.
+The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file written in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
-Let's take a look at an example for a simple Java app and break it down:
+Let's take a look at an example of a simple Java app and break it down:
 
 ====
 [.multi-language-sample]
@@ -129,13 +129,13 @@ plugins {
 
 Since our example is a Java app, the `application` plugin, which is included with Gradle, has been applied, adding Java support and more.
 
-The Kotlin gradle plugin, version 1.9.0 has also been applied since our app also contains Kotlin code.
+The Kotlin gradle plugin, version 1.9.0, has also been applied since our app contains Kotlin code.
 
 === 2. Add dependency location
-A project generally has a number of dependencies it needs in order to do its work.
+A project generally has several dependencies it needs to do its work.
 Many of the dependencies will be used by the source code.
 
-In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binary plugins that Gradle will need to download in order to build the project.
+In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binary plugins that Gradle will need to download to build the project.
 
 [source]
 ----
@@ -145,9 +145,9 @@ repositories {
 ----
 
 === 3. Add dependencies
-Dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
+Dependencies are grouped in configurations and can be retrieved and uploaded from repositories.
 
-In the example, a list of dependencies based on configurations (how/when/where Gradle will use it) is added, including the `junit` testing framework which is used to test the Java source code.
+In the example, a list of dependencies based on configurations (how/when/where Gradle will use it) is added, including the `junit` testing framework, which is used to test the Java source code.
 
 [source]
 ----
@@ -163,7 +163,7 @@ dependencies {
 A plugin adds tasks to a project.
 It also adds properties and methods to a project.
 
-In the example, the `application` plugin has a method that can declare the main class of our Java application which is required to compile and run the code.
+In the example, the `application` plugin has a method that can declare the main class of our Java application, which is required to compile and run the code.
 
 [source]
 ----
@@ -173,11 +173,11 @@ application {
 ----
 
 === 5. Create or update tasks
-Tasks performs some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
+Tasks perform some basic work, such as compiling classes, running unit tests, or zipping up a WAR file.
 
 Tasks either come from plugins or the build script itself.
 
-In the example, the build script requires that all test related tasks must use the `junit` platform.
+In the example, the build script requires all test-related tasks to use the `junit` platform.
 
 [source]
 ----

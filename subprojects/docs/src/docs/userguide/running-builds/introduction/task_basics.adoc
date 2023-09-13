@@ -19,7 +19,7 @@ The work that Gradle can do on a project is defined by one or more _tasks_.
 
 image::gradle-basic-5.png[]
 
-A task represents some atomic piece of work which a build performs.
+A task represents some atomic piece of work that a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
@@ -87,12 +87,12 @@ include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 
 [TIP]
 ====
-The `-q` option suppresses Gradle's log messages, so that only the output of the tasks is shown.
+The `-q` option suppresses Gradle's log messages so that only the output of the tasks is shown.
 ====
 
-In the example, the build script defines a single task, called `hello`, and adds an action to it.
+In the example, the build script defines a single task called `hello` and adds an action.
 
-When you run `./gradlew hello`, Gradle executes the `hello` task, which in turn executes the action you've provided.
+When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
 The action is simply a block containing some code to execute: `println("Hello world!")`.
 
 == Task types
@@ -104,7 +104,7 @@ There are two types of tasks:
 
 == Built-in tasks
 
-Gradle provides many _built-in_ tasks that developers can use to enhance build scripts.
+Gradle provides many _built-in_ tasks for developers to enhance build scripts.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
 
@@ -124,7 +124,7 @@ Popular built-in tasks include:
 - **Copy** - `Copy` is useful to copy files around.
 - **Delete** -  `Delete` is useful to delete files and directories.
 - **Exec** - `Exec` is useful to execute arbitrary O/S commands.
-- **Zip** - `Zip` is useful to bundle files.
+- **Zip** - `Zip` is useful for bundling files.
 
 Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
 

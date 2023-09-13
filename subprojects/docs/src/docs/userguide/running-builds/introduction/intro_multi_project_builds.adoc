@@ -15,12 +15,12 @@
 [[intro_multi_project_builds]]
 = Multi-Project Builds Basics
 
-Gradle supports multi project build.
+Gradle supports multi-project build.
 
 image::gradle-basic-9.png[]
 
 While some small projects and monolithic applications may contain a single build file and source tree, it is often more common for a project to have been split into smaller, interdependent modules.
-The word "interdependent" is vital in this case as you typically want to link the many modules together through a single build.
+The word "interdependent" is vital, as you typically want to link the many modules together through a single build.
 
 Gradle supports this scenario through _multi-project_ builds.
 
@@ -54,8 +54,8 @@ The directory structure should look as follows:
 
 The Gradle community has two standards for multi-project build structures:
 
-- **<<organizing_gradle_projects.adoc#sec:build_sources,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root, which contains all the build logic.
-- **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root, which contains all the build logic.
+- **<<organizing_gradle_projects.adoc#sec:build_sources,Multi-Project Builds using buildSrc>>** - where `buildSrc` is a subproject-like directory at the Gradle project root containing all the build logic.
+- **<<composite_builds.adoc#composite_builds,Composite Builds>>** - a build that includes other builds where `build-logic` is a build directory at the Gradle project root containing all the build logic.
 
 image::multi-project-standards.png[]
 
@@ -63,7 +63,7 @@ image::multi-project-standards.png[]
 == Project path
 
 A project path has the following pattern: it starts with an optional colon, which denotes the root project.
-The root project, `:`, is the only project in a path that is not specified by its name.
+The root project, `:`, is the only project in a path not specified by its name.
 
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project such as `:subproject`.
 
@@ -95,7 +95,7 @@ The following sections will cover your two options for executing tasks in a mult
 [[sec:executing_tasks_by_name]]
 == Executing tasks by name
 
-The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that have that task.
+The command `gradle test` will execute the `test` task in any subprojects relative to the current working directory that has that task.
 
 If you run the command from the root project directory, you will run `test` in _api_, _shared_, _services:shared_ and _services:webservice_.
 
@@ -113,9 +113,9 @@ Gradle looks down the hierarchy, starting with the _current directory_, for task
 
 One thing is essential to note.
 Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects.
-Then, according to the task name arguments and the current directory, Gradle filters the tasks which should be executed.
+Then, according to the task name arguments and the current directory, Gradle filters the tasks that should be executed.
 
-Because of Gradle's <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
+Because of Gradle's <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,cross-project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
 
 When using the Gradle wrapper, executing a task for a specific subproject by running Gradle from the subproject's directory doesn't work well because you have to specify the path to the wrapper script if you're not in the project root.
 For example, if you want to run the `build` task for the _webservice_ subproject, and you're in the _webservice_ subproject directory, you must run `../../gradlew build`.
@@ -146,7 +146,7 @@ The `buildNeeded` and `buildDependents` tasks can help with this.
 In <<declaring_dependencies_between_subprojects#javadependencies_2,this example>>, the `:services:person-service` project depends on both the `:api` and `:shared` projects.
 The `:api` project also depends on the `:shared` project.
 
-Assuming you are working on a single project, the `:api` project, and you have been making changes but have not built the entire project since performing a `clean`.
+Assuming you are working on a single project, the `:api` project, you have been making changes but have not built the entire project since performing a `clean`.
 You want to build any necessary supporting JARs but only perform code quality and unit tests on the parts of the project you have changed.
 
 The `build` task does this:
@@ -176,8 +176,9 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNe
 =====
 ====
 
-You may want to refactor some part of the `:api` project that is used in other projects.
-If you make these changes, testing only the `:api` project is not sufficient. You must test all projects that depend on the `:api` project.
+You may want to refactor some part of the `:api` project used in other projects.
+If you make these changes, testing only the `:api` project is insufficient.
+You must test all projects that depend on the `:api` project.
 
 The `buildDependents` task tests ALL the projects that have a project dependency (in the testRuntime configuration) on the specified project:
 

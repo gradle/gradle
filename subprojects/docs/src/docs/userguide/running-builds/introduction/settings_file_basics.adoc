@@ -19,20 +19,20 @@ The settings file is the *entry point* of every Gradle project.
 
 image::gradle-basic-3.png[]
 
-The settings file has two main purposes:
+The settings file has two primary purposes:
 
 1. Register subprojects which will be part of the build process.
 2. Add libraries to your build.
 
 Gradle supports single and multi-project builds.
 
-- For single project builds, the settings file is optional.
-- For multi project builds, the settings file is mandatory and declares all subprojects.
+- For single-project builds, the settings file is optional.
+- For multi-project builds, the settings file is mandatory and declares all subprojects.
 
 [[sec:settings_script]]
 == Settings script
 
-The settings script is either a `settings.gradle` file when written in Groovy or a `settings.gradle.kts` file when written in Kotlin.
+The settings script is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
@@ -118,7 +118,7 @@ include('sub-project-c')
 
 === 1. Locate plugins
 
-The settings file can optionally define the plugins your project uses including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
+The settings file can optionally define the plugins your project uses, including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
 
 [source]
 ----
@@ -153,7 +153,7 @@ rootProject.name = "root-project" // settings.rootProject.name = "root-project"
 
 There is only one root per project.
 
-=== 4. Manage dependencies / components
+=== 4. Define dependency location and components
 
 The settings file can optionally define the locations of components your project relies on such as binary repositories like Maven Central and/or other Gradle builds:
 

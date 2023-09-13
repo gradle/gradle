@@ -23,7 +23,7 @@ image::gradle-basic-2.png[]
 
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
-Executing Gradle on the command-line conforms to the following structure:
+Executing Gradle on the command line conforms to the following structure:
 
 ----
 gradle [taskName...] [--option-name...]
@@ -126,7 +126,7 @@ $ gradle test
 
 [NOTE]
 ====
-Some tasks selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects.
+Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not all the subprojects.
 ====
 
 When invoking Gradle from within a subproject, the project name should be omitted:
@@ -146,7 +146,7 @@ When executing the Gradle Wrapper from a subproject directory, reference `gradle
 === Executing multiple tasks
 You can also specify multiple tasks.
 
-For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command-line and will also execute the dependencies for each task.
+For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command line and will also execute the dependencies for each task.
 
 ----
 $ gradle test deploy
@@ -164,7 +164,7 @@ $ gradle clean build
 However, the intention implied in the command line order is that `clean` should run first and then `build`.
 It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster since `clean` would remove what `build` created.
 
-Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.
+Conversely, if the command line order were `build` followed by `clean`, it would not be correct to execute `clean` before `build`.
 Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
 NOTE: <<incremental_build.adoc#incremental_build,Command line order safety>> relies on tasks properly declaring what they create, consume, or remove.
@@ -216,7 +216,7 @@ Gradle outputs each of the encountered failures at the end of the build.
 
 [[sec:name_abbreviation]]
 === Name abbreviation
-When you specify tasks on the command-line, you don't have to provide the full name of the task.
+When you specify tasks on the command line, you don't have to provide the full name of the task.
 You can provide enough of the task name to identify the task uniquely.
 For example, it is likely `gradle che` is enough for Gradle to identify the `check` task.
 
@@ -272,8 +272,8 @@ $ gradle clean
 [[sec:command_line_project_reporting]]
 == Project reporting
 
-Gradle provides several built-in tasks which show particular details of your build.
-This can be useful for understanding your build's structure and dependencies, as well as debugging problems.
+Gradle provides several built-in tasks that show particular details of your build.
+This can be useful for understanding your build's structure and dependencies and debugging problems.
 
 === Listing projects
 Running the `projects` task gives you a list of the subprojects of the selected project, displayed in a hierarchy:

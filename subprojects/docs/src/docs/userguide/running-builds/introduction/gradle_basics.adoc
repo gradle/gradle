@@ -15,7 +15,7 @@
 [[gradle]]
 = Gradle Basics
 
-Gradle *builds, test, and deploys projects from* information contained in *build scripts*.
+Gradle *builds, tests, and deploys projects from* information contained in *build scripts*.
 
 image::gradle-basic-1.png[]
 
@@ -27,11 +27,11 @@ A Gradle project includes *one root project* and *any number of subprojects* det
 
 === Build Scripts
 
-*Each project contains a build script* which details build steps to Gradle using the Groovy or Kotlin DSL.
+*Each project contains a build script* that details build steps to Gradle using the Groovy or Kotlin DSL.
 
 === Tasks
 
-*Each project contains one or more tasks* defined inside a build script or a plugin which detail actions to Gradle.
+*Each project contains one or more tasks* defined inside a build script or a plugin that details actions to Gradle.
 
 === Plugins
 
@@ -41,7 +41,7 @@ Plugins are used to *extend Gradle's capability* and are essentially a *bundle o
 
 Many developers will interact with Gradle for the first time through an existing project.
 
-The presence of the `gradlew` and `gradle.bat` file in the root directory of a project is a clear indicator that Gradle is used.
+The presence of the `gradlew` and `gradle.bat` files in the root directory of a project is a clear indicator that Gradle is used.
 
 A Gradle project will look similar to the following:
 
