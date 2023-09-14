@@ -1,7 +1,7 @@
 [
   {
     "name": "antlr",
-    "path": "subprojects/antlr",
+    "path": "platforms/software/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
