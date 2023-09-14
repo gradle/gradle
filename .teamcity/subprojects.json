@@ -456,7 +456,7 @@
   },
   {
     "name": "jacoco",
-    "path": "subprojects/jacoco",
+    "path": "platforms/jvm/jacoco",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
