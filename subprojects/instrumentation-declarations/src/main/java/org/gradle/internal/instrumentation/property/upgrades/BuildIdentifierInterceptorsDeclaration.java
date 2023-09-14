@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.property.upgrades;
 
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
@@ -49,5 +50,21 @@ public class BuildIdentifierInterceptorsDeclaration {
     private static String getName(BuildIdentifier self) {
         String[] buildPath = self.getBuildPath().split(":");
         return buildPath.length == 0 ? ":" : buildPath[buildPath.length - 1];
+    }
+
+    @InterceptJvmCalls
+    @CallableKind.InstanceMethod
+    public static boolean intercept_isCurrentBuild(@ParameterKind.Receiver BuildIdentifier self) {
+        return isCurrentBuild(self);
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static boolean intercept_currentBuild(@ParameterKind.Receiver BuildIdentifier self) {
+        return isCurrentBuild(self);
+    }
+
+    private static boolean isCurrentBuild(BuildIdentifier self) {
+        return !(self instanceof ForeignBuildIdentifier);
     }
 }
