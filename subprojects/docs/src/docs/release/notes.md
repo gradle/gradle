@@ -50,7 +50,7 @@ When compiling Java code, Gradle uses worker processes to run the Java compiler 
 This allows the Java compiler to "warm up" and compile faster after a few uses.
 Reusing compiler daemons within a single build invocation speeds up overall build performance as every compile task can potentially execute more quickly.
 
-Since [Gradle 8.3](https://docs.gradle.org/8.3/release-notes.html#faster-java-compilation), Gradle attempts to keep Java compiler daemons alive after the end of the build, so that [subsequent builds are faster](https://blog.gradle.org/our-approach-to-faster-compilation).
+Since [Gradle 8.3](/8.3/release-notes.html#faster-java-compilation), Gradle attempts to keep Java compiler daemons alive after the end of the build, so that [subsequent builds are faster](https://blog.gradle.org/our-approach-to-faster-compilation).
 This was only supported on Linux and macOS.
 
 With this release, persistent Java compiler daemons are now supported on Windows as well.
