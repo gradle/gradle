@@ -351,7 +351,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        String expectedMessage = missingNonConfigurableValueMessage { property(propName).includeLink() }
+        String expectedMessage = missingValueMessage { property(propName).includeLink() }
         validateException(task, e, expectedMessage)
 
         where:
@@ -584,7 +584,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, false, e,
-            missingNonConfigurableValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
+            missingValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
             ignoredAnnotationOnField { type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
 
@@ -601,7 +601,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingNonConfigurableValueMessage { property('bean').includeLink() })
+        validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
     @ValidationTestFor(
@@ -617,7 +617,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingNonConfigurableValueMessage { property('bean').includeLink() })
+        validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
     @ValidationTestFor(
@@ -632,7 +632,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, e, missingNonConfigurableValueMessage { property('srcFile').includeLink() })
+        validateException(task, e, missingValueMessage { property('srcFile').includeLink() })
     }
 
     def validationFailureListsViolationsForAllProperties() {
@@ -645,8 +645,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingNonConfigurableValueMessage { property('outputFile').includeLink() },
-            missingNonConfigurableValueMessage { property('bean.inputFile').includeLink() })
+            missingValueMessage { property('outputFile').includeLink() },
+            missingValueMessage { property('bean.inputFile').includeLink() })
     }
 
     @ValidationTestFor(
@@ -662,10 +662,10 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingNonConfigurableValueMessage { property('cCompiler').includeLink() },
-            missingNonConfigurableValueMessage { property('CFlags').includeLink() },
-            missingNonConfigurableValueMessage { property('dns').includeLink() },
-            missingNonConfigurableValueMessage { property('URL').includeLink() })
+            missingValueMessage { property('cCompiler').includeLink() },
+            missingValueMessage { property('CFlags').includeLink() },
+            missingValueMessage { property('dns').includeLink() },
+            missingValueMessage { property('URL').includeLink() })
     }
 
     @ValidationTestFor(
@@ -681,8 +681,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e,
-            missingNonConfigurableValueMessage { property('a').includeLink() },
-            missingNonConfigurableValueMessage { property('b').includeLink() })
+            missingValueMessage { property('a').includeLink() },
+            missingValueMessage { property('b').includeLink() })
     }
 
     def "registers specified #target for #value on #type.simpleName"() {

@@ -140,8 +140,8 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "custom"
 
         failureDescriptionContains("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
-        failureDescriptionContains(missingNonConfigurableValueMessage { type('CustomTask').property('srcFile') })
-        failureDescriptionContains(missingNonConfigurableValueMessage { type('CustomTask').property('destFile') })
+        failureDescriptionContains(missingValueMessage { type('CustomTask').property('srcFile') })
+        failureDescriptionContains(missingValueMessage { type('CustomTask').property('destFile') })
     }
 
     def "reports unknown task"() {
