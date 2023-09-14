@@ -101,18 +101,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    void expectBuildIdentifierNameDeprecation(String agpVersion) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber.baseVersion < VersionNumber.parse("8.2.0"),
-            "The BuildIdentifier.getName() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-        )
-    }
-
     void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),

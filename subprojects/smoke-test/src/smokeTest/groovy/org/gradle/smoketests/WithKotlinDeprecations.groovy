@@ -183,15 +183,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectBuildIdentifierNameDeprecation(VersionNumber versionNumber) {
-        runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse("1.8.20") && versionNumber.baseVersion < VersionNumber.parse('1.9.20'),
-            "The BuildIdentifier.getName() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-        )
-    }
-
     void expectVersionSpecificMultiplatformDeprecations(VersionNumber versionNumber, List<ProjectTypes> projectTypes) {
         expectKotlinParallelTasksDeprecation(versionNumber, ParallelTasksInProject.OMIT)
         if (projectTypes.contains(ProjectTypes.JS)) {
@@ -203,7 +194,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         expectProjectConventionDeprecation(versionNumber)
         expectTestReportReportOnDeprecation(versionNumber)
         expectTestReportDestinationDirOnDeprecation(versionNumber)
-        expectBuildIdentifierNameDeprecation(versionNumber)
         if (GradleContextualExecuter.configCache || versionNumber == VersionNumber.parse("1.7.22")) {
             expectForUseAtConfigurationTimeDeprecation(versionNumber)
         }

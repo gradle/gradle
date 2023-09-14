@@ -175,12 +175,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            )
             .build().output.contains("Build scan written to")
 
         where:
@@ -202,12 +196,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).build().output.contains("Build scan written to")
+            .build().output.contains("Build scan written to")
 
         where:
         version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
@@ -230,12 +219,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).build().output.contains("Build scan written to")
+            .build().output.contains("Build scan written to")
 
         where:
         // isolated projects requires configuration cache support
@@ -308,12 +292,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
-            )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
-                "The BuildIdentifier.getName() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Use getBuildPath() to get a unique identifier for the build. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
             )
             .build().output.contains("Build scan written to")
 
