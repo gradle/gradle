@@ -16,61 +16,16 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.util.internal.VersionNumber
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
-class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
-
-    def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
-        given:
-        AndroidHome.assertIsSet()
-        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
-        useSample("android-kotlin-example-kotlin-dsl")
-
-        def buildFileName = "build.gradle.kts"
-        [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
-            replaceVariablesInFile(
-                file(sampleBuildFileName),
-                kotlinVersion: kotlinPluginVersion,
-                androidPluginVersion: androidPluginVersion,
-                androidBuildToolsVersion: TestedVersions.androidTools)
-        }
-
-        when:
-        def runner = createRunner(workers, kotlinPluginVersion, androidPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
-        def result = useAgpVersion(androidPluginVersion, runner)
-            .deprecations(KotlinAndroidDeprecations) {
-                expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
-                expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
-                expectReportDestinationPropertyDeprecation(androidPluginVersion)
-                expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersion)
-            }.build()
-
-        then:
-        result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        where:
-// To run a specific combination, set the values here, uncomment the following four lines
-//  and comment out the lines coming after
-//        kotlinPluginVersion = TestedVersions.kotlin.latestStable()
-//        androidPluginVersion = TestedVersions.androidGradle.latestStable()
-//        workers = false
-
-        [kotlinPluginVersion, androidPluginVersion, workers] << [
-            TestedVersions.kotlin.versions,
-            TestedVersions.androidGradle.versions,
-            [true, false],
-        ].combinations()
+class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractKotlinPluginAndroidSmokeTest {
+    @Override
+    String getSampleName() {
+        return "android-kotlin-example-kotlin-dsl"
     }
 
-    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String agpVersion, String... tasks) {
-        return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
-            .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
-                expectProjectConventionDeprecation(kotlinVersion, agpVersion)
-                expectConventionTypeDeprecation(kotlinVersion, agpVersion)
-            }
+    @Override
+    GradleDsl getDSL() {
+        return GradleDsl.KOTLIN
     }
 }

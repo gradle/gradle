@@ -1,35 +1,72 @@
-# Execution team
-subprojects/base-annotations/               @gradle/bt-execution
-subprojects/functional/                     @gradle/bt-execution @bamboo
-subprojects/build-cache/                    @gradle/bt-execution
-subprojects/build-cache-base/               @gradle/bt-execution
-subprojects/build-cache-http/               @gradle/bt-execution
-subprojects/build-cache-packaging/          @gradle/bt-execution
-subprojects/build-operations/               @gradle/bt-execution
+## GitHub docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+##
+## CODEOWNERS style rules:
+## 1. Prefer team ownership over individual user ownership.
+## 2. GBT-related team should be listed first.
+## 3. Try to keep paths alphabetically sorted.
+## 4. List individual owners last.
+##
+
+# bt-unassigned-maintainers must be the first owner
+# All directories that are not explicitly listed below are considered
+# unassigned. This means that the ownership may be unknown, lost or
+# mixed across several groups.
+* @gradle/bt-unassigned-maintainers
+
+# Core automation platform (core/execution)
+subprojects/build-cache/                    @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-base/               @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-http/               @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-cache-packaging/          @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
-subprojects/files/                          @gradle/bt-execution
-subprojects/hashing/                        @gradle/bt-execution
-subprojects/normalization-java/             @gradle/bt-execution
-subprojects/snapshots/                      @gradle/bt-execution
+subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/functional/                     @gradle/bt-execution @bamboo
+subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
+subprojects/worker-processes/               @gradle/bt-execution
+subprojects/workers/                        @gradle/bt-execution
 
-# Configuration cache
-subprojects/instrumentation-agent           @gradle/bt-configuration-cache
+# Core automation platform (core/configuration)
+subprojects/api-metadata/                       @gradle/bt-configuration
+subprojects/base-annotations/                   @gradle/bt-configuration
+subprojects/base-services-groovy/               @gradle/bt-configuration
+subprojects/configuration-cache/                @gradle/bt-configuration
+subprojects/file-collections/                   @gradle/bt-configuration
+subprojects/instrumentation-agent/              @gradle/bt-configuration
+subprojects/internal-instrumentation-api/       @gradle/bt-configuration
+subprojects/internal-instrumentation-processor/ @gradle/bt-configuration
+subprojects/model-core/                         @gradle/bt-configuration
+subprojects/model-groovy/                       @gradle/bt-configuration
 
-# Gradle Enterprise
-subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
-subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
-subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
-subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
+# Core automation platform (Kotlin DSL)
+build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
+platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
+
+# Core automation platform (core/runtime)
+subprojects/installation-beacon             @gradle/bt-core-runtime-maintainers
+
+# Gradle Enterprise integration
+platforms/enterprise                                    @gradle/bt-build-scan @gradle/ge-build-insights
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
+platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
+platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
-subprojects/code-quality/                   @gradle/bt-jvm
-subprojects/ear/                            @gradle/bt-jvm
+platforms/jvm/                              @gradle/bt-jvm
+subprojects/distributions-jvm/              @gradle/bt-jvm
+subprojects/distributions-publishing/       @gradle/bt-jvm
 subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
-subprojects/language-groovy/                @gradle/bt-jvm
-subprojects/language-java/                  @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
@@ -39,9 +76,9 @@ subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
 subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
+subprojects/antlr/                          @gradle/bt-jvm
 subprojects/build-init/                     @gradle/bt-jvm
 subprojects/dependency-management/          @gradle/bt-jvm
-subprojects/diagnostics/                    @gradle/bt-jvm
 subprojects/ivy/                            @gradle/bt-jvm
 subprojects/maven/                          @gradle/bt-jvm
 subprojects/platform-base/                  @gradle/bt-jvm
@@ -49,6 +86,7 @@ subprojects/publish/                        @gradle/bt-jvm
 subprojects/reporting/                      @gradle/bt-jvm
 subprojects/resources/                      @gradle/bt-jvm
 subprojects/resources-gcs/                  @gradle/bt-jvm
+subprojects/resources-http/                 @gradle/bt-jvm
 subprojects/resources-s3/                   @gradle/bt-jvm
 subprojects/resources-sftp/                 @gradle/bt-jvm
 subprojects/security/                       @gradle/bt-jvm
@@ -56,42 +94,64 @@ subprojects/signing/                        @gradle/bt-jvm
 subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
 
-# Kotlin DSL
-build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
-subprojects/kotlin-dsl/                                                                 @eskatos @jbartok
-subprojects/kotlin-dsl-integ-tests/                                                     @eskatos @jbartok
-subprojects/kotlin-dsl-plugins/                                                         @eskatos @jbartok
-subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
-subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
-subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
-subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok
-subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok
-subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok
+# Build infrastructure
+.teamcity/                                  @gradle/bt-developer-productivity
+.github/                                    @gradle/bt-developer-productivity
+/build-logic/                               @gradle/bt-developer-productivity
+/build-logic-commons/                       @gradle/bt-developer-productivity
+/build-logic-settings/                      @gradle/bt-developer-productivity
+/build.gradle*                              @gradle/bt-developer-productivity
+/settings.gradle*                           @gradle/bt-developer-productivity
+gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
+subprojects/internal-architecture-testing/  @gradle/bt-developer-productivity
+subprojects/internal-build-reports/         @gradle/bt-developer-productivity
+subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
+subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
+subprojects/internal-testing/               @gradle/bt-developer-productivity
+
+# gitStream files
+.cm/                                @tresat
+.github/workflows/gitstream.yml     @tresat
+
+# Architecture council
+.github/CODEOWNERS @gradle/bt-architecture-council @tresat
+
+# IDE Experience team
+platforms/ide/                    @gradle/bt-ide-experience
+subprojects/ide/                  @gradle/bt-ide-experience
+subprojects/tooling-api/          @gradle/bt-ide-experience
+subprojects/tooling-api-builders/ @gradle/bt-ide-experience
+
+# Release coordination
+subprojects/core-platform/              @gradle/bt-support
+subprojects/distributions-dependencies/ @gradle/bt-support
+subprojects/distributions-full/         @gradle/bt-support
+subprojects/performance/                @gradle/bt-support
+subprojects/smoke-test/                 @gradle/bt-support
+subprojects/soak/                       @gradle/bt-support
 
 # Documentation
-subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm
+subprojects/docs/src/docs/                                                        @gradle/bt-devrel-education
+subprojects/docs/src/samples/                                                     @gradle/bt-devrel-education
+subprojects/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
+subprojects/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
 
-# Dev-prod team
-.teamcity/                   @gradle/bt-developer-productivity
-.github/                     @gradle/bt-developer-productivity
-gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
-/build-logic/                 @gradle/bt-developer-productivity
-/build-logic-commons/         @gradle/bt-developer-productivity
-/build-logic-settings/        @gradle/bt-developer-productivity
-subprojects/*/build.gradle*  @gradle/bt-developer-productivity
-/build.gradle*                @gradle/bt-developer-productivity
-/settings.gradle*              @gradle/bt-developer-productivity
+subprojects/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+
+subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm

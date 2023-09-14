@@ -18,10 +18,9 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
     def "uses current JVM and default JVM args when none specified"() {
@@ -37,7 +36,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         succeeds()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "JVM args from gradle.properties packaged in distribution override defaults"() {
         setup:
         requireIsolatedGradleDistribution()
@@ -101,7 +100,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
 
-    @Requires(TestPrecondition.JDK16_OR_EARLIER) // TraceClassLoading option has been deprecated and is removed in JDK17
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier) // TraceClassLoading option has been deprecated and is removed in JDK17
     def 'can start the daemon with ClassLoading tracing enabled'() {
         given:
         file('build.gradle') << """

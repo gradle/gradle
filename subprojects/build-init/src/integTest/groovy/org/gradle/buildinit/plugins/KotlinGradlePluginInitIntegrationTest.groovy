@@ -17,11 +17,12 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
+import static org.gradle.buildinit.plugins.GroovyGradlePluginInitIntegrationTest.NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
@@ -38,7 +39,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON )
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -65,7 +66,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -93,7 +94,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
@@ -113,7 +114,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs builds in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "re-running check succeeds with #scriptDsl"() {
         given:
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id)

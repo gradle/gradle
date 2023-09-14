@@ -22,12 +22,12 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
@@ -96,7 +96,7 @@ class Person {
         "immutable list" | "[].asImmutable()"
     }
 
-    @Requires(TestPrecondition.JDK11_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "can compile sources using later JDK APIs"() {
         file("src/main/scala/App.scala") << """
             object App {

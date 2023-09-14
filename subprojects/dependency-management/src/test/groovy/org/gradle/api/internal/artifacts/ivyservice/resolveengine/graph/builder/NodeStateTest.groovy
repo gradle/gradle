@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictV
 import org.gradle.api.specs.Spec
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.VariantGraphResolveMetadata
+import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Specification
 
 class NodeStateTest extends Specification {
@@ -218,9 +219,12 @@ class NodeStateTest extends Specification {
     }
 
     private NodeState nextNode(int outgoingEndorsing = 0) {
+        def state = Stub(VariantGraphResolveState)
         def metadata = Stub(VariantGraphResolveMetadata)
+        state.metadata >> metadata
         def resolveState = Stub(ResolveState)
-        def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, metadata, true)
+
+        def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, state, true)
         // if there are outgoing endorsing edges, also include a normal edge to make sure that it is filtered out
         metadata.dependencies >> ((0..<outgoingEndorsing).collect { edge(newState).dependencyMetadata } + (outgoingEndorsing > 0 ? [edge(newState, false).dependencyMetadata] : []))
         resolveState.moduleExclusions >> Mock(ModuleExclusions)

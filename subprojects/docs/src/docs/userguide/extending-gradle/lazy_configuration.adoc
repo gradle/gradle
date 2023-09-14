@@ -54,7 +54,7 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <2> A configurable greeting
 <3> Read-only property calculated from the greeting
 <4> Configure the greeting
-<5> Alternative notation to calling Property.set() (experimental opt-in for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
+<5> Alternative notation to calling Property.set() (incubating for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
 
 .Output of **`gradle greeting`**
 ----
@@ -81,7 +81,7 @@ Neither `Provider` nor its subtypes such as `Property` are intended to be implem
 - link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property(Class)] create a new `Property` instance. An instance of the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] can be referenced from link:{javadocPath}/org/gradle/api/Project.html#getObjects--[Project.getObjects()] or by injecting `ObjectFactory` through a constructor or method.
 - link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)] creates a new `Provider` from an existing `Provider` or `Property` instance.
 
-A `Provider` can also be created by the factory method link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)]. You should prefer using `map()` instead, as this has some useful benefits, which we will see later.
+A `Provider` can also be created by the factory method link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. You should prefer using `map()` instead, as this has some useful benefits, which we will see later.
 
 [NOTE]
 ====
@@ -390,7 +390,7 @@ link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider<T>]:: a proper
   Factories;;
     * link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
     * link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
-    * link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#provider-java.util.concurrent.Callable-[ProviderFactory.provider(Callable)]. Always prefer one of the other factory methods over this method.
+    * link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. Always prefer one of the other factory methods over this method.
 
 Use these types for _mutable_ values:
 

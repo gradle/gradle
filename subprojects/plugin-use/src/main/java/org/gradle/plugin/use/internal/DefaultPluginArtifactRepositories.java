@@ -56,7 +56,7 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     public void applyRepositoriesTo(RepositoryHandler repositories) {
         if (isExclusiveContentInUse() && !repositories.isEmpty()) {
             throw new InvalidUserCodeException("When using exclusive repository content in 'settings.pluginManagement.repositories', you cannot add repositories to 'buildscript.repositories'.\n" +
-                "See the documentation in " + new DocumentationRegistry().getDocumentationFor("declaring_repositories", "declaring_content_exclusively_found_in_one_repository") + ".");
+                new DocumentationRegistry().getDocumentationRecommendationFor("information", "declaring_repositories", "declaring_content_exclusively_found_in_one_repository"));
         }
         repositories.addAll(dependencyResolutionServices.getResolveRepositoryHandler());
     }

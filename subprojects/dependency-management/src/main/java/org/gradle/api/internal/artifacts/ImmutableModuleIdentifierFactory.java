@@ -24,6 +24,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface ImmutableModuleIdentifierFactory {
     ModuleIdentifier module(String group, String name);
     ModuleVersionIdentifier moduleWithVersion(String group, String name, String version);
-    ModuleVersionIdentifier moduleWithVersion(Module module);
     ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier targetModuleId, String version);
 }

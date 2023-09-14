@@ -27,4 +27,22 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.asmCommons)
+    implementation(libs.jacksonDatabind)
+
+    testImplementation(libs.compileTesting)
+    testImplementation(project(":core"))
+}
+
+tasks.named<Test>("test").configure {
+    if (!javaVersion.isJava9Compatible) {
+        // For Java8 tools.jar is needed for com.google.testing.compile:compile-testing
+        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
+    } else {
+        // Needed for Java19 for com.google.testing.compile:compile-testing
+        jvmArgs(
+            "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+        )
+    }
 }

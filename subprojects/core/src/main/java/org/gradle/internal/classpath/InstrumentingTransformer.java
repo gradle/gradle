@@ -21,37 +21,31 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
-import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.io.File;
 import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
-import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
+import static org.gradle.internal.classpath.CommonTypes.NO_EXCEPTIONS;
+import static org.gradle.internal.classpath.CommonTypes.STRING_TYPE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -66,22 +60,20 @@ import static org.objectweb.asm.Type.getType;
 
 class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
+    private final JvmBytecodeInterceptorSet externalInterceptors;
+
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 28;
+    private static final int DECORATION_FORMAT = 34;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
-    private static final Type STRING_TYPE = getType(String.class);
     private static final Type INTEGER_TYPE = getType(Integer.class);
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
-    private static final Type OBJECT_TYPE = getType(Object.class);
-    private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
     private static final Type BOOLEAN_TYPE = getType(Boolean.class);
     public static final Type PROPERTIES_TYPE = getType(Properties.class);
 
-    private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
@@ -99,15 +91,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_LONG_FROM_STRING_LONG_STRING = getMethodDescriptor(LONG_TYPE, STRING_TYPE, LONG_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
-    private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
-    private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
     private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
     private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
     private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
-    private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
     private static final String RETURN_MAP = getMethodDescriptor(getType(Map.class));
     private static final String RETURN_MAP_FROM_STRING = getMethodDescriptor(getType(Map.class), STRING_TYPE);
 
@@ -168,9 +157,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE);
     private static final String RETURN_PROCESS_FROM_LIST_LIST_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, LIST_TYPE, FILE_TYPE, STRING_TYPE);
 
-    private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
-    private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
-
     private static final String GROOVY_INDY_INTERFACE_TYPE = getType(IndyInterface.class).getInternalName();
 
     @SuppressWarnings("deprecation")
@@ -179,10 +165,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
-    private static final String DESERIALIZE_LAMBDA = "$deserializeLambda$";
-    private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
-
-    private static final String[] NO_EXCEPTIONS = new String[0];
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -190,51 +172,63 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         hasher.putInt(DECORATION_FORMAT);
     }
 
+    public InstrumentingTransformer() {
+        this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
+    }
+
+    /**
+     * This constructor can be used in tests with a set of call interceptors complemented by ones generated
+     * specifically for the tests.
+     */
+    public InstrumentingTransformer(JvmBytecodeInterceptorSet externalInterceptors) {
+        this.externalInterceptors = externalInterceptors;
+    }
+
     @Override
     public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), classData::readClassAsNode));
+        return Pair.of(entry.getPath(),
+            new InstrumentingVisitor(
+                new CallInterceptionClosureInstrumentingClassVisitor(
+                    new LambdaSerializationTransformer(
+                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
+                    )
+                ),
+                classData, externalInterceptors
+            )
+        );
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
-        private final Supplier<ClassNode> classAsNode;
-        private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
+        private final ClassData classData;
         private boolean hasGroovyCallSites;
-        private boolean hasDeserializeLambda;
-        private boolean isInterface;
+        private final JvmBytecodeInterceptorSet externalInterceptors;
 
-        public InstrumentingVisitor(ClassVisitor visitor, Supplier<ClassNode> classAsNode) {
+        public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(ASM_LEVEL, visitor);
-            this.classAsNode = classAsNode;
-        }
-
-        public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
-            lambdaFactories.add(lambdaFactoryDetails);
+            this.classData = classData;
+            this.externalInterceptors = externalInterceptors;
         }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             this.className = name;
-            this.isInterface = (access & ACC_INTERFACE) != 0;
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
-            } else if (name.equals(DESERIALIZE_LAMBDA) && descriptor.equals(RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {
-                hasDeserializeLambda = true;
-                return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
-                Optional<MethodNode> methodNode = classAsNode.get().methods.stream().filter(method ->
+                Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
                         Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors);
         }
 
         @Override
@@ -242,59 +236,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (hasGroovyCallSites) {
                 generateCallSiteFactoryMethod();
             }
-            if (!lambdaFactories.isEmpty() || hasDeserializeLambda) {
-                generateLambdaDeserializeMethod();
-            }
             super.visitEnd();
-        }
-
-        private void generateLambdaDeserializeMethod() {
-            new MethodVisitorScope(visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {{
-                Label next = null;
-                for (LambdaFactoryDetails factory : lambdaFactories) {
-                    if (next != null) {
-                        visitLabel(next);
-                        _F_SAME();
-                    }
-                    next = new Label();
-                    Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
-
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                    _LDC(implHandle.getName());
-                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                    _IFEQ(next);
-
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
-                    _LDC(implHandle.getDesc());
-                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                    _IFEQ(next);
-
-                    Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
-                    for (int i = 0; i < argumentTypes.length; i++) {
-                        _ALOAD(0);
-                        _LDC(i);
-                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                        _UNBOX(argumentTypes[i]);
-                    }
-                    _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
-                    _ARETURN();
-                }
-                if (next != null) {
-                    visitLabel(next);
-                    _F_SAME();
-                }
-                if (hasDeserializeLambda) {
-                    _ALOAD(0);
-                    _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
-                } else {
-                    _ACONST_NULL();
-                }
-                _ARETURN();
-                visitMaxs(0, 0);
-                visitEnd();
-            }};
         }
 
         private void generateCallSiteFactoryMethod() {
@@ -317,22 +259,14 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
+        private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
 
-        private final JvmBytecodeCallInterceptor generatedInterceptor;
-
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
-
-            try {
-                generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-                        .getConstructor(MethodVisitor.class)
-                        .newInstance(methodVisitor);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
         }
 
         @Override
@@ -347,8 +281,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
 
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
-                return;
+            for (JvmBytecodeCallInterceptor generatedInterceptor : externalInterceptors) {
+                if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                    return;
+                }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
@@ -530,20 +466,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
-                Handle altMethod = new Handle(
-                    H_INVOKESTATIC,
-                    LAMBDA_METAFACTORY_TYPE,
-                    "altMetafactory",
-                    LAMBDA_METAFACTORY_METHOD_DESCRIPTOR,
-                    false
-                );
-                List<Object> args = new ArrayList<>(bootstrapMethodArguments.length + 1);
-                Collections.addAll(args, bootstrapMethodArguments);
-                args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
-                super.visitInvokeDynamicInsn(name, descriptor, altMethod, args.toArray());
-                owner.addSerializedLambda(new LambdaFactoryDetails(name, descriptor, altMethod, args));
-            } else if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
+            if (isGroovyIndyCallsite(bootstrapMethodHandle)) {
                 Handle interceptor = new Handle(
                     H_INVOKESTATIC,
                     INSTRUMENTED_TYPE.getInternalName(),
@@ -566,20 +489,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
                 bootstrapMethodHandle.getName().equals("bootstrap") &&
                 bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
-        }
-    }
-
-    private static class LambdaFactoryDetails {
-        final String name;
-        final String descriptor;
-        final Handle bootstrapMethodHandle;
-        final List<?> bootstrapMethodArguments;
-
-        public LambdaFactoryDetails(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
-            this.name = name;
-            this.descriptor = descriptor;
-            this.bootstrapMethodHandle = bootstrapMethodHandle;
-            this.bootstrapMethodArguments = bootstrapMethodArguments;
         }
     }
 }

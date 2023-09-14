@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -45,8 +47,8 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
-import org.junit.Assume
 import org.junit.Rule
+import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -71,9 +73,14 @@ abstract class AbstractIntegrationSpec extends Specification {
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private TestFile testDirOverride = null
 
+    protected DocumentationRegistry documentationRegistry = new DocumentationRegistry()
+
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
     private boolean ignoreCleanupAssertions
+
+    private boolean enableProblemsApiCheck = false
+    private BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
         if (executor == null) {
@@ -101,7 +108,8 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
 
-    @Lazy private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+    @Lazy
+    private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
@@ -117,6 +125,9 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     def cleanup() {
+        buildOperationsFixture = null
+        disableProblemsApiCheck()
+
         executer.cleanup()
         m2.cleanupState()
 
@@ -397,11 +408,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         this
     }
 
-    AbstractIntegrationSpec withBuildCacheNg() {
-        executer.withBuildCacheNgEnabled()
-        this
-    }
-
     /**
      * Synonym for succeeds()
      */
@@ -460,6 +466,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected ExecutionFailure fails(String... tasks) {
         failure = executer.withTasks(*tasks).runWithFailure()
+
+        if (enableProblemsApiCheck && buildOperationsFixture.problems().isEmpty()) {
+            throw new AssertionFailedError("Expected to receive a problem event accompanying the build failure but did not.")
+        }
+
         return failure
     }
 
@@ -707,6 +718,26 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     void assumeGroovy4() {
         Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+    }
+
+    def enableProblemsApiCheck() {
+        enableProblemsApiCheck = true
+        buildOperationsFixture = new BuildOperationsFixture(executer, temporaryFolder)
+    }
+
+    def disableProblemsApiCheck() {
+        enableProblemsApiCheck = false
+    }
+
+    List<Map<String, Object>> getCollectedProblems() {
+        if (!enableProblemsApiCheck) {
+            throw new IllegalStateException('Problems API check is not enabled')
+        }
+        return buildOperationsFixture.all().collectMany {
+            it.progress(DefaultProblemProgressDetails.class)
+        }.collect {
+            it.details["problem"]
+        }
     }
 
     /**

@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
-import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
+import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -36,7 +36,7 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
-    def transforms = Stub(ArtifactTransforms)
+    def transforms = Stub(VariantSelectorFactory)
     def transientConfigurationResults = Mock(TransientConfigurationResults)
     def resultsLoader = Mock(TransientConfigurationResultsLoader)
     def artifactsResults = Stub(VisitedArtifactsResults)
@@ -119,7 +119,7 @@ class DefaultLenientConfigurationTest extends Specification {
     }
 
     private DefaultLenientConfiguration newConfiguration() {
-        new DefaultLenientConfiguration(configuration, false, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
+        new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

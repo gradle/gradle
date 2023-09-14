@@ -19,6 +19,12 @@ package org.gradle.integtests.resolve.resource.sftp.ivy
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
     void "resolve missing dependencies from a SFTP Ivy repository"() {
@@ -53,9 +59,14 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
             .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
   - ${module.ivy.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("ivy.xml"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
     }
 
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {

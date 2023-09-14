@@ -61,7 +61,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
                 compileOnly "org.apache.commons:commons-lang3:3.12.0"
 
                 api "org.springframework:spring-core:5.3.22"
-                compileOnlyApi "com.google.guava:guava:31.1-jre"
+                compileOnlyApi "com.google.guava:guava:32.1.2-jre"
             }
         """
         writeBaseBuildFile()

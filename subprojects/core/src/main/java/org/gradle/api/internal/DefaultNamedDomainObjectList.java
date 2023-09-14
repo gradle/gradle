@@ -20,7 +20,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.internal.collections.FilteredList;
+import org.gradle.api.internal.collections.FilteredIndexedElementSource;
 import org.gradle.api.internal.collections.IndexedElementSource;
 import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
@@ -130,7 +130,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredList<T, S>(elementSource, filter);
+        return new FilteredIndexedElementSource<T, S>(elementSource, filter);
     }
 
     @Override

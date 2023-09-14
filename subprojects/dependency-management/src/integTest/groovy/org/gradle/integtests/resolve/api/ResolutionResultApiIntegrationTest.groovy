@@ -19,6 +19,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -31,6 +32,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
     The ResolutionResult API is also covered by the dependency report integration tests.
      */
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "selection reasons are described"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -83,6 +85,7 @@ baz:1.0 requested
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict"() {
         given:
         mavenRepo.with {
@@ -138,6 +141,7 @@ baz:1.0 requested
         run "checkDeps"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
         given:
         mavenRepo.with {
@@ -226,6 +230,7 @@ baz:1.0 requested
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -289,6 +294,7 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -344,6 +350,7 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     void "expired cache entry doesn't break reading from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -409,9 +416,9 @@ baz:1.0 requested
 
         then:
         noExceptionThrown()
-
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "each dependency is associated to its resolved variant"() {
         mavenRepo.module("org", "dep", "1.0").publish()
         mavenRepo.module("com", "foo", "1.0").publish()
@@ -449,8 +456,6 @@ baz:1.0 requested
                 testImplementation(testFixtures(project(":tool")))
                 testImplementation(testFixtures(project(":tool"))) // intentional duplication
             }
-
-
         """
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
 
@@ -480,6 +485,7 @@ testCompileClasspath
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
         settingsFile << "include 'platform'"
         buildFile << """
@@ -506,9 +512,9 @@ testCompileClasspath
 
         expect:
         succeeds 'checkDependencyAttributes'
-
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports duplicated dependencies in all variants"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -578,6 +584,7 @@ testRuntimeClasspath
 """)
     }
 
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -630,6 +637,7 @@ testRuntimeClasspath
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")
+    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolved variant of a selected node shouldn't be null"() {
         buildFile << """
         apply plugin: 'java-library'
@@ -729,5 +737,67 @@ testRuntimeClasspath
                 }
             }
 """
+    }
+
+    def "resolution result does not realize artifact tasks"() {
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+
+            def fooTask = tasks.register("foo", Zip) {
+                throw new RuntimeException("Realized artifact task")
+            }
+
+            configurations {
+                consumable("conf") {
+                    outgoing {
+                        artifact(fooTask)
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                conf project(":producer")
+            }
+
+            task resolve {
+                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
+                doLast {
+                    def root = rootComponent.get()
+                    assert root.dependencies.size() == 1
+                    def producer = root.dependencies[0].selected
+                    assert producer.variants.first().displayName == "conf"
+                }
+            }
+
+            task selectArtifacts {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+        and:
+        fails("selectArtifacts")
+        failure.assertHasCause("Realized artifact task")
     }
 }

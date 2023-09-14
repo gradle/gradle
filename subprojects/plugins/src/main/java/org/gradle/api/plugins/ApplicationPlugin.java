@@ -31,6 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
@@ -41,7 +42,6 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -74,17 +74,17 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
         JavaApplication extension = addExtension(project);
-        addRunTask(project, component, extension);
-        addCreateScriptsTask(project, component, extension);
-        configureJavaCompileTask(component.getMainCompileJavaTask(), extension);
+        addRunTask(project, mainFeature, extension);
+        addCreateScriptsTask(project, mainFeature, extension);
+        configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
         configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
-        configureDistribution(project, component, mainDistribution, extension);
+        configureDistribution(project, mainFeature, mainDistribution, extension);
     }
 
     private void configureJavaCompileTask(TaskProvider<JavaCompile> javaCompile, JavaApplication pluginExtension) {
@@ -136,21 +136,21 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
     private JavaApplication addExtension(Project project) {
         ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
-        pluginConvention.setApplicationName(project.getName());
+        DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
-    private void addRunTask(Project project, JvmSoftwareComponentInternal component, JavaApplication pluginExtension) {
+    private void addRunTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_RUN_NAME, JavaExec.class, run -> {
             run.setDescription("Runs this project as a JVM application");
             run.setGroup(APPLICATION_GROUP);
 
             FileCollection runtimeClasspath = project.files().from((Callable<FileCollection>) () -> {
                 if (run.getMainModule().isPresent()) {
-                    return jarsOnlyRuntimeClasspath(component);
+                    return jarsOnlyRuntimeClasspath(mainFeature);
                 } else {
-                    return runtimeClasspath(component);
+                    return runtimeClasspath(mainFeature);
                 }
             });
             run.setClasspath(runtimeClasspath);
@@ -179,10 +179,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    private void addCreateScriptsTask(Project project, JvmSoftwareComponentInternal component, JavaApplication pluginExtension) {
+    private void addCreateScriptsTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-            startScripts.setClasspath(jarsOnlyRuntimeClasspath(component));
+            startScripts.setClasspath(jarsOnlyRuntimeClasspath(mainFeature));
 
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
@@ -200,31 +200,31 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         });
     }
 
-    private FileCollection runtimeClasspath(JvmSoftwareComponentInternal component) {
-        return component.getSourceSet().getRuntimeClasspath();
+    private FileCollection runtimeClasspath(JvmFeatureInternal mainFeature) {
+        return mainFeature.getSourceSet().getRuntimeClasspath();
     }
 
-    private FileCollection jarsOnlyRuntimeClasspath(JvmSoftwareComponentInternal component) {
-        return component.getMainJarTask().get().getOutputs().getFiles().plus(component.getRuntimeClasspathConfiguration());
+    private FileCollection jarsOnlyRuntimeClasspath(JvmFeatureInternal mainFeature) {
+        return mainFeature.getJarTask().get().getOutputs().getFiles().plus(mainFeature.getRuntimeClasspathConfiguration());
     }
 
-    private CopySpec configureDistribution(Project project, JvmSoftwareComponentInternal component, Distribution mainDistribution, JavaApplication pluginExtension) {
+    private CopySpec configureDistribution(Project project, JvmFeatureInternal mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
         mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
         CopySpec distSpec = mainDistribution.getContents();
 
-        TaskProvider<Jar> jar = component.getMainJarTask();
+        TaskProvider<Jar> jar = mainFeature.getJarTask();
         TaskProvider<Task> startScripts = project.getTasks().named(TASK_START_SCRIPTS_NAME);
 
         CopySpec libChildSpec = project.copySpec();
         libChildSpec.into("lib");
         libChildSpec.from(jar);
-        libChildSpec.from(component.getRuntimeClasspathConfiguration());
+        libChildSpec.from(mainFeature.getRuntimeClasspathConfiguration());
 
         CopySpec binChildSpec = project.copySpec();
 
         binChildSpec.into((Callable<Object>) pluginExtension::getExecutableDir);
         binChildSpec.from(startScripts);
-        binChildSpec.setFileMode(0755);
+        binChildSpec.filePermissions(permissions -> permissions.unix("rwxr-xr-x"));
 
         CopySpec childSpec = project.copySpec();
         childSpec.from(project.file("src/dist"));

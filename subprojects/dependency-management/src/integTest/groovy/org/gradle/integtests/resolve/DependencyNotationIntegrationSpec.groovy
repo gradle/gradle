@@ -83,6 +83,7 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands project notations"() {
         when:
         settingsFile << "include 'otherProject'"
@@ -120,6 +121,7 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands client module notation with dependencies"() {
         when:
         buildFile <<  """
@@ -214,6 +216,7 @@ task checkDeps
         failure.assertThatCause(CoreMatchers.startsWith("Cannot convert a null value to an object of type Dependency"))
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     @Issue("https://issues.gradle.org/browse/GRADLE-3271")
     def "gradleApi dependency implements contentEquals"() {
         when:
@@ -240,6 +243,7 @@ task checkDeps
         succeeds "check"
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "dependencies block supports provider dependencies"() {
         when:
         buildFile << """

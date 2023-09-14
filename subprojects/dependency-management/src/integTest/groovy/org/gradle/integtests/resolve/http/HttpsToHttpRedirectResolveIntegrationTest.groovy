@@ -54,12 +54,9 @@ class HttpsToHttpRedirectResolveIntegrationTest extends AbstractRedirectResolveI
         server.forbidGet('/repo/group/projectA/1.0/projectA-1.0.jar')
 
         then:
-        def failure = fails('listJars')
-        failure.assertHasCause(
-            "Redirecting from secure protocol to insecure protocol, without explict opt-in, is unsupported. " +
-                "'$frontServerBaseUrl/repo' is redirecting to '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'. " +
-                "Switch Ivy repository 'ivy($frontServerBaseUrl/repo)' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. " +
-                Documentation.dslReference(UrlArtifactRepository, "allowInsecureProtocol").consultDocumentationMessage()
-        )
+        fails('listJars')
+            .assertHasCause("Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported. '$frontServerBaseUrl/repo' is redirecting to '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'.")
+            .assertHasResolution("Switch Ivy repository 'ivy($frontServerBaseUrl/repo)' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
+            .assertHasResolution(Documentation.dslReference(UrlArtifactRepository, "allowInsecureProtocol").getConsultDocumentationMessage())
     }
 }

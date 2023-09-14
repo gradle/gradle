@@ -24,6 +24,12 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenSnapshotResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -996,9 +1002,14 @@ task retrieve(type: Sync) {
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
   - ${projectA.pom.uri}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
@@ -1092,7 +1103,7 @@ dependencies {
 configurations {
     poms {
         extendsFrom(configurations.compile)
-        canBeResolved = true
+        assert canBeResolved
         canBeConsumed = false
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.DOCUMENTATION))

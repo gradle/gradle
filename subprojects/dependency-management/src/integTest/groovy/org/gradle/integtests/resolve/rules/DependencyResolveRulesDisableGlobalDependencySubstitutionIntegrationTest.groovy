@@ -52,7 +52,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
                 }
                 configurations.create('runtime') {
                     extendsFrom(conf)
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
@@ -61,13 +61,13 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
                 configurations.create('localPath') {
                     extendsFrom(configurations.conf)
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
                 configurations.create('publishedPath') {
                     extendsFrom(configurations.conf)
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
@@ -97,10 +97,12 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         resolve.expectGraph {
             root(":m1", "org.test:m1:0.9") {
                 edge("org.test:m2:1.0", ":m2", "org.test:m2:0.9") {
+                    compositeSubstitute()
+                    noArtifacts()
                     edge("org.test:m3:1.0", ":m3", "org.test:m3:0.9") {
+                        compositeSubstitute()
                         noArtifacts()
                     }
-                    noArtifacts()
                 }
             }
         }

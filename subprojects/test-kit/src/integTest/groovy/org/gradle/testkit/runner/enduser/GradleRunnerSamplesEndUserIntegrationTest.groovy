@@ -19,21 +19,20 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
-import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.IgnoreIf
-
-import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
-import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
-@IgnoreIf({ GradleContextualExecuter.embedded })
-// These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution
+@Requires(
+    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    reason = NOT_EMBEDDED_REASON
+)
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
@@ -87,7 +86,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires([ONLINE, JDK11_OR_EARLIER])
+    @Requires([UnitTestPreconditions.Online, UnitTestPreconditions.Jdk11OrEarlier])
     // Uses Gradle 5.0 which does not support Java versions >11
     @UsesSample("testKit/gradleVersion")
     def gradleVersion() {

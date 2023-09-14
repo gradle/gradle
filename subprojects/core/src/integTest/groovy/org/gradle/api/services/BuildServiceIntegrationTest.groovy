@@ -37,12 +37,12 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.inject.Inject
@@ -749,7 +749,7 @@ service: closed with value 12
         outputContains("service: closed with value 12")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -796,7 +796,7 @@ service: closed with value 12
         outputContains("service: closed with value 11")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.configCache }) // already covers CC behavior
+    @Requires(IntegTestPreconditions.NotConfigCached) // already covers CC behavior
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -1481,6 +1481,10 @@ Hello, subproject1
             }
 
             abstract class NestedBean {
+                @Input
+                String getProperty() {
+                    "some-property";
+                }
             }
 
             abstract class Greeter extends DefaultTask {

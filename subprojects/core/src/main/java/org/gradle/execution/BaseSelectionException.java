@@ -38,6 +38,6 @@ abstract class BaseSelectionException extends InvalidUserDataException implement
             context.getClientMetaData().describeCommand(output.withStyle(UserInput), taskName);
             output.text(" to get a list of available " + targetName + ".");
         });
-        context.appendDocumentationResolution("To learn more about name expansion, visit", "command_line_interface", "sec:name_abbreviation");
+        context.appendDocumentationResolution("on name expansion", "command_line_interface", "sec:name_abbreviation");
     }
 }

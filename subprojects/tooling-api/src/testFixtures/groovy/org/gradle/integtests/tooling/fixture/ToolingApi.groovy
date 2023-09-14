@@ -15,16 +15,20 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.LongRunningOperation
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
@@ -53,8 +57,12 @@ class ToolingApi implements TestRule {
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
+    private final OutputStream stdout
+    private final OutputStream stderr
 
-    ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider) {
+    ToolingApi(GradleDistribution dist, TestDirectoryProvider testWorkDirProvider, OutputStream stdout = System.out, OutputStream stderr = System.err) {
+        this.stderr = stderr
+        this.stdout = stdout
         this.dist = dist
         this.useSeparateDaemonBaseDir = DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
         this.gradleUserHomeDir = context.gradleUserHomeDir
@@ -127,17 +135,44 @@ class ToolingApi implements TestRule {
         return DaemonLogsAnalyzer.newAnalyzer(getDaemonBaseDir(), dist.version.version)
     }
 
-    void withConnector(Closure cl) {
+    void withConnector(@DelegatesTo(GradleConnector) Closure cl) {
         connectorConfigurers << cl
     }
 
-    def <T> T withConnection(Closure<T> cl) {
-        GradleConnector connector = connector()
+    def <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
+        def connector = connector()
         withConnection(connector, cl)
     }
 
-    def <T> T withConnection(GradleConnector connector, Closure<T> cl) {
+    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
         return withConnectionRaw(connector, cl)
+    }
+
+    def <T> T loadToolingLeanModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
+        withConnection {
+            def builder = it.model(modelClass)
+            builder.tap(configurator)
+            collectOutputs(builder)
+            builder.get()
+        }
+    }
+
+    def <T> T loadValidatedToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure configurator = {}) {
+        def result = loadToolingLeanModel(modelClass, configurator)
+        validateOutput()
+        result
+    }
+
+    void collectOutputs(LongRunningOperation op) {
+        op.setStandardOutput(new TeeOutputStream(stdout, System.out))
+        op.setStandardError(new TeeOutputStream(stderr, System.err))
+    }
+
+    def validateOutput() {
+        def assertion = new ResultAssertion(0, [], false, true, true)
+        assertion.validate(stdout.toString(), "stdout")
+        assertion.validate(stderr.toString(), "stderr")
+        true
     }
 
     private validate(Throwable throwable) {
@@ -159,27 +194,20 @@ class ToolingApi implements TestRule {
         assert throwableStack.endsWith(currentThreadStackStr)
     }
 
-    private <T> T withConnectionRaw(GradleConnector connector, Closure<T> cl) {
-        ProjectConnection connection = connector.connect()
-        try {
+    private <T> T withConnectionRaw(connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+        try (def connection = connector.connect()) {
             return connection.with(cl)
         } catch (Throwable t) {
             validate(t)
             throw t
-        } finally {
-            connection.close()
         }
     }
 
-    GradleConnector connector(projectDir = testWorkDirProvider.testDirectory) {
-        DefaultGradleConnector connector
-        if (isolatedToolingClient != null) {
-            connector = isolatedToolingClient.getFactory(DefaultGradleConnector).create()
-        } else {
-            connector = GradleConnector.newConnector() as DefaultGradleConnector
-        }
+    ToolingApiConnector connector(projectDir = testWorkDirProvider.testDirectory) {
+        DefaultGradleConnector connector = createConnector()
 
         connector.forProjectDirectory(projectDir)
+
         if (embedded) {
             connector.useClasspathDistribution()
         } else {
@@ -187,7 +215,6 @@ class ToolingApi implements TestRule {
         }
         connector.embedded(embedded)
 
-//        this.
         if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {
             connector.searchUpwards(false)
         } else {
@@ -195,7 +222,7 @@ class ToolingApi implements TestRule {
             if (projectDir.name != "buildSrc") {
                 def settingsFile = projectDir.file('settings.gradle')
                 def settingsFileKts = projectDir.file('settings.gradle.kts')
-                assert (settingsFile.exists() || settingsFileKts.exists()) : "the build must have a settings file"
+                assert (settingsFile.exists() || settingsFileKts.exists()): "the build must have a settings file"
             }
         }
         if (useSeparateDaemonBaseDir) {
@@ -210,11 +237,9 @@ class ToolingApi implements TestRule {
             // When using an isolated user home, first initialise the Gradle instance using the default user home dir
             // This sets some static state that uses files from the user home dir, such as DLLs
             connector.useGradleUserHomeDir(new File(context.gradleUserHomeDir.path))
-            def connection = connector.connect()
-            try {
+
+            try (def connection = connector.connect()) {
                 connection.getModel(BuildEnvironment.class)
-            } finally {
-                connection.close()
             }
         }
 
@@ -224,16 +249,21 @@ class ToolingApi implements TestRule {
         connectorConfigurers.each {
             connector.with(it)
         }
-        return connector
+
+        return new ToolingApiConnector(connector, stdout, stderr)
+    }
+
+    private createConnector() {
+        if (isolatedToolingClient != null) {
+            return isolatedToolingClient.getFactory(DefaultGradleConnector).create()
+        }
+        return GradleConnector.newConnector() as DefaultGradleConnector
     }
 
     private void isolateFromGradleOwnBuild(DefaultGradleConnector connector) {
         // override the `user.dir` property in order to isolate tests from the Gradle directory
-        def connection = connector.connect()
-        try {
+        try (def connection = connector.connect()) {
             connection.action(new SetWorkingDirectoryAction(testWorkDirProvider.testDirectory.absolutePath))
-        } finally {
-            connection.close()
         }
     }
 

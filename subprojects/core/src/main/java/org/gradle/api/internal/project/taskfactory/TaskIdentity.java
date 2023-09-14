@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 @UsedByScanPlugin
 public final class TaskIdentity<T extends Task> {
-
-    private static final AtomicLong SEQUENCE = new AtomicLong();
 
     public final Class<T> type;
     public final String name;
@@ -41,7 +35,6 @@ public final class TaskIdentity<T extends Task> {
      */
     public final long uniqueId;
 
-    @VisibleForTesting
     TaskIdentity(Class<T> type, String name, Path projectPath, Path identityPath, Path buildPath, long uniqueId) {
         this.name = name;
         this.projectPath = projectPath;
@@ -49,40 +42,6 @@ public final class TaskIdentity<T extends Task> {
         this.buildPath = buildPath;
         this.type = type;
         this.uniqueId = uniqueId;
-    }
-
-    /**
-     * Create a task identity.
-     */
-    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return doCreate(
-            name,
-            type,
-            project,
-            SEQUENCE.getAndIncrement()
-        );
-    }
-
-    /**
-     * Create a task identity.
-     * <p>
-     * Should only be used when loading from the configuration cache to preserve task ids.
-     */
-    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        // Increment the sequence so later assigned task ids don't clash with the one manually assigned.
-        SEQUENCE.getAndAccumulate(uniqueId, (current, givenId) -> current > givenId ? current : givenId + 1);
-        return doCreate(name, type, project, uniqueId);
-    }
-
-    public static <T extends Task> TaskIdentity<T> doCreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        return new TaskIdentity<>(
-            type,
-            name,
-            project.projectPath(name),
-            project.identityPath(name),
-            project.getGradle().getIdentityPath(),
-            uniqueId
-        );
     }
 
     public long getId() {

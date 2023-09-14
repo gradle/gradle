@@ -30,8 +30,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -40,23 +38,22 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -77,12 +74,13 @@ import java.util.stream.Collectors;
  */
 public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
-    private final Long resultId;
+    private final Long nodeId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
     private final List<EdgeState> outgoingEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
+    private final VariantGraphResolveState variantState;
     private final VariantGraphResolveMetadata metadata;
     private final ResolveState resolveState;
     private final ModuleExclusions moduleExclusions;
@@ -120,7 +118,6 @@ public class NodeState implements DependencyGraphNode {
     private long previousIncomingHash;
     private long incomingHash;
     private ExcludeSpec cachedModuleResolutionFilter;
-    private ResolvedVariantResult cachedVariantResult;
 
     private StrictVersionConstraints ancestorsStrictVersionConstraints;
     private StrictVersionConstraints ownStrictVersionConstraints;
@@ -129,16 +126,17 @@ public class NodeState implements DependencyGraphNode {
     private boolean findingExternalVariants;
 
     @VisibleForTesting // just for testing purposes
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
-        this(resultId, id, component, null, md, selectedByVariantAwareResolution);
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        this(resultId, id, component, null, variant, selectedByVariantAwareResolution);
     }
 
-    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
-        this.resultId = resultId;
+    public NodeState(long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
+        this.nodeId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
-        this.metadata = md;
+        this.variantState = variant;
+        this.metadata = variant.getMetadata();
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
@@ -168,7 +166,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Long getNodeId() {
-        return resultId;
+        return nodeId;
     }
 
     @Override
@@ -199,6 +197,11 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public VariantGraphResolveMetadata getMetadata() {
         return metadata;
+    }
+
+    @Override
+    public VariantGraphResolveState getResolveState() {
+        return variantState;
     }
 
     @Override
@@ -602,8 +605,8 @@ public class NodeState implements DependencyGraphNode {
         }
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setState(state);
+            state = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            potentialEdge.component.setState(state, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
         }
@@ -1249,29 +1252,9 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    ImmutableAttributes desugar(ImmutableAttributes attributes) {
-        return resolveState.desugar(attributes);
-    }
-
-    public ResolvedVariantResult getResolvedVariant() {
-        if (cachedVariantResult != null) {
-            return cachedVariantResult;
-        }
-        DisplayName name = Describables.of(metadata.getName());
-        List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
-        AttributeContainer attributes = desugar(metadata.getAttributes());
-        List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
-        cachedVariantResult = new DefaultResolvedVariantResult(
-            component.getComponentId(),
-            name,
-            attributes,
-            resolvedVariantCapabilities,
-            findExternalVariant());
-        return cachedVariantResult;
-    }
-
     @Nullable
-    private ResolvedVariantResult findExternalVariant() {
+    @Override
+    public ResolvedGraphVariant getExternalVariant() {
         if (canIgnoreExternalVariant()) {
             return null;
         }
@@ -1290,7 +1273,7 @@ public class NodeState implements DependencyGraphNode {
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 //noinspection ConstantConditions
-                return outgoingEdge.getSelectedVariant();
+                return outgoingEdge.getSelectedNode();
             }
             return null;
         } finally {

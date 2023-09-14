@@ -23,8 +23,10 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.keystore.TestKeyStore
 
 class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
+    public static final String NOT_EMBEDDED_REASON = "wrapperExecuter requires a real distribution"
     void installationIn(TestFile userHomeDir) {
         def distDir = userHomeDir.file("wrapper/dists/${FilenameUtils.getBaseName(distribution.binDistribution.absolutePath)}").assertIsDir()
         assert distDir.listFiles().length == 1
@@ -37,12 +39,17 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString()).run()
     }
 
-    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), String trustStore, String trustStorePassword) {
+    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
         def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
-        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString(),
-            "-Djavax.net.ssl.trustStore=$trustStore",
-            "-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
-            .run()
+        executer.withArguments(
+            "wrapper",
+            "--gradle-distribution-url",
+            distributionUri.toString(),
+        )
+        keyStore.trustStoreArguments.each {
+            executer.withArgument(it)
+        }
+        executer.run()
     }
 
     GradleExecuter getWrapperExecuter() {

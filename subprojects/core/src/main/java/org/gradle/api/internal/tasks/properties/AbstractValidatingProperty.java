@@ -17,15 +17,17 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
+
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private final String propertyName;
@@ -42,14 +44,15 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     public static void reportValueNotSet(String propertyName, TypeValidationContext context) {
         context.visitPropertyProblem(problem -> {
-            problem.withId(ValidationProblemId.VALUE_NOT_SET)
-                .reportAs(Severity.ERROR)
-                .forProperty(propertyName)
-                .withDescription("doesn't have a configured value")
-                .happensBecause("This property isn't marked as optional and no value has been configured")
-                .addPossibleSolution(() -> "Assign a value to '" + propertyName + "'")
-                .addPossibleSolution(() -> "Mark property '" + propertyName + "' as optional")
-                .documentedAt("validation_problems", "value_not_set");
+            problem.forProperty(propertyName)
+                .label("doesn't have a configured value")
+                .documentedAt(userManual("validation_problems", "value_not_set"))
+                .noLocation()
+                .type(ValidationProblemId.VALUE_NOT_SET.name())
+                .severity(Severity.ERROR)
+                .details("This property isn't marked as optional and no value has been configured")
+                .solution("Assign a value to '" + propertyName + "'")
+                .solution("Mark property '" + propertyName + "' as optional");
         });
     }
 

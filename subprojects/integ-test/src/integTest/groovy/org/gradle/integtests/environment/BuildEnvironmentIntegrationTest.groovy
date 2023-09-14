@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
@@ -39,7 +39,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Requires(TestPrecondition.CASE_INSENSITIVE_FS)
+    @Requires(UnitTestPreconditions.CaseInsensitiveFs)
     def "canonicalizes working directory on case insensitive file system"() {
         testProject()
 
@@ -51,7 +51,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "canonicalizes working directory for short windows path"() {
         testProject()
 
@@ -86,7 +86,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         out.contains("and will be even better")
     }
 
-    @Requires(TestPrecondition.WORKING_DIR)
+    @Requires(UnitTestPreconditions.WorkingDir)
     def "build is executed with working directory set to where the build was launched from"() {
         def project1 = file("project1")
         def project2 = file("project2")
@@ -155,7 +155,7 @@ assert classesDir.directory
         outputContains("prop2=other-value")
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 
@@ -180,7 +180,7 @@ assert classesDir.directory
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "java home from gradle properties should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 

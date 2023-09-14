@@ -64,7 +64,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -92,7 +94,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -132,7 +136,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -178,7 +184,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     module("group:moduleC:1.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -298,7 +306,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -327,7 +337,9 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     constraint("group:moduleA:2.0", "group:moduleA:2.0")
                     noArtifacts()
                 }
-                edge("group:moduleA", "group:moduleA:2.0")
+                edge("group:moduleA", "group:moduleA:2.0") {
+                    byConstraint()
+                }
             }
         }
     }

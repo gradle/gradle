@@ -17,11 +17,19 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
     @LeaksFileHandles("Puts gradle user home in integration test dir")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
         def module = mavenRepo().module("org.gradle", "test", "1.45")
@@ -87,7 +95,13 @@ rootProject.name = 'testproject'
 """
         expect:
         fails "help"
-        failureHasCause("Conflict(s) found for the following module(s):")
+        failureHasCause("Conflict found for the following module:")
+        failure.assertHasResolutions("Run with :dependencyInsight --configuration classpath " +
+            "--dependency org.gradle:test to get more insight on how to solve the conflict.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
     }
 
     @Issue("gradle/gradle#19300")
@@ -158,5 +172,45 @@ rootProject.name = 'testproject'
         expect:
         succeeds 'buildEnvironment'
         outputContains('org.apache.logging.log4j:log4j-core:{require 2.17.1; reject [2.0, 2.17.1)} -> 3.1.0 (c)')
+    }
+
+    def "can use configuration closure in buildscript block"() {
+        buildFile << """
+            buildscript {
+                configurations {
+                    foo {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "bar"))
+                        }
+                    }
+                }
+                assert configurations.foo.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == "bar"
+            }
+
+            assert configurations.empty
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "can use configuration closure in buildscript block in Kotlin DSL"() {
+        buildKotlinFile << """
+            buildscript {
+                configurations {
+                    create("foo") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("bar"))
+                        }
+                    }
+                }
+                assert(configurations.named("foo").get().attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == "bar")
+            }
+
+            assert(configurations.isEmpty())
+        """
+
+        expect:
+        succeeds "help"
     }
 }

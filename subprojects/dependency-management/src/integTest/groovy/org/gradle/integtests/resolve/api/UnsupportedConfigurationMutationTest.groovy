@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
@@ -124,6 +125,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "does not allow changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
@@ -209,6 +211,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot change dependencies of dependency configuration ':api:compile' after it has been included in dependency resolution.")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "does not allow changing artifacts of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
@@ -430,6 +433,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3297")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "using offline flag does not emit deprecation warning when child configuration is explicitly resolved"() {
         def repo = new MavenFileRepository(file("repo"))
         repo.module('org.test', 'moduleA', '1.0').publish()
@@ -488,7 +492,7 @@ task resolveChildFirst {
         role                      | code
         'consume or publish only' | 'configurations.a.canBeResolved = false'
         'query or resolve only'   | 'configurations.a.canBeConsumed = false'
-        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
+        'dependency scope'        | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
 
     }
 }

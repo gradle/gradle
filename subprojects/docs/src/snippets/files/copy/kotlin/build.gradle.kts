@@ -12,13 +12,6 @@ tasks.register<Copy>("copyReport") {
 }
 // end::copy-single-file-example[]
 
-// tag::copy-single-file-example-without-file-method[]
-tasks.register<Copy>("copyReport2") {
-    from("$buildDir/reports/my-report.pdf")
-    into("$buildDir/toArchive")
-}
-// end::copy-single-file-example-without-file-method[]
-
 abstract class MyReportTask : DefaultTask() {
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
@@ -30,7 +23,7 @@ abstract class MyReportTask : DefaultTask() {
 }
 
 val myReportTask by tasks.registering(MyReportTask::class) {
-    outputFile.set(file("$buildDir/reports/my-report.pdf"))
+    outputFile = layout.buildDirectory.file("reports/my-report.pdf")
 }
 
 abstract class MyArchiveTask : DefaultTask() {
@@ -39,13 +32,13 @@ abstract class MyArchiveTask : DefaultTask() {
 }
 
 val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
-    dirToArchive.set(file("$buildDir/toArchive"))
+    dirToArchive = layout.buildDirectory.dir("toArchive")
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-tasks.register<Copy>("copyReport3") {
-    from(myReportTask.get().outputFile)
-    into(archiveReportsTask.get().dirToArchive)
+tasks.register<Copy>("copyReport2") {
+    from(myReportTask.flatMap { it.outputFile })
+    into(archiveReportsTask.flatMap { it.dirToArchive })
 }
 // end::copy-single-file-example-with-task-properties[]
 
@@ -91,8 +84,8 @@ tasks.register<Copy>("copyReportsDirForArchiving2") {
 
 // tag::create-archive-example[]
 tasks.register<Zip>("packageDistribution") {
-    archiveFileName.set("my-distribution.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+    archiveFileName = "my-distribution.zip"
+    destinationDirectory = layout.buildDirectory.dir("dist")
 
     from(layout.buildDirectory.dir("toArchive"))
 }
@@ -237,6 +230,23 @@ tasks.register<Copy>("filter") {
 }
 // end::filter-files[]
 
+// tag::file-permissions[]
+tasks.register<Copy>("permissions") {
+    from("src/main/webapp")
+    into(layout.buildDirectory.dir("explodedWar"))
+    filePermissions {
+        user {
+            read = true
+            execute = true
+        }
+        other.execute = false
+    }
+    dirPermissions {
+        unix("r-xr-x---")
+    }
+}
+// end::file-permissions[]
+
 tasks.register("test") {
     dependsOn(tasks.withType<Copy>())
     dependsOn(tasks["copyMethod"])
@@ -258,8 +268,8 @@ tasks.register<Copy>("copyAssets") {
 }
 
 tasks.register<Zip>("distApp") {
-    archiveFileName.set("my-app-dist.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dists"))
+    archiveFileName = "my-app-dist.zip"
+    destinationDirectory = layout.buildDirectory.dir("dists")
 
     from(appClasses)
     with(webAssetsSpec)
@@ -277,8 +287,8 @@ tasks.register<Copy>("copyAppAssets") {
 }
 
 tasks.register<Zip>("archiveDistAssets") {
-    archiveFileName.set("distribution-assets.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dists"))
+    archiveFileName = "distribution-assets.zip"
+    destinationDirectory = layout.buildDirectory.dir("dists")
 
     from("distResources", webAssetPatterns)
 }

@@ -17,21 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
 class DefaultDependencyMetadataFactoryTest extends Specification {
-    def configurationName = "conf"
     def projectDependency = Stub(ProjectDependency)
-    def componentId = new ComponentIdentifier() {
-        @Override
-        String getDisplayName() {
-            return "example"
-        }
-    }
 
     def "delegates to internal factory"() {
         given:
@@ -41,7 +33,7 @@ class DefaultDependencyMetadataFactoryTest extends Specification {
 
         when:
         def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory(converter1, converter2)
-        def created = dependencyDescriptorFactory.createDependencyMetadata(componentId, configurationName, null, projectDependency)
+        def created = dependencyDescriptorFactory.createDependencyMetadata(projectDependency)
 
         then:
         created == result
@@ -49,7 +41,7 @@ class DefaultDependencyMetadataFactoryTest extends Specification {
         and:
         1 * converter1.canConvert(projectDependency) >> false
         1 * converter2.canConvert(projectDependency) >> true
-        1 * converter2.createDependencyMetadata(componentId, configurationName, null, projectDependency) >> result
+        1 * converter2.createDependencyMetadata(projectDependency) >> result
     }
 
     def "fails where no internal factory can handle dependency type"() {
@@ -60,7 +52,7 @@ class DefaultDependencyMetadataFactoryTest extends Specification {
 
         and:
         def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory(converter)
-        dependencyDescriptorFactory.createDependencyMetadata(componentId, configurationName, null, projectDependency)
+        dependencyDescriptorFactory.createDependencyMetadata(projectDependency)
 
         then:
         thrown InvalidUserDataException
@@ -72,7 +64,7 @@ class DefaultDependencyMetadataFactoryTest extends Specification {
 
         when:
         def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory()
-        def created = dependencyDescriptorFactory.createDependencyConstraintMetadata(componentId, configurationName, null, dependencyConstraint)
+        def created = dependencyDescriptorFactory.createDependencyConstraintMetadata(dependencyConstraint)
         def selector = created.selector as ModuleComponentSelector
 
         then:
@@ -82,7 +74,6 @@ class DefaultDependencyMetadataFactoryTest extends Specification {
         selector.version == "1"
 
         and:
-        created.moduleConfiguration == configurationName
         created.artifacts.empty
         created.excludes.empty
         !created.force

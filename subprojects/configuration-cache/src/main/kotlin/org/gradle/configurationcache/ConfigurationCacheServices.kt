@@ -22,19 +22,22 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.execution.ExecutionAccessChecker
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import java.io.File
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -61,8 +64,10 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheRepository::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
-            add(ConfigurationCacheFingerprintController::class.java)
+            add(InstrumentedExecutionAccessListener::class.java)
+            addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
+            addProvider(ExecutionAccessCheckerProvider)
         }
     }
 
@@ -108,6 +113,23 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
+    object ExecutionAccessCheckerProvider {
+
+        fun createExecutionAccessChecker(
+            listenerManager: ListenerManager,
+            modelParameters: BuildModelParameters,
+            configurationTimeBarrier: ConfigurationTimeBarrier
+        ): ExecutionAccessChecker = when {
+            modelParameters.isConfigurationCache -> {
+                val broadcaster = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
+                ConfigurationTimeBarrierBasedExecutionAccessChecker(configurationTimeBarrier, broadcaster)
+            }
+
+            else -> DefaultExecutionAccessChecker()
+        }
+    }
+
+    private
     object TaskExecutionAccessCheckerProvider {
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
@@ -124,5 +146,22 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
                 else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast, workExecutionTracker)
             }
         }
+    }
+
+    private
+    object IgnoredConfigurationInputsProvider {
+        fun createIgnoredConfigurationInputs(
+            configurationCacheStartParameter: ConfigurationCacheStartParameter,
+            fileSystem: FileSystem
+        ): IgnoredConfigurationInputs =
+            if (hasIgnoredPaths(configurationCacheStartParameter))
+                DefaultIgnoredConfigurationInputs(configurationCacheStartParameter, fileSystem)
+            else object : IgnoredConfigurationInputs {
+                override fun isFileSystemCheckIgnoredFor(file: File): Boolean = false
+            }
+
+        private
+        fun hasIgnoredPaths(configurationCacheStartParameter: ConfigurationCacheStartParameter): Boolean =
+            !configurationCacheStartParameter.ignoredFileSystemCheckInputs.isNullOrEmpty()
     }
 }

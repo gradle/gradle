@@ -53,6 +53,8 @@ import java.util.regex.Pattern;
 public class CommandLineParser {
     private static final Pattern OPTION_NAME_PATTERN = Pattern.compile("(\\?|\\p{Alnum}[\\p{Alnum}-_]*)");
 
+    private static final String DISABLE_OPTION_PREFIX = "no-";
+
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
@@ -501,6 +503,9 @@ public class CommandLineParser {
         public int compare(CommandLineOption option1, CommandLineOption option2) {
             String min1 = Collections.min(option1.getOptions(), new OptionStringComparator());
             String min2 = Collections.min(option2.getOptions(), new OptionStringComparator());
+            // Group opposite option pairs together
+            min1 = min1.startsWith(DISABLE_OPTION_PREFIX) ? min1.substring(DISABLE_OPTION_PREFIX.length()) + "-" : min1;
+            min2 = min2.startsWith(DISABLE_OPTION_PREFIX) ? min2.substring(DISABLE_OPTION_PREFIX.length()) + "-" : min2;
             return new CaseInsensitiveStringComparator().compare(min1, min2);
         }
     }

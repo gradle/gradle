@@ -20,6 +20,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.IOUtils
 import org.gradle.api.JavaVersion
 import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.lazy.Lazy
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -28,13 +29,26 @@ import java.util.jar.Manifest
 class JarTestFixture extends ZipTestFixture {
     File file
 
+    private final Lazy<Manifest> theManifest = Lazy.atomic().of {
+        new Manifest(IOUtils.toInputStream(content('META-INF/MANIFEST.MF'), contentCharset as String))
+    }
+
     /**
-     * Asserts that the Jar file is well-formed
+     * Asserts that the Jar file is well-formed.
      */
-     JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+    JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+        this(file, metadataCharset, contentCharset, true)
+    }
+
+    /**
+     * Creates the fixture.
+     */
+    JarTestFixture(File file, String metadataCharset, String contentCharset, boolean checkManifest) {
          super(file, metadataCharset, contentCharset)
          this.file = file
-         isManifestPresentAndFirstEntry()
+         if (checkManifest) {
+             isManifestPresentAndFirstEntry()
+         }
      }
 
     /**
@@ -83,6 +97,29 @@ class JarTestFixture extends ZipTestFixture {
     }
 
     Manifest getManifest() {
-        new Manifest(IOUtils.toInputStream(content('META-INF/MANIFEST.MF'), contentCharset))
+        return theManifest.get()
+    }
+
+    def assertIsMultiRelease() {
+        assert "true" == manifest.mainAttributes.getValue("Multi-Release")
+        this
+    }
+
+    def assertContainsVersioned(int version, String basePath) {
+        assertContainsFile(toVersionedPath(version, basePath))
+        this
+    }
+
+    def assertNotContainsVersioned(int version, String basePath) {
+        assertNotContainsFile(toVersionedPath(version, basePath))
+    }
+
+    def assertVersionedContent(int version, String basePath, String content) {
+        assertFileContent(toVersionedPath(version, basePath), content)
+    }
+
+    static String toVersionedPath(int version, String basePath) {
+        assert version > 8: "Java only supports versioned directories for versions >8, got $version"
+        return "META-INF/versions/$version/$basePath"
     }
 }

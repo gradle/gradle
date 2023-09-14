@@ -1,0 +1,75 @@
+name: Bug Report
+description: Create a report to help us improve
+labels: [ "a:bug", "to-triage" ]
+assignees: [ ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please follow the instructions below.
+        We receive dozens of issues every week, so to stay productive, we will close issues that don't provide enough information.
+
+        If you need help with Gradle or have a usage question, please reach [our community](http://help.gradle.org/) instead of creating an issue.
+
+        Please open Android-related issues on [the Android Issue Tracker](https://source.android.com/source/report-bugs)
+        Please open IntelliJ-related issues on [the JetBrains Issue Tracker](https://youtrack.jetbrains.com/newIssue?project=IDEA)
+        Please open Gradle Native-related issues on [the Gradle Native repository](https://github.com/gradle/gradle-native/issues)
+
+        Provide a brief summary of the issue in the title above
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: Tell us what happens
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Tell us what should happen
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (optional)
+      description: |
+        How has this issue affected you? What are you trying to accomplish?
+        Providing context helps us come up with a solution that is most useful in the real world
+    validations:
+      required: false
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide a self-contained example project as an attached archive or a Github project.
+        You can use [the template](https://github.com/gradle/gradle-issue-reproducer) with a Gradle GitHub action set up to showcase your problem.
+        In the rare cases where this is infeasible, we will also accept a detailed set of instructions.
+        You can also use [Gradle Project Replicator](https://github.com/android/project-replicator) to reproduce the structure of your project.
+    validations:
+      required: true
+  - type: input
+    id: gradle-version
+    attributes:
+      label: Gradle version
+      description: What version of Gradle are you running?
+    validations:
+      required: true
+  - type: input
+    id: build-scan-url
+    attributes:
+      label: Build scan URL (optional)
+      description: |
+        You can run your build command with `--scan` to publish a Build Scan to [scans.gradle.com](https://scans.gradle.com/).
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Your Environment (optional)
+      description: |
+        Include as many relevant details about the environment you experienced the bug in
+    validations:
+      required: false

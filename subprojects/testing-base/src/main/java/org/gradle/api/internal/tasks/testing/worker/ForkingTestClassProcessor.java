@@ -54,7 +54,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
 
 
-
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,
@@ -157,8 +156,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             if (!stoppedNow) {
                 throw new ExecException(e.getMessage()
                     + "\nThis problem might be caused by incorrect test process configuration."
-                    + "\nPlease refer to the test execution section in the User Manual at "
-                    + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
+                    + "\n" + documentationRegistry.getDocumentationRecommendationFor("on test execution", "java_testing", "sec:test_execution"), e.getCause());
             }
         } finally {
             if (completion != null) {

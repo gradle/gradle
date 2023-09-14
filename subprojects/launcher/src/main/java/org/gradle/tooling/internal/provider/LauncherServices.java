@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.api.problems.Problems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
@@ -35,13 +36,13 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.InitDeprecationLoggingActionExecutor;
+import org.gradle.internal.buildtree.InitProblems;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -73,6 +74,7 @@ import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
 import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -230,35 +232,42 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
             InternalOptions options,
-            ScriptUsageLocationReporter usageLocationReporter,
-            StartParameter startParameter
+            ProblemDiagnosticsFactory problemDiagnosticsFactory,
+            StartParameter startParameter,
+            Problems problemsService
         ) {
-            return new InitDeprecationLoggingActionExecutor(new RootBuildLifecycleBuildActionExecutor(
-                buildStateRegistry,
-                new BuildCompletionNotifyingBuildActionRunner(
-                    new FileSystemWatchingBuildActionRunner(
-                        eventEmitter,
-                        virtualFileSystem,
-                        deploymentRegistry,
-                        statStatisticsCollector,
-                        fileHasherStatisticsCollector,
-                        directorySnapshotterStatisticsCollector,
-                        buildOperationRunner,
-                        new BuildOutcomeReportingBuildActionRunner(
-                            styledTextOutputFactory,
-                            listenerManager,
-                            new ProblemReportingBuildActionRunner(
-                                new ChainingBuildActionRunner(buildActionRunners),
-                                exceptionAnalyser,
-                                buildLayout,
-                                problemReporters
-                            ),
-                            buildStartedTime,
-                            buildRequestMetaData,
-                            buildLoggerFactory),
-                        options),
-                    gradleEnterprisePluginManager)),
-                usageLocationReporter, eventEmitter, startParameter);
+            return new InitProblems(
+                new InitDeprecationLoggingActionExecutor(
+                    new RootBuildLifecycleBuildActionExecutor(
+                        buildStateRegistry,
+                        new BuildCompletionNotifyingBuildActionRunner(
+                            new FileSystemWatchingBuildActionRunner(
+                                eventEmitter,
+                                virtualFileSystem,
+                                deploymentRegistry,
+                                statStatisticsCollector,
+                                fileHasherStatisticsCollector,
+                                directorySnapshotterStatisticsCollector,
+                                buildOperationRunner,
+                                new BuildOutcomeReportingBuildActionRunner(
+                                    styledTextOutputFactory,
+                                    listenerManager,
+                                    new ProblemReportingBuildActionRunner(
+                                        new ChainingBuildActionRunner(buildActionRunners),
+                                        exceptionAnalyser,
+                                        buildLayout,
+                                        problemReporters
+                                    ),
+                                    buildStartedTime,
+                                    buildRequestMetaData,
+                                    buildLoggerFactory),
+                                options),
+                            gradleEnterprisePluginManager)),
+                    problemDiagnosticsFactory,
+                    eventEmitter,
+                    startParameter,
+                    problemsService),
+                problemsService);
         }
 
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter, Clock clock, GradleEnterprisePluginManager gradleEnterprisePluginManager) {

@@ -19,17 +19,20 @@ package org.gradle.api.internal.file.copy;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.file.Chmod;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FilterReader;
@@ -46,7 +49,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private boolean defaultDuplicatesStrategy;
     private RelativePath relativePath;
     private boolean excluded;
-    private Integer mode;
+
+    private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -135,7 +139,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     private void adaptPermissions(File target) {
-        int specMode = getMode();
+        int specMode = this.getPermissions().toUnixNumeric();
         getChmod().chmod(target, specMode);
     }
 
@@ -149,22 +153,21 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public int getMode() {
-        if (mode != null) {
-            return mode;
+    public FilePermissions getPermissions() {
+        if (permissions != null) {
+            return permissions;
         }
 
-        Integer specMode = getSpecMode();
-        if (specMode != null) {
-            return specMode;
+        Provider<FilePermissions> specMode = getSpecMode();
+        if (specMode.isPresent()) {
+            return specMode.get();
         }
 
-        return fileDetails.getMode();
+        return fileDetails.getPermissions();
     }
 
-    @Nullable
-    private Integer getSpecMode() {
-        return fileDetails.isDirectory() ? specResolver.getDirMode() : specResolver.getFileMode();
+    private Provider<FilePermissions> getSpecMode() {
+        return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
     }
 
     @Override
@@ -193,7 +196,24 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void setMode(int mode) {
-        this.mode = mode;
+        getPermissionsHolder().unix(mode);
+    }
+
+    @Override
+    public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
+        configureAction.execute(getPermissionsHolder());
+    }
+
+    @Override
+    public void setPermissions(FilePermissions permissions) {
+        getPermissionsHolder().unix(permissions.toUnixNumeric());
+    }
+
+    private DefaultConfigurableFilePermissions getPermissionsHolder() {
+        if (permissions == null) {
+            permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
+        }
+        return permissions;
     }
 
     @Override

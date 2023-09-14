@@ -23,12 +23,18 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 /**
  * Tests {@link DefaultJvmSoftwareComponent}.
+ *
+ * TODO: This tests a lot of the functionality of the {@link DefaultJvmFeature}. We should probably
+ *       move some of the testing to another feature-specific test class. However, given that the
+ *       DefaultJvmFeature itself is probably going to change heavily when adding multi-target support,
+ *       we should wait to avoid rework.
  */
 class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
@@ -59,19 +65,19 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
 
         then:
-        component.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        component.mainOutput == component.getSourceSet().getOutput()
-        component.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        component.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        component.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-        component.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
+        component.mainFeature instanceof DefaultJvmFeature
+        component.mainFeature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        component.mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        component.mainFeature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
         project.configurations.getByName('mainSourceElements')
-        component.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
-        component.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
-        component.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
+        component.mainFeature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
+        component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
+        component.mainFeature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
         project.configurations.getByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
-        component.mainCompileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
-        component.mainJarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
+        component.mainFeature.compileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
+        component.mainFeature.jarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
         project.tasks.getByName(JvmConstants.JAVADOC_TASK_NAME)
         project.tasks.getByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME)
     }
@@ -103,19 +109,19 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature")
 
         then:
-        component.sourceSet == ext.sourceSets.getByName('feature')
-        component.mainOutput == component.getSourceSet().getOutput()
-        component.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
-        component.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
-        component.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
-        component.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
+        component.mainFeature instanceof DefaultJvmFeature
+        component.mainFeature.sourceSet == ext.sourceSets.getByName('feature')
+        component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
+        component.mainFeature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
+        component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
+        component.mainFeature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
         project.configurations.getByName('featureSourceElements')
-        component.implementationConfiguration == project.configurations.getByName('featureImplementation')
-        component.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
-        component.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
+        component.mainFeature.implementationConfiguration == project.configurations.getByName('featureImplementation')
+        component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
+        component.mainFeature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
         project.configurations.getByName('featureAnnotationProcessor')
-        component.mainCompileJavaTask.get() == project.tasks.getByName('compileFeatureJava')
-        component.mainJarTask.get() == project.tasks.getByName('featureJar')
+        component.mainFeature.compileJavaTask.get() == project.tasks.getByName('compileFeatureJava')
+        component.mainFeature.jarTask.get() == project.tasks.getByName('featureJar')
         project.tasks.getByName('featureJavadoc')
         project.tasks.getByName('processFeatureResources')
     }
@@ -175,7 +181,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.JAVADOC
-        project.tasks.getByName(component.sourceSet.javadocJarTaskName)
+        project.tasks.getByName(component.mainFeature.sourceSet.javadocJarTaskName)
         component.usages.find { it.name == JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME}
     }
 
@@ -204,7 +210,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.SOURCES
-        project.tasks.getByName(component.sourceSet.sourcesJarTaskName)
+        project.tasks.getByName(component.mainFeature.sourceSet.sourcesJarTaskName)
         component.usages.find { it.name == JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME}
     }
 

@@ -18,7 +18,9 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Property;
 
 import javax.annotation.Nullable;
 import java.util.regex.Pattern;
@@ -88,6 +90,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * will actually be applied.
      *
      * @return The file permissions, or {@code null} if existing permissions should be preserved.
+     *
+     * @apiNote Consider using {@link #getFilePermissions()} instead.
      */
     @Nullable
     Integer getFileMode();
@@ -99,6 +103,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @param mode The file permissions.
      * @return this
+     *
+     * @apiNote Consider using {@link #filePermissions(Action)} instead.
      */
     CopyProcessingSpec setFileMode(@Nullable Integer mode);
 
@@ -108,6 +114,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * will actually be applied.
      *
      * @return The directory permissions, or {@code null} if existing permissions should be preserved.
+     *
+     * @apiNote Consider using {@link #getDirPermissions()} instead.
      */
     @Nullable
     Integer getDirMode();
@@ -119,8 +127,46 @@ public interface CopyProcessingSpec extends ContentFilterable {
      *
      * @param mode The directory permissions.
      * @return this
+     *
+     * @apiNote Consider using {@link #dirPermissions(Action)} instead.
      */
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
+
+    /**
+     * Property for configuring file access permissions.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    Property<ConfigurableFilePermissions> getFilePermissions();
+
+    /**
+     * Configuration action for specifying file access permissions.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
+
+    /**
+     * Property for configuring directory access permissions.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    Property<ConfigurableFilePermissions> getDirPermissions();
+
+    /**
+     * Configuration action for specifying directory access permissions.
+     * For details see {@link ConfigurableFilePermissions}.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    CopyProcessingSpec dirPermissions(Action<? super ConfigurableFilePermissions> configureAction);
 
     /**
      * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change

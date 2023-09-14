@@ -18,12 +18,18 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
-    implementation(project(":plugins"))
+    implementation(project(":plugins")) {
+        because("Needs access to StartScriptGenerator.")
+    }
+    implementation(project(":plugins-java"))
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
     implementation(project(":testing-base"))
+    implementation(project(":toolchains-jvm"))
+    implementation(project(":plugins-jvm-test-suite"))
+    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -51,13 +57,16 @@ dependencies {
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":plugins"))
+    testFixturesImplementation(project(":plugins-java"))
     testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(project(":plugins-jvm-test-suite"))
+    testFixturesImplementation(project(":plugins-jvm-test-suite-base"))
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributions-core")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
+    testRuntimeOnly(project(":distributions-jvm")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

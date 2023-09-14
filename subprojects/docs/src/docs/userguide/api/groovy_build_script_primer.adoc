@@ -59,7 +59,7 @@ Use of Groovy-specific metaprogramming can cause builds to retain large amounts 
 version = '1.0.1'
 myCopyTask.description = 'Copies some files'
 
-file("$buildDir/classes")
+file("$projectDir/src")
 println "Destination: ${myCopyTask.destinationDir}"
 ----
 
@@ -180,7 +180,7 @@ For example, link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Pro
 
 [source,groovy]
 copy {
-    into "$buildDir/tmp"
+    into layout.buildDirectory.dir("tmp")
     from 'custom-resources'
 }
 
@@ -194,11 +194,11 @@ To help explain this concept, consider the last example from the previous sectio
 
 [source,groovy]
 copy {
-    into "$buildDir/tmp"
+    into layout.buildDirectory.dir("tmp")
     from 'custom-resources'
 }
 
-All the methods and properties in this example are unqualified. You can easily find `copy()` and `buildDir` in the link:{groovyDslPath}/org.gradle.api.Project.html[`Project` API documentation], but what about `into()` and `from()`? These are resolved against the delegate of the `copy {}` block. What is the type of that delegate? You'll need to link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[check the API documentation for that].
+All the methods and properties in this example are unqualified. You can easily find `copy()` and `layout` in the link:{groovyDslPath}/org.gradle.api.Project.html[`Project` API documentation], but what about `into()` and `from()`? These are resolved against the delegate of the `copy {}` block. What is the type of that delegate? You'll need to link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:copy(org.gradle.api.Action)[check the API documentation for that].
 
 There are two ways to determine the delegate type, depending on the signature of the block method:
 

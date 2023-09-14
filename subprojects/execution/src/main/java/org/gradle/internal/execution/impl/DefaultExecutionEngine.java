@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.impl;
 
-import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problems;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
@@ -28,11 +28,11 @@ import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
-    private final DocumentationRegistry documentationRegistry;
+    private final Problems problems;
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
 
-    public DefaultExecutionEngine(DocumentationRegistry documentationRegistry, DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
-        this.documentationRegistry = documentationRegistry;
+    public DefaultExecutionEngine(Problems problems, DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
+        this.problems = problems;
         this.executeStep = executeStep;
     }
 
@@ -45,7 +45,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext(documentationRegistry, work.getTypeOriginInspector());
+                    : new DefaultWorkValidationContext(work.getTypeOriginInspector(), problems);
                 return new ExecutionRequestContext(nonIncrementalReason, validationContext);
             }
 

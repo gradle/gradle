@@ -1,0 +1,241 @@
+# -*- mode: yaml -*-
+manifest:
+  version: 1.0
+
+# The `automations` section lists automations to run on PRs in this repository.
+# Each automation has an `if` key that defines conditions to run the automation,
+# as well as a `run` key with the actions to do. All the conditions need to be true
+# for the actions to run (there is an implicit AND relation between
+# the conditions on each line).  Each condition is specified as a Jinja expression.  You
+# can also use the constant `true` if you want to always run the actions.
+
+# Each automation is independent of the others.  Every time a PR is opened or changed,
+# the conditions are evaluated and the actions are executed one by one in order
+# if all the conditions pass.  You can define multiple automations in a .cm file, but
+# each automation name should be unique within the file.
+
+automations:
+
+  summary_table:
+    if:
+      - {{ is.requested or not pr.author_is_org_member }}
+      - {{ author.using_gitstream or not pr.author_is_org_member }}
+    run:
+      - action: add-comment@v1
+        args:
+          comment:
+            <h3>Change Summary</h3>
+            This PR is {{ changes.ratio | round(2) }}% new code.
+            <table>
+            <tr>
+            <td>Platform</td>
+            <td>Added Lines</td>
+            <td>% of Total Line Changes</td>
+            <td>Deleted Lines</td>
+            <td>% of Total Line Changes</td>
+            <td>Files Changed</td>
+            <td>% of Total Files Changed</td>
+            </tr>
+            {% for platform in platforms %}
+            <tr>
+            <td>{{ platform.name }}</td>
+            <td>{{ branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='additions') | sum }}</td>
+            <td>{{ ((branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='additions') | sum) / (changes.additions + changes.deletions) * 100) | round(2) }}%</td>
+            <td>{{ branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='deletions') | sum }}</td>
+            <td>{{ ((branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='deletions') | sum) / (changes.additions + changes.deletions) * 100) | round(2) }}%</td>
+            <td>{{ (branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='file') | length) }}</td>
+            <td>{{ ((branch.diff.files_metadata | filter(attr='file', list=platform.subprojects) | map(attr='file') | length) / changes.total * 100) | round(2) }}%</td>
+            </tr>
+            {% endfor %}
+            </table>
+
+changes:
+  # Sum all the lines added/edited in the PR
+  additions: {{ branch.diff.files_metadata | map(attr='additions') | sum }}
+  # Sum all the line removed in the PR
+  deletions: {{ branch.diff.files_metadata | map(attr='deletions') | sum }}
+  # Calculate the ratio of new code
+  ratio: {{ (changes.additions / (changes.additions + changes.deletions)) * 100 }}
+  # Total number of files changed
+  total: {{ branch.diff.files_metadata | length }}
+
+is:
+  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check summary') | some) }}
+
+author:
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+
+teams:
+  build_scan:
+    members:
+      - 'wolfs'
+  configuration:
+    members:
+      - 'alllex'
+  dev_prod:
+    members:
+      - 'blindpirate'
+  execution:
+    members:
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
+  ide:
+    members:
+      - 'hegyibalint'
+      - 'donat'
+      - 'reinsch82'
+  jvm:
+    members:
+      - 'big-guy'
+      - 'ghale'
+      - 'jvandort-DISABLED'
+      - 'octylFractal'
+      - 'tresat'
+
+# Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+platforms:
+  - bt_ge_build_cache:
+    name: 'bt_ge_build_cache'
+    subprojects:
+      - 'subprojects/build-cache/'
+      - 'subprojects/build-cache-base/'
+      - 'subprojects/build-cache-http/'
+      - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-operations/'
+      - 'subprojects/files/'
+      - 'subprojects/hashing/'
+      - 'subprojects/snapshots/'
+  - build_infrastructure:
+    name: 'build_infrastructure'
+    subprojects:
+      - '.teamcity/'
+      - '.github/'
+      - '/build-logic/'
+      - '/build-logic-commons/'
+      - '/build-logic-settings/'
+      - '/build.gradle*'
+      - '/settings.gradle*'
+      - 'gradle/shared-with-buildSrc/'
+      - 'subprojects/internal-architecture-testing/'
+      - 'subprojects/internal-build-reports/'
+      - 'subprojects/internal-integ-testing/'
+      - 'subprojects/internal-performance-testing/'
+      - 'subprojects/internal-testing/'
+  - cc:
+    name: 'configuration_cache'
+    subprojects:
+      - 'subprojects/api-metadata/'
+      - 'subprojects/base-annotations/'
+      - 'subprojects/base-services-groovy/'
+      - 'subprojects/configuration-cache/'
+      - 'subprojects/file-collections/'
+      - 'subprojects/instrumentation-agent'
+      - 'subprojects/internal-instrumentation-api/'
+      - 'subprojects/internal-instrumentation-processor/'
+      - 'subprojects/model-core/'
+      - 'subprojects/model-groovy/'
+  - core_execution:
+    name: 'core_execution'
+    subprojects:
+      - 'subprojects/build-cache/'
+      - 'subprojects/build-cache-base/'
+      - 'subprojects/build-cache-http/'
+      - 'subprojects/build-cache-packaging/'
+      - 'subprojects/build-operations/'
+      - 'subprojects/build-profile/'
+      - 'subprojects/execution/'
+      - 'subprojects/file-watchind/'
+      - 'subprojects/files/'
+      - 'subprojects/functional/'
+      - 'subprojects/hashing/'
+      - 'subprojects/snapshots/'
+      - 'subprojects/worker-processes/'
+      - 'subprojects/workers/'
+  - core_execution:
+    name: 'core_runtime'
+    subprojects:
+      - 'subprojects/installation-beacon/'
+  - documentation:
+    name: 'documentation'
+    subprojects:
+      - 'subprojects/docs/'
+      - 'subprojects/docs-asciidoctor-extensions/'
+      - 'subprojects/docs-asciidoctor-extensions-base/'
+      - 'subprojects/samples/'
+  - extensibility:
+    name: 'extensibility'
+    subprojects:
+      - 'subprojects/plugin-development/'
+      - 'subprojects/plugin-use/'
+      - 'subprojects/test-kit/'
+  - gradle_enterprise:
+    name: 'gradle_enterprise'
+    subprojects:
+      - 'platforms/enterprise/'
+  - ide:
+    name: 'ide'
+    subprojects:
+      - 'platforms/ide/'
+      - 'subprojects/ide/'
+      - 'subprojects/tooling-api/'
+      - 'subprojects/tooling-api-builders/'
+  - jvm:
+    name: 'jvm'
+    subprojects:
+      - 'platforms/jvm/'
+      - 'subprojects/distributions-jvm/'
+      - 'subprojects/distributions-publishing/'
+      - 'subprojects/jacoco/'
+      - 'subprojects/java-compiler-plugin/'
+      - 'subprojects/jvm-services/'
+      - 'subprojects/language-groovy/'
+      - 'subprojects/language-java/'
+      - 'subprojects/language-jvm/'
+      - 'subprojects/normalization-java/'
+      - 'subprojects/platform-jvm/'
+      - 'subprojects/plugins/'
+      - 'subprojects/scala/'
+      - 'subprojects/testing-junit-platform/'
+      - 'subprojects/testing-jvm/'
+      - 'subprojects/testing-jvm-infrastructure/'
+  - kotlin_dsl:
+    name: 'kotlin_dsl'
+    subprojects:
+      - 'platforms/core-configuration/kotlin-dsl/'
+      - 'platforms/core-configuration/kotlin-dsl-integ-tests/'
+      - 'platforms/core-configuration/kotlin-dsl-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-provider-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
+      - 'build-logic/kotlin-dsl/'
+      - 'subprojects/docs/src/snippets/kotlinDsl/'
+  - release_coordination:
+    name: 'release_coordination'
+    subprojects:
+      - 'subprojects/core-platform/'
+      - 'subprojects/distributions-dependencies/'
+      - 'subprojects/distributions-full/'
+      - 'subprojects/performance/'
+      - 'subprojects/smoke-test/'
+      - 'subprojects/soak/'
+  - software:
+    name: 'software'
+    subprojects:
+      - 'subprojects/antlr/'
+      - 'subprojects/build-init/'
+      - 'subprojects/dependency-management/'
+      - 'subprojects/ivy/'
+      - 'subprojects/maven/'
+      - 'subprojects/platform-base/'
+      - 'subprojects/publish/'
+      - 'subprojects/reporting/'
+      - 'subprojects/resources/'
+      - 'subprojects/resources-gcs/'
+      - 'subprojects/resources-http/'
+      - 'subprojects/resources-s3/'
+      - 'subprojects/resources-sftp/'
+      - 'subprojects/security/'
+      - 'subprojects/signing/'
+      - 'subprojects/testing-base/'
+      - 'subprojects/version-control/'

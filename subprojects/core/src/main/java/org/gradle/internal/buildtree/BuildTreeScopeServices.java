@@ -21,9 +21,11 @@ import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
+import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.execution.DefaultTaskSelector;
@@ -45,7 +47,8 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.id.ConfigurationCacheableIdFactory;
+import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -81,8 +84,10 @@ public class BuildTreeScopeServices {
         registration.add(TaskPathProjectEvaluator.class);
         registration.add(DefaultFeatureFlags.class);
         registration.add(DefaultProblemLocationAnalyzer.class);
+        registration.add(DefaultProblemDiagnosticsFactory.class);
         registration.add(DefaultExceptionAnalyser.class);
-        registration.add(ScriptUsageLocationReporter.class);
+        registration.add(ConfigurationCacheableIdFactory.class);
+        registration.add(TaskIdentityFactory.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -90,8 +95,8 @@ public class BuildTreeScopeServices {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
 
-    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
-        return new DefaultTaskSelector(new TaskNameResolver(), projectConfigurer);
+    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer, ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
     protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {

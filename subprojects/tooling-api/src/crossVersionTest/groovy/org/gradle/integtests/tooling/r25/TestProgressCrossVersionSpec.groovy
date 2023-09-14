@@ -17,11 +17,13 @@
 
 package org.gradle.integtests.tooling.r25
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.ListenerFailedException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -34,8 +36,6 @@ import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "receive test progress events when requesting a model"() {
@@ -99,7 +99,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                         resultsOfLastListener << (event as TestProgressEvent)
                     }
                 }, EnumSet.of(OperationType.TEST))
-                collectOutputs(build)
                 build.run()
         }
 
@@ -363,7 +362,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tests.tail().every { it.descriptor.parent != null }
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
         projectDir.createFile('settings.gradle') << """
@@ -483,7 +482,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            ${javaSourceCompatibility(JavaVersion.VERSION_1_7)}
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -497,13 +495,5 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                 }
             }
         """
-    }
-
-    private String javaSourceCompatibility(JavaVersion javaVersion) {
-        if (targetVersion >= GradleVersion.version("5.0")) {
-            return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
-        } else {
-            return "sourceCompatibility = '${javaVersion.toString()}'"
-        }
     }
 }

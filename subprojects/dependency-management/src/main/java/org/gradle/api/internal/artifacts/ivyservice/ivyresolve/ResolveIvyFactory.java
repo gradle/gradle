@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -40,18 +39,19 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Actions;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -69,21 +69,25 @@ public class ResolveIvyFactory {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final RepositoryDisabler repositoryBlacklister;
     private final VersionParser versionParser;
+    private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
 
-    public ResolveIvyFactory(ModuleRepositoryCacheProvider cacheProvider,
-                             StartParameterResolutionOverride startParameterResolutionOverride,
-                             DependencyVerificationOverride dependencyVerificationOverride,
-                             BuildCommencedTimeProvider timeProvider,
-                             VersionComparator versionComparator,
-                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                             RepositoryDisabler repositoryBlacklister,
-                             VersionParser versionParser,
-                             ChangingValueDependencyResolutionListener listener,
-                             CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public ResolveIvyFactory(
+        ModuleRepositoryCacheProvider cacheProvider,
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        DependencyVerificationOverride dependencyVerificationOverride,
+        BuildCommencedTimeProvider timeProvider,
+        VersionComparator versionComparator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        RepositoryDisabler repositoryBlacklister,
+        VersionParser versionParser,
+        ChangingValueDependencyResolutionListener listener,
+        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
@@ -93,24 +97,25 @@ public class ResolveIvyFactory {
         this.versionParser = versionParser;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.listener = listener;
+        this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    public ComponentResolvers create(String resolveContextName,
-                                     ResolutionStrategyInternal resolutionStrategy,
-                                     Collection<? extends ResolutionAwareRepository> repositories,
-                                     ComponentMetadataProcessorFactory metadataProcessor,
-                                     AttributeContainer consumerAttributes,
-                                     AttributesSchema attributesSchema,
-                                     ImmutableAttributesFactory attributesFactory,
-                                     ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
+    public ComponentResolvers create(
+        String resolveContextName,
+        ResolutionStrategyInternal resolutionStrategy,
+        Collection<? extends ResolutionAwareRepository> repositories,
+        ComponentMetadataProcessorFactory metadataProcessor,
+        AttributeContainer consumerAttributes,
+        AttributesSchema attributesSchema,
+        ImmutableAttributesFactory attributesFactory,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
+    ) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
 
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
-        startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
-
         UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
 
@@ -122,18 +127,18 @@ public class ResolveIvyFactory {
             MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cachePolicy, instantiator);
             ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 
-            ModuleComponentRepository moduleComponentRepository = baseRepository;
+            ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getInMemoryOnlyCaches(), cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
-                moduleComponentRepository = new LocalModuleComponentRepository(moduleComponentRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
+                moduleComponentRepository = new LocalModuleComponentRepository<>(moduleComponentRepository);
             } else {
-                moduleComponentRepository = startParameterResolutionOverride.overrideModuleVersionRepository(moduleComponentRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(moduleComponentRepository, cacheProvider.getPersistentCaches(), cachePolicy, timeProvider, componentMetadataProcessor, listener);
+                ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository = startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
+                moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, listener);
             }
             moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
 
             if (baseRepository.isDynamicResolveMode()) {
-                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository);
+                moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
             }
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository, resolveContextName, consumerAttributes);
@@ -145,13 +150,12 @@ public class ResolveIvyFactory {
         return moduleResolver;
     }
 
-    private ModuleComponentRepository filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
+    private ModuleComponentRepository<ModuleComponentGraphResolveState> filterRepository(ResolutionAwareRepository repository, ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository, String consumerName, AttributeContainer consumerAttributes) {
         Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
             filter = ((ContentFilteringRepository) repository).getContentFilter();
         }
-        moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
-        return moduleComponentRepository;
+        return FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
     }
 
     public ArtifactResult verifiedArtifact(DefaultResolvedArtifactResult defaultResolvedArtifactResult) {
@@ -164,21 +168,22 @@ public class ResolveIvyFactory {
     private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final UserResolverChain delegate;
 
-        public ParentModuleLookupResolver(VersionComparator versionComparator,
-                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                          VersionParser versionParser,
-                                          AttributeContainer consumerAttributes,
-                                          AttributesSchema attributesSchema,
-                                          ImmutableAttributesFactory attributesFactory,
-                                          ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
-                                          ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                          CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                          CachePolicy cachePolicy
+        public ParentModuleLookupResolver(
+            VersionComparator versionComparator,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            VersionParser versionParser,
+            AttributeContainer consumerAttributes,
+            AttributesSchema attributesSchema,
+            ImmutableAttributesFactory attributesFactory,
+            ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+            ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            CachePolicy cachePolicy
         ) {
             this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         }
 
-        public void add(ModuleComponentRepository moduleComponentRepository) {
+        public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository) {
             delegate.add(moduleComponentRepository);
         }
 
@@ -198,11 +203,6 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public OriginArtifactSelector getArtifactSelector() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
             delegate.getComponentIdResolver().resolve(dependency, acceptor, rejector, result);
         }
@@ -218,13 +218,13 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolveArtifactsWithType(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             delegate.getArtifactResolver().resolveArtifactsWithType(component, artifactType, result);
         }
 
         @Override
-        public void resolveArtifact(ModuleVersionIdentifier ownerId, final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
-            delegate.getArtifactResolver().resolveArtifact(ownerId, artifact, moduleSources, result);
+        public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
+            delegate.getArtifactResolver().resolveArtifact(component, artifact, result);
         }
     }
 

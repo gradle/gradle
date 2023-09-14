@@ -12,7 +12,6 @@ tasks.jacocoTestReport.configure {
 configurations.create('transitiveSourcesElements') {
     visible = false
     canBeResolved = false
-    canBeConsumed = true
     extendsFrom(configurations.implementation)
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -26,7 +25,6 @@ configurations.create('transitiveSourcesElements') {
 configurations.create('coverageDataElements') {
     visible = false
     canBeResolved = false
-    canBeConsumed = true
     extendsFrom(configurations.implementation)
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))

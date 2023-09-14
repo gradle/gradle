@@ -40,7 +40,7 @@ import java.util.zip.ZipFile;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 import static org.gradle.wrapper.Download.safeUri;
 
 public class Install {
@@ -80,7 +80,7 @@ public class Install {
 
                 fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
 
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toString());
+                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
                 if (installCheck.isVerified()) {
                     setExecutablePermissions(installCheck.gradleHome);
                     markerFile.createNewFile();
@@ -106,7 +106,7 @@ public class Install {
 
                 deleteLocalTopLevelDirs(distDir);
 
-                verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(configuration.getDistribution().toASCIIString(), localZipFile, distributionSha256Sum);
 
                 unzipLocal(localZipFile, distDir);
                 failed = false;
@@ -127,7 +127,7 @@ public class Install {
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
         try {
-            URI distributionUrl = new URI(distribution.toString() + SHA_256);
+            URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
             forceFetch(tmpZipFile, distributionUrl);
@@ -321,7 +321,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, safeZipEntryName(entry.getName()));
+                File destFile = new File(dest, safePathName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;

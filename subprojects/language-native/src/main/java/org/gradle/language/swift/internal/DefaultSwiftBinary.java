@@ -89,7 +89,10 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
         // TODO - reduce duplication with C++ binary
         RoleBasedConfigurationContainerInternal rbConfigurations = (RoleBasedConfigurationContainerInternal) configurations;
-        importPathConfiguration = rbConfigurations.resolvableBucket(names.withPrefix("swiftCompile"));
+
+        @SuppressWarnings("deprecation")
+        Configuration ipc = rbConfigurations.resolvableDependencyScopeUnlocked(names.withPrefix("swiftCompile"));
+        importPathConfiguration = ipc;
         importPathConfiguration.extendsFrom(getImplementationDependencies());
         importPathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
@@ -97,7 +100,8 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         importPathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
         importPathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
-        Configuration nativeLink = rbConfigurations.resolvableBucket(names.withPrefix("nativeLink"));
+        @SuppressWarnings("deprecation")
+        Configuration nativeLink = rbConfigurations.resolvableDependencyScopeUnlocked(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(getImplementationDependencies());
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
@@ -105,7 +109,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         nativeLink.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
         nativeLink.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
-        @SuppressWarnings("deprecation") Configuration nativeRuntime = rbConfigurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        Configuration nativeRuntime = rbConfigurations.migratingUnlocked(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
         nativeRuntime.extendsFrom(getImplementationDependencies());
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());

@@ -40,6 +40,9 @@ import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginR
 abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     @Inject
+    protected abstract ProviderFactory getProviderFactory();
+
+    @Inject
     public MavenPluginPublishPlugin() {
         // This class is not visible outside of this package.
         // To instantiate this plugin, we need a protected constructor.
@@ -65,7 +68,7 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 }
                 SoftwareComponent mainComponent = project.getComponents().getByName("java");
                 MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
-                addMarkerPublications(mainPublication, publishing, pluginDevelopment, project.getProviders());
+                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
             }
         });
     }
@@ -76,22 +79,22 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         return publication;
     }
 
-    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ProviderFactory providers) {
+    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
-            createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications(), providers);
+            createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications());
         }
     }
 
-    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications, ProviderFactory providers) {
+    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);
 
-        Provider<String> groupProvider = providers.provider(coordinates::getGroupId);
-        Provider<String> artifactIdProvider = providers.provider(coordinates::getArtifactId);
-        Provider<String> versionProvider = providers.provider(coordinates::getVersion);
+        Provider<String> groupProvider = getProviderFactory().provider(coordinates::getGroupId);
+        Provider<String> artifactIdProvider = getProviderFactory().provider(coordinates::getArtifactId);
+        Provider<String> versionProvider = getProviderFactory().provider(coordinates::getVersion);
         publication.getPom().withXml(new Action<XmlProvider>() {
             @Override
             public void execute(XmlProvider xmlProvider) {

@@ -7,7 +7,7 @@ group = 'com.example.myproduct'
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion = JavaLanguageVersion.of(8)
     }
 }
 
@@ -16,6 +16,7 @@ dependencies {
 
     testImplementation(platform('com.example.platform:test-platform'))
     testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 tasks.named("test") {

@@ -17,14 +17,12 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
-
-    @Unroll("cannot resolve a configuration with role #role at execution time")
-    def "cannot resolve a configuration which is for publishing only at execution time"() {
+    def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """
 
@@ -38,8 +36,9 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task checkState {
+            def files = configurations.internal
             doLast {
-                configurations.internal.resolve()
+                files.files
             }
         }
 
@@ -54,12 +53,11 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
 
     }
 
-    @Unroll("cannot resolve a configuration with role #role at configuration time")
-    def "cannot resolve a configuration which is for publishing only at configuration time"() {
+    def "cannot resolve a configuration with role #role at configuration time"() {
         given:
         buildFile << """
 
@@ -86,12 +84,11 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
-        'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
-
+        'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @Unroll("cannot resolve a configuration with role #role using #method")
-    def "cannot resolve a configuration which is for publishing only"() {
+    @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
+    def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
 
@@ -113,6 +110,18 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (method == 'getResolvedConfiguration()') {
+            if (role == 'canBeResolved = false') {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            } else {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            }
+        }
         fails 'checkState'
 
         then:
@@ -125,8 +134,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         ].combinations()
     }
 
-    @Unroll("cannot add a dependency on a configuration role #role")
-    def "cannot add a dependency on a configuration not meant to be consumed or published"() {
+    def "cannot add a dependency on a configuration role #role"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -139,7 +147,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -161,11 +170,10 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @Unroll("cannot depend on default configuration if it's not consumable (#role)")
-    def "cannot depend on default configuration if it's not consumable"() {
+    def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -178,7 +186,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -200,7 +209,241 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         where:
         role                    | code
         'query or resolve only' | 'canBeConsumed = false'
-        'bucket'                | 'canBeResolved = false; canBeConsumed = false'
+        'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
+    def "depending on consumable configuration that is deprecated for consumption emits warning"() {
+        buildFile << """
+            configurations {
+                res {
+                    canBeConsumed = false
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                    }
+                }
+                migratingUnlocked("con", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
+                    }
+                }
+            }
+
+            dependencies {
+                res project
+            }
+
+            task resolve {
+                def files = configurations.res.incoming.files
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        succeeds("resolve")
+    }
+
+    def "cannot create #first and #second configuration with the same name"() {
+        buildFile << """
+            configurations {
+                $first("foo")
+                $second("foo")
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failureHasCause("Cannot add a configuration with name 'foo' as a configuration with that name already exists.")
+
+        where:
+        first             | second
+        "consumable"      | "resolvable"
+        "consumable"      | "dependencyScope"
+        "resolvable"      | "consumable"
+        "resolvable"      | "dependencyScope"
+        "dependencyScope" | "consumable"
+        "dependencyScope" | "resolvable"
+    }
+
+    def "withType works for factory methods before declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependencyScopeConfiguration) {
+                    println "Dependencies: " + name
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Groovy DSL"() {
+        buildFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+                withType(ResolvableConfiguration) {
+                    println "Resolvable: " + name
+                }
+                withType(ConsumableConfiguration) {
+                    println "Consumable: " + name
+                }
+                withType(DependencyScopeConfiguration) {
+                    println "Dependencies: " + name
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods before declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependencyScopeConfiguration> {
+                    println("Dependencies: " + name)
+                }
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods after declaration in Kotlin DSL"() {
+        buildKotlinFile << """
+            configurations {
+                resolvable("foo")
+                consumable("bar")
+                dependencyScope("baz")
+                withType<ResolvableConfiguration> {
+                    println("Resolvable: " + name)
+                }
+                withType<ConsumableConfiguration> {
+                    println("Consumable: " + name)
+                }
+                withType<DependencyScopeConfiguration> {
+                    println("Dependencies: " + name)
+                }
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
+
+    def "withType works for factory methods in Java"() {
+        file("buildSrc/src/main/java/MyPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.Configuration;
+            import org.gradle.api.artifacts.ResolvableConfiguration;
+            import org.gradle.api.artifacts.ConsumableConfiguration;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    project.getConfigurations().withType(ResolvableConfiguration.class, configuration -> {
+                        System.out.println("Resolvable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(ConsumableConfiguration.class, configuration -> {
+                        System.out.println("Consumable: " + configuration.getName());
+                    });
+                    project.getConfigurations().withType(DependencyScopeConfiguration.class, configuration -> {
+                        System.out.println("Dependencies: " + configuration.getName());
+                    });
+                    project.getConfigurations().resolvable("foo");
+                    project.getConfigurations().consumable("bar");
+                    project.getConfigurations().dependencyScope("baz");
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    broken {
+                        id = "my-plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id("my-plugin")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""
+            Resolvable: foo
+            Consumable: bar
+            Dependencies: baz
+            """.stripIndent()
+        )
+    }
 }

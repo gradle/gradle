@@ -21,9 +21,9 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -148,7 +148,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: help")
     }
 
     def "new configuration cache entry if key is not found"() {
@@ -169,10 +169,10 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: help")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "build fails if keystore cannot be created"() {
         given:
         def fs = NativeServicesTestFixture.instance.get(FileSystem)

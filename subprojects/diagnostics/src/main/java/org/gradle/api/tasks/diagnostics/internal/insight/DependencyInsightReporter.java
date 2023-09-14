@@ -40,6 +40,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyE
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.InternalTransformer;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -145,6 +146,10 @@ public class DependencyInsightReporter {
     private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors) {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());
+            if(failure instanceof ResolutionProvider){
+                ((ResolutionProvider) failure).getResolutions()
+                    .forEach(formatter::node);
+            }
             Throwable cause = failure.getCause();
             if (alreadyReportedErrors.contains(cause)) {
                 formatter.append(" (already reported)");

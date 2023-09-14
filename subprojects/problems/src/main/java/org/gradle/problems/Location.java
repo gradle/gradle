@@ -18,6 +18,9 @@ package org.gradle.problems;
 
 import org.gradle.internal.DisplayName;
 
+/**
+ * A source file location.
+ */
 public class Location {
     private final int lineNumber;
     private final DisplayName sourceLongDisplayName;

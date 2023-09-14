@@ -344,8 +344,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
         registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
-        // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, this::getBuildDir);
+        // TODO:LPTR This ignores changes to Project.layout.buildDirectory after model node has been created
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, () -> getLayout().getBuildDirectory().getAsFile().get());
         registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
         registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
@@ -599,6 +599,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath().toString();
     }
 
+
+    @Override
+    public String getBuildTreePath() {
+        return getIdentityPath().getPath();
+    }
+
     @Override
     public Path getIdentityPath() {
         return owner.getIdentityPath();
@@ -818,16 +824,19 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Deprecated
     public File getBuildDir() {
         return getLayout().getBuildDirectory().getAsFile().get();
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(File path) {
         setBuildDir((Object) path);
     }
 
     @Override
+    @Deprecated
     public void setBuildDir(Object path) {
         getLayout().setBuildDirectory(path);
     }

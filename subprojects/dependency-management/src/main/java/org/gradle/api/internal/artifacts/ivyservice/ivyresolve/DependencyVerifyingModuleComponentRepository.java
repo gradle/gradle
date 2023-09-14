@@ -35,6 +35,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentArtifa
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -55,13 +56,13 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DependencyVerifyingModuleComponentRepository implements ModuleComponentRepository {
-    private final ModuleComponentRepository delegate;
-    private final ModuleComponentRepositoryAccess localAccess;
-    private final ModuleComponentRepositoryAccess remoteAccess;
+public class DependencyVerifyingModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
+    private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
+    private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> localAccess;
+    private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> remoteAccess;
     private final ArtifactVerificationOperation operation;
 
-    public DependencyVerifyingModuleComponentRepository(ModuleComponentRepository delegate, ArtifactVerificationOperation operation, boolean verifySignatures) {
+    public DependencyVerifyingModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, ArtifactVerificationOperation operation, boolean verifySignatures) {
         this.delegate = delegate;
         this.localAccess = new VerifyingModuleComponentRepositoryAccess(delegate.getLocalAccess(), verifySignatures);
         this.remoteAccess = new VerifyingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), verifySignatures);
@@ -79,12 +80,12 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
         return localAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
         return remoteAccess;
     }
 
@@ -99,11 +100,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess {
-        private final ModuleComponentRepositoryAccess delegate;
+    private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
+        private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate;
         private final boolean verifySignatures;
 
-        private VerifyingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess delegate, boolean verifySignatures) {
+        private VerifyingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, boolean verifySignatures) {
             this.delegate = delegate;
             this.verifySignatures = verifySignatures;
         }
@@ -113,17 +114,17 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.listModuleVersions(dependency, result);
         }
 
-        private boolean hasUsableResult(BuildableModuleComponentMetaDataResolveResult result) {
+        private boolean hasUsableResult(BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             return result.hasResult() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
             // For metadata, because the local file can be deleted we have to proceed in two steps
             // First resolve with a tmp result, and if it's found and that the file is still present
             // we can perform verification. If it's missing, then we do nothing so that it's downloaded
             // and verified later.
-            BuildableModuleComponentMetaDataResolveResult tmp = new DefaultBuildableModuleComponentMetaDataResolveResult();
+            BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> tmp = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, tmp);
             AtomicBoolean ignore = new AtomicBoolean();
             if (hasUsableResult(tmp)) {
@@ -155,6 +156,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             }
         }
 
+        @Nullable
         private File maybeFetchComponentMetadataSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact) {
             ModuleComponentArtifactIdentifier signatureArtifactId;
             if (artifact instanceof DefaultModuleComponentArtifactIdentifier) {
@@ -166,6 +168,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             return maybeFetchSignatureFile(moduleSources, signatureArtifactMetadata);
         }
 
+        @Nullable
         private File maybeFetchArtifactSignatureFile(ModuleSources moduleSources, ModuleComponentArtifactIdentifier artifact, IvyArtifactName ivyArtifactName) {
             ModuleComponentArtifactIdentifier signatureArtifactId = createSignatureArtifactIdFromIvyArtifactName(artifact.getComponentIdentifier(), ivyArtifactName);
             SignatureArtifactMetadata signatureArtifactMetadata = new SignatureArtifactMetadata(signatureArtifactId);
@@ -177,6 +180,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             return new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, ivyArtifactName.getName(), "asc", extension + ".asc", ivyArtifactName.getClassifier());
         }
 
+        @Nullable
         private File maybeFetchSignatureFile(ModuleSources moduleSources, SignatureArtifactMetadata signatureArtifactMetadata) {
             if (!verifySignatures) {
                 return null;

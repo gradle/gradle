@@ -58,7 +58,6 @@ public interface ComponentVariant extends VariantResolveMetadata {
 
         @Nullable
         IvyArtifactName getDependencyArtifact();
-
     }
 
     interface DependencyConstraint {

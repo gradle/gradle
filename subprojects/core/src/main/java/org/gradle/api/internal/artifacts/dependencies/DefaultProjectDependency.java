@@ -26,12 +26,12 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
+import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -79,6 +79,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    public Path getIdentityPath() {
+        return dependencyProject.getIdentityPath();
+    }
+
+    @Override
     public Configuration findProjectConfiguration() {
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration();
@@ -86,15 +91,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!selectedConfiguration.isCanBeConsumed()) {
             throw new ConfigurationNotConsumableException(dependencyProject.getDisplayName(), selectedConfiguration.getName());
         }
-        warnIfConfigurationIsDeprecated((DeprecatableConfiguration) selectedConfiguration);
+        ((DeprecatableConfiguration) selectedConfiguration).maybeEmitConsumptionDeprecation();
         return selectedConfiguration;
-    }
-
-    private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = selectedConfiguration.getConsumptionDeprecation();
-        if (consumptionDeprecation != null) {
-            consumptionDeprecation.nagUser();
-        }
     }
 
     @Override

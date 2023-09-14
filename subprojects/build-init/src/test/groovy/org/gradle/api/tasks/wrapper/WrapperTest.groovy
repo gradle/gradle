@@ -78,6 +78,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
         !wrapper.getNetworkTimeout().isPresent()
+        wrapper.getValidateDistributionUrl()
     }
 
     def "determines Windows script path from unix script path with #inName"() {
@@ -144,11 +145,19 @@ class WrapperTest extends AbstractTaskTest {
         5000 == wrapper.getNetworkTimeout().get()
     }
 
+    def "uses defined validateDistributionUrl value"() {
+        when:
+        wrapper.setValidateDistributionUrl(false)
+
+        then:
+        !wrapper.getValidateDistributionUrl().get()
+    }
+
     def "execute with non extant wrapper jar parent directory"() {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipTo(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:
@@ -173,11 +182,23 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
     }
 
+    def "execute with validateDistributionUrl set"() {
+        given:
+        wrapper.setValidateDistributionUrl(false)
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
+    }
+
     def "check inputs"() {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
-            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout")
+            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout", "validateDistributionUrl")
     }
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
@@ -193,7 +214,7 @@ class WrapperTest extends AbstractTaskTest {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
         execute(wrapper)
-        expectedTargetWrapperJar.unzipTo(unjarDir)
+        expectedTargetWrapperJar.unzipToWithoutCheckingParentDirs(unjarDir)
         def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
 
         then:

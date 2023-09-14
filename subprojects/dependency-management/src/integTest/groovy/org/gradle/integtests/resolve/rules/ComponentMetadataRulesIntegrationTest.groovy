@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -33,15 +32,10 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-// implement Sync manually to make sure that task is never up-to-date
-task resolve {
-    doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
-    }
+task resolve(type: Sync) {
+    def files = configurations.conf
+    from files
+    into 'libs'
 }
 """
     }
@@ -221,7 +215,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     def "changes made by a rule are not cached"() {
         repository {
             'org.test:projectA:1.0'()
@@ -309,8 +302,9 @@ dependencies {
                 }
             }
 
+            def rules1 = provider { rulesInvoked }
             resolve.doLast {
-                assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
+                assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
                 assert VerifyingRule.ruleInvoked
             }
         """
@@ -388,9 +382,11 @@ dependencies {
                 }
             }
 
+            def rules1 = provider { rulesInvoked }
+            def rules2 = provider { rulesUninvoked }
             resolve.doLast {
-                assert rulesInvoked.sort() == [ 1, 2, 3 ]
-                assert rulesUninvoked.empty
+                assert rules1.get().sort() == [ 1, 2, 3 ]
+                assert rules2.get().empty
                 assert InvokedRule.ruleInvoked
                 assert !NotInvokedRule.ruleInvoked
             }
@@ -432,7 +428,6 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForConfigurationCache
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
         repository {
@@ -508,7 +503,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'rule can access PomModuleDescriptor for Maven component'() {
         given:
@@ -582,19 +576,22 @@ project (':sub') {
         }
     }
     task res {
+        def conf = configurations.conf
+        def other = configurations.other
         doLast {
             // If we resolve twice the modified component metadata for 'projectA' must not be cached in-memory
-            println configurations.conf.collect { it.name }
-            println configurations.other.collect { it.name }
+            println conf.collect { it.name }
+            println other.collect { it.name }
         }
     }
 }
 
 task res {
+    def conf = configurations.conf
     doLast {
         // Should get the unmodified component metadata for 'projectA'
-        println configurations.conf.collect { it.name }
-        assert configurations.conf.collect { it.name } == ['projectA-1.0.jar']
+        println conf.collect { it.name }
+        assert conf.collect { it.name } == ['projectA-1.0.jar']
     }
 }
 """
@@ -678,11 +675,14 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-resolve {
+task downloadRules {
+    def files = configurations.ruleDownloader
     doFirst {
-        configurations.ruleDownloader.resolve() // trigger resolution before rules are added
+        files.files // trigger resolution before rules are added
     }
 }
+
+resolve.dependsOn(downloadRules)
 
 """
 

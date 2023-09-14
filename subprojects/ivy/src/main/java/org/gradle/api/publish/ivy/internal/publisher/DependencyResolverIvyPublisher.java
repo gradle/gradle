@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
@@ -35,8 +34,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
     @Override
     public void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository) {
         IvyResolver publisher = ((DefaultIvyArtifactRepository) repository).createPublisher();
-        IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
-        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule()), projectIdentity.getRevision());
+        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(publication.getCoordinates());
 
         for (IvyArtifact artifact : publication.getAllArtifacts()) {
             ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleVersionIdentifier, createIvyArtifact(artifact));

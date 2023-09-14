@@ -21,27 +21,27 @@ import spock.lang.Specification
 class ConfigurationRolesSpec extends Specification {
     def "can find predefined role #role"() {
         when:
-        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst)
+        def result = ConfigurationRoles.byUsage(consumable, resolvable, declarable)
 
         then:
         result.isPresent()
         result.get() == role
 
         where:
-        consumable  | resolvable    | declarableAgainst || role
+        consumable  | resolvable    | declarable        || role
         true        | true          | true              || ConfigurationRoles.LEGACY
-        true        | false         | false             || ConfigurationRoles.INTENDED_CONSUMABLE
-        false       | true          | false             || ConfigurationRoles.INTENDED_RESOLVABLE
-        false       | true          | true              || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
-        false       | false         | true              || ConfigurationRoles.INTENDED_BUCKET
+        true        | false         | false             || ConfigurationRoles.CONSUMABLE
+        false       | true          | false             || ConfigurationRoles.RESOLVABLE
+        false       | true          | true              || ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        false       | false         | true              || ConfigurationRoles.DEPENDENCY_SCOPE
     }
 
-    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst"() {
+    def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarable=#declarable"() {
         expect:
-        !ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst).isPresent()
+        !ConfigurationRoles.byUsage(consumable, resolvable, declarable).isPresent()
 
         where:
-        consumable  | resolvable    | declarableAgainst
+        consumable  | resolvable    | declarable
         false       | false         | false
         true        | true          | false
     }
@@ -52,10 +52,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.INTENDED_BUCKET              || "Intended Bucket"
-        ConfigurationRoles.INTENDED_CONSUMABLE          || "Intended Consumable"
-        ConfigurationRoles.INTENDED_RESOLVABLE          || "Intended Resolvable"
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || "Intended Resolvable Bucket"
+        ConfigurationRoles.DEPENDENCY_SCOPE             || "Dependency Scope"
+        ConfigurationRoles.CONSUMABLE                   || "Consumable"
+        ConfigurationRoles.RESOLVABLE                   || "Resolvable"
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || "Resolvable Dependency Scope"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

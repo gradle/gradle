@@ -25,7 +25,7 @@ import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegrationTest {
 
     def "respects fork options settings and ignores executable"() {

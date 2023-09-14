@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.sort;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 @NonNullApi
 public class TaskDetailPrinter {
@@ -62,7 +63,7 @@ public class TaskDetailPrinter {
             final TaskDetails anyTask = tasksByType.iterator().next();
             String shortTypeName = anyTask.getShortTypeName();
             final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
-            pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
+            pathOutput.println("Path" + getPluralEnding(tasksByType));
             for (TaskDetails task : tasksByType) {
                 pathOutput.withStyle(UserInput).println(task.getPath());
             }

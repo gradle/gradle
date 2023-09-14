@@ -22,6 +22,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.serialization.codecs.ClosureCodec
 
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
     def "from-cache build fails when task action closure reads a project property"() {
         given:
         buildFile << """

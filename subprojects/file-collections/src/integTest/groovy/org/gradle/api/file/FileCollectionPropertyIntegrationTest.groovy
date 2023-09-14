@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 ${annotation}
-                final SetProperty<RegularFile> prop = project.objects.setProperty(RegularFile)
+                ${propertyImpl}
 
                 @TaskAction
                 void go() {
@@ -49,9 +49,16 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
-        annotation     | _
-        "@InputFiles"  | _
-        "@OutputFiles" | _
+        [annotation, propertyImpl] << [
+            [
+                "@InputFiles",
+                "@OutputFiles"
+            ],
+            [
+                'final SetProperty<RegularFile> prop = project.objects.setProperty(RegularFile)',
+                'abstract SetProperty<RegularFile> getProp()'
+            ]
+        ].combinations()
     }
 
     def "task @OutputDirectories directory property is implicitly finalized when task starts execution"() {

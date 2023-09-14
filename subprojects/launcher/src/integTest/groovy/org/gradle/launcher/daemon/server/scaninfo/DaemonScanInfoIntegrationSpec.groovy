@@ -22,10 +22,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GFileUtils
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 @IntegrationTestTimeout(300)
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
@@ -56,7 +56,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """
@@ -157,7 +157,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isDaemon() })
+    @Requires(IntegTestPreconditions.NotDaemonExecutor)
     def "captures single use daemons"() {
         setup:
         file('gradle.properties') << "org.gradle.jvmargs=-Xmx64m"

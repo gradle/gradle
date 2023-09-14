@@ -191,7 +191,7 @@ public abstract class HtmlDependencyReportTask extends ConventionTask implements
     private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
         return project.getConfigurations().stream()
             .map(ConfigurationInternal.class::cast)
-            .filter(c -> c.isDeclarableAgainstByExtension())
+            .filter(c -> c.isDeclarableByExtension())
             .map(ConfigurationDetails::of);
     }
 }

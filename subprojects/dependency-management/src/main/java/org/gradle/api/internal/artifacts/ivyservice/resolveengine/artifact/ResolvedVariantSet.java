@@ -24,15 +24,17 @@ import java.util.Set;
 
 /**
  * Represents some provider of {@link ResolvedVariant} instances to select from.
+ * Used to select the artifacts given a particular variant selected during graph resolution.
  */
 public interface ResolvedVariantSet {
     Describable asDescribable();
 
     AttributesSchemaInternal getSchema();
 
+    /**
+     * The variants available for artifact selection when variant reselection is not enabled.
+     */
     Set<ResolvedVariant> getVariants();
-
-    Set<ResolvedVariant> getAllVariants();
 
     /**
      * The provider may have been selected thanks to a different attribute set than the one from

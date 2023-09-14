@@ -25,15 +25,17 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -59,7 +61,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.SignatureUti
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
-public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
+public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -80,18 +82,38 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
+        TypeSpec factoryClass = generateFactoryClass(className);
 
         return builder ->
             builder.addMethod(constructor)
+                .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
+                .addField(METADATA_FIELD)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
-                .addFields(typeFieldByOwner.values());
+                .addFields(typeFieldByOwner.values())
+                .addType(factoryClass);
+    }
+
+    private static TypeSpec generateFactoryClass(String className) {
+        MethodSpec method = MethodSpec.methodBuilder("create")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(JvmBytecodeCallInterceptor.class)
+            .addParameter(MethodVisitor.class, "methodVisitor")
+            .addParameter(InstrumentationMetadata.class, "metadata")
+            .addStatement("return new $L($N, $N)", className, "methodVisitor", "metadata")
+            .addAnnotation(Override.class)
+            .build();
+        return TypeSpec.classBuilder("Factory")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
+            .addMethod(method)
+            .build();
     }
 
 
@@ -119,16 +141,18 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                     implementationClassName.simpleName() :
                     implementationClassName.canonicalName();
                 String fullFieldName = camelToKebabCase(fieldTypeName).replace("-", "_").toUpperCase(Locale.US) + "_TYPE";
-                return FieldSpec.builder(Type.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                    .initializer("$T.getType($T.class)", Type.class, implementationClassName)
+                return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                    .initializer("$S", implementationClassName.canonicalName().replace(".", "/"))
                     .build();
             }, (u, v) -> u, LinkedHashMap::new));
     }
 
-    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
+    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
         .addParameter(MethodVisitor.class, "methodVisitor")
+        .addParameter(InstrumentationMetadata.class, "metadata")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
+        .addStatement("this.$N = metadata", METADATA_FIELD)
         .build();
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
@@ -162,15 +186,22 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static final FieldSpec METHOD_VISITOR_FIELD =
         FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
 
+    private static final FieldSpec METADATA_FIELD =
+        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
+
     private static void generateCodeForOwner(
-        Type owner,
+        CallableOwnerInfo owner,
         Map<Type, FieldSpec> implTypeFields,
         List<CallInterceptionRequest> requestsForOwner,
         CodeBlock.Builder code,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
-        code.beginControlFlow("if (owner.equals($S))", owner.getInternalName());
+        if (owner.isInterceptSubtypes()) {
+            code.beginControlFlow("if ($N.isInstanceOf(owner, $S))", METADATA_FIELD, owner.getType().getInternalName());
+        } else {
+            code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
+        }
         for (CallInterceptionRequest request : requestsForOwner) {
             CodeBlock.Builder nested = CodeBlock.builder();
             try {
@@ -238,7 +269,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
         CodeBlock result = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? CodeBlock.of("opcode == $T.INVOKESTATIC", Opcodes.class) :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("opcode == $T.INVOKEVIRTUAL", Opcodes.class) :
+            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? CodeBlock.of("(opcode == $1T.INVOKEVIRTUAL || opcode == $1T.INVOKEINTERFACE)", Opcodes.class) :
                 interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? CodeBlock.of("opcode == $T.INVOKESPECIAL", Opcodes.class) : null;
         if (result == null) {
             throw new Failure("Could not determine the opcode for intercepting the call");
@@ -297,7 +328,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void generateNormalInterceptedInvocation(FieldSpec ownerTypeField, CallableInfo callable, String implementationName, String implementationDescriptor, CodeBlock.Builder code) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new IllegalArgumentException("cannot generate invocation for Groovy property");
         }
 
@@ -313,7 +344,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static void generateKotlinDefaultInvocation(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder method) {
         CallableInfo interceptedCallable = request.getInterceptedCallable();
-        if (interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || interceptedCallable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new IllegalArgumentException("cannot generate invocation for Groovy property");
         }
 
@@ -326,7 +357,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void validateSignature(CallableInfo callable) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY) {
+        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
             throw new Failure("Groovy property access cannot be intercepted in JVM calls");
         }
 
@@ -355,6 +386,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 );
             }
         }
+
+        if (callable.getOwner().isInterceptSubtypes() && !callable.getOwner().getType().getInternalName().startsWith("org/gradle")) {
+            throw new Failure("Intercepting inherited methods is supported only for Gradle types for now, but type was: " + callable.getOwner().getType().getInternalName());
+        }
     }
 
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
@@ -367,7 +402,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Type[] parameterTypes = callableInfo.getParameters().stream()
             .filter(it -> it.getKind().isSourceParameter())
             .map(ParameterInfo::getParameterType).toArray(Type[]::new);
-        Type returnType = callableInfo.getReturnType();
+        Type returnType = callableInfo.getReturnType().getType();
         return Type.getMethodDescriptor(returnType, parameterTypes);
     }
 

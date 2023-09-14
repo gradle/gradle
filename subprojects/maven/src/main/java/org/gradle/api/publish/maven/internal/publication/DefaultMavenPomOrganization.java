@@ -20,11 +20,14 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 
+import javax.inject.Inject;
+
 public class DefaultMavenPomOrganization implements MavenPomOrganization {
 
     private final Property<String> name;
     private final Property<String> url;
 
+    @Inject
     public DefaultMavenPomOrganization(ObjectFactory objectFactory) {
         name = objectFactory.property(String.class);
         url = objectFactory.property(String.class);

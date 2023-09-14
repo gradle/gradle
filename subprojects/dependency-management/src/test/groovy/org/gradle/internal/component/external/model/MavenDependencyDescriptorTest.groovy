@@ -43,14 +43,11 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
-import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.component.model.ExcludeMetadata
+import org.gradle.internal.component.model.ExternalConfigurationNotFoundException
 import org.gradle.internal.component.model.ModuleConfigurationMetadata
 
 class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
@@ -88,193 +85,140 @@ class MavenDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
     def "selects compile and master configurations from target when traversing from compile configuration"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ModuleConfigurationMetadata)
-        def toCompile = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ModuleConfigurationMetadata)
+        def toCompile = configuration(toComponent, "compile")
+        def toMaster = configurationWithArtifacts(toComponent, "master")
         fromCompile.name >> "compile"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("compile") >> toCompile
-        toComponent.getConfiguration("master") >> toMaster
-        toState.resolveArtifactsFor(toMaster) >> toMaster
-        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toState).variants == [toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent).variants == [toCompile, toMaster]
     }
 
     def "selects compile, runtime and master configurations from target when traversing from other configuration"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
         def fromRuntime2 = Stub(ModuleConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
-        def toCompile = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ModuleConfigurationMetadata)
+        def toRuntime = configuration(toComponent, "runtime")
+        def toCompile = configuration(toComponent, "compile")
+        def toMaster = configurationWithArtifacts(toComponent, "master")
         fromRuntime.name >> "runtime"
         fromRuntime2.name >> "provided"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> toRuntime
-        toComponent.getConfiguration("compile") >> toCompile
-        toComponent.getConfiguration("master") >> toMaster
-        toState.resolveArtifactsFor(toMaster) >> toMaster
-        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState).variants == [toRuntime, toCompile, toMaster]
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toState).variants == [toRuntime, toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime, toCompile, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent).variants == [toRuntime, toCompile, toMaster]
     }
 
     def "selects runtime and master configurations from target when traversing from other configuration and target's runtime extends compile"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
         def fromRuntime2 = Stub(ModuleConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ModuleConfigurationMetadata)
+        def toRuntime = configurationWithHierarchy(toComponent, "runtime", ImmutableSet.of("runtime", "compile"))
+        def toMaster = configurationWithArtifacts(toComponent, "master")
         fromRuntime.name >> "runtime"
         fromRuntime2.name >> "provided"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> toRuntime
-        toComponent.getConfiguration("master") >> toMaster
-        toRuntime.hierarchy >> ImmutableSet.of("runtime", "compile")
-        toState.resolveArtifactsFor(toMaster) >> toMaster
-        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState).variants == [toRuntime, toMaster]
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toState).variants == [toRuntime, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime2, toComponent).variants == [toRuntime, toMaster]
     }
 
     def "ignores missing master configuration"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
+        def toRuntime = configurationWithHierarchy(toComponent, "runtime", ImmutableSet.of("compile", "runtime"))
         fromRuntime.name >> "runtime"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> toRuntime
-        toComponent.getConfiguration("master") >> null
-        toRuntime.hierarchy >> ImmutableSet.of("compile", "runtime")
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState).variants == [toRuntime]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime]
     }
 
     def "ignores empty master configuration"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
-        def toRuntime = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ConfigurationGraphResolveMetadata)
-        toRuntime.artifacts >> ImmutableList.of()
-        toMaster.artifacts >> ImmutableList.of()
+        def toRuntime = configurationWithHierarchy(toComponent, "runtime", ImmutableSet.of("compile", "runtime"))
+        configuration(toComponent, "master")
         fromRuntime.name >> "runtime"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> toRuntime
-        toComponent.getConfiguration("master") >> toMaster
-        toRuntime.hierarchy >> ImmutableSet.of("compile", "runtime")
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState).variants == [toRuntime]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toRuntime]
     }
 
     def "falls back to default configuration when compile is not defined in target component"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ModuleConfigurationMetadata)
-        def toDefault = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ModuleConfigurationMetadata)
+        def toDefault = configuration(toComponent, "default")
+        def toMaster = configurationWithArtifacts(toComponent, "master")
         fromCompile.name >> "compile"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("compile") >> null
-        toComponent.getConfiguration("default") >> toDefault
-        toComponent.getConfiguration("master") >> toMaster
-        toState.resolveArtifactsFor(toMaster) >> toMaster
-        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
+        toComponent.getConfiguration(_) >> null
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toState).variants == [toDefault, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent).variants == [toDefault, toMaster]
     }
 
     def "falls back to default configuration when runtime is not defined in target component"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ModuleConfigurationMetadata)
-        def toDefault = Stub(ConfigurationGraphResolveMetadata)
-        def toMaster = Stub(ModuleConfigurationMetadata)
+        def toDefault = configurationWithHierarchy(toComponent, "default", ImmutableSet.of("compile", "default"))
+        def toMaster = configurationWithArtifacts(toComponent, "master")
         fromRuntime.name >> "runtime"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> null
-        toComponent.getConfiguration("default") >> toDefault
-        toComponent.getConfiguration("master") >> toMaster
-        toState.resolveArtifactsFor(toMaster) >> toMaster
-        toDefault.hierarchy >> ImmutableSet.of("compile", "default")
-        toMaster.artifacts >> ImmutableList.of(ComponentArtifactMetadata)
+        toComponent.getConfiguration(_) >> null
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         expect:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState).variants == [toDefault, toMaster]
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent).variants == [toDefault, toMaster]
     }
 
     def "fails when compile configuration is not defined in target component"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromCompile = Stub(ConfigurationMetadata)
         fromCompile.name >> "compile"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("compile") >> null
-        toComponent.getConfiguration("default") >> null
-        toComponent.getConfiguration("master") >> null
+        toComponent.getConfiguration(_) >> null
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         when:
-        dep.selectLegacyConfigurations(fromComponent, fromCompile, toState)
+        dep.selectLegacyConfigurations(fromComponent, fromCompile, toComponent)
 
         then:
-        thrown(ConfigurationNotFoundException)
+        thrown(ExternalConfigurationNotFoundException)
     }
 
     def "fails when runtime configuration is not defined in target component"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toState = Stub(ComponentGraphResolveState)
-        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def toComponent = Stub(ComponentGraphResolveState)
         def fromRuntime = Stub(ConfigurationMetadata)
         fromRuntime.name >> "runtime"
-        toState.metadata >> toComponent
-        toComponent.getConfiguration("runtime") >> null
-        toComponent.getConfiguration("default") >> null
-        toComponent.getConfiguration("master") >> null
+        toComponent.getConfiguration(_) >> null
 
         def dep = mavenDependencyMetadata(MavenScope.Compile, Stub(ModuleComponentSelector), [])
 
         when:
-        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toState)
+        dep.selectLegacyConfigurations(fromComponent, fromRuntime, toComponent)
 
         then:
-        thrown(ConfigurationNotFoundException)
+        thrown(ExternalConfigurationNotFoundException)
     }
 
     private static MavenDependencyDescriptor mavenDependencyMetadata(MavenScope scope, ModuleComponentSelector selector, List<ExcludeMetadata> excludes) {

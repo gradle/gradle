@@ -100,11 +100,11 @@ class CodeGeneratingSignatureTreeVisitor {
         TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
         String implementationName = request.getImplementationInfo().getName();
         if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
-            result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
+            result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner().getType()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
             CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, interceptorArgs);
             result.addStatement("return result");
-        } else if (request.getInterceptedCallable().getReturnType() == Type.VOID_TYPE) {
+        } else if (request.getInterceptedCallable().getReturnType().getType() == Type.VOID_TYPE) {
             result.addStatement("$T.$L($L)", implementationOwner, implementationName, argsCode);
             result.addStatement("return null");
         } else {
@@ -124,8 +124,12 @@ class CodeGeneratingSignatureTreeVisitor {
 
         CodeBlock nextArg = CodeBlock.of("nextArg");
         result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
-        result.beginControlFlow("if ($L instanceof $T)", nextArg, entryParamType);
-        result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+        result.beginControlFlow("if ($1L == null || $1L instanceof $2T)", nextArg, entryParamType);
+        if (entryParamType.equals(TypeName.OBJECT)) {
+            result.addStatement("$1L[argIndex - $2L] = $3L", varargVariable, paramIndex, nextArg);
+        } else {
+            result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+        }
         result.nextControlFlow("else");
         result.addStatement("$L = false", varargMatched);
         result.addStatement("break");
@@ -150,7 +154,7 @@ class CodeGeneratingSignatureTreeVisitor {
         CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
             CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
             // Vararg fits here, too:
-            CodeBlock.of("$L instanceof $T", argExpr, entryChildType.box());
+            CodeBlock.of("$1L == null || $1L instanceof $2T", argExpr, entryChildType.box());
         result.beginControlFlow("if ($L)", matchExpr);
         boolean shouldPopParameter = false;
         if (entry.kind != RECEIVER_AS_CLASS) {

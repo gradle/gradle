@@ -20,6 +20,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,7 +41,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
     }
 
     @Override
-    public boolean isSubscribed(Class<?> type) {
+    public boolean isSubscribed(@Nullable Class<? extends T> type) {
         if (baseTypeSubscribed) {
             return true;
         }
@@ -156,7 +157,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         }
 
         @Override
-        public boolean isSubscribed(Class<?> type) {
+        public boolean isSubscribed(@Nullable Class<? extends S> type) {
             throw new UnsupportedOperationException();
         }
 

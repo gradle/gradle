@@ -150,6 +150,31 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
         "assigned tool" | "when configured"                    | "other"  | null           | "other"
     }
 
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
+
+        buildFile << """
+            apply plugin:'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+            test {
+                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+        when:
+        executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+            "Configure an absolute path to a Java executable instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
+
+        then:
+        succeeds("test")
+    }
+
     private TestFile configureProjectWithJavaPlugin(JavaVersion compileJavaVersion) {
         buildFile << """
             apply plugin: "java"

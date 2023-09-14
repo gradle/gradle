@@ -24,6 +24,7 @@ import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.cleanUpPerformanceBuildDir
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
@@ -46,6 +47,10 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     val testTaskOptionsParameterName = "testTaskOptions"
     val daemon = true
     applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
+
+    // Show all failed tests here, since that is what we are interested in
+    failureConditions.supportTestRetry = false
+
     val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
@@ -54,6 +59,8 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         ).joinToString(separator = " ")
 
     killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
+    cleanUpPerformanceBuildDir(os)
+
     (1..10).forEach { idx ->
         steps {
             gradleWrapper {

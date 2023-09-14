@@ -17,9 +17,13 @@
 package org.gradle.scala.compile.daemon
 
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
-
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Assume
 
 class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
@@ -31,9 +35,9 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
     String getApplyAndConfigure() {
         return """
             apply plugin: "scala"
-            
+
             ${mavenCentralRepository()}
-            
+
             dependencies {
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
@@ -43,5 +47,127 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
     @Override
     TestJvmComponent getComponent() {
         return new TestScalaComponent()
+    }
+
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
+    def "reuses compiler daemons within a single project across multiple builds when enabled"() {
+        withSingleProjectSources()
+        withPersistentScalaCompilerDaemons()
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        succeeds("clean", "compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        def firstDaemonId = old(runningCompilerDaemons[0])
+        assertRunningCompilerDaemonIs(firstDaemonId)
+    }
+
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
+    def "reuses compiler daemons within a multi-project build across multiple builds when enabled"() {
+        withMultiProjectSources()
+        withPersistentScalaCompilerDaemons()
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        succeeds("clean", "compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        def firstDaemonId = old(runningCompilerDaemons[0])
+        assertRunningCompilerDaemonIs(firstDaemonId)
+    }
+
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    def "reuses compiler daemons within a composite build across multiple builds when enabled"() {
+        Assume.assumeTrue(supportsCompositeBuilds())
+
+        withCompositeBuildSources()
+        withPersistentScalaCompilerDaemons()
+        withPersistentScalaCompilerDaemons(file('child'))
+
+        when:
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        succeeds("clean", "child:clean", "compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", ":child${compileTaskPath('main')}"
+
+        and:
+        def firstDaemonId = old(runningCompilerDaemons[0])
+        assertRunningCompilerDaemonIs(firstDaemonId)
+    }
+
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
+    def "ignores known changing environment variable when persistent compiler daemons are enabled"() {
+        withSingleProjectSources()
+        withPersistentScalaCompilerDaemons()
+
+        when:
+        executer.withEnvironmentVars(['JAVA_MAIN_CLASS_1234': '1234'])
+        succeeds("compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        assertOneCompilerDaemonIsRunning()
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        executer.withEnvironmentVars(['JAVA_MAIN_CLASS_1234': '5678'])
+        succeeds("clean", "compileAll")
+
+        then:
+        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
+
+        and:
+        def firstDaemonId = old(runningCompilerDaemons[0])
+        assertRunningCompilerDaemonIs(firstDaemonId)
+    }
+
+    private TestFile withPersistentScalaCompilerDaemons(TestFile buildDir = testDirectory) {
+        buildDir.file("build.gradle") << """
+            allprojects {
+                tasks.withType(${compileTaskType}) {
+                    scalaCompileOptions.keepAliveMode = KeepAliveMode.DAEMON
+                }
+            }
+        """
     }
 }

@@ -30,7 +30,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
-        configurationCacheRun("thing")
+        isolatedProjectsRun("thing")
 
         then:
         fixture.assertStateStored {
@@ -38,7 +38,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         }
 
         when:
-        configurationCacheRun("thing")
+        isolatedProjectsRun("thing")
 
         then:
         fixture.assertStateLoaded()
@@ -51,7 +51,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
-        configurationCacheFails("thing", "--no-configuration-cache")
+        isolatedProjectsFails("thing", "--no-configuration-cache")
 
         then:
         failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
@@ -78,7 +78,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
-        configurationCacheRun(":b:producer")
+        isolatedProjectsRun(":b:producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer")
@@ -87,14 +87,14 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         }
 
         when:
-        configurationCacheRun(":b:producer")
+        isolatedProjectsRun(":b:producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer")
         fixture.assertStateLoaded()
 
         when:
-        configurationCacheRun("producer")
+        isolatedProjectsRun("producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
@@ -103,7 +103,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         }
 
         when:
-        configurationCacheRun("producer")
+        isolatedProjectsRun("producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")

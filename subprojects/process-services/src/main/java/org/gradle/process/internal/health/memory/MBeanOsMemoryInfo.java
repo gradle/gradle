@@ -19,9 +19,11 @@ package org.gradle.process.internal.health.memory;
 import org.gradle.internal.jvm.Jvm;
 
 /**
- * Uses the JVM's own interpretation of total and free memory. Gives accurate values on Windows and Solaris.
+ * Uses the JVM's own interpretation of total and free memory. Gives accurate values on Solaris.
  * On Linux or MacOs, the free memory metric doesn't include reclaimable file system caches and will thus always report that the system is almost out of memory.
  * Use {@link MemInfoOsMemoryInfo} and {@link NativeOsMemoryInfo} instead.
+ * On Windows, this doesn't include the secondary commit limit, which is the maximum amount of virtual memory that can be allocated.
+ * Use {@link WindowsOsMemoryInfo} instead.
  */
 public class MBeanOsMemoryInfo implements OsMemoryInfo {
 

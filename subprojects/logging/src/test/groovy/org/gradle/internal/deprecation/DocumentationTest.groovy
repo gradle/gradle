@@ -28,8 +28,8 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.NO_DOCUMENTATION
 
         then:
-        documentationReference.documentationUrl() == null
-        documentationReference.consultDocumentationMessage() == null
+        documentationReference.getUrl() == null
+        documentationReference.getConsultDocumentationMessage() == null
     }
 
     def "formats message for documentation id #documentationId, section #documentationSection"() {
@@ -37,13 +37,12 @@ class DocumentationTest extends Specification {
         def documentationReference = Documentation.userManual(documentationId, documentationSection)
 
         expect:
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+        documentationReference.getConsultDocumentationMessage() == expectedUrl
 
         where:
         documentationId | documentationSection | expectedUrl
-        "foo"           | "bar"                | DOCUMENTATION_REGISTRY.getDocumentationFor("foo", "bar")
-        "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationFor("foo")
+        "foo"           | "bar"                | DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "foo", "bar")
+        "foo"           | null                 | DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "foo")
     }
 
     def "creates upgrade guide reference"() {
@@ -52,8 +51,8 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
+        documentationReference.getUrl() == expectedUrl
+        documentationReference.getConsultDocumentationMessage() == "Consult the upgrading guide for further information: ${expectedUrl}"
     }
 
     def "creates dsl reference for property"() {
@@ -62,8 +61,8 @@ class DocumentationTest extends Specification {
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDslRefForProperty(Documentation, "property")
-        documentationReference.documentationUrl() == expectedUrl
-        documentationReference.consultDocumentationMessage() == "See ${expectedUrl} for more details."
+        documentationReference.getUrl() == expectedUrl
+        documentationReference.getConsultDocumentationMessage() == "For more information, please refer to ${expectedUrl} in the Gradle documentation."
     }
 
 }

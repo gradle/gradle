@@ -22,12 +22,24 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ supportedVersionsByHigherJdk() })
 class HigherToolchainZincScalaCompileIntegrationTest extends AbstractToolchainZincScalaCompileIntegrationTest {
-    @Override
-    Jvm computeJdkForTest() {
+    private static supportedVersionsByHigherJdk() {
+        def jdk = jdkForTest()
+        if (jdk == null) {
+            return []
+        }
+        return ScalaCoverage.scalaVersionsSupportedByJdk(jdk.javaVersion)
+    }
+
+    private static jdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
             it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_16.isCompatibleWith(it.languageVersion)
         }
+    }
+
+    @Override
+    Jvm computeJdkForTest() {
+        jdkForTest()
     }
 }

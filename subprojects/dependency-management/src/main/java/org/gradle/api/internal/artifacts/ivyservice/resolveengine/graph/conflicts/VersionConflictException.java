@@ -16,57 +16,85 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
-import org.gradle.internal.Pair;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collection;
 import java.util.List;
 
-public class VersionConflictException extends GraphValidationException {
-    private static final int MAX_SEEN_MODULE_COUNT = 10;
-    private final List<Pair<List<? extends ModuleVersionIdentifier>, String>> conflicts;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
-    public VersionConflictException(String projectPath, String configurationName, Collection<Pair<List<? extends ModuleVersionIdentifier>, String>> conflicts) {
-        super(buildMessage(projectPath, configurationName, conflicts));
-        this.conflicts = ImmutableList.copyOf(conflicts);
+public class VersionConflictException extends GraphValidationException implements ResolutionProvider {
+    private static final int MAX_SEEN_MODULE_COUNT = 10;
+    private final Collection<Conflict> conflicts;
+
+    private final List<String> resolutions;
+
+    private VersionConflictException(
+        String message,
+        Collection<Conflict> conflicts,
+        List<String> resolutions
+    ) {
+        super(message);
+        this.conflicts = conflicts;
+        this.resolutions = resolutions;
     }
 
-    public List<Pair<List<? extends ModuleVersionIdentifier>, String>> getConflicts() {
+    public Collection<Conflict> getConflicts() {
         return conflicts;
     }
 
-    private static String buildMessage(String projectPath, String configurationName, Collection<Pair<List<? extends ModuleVersionIdentifier>, String>> conflicts) {
+    private static String buildMessage(Collection<Conflict> conflicts) {
         TreeFormatter formatter = new TreeFormatter();
-        String dependencyNotation = null;
-        int count = 0;
-        formatter.node("Conflict(s) found for the following module(s)");
+
+        String plural = getPluralEnding(conflicts);
+        formatter.node("Conflict" + plural + " found for the following module" + plural);
         formatter.startChildren();
-        for (Pair<List<? extends ModuleVersionIdentifier>, String> allConflict : conflicts) {
-            if (count > MAX_SEEN_MODULE_COUNT) {
-                formatter.node("... and more");
-                break;
-            }
-            formatter.node(allConflict.right);
-            count++;
-            if (dependencyNotation == null) {
-                ModuleVersionIdentifier identifier = allConflict.getLeft().get(0);
-                dependencyNotation = identifier.getGroup() + ":" + identifier.getName();
-            }
+
+        conflicts.stream().limit(MAX_SEEN_MODULE_COUNT)
+            .forEach(conflict -> formatter.node(conflict.getMessage()));
+
+        if (conflicts.size() > MAX_SEEN_MODULE_COUNT) {
+            formatter.node("... and more");
         }
         formatter.endChildren();
-        appendInsight(projectPath, configurationName, formatter, dependencyNotation);
         return formatter.toString();
     }
 
-    private static void appendInsight(String projectPath, String configurationName, TreeFormatter formatter, String dependencyNotation) {
+    private static String getDependencyNotation(Collection<Conflict> conflicts) {
+        return conflicts.stream()
+            .findFirst()
+            .map(p -> {
+                ModuleVersionIdentifier identifier = p.getVersions().get(0);
+                return identifier.getGroup() + ":" + identifier.getName();
+            })
+            .orElseThrow(() -> new GradleException("This "));
+    }
+
+    private static List<String> createResolutions(String projectPath, String configurationName, String dependencyNotation) {
         if (projectPath.equals(":")) {
             projectPath = "";
         }
-        formatter.node("Run with:");
-        formatter.node("    --scan or");
-        formatter.node("    " + projectPath + ":dependencyInsight --configuration " + configurationName + " --dependency " + dependencyNotation);
-        formatter.node("to get more insight on how to solve the conflict.");
+
+        return ImmutableList.of("Run with " + projectPath + ":dependencyInsight --configuration " +
+            configurationName + " --dependency " + dependencyNotation + " to get more insight on how to solve the conflict.");
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
+    }
+
+    public static VersionConflictException create(
+        String projectPath,
+        String configurationName,
+        Collection<Conflict> conflicts
+    ) {
+        String message = buildMessage(conflicts);
+        List<String> resolutions = createResolutions(projectPath, configurationName, getDependencyNotation(conflicts));
+        return new VersionConflictException(message, ImmutableList.copyOf(conflicts), resolutions);
     }
 }

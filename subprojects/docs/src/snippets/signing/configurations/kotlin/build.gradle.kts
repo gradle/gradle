@@ -16,8 +16,8 @@ extra["signing.keyId"] = "24875D73"
 extra["signing.password"] = "gradle"
 extra["signing.secretKeyRingFile"] = file("secKeyRingFile.gpg").absolutePath
 
-// tag::sign-archives[]
+// tag::sign-runtime-elements[]
 signing {
-    sign(configurations.archives.get())
+    sign(configurations.runtimeElements.get())
 }
-// end::sign-archives[]
+// end::sign-runtime-elements[]

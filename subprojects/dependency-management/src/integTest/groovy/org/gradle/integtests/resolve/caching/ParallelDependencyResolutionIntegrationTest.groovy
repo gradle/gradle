@@ -17,12 +17,12 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 // no point, always runs in parallel
 class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
@@ -58,7 +58,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -96,7 +96,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """
@@ -122,7 +122,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 task resolveDependencies {
                     def compileClasspath = configurations.compileClasspath
                     doLast {
-                        compileClasspath.resolve()
+                        compileClasspath.files
                     }
                 }
             """

@@ -16,65 +16,46 @@
 
 package org.gradle.process.internal.health.memory
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultOsMemoryInfoIntegrationTest extends Specification {
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "gets OS total memory on a Windows system"() {
+    def "gets OS total memory on any system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getTotal()
 
         then:
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "gets OS free memory on a Windows system"() {
+    def "gets OS free memory on any system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        new DefaultOsMemoryInfo().getOsSnapshot().getPhysicalMemory().getFree()
 
         then:
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.LINUX)
-    def "gets OS total memory on a Linux system"() {
+    @Requires(UnitTestPreconditions.Windows)
+    def "gets OS virtual memory on a Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        notThrown UnsupportedOperationException
+        virtualMemory instanceof OsMemoryStatusAspect.Available
     }
 
-    @Requires(TestPrecondition.LINUX)
-    def "gets OS free memory on a Linux system"() {
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "reports unknown OS virtual memory on a non-Windows system"() {
         when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
+        def virtualMemory = new DefaultOsMemoryInfo().getOsSnapshot().getVirtualMemory()
 
         then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "gets OS total memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
-
-        then:
-        notThrown UnsupportedOperationException
-    }
-
-    @Requires(TestPrecondition.MAC_OS_X)
-    def "gets OS free memory on a MacOS system"() {
-        when:
-        new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
-
-        then:
-        notThrown UnsupportedOperationException
+        virtualMemory instanceof OsMemoryStatusAspect.Unavailable
     }
 }

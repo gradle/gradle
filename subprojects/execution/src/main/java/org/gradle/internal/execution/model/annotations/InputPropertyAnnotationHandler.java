@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
@@ -31,9 +32,12 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
+import java.net.URL;
+import java.util.List;
 
+import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public InputPropertyAnnotationHandler() {
@@ -56,20 +60,23 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         Class<?> valueType = propertyMetadata.getDeclaredType().getRawType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
-        validateNotPrimitiveType(propertyMetadata, validationContext, valueType);
+        validateNotOptionalPrimitiveType(propertyMetadata, validationContext, valueType);
+        validateNotUrlType(propertyMetadata, validationContext);
     }
 
-    private void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
-                    .reportAs(ERROR)
+                problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
-                    .happensBecause("Properties of primitive type cannot be optional")
-                    .addPossibleSolution("Remove the @Optional annotation")
-                    .addPossibleSolution(() -> "Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
-                    .documentedAt("validation_problems", "cannot_use_optional_on_primitive_types")
+                    .label("of type %s shouldn't be annotated with @Optional", valueType.getName())
+                    .documentedAt(userManual("validation_problems", "cannot_use_optional_on_primitive_types"))
+                    .noLocation()
+                    .type(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE.name())
+                    .details("Properties of primitive type cannot be optional")
+                    .severity(Severity.ERROR)
+                    .solution("Remove the @Optional annotation")
+                    .solution("Use the " + JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType).getName() + " type instead")
             );
         }
     }
@@ -81,15 +88,17 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
-                problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
-                        .forProperty(propertyMetadata.getPropertyName())
-                        .reportAs(ERROR)
-                        .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
-                        .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
-                        .addPossibleSolution("Annotate with @InputFile for regular files")
-                        .addPossibleSolution("Annotate with @InputFiles for collections of files")
-                        .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-                        .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
+                problem
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .label("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+                    .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
+                    .noLocation()
+                    .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
+                    .severity(Severity.ERROR)
+                    .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                    .solution("Annotate with @InputFile for regular files")
+                    .solution("Annotate with @InputFiles for collections of files")
+                    .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
             );
         }
     }
@@ -98,13 +107,32 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         if (Directory.class.isAssignableFrom(valueType)
             || DirectoryProperty.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
-                            .forProperty(propertyMetadata.getPropertyName())
-                            .reportAs(ERROR)
-                            .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
-                            .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
-                            .addPossibleSolution("Annotate with @InputDirectory for directories")
-                            .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
+                problem
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .label("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
+                    .documentedAt(userManual("validation_problems", "incorrect_use_of_input_annotation"))
+                    .noLocation()
+                    .type(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION.name())
+                    .severity(Severity.ERROR)
+                    .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                    .solution("Annotate with @InputDirectory for directories")
+            );
+        }
+    }
+
+    private static void validateNotUrlType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
+        if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {
+            validationContext.visitPropertyProblem(problem ->
+                problem
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .label("has @Input annotation used on type '%s' or a property of this type", URL.class.getName())
+                    .documentedAt(userManual("validation_problems", "unsupported_value_type"))
+                    .noLocation()
+                    .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
+                    .severity(WARNING)
+                    .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                    .solution("Use type 'java.net.URI' instead")
             );
         }
     }

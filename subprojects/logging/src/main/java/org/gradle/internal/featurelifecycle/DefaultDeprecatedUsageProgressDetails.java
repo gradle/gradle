@@ -17,17 +17,25 @@
 package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.problems.ProblemDiagnostics;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {
+public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails, CustomOperationTraceSerialization {
 
     @VisibleForTesting
     public final DeprecatedFeatureUsage featureUsage;
+    private final ProblemDiagnostics diagnostics;
 
-    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage) {
+    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, ProblemDiagnostics diagnostics) {
         this.featureUsage = featureUsage;
+        this.diagnostics = diagnostics;
     }
 
     @Override
@@ -52,7 +60,7 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public String getDocumentationUrl() {
-        return featureUsage.getDocumentationUrl();
+        return featureUsage.getDocumentationUrl().getUrl();
     }
 
     @Override
@@ -62,6 +70,25 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
 
     @Override
     public List<StackTraceElement> getStackTrace() {
-        return featureUsage.getStack();
+        return diagnostics.getStack();
+    }
+
+    @Override
+    public Object getCustomOperationTraceSerializableModel() {
+        Map<String, Object> deprecation = new LinkedHashMap<String, Object>();
+        deprecation.put("summary", getSummary());
+        deprecation.put("removalDetails", getRemovalDetails());
+        deprecation.put("advice", getAdvice());
+        deprecation.put("contextualAdvice", getContextualAdvice());
+        deprecation.put("documentationUrl", getDocumentationUrl());
+        deprecation.put("type", getType());
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement ste : getStackTrace()) {
+            sb.append(ste.toString());
+            sb.append(SystemProperties.getInstance().getLineSeparator());
+        }
+        deprecation.put("stackTrace", sb.toString());
+        // the properties are wrapped to an enclosing map to improve the readability of the trace files
+        return Collections.singletonMap("deprecation", deprecation);
     }
 }

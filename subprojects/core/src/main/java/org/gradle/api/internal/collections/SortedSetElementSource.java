@@ -16,22 +16,31 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
-    private final PendingSource<T> pending = new DefaultPendingSource<T>();
+    private final Set<Collectors.TypedCollector<T>> pending = new LinkedHashSet<>();
+    private Action<T> addRealizedAction;
+    private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard mutationGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
@@ -50,17 +59,22 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public int size() {
-        return values.size() + pending.size();
+        int pendingSize = 0;
+        for (Collectors.TypedCollector<T> collector : pending) {
+            pendingSize += collector.size();
+        }
+
+        return values.size() + pendingSize;
     }
 
     @Override
     public int estimatedSize() {
-        return values.size() + pending.size();
+        return size();
     }
 
     @Override
     public Iterator<T> iterator() {
-        pending.realizePending();
+        realizePending();
         return values.iterator();
     }
 
@@ -71,23 +85,18 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean contains(Object element) {
-        pending.realizePending();
+        realizePending();
         return values.contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
-        pending.realizePending();
+        realizePending();
         return values.containsAll(elements);
     }
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
-    }
-
-    @Override
-    public boolean addRealized(T element) {
         return values.add(element);
     }
 
@@ -104,12 +113,42 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizePending() {
-        pending.realizePending();
+        if (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList(pending);
+            realize(copied);
+        }
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        pending.realizePending(type);
+        if (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList();
+            for (Collectors.TypedCollector<T> collector : pending) {
+                if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
+                    copied.add(collector);
+                }
+            }
+            realize(copied);
+        }
+    }
+
+    private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
+        for (Collectors.TypedCollector<T> collector : collectors) {
+            pending.remove(collector);
+            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            // Collect elements discarding potential side effects aggregated in the returned value
+            collector.collectInto(builder);
+            List<T> realized = builder.build();
+            for (T element : realized) {
+                doAddRealized(element);
+            }
+        }
+    }
+
+    private void doAddRealized(T value) {
+        if (values.add(value) && addRealizedAction != null) {
+            addRealizedAction.execute(value);
+        }
     }
 
     @Override
@@ -117,15 +156,45 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(previousValue -> {
                 values.remove(previousValue);
-                pending.addPending(provider);
+                pending.add(collectorFromProvider(provider));
             });
         }
-        return pending.addPending(provider);
+        Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
+
+        boolean added = pending.add(collector);
+        // TODO: We likely want to also immediately realize ChangingValue providers in the
+        //  onValueChange callback above.
+        if (subscriptionVerifier.isSubscribed(provider.getType())) {
+            realize(Collections.singleton(collector));
+
+            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
+            // actually telling the ElementSource that the element was realized.
+            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
+            // if we make CollectionProviders implement ChangingValue
+            pending.add(collector);
+        }
+        return added;
+    }
+
+    private Collectors.TypedCollector<T> collectorFromProvider(final ProviderInternal<? extends T> provider) {
+        return new Collectors.TypedCollector<>(provider.getType(), new Collectors.ElementFromProvider<>(provider));
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
-        return pending.removePending(provider);
+        return removeByProvider(provider);
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
+        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
+        while (iterator.hasNext()) {
+            Collectors.TypedCollector<T> collector = iterator.next();
+            if (collector.isProvidedBy(provider)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -135,25 +204,48 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 for (T value : previousValues) {
                     values.remove(value);
                 }
-                pending.addPendingCollection(provider);
+                pending.add(collectorFromCollectionProvider(provider));
             });
         }
-        return pending.addPendingCollection(provider);
+        Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
+
+        boolean added = pending.add(collector);
+        // TODO: We likely want to also immediately realize ChangingValue providers in the
+        //  onValueChange callback above.
+        if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
+            realize(Collections.singleton(collector));
+
+            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
+            // actually telling the ElementSource that the element was realized.
+            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
+            // if we make CollectionProviders implement ChangingValue
+            pending.add(collector);
+        }
+        return added;
+    }
+
+    private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        return new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
     }
 
     @Override
     public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return pending.removePendingCollection(provider);
+        return removeByProvider(provider);
     }
 
     @Override
-    public void onRealize(Action<T> action) {
-        pending.onRealize(action);
+    public void onPendingAdded(Action<T> action) {
+        this.addRealizedAction = action;
+    }
+
+    @Override
+    public void setSubscriptionVerifier(EventSubscriptionVerifier<T> subscriptionVerifier) {
+        this.subscriptionVerifier = subscriptionVerifier;
     }
 
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
-        pending.realizeExternal(provider);
+        removePending(provider);
     }
 
     @Override

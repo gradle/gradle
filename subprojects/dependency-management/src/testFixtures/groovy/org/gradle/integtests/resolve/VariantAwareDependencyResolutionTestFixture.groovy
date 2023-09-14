@@ -28,21 +28,21 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
             allprojects {
                 configurations {
                     implementation {
-                        // TODO: Make this a bucket
+                        // TODO: Make this a dependency scope
                         // canBeResolved = false
                         // canBeConsumed = false
                     }
                     resolver {
                         attributes.attribute(color, 'blue')
                         extendsFrom implementation
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                     }
                     outgoing {
                         attributes.attribute(color, 'blue')
                         extendsFrom implementation
                         canBeResolved = false
-                        canBeConsumed = true
+                        assert canBeConsumed
                     }
                 }
             }

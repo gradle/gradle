@@ -36,7 +36,6 @@ abstract class BuildEnvironmentExtension {
 
 
 // `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
-private
 fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
 
 
@@ -114,6 +113,7 @@ object BuildEnvironment {
     val isTravis = "TRAVIS" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
     val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
+    val isTeamCityParallelTestsEnabled = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
     val isCodeQl: Boolean by lazy {
         // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
         // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.

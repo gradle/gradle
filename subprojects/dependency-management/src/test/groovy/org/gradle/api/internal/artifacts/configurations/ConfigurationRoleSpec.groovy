@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.configurations
 
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationRole.RoleDescriber.*
-
 class ConfigurationRoleSpec extends Specification {
     def "roles can describe themselves #role"() {
         expect:
@@ -27,11 +25,11 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         role                                            || usages
-        ConfigurationRoles.LEGACY                       || [CONSUMABLE, RESOLVABLE, DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_CONSUMABLE          || [CONSUMABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE          || [RESOLVABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [RESOLVABLE, DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_BUCKET              || [DECLARABLE_AGAINST]
+        ConfigurationRoles.LEGACY                       || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.CONSUMABLE                   || [UsageDescriber.CONSUMABLE]
+        ConfigurationRoles.RESOLVABLE                   || [UsageDescriber.RESOLVABLE]
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.DEPENDENCY_SCOPE             || [UsageDescriber.DECLARABLE_AGAINST]
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {

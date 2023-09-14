@@ -48,4 +48,14 @@ public enum ValidationProblemId {
     NOT_CACHEABLE_WITHOUT_REASON,
     UNSUPPORTED_VALUE_TYPE,
     SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE,
+    NESTED_MAP_UNSUPPORTED_KEY_TYPE,
+    NESTED_TYPE_UNSUPPORTED;
+    public boolean onlyAffectsCacheableWork() {
+        return this == MISSING_NORMALIZATION_ANNOTATION;
+    }
+
+    public static boolean onlyAffectsCacheableWork(String type) {
+        return MISSING_NORMALIZATION_ANNOTATION.name().equals(type);
+    }
+
 }

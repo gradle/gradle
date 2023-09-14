@@ -66,7 +66,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType? = null"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -87,7 +86,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy object types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, "=")
 
@@ -169,7 +167,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def initValue = inputType.contains("Map<") ? "mutableMapOf<String, MyObject>()" : "mutableListOf<MyObject>()"
         def inputDeclaration = "var input: $inputType = $initValue"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
@@ -196,7 +193,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy collection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -266,7 +262,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "var input: $inputType = project.files()"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -289,7 +284,6 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Kotlin lazy FileCollection types assignment for #description"() {
-        file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def inputDeclaration = "abstract val input: $inputType"
         kotlinBuildFile(inputDeclaration, inputValue, operation)
 
@@ -309,6 +303,44 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'                    | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | 'listOf("a.txt")'                  | unsupportedWithDescription("Val cannot be reassigned")
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
+    }
+
+    def "test Groovy lazy property assignment with NamedDomainObjectContainer"() {
+        buildFile """
+            abstract class PluginDeclaration {
+                final String name
+                final Property<String> id
+                abstract Property<String> getDescription()
+                abstract ListProperty<String> getTags()
+                abstract ConfigurableFileCollection getMyFiles()
+
+                PluginDeclaration(String name, ObjectFactory objectFactory) {
+                    this.id = objectFactory.property(String.class)
+                    this.name = name
+                }
+            }
+
+            project.extensions.add('pluginDeclarations', project.container(PluginDeclaration))
+
+            pluginDeclarations {
+                myPlugin {
+                    id = "my-id"
+                    description = "hello"
+                    tags = ["tag1", "tag2"]
+                    myFiles = files("a/b/c")
+                }
+            }
+
+            pluginDeclarations.all {
+                assert it.id.get() == "my-id"
+                assert it.description.get() == "hello"
+                assert it.tags.get() == ["tag1", "tag2"]
+                assert it.myFiles.files == files("a/b/c").files
+            }
+        """
+
+        expect:
+        run("help")
     }
 
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {

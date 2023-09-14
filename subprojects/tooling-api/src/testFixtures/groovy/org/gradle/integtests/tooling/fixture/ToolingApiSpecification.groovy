@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -30,6 +29,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
@@ -37,7 +37,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.LongRunningOperation
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -62,7 +62,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=7.0') // The lowest tested version should be the first release of the previous major.
+// The lowest tested version should be the first release of the previous major.
+@ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements TestProjectInitiation {
@@ -85,7 +86,8 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
     private GradleDistribution targetGradleDistribution
 
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
-    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder)
+    @Delegate
+    final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
@@ -102,7 +104,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
     }
 
     GradleDistribution getTargetDist() {
-        if (targetGradleDistribution == null)  {
+        if (targetGradleDistribution == null) {
             throw new IllegalStateException("targetDist is not yet set by the testing framework")
         }
         return targetGradleDistribution
@@ -175,7 +177,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -184,7 +186,7 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         }
     }
 
-    GradleConnector connector() {
+    ToolingApiConnector connector() {
         toolingApi.connector()
     }
 
@@ -213,11 +215,6 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
             build.run()
             out
         }
-    }
-
-    void collectOutputs(LongRunningOperation op) {
-        op.setStandardOutput(new TeeOutputStream(stdout, System.out))
-        op.setStandardError(new TeeOutputStream(stderr, System.err))
     }
 
     /**
@@ -327,13 +324,16 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
     }
 
     private void assertHasNoDeprecationWarnings() {
-        if (targetVersion < GradleVersion.version("6.9")) {
-            // Older versions have deprecations
-            return
+        if (shouldCheckForDeprecationWarnings()) {
+            assert !stdout.toString()
+                .replace("[deprecated]", "IGNORE") // don't check deprecated command-line argument
+                .containsIgnoreCase("deprecated")
         }
-        assert !stdout.toString()
-            .replace("[deprecated]", "IGNORE") // deprecated command-line argument
-            .containsIgnoreCase("deprecated")
+    }
+
+    def shouldCheckForDeprecationWarnings() {
+        // Older versions have deprecations
+        GradleVersion.version("6.9") < targetVersion
     }
 
     ExecutionResult getResult() {
@@ -344,13 +344,17 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
         return OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
     }
 
-    def <T> T loadToolingModel(Class<T> modelClass) {
-        def result = withConnection { connection ->
-            def builder = connection.model(modelClass)
-            collectOutputs(builder)
-            builder.get()
-        }
+    def validateOutput() {
+        def assertion = new ResultAssertion(0, [], false, shouldCheckForDeprecationWarnings(), true)
+        assertion.validate(stdout.toString(), "stdout")
+        assertion.validate(stderr.toString(), "stderr")
+        true
+    }
+
+    def <T> T loadToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
+        def result = loadToolingLeanModel(modelClass, cl)
         assertHasConfigureSuccessfulLogging()
+        validateOutput()
         return result
     }
 

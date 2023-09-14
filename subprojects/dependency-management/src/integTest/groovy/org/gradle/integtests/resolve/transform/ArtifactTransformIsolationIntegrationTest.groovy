@@ -16,14 +16,21 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
-class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -74,7 +81,7 @@ class Resolve extends Copy {
 """
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "serialized mutable class is isolated during artifact transformation"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()
@@ -133,7 +140,7 @@ class Resolve extends Copy {
                         counter = buildScriptCounter
                     }
                 }
-                buildScriptCounter.increment()
+                buildScriptCounter.increment() // should not be captured during registration
                 registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
@@ -186,18 +193,74 @@ class Resolve extends Copy {
         and:
         outputContains("variants: [{artifactType=secondCount, org.gradle.status=release}, {artifactType=secondCount, org.gradle.status=release}]")
         file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-        file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+            file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        }
 
         and:
         outputContains("variants: [{artifactType=thirdCount, org.gradle.status=release}, {artifactType=thirdCount, org.gradle.status=release}]")
         file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
-        file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+            file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+            file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        }
 
         and:
-        output.count("Transforming") == 6
-        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
-        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        if (GradleContextualExecuter.configCache) {
+            // Counter is serialized and isolated prior to execution, so transforms will not see the increment in each tasks' doLast { } (which is good)
+            output.count("Transforming") == 2
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 1
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+        } else {
+            // Counter is isolated at execution time, so transforms will see the increment in each tasks' doLast { }
+            output.count("Transforming") == 6
+            output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
+            output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+        }
+    }
+
+    def "cannot register a transform from a custom classloader"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+        buildFile << """
+            def classLoader = new GroovyClassLoader(this.class.classLoader)
+            def MakeGreen = classLoader.parseClass(\"\"\"abstract class MakeGreen implements ${TransformAction.name}<${TransformParameters.name}.None> {
+                @${InputArtifact.name}
+                abstract ${Provider.name}<${FileSystemLocation.name}> getInputArtifact()
+
+                void transform(${TransformOutputs.name} outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }\"\"\")"""
+        setupBuildWithColorTransform(buildFile)
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+        def isConfigCache = GradleContextualExecuter.configCache
+
+        when:
+        fails ':consumer:resolve'
+        then:
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve'.")
+        failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
     }
 }

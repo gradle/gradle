@@ -157,18 +157,24 @@ Required by:
             classes.doLast {
                 def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 4
+                assert components[0].build.buildPath == ':'
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildA'
+                assert components[0].buildTreePath == ':'
+                assert components[1].build.buildPath == ':buildB'
                 assert components[1].build.name == 'buildB'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
                 assert components[1].projectName == 'buildB'
+                assert components[1].buildTreePath == ':buildB'
+                assert components[2].build.buildPath == ':${buildName}'
                 assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild
                 assert components[2].projectPath == ':'
-                assert components[2].projectName == '${buildName}'
+                assert components[2].projectName == '${dependencyName}'
+                assert components[3].build.buildPath == ':${buildName}'
                 assert components[3].build.name == '${buildName}'
                 assert !components[3].build.currentBuild
                 assert components[3].projectPath == ':a'
@@ -179,11 +185,17 @@ Required by:
                 assert selectors[0].displayName == 'org.test:buildB:1.2'
                 assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
                 assert selectors[2].displayName == 'project :${buildName}:a'
-                // TODO = should be $buildName
-                assert selectors[2].buildName == 'buildC'
+                assert selectors[2].buildPath == ':${buildName}'
+                assert selectors[2].buildName == '${buildName}'
                 assert selectors[2].projectPath == ':a'
             }
         """
+
+        4.times {
+            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+            executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
+        }
+        executer.expectDocumentedDeprecationWarning("The ProjectComponentSelector.getBuildName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:
         succeeds(":assemble")

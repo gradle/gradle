@@ -22,19 +22,16 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.util.internal.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
     private static final ModuleVersionSelector UNKNOWN_MODULE_VERSION_SELECTOR = DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId("", "unknown"), "");
-    private final ComponentIdentifierFactory componentIdentifierFactory;
     private final LocalComponentRegistry localComponentRegistry;
 
-    public DefaultComponentSelectorConverter(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
-        this.componentIdentifierFactory = componentIdentifierFactory;
+    public DefaultComponentSelectorConverter(LocalComponentRegistry localComponentRegistry) {
         this.localComponentRegistry = localComponentRegistry;
     }
 
@@ -53,9 +50,9 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
         if (selector instanceof ModuleComponentSelector) {
             return DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
         }
-        if (selector instanceof ProjectComponentSelector) {
-            ProjectComponentSelector projectSelector = (ProjectComponentSelector) selector;
-            ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(projectSelector);
+        if (selector instanceof DefaultProjectComponentSelector) {
+            DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
+            ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState projectComponent = localComponentRegistry.getComponent(projectId);
             if (projectComponent != null) {
                 ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();

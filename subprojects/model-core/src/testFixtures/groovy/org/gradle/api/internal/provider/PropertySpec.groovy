@@ -27,6 +27,7 @@ import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
 
 import java.util.concurrent.Callable
+import java.util.function.Predicate
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
@@ -475,6 +476,34 @@ The value of this property is derived from: <source>""")
         then:
         r2 == 10
         1 * transformer.transform(someValue()) >> 10
+        0 * _
+    }
+
+    def "can filter value"() {
+        def predicate = Mock(Predicate)
+        def property = propertyWithNoValue()
+
+        when:
+        def provider = property.filter(predicate)
+
+        then:
+        0 * _
+
+        when:
+        property.set(someValue())
+        def r1 = provider.get()
+
+        then:
+        r1 == someValue()
+        1 * predicate.test(someValue()) >> true
+        0 * _
+
+        when:
+        def r2 = provider.getOrNull()
+
+        then:
+        r2 == null
+        1 * predicate.test(someValue()) >> false
         0 * _
     }
 
@@ -2634,6 +2663,41 @@ The value of this provider is derived from:
         def value = mapped.calculateExecutionTimeValue()
         value.isChangingValue()
         value.getChangingValue().get() == someOtherValue()
+    }
+
+    def "chain of mapped and filtered value has value producer when producer task attached to original property"() {
+        def task = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        def mapped = property.map { it }.filter { true }.map { someOtherValue() }
+
+        expect:
+        assertHasNoProducer(mapped)
+        def value = mapped.calculateExecutionTimeValue()
+        value.hasFixedValue()
+        value.fixedValue == someOtherValue()
+
+        property.attachProducer(owner(task))
+
+        assertHasProducer(mapped, task)
+        def value2 = mapped.calculateExecutionTimeValue()
+        value2.isChangingValue()
+        value2.getChangingValue().get() == someOtherValue()
+    }
+
+    def "filtered value has no execution time value when producer task attached to original property with no value"() {
+        def task = Mock(Task)
+        def property = propertyWithNoValue()
+        def filtered = property.filter { true }
+
+        expect:
+        assertHasNoProducer(filtered)
+        filtered.calculateExecutionTimeValue().isMissing()
+
+        property.attachProducer(owner(task))
+
+        assertHasProducer(filtered, task)
+        filtered.calculateExecutionTimeValue().isMissing()
     }
 
     def "fails when property has multiple producers attached"() {

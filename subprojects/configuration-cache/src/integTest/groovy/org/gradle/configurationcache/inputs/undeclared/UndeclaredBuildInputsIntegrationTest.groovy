@@ -16,16 +16,25 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.JarUtils
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
+import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.util.function.Supplier
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    def testDir = testDirectoryProvider.testDirectory
+
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
             // not declared
@@ -393,9 +402,10 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("some.removed.property = null")
     }
 
-    // Running with --no-daemon causes the test to fail when changing the command line because the
-    // internal property sun.java.command changes.
-    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
+    @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = """
+Running with --no-daemon causes the test to fail when changing the command line because the
+internal property sun.java.command changes.
+""")
     def "properties set after clearing system properties with #systemPropsCleaner do not become inputs"() {
         given:
         buildFile("""
@@ -592,6 +602,53 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("value = value")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/25044")
+    @Requires(UnitTestPreconditions.Jdk11OrLater)
+    def "plugin can read file within jar"() {
+        def testFile = JarUtils.jar(testDir.file("thing.jar")) {
+            manifest {}
+
+            entry("foo.txt", "bar")
+        }
+
+        buildKotlinFile << """
+            import ${DefaultTask.name}
+            import ${Project.name}
+            import ${Plugin.name}
+            import ${TaskAction.name}
+            import ${File.name}
+            import ${URI.name}
+            import ${FileSystems.name}
+            import ${Files.name}
+
+            class SomePlugin : Plugin<Project> {
+                override fun apply(project: Project) {
+                    project.tasks.register("readFileWithinJarTask", ReadFileWithinJarTask::class.java)
+                }
+            }
+
+            abstract class ReadFileWithinJarTask : DefaultTask() {
+                @TaskAction
+                fun run() {
+                    val path = File("${TextUtil.escapeString(testFile.path)}").toPath()
+                    val uri = URI("jar:" + path.toUri())
+                    FileSystems.newFileSystem(uri, mapOf<String, Any?>()).use { fs ->
+                        val innerPath = fs.rootDirectories.iterator().next().resolve("foo.txt")
+                        println(Files.readString(innerPath))
+                    }
+                }
+            }
+
+            apply<SomePlugin>()
+        """
+
+        when:
+        configurationCacheRun("readFileWithinJarTask")
+
+        then:
+        outputContains("bar")
+    }
+
     def "reports build logic reading an environment value using #envVarRead.groovyExpression"() {
         buildFile << """
             println("CI = " + ${envVarRead.groovyExpression})
@@ -599,7 +656,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI")
         configurationCacheRun()
 
         then:
@@ -670,7 +727,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         '''
 
         when:
-        EnvVariableInjection.unsetEnvironmentVariable("CI1").setup(this)
+        EnvVariableInjection.checkEnvironmentVariableUnset("CI1")
         configurationCacheRun()
 
         then:

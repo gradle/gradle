@@ -22,11 +22,14 @@ import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
-@Requires(TestPrecondition.JDK8_OR_EARLIER) // tests against old Gradle version that can only work with Java versions up tp 8
+@Requires(
+    value = UnitTestPreconditions.Jdk8OrEarlier,
+    reason = "tests against old Gradle version that can only work with Java versions up to 8"
+)
 @ToolingApiVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {

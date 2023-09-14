@@ -41,7 +41,7 @@ public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
     }
 
     private boolean classNameMatch(String targetClassName) {
-        if (!targetClassName.startsWith(className)) {
+        if (this.className == null || !targetClassName.startsWith(className)) {
             return false;
         }
 

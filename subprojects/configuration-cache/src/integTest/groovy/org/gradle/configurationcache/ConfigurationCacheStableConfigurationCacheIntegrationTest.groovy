@@ -19,21 +19,53 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 
 class ConfigurationCacheStableConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "external processes at configuration time are reported as problems"() {
+
+    def setup() {
+        settingsFile '''
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        '''
+    }
+
+    def 'external processes at configuration time are reported as problems'() {
         given:
         def snippets = ExternalProcessFixture.processBuilder().groovy.newSnippets(new ExternalProcessFixture(testDirectory))
 
-        buildFile("""
+        buildFile """
             ${snippets.imports}
             ${snippets.body}
-        """)
+        """
 
         when:
-        configurationCacheFails(":help")
+        configurationCacheFails ":help"
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': external process started")
+            withProblem "Build file 'build.gradle': line 5: external process started"
         }
+    }
+
+    def 'project access at execution time is either a problem or a deprecation'() {
+        given:
+        buildFile '''
+            tasks.register('problematic') { doLast { println project.name } }
+        '''
+
+        when:
+        if (withCC) {
+            configurationCacheFails ':problematic'
+        } else {
+            executer.expectDocumentedDeprecationWarning "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project"
+            succeeds ':problematic'
+        }
+
+        then:
+        if (withCC) {
+            problems.assertFailureHasProblems(failure) {
+                withProblem "Build file 'build.gradle': line 2: invocation of 'Task.project' at execution time is unsupported."
+            }
+        }
+
+        where:
+        withCC << [true, false]
     }
 }

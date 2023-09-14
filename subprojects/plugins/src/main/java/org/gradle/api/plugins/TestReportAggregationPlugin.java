@@ -21,18 +21,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestSuite;
@@ -55,14 +55,14 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public static final String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
 
     @Inject
-    protected abstract JvmEcosystemUtilities getEcosystemUtilities();
+    protected abstract JvmPluginServices getJvmPluginServices();
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
-        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        final Configuration testAggregation = configurations.bucket(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME);
+        ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
+        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME).get();
         testAggregation.setDescription("A configuration to collect test execution results");
         testAggregation.setVisible(false);
 
@@ -79,7 +79,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         });
 
         // A resolvable configuration to collect test results
-        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults");
+        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults").get();
         testResultsConf.extendsFrom(testAggregation);
         testResultsConf.setDescription("Graph needed for the aggregated test results report.");
         testResultsConf.setVisible(false);
@@ -105,7 +105,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
         project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
             // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getEcosystemUtilities().configureAsRuntimeClasspath(testAggregation);
+            getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project

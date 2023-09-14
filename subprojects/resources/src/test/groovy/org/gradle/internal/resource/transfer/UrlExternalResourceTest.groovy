@@ -36,7 +36,7 @@ class UrlExternalResourceTest extends Specification {
         resource.withContentIfPresent(new ExternalResource.ContentAndMetadataAction() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
-                assert metaData.location == file.toURI()
+                assert metaData.location.toASCIIString() == file.toURI().toASCIIString()
                 assert metaData.lastModified == new Date(file.lastModified())
                 assert metaData.contentLength == 4
                 assert metaData.sha1 == null
@@ -47,7 +47,7 @@ class UrlExternalResourceTest extends Specification {
         resource.withContent(new ExternalResource.ContentAndMetadataAction() {
             @Override
             String execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
-                assert metaData.location == file.toURI()
+                assert metaData.location.toASCIIString() == file.toURI().toASCIIString()
                 assert metaData.lastModified == new Date(file.lastModified())
                 assert metaData.contentLength == 4
                 assert metaData.sha1 == null
@@ -71,7 +71,7 @@ class UrlExternalResourceTest extends Specification {
 
         expect:
         def resource = UrlExternalResource.open(file.toURI().toURL())
-        resource.metaData.location == file.toURI()
+        resource.metaData.location.toASCIIString() == file.toURI().toASCIIString()
         resource.metaData.lastModified == new Date(file.lastModified())
         resource.metaData.contentLength == 4
         resource.metaData.sha1 == null
@@ -82,7 +82,7 @@ class UrlExternalResourceTest extends Specification {
 
         expect:
         def resource = UrlExternalResource.open(file.toURI().toURL())
-        resource.metaData.location == file.toURI()
+        resource.metaData.location.toASCIIString() == file.toURI().toASCIIString()
         resource.metaData.lastModified == new Date(file.lastModified())
         resource.metaData.contentLength == file.length()
         resource.metaData.sha1 == null

@@ -24,6 +24,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
+ * A specialized {@link ComponentGraphResolveState} for local components (ie project dependencies).
+ *
  * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
  */
 @ThreadSafe
@@ -33,4 +35,9 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
     LocalComponentMetadata getArtifactMetadata();
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+
+    /**
+     * @see LocalComponentGraphResolveState#reevaluate()
+     */
+    void reevaluate();
 }

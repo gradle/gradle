@@ -21,7 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
-import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -100,7 +100,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         );
     }
 
-    ImmutableTransformationWorkspaceServices createTransformerWorkspaceServices(
+    ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
@@ -108,7 +108,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         ExecutionHistoryStore executionHistoryStore,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        return new ImmutableTransformationWorkspaceServices(
+        return new ImmutableTransformWorkspaceServices(
             unscopedCacheBuilderFactory
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

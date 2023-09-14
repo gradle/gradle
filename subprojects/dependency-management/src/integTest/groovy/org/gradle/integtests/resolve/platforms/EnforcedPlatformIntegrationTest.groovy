@@ -63,7 +63,10 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
                     noArtifacts()
                     constraint('com.fasterxml.jackson.core:jackson-core:2.12.3', ':jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch')
                 }
-                edge('com.fasterxml.jackson.core:jackson-core', ':jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch')
+                edge('com.fasterxml.jackson.core:jackson-core', ':jackson-core', 'com.fasterxml.jackson.core:jackson-core:2.12.3-local-patch') {
+                    compositeSubstitute()
+                    byConstraint()
+                }
             }
         }
     }

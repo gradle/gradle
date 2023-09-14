@@ -47,12 +47,10 @@ public class InvalidGpgKeyIdsException extends GradleException {
      * Idea for this method is that you can pass a higher-level {@link TreeFormatter} into here, and get a coherent, nice error message printed out - so the user will see a nice chain of causes.
      */
     public void formatMessage(TreeFormatter formatter) {
-        final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
-        final String documentLink = documentationRegistry.getDocumentationFor("dependency_verification", "sec:understanding-signature-verification");
+        final String documentLink = new DocumentationRegistry()
+            .getDocumentationRecommendationFor("on this", "dependency_verification", "sec:understanding-signature-verification");
 
-        formatter.node(
-            String.format("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format (see: %s):", documentLink)
-        );
+        formatter.node(String.format("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format (%s):", documentLink));
         formatter.startChildren();
         wrongKeys
             .stream()

@@ -19,10 +19,11 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def jvmVersion = JavaVersion.current().majorVersion
@@ -37,7 +38,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
 
     def "requires use of configuration flag if Java plugin isn't applied"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -63,7 +64,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
 
             repositories {
@@ -93,7 +94,7 @@ No dependencies matching given input were found in configuration ':compileClassp
         mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
 
             repositories {
@@ -125,7 +126,7 @@ No dependencies matching given input were found in configuration ':conf'
 
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -184,7 +185,7 @@ org:leaf2:1.0
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -241,7 +242,7 @@ org:leaf2:1.5 -> 2.5
             def c = module('org', 'c').dependsOn(a).publish()
             def d = module('org', 'd').dependsOn(leaf).publish()
         }
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -302,7 +303,6 @@ org:leaf:1.0
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24356")
-    @ToBeFixedForConfigurationCache(because = "ResolutionErrorRenderer is not CC compatible")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -323,7 +323,7 @@ org:leaf:1.0
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -342,7 +342,7 @@ org:leaf:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+        outputContains """Dependency resolution failed because of conflict on the following module:
    - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
@@ -375,7 +375,6 @@ org:leaf2:1.5 -> 2.5
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24356")
-    @ToBeFixedForConfigurationCache(because = "ResolutionErrorRenderer is not CC compatible")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -396,7 +395,7 @@ org:leaf2:1.5 -> 2.5
 
         mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -419,7 +418,7 @@ org:leaf2:1.5 -> 2.5
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+        outputContains """Dependency resolution failed because of conflict on the following module:
    - org:leaf2 between versions 2.5, 1.5 and 1.0
 
 org:leaf2:2.5
@@ -569,7 +568,7 @@ org:foo:1.+ FAILED
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -652,7 +651,7 @@ org:leaf:2.0 -> 1.0
             .dependsOn("org", "middle", "latest.integration")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -703,7 +702,7 @@ org:leaf:latest.integration -> 1.0
         given:
         mavenRepo.module("org", "bar", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -767,7 +766,7 @@ org:foo:1.0 -> org:bar:2.0
         mavenRepo.module("org.test", "bar", "2.0").publish()
         mavenRepo.module("org", "baz", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -853,7 +852,7 @@ org:foo:1.0 -> 2.0
         mavenRepo.module("org", "bar", "1.0").publish()
         mavenRepo.module("org", "baz", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -916,7 +915,7 @@ org:foo:1.0 -> org:bar:1.0
         mavenRepo.module("org", "foo", "2.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -969,7 +968,7 @@ org:leaf:2.0 -> org:new-leaf:77
         mavenRepo.module("org", "bar", "1.0").publish()
         mavenRepo.module("org", "bar", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1034,7 +1033,7 @@ org:foo:1.0 -> 2.0
             .dependsOn("org", "leaf", "1.+")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -1084,7 +1083,7 @@ org:leaf:latest.integration -> 1.6
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1135,7 +1134,7 @@ org:leaf:1.0 -> 2.0
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1182,7 +1181,7 @@ org:leaf:2.0 -> 1.5
         mavenRepo.module("org", "leaf", "2.0").publish()
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1231,7 +1230,7 @@ org:leaf:1.4 -> 2.0
 
     def "shows decent failure when inputs missing"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = false
                 setDependencySpec { it.requested.module == 'leaf2' }
@@ -1247,7 +1246,7 @@ org:leaf:1.4 -> 2.0
 
     def "informs that there are no dependencies"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             configurations {
                 conf
             }
@@ -1269,7 +1268,7 @@ org:leaf:1.4 -> 2.0
         given:
         mavenRepo.module("org", "top").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1297,7 +1296,7 @@ org:leaf:1.4 -> 2.0
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1330,7 +1329,7 @@ org:middle:1.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1360,7 +1359,7 @@ org:middle:1.0 FAILED
       - Could not find org:middle:2.0.
         Searched in the following locations:
           - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1373,7 +1372,7 @@ org:middle:1.0 -> 2.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1410,7 +1409,7 @@ org:middle:1.0 -> 2.0 FAILED
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
         mavenRepo.module("org", "middle", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1457,7 +1456,7 @@ org:middle:1.0 -> 2.0+ FAILED
             .dependsOn("org", "leaf", "1.6+")
             .publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 ivy { url "${ivyRepo.uri}" }
             }
@@ -1484,7 +1483,7 @@ org:leaf:1.0 FAILED
       - Could not find org:leaf:1.0.
         Searched in the following locations:
           - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
@@ -1512,9 +1511,9 @@ org:leaf:[1.5,2.0] FAILED
 
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
-        file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"
+        settingsFile << "include 'A', 'B', 'C'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             configurations.create('conf')
             dependencies {
               conf project(':A')
@@ -1535,7 +1534,7 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
-          - Project : declares a dependency from configuration 'conf' to configuration 'default' which is not declared in the descriptor for project :A.
+          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
 
 project :A FAILED
 \\--- conf
@@ -1549,7 +1548,7 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
-          - Project :B declares a dependency from configuration 'default' to configuration 'default' which is not declared in the descriptor for project :C.
+          - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
 
 project :C FAILED
 \\--- project :B
@@ -1563,7 +1562,7 @@ project :C FAILED
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf1").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -1603,9 +1602,9 @@ org:leaf2:1.0
 
     def "deals with dependency cycle to root"() {
         given:
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1666,9 +1665,9 @@ project :
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1722,9 +1721,9 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+        settingsFile << "include 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1776,9 +1775,9 @@ project :impl
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1831,7 +1830,7 @@ org:leaf4:1.0
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
                 apply plugin: 'java-library'
                 repositories {
                     maven { url "${mavenRepo.uri}" }
@@ -1892,9 +1891,9 @@ org:leaf2:1.0
         mavenRepo.module("org", "leaf3").publish()
         mavenRepo.module("org", "leaf4").publish()
 
-        file("settings.gradle") << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl', 'some:deeply:nested'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -1993,9 +1992,9 @@ project :some:deeply:nested
         mavenRepo.module("org", "leaf2").dependsOnModules("leaf3").publish()
         mavenRepo.module("org", "leaf3").publish()
 
-        file("settings.gradle") << "include 'api', 'impl'; rootProject.name='root'"
+        settingsFile << "include 'api', 'impl'; rootProject.name='root'"
 
-        file("build.gradle") << """
+        buildFile << """
             allprojects {
                 apply plugin: 'java-library'
                 group = 'org.foo'
@@ -2052,7 +2051,7 @@ org:leaf3:1.0
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
@@ -2113,7 +2112,7 @@ foo:foo:1.0
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2168,7 +2167,7 @@ org:foo -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2224,7 +2223,7 @@ org:foo -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2277,7 +2276,7 @@ org:foo:${displayVersion} -> $selected
         mavenRepo.module("org", "foo", "1.5").publish()
         mavenRepo.module("org", "foo", "2.0").publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.1,1.3]').publish()
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2324,7 +2323,7 @@ org:foo:[1.1,1.3] -> 1.3
         mavenRepo.module("org", "bar", "1.1").publish()
         mavenRepo.module("org", "bar", "1.2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2396,7 +2395,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         mavenRepo.module("org", "bar", "1.1").publish()
         mavenRepo.module("org", "bar", "1.2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2474,7 +2473,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         bom.dependencyConstraint(leaf)
         bom.publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2528,7 +2527,7 @@ org:leaf -> 1.0
 
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2574,7 +2573,7 @@ org.test:leaf:1.0
 
         mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
@@ -2627,7 +2626,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
         mavenRepo.module("org", "bar", "1.2").publish()
 
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2703,7 +2702,7 @@ org:foo:[1.0,) FAILED
         mavenRepo.module("org", "foo", "1.2").publish()
 
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2770,7 +2769,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
                 .publish()
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {
@@ -2822,7 +2821,7 @@ org.test:leaf:1.0
                     }
                 }"""
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             def COLOR = Attribute.of('color', String)
@@ -2916,7 +2915,7 @@ org:foo:[1.0,) -> 1.0
             module('planet', 'pluto', '1.0.0').publish()
         }
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java-library'
 
             repositories {

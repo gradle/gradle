@@ -20,7 +20,7 @@ object PublicKotlinDslApi {
 
     val includes = listOf(
         "org/gradle/kotlin/dsl/*",
-        "org/gradle/kotlin/dsl/precompile/*"
+        "org/gradle/kotlin/dsl/precompile/*",
     )
 
     val excludes = listOf(

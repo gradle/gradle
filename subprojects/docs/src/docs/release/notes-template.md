@@ -70,9 +70,17 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+<!--
+This section will be populated automatically
+-->
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+<!--
+This section will be populated automatically
+-->
 
 ## External contributions
 

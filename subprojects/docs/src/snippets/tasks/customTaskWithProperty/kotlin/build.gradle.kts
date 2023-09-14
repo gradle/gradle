@@ -18,6 +18,6 @@ tasks.register<GreetingTask>("hello")
 
 // Customize the greeting
 tasks.register<GreetingTask>("greeting") {
-    greeting.set("greetings from GreetingTask")
+    greeting = "greetings from GreetingTask"
 }
 // end::add-property[]

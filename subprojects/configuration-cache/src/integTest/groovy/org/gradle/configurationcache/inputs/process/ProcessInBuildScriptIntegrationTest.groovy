@@ -37,41 +37,41 @@ class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("$location '${relativePath(file)}': external process started")
+            withProblem("${location.replace('/', File.separator)}: external process started")
         }
 
         where:
         snippetsFactory             | file                           | location
-        exec().groovy               | "build.gradle"                 | "Build file"
-        javaexec().groovy           | "build.gradle"                 | "Build file"
-        processBuilder().groovy     | "build.gradle"                 | "Build file"
-        stringArrayExecute().groovy | "build.gradle"                 | "Build file"
-        runtimeExec().groovy        | "build.gradle"                 | "Build file"
-        exec().kotlin               | "build.gradle.kts"             | "Build file"
-        javaexec().kotlin           | "build.gradle.kts"             | "Build file"
-        processBuilder().kotlin     | "build.gradle.kts"             | "Build file"
-        stringArrayExecute().kotlin | "build.gradle.kts"             | "Build file"
-        runtimeExec().kotlin        | "build.gradle.kts"             | "Build file"
-        exec().groovy               | "buildSrc/build.gradle"        | "Build file"
-        javaexec().groovy           | "buildSrc/build.gradle"        | "Build file"
-        processBuilder().groovy     | "buildSrc/build.gradle"        | "Build file"
-        stringArrayExecute().groovy | "buildSrc/build.gradle"        | "Build file"
-        runtimeExec().groovy        | "buildSrc/build.gradle"        | "Build file"
-        exec().kotlin               | "buildSrc/build.gradle.kts"    | "Build file"
-        javaexec().kotlin           | "buildSrc/build.gradle.kts"    | "Build file"
-        processBuilder().kotlin     | "buildSrc/build.gradle.kts"    | "Build file"
-        stringArrayExecute().kotlin | "buildSrc/build.gradle.kts"    | "Build file"
-        runtimeExec().kotlin        | "buildSrc/build.gradle.kts"    | "Build file"
-        exec().groovy               | "buildSrc/settings.gradle"     | "Settings file"
-        javaexec().groovy           | "buildSrc/settings.gradle"     | "Settings file"
-        processBuilder().groovy     | "buildSrc/settings.gradle"     | "Settings file"
-        stringArrayExecute().groovy | "buildSrc/settings.gradle"     | "Settings file"
-        runtimeExec().groovy        | "buildSrc/settings.gradle"     | "Settings file"
-        exec().kotlin               | "buildSrc/settings.gradle.kts" | "Settings file"
-        javaexec().kotlin           | "buildSrc/settings.gradle.kts" | "Settings file"
-        processBuilder().kotlin     | "buildSrc/settings.gradle.kts" | "Settings file"
-        stringArrayExecute().kotlin | "buildSrc/settings.gradle.kts" | "Settings file"
-        runtimeExec().kotlin        | "buildSrc/settings.gradle.kts" | "Settings file"
+        exec().groovy               | "build.gradle"                 | "Build file 'build.gradle': line 5"
+        javaexec().groovy           | "build.gradle"                 | "Build file 'build.gradle': line 5"
+        processBuilder().groovy     | "build.gradle"                 | "Build file 'build.gradle': line 5"
+        stringArrayExecute().groovy | "build.gradle"                 | "Build file 'build.gradle': line 5"
+        runtimeExec().groovy        | "build.gradle"                 | "Build file 'build.gradle': line 5"
+        exec().kotlin               | "build.gradle.kts"             | "Build file 'build.gradle.kts'"
+        javaexec().kotlin           | "build.gradle.kts"             | "Build file 'build.gradle.kts'"
+        processBuilder().kotlin     | "build.gradle.kts"             | "Build file 'build.gradle.kts'"
+        stringArrayExecute().kotlin | "build.gradle.kts"             | "Build file 'build.gradle.kts'"
+        runtimeExec().kotlin        | "build.gradle.kts"             | "Build file 'build.gradle.kts'"
+        exec().groovy               | "buildSrc/build.gradle"        | "Build file 'buildSrc/build.gradle': line 5"
+        javaexec().groovy           | "buildSrc/build.gradle"        | "Build file 'buildSrc/build.gradle': line 5"
+        processBuilder().groovy     | "buildSrc/build.gradle"        | "Build file 'buildSrc/build.gradle': line 5"
+        stringArrayExecute().groovy | "buildSrc/build.gradle"        | "Build file 'buildSrc/build.gradle': line 5"
+        runtimeExec().groovy        | "buildSrc/build.gradle"        | "Build file 'buildSrc/build.gradle': line 5"
+        exec().kotlin               | "buildSrc/build.gradle.kts"    | "Build file 'buildSrc/build.gradle.kts'"
+        javaexec().kotlin           | "buildSrc/build.gradle.kts"    | "Build file 'buildSrc/build.gradle.kts'"
+        processBuilder().kotlin     | "buildSrc/build.gradle.kts"    | "Build file 'buildSrc/build.gradle.kts'"
+        stringArrayExecute().kotlin | "buildSrc/build.gradle.kts"    | "Build file 'buildSrc/build.gradle.kts'"
+        runtimeExec().kotlin        | "buildSrc/build.gradle.kts"    | "Build file 'buildSrc/build.gradle.kts'"
+        exec().groovy               | "buildSrc/settings.gradle"     | "Settings file 'buildSrc/settings.gradle': line 5"
+        javaexec().groovy           | "buildSrc/settings.gradle"     | "Settings file 'buildSrc/settings.gradle': line 5"
+        processBuilder().groovy     | "buildSrc/settings.gradle"     | "Settings file 'buildSrc/settings.gradle': line 5"
+        stringArrayExecute().groovy | "buildSrc/settings.gradle"     | "Settings file 'buildSrc/settings.gradle': line 5"
+        runtimeExec().groovy        | "buildSrc/settings.gradle"     | "Settings file 'buildSrc/settings.gradle': line 5"
+        exec().kotlin               | "buildSrc/settings.gradle.kts" | "Settings file 'buildSrc/settings.gradle.kts'"
+        javaexec().kotlin           | "buildSrc/settings.gradle.kts" | "Settings file 'buildSrc/settings.gradle.kts'"
+        processBuilder().kotlin     | "buildSrc/settings.gradle.kts" | "Settings file 'buildSrc/settings.gradle.kts'"
+        stringArrayExecute().kotlin | "buildSrc/settings.gradle.kts" | "Settings file 'buildSrc/settings.gradle.kts'"
+        runtimeExec().kotlin        | "buildSrc/settings.gradle.kts" | "Settings file 'buildSrc/settings.gradle.kts'"
     }
 
     def "using #snippetsFactory.summary in settings file #file is a problem"() {
@@ -89,20 +89,20 @@ class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest
         then:
         failure.assertOutputContains("Hello")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Settings file '${relativePath(file)}': external process started")
+            withProblem("${location.replace('/', File.separator)}: external process started")
         }
 
         where:
         snippetsFactory             | file                           | location
-        exec().groovy               | "settings.gradle"              | "Settings file"
-        javaexec().groovy           | "settings.gradle"              | "Settings file"
-        processBuilder().groovy     | "settings.gradle"              | "Settings file"
-        stringArrayExecute().groovy | "settings.gradle"              | "Settings file"
-        runtimeExec().groovy        | "settings.gradle"              | "Settings file"
-        exec().kotlin               | "settings.gradle.kts"          | "Settings file"
-        javaexec().kotlin           | "settings.gradle.kts"          | "Settings file"
-        processBuilder().kotlin     | "settings.gradle.kts"          | "Settings file"
-        stringArrayExecute().kotlin | "settings.gradle.kts"          | "Settings file"
-        runtimeExec().kotlin        | "settings.gradle.kts"          | "Settings file"
+        exec().groovy               | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
+        javaexec().groovy           | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
+        processBuilder().groovy     | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
+        stringArrayExecute().groovy | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
+        runtimeExec().groovy        | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
+        exec().kotlin               | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
+        javaexec().kotlin           | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
+        processBuilder().kotlin     | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
+        stringArrayExecute().kotlin | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
+        runtimeExec().kotlin        | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
     }
 }

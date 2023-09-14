@@ -18,10 +18,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -188,6 +188,30 @@ class Main {
         def result = builder.run()
         result.assertNormalExitValue()
     }
+
+    def canUseDefaultJvmArgsInRunTask() {
+        file("build.gradle") << '''
+        application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+        '''
+        file('src/main/java/org/gradle/test/Main.java') << '''
+        package org.gradle.test;
+
+        class Main {
+            public static void main(String[] args) {
+                if (!"value1".equals(System.getProperty("var1"))) {
+                    throw new RuntimeException("Expected system property not specified (var1)");
+                }
+                if (!"value2".equals(System.getProperty("var2"))) {
+                    throw new RuntimeException("Expected system property not specified (var2)");
+                }
+            }
+        }
+        '''
+
+        expect:
+        run 'run'
+    }
+
 
     def "can customize application name"() {
         file('build.gradle') << '''
@@ -360,7 +384,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """

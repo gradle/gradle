@@ -33,6 +33,11 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Severity;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -60,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -83,14 +89,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
+    @Inject
     public DefaultScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
         this.deleter = deleter;
         this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
     }
 
     @Override
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
-                             Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
+    public void compileToDir(
+        ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> extractingTransformer,
+        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier
+    ) {
         Timer clock = Time.startTimer();
         try {
             deleter.ensureEmptyDirectory(classesDir);
@@ -114,8 +123,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
-    private void compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
-                               final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
+    private void compileScript(
+        ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
+        final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
+    ) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
@@ -123,8 +134,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
-            protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
-                                                            CodeSource codeSource) {
+            protected CompilationUnit createCompilationUnit(
+                CompilerConfiguration compilerConfiguration,
+                CodeSource codeSource
+            ) {
 
                 CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
 
@@ -158,6 +171,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } finally {
             ClassLoaderUtils.tryClose(groovyClassLoader);
         }
+    }
+
+    @Inject
+    protected Problems getProblemService() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
@@ -196,11 +214,23 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
-        Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source, lineNumber);
+        int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
+        String message = String.format("Could not compile %s.", source.getDisplayName());
+        throw getProblemService().throwing(new ProblemBuilderSpec() {
+            @Override
+            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                return builder
+                    .label(message)
+                    .undocumented()
+                    .location(source.getFileName(), lineNumber)
+                    .type("script_compilation_failed")
+                    .severity(Severity.ERROR)
+                    .withException(new ScriptCompilationException(message, e, source, lineNumber));
+            }
+        });
     }
 
-    private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
+    private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setScriptBaseClass(scriptBaseClass.getName());
         configuration.setTargetBytecode(CompilerConfiguration.JDK8);
@@ -208,8 +238,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
-                                                                  File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
+    public <T extends Script, M> CompiledScript<T, M> loadFromDir(
+        ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
+        File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass
+    ) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
             byte flags = decoder.readByte();

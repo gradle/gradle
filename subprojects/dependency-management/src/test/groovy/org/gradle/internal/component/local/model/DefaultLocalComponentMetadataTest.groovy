@@ -29,8 +29,6 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultDependencySet
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -55,6 +53,8 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 /**
  * Tests {@link DefaultLocalComponentMetadata}.
  *
@@ -76,6 +76,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def configurationsProvider = Mock(ConfigurationsProvider) {
         size() >> { this.configurations.size() }
         getAll() >> { this.configurations.values() }
+        visitAll(_) >> { Consumer<ConfigurationInternal> visitor -> this.configurations.values().forEach {visitor.accept(it) } }
         findByName(_) >> { String name -> this.configurations.get(name) }
     }
 
@@ -378,7 +379,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     ConfigurationInternal configuration(String name, List<ConfigurationInternal> extendsFrom) {
 
         DependencySet dependencies = new DefaultDependencySet(Describables.of("dependencies"), Mock(ConfigurationInternal) {
-            isCanBeDeclaredAgainst() >> true
+            isCanBeDeclared() >> true
         }, TestUtil.domainObjectCollectionFactory().newDomainObjectSet(Dependency))
 
         DependencyConstraintSet dependencyConstraints = Mock() {
@@ -401,6 +402,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = Mock(ConfigurationInternal) {
             getName() >> name
             getAttributes() >> ImmutableAttributes.EMPTY
+            isCanBeDeclared() >> true
             getDependencies() >> dependencies
             getDependencyConstraints() >> dependencyConstraints
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()
@@ -440,12 +442,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
     class TestDependencyMetadataFactory implements DependencyMetadataFactory {
         @Override
-        LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, ModuleDependency dependency) {
+        LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
             return dependencyMetadata(dependency)
         }
 
         @Override
-        LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
+        LocalOriginDependencyMetadata createDependencyConstraintMetadata(DependencyConstraint dependencyConstraint) {
             throw new UnsupportedOperationException()
         }
     }

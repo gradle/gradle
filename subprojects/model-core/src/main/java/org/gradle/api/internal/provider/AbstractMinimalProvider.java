@@ -22,10 +22,12 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
@@ -37,6 +39,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
         // Could do a better job of inferring the type
         return new TransformBackedProvider<>(null, this, transformer);
+    }
+
+    @Override
+    public ProviderInternal<T> filter(final Predicate<? super T> predicate) {
+        return new FilteringProvider<>(this, predicate);
     }
 
     @Override
@@ -121,14 +128,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Deprecated
     @Override
     public final Provider<T> forUseAtConfigurationTime() {
-        /*
- TODO:configuration-cache start nagging in Gradle 8.x
         DeprecationLogger.deprecateMethod(Provider.class, "forUseAtConfigurationTime")
             .withAdvice("Simply remove the call.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "for_use_at_configuration_time_deprecation")
             .nagUser();
-*/
         return this;
     }
 

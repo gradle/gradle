@@ -72,7 +72,10 @@ class DefaultEncryptionService(
         when {
             // encryption is on by default
             startParameter.encryptionRequested -> produceSecretKey()
-            else -> null
+            else -> {
+                logger.warn("Encryption of the configuration cache is disabled.")
+                null
+            }
         }
     }
 
@@ -217,7 +220,7 @@ class KeyStoreKeySource(
     }
 
     fun loadSecretKeyFromExistingKeystore(keyStoreFile: File): SecretKey {
-        logger.info("Loading keystore from {}", keyStoreFile)
+        logger.debug("Loading keystore from {}", keyStoreFile)
         keyStoreFile.inputStream().use { fis ->
             keyStore.load(fis, KEYSTORE_PASSWORD)
         }
@@ -235,8 +238,11 @@ class KeyStoreKeySource(
 
     private
     fun generateKey(keyStoreFile: File, alias: String): SecretKey {
-        val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()!!
-        logger.info("Generated key")
+        val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()
+        require(newKey != null) {
+            "Failed to generate encryption key using $encryptionAlgorithm."
+        }
+        logger.debug("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         keyStore.setEntry(alias, entry, keyProtection)
         keyStoreFile.outputStream().use { fos ->

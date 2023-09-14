@@ -18,28 +18,32 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
 public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExecutor {
     private final BuildTreeActionExecutor delegate;
-    private final ScriptUsageLocationReporter usageLocationReporter;
+    private final ProblemDiagnosticsFactory problemDiagnosticsFactory;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final StartParameter startParameter;
+    private final Problems problemsService;
 
     public InitDeprecationLoggingActionExecutor(
         BuildTreeActionExecutor delegate,
-        ScriptUsageLocationReporter usageLocationReporter,
+        ProblemDiagnosticsFactory problemDiagnosticsFactory,
         BuildOperationProgressEventEmitter eventEmitter,
-        StartParameter startParameter
+        StartParameter startParameter,
+        Problems problemsService
     ) {
         this.delegate = delegate;
-        this.usageLocationReporter = usageLocationReporter;
+        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.eventEmitter = eventEmitter;
         this.startParameter = startParameter;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -54,7 +58,7 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
 
-        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), eventEmitter);
+        DeprecationLogger.init(problemDiagnosticsFactory, startParameter.getWarningMode(), eventEmitter, problemsService);
         return delegate.execute(action, buildTreeContext);
     }
 }

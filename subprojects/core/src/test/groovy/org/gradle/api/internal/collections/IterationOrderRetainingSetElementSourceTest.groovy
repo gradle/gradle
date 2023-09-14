@@ -16,20 +16,8 @@
 
 package org.gradle.api.internal.collections
 
-import org.gradle.api.Action
-
-
 class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrderRetainingElementSourceTest {
     IterationOrderRetainingSetElementSource<CharSequence> source = new IterationOrderRetainingSetElementSource<>()
-
-    def setup() {
-        source.onRealize(new Action<CharSequence>() {
-            @Override
-            void execute(CharSequence t) {
-                source.addRealized(t)
-            }
-        })
-    }
 
     def "can add the same provider twice"() {
         def provider = provider("foo")

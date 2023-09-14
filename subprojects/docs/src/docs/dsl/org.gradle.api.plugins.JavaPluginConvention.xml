@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>docsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.docsDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/<replaceable>${project.docsDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>testResultsDirName</td>
@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td>testResultsDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.testResultsDirName}</replaceable></literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/<replaceable>${project.testResultsDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>testReportDirName</td>

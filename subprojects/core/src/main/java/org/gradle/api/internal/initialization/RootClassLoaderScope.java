@@ -69,4 +69,9 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     public void onReuse() {
         // Nothing to do
     }
+
+    @Override
+    public MutableClassLoaderScope asMutable(String childSuffix) {
+        throw new UnsupportedOperationException("RootClassLoaderScope is not mutable");
+    }
 }

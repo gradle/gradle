@@ -17,12 +17,16 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.Map;
 
 public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public NestedBeanAnnotationHandler(Collection<Class<? extends Annotation>> allowedModifiers) {
@@ -36,5 +40,14 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        if (Map.class.isAssignableFrom(propertyMetadata.getDeclaredType().getRawType())) {
+            Class<?> keyType = JavaReflectionUtil.extractNestedType((TypeToken<Map<?, ?>>) propertyMetadata.getDeclaredType(), Map.class, 0).getRawType();
+            NestedValidationUtil.validateKeyType(validationContext, propertyMetadata.getPropertyName(), keyType);
+        }
     }
 }

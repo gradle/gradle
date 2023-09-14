@@ -160,8 +160,9 @@ abstract class AbstractUserTypeCodecTest {
         propertyFactory = mock(),
         filePropertyFactory = mock(),
         fileResolver = mock(),
+        objectFactory = mock(),
         instantiator = mock(),
-        listenerManager = mock(),
+        fileSystemOperations = mock(),
         taskNodeFactory = mock(),
         ordinalGroupFactory = mock(),
         inputFingerprinter = mock(),
@@ -182,5 +183,6 @@ abstract class AbstractUserTypeCodecTest {
         documentationRegistry = mock(),
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
         flowProviders = mock(),
+        transformStepNodeFactory = mock(),
     )
 }

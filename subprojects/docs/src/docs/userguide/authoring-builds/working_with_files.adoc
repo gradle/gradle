@@ -35,15 +35,9 @@ include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=co
 include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=copy-single-file-example]"]
 ====
 
-The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method is used to create a file or directory path relative to the current project and is a common way to make build scripts work regardless of the project path. The file and directory paths are then used to specify what file to copy using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object++[]++)[Copy.from(java.lang.Object...)] and which directory to copy it to using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)].
-
-You can even use the path directly without the `file()` method, as explained early in the section <<#sec:copying_files,File copying in depth>>:
-
-.Using implicit string paths
-====
-include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=copy-single-file-example-without-file-method]"]
-include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=copy-single-file-example-without-file-method]"]
-====
+The link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout] class is used to find a file or directory path relative to the current project.
+This is a common way to make build scripts work regardless of the project path.
+The file and directory paths are then used to specify what file to copy using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:from(java.lang.Object++[]++)[Copy.from(java.lang.Object...)] and which directory to copy it to using link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:into(java.lang.Object)[Copy.into(java.lang.Object)].
 
 Although hard-coded paths make for simple examples, they also make the build brittle. It's better to use a reliable, single source of truth, such as a task or shared project property. In the following modified example, we use a report task defined elsewhere that has the report's location stored in its `outputFile` property:
 
@@ -111,7 +105,7 @@ include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=copy-d
 
 The key aspect that users struggle with is controlling how much of the directory structure goes to the destination. In the above example, do you get a `toArchive/reports` directory or does everything in `reports` go straight into `toArchive`? The answer is the latter. If a directory is part of the `from()` path, then it _won't_ appear in the destination.
 
-So how do you ensure that `reports` itself is copied across, but not any other directory in `$buildDir`? The answer is to add it as an include pattern:
+So how do you ensure that `reports` itself is copied across, but not any other directory in `${layout.buildDirectory}`? The answer is to add it as an include pattern:
 
 .Copying an entire directory, including itself
 ====
@@ -642,6 +636,30 @@ The `expand()` method treats the source files as https://docs.groovy-lang.org/la
 
 NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#setFilteringCharset-java.lang.String-[CopySpec.setFilteringCharset(String)] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
 
+[[sec:setting_file_permissions]]
+=== Setting file permissions
+
+For any `CopySpec` involved in copying files, may it be the `Copy` task itself, or any child specifications, you can explicitly set the permissions the destination files will have, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#filePermissions-org.gradle.api.Action-[CopySpec.filePermissions {}] configurations block.
+You can do the same for directories too, independently of files, via the link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#dirPermissions-org.gradle.api.Action-[CopySpec.dirPermissions {}] configurations block.
+
+NOTE: Not setting permissions explicitly will preserve the permissions of the original files or directories.
+
+.Setting permissions for destination files
+====
+include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=file-permissions]"]
+include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=file-permissions]"]
+====
+
+For a detailed description of file permissions see link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions] and link:{javadocPath}/org/gradle/api/file/UserClassFilePermissions.html[UserClassFilePermissions].
+For details on the convenience method used in the samples see link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html#unix-java.lang.String-[ConfigurableFilePermissions.unix(String)].
+
+Using empty configuration blocks for file or directory permissions still sets them explicitly, just to fixed default values.
+In fact everything that's inside one of these configurations blocks is relative to the default values.
+Default permissions differ for files and directories:
+
+ * *file*: read & write for *owner*, read for *group*, read for *other* (*0644*, *rw-r--r--*)
+ * *directory*: read, write & execute for *owner*, read & execute for *group*, read & execute for *other* (*0755*, *rwxr-xr-x*)
+
 [[sec:using_the_copyspec_class]]
 === Using the `CopySpec` class
 
@@ -810,7 +828,7 @@ Gradle does of course allow you create as many archive tasks as you want, but it
 [[sec:archive_naming]]
 === Archive naming
 
-Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<base_plugin.adoc#base_plugin,Base Plugin>>, which defaults to creating archives in the `$buildDir/distributions` directory and typically uses archive names of the form _[projectName]-[version].[type]_.
+Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<base_plugin.adoc#base_plugin,Base Plugin>>, which defaults to creating archives in the `layout.buildDirectory.dir("distributions")` directory and typically uses archive names of the form _[projectName]-[version].[type]_.
 
 The following example comes from a project named `archive-naming`, hence the `myZip` task creates an archive named `archive-naming-1.0.zip`:
 
@@ -873,7 +891,7 @@ The complete file name of the generated archive. If any of the properties in the
 The absolute file path of the generated archive.
 
 `destinationDirectory` — `DirectoryProperty`, default: depends on archive type::
-The target directory in which to put the generated archive. By default, JARs and WARs go into `$buildDir/libs`. ZIPs and TARs go into `$buildDir/distributions`.
+The target directory in which to put the generated archive. By default, JARs and WARs go into `layout.buildDirectory.dir("libs")`. ZIPs and TARs go into `layout.buildDirectory.dir("distributions")`.
 
 `archiveBaseName` — `Property<String>`, default: `__project.name__`::
 The base name portion of the archive file name, typically a project name or some other descriptive name for what it contains.

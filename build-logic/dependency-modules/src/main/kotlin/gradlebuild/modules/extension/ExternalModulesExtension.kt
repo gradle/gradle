@@ -20,9 +20,9 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.15"
-    val configurationCacheReportVersion = "1.2"
-    val kotlinVersion = "1.8.10"
+    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.17"
+    val configurationCacheReportVersion = "1.3"
+    val kotlinVersion = "1.9.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -146,6 +146,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
+    val compileTesting = "com.google.testing.compile:compile-testing"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
@@ -205,6 +206,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         commonsLang to License.Apache2,
         commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
+        compileTesting to License.Apache2,
         configurationCacheReport to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,

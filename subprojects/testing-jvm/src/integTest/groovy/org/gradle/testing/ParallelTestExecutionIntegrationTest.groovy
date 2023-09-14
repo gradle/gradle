@@ -19,9 +19,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
 @IntegrationTestTimeout(240)
 class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -36,7 +38,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation localGroovy()
-                testImplementation "junit:junit:${NEWEST}"
+                testImplementation "junit:junit:${LATEST_JUNIT4_VERSION}"
             }
         """.stripIndent()
 
@@ -112,7 +114,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
                 plugins { id "java" }
                 ${mavenCentralRepository()}
                 dependencies {
-                    testImplementation "junit:junit:${NEWEST}"
+                    testImplementation "junit:junit:${LATEST_JUNIT4_VERSION}"
                 }
                 test.maxParallelForks = 2
             """
@@ -127,6 +129,8 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    // TODO:configuration-cache test currently flaky since cc might run tests in parallel
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "cc might cause tests to run in parallel")
     def "does not run tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")
@@ -138,7 +142,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             testing.suites {
                 all {
-                    useJUnit("$NEWEST")
+                    useJUnit("$LATEST_JUNIT4_VERSION")
                     targets.all {
                         testTask.configure {
                             maxParallelForks = 2

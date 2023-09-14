@@ -17,15 +17,12 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * State for a component instance that is used to perform artifact resolution.
@@ -40,18 +37,12 @@ import java.util.Collection;
  *
  * <p>This interface says nothing about thread safety, however some subtypes may be required to be thread safe.</p>
  *
- * <p>Instances of this type are located using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
+ * <p>Instances of this type are created using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
  */
 public interface ComponentArtifactResolveState {
     ComponentIdentifier getId();
 
-    @Nullable
-    ModuleSources getSources();
-
-    /**
-     * Returns the state required to resolve artifacts, given a variant that was selected during graph resolution.
-     */
-    VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant);
+    ComponentArtifactResolveMetadata getResolveMetadata();
 
     /**
      * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
@@ -59,7 +50,7 @@ public interface ComponentArtifactResolveState {
     void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 
     /**
-     * Creates a set that will resolve the given artifacts of the given component. Does not perform any resolution.
+     * Return the artifact resolution state for each variant in this component, used for selecting artifacts.
      */
-    ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes);
+    Optional<List<VariantArtifactResolveState>> getVariantsForArtifactSelection();
 }

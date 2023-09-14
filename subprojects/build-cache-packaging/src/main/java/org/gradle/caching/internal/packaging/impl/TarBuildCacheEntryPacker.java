@@ -34,6 +34,7 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
@@ -185,7 +186,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         AtomicLong entries = new AtomicLong();
         while (tarEntry != null) {
             entries.incrementAndGet();
-            String path = tarEntry.getName();
+            String path = safeEntryName(tarEntry);
 
             if (path.equals(METADATA_PATH)) {
                 // handle origin metadata
@@ -277,7 +278,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
     @Nullable
     private TarArchiveEntry unpackDirectoryTree(TarArchiveInputStream input, TarArchiveEntry rootEntry, Map<String, FileSystemLocationSnapshot> snapshots, AtomicLong entries, File treeRoot, String treeName) throws IOException {
-        RelativePathParser parser = new RelativePathParser(rootEntry.getName());
+        RelativePathParser parser = new RelativePathParser(safeEntryName(rootEntry));
 
         DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         builder.enterDirectory(DIRECT, stringInterner.intern(treeRoot.getAbsolutePath()), stringInterner.intern(treeRoot.getName()), INCLUDE_EMPTY_DIRS);
@@ -286,7 +287,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         while ((entry = input.getNextTarEntry()) != null) {
             boolean isDir = entry.isDirectory();
-            boolean outsideOfRoot = parser.nextPath(entry.getName(), isDir, builder::leaveDirectory);
+            boolean outsideOfRoot = parser.nextPath(safeEntryName(entry), isDir, builder::leaveDirectory);
             if (outsideOfRoot) {
                 break;
             }
@@ -310,6 +311,15 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
         snapshots.put(treeName, builder.getResult());
         return entry;
+    }
+
+    /**
+     * Returns a safe name for the name of a tar archive entry.
+     *
+     * @see PathTraversalChecker#safePathName(String)
+     */
+    private static String safeEntryName(TarArchiveEntry tarEntry) {
+        return PathTraversalChecker.safePathName(tarEntry.getName());
     }
 
     private void chmodUnpackedFile(TarArchiveEntry entry, File file) {

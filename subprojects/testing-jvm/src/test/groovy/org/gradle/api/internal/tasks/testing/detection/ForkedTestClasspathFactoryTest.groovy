@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection
 
-
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework

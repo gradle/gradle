@@ -23,7 +23,7 @@ import spock.lang.Issue
 /**
  * This class tests that when configurations are used incorrectly - for instance, when a configuration where
  * {@link org.gradle.api.artifacts.Configuration#isCanBeResolved()} returns {@code false} is resolved - now (as of Gradle 8.0) throw exceptions
- * instead of merely warning.  We want to ensure that the {@code canBeResolved}, {@code canBeConsumed}, and {@code canBeDeclaredAgainst}
+ * instead of merely warning.  We want to ensure that the {@code canBeResolved}, {@code canBeConsumed}, and {@code canBeDeclared}
  * flags are set appropriately and consistently on all configurations prior to their usage towards one of these goals.
  */
 class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationSpec {
@@ -38,12 +38,12 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
             allprojects {
                 configurations {
                     implementation
-                    compile.canBeDeclaredAgainst = false
+                    compile.canBeDeclared = false
                     compile.canBeConsumed = false
                     compile.canBeResolved = false
                     compileOnly.canBeResolved = false
                     apiElements {
-                        canBeConsumed = true
+                        assert canBeConsumed
                         canBeResolved = false
                         extendsFrom compile
                         extendsFrom compileOnly
@@ -51,7 +51,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
                     }
                     compileClasspath {
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                         extendsFrom compile
                         extendsFrom compileOnly
                         extendsFrom implementation

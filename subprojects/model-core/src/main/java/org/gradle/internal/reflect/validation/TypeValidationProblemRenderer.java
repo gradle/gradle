@@ -15,13 +15,22 @@
  */
 package org.gradle.internal.reflect.validation;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.plugin.use.PluginId;
-import org.gradle.problems.Solution;
 
 import java.util.List;
+import java.util.Map;
+
+import static java.lang.Boolean.parseBoolean;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PARENT_PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PLUGIN_ID;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.PROPERTY_NAME;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE;
+import static org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder.TYPE_NAME;
+import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
@@ -30,45 +39,69 @@ public class TypeValidationProblemRenderer {
     // whatever asks for it, when it should be the responisiblity of the
     // consumer to render it as they need. For example, an HTML renderer
     // may use the same information differently
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
+//    public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
+//        return renderMinimalInformationAbout(problem, true);
+//    }
+
+    public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
 
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink) {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
-    public static String renderMinimalInformationAbout(TypeValidationProblem problem, boolean renderDocLink, boolean renderSolutions) {
+    public static String renderMinimalInformationAbout(Problem problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(introductionFor(problem.getWhere()) + maybeAppendDot(problem.getShortDescription()));
-        problem.getWhy().ifPresent(reason -> {
+        formatter.node(introductionFor(problem.getAdditionalData()) + endLineWithDot(problem.getLabel()));
+        ofNullable(problem.getDetails()).ifPresent(reason -> {
             formatter.blankLine();
-            formatter.node("Reason: " + StringUtils.capitalize(maybeAppendDot(reason)));
+            formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            List<Solution> possibleSolutions = problem.getPossibleSolutions();
-            int solutionCount = possibleSolutions.size();
-            if (solutionCount > 0) {
-                formatter.blankLine();
-                if (solutionCount == 1) {
-                    formatter.node("Possible solution: " + StringUtils.capitalize(maybeAppendDot(possibleSolutions.get(0).getShortDescription())));
-                } else {
-                    formatter.node("Possible solutions");
-                    formatter.startNumberedChildren();
-                    possibleSolutions.forEach(solution ->
-                        formatter.node(StringUtils.capitalize(maybeAppendDot(solution.getShortDescription())))
-                    );
-                    formatter.endChildren();
-                }
-            }
+            renderNewSolutions(formatter, problem.getSolutions());
         }
         if (renderDocLink) {
-            problem.getDocumentationLink().ifPresent(docLink -> {
+            ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
                 formatter.blankLine();
-                formatter.node("Please refer to ").append(docLink).append(" for more details about this problem.");
+                formatter.node(new DocumentationRegistry().getDocumentationRecommendationFor("information", docLink));
             });
         }
         return formatter.toString();
+    }
+
+    private static void renderNewSolutions(TreeFormatter formatter, List<String> possibleSolutions) {
+        int solutionCount = possibleSolutions.size();
+        if (solutionCount > 0) {
+            formatter.blankLine();
+            if (solutionCount == 1) {
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0))));
+            } else {
+                formatter.node("Possible solutions");
+                formatter.startNumberedChildren();
+                possibleSolutions.forEach(solution ->
+                    formatter.node(capitalize(endLineWithDot(solution)))
+                );
+                formatter.endChildren();
+            }
+        }
+    }
+
+    public static void renderSolutionsWithNewProblemsApi(TreeFormatter formatter, List<String> possibleSolutions) {
+        int solutionCount = possibleSolutions.size();
+        if (solutionCount > 0) {
+            formatter.blankLine();
+            if (solutionCount == 1) {
+                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0))));
+            } else {
+                formatter.node("Possible solutions");
+                formatter.startNumberedChildren();
+                possibleSolutions.forEach(solution ->
+                    formatter.node(capitalize(endLineWithDot(solution)))
+                );
+                formatter.endChildren();
+            }
+        }
     }
 
     /**
@@ -82,38 +115,43 @@ public class TypeValidationProblemRenderer {
             .replaceAll(": ?[. ]", ": ");
     }
 
-    private static String introductionFor(TypeValidationProblemLocation location) {
+    public static String introductionFor(Map<String, String> additionalMetadata) {
         StringBuilder builder = new StringBuilder();
-        Class<?> rootType = location.getType()
+        String rootType = ofNullable(additionalMetadata.get(TYPE_NAME))
             .filter(TypeValidationProblemRenderer::shouldRenderType)
             .orElse(null);
-        PluginId pluginId = location.getPlugin().orElse(null);
-        if (rootType != null) {
+        DefaultPluginId pluginId = ofNullable(additionalMetadata.get(PLUGIN_ID)).map(DefaultPluginId::new).orElse(null);
+        boolean typeRelevant = rootType != null && !parseBoolean(additionalMetadata.get(TYPE_IS_IRRELEVANT_IN_ERROR_MESSAGE));
+        if (typeRelevant) {
             if (pluginId != null) {
-                builder.append("In plugin '").append(pluginId).append("' type '");
+                builder.append("In plugin '")
+                    .append(pluginId)
+                    .append("' type '");
             } else {
                 builder.append("Type '");
             }
-            builder.append(ModelType.of(rootType).getName());
-            builder.append("' ");
+            builder.append(rootType).append("' ");
         }
-        String property = location.getPropertyName().orElse(null);
+
+        String property = additionalMetadata.get(PROPERTY_NAME);
         if (property != null) {
-            if (rootType == null) {
+            if (typeRelevant) {
+                builder.append("property '");
+            } else {
                 if (pluginId != null) {
-                    builder.append("In plugin '").append(pluginId).append("' property '");
+                    builder.append("In plugin '")
+                        .append(pluginId)
+                        .append("' property '");
                 } else {
                     builder.append("Property '");
                 }
-            } else {
-                builder.append("property '");
             }
-            location.getParentPropertyName().ifPresent(parentProperty -> {
+            ofNullable(additionalMetadata.get(PARENT_PROPERTY_NAME)).ifPresent(parentProperty -> {
                 builder.append(parentProperty);
                 builder.append('.');
             });
-            builder.append(property);
-            builder.append("' ");
+            builder.append(property)
+                .append("' ");
         }
         return builder.toString();
     }
@@ -122,15 +160,7 @@ public class TypeValidationProblemRenderer {
     // The "DefaultTask" type may appear in error messages
     // (if using "adhoc" tasks) but isn't visible to this
     // class so we have to rely on text matching for now.
-    private static boolean shouldRenderType(Class<?> clazz) {
-        return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
+    private static boolean shouldRenderType(String className) {
+        return !"org.gradle.api.DefaultTask".equals(className);
     }
-
-    private static String maybeAppendDot(String txt) {
-        if (txt.endsWith(".") || txt.endsWith("\n")) {
-            return txt;
-        }
-        return txt + ".";
-    }
-
 }

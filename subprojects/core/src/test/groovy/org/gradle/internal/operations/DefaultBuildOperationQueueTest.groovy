@@ -70,6 +70,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     void setupQueue(int threads) {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
+        workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }

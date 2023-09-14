@@ -34,7 +34,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     }
 
     @Override
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
         store(key, entry);
@@ -44,7 +44,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     protected abstract void store(ArtifactsAtRepositoryKey key, ModuleArtifactsCacheEntry entry);
 
     @Override
-    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context) {
+    public CachedArtifacts getCachedArtifacts(ModuleComponentRepository<?> repository, ComponentIdentifier componentId, String context) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = get(key);
         return entry == null ? null : createCacheArtifacts(entry);

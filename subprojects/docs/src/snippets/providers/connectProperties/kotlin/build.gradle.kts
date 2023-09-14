@@ -27,11 +27,11 @@ val messages = project.extensions.create<MessageExtension>("messages")
 tasks.register<Greeting>("greeting") {
     // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
-    greeting.set(messages.greeting)
+    greeting = messages.greeting
 }
 
 messages.apply {
     // Configure the greeting on the extension
     // Note that there is no need to reconfigure the task's `greeting` property. This is automatically updated as the extension property changes
-    greeting.set("Hi")
+    greeting = "Hi"
 }

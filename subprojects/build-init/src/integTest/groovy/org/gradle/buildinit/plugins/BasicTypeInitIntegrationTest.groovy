@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 
@@ -27,12 +27,12 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { null }
 
-    def "defaults to groovy build scripts"() {
+    def "defaults to kotlin build scripts"() {
         when:
         run 'init'
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     def "incubating does not break basic #scriptDsl build scripts"() {

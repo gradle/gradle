@@ -66,6 +66,9 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -83,6 +86,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -101,11 +105,68 @@ import java.util.Map;
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask, Reporting<TestTaskReports> {
+
+    /**
+     * Wraps a list of listeners to subscribe, and lazily configures an anonymous broadcaster with those listeners when requested.
+     * Instances of this class are suitable for serialization (as long as listeners are serializable as well).
+     */
+    private class BroadcastSubscriptions<T> {
+        private final Class<T> listenerClass;
+        private final List<Object> subscribedListeners = new LinkedList<Object>();
+        private transient ListenerBroadcast<T> broadcaster;
+
+        private BroadcastSubscriptions(Class<T> listenerClass) {
+            this.listenerClass = listenerClass;
+        }
+
+        @SuppressWarnings("unchecked")
+        ListenerBroadcast<T> get() {
+            if (broadcaster == null) {
+                broadcaster = getListenerManager().createAnonymousBroadcaster(listenerClass);
+                for (Object listener : subscribedListeners) {
+                    if (listenerClass.isInstance(listener)) {
+                        broadcaster.add((T) listener);
+                    } else {
+                        broadcaster.add((Dispatch<MethodInvocation>) listener);
+                    }
+                }
+            }
+            return broadcaster;
+        }
+
+        void addListener(T listener) {
+            subscribedListeners.add(listener);
+            if (broadcaster != null) {
+                broadcaster.add(listener);
+            }
+        }
+
+        void addListener(Dispatch<MethodInvocation> listener) {
+            subscribedListeners.add(listener);
+            if (broadcaster != null) {
+                broadcaster.add(listener);
+            }
+        }
+
+        void removeListener(Object listener) {
+            subscribedListeners.remove(listener);
+            if (broadcaster != null) {
+                broadcaster.remove(listener);
+            }
+        }
+
+        void removeAllListeners() {
+            subscribedListeners.clear();
+            if (broadcaster != null) {
+                broadcaster.removeAll();
+            }
+        }
+    }
+
     private final DefaultTestFilter filter;
     private final TestTaskReports reports;
-    private final ListenerBroadcast<TestListener> testListenerBroadcaster;
-    private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
-    private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
+    private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
+    private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
     private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
@@ -115,10 +176,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
-        ListenerManager listenerManager = getListenerManager();
-        testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
-        testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
-        testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
+        testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
+        testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
@@ -177,24 +236,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
-    @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerBroadcaster;
-    }
-
-    @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
-        return testOutputListenerBroadcaster;
-    }
-
-    @Internal
-    @VisibleForTesting
-    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
-        return testListenerInternalBroadcaster;
-    }
-
     @VisibleForTesting
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
@@ -228,7 +269,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to add.
      */
     public void addTestListener(TestListener listener) {
-        testListenerBroadcaster.add(listener);
+        testListenerSubscriptions.addListener(listener);
+    }
+
+    private void addDispatchAsTestListener(String methodName, Closure closure) {
+        testListenerSubscriptions.addListener(new ClosureBackedMethodInvocationDispatch(methodName, closure));
     }
 
     /**
@@ -237,7 +282,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to add.
      */
     public void addTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.add(listener);
+        testOutputListenerSubscriptions.addListener(listener);
+    }
+
+    private void addDispatchAsTestOutputListener(String methodName, Closure closure) {
+        testOutputListenerSubscriptions.addListener(new ClosureBackedMethodInvocationDispatch(methodName, closure));
     }
 
     /**
@@ -248,7 +297,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to remove.
      */
     public void removeTestListener(TestListener listener) {
-        testListenerBroadcaster.remove(listener);
+        testListenerSubscriptions.removeListener(listener);
     }
 
     /**
@@ -259,7 +308,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param listener The listener to remove.
      */
     public void removeTestOutputListener(TestOutputListener listener) {
-        testOutputListenerBroadcaster.remove(listener);
+        testOutputListenerSubscriptions.removeListener(listener);
     }
 
     /**
@@ -309,7 +358,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The closure to call.
      */
     public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
+        addDispatchAsTestOutputListener("onOutput", closure);
     }
 
     /**
@@ -320,7 +369,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The closure to call.
      */
     public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
+        addDispatchAsTestListener("beforeSuite", closure);
     }
 
     /**
@@ -332,7 +381,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The closure to call.
      */
     public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
+        addDispatchAsTestListener("afterSuite", closure);
     }
 
     /**
@@ -341,7 +390,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The closure to call.
      */
     public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
+        addDispatchAsTestListener("beforeTest", closure);
     }
 
     /**
@@ -350,7 +399,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @param closure The closure to call.
      */
     public void afterTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
+        addDispatchAsTestListener("afterTest", closure);
     }
 
     /**
@@ -444,16 +493,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), getTestOutputListenerBroadcaster().getSource()));
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
 
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
         parentProgressLogger.setDescription("Test Execution");
         parentProgressLogger.started();
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
-        getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
+        testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
         TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
-        TestListenerInternal resultProcessorDelegate = getTestListenerInternalBroadcaster().getSource();
+        TestListenerInternal resultProcessorDelegate = testListenerInternalBroadcaster.getSource();
         if (failFast) {
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
         }
@@ -465,9 +515,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } finally {
             parentProgressLogger.completed();
             testWorkerProgressListener.completeAll();
-            testListenerBroadcaster.removeAll();
-            getTestOutputListenerBroadcaster().removeAll();
-            getTestListenerInternalBroadcaster().removeAll();
+            testListenerSubscriptions.removeAllListeners();
+            testOutputListenerSubscriptions.removeAllListeners();
+            testListenerInternalBroadcaster.removeAll();
             outputWriter.close();
         }
 
@@ -481,15 +531,31 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
-            throw new TestExecutionException(createNoMatchingTestErrorMessage());
+        } else if (testCountLogger.getTotalTests() == 0) {
+            if (!hasFilter()) {
+                emitDeprecationMessage();
+            } else if (shouldFailOnNoMatchingTests()) {
+                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            }
         }
     }
 
+    private void emitDeprecationMessage() {
+        DeprecationLogger.deprecateBehaviour("No test executed.")
+            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
+            .nagUser();
+    }
+
     private boolean shouldFailOnNoMatchingTests() {
-        return filter.isFailOnNoMatchingTests() && (!filter.getIncludePatterns().isEmpty()
+        return filter.isFailOnNoMatchingTests() && hasFilter();
+    }
+
+    private boolean hasFilter() {
+        return !filter.getIncludePatterns().isEmpty()
             || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty());
+            || !filter.getExcludePatterns().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {

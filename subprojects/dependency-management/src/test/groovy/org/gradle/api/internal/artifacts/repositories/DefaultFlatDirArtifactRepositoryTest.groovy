@@ -42,7 +42,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final DefaultArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService, new VersionParser())
+    final DefaultFlatDirArtifactRepository repository = newRepo()
 
     def "creates a repository with multiple root directories"() {
         given:
@@ -52,7 +52,6 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         _ * repositoryTransport.repository >> resourceRepository
 
         and:
-        repository.name = 'repo-name'
         repository.dirs('a', 'b')
 
         when:
@@ -83,5 +82,36 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         then:
         InvalidUserDataException e = thrown()
         e.message == 'You must specify at least one directory for a flat directory repository.'
+    }
+
+    def "repositories have the same id when base dirs and other configuration is the same"() {
+        def repo = newRepo()
+        def same = newRepo()
+        def different = newRepo()
+
+        given:
+        repo.dirs('a', 'b')
+        same.dirs('a', 'b')
+        different.dirs('a')
+
+        and:
+        _ * fileCollectionFactory.resolving(['a', 'b']) >> TestFiles.fixed(new File('a'), new File('b'))
+        _ * fileCollectionFactory.resolving(['a']) >> TestFiles.fixed(new File('a'))
+
+        expect:
+        same.descriptor.id == repo.descriptor.id
+        different.descriptor.id != repo.descriptor.id
+
+        when:
+        different.dirs('b')
+
+        then:
+        different.descriptor.id == repo.descriptor.id
+    }
+
+    private DefaultFlatDirArtifactRepository newRepo() {
+        def repo = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService, new VersionParser())
+        repo.name = 'repo-name'
+        return repo
     }
 }

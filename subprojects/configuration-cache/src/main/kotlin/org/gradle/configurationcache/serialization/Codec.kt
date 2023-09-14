@@ -116,7 +116,11 @@ sealed class IsolateOwner {
 
     abstract val delegate: Any
 
-    class OwnerTask(override val delegate: Task) : IsolateOwner() {
+    class OwnerTask(
+        override val delegate: Task,
+        // TODO:configuration-cache - consider immutability
+        var allowTaskReferences: Boolean = false
+    ) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
 
@@ -250,18 +254,18 @@ inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTra
 
 
 internal
-inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) {
+inline fun <T : Any> WriteContext.encodePreservingIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) {
     encodePreservingIdentityOf(isolate.identities, reference, encode)
 }
 
 
 internal
-inline fun WriteContext.encodePreservingSharedIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) =
+inline fun <T : Any> WriteContext.encodePreservingSharedIdentityOf(reference: T, encode: WriteContext.(T) -> Unit) =
     encodePreservingIdentityOf(sharedIdentities, reference, encode)
 
 
 internal
-inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
+inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: T, encode: WriteContext.(T) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
         writeSmallInt(id)

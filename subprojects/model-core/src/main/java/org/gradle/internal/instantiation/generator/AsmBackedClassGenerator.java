@@ -24,14 +24,16 @@ import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
@@ -276,7 +278,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnServicesImplementation;
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
-        private final List<AttachedProperty> propertiesToAttach = new ArrayList<>();
+        private final List<AttachedProperty> propertiesToAttachAtConstruction = new ArrayList<>();
+        private final List<AttachedProperty> propertiesToAttachOnDemand = new ArrayList<>();
         private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
@@ -332,7 +335,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void attachDuringConstruction(PropertyMetadata property, boolean applyRole) {
-            propertiesToAttach.add(AttachedProperty.of(property, applyRole));
+            attachTo(propertiesToAttachAtConstruction, property, applyRole);
+        }
+
+        @Override
+        public void attachOnDemand(PropertyMetadata property, boolean applyRole) {
+            attachTo(propertiesToAttachOnDemand, property, applyRole);
+        }
+
+        private void attachTo(List<AttachedProperty> properties, PropertyMetadata property, boolean applyRole) {
+            properties.add(AttachedProperty.of(property, applyRole));
             if (applyRole) {
                 requiresFactory = true;
             }
@@ -376,7 +388,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 requiresToString,
                 requiresServicesMethod,
                 requiresFactory,
-                propertiesToAttach,
+                propertiesToAttachAtConstruction,
+                propertiesToAttachOnDemand,
                 ineligibleProperties
             );
             builder.startClass();
@@ -384,6 +397,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
+    @NonNullApi
     private static class ClassBuilderImpl extends ClassVisitorScope implements ClassGenerationVisitor {
         public static final int PV_FINAL_STATIC = ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC;
         private static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
@@ -400,6 +414,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String FACTORY_METHOD = "$gradleFactory";
         private static final String INIT_METHOD = "$gradleInit";
         private static final String INIT_WORK_METHOD = INIT_METHOD + "Work";
+        private static final String INIT_ATTACH_METHOD = INIT_METHOD + "Attach";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = getType(MetaClass.class);
@@ -429,6 +444,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
         private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
+        private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
+
+        // This set is unlikely to change often, so instead of introducing an additional level of indirection,
+        // we are storing it here despite its relationship to Configuration Cache logic.
+        // The full prohibited hierarchy is stored because there is no efficient way to check the class hierarchy via `org.objectweb.asm.Type`.
+        private static final Set<Type> DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES = ImmutableSet.of(
+            getType(Project.class),
+            getType("Lorg/gradle/api/internal/project/ProjectInternal;"),
+            getType(Gradle.class),
+            getType("Lorg/gradle/api/internal/GradleInternal;")
+        );
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -440,7 +466,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
         private static final Type LAZY_GROOVY_SUPPORT_TYPE = getType(LazyGroovySupport.class);
-        private static final Type FILE_COLLECTION_TYPE = getType(FileCollection.class);
         private static final Type MANAGED_TYPE = getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
@@ -456,14 +481,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
-        private static final String RETURN_VOID_FROM_OBJECT_ARRAY = getMethodDescriptor(Type.VOID_TYPE, OBJECT_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, BOOLEAN_TYPE);
         private static final String RETURN_CLASS = getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_BOOLEAN = getMethodDescriptor(BOOLEAN_TYPE);
         private static final String RETURN_VOID = getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
-        private static final String RETURN_VOID_FROM_FILE_COLLECTION = getMethodDescriptor(Type.VOID_TYPE, FILE_COLLECTION_TYPE);
         private static final String RETURN_CONVENTION = getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
@@ -514,7 +537,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean extensible;
         private final boolean providesOwnDynamicObject;
         private final boolean requiresToString;
-        private final List<AttachedProperty> propertiesToAttach;
+        private final List<AttachedProperty> propertiesToAttachAtConstruction;
+        private final List<AttachedProperty> propertiesToAttachOnDemand;
         private final List<PropertyMetadata> ineligibleProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
@@ -530,7 +554,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresToString,
             boolean requiresServicesMethod,
             boolean requiresFactory,
-            List<AttachedProperty> propertiesToAttach,
+            List<AttachedProperty> propertiesToAttachAtConstruction,
+            List<AttachedProperty> propertiesToAttachOnDemand,
             List<PropertyMetadata> ineligibleProperties
         ) {
             super(classGenerator.getVisitor());
@@ -540,7 +565,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.factoryId = factoryId;
             this.managed = managed;
             this.requiresToString = requiresToString;
-            this.propertiesToAttach = propertiesToAttach;
+            this.propertiesToAttachAtConstruction = propertiesToAttachAtConstruction;
+            this.propertiesToAttachOnDemand = propertiesToAttachOnDemand;
             this.superclassType = getType(type);
             this.mixInDsl = decorated;
             this.extensible = extensible;
@@ -678,7 +704,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Nonnull
-        private List<Type> paramTypesOf(Constructor<?> constructor, boolean addNameParameter) {
+        private static List<Type> paramTypesOf(Constructor<?> constructor, boolean addNameParameter) {
             Class<?>[] parameterTypes = constructor.getParameterTypes();
             List<Type> paramTypes = new ArrayList<>(parameterTypes.length + (addNameParameter ? 1 : 0));
             for (Class<?> paramType : parameterTypes) {
@@ -687,7 +713,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             return paramTypes;
         }
 
-        private void visitDeclaredAnnotationsOf(Constructor<?> constructor, MethodVisitor methodVisitor) {
+        private static void visitDeclaredAnnotationsOf(Constructor<?> constructor, MethodVisitor methodVisitor) {
             for (Annotation annotation : constructor.getDeclaredAnnotations()) {
                 Class<? extends Annotation> annotationType = annotation.annotationType();
                 if (annotationType.getAnnotation(Inherited.class) != null) {
@@ -720,6 +746,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _RETURN();
             }});
 
+            privateSyntheticMethod(INIT_ATTACH_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                for (AttachedProperty attached : propertiesToAttachAtConstruction) {
+                    attachProperty(attached);
+                }
+                _RETURN();
+            }});
+
             // private void $gradleInitWork() { ... do the work ... }
             privateSyntheticMethod(INIT_WORK_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
@@ -741,23 +774,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _PUTFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
                 }
 
-                for (AttachedProperty entry : propertiesToAttach) {
-                    // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                    PropertyMetadata property = entry.property;
-                    boolean applyRole = entry.applyRole;
-                    MethodMetadata getter = property.getMainGetter();
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                    if (applyRole) {
-                        _DUP();
-                    }
-                    _ALOAD(0);
-                    _LDC(property.getName());
-                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                    if (applyRole) {
-                        applyRole();
-                    }
-                }
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, INIT_ATTACH_METHOD, RETURN_VOID);
 
                 // For classes that could have convention mapping, but implement IConventionAware themselves, we need to
                 // mark ineligible-for-convention-mapping properties in a different way.
@@ -836,7 +854,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //      }
             //      return dynamicObjectHelper;
             // }
-            addLazyGetter("getAsDynamicObject", DYNAMIC_OBJECT_TYPE, RETURN_DYNAMIC_OBJECT, null, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            addLazyGetter("getAsDynamicObject", DYNAMIC_OBJECT_TYPE, RETURN_DYNAMIC_OBJECT, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 if (extensible) {
                     // GENERATE new MixInExtensibleDynamicObject(this, getClass().getSuperClass(), super.getAsDynamicObject(), this.services())
                     _NEW(EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE);
@@ -886,7 +904,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     }
             //     return mapping;
             // }
-            addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger())
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
@@ -925,7 +943,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     }
             //     return metaClass;
             // }
-            addLazyGetter("getMetaClass", META_CLASS_TYPE, RETURN_META_CLASS, null, META_CLASS_FIELD, META_CLASS_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            addLazyGetter("getMetaClass", META_CLASS_TYPE, RETURN_META_CLASS, META_CLASS_FIELD, META_CLASS_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GroovySystem.getMetaClassRegistry()
                 _INVOKESTATIC(GROOVY_SYSTEM_TYPE, "getMetaClassRegistry", RETURN_META_CLASS_REGISTRY);
 
@@ -950,7 +968,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             addSetter(methodName, methodDescriptor, null, body);
         }
 
-        private void addSetter(String methodName, String methodDescriptor, String signature, BytecodeFragment body) {
+        private void addSetter(String methodName, String methodDescriptor, @Nullable String signature, BytecodeFragment body) {
             publicMethod(methodName, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 emit(body);
                 _RETURN();
@@ -982,10 +1000,22 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String methodName,
             Type returnType,
             String methodDescriptor,
-            @Nullable String signature,
             final String fieldName,
             final Type fieldType,
             final BytecodeFragment initializer
+        ) {
+            addLazyGetter(methodName, returnType, methodDescriptor, null, fieldName, fieldType, initializer, BytecodeFragment.NO_OP);
+        }
+
+        private void addLazyGetter(
+            String methodName,
+            Type returnType,
+            String methodDescriptor,
+            @Nullable String signature,
+            final String fieldName,
+            final Type fieldType,
+            final BytecodeFragment initializer,
+            final BytecodeFragment epilogue
         ) {
             addGetter(methodName, returnType, methodDescriptor, signature, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // var = this.<field>
@@ -1003,6 +1033,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                emit(epilogue);
                 _ALOAD(1);
             }});
         }
@@ -1113,7 +1144,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             String propFieldName = propFieldName(property);
             String signature = getterSignature(getter.getGenericReturnType());
 
-            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            BytecodeFragment getterInitializer = methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 putServiceRegistryOnStack();
 
@@ -1137,7 +1168,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // (<type>)<service>
                 _CHECKCAST(serviceType);
-            }});
+            }};
+
+            BytecodeFragment getterEpilogue = getInjectedServiceGetterEpilogue(serviceType, getterName);
+
+            addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, getterInitializer, getterEpilogue);
+        }
+
+        private BytecodeFragment getInjectedServiceGetterEpilogue(Type serviceType, String getterName) {
+            if (DISALLOWED_AT_EXECUTION_INJECTED_SERVICES_TYPES.contains(serviceType)) {
+                return methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                    // InstrumentedExecutionAccess.disallowedAtExecutionInjectedServiceAccessed(<service-type>,<getter-name>,<this-type-name>)
+                    _LDC(serviceType);
+                    _LDC(getterName);
+                    _LDC(type.getName());
+                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE));
+                }};
+            } else {
+                return BytecodeFragment.NO_OP;
+            }
         }
 
         @Override
@@ -1178,7 +1227,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             Type returnType = getType(getter.getReturnType());
             String descriptor = getMethodDescriptor(returnType);
             String fieldName = propFieldName(property);
-            addLazyGetter(getter.getName(), returnType, descriptor, null, fieldName, propType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+            addLazyGetter(getter.getName(), returnType, descriptor, fieldName, propType, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 // GENERATE factory = getFactory()
                 _ALOAD(0);
@@ -1235,6 +1284,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             public LocalMethodVisitorScope(MethodVisitor methodVisitor) {
                 super(methodVisitor);
+            }
+
+            protected void attachProperty(AttachedProperty attached) {
+                // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
+                PropertyMetadata property = attached.property;
+                boolean applyRole = attached.applyRole;
+                MethodMetadata getter = property.getMainGetter();
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+                if (applyRole) {
+                    _DUP();
+                }
+                _ALOAD(0);
+                _LDC(property.getName());
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                if (applyRole) {
+                    applyRole();
+                }
             }
 
             // Caller should place property value on the top of the stack
@@ -1368,6 +1435,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(0);
                 _ALOAD(2);
                 _PUTFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
+                _RETURN();
+            }});
+
+            publicMethod("attachModelProperties", RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, INIT_ATTACH_METHOD, RETURN_VOID);
+                for (AttachedProperty attached : propertiesToAttachOnDemand) {
+                    attachProperty(attached);
+                }
                 _RETURN();
             }});
         }
@@ -1595,7 +1671,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             Type returnType = getType(method.getReturnType());
 
-            @SuppressWarnings("NullableProblems")
             Type[] originalParameterTypes = collectArray(method.getParameterTypes(), Type.class, Type::getType);
             int numParams = originalParameterTypes.length;
             Type[] closurisedParameterTypes = new Type[numParams];
@@ -1743,7 +1818,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
-        private Object getAnnotationParameterValue(Annotation annotation, Method method) {
+        private static Object getAnnotationParameterValue(Annotation annotation, Method method) {
             try {
                 return method.invoke(annotation);
             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -1751,7 +1826,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
-        private void attachFactoryIdToImplType(Class<?> implClass, int id) {
+        private static void attachFactoryIdToImplType(Class<?> implClass, int id) {
             try {
                 Field factoryField = implClass.getDeclaredField(FACTORY_ID_FIELD);
                 factoryField.setAccessible(true);

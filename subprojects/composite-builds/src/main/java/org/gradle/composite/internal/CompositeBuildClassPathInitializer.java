@@ -20,12 +20,13 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
@@ -37,9 +38,9 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     }
 
     @Override
-    public void execute(Configuration classpath) {
+    public void initialize(Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
-        Set<? extends Task> dependencies = TaskDependencyUtil.getDependenciesForInternalUse(classpath.getBuildDependencies(), null);
+        Set<? extends Task> dependencies = getDependenciesForInternalUse(classpath.getBuildDependencies(), null);
         for (Task task : dependencies) {
             BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
             assert targetBuild != currentBuild;
@@ -47,9 +48,10 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         }
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
-                graph.scheduleWork(builder -> {
-                    builder.scheduleTasks(tasksToBuild);
-                }).runWork().rethrow();
+                graph
+                    .scheduleWork(builder -> builder.scheduleTasks(tasksToBuild))
+                    .runWork()
+                    .rethrow();
                 return null;
             });
         }

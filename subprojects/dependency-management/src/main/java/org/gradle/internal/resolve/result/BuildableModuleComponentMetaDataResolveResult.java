@@ -16,15 +16,16 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
 
 /**
  * The result of attempting to resolve a component id to the meta-data for the component.
+ *
+ * @param <T> the resolution result type
  */
-public interface BuildableModuleComponentMetaDataResolveResult extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
+public interface BuildableModuleComponentMetaDataResolveResult<T> extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
     enum State {
         Resolved, Missing, Failed, Unknown, Redirect
     }
@@ -39,7 +40,7 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.
      */
-    ModuleComponentResolveMetadata getMetaData() throws ModuleVersionResolveException;
+    T getMetaData() throws ModuleVersionResolveException;
 
     @Override
     @Nullable
@@ -48,12 +49,12 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     /**
      * Marks the module version as resolved, with the given meta-data.
      */
-    void resolved(ModuleComponentResolveMetadata metaData);
+    void resolved(T metaData);
 
     /**
-     * Replaces the meta-data for this result. Must be resolved.
+     * Replaces the meta-data for this result. This result must already be resolved.
      */
-    void setMetadata(ModuleComponentResolveMetadata metaData);
+    void setMetadata(T metaData);
 
     /**
      * Marks the resolve as failed with the given exception.

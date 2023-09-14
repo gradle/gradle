@@ -28,7 +28,7 @@ import org.gradle.scala.ScalaCompilationFixture
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements DirectoryBuildCacheFixture, JavaToolchainFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
@@ -36,8 +36,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def getOtherScalaVersion() {
         def currentScalaVersion = version.toString()
-        def currentIndex = ScalaCoverage.DEFAULT.findIndexOf { it == currentScalaVersion }
-        return ScalaCoverage.DEFAULT[(currentIndex + 1) % ScalaCoverage.DEFAULT.size()]
+        return ScalaCoverage.SUPPORTED_BY_JDK.find { it != currentScalaVersion }
     }
 
     def getDocsPath() {

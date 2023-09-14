@@ -21,17 +21,24 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java"))
+    implementation(project(":plugins-jvm-test-suite-base"))
+    implementation(project(":language-java"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))
     implementation(project(":messaging"))
     implementation(project(":workers"))
     implementation(project(":model-groovy"))
     implementation(project(":resources"))
+    implementation(project(":toolchains-jvm"))
+    implementation(project(":language-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.gson)
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":enterprise-operations"))
@@ -42,6 +49,7 @@ dependencies {
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(libs.groovyTest)
+    integTestImplementation(testFixtures(project(":tooling-api")))
 
     integTestLocalRepository(project(":tooling-api")) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
@@ -54,6 +62,9 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 
     testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(project(":logging"))
+    testFixturesImplementation(libs.gson)
+    testFixturesImplementation(project(":base-services"))
 }
 
 integTest.usesJavadocCodeSnippets = true

@@ -19,6 +19,7 @@ import org.gradle.api.internal.StartParameterInternal
 import spock.lang.Specification
 
 class BuildLayoutConfigurationTest extends Specification {
+
     def "uses specified settings script"() {
         def startParameter = new StartParameterInternal()
         def settingsFile = new File("settings.gradle")

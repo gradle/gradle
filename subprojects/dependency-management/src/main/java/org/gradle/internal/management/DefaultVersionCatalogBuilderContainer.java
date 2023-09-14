@@ -29,9 +29,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -47,6 +48,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final Interner<String> strings = Interners.newStrongInterner();
     private final Interner<ImmutableVersionConstraint> versions = Interners.newStrongInterner();
     private final Supplier<DependencyResolutionServices> dependencyResolutionServices;
+    private final Problems problemService;
 
     private final ObjectFactory objects;
     private final ProviderFactory providers;
@@ -58,12 +60,14 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
                                                  ObjectFactory objects,
                                                  ProviderFactory providers,
                                                  Supplier<DependencyResolutionServices> dependencyResolutionServices,
-                                                 UserCodeApplicationContext context) {
+                                                 UserCodeApplicationContext context,
+                                                 Problems problemService) {
         super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
         this.objects = objects;
         this.providers = providers;
         this.context = context;
         this.dependencyResolutionServices = dependencyResolutionServices;
+        this.problemService = problemService;
     }
 
     private static void validateName(String name) {
@@ -78,7 +82,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
         return super.create(name, model -> {
             UserCodeApplicationContext.Application current = context.current();
             DefaultVersionCatalogBuilder builder = (DefaultVersionCatalogBuilder) model;
-            builder.withContext(current == null ? "Settings" : current.getDisplayName().getDisplayName(), () -> configureAction.execute(model));
+            builder.withContext(current == null ? "Settings" : current.getSource().getDisplayName().getDisplayName(), () -> configureAction.execute(model));
         });
     }
 

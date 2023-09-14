@@ -51,7 +51,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
+        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
         val instrumentationAgentUsed: Boolean
+        val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
@@ -215,12 +217,18 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 if (host.startParameterProperties != startParameterProperties) {
                     return "the set of Gradle properties has changed"
                 }
+                if (host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting) {
+                    return "the set of ignored configuration inputs has changed"
+                }
                 if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
                     val statusChangeString = when (instrumentationAgentUsed) {
                         true -> "is no longer available"
                         false -> "is now applied"
                     }
                     return "the instrumentation Java agent $statusChangeString"
+                }
+                if (host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths) {
+                    return "the set of paths ignored in file-system-check input tracking has changed"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {

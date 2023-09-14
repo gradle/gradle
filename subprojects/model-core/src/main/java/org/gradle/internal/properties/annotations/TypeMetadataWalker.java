@@ -22,7 +22,7 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-/***
+/**
  * A generalized type metadata walker for traversing annotated types and instances using their {@link TypeMetadata}.
  *
  * During the walk we first visit the root (the type or instance passed to {@link #walk(Object, TypeMetadataVisitor)},

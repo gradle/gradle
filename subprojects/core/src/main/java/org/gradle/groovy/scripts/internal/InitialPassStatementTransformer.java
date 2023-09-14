@@ -148,9 +148,9 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
     private String makePluginManagementError(String failureMessage) {
         return String.format(
-            "%s%n%nSee %s for information on the pluginManagement {} block%n%n",
+            "%s%n%n%s%n%n",
             failureMessage,
-            documentationRegistry.getDocumentationFor("plugins", "sec:plugin_management"));
+            documentationRegistry.getDocumentationRecommendationFor("information on the pluginManagement {} block", "plugins", "sec:plugin_management"));
     }
 
 }

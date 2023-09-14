@@ -16,14 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
@@ -80,7 +80,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "wrapper logs and continues when there is a problem setting permissions"() {
         given: "malformed distribution"
         // Repackage distribution with bin/gradle removed so permissions cannot be set

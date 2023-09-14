@@ -19,10 +19,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -44,7 +44,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @LeaksFileHandles
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
@@ -71,7 +71,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @LeaksFileHandles
     def "changing custom Kotlin task implementation in buildSrc invalidates cached result"() {
         withKotlinBuildSrc()

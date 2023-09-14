@@ -17,10 +17,10 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.problems.Problem
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
-import org.gradle.internal.reflect.validation.TypeValidationProblem
 
 import java.time.Duration
 
@@ -53,7 +53,7 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
-        _ * context.validationProblems >> ImmutableList.of(Mock(TypeValidationProblem))
+        _ * context.validationProblems >> ImmutableList.of(Mock(Problem))
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]

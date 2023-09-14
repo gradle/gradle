@@ -10,11 +10,11 @@
             </thead>
             <tr>
                 <td>distsDirectory</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/distributions</literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/distributions</literal></td>
             </tr>
             <tr>
                 <td>libsDirectory</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/libs</literal></td>
+                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/libs</literal></td>
             </tr>
             <tr>
                 <td>archivesName</td>

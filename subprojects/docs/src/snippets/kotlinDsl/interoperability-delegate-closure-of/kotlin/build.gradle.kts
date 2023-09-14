@@ -1,12 +1,13 @@
-val implementation by configurations.creating
+import org.akhikhl.gretty.FarmExtension
+
+plugins {
+    id("org.gretty") version "4.0.3"
+}
 
 // tag::delegateClosureOf[]
-dependencies {
-    implementation("group:artifact:1.2.3") {
-        artifact(delegateClosureOf<DependencyArtifact> {
-            // configuration for the artifact
-            name = "artifact-name"
-        })
-    }
+farms {
+    farm("OldCoreWar", delegateClosureOf<FarmExtension> {
+        // Config for the war here
+    })
 }
 // end::delegateClosureOf[]

@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import gradlebuild.basics.PublicApi;
+import gradlebuild.basics.PublicKotlinDslApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -53,6 +54,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
+        project.apply(target -> target.plugin(GradleKotlinDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
@@ -72,6 +74,9 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
             // Javadocs reference goes into javadoc/
             task.from(extension.getJavadocs().getRenderedDocumentation(), sub -> sub.into("javadoc"));
+
+            // Dokka Kotlin DSL reference goes into kotlin-dsl/
+            task.from(extension.getKotlinDslReference().getRenderedDocumentation(), sub -> sub.into("kotlin-dsl"));
 
             // User manual goes into userguide/ (for historical reasons)
             task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
@@ -103,10 +108,16 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         sourcesPath.extendsFrom(runtimeClasspath);
 
         extension.getClasspath().from(runtimeClasspath);
+        extension.getSourceRoots().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles());
         extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
-            // Filter out any non-public APIs
             f.include(PublicApi.INSTANCE.getIncludes());
+            // Filter out any non-public APIs
             f.exclude(PublicApi.INSTANCE.getExcludes());
+        }));
+        extension.getKotlinDslSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
+            f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
+            // Filter out any non-public APIs
+            f.exclude(PublicKotlinDslApi.INSTANCE.getExcludes());
         }));
     }
 

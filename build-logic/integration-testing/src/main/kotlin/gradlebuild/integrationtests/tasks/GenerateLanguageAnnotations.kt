@@ -49,7 +49,7 @@ abstract class GenerateLanguageAnnotations : DefaultTask() {
     @TaskAction
     fun generateAnnotations() {
         val queue = workerExecutor.classLoaderIsolation {
-            classpath.setFrom(classpath)
+            classpath = this@GenerateLanguageAnnotations.classpath
         }
         queue.submit(AnnotationGeneratorWorkAction::class) {
             packageName = this@GenerateLanguageAnnotations.packageName

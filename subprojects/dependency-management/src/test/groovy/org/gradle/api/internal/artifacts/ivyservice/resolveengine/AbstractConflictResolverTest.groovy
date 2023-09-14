@@ -77,12 +77,12 @@ abstract class AbstractConflictResolverTest extends Specification {
     }
 
     private static class TestComponent implements ComponentResolutionState {
-
         final ModuleVersionIdentifier id
         final ComponentIdentifier componentId
         ComponentGraphResolveMetadata metadata
         boolean rejected = false
         private MutableVersionConstraint constraint
+        String repositoryName
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id

@@ -1,9 +1,9 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
+import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import gradlebuild.basics.buildCommitId
 
 plugins {
     id("gradlebuild.internal.java")
@@ -20,6 +20,8 @@ val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
+    testFixturesImplementation(project(":internal-integ-testing"))
+
     smokeTestImplementation(project(":base-services"))
     smokeTestImplementation(project(":core-api"))
     smokeTestImplementation(project(":test-kit"))
@@ -35,6 +37,7 @@ dependencies {
     smokeTestImplementation(libs.jgit)
     smokeTestImplementation(libs.spock)
     smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":plugin-development")))
@@ -57,7 +60,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri = santaGitUri
         // Pinned from branch main
-        ref = "180b7a91054d5fe5b617543bb2f74a3819537b7b"
+        ref = "e9419cad3583427caca97958301ff98fc8e9a1c3"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -132,6 +135,7 @@ tasks {
         description = "Runs Smoke tests against the Gradle build"
         configureForSmokeTest(gradleBuildCurrent.map {
             project.fileTree(it.outputDirectory) {
+                exclude("platforms/*/*/src/**")
                 exclude("subprojects/*/src/**")
                 exclude(".idea/**")
                 exclude(".github/**")
@@ -158,6 +162,7 @@ tasks {
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests with the configuration cache"
         configureForSmokeTest(santaTracker)
+        jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
         useJUnitPlatform {
             filter {

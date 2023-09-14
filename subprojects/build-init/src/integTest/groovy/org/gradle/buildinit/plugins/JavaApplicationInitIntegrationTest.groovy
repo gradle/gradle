@@ -18,11 +18,11 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
@@ -33,12 +33,12 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
     @Override
     String subprojectName() { 'app' }
 
-    def "defaults to Groovy build scripts"() {
+    def "defaults to Kotlin build scripts"() {
         when:
         run ('init', '--type', 'java-application')
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -241,6 +241,9 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
                 package org.acme;
 
                 public class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    public void sampleTest() { }
                 }
         """
         when:
@@ -263,7 +266,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
 
     @Issue("https://github.com/gradle/gradle/issues/17383")
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "command line works with different locale"() {
         setup:
         executer.withCommandLineGradleOpts('-Duser.language=tr', '-Duser.country=TR')

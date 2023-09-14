@@ -11,9 +11,20 @@ dependencies {
 
     pluginsRuntimeOnly(platform(project(":distributions-basics")))
 
-    pluginsRuntimeOnly(project(":scala"))
-    pluginsRuntimeOnly(project(":ear"))
+    pluginsRuntimeOnly(project(":base-ide-plugins"))
     pluginsRuntimeOnly(project(":code-quality"))
-    pluginsRuntimeOnly(project(":jacoco"))
+    pluginsRuntimeOnly(project(":ear"))
     pluginsRuntimeOnly(project(":ide"))
+    pluginsRuntimeOnly(project(":ide-plugins"))
+    pluginsRuntimeOnly(project(":jacoco"))
+    pluginsRuntimeOnly(project(":plugins-groovy"))
+    pluginsRuntimeOnly(project(":plugins-java"))
+    pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
+    pluginsRuntimeOnly(project(":plugins-jvm-test-suite-base"))
+    pluginsRuntimeOnly(project(":scala"))
+    pluginsRuntimeOnly(project(":war"))
+
+    pluginsRuntimeOnly(project(":java-platform")) {
+        because("Aspirationally, we likely need a platform-base plugin that would ship in the same distribution as dependency-management, and isn't java specific - unfortunately this plugin applies the JvmEcosystemPlugin.")
+    }
 }

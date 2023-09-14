@@ -3,7 +3,7 @@ plugins {
 }
 
 site {
-    outputDir.set(layout.buildDirectory.file("mysite"))
-    websiteUrl.set("https://gradle.org")
-    vcsUrl.set("https://github.com/gradle/gradle-site-plugin")
+    outputDir = layout.buildDirectory.file("mysite")
+    websiteUrl = "https://gradle.org"
+    vcsUrl = "https://github.com/gradle/gradle-site-plugin"
 }

@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.containsString
 @CompileStatic
 class ScriptDslFixture {
 
-    static final List<BuildInitDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [GROOVY, KOTLIN] : [GROOVY]
+    static final List<BuildInitDsl> SCRIPT_DSLS = JavaVersion.current().isJava8Compatible() ? [KOTLIN, GROOVY] : [GROOVY]
 
     static final List<List<BuildInitDsl>> scriptDslCombinationsFor(int count) {
         return ([SCRIPT_DSLS] * count).combinations()

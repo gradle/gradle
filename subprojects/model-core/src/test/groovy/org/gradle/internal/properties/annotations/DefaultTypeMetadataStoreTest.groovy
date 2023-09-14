@@ -29,6 +29,8 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -47,6 +49,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -63,8 +66,9 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
+import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeMetadataStoreTest extends Specification implements ValidationMessageChecker {
@@ -78,7 +82,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         Console, Internal, ReplacedBy
     ]
 
-    @Shared GroovyClassLoader groovyClassLoader
+    @Shared
+    GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
@@ -100,7 +105,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     static class TaskWithCustomAnnotation extends DefaultTask {
-        @SearchPath FileCollection searchPath
+        @SearchPath
+        FileCollection searchPath
     }
 
     @CustomCacheable
@@ -133,12 +139,14 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitPropertyProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(WARNING)
+                it
                     .forProperty(metadata.propertyName)
-                    .withDescription("is broken")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+                    .label("is broken")
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 
@@ -161,12 +169,14 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitPropertyProblem {
-                it.withId(ValidationProblemId.TEST_PROBLEM)
-                    .reportAs(WARNING)
+                it
                     .forProperty(metadata.propertyName)
-                    .withDescription("is broken")
-                    .documentedAt("id", "section")
-                    .happensBecause("Test")
+                    .label("is broken")
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 
@@ -185,12 +195,15 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem { it.reportAs(WARNING)
-                .withId(ValidationProblemId.TEST_PROBLEM)
-                .forType(type)
-                .withDescription("type is broken")
-                .documentedAt("id", "section")
-                .happensBecause("Test")
+            context.visitTypeProblem {
+                it
+                    .withAnnotationType(type)
+                    .label("type is broken")
+                    .documentedAt(userManual("id", "section"))
+                    .noLocation()
+                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .severity(Severity.WARNING)
+                    .details("Test")
             }
         }
 
@@ -295,15 +308,25 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     class ClasspathPropertyTask extends DefaultTask {
-        @Classpath FileCollection classpathOnly
-        @Classpath @InputFiles FileCollection classpathInputFiles
-        @InputFiles @Classpath FileCollection inputFilesClasspath
+        @Classpath
+        FileCollection classpathOnly
+        @Classpath
+        @InputFiles
+        FileCollection classpathInputFiles
+        @InputFiles
+        @Classpath
+        FileCollection inputFilesClasspath
     }
 
     class CompileClasspathPropertyTask extends DefaultTask {
-        @CompileClasspath FileCollection classpathOnly
-        @CompileClasspath @InputFiles FileCollection classpathInputFiles
-        @InputFiles @CompileClasspath FileCollection inputFilesClasspath
+        @CompileClasspath
+        FileCollection classpathOnly
+        @CompileClasspath
+        @InputFiles
+        FileCollection classpathInputFiles
+        @InputFiles
+        @CompileClasspath
+        FileCollection inputFilesClasspath
     }
 
     // Third-party plugins that need to support Gradle versions both pre- and post-3.2
@@ -338,20 +361,34 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
     static class SimpleTask extends DefaultTask {
-        @Input String inputString
-        @InputFile File inputFile
-        @InputDirectory File inputDirectory
-        @InputFiles File inputFiles
-        @OutputFile File outputFile
-        @OutputFiles Set<File> outputFiles
-        @OutputDirectory File outputDirectory
-        @OutputDirectories Set<File> outputDirectories
-        @Destroys Set<File> destroys
-        @LocalState File someCache
-        @Inject Object injectedService
-        @Internal Object internal
-        @ReplacedBy("inputString") String oldProperty
-        @Console boolean console
+        @Input
+        String inputString
+        @InputFile
+        File inputFile
+        @InputDirectory
+        File inputDirectory
+        @InputFiles
+        File inputFiles
+        @OutputFile
+        File outputFile
+        @OutputFiles
+        Set<File> outputFiles
+        @OutputDirectory
+        File outputDirectory
+        @OutputDirectories
+        Set<File> outputDirectories
+        @Destroys
+        Set<File> destroys
+        @LocalState
+        File someCache
+        @Inject
+        Object injectedService
+        @Internal
+        Object internal
+        @ReplacedBy("inputString")
+        String oldProperty
+        @Console
+        boolean console
     }
 
     def "can get annotated properties of simple task"() {
@@ -365,7 +402,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     static class TypeWithUnannotatedProperties extends DefaultTask {
         String bad1
         File bad2
-        @Input String useful
+        @Input
+        String useful
     }
 
     @ValidationTestFor(
@@ -384,9 +422,12 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     static class TypeWithNonRelevantProperties extends DefaultTask {
-        @ReplacedBy("notUseful2") String notUseful1
-        @Console String notUseful2
-        @Input String useful
+        @ReplacedBy("notUseful2")
+        String notUseful1
+        @Console
+        String notUseful2
+        @Input
+        String useful
     }
 
     def "ignores properties that are not relevant"() {
@@ -407,21 +448,24 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         boolean isFeature1() {
             return feature1
         }
+
         void setFeature1(boolean enabled) {
             this.feature1 = enabled
         }
+
         boolean isFeature2() {
             return feature2
         }
+
         void setFeature2(boolean enabled) {
             this.feature2 = enabled
         }
     }
 
-    private static List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType(DOCUMENTATION_REGISTRY, false)
+    private List<String> collectProblems(TypeMetadata metadata) {
+        def validationContext = DefaultTypeValidationContext.withoutRootType(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)), false)
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.keySet().collect { normaliseLineSeparators(it) }
+        return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {

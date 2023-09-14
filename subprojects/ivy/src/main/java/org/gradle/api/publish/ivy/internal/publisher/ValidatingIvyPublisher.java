@@ -57,15 +57,15 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     }
 
     private void validateMetadata(IvyNormalizedPublication publication) {
-        IvyPublicationIdentity identity = publication.getProjectIdentity();
+        ModuleVersionIdentifier identity = publication.getCoordinates();
 
-        IvyFieldValidator organisation = field(publication, "organisation", identity.getOrganisation())
+        IvyFieldValidator organisation = field(publication, "organisation", identity.getGroup())
                 .notEmpty()
                 .validInFileName();
-        IvyFieldValidator moduleName = field(publication, "module name", identity.getModule())
+        IvyFieldValidator moduleName = field(publication, "module name", identity.getName())
                 .notEmpty()
                 .validInFileName();
-        IvyFieldValidator revision = field(publication, "revision", identity.getRevision())
+        IvyFieldValidator revision = field(publication, "revision", identity.getVersion())
                 .notEmpty()
                 .validInFileName();
 

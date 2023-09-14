@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+:fn-disclaimer: footnote:disclaimer[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>.]
 
 [[tutorial_using_tasks]]
 = Build Script Basics
@@ -20,7 +21,7 @@ It uses toy examples to explain basic functionality of Gradle, which is helpful 
 Especially if you move to Gradle from other build tools like Ant and want to understand differences and advantages.
 
 However, to get started with a standard project setup, you don't even need to go into these concepts in detail.
-Instead, you can have a quick hands-on introduction, through our <<getting_started.adoc#try_gradle,step-by-step samples>>.
+Instead, you can have a quick hands-on introduction, through our <<introduction.adoc#getting_started,step-by-step tutorial>>.
 
 [[sec:projects_and_tasks]]
 == Projects, plugins and tasks
@@ -44,13 +45,13 @@ Still, to give you an idea of what a task is, we will look at defining some simp
 [[sec:hello_world]]
 == Hello world
 [.multi-language-text.lang-kotlin]
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.{fn-disclaimer} We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 [.multi-language-text.lang-kotlin]
 To try this out, create the following build script named `build.gradle.kts`.
 
 [.multi-language-text.lang-groovy]
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.{fn-disclaimer} We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 [.multi-language-text.lang-groovy]
 To try this out, create the following build script named `build.gradle`.
@@ -300,6 +301,10 @@ include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependenc
 For multi-project builds, the dependencies declared with a project's `buildscript()` method are available to the build scripts of all its sub-projects.
 
 Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
+
+NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability.
+Some libraries may fail integrity self-checks because of this.
+In this case, the use of such libraries should be <<configuration_cache#config_cache:requirements:bytecode_modifications_and_isolation,isolated>>.
 
 Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
 

@@ -9,8 +9,8 @@ group = "io.github.johndoe" // <1>
 version = "1.0" // <2>
 
 gradlePlugin { // <3>
-    website.set("<substitute your project website>") // <4>
-    vcsUrl.set("<uri to project source repository>") // <5>
+    website = "<substitute your project website>" // <4>
+    vcsUrl = "<uri to project source repository>" // <5>
 
     // ... // <6>
 }
@@ -25,7 +25,7 @@ gradlePlugin { // <1>
             id = "<your plugin identifier>" // <5>
             displayName = "<short displayable name for plugin>" // <6>
             description = "<human-readable description of what your plugin is about>" // <7>
-            tags.set(listOf("tags", "for", "your", "plugins")) // <8>
+            tags = listOf("tags", "for", "your", "plugins") // <8>
             implementationClass = "<your plugin class>"
         }
     }
@@ -34,14 +34,14 @@ gradlePlugin { // <1>
 
 // tag::plugin_example[]
 gradlePlugin {
-    website.set("https://github.com/ysb33r/gradleTest")
-    vcsUrl.set("https://github.com/ysb33r/gradleTest.git")
+    website = "https://github.com/ysb33r/gradleTest"
+    vcsUrl = "https://github.com/ysb33r/gradleTest.git"
     plugins {
         create("gradletestPlugin") {
             id = "org.ysb33r.gradletest"
             displayName = "Plugin for compatibility testing of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            tags.set(listOf("testing", "integrationTesting", "compatibility"))
+            tags = listOf("testing", "integrationTesting", "compatibility")
             implementationClass = "org.ysb33r.gradle.gradletest.GradleTestPlugin"
         }
     }

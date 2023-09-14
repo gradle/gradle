@@ -10,7 +10,6 @@ val codec = configurations.create("codec") {
     }
     isVisible = false
     isCanBeConsumed = false
-    isCanBeResolved = true
 }
 
 dependencies {
@@ -19,6 +18,6 @@ dependencies {
 
 tasks.register<CreateMD5>("md5") {
     codecClasspath.from(codec)
-    destinationDirectory.set(project.layout.buildDirectory.dir("md5"))
+    destinationDirectory = project.layout.buildDirectory.dir("md5")
     source(project.layout.projectDirectory.file("src"))
 }

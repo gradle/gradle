@@ -103,6 +103,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestFailed(name, messageMatchers)
     }
 
+    @Override
+    TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
+        def failures = collectTestFailures(name)
+        assert !failures.isEmpty()
+        return this
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         Map<String, Node> testMethods = findTests()
         assertThat(testMethods.keySet(), CoreMatchers.hasItem(name))
@@ -117,12 +124,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
-        Map<String, Node> testMethods = findTests()
-        if (!testMethods.keySet().contains(name)) {
+        def failures = collectTestFailures(name)
+        if (failures == null) {
             return false
         }
 
-        def failures = testMethods[name].failure
         if (failures.size() != messageMatchers.length) {
             return false
         }
@@ -134,6 +140,15 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         }
 
         return true
+    }
+
+    private Object collectTestFailures(String name) {
+        Map<String, Node> testMethods = findTests()
+        if (!testMethods.keySet().contains(name)) {
+            return null
+        }
+
+        return testMethods[name].failure
     }
 
     @Override

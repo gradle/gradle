@@ -25,6 +25,7 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 
 import java.nio.file.Files
+import java.util.regex.Pattern
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -51,6 +52,11 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ["assemble"]
         // use the deprecated property so it works with previous versions
         runner.args = ["-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
+
+        // Workaround to make that test work on Java 17
+        // Unable to make field private final java.lang.Object[] java.lang.invoke.SerializedLambda.capturedArgs accessible
+        // module java.base does not "opens java.lang.invoke" to unnamed module
+        runner.gradleOpts += ["--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"]
 
         and:
         runner.useDaemon = daemon == hot
@@ -90,12 +96,13 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
             void afterBuild(BuildContext context, Throwable error) {
                 if (context.iteration > 1) {
                     def tag = action == storing
-                        ? "Calculating task graph as no configuration cache is available"
+                        ? "Calculating task graph as no (cached configuration|configuration cache) is available"
                         : "Reusing configuration cache"
                     File buildLog = new File(invocationSettings.projectDir, "profile.log")
 
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
-                        lines.anyMatch { line -> line.contains(tag) }
+                        def pattern = Pattern.compile(tag)
+                        lines.anyMatch { line -> pattern.matcher(line).find() }
                     }
                     if (!found) {
                         assertTrue("Configuration cache log '$tag' not found in '$buildLog'\n\n$buildLog.text", found)

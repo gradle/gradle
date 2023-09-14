@@ -29,7 +29,7 @@ public class ArtifactFile {
     private String classifier;
     private String extension;
 
-    public ArtifactFile(File file, String version) {
+    public ArtifactFile(File file, @Nullable String version) {
         this(file.getName(), version);
     }
 

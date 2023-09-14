@@ -58,7 +58,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
             progressLoggerFactory,
             new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
             new ClasspathWalker(TestFiles.fileSystem()),
-            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.root))
+            new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
         )
     }
 
@@ -302,9 +302,9 @@ org.gradle.api.internal.tasks.CompileServices"""
         then:
         def bytecode = writer.toString()
         !bytecode.contains('LDC "org.apache.ivy.core.settings.XmlSettingsParser"')
-        bytecode.contains('static synthetic Ljava/lang/Class; class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings')
-        bytecode.contains('GETSTATIC org/gradle/internal/impldep/org/apache/ivy/core/settings/IvySettings.class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings : Ljava/lang/Class;')
-        bytecode.contains('LDC "org.gradle.internal.impldep.org.apache.ivy.core.settings.IvySettings"')
+        //bytecode.contains('static synthetic Ljava/lang/Class; class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings') // https://github.com/gradle/gradle/issues/26294
+        bytecode.contains('GETSTATIC org/gradle/internal/impldep/org/apache/ivy/plugins/matcher/ExactPatternMatcher.INSTANCE : Lorg/gradle/internal/impldep/org/apache/ivy/plugins/matcher/ExactPatternMatcher;')
+        bytecode.contains('LDC Lorg/gradle/internal/impldep/org/apache/ivy/core/settings/IvySettings;.class')
     }
 
     def "remaps class literals in strings"() {

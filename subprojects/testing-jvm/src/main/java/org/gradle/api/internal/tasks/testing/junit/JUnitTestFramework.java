@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -56,17 +57,19 @@ public class JUnitTestFramework implements TestFramework {
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
     private final Factory<File> testTaskTemporaryDir;
+    private final Provider<Boolean> dryRun;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
-        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory());
+        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());
     }
 
-    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir) {
+    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
         this.options = options;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
+        this.dryRun = dryRun;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -79,7 +82,8 @@ public class JUnitTestFramework implements TestFramework {
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
             copiedOptions,
-            testTaskTemporaryDir
+            testTaskTemporaryDir,
+            dryRun
         );
     }
 
@@ -87,7 +91,7 @@ public class JUnitTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
-            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories()));
+            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories(), dryRun.get()));
     }
 
     @Override

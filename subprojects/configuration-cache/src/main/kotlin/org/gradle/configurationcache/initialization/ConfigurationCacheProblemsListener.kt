@@ -27,17 +27,17 @@ import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.InputTrackingState
+import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
-import org.gradle.internal.buildoption.FeatureFlags
+import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
@@ -45,7 +45,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
+interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
 @ListenerService
@@ -54,9 +54,21 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val featureFlags: FeatureFlags,
-    private val inputTrackingState: InputTrackingState,
+    private val inputTrackingState: InputTrackingState
 ) : ConfigurationCacheProblemsListener {
+
+    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
+        val problem = problemFactory.problem(consumer) {
+            text("accessing non-serializable type ")
+            reference(injectedServiceType)
+            text(" caused by invocation ")
+            reference(getterName)
+        }
+            .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
+            .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
+            .build()
+        problems.onProblem(problem)
+    }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
@@ -77,17 +89,14 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
-        problems.onProblem(
-            PropertyProblem(
-                problemFactory.locationForCaller(consumer),
-                StructuredMessage.build {
-                    text("external process started ")
-                    reference(command)
-                },
-                InvalidUserCodeException("Starting an external process '$command' during configuration time is unsupported."),
-                documentationSection = RequirementsExternalProcess
-            )
-        )
+        val problem = problemFactory.problem(consumer) {
+            text("external process started ")
+            reference(command)
+        }
+            .exception("Starting an external process '$command' during configuration time is unsupported.")
+            .documentationSection(RequirementsExternalProcess)
+            .build()
+        problems.onProblem(problem)
     }
 
     private
@@ -192,7 +201,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
-
 
     private
     fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction

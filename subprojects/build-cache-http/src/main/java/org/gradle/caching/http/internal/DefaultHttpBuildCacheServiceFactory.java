@@ -18,7 +18,6 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.authentication.Authentication;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -96,6 +95,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         } else {
             builder.withSslContextFactory(sslContextFactory);
         }
+
         HttpClientHelper httpClientHelper = httpClientHelperFactory.create(builder.build());
 
         describer.type("HTTP")
@@ -114,11 +114,11 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 url,
                 allowInsecureProtocol,
                 () -> {
-                    String message =
-                        "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported. " +
-                            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
-                            Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").consultDocumentationMessage();
-                    throw new InvalidUserCodeException(message);
+                    throw new InsecureProtocolException(
+                        "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.",
+                        "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.",
+                        Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+                    );
                 },
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the build cache.");

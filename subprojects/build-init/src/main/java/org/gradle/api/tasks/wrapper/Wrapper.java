@@ -39,6 +39,7 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
@@ -54,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -77,7 +79,6 @@ import java.util.Properties;
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
-
 
     /**
      * Specifies the Gradle distribution type.
@@ -121,6 +122,7 @@ public abstract class Wrapper extends DefaultTask {
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         isOffline = getProject().getGradle().getStartParameter().isOffline();
+        getValidateDistributionUrl().convention(true);
     }
 
     @Inject
@@ -138,7 +140,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
-        testDistributionUrl();
+        validateDistributionUrl(propertiesFile.getParentFile());
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -169,10 +171,10 @@ public abstract class Wrapper extends DefaultTask {
 
     private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
-    private void testDistributionUrl() {
-        if (distributionUrlConfigured) {
+    private void validateDistributionUrl(File uriRoot) {
+        if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
-            URI uri = URI.create(url);
+            URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
@@ -184,6 +186,14 @@ public abstract class Wrapper extends DefaultTask {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
                 }
             }
+        }
+    }
+
+    private static URI getDistributionUri(File uriRoot, String url) {
+        try {
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
+        } catch (URISyntaxException e) {
+            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
     }
 
@@ -213,6 +223,7 @@ public abstract class Wrapper extends DefaultTask {
         if (networkTimeout.isPresent()) {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout.get()));
         }
+        wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(getValidateDistributionUrl().get()));
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
@@ -408,7 +419,7 @@ public abstract class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersionResolver.getGradleVersion() != null) {
-            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toASCIIString();
         } else {
             return null;
         }
@@ -528,8 +539,19 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @Incubating
     @Optional
-    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
+    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
     }
+
+    /**
+     * Indicates if this task will validate the distribution url that has been configured.
+     *
+     * @since 8.2
+     * @return whether this task will validate the distribution url
+     */
+    @Incubating
+    @Input
+    @Option(option = "validate-url", description = "Sets task to validate the configured distribution url.")
+    public abstract Property<Boolean> getValidateDistributionUrl();
 }

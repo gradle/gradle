@@ -20,15 +20,19 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.FileUtils
+import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
+@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     static List<String> javaVersionsToCrossCompileAgainst() {
-        return ["1.6", "1.7", "1.8", "11", "15", "16", "17"]
+        return ["1.6", "1.7", "1.8", "11", "15", "16", "17", "18", "19", "20", "21"]
     }
 
     static JavaVersion toJavaVersion(String version) {
@@ -95,7 +99,9 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         withJavaProjectUsingToolchainsForJavaVersion(version)
         buildFile << """
-            dependencies { testImplementation 'org.testng:testng:6.8.8' }
+            testing.suites.test {
+                useTestNG('6.8.8')
+            }
         """
 
         file("src/test/java/ThingTest.java") << """
@@ -104,7 +110,7 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             public class ThingTest {
                 @Test
                 public void verify() {
-                    assert System.getProperty("java.version").startsWith("${version}.");
+                    assert System.getProperty("java.version").startsWith("${version}");
                 }
             }
         """

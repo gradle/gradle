@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
@@ -59,7 +60,7 @@ class ExternalResourceResolverTest extends Specification {
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, metadataSources, Stub(MetadataArtifactProvider))
+        resolver = new TestResolver(Stub(UrlRepositoryDescriptor), true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, metadataSources, Stub(MetadataArtifactProvider))
         resolver.artifactResolver = artifactResolver
     }
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection GrMethodMayBeStatic
 
 package org.gradle.integtests.fixtures.resolve
 
@@ -21,7 +22,6 @@ import groovy.transform.Canonical
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
@@ -37,9 +37,6 @@ class ResolveTestFixture {
     String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
-    private boolean strictReasonsCheck
-
-    private boolean configurationCacheEnabled = GradleContextualExecuter.configCache
 
     ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
         this.config = config
@@ -48,11 +45,6 @@ class ResolveTestFixture {
 
     ResolveTestFixture withoutBuildingArtifacts() {
         buildArtifacts = false
-        return this
-    }
-
-    ResolveTestFixture withStrictReasonsCheck() {
-        strictReasonsCheck = true
         return this
     }
 
@@ -94,32 +86,27 @@ buildscript {
 """
         String generatedContent = ""
         builder.configs.forEach { config, taskName ->
-            def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-            if (configurationCacheEnabled) {
-                generatedContent += """
-allprojects {
-    tasks.register("${taskName}", ${ConfigurationCacheCompatibleGenerateGraphTask.name}) {
-        it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
-        it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
-        it.files.from(configurations.${config})
-        it.artifacts = configurations.${config}.incoming.artifacts
-        it.buildArtifacts = ${buildArtifacts}
-        ${inputs}
-    }
-}
-"""
-            } else {
-                generatedContent += """
+            generatedContent += """
 allprojects {
     tasks.register("${taskName}", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
-        it.configuration = configurations.$config
+        it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
+        it.files.from(configurations.${config})
+
+        it.incomingFiles = configurations.${config}.incoming.files
+        it.incomingArtifacts = configurations.${config}.incoming.artifacts
+
+        it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
+        it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
+
+        it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
+        it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
+
         it.buildArtifacts = ${buildArtifacts}
-        ${inputs}
+        ${registerInputs(config)}
     }
 }
 """
-            }
         }
 
         buildFile.text = """
@@ -131,12 +118,31 @@ $END_MARKER
 """
     }
 
+    /**
+     * We only want to add give configuration as a task input if we're building artifacts.
+     *
+     * Some tests, such as {@link CompositeBuildDependencyCycleIntegrationTest}, have a dependency cycle between two projects, and if we add this input, then
+     * the build will fail because of a circular task dependency.  These tests are set up to <strong>NOT</strong> build artifacts, and thus avoid this problem.
+     *
+     * @param config the configuration to add as an input
+     */
+    @SuppressWarnings('GroovyDocCheck')
+    private String registerInputs(Object config) {
+        return buildArtifacts ? "it.inputs.files configurations." + config : ""
+    }
+
     def getResultFile() {
         buildFile.parentFile.file("build/last-graph.txt")
     }
 
     /**
-     * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
+     * Verifies the result of executing the {@link GenerateGraphTask} injected by {@link #prepare()}.
+     *
+     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile()}.
+     * This method reads that file (the actual result) and compares it to the expected result - the graph info provided to this fixture via
+     * the DSL supplied as an argument.
+     *
+     * @param closure a closure containing DSL that configures the expected graph
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
         def graph = new GraphBuilder()
@@ -158,113 +164,81 @@ $END_MARKER
 
         def actualComponents = findLines(configDetails, 'component')
         def expectedComponents = graph.nodes.collect { baseNode ->
-            def variantDetails = ''
-            def variants = baseNode.variants.collect { variant ->
-                "variant:name:${variant.name} attributes:${variant.attributes}"
-            }
-            if (variants) {
-                variantDetails = "[${variants.join('@@')}]"
-            }
-            "[$baseNode.type][id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
+            def variants = baseNode.variants
+            new ParsedNode(type: baseNode.type,
+                id: baseNode.id,
+                module: baseNode.moduleVersionId,
+                reasons: baseNode.allReasons,
+                variants: variants,
+                ignoreReasons: baseNode.ignoreReasons,
+                ignoreReasonPrefixes: baseNode.ignoreReasonPrefixes)
         }
-        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
+        compareNodes("components in graph", parseNodes(actualComponents), expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files as List<String>
+
+        def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
+        compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file')
+            def actualFiles = findLines(configDetails, 'file-file')
             compare("files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-artifact-incoming')
-            compare("incoming.artifacts", actualFiles, expectedFiles)
-        }
+            actualFiles = findLines(configDetails, 'file-filtered')
+            compare("files (filtered)", actualFiles, expectedFiles)
 
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
-
-        def actualArtifacts = findLines(configDetails, 'artifact-incoming')
-        compare("artifacts", actualArtifacts, expectedArtifacts)
-
-        if (configurationCacheEnabled) {
-            return
-        }
-
-        def expectedFirstLevel = root.deps.findAll { !it.constraint }.collect { d ->
-            def configs = d.selected.firstLevelConfigurations.collect {
-                "[${d.selected.moduleVersionId}:${it}]"
-            }
-            if (configs.empty) {
-                configs = ["[${d.selected.moduleVersionId}:$defaultConfig"]
-            }
-            configs
-        }.flatten() as Set
-
-        def actualFirstLevel = findLines(configDetails, 'first-level')
-        compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'first-level-filtered')
-        compare("filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'lenient-first-level')
-        compare("lenient first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        actualFirstLevel = findLines(configDetails, 'lenient-first-level-filtered')
-        compare("lenient filtered first level dependencies", actualFirstLevel, expectedFirstLevel)
-
-        def actualConfigurations = findLines(configDetails, 'configuration') as Set
-        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
-        compare("configurations in graph", actualConfigurations, expectedConfigurations)
-
-        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.legacyArtifactName}]" }
-
-        actualArtifacts = findLines(configDetails, 'artifact')
-        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'lenient-artifact')
-        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        actualArtifacts = findLines(configDetails, 'filtered-lenient-artifact')
-        compare("filtered lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
-
-        if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file-files')
-            compare("this.files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-incoming')
+            actualFiles = findLines(configDetails, 'incoming-file')
             compare("incoming.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-filtered')
-            compare("filtered files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'incoming-artifact')
+            compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-collection-filtered')
-            compare("filtered FileCollection", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'incoming-resolved-artifact')
+            compare("incoming.resolvedArtifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-resolved-config')
-            compare("resolved configuration files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'incoming-artifact-file')
+            compare("incoming.artifacts.artifactFiles", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-resolved-config-filtered')
-            compare("resolved configuration filtered files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-file')
+            compare("artifactView.files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-lenient-config')
-            compare("lenient configuration files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact')
+            compare("artifactView.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-lenient-config-filtered')
-            compare("lenient configuration filtered files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-file-file')
+            compare("artifactView.files.files", actualFiles, expectedFiles)
 
-            // The following do not include file dependencies
-            expectedFiles = graph.artifactNodes.collect { it.fileName }
+            actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-artifact-resolved-config')
-            compare("resolved configuration artifact files", actualFiles, expectedFiles)
+            actualArtifacts = findLines(configDetails, 'artifact-view-resolved-artifact')
+            compare("artifactView.resolvedArtifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config')
-            compare("lenient configuration artifact files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'artifact-view-artifact-file')
+            compare("artifactView.artifacts.artifactFiles", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-artifact-lenient-config-filtered')
-            compare("filtered lenient configuration artifact files", actualFiles, expectedFiles)
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
+            compare("artifactView.files (lenient)", actualFiles, expectedFiles)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact')
+            compare("artifactView.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-file-file')
+            compare("artifactView.files.files (lenient)", actualFiles, expectedFiles)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
+            compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-resolved-artifact')
+            compare("artifactView.resolvedArtifacts (lenient)", actualArtifacts, expectedArtifacts)
+
+            actualFiles = findLines(configDetails, 'lenient-artifact-view-artifact-file')
+            compare("artifactView.artifacts.artifactFiles (lenient)", actualFiles, expectedFiles)
         }
     }
 
@@ -320,16 +294,18 @@ $END_MARKER
             start = idx + 15 // '@@'
             variants << new Variant(name: variant, attributes: attributes)
         }
-        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants, strictReasonsCheck: strictReasonsCheck)
+        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants)
     }
 
     static class ParsedNode {
         String type
         String id
         String module
-        List<String> reasons
+        Set<String> reasons
+        boolean ignoreRequested
+        Set<String> ignoreReasons
+        Set<String> ignoreReasonPrefixes
         Set<Variant> variants = []
-        boolean strictReasonsCheck
 
         boolean diff(ParsedNode actual, StringBuilder sb) {
             List<String> errors = []
@@ -342,17 +318,21 @@ $END_MARKER
             if (this.module != actual.module) {
                 errors << "Expected module '${this.module}' but was: $actual.module"
             }
-            if (!actual.reasons.containsAll(reasons)) {
-                reasons.each { reason ->
-                    if (!actual.reasons.contains(reason)) {
-                        errors << "Expected reason '$reason' but wasn't found. Actual reasons: ${actual.reasons}"
-                    }
+            def actualReasons = actual.reasons.findAll {
+                if (it == "requested" && ignoreRequested) {
+                    false
+                } else if (ignoreReasons.contains(it)) {
+                    false
+                } else if (ignoreReasonPrefixes.any { prefix -> it.startsWith(prefix) }) {
+                    false
+                } else {
+                    true
                 }
+            }.toSet()
+            if (actualReasons != reasons) {
+                errors << "Expected reasons ${reasons} but was: ${actual.reasons}"
             }
-            if (strictReasonsCheck && actual.reasons.size() != reasons.size()) {
-                errors << "Unexpected reason. Expected: $reasons Actual: ${actual.reasons}"
-            }
-            variants.each { variant ->
+            this.variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
                 if (!actualVariant) {
                     errors << "Expected variant name $variant, but wasn't found in: $actual.variants.name"
@@ -374,7 +354,7 @@ $END_MARKER
         }
 
         String toString() {
-            "id: $id, module: ${this.module}, reasons: ${reasons}${variants}"
+            "id: $id, module: ${this.module}, reasons: ${reasons}${this.variants}"
         }
     }
 
@@ -686,7 +666,7 @@ $END_MARKER
     @Canonical
     static class Variant {
         String name
-        String attributes
+        Map<String, String> attributes
 
         String toString() {
             "variant $name, variant attributes $attributes"
@@ -708,6 +688,9 @@ $END_MARKER
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
+        private boolean ignoreRequested
+        private final Set<String> ignoreReasons = new HashSet<>()
+        private final Set<String> ignoreReasonPrefixes = new HashSet<>()
         Set<Variant> variants = []
 
         boolean checkVariant
@@ -723,6 +706,7 @@ $END_MARKER
             if (attrs.variantName) {
                 variant(attrs.variantName, attrs.variantAttributes)
             }
+            reasons.add('requested')
         }
 
         Set<ExpectedArtifact> getArtifacts() {
@@ -730,7 +714,18 @@ $END_MARKER
         }
 
         String getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
+            allReasons.join('!!')
+        }
+
+        Set<String> getAllReasons() {
+            if (this == graph.root) {
+                reasons.remove('requested')
+                reasons.add('root')
+            }
+            if (ignoreRequested) {
+                reasons.remove('requested')
+            }
+            return reasons
         }
 
         private NodeBuilder addNode(NodeBuilder node) {
@@ -890,7 +885,6 @@ $END_MARKER
             this
         }
 
-
         /**
          * Marks that this node was selected by a rule.
          */
@@ -923,8 +917,34 @@ $END_MARKER
             this
         }
 
-        NodeBuilder byRequest() {
-            reasons << 'requested'
+        NodeBuilder notRequested() {
+            reasons.remove('requested')
+            this
+        }
+
+        NodeBuilder maybeRequested() {
+            ignoreRequested = true
+            ignoreReasons.add('requested')
+            this
+        }
+
+        NodeBuilder maybeByConflictResolution() {
+            ignoreReasonPrefixes.add("conflict resolution")
+            this
+        }
+
+        NodeBuilder maybeByConstraint() {
+            ignoreReasonPrefixes.add("constraint")
+            this
+        }
+
+        NodeBuilder maybeSelectedByRule() {
+            ignoreReasonPrefixes.add("selected by rule")
+            this
+        }
+
+        NodeBuilder maybeByReason(String reason) {
+            ignoreReasons.add(reason)
             this
         }
 
@@ -957,8 +977,10 @@ $END_MARKER
             configuration(name)
             checkVariant = true
             String variantName = name
-            String variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
-            variants << new Variant(name: variantName, attributes: variantAttributes)
+            Map<String, String> stringAttributes = attributes.collectEntries { entry ->
+                [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
+            }
+            this.variants << new Variant(name: variantName, attributes: stringAttributes)
             this
         }
 

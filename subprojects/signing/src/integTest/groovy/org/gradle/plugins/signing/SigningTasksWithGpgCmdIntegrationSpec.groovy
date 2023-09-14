@@ -15,9 +15,10 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.util.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.SigningTestPreconditions
 
-@Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+@Requires(SigningTestPreconditions.GpgAvailable)
 class SigningTasksWithGpgCmdIntegrationSpec extends SigningTasksIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD

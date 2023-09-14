@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
@@ -47,13 +48,13 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         then:
         assertConfigurationCacheStateStored()
 
-        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
         when: 'up-to-date build, reusing configuration cache when enabled'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        buildLocation(originalDir, agpVersion)
+        buildUpToDateLocation(originalDir, agpVersion)
 
         then:
-        if (agpVersion.startsWith('7.3')) {
+        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
             assertConfigurationCacheStateLoaded()
         } else {
             assertConfigurationCacheStateStored()
@@ -137,7 +138,7 @@ class AndroidPluginExpectations8 {
         ':cityquiz:preBuild': UP_TO_DATE,
         ':cityquiz:preDebugBuild': UP_TO_DATE,
         ':cityquiz:processApplicationManifestDebugForBundle': SUCCESS,
-        ':cityquiz:processDebugJavaRes': NO_SOURCE,
+        ':cityquiz:processDebugJavaRes': SUCCESS,
         ':cityquiz:processDebugMainManifest': FROM_CACHE,
         ':cityquiz:processDebugManifestForPackage': FROM_CACHE,
         ':cityquiz:processDebugResources': FROM_CACHE,
@@ -146,7 +147,6 @@ class AndroidPluginExpectations8 {
         ':common:assembleDebug': SUCCESS,
         ':common:bundleDebugAar': SUCCESS,
         ':common:bundleLibCompileToJarDebug': SUCCESS,
-        ':common:bundleLibResDebug': SUCCESS,
         ':common:bundleLibRuntimeToJarDebug': SUCCESS,
         ':common:compileDebugJavaWithJavac': FROM_CACHE,
         ':common:compileDebugKotlin': FROM_CACHE,
@@ -154,7 +154,7 @@ class AndroidPluginExpectations8 {
         ':common:compileDebugShaders': NO_SOURCE,
         ':common:copyDebugJniLibsProjectAndLocalJars': SUCCESS,
         ':common:copyDebugJniLibsProjectOnly': SUCCESS,
-        ':common:createFullJarDebug': FROM_CACHE,
+        ':common:createFullJarDebug': SUCCESS,
         ':common:dataBindingGenBaseClassesDebug': FROM_CACHE,
         ':common:dataBindingMergeDependencyArtifactsDebug': SUCCESS,
         ':common:extractDebugAnnotations': FROM_CACHE,
@@ -179,7 +179,7 @@ class AndroidPluginExpectations8 {
         ':common:preDebugBuild': UP_TO_DATE,
         ':common:prepareDebugArtProfile': SUCCESS,
         ':common:prepareLintJarForPublish': SUCCESS,
-        ':common:processDebugJavaRes': NO_SOURCE,
+        ':common:processDebugJavaRes': SUCCESS,
         ':common:processDebugManifest': FROM_CACHE,
         ':common:stripDebugDebugSymbols': NO_SOURCE,
         ':common:syncDebugLibJars': FROM_CACHE,
@@ -217,7 +217,7 @@ class AndroidPluginExpectations8 {
         ':dasherdancer:preBuild': UP_TO_DATE,
         ':dasherdancer:preDebugBuild': UP_TO_DATE,
         ':dasherdancer:processApplicationManifestDebugForBundle': SUCCESS,
-        ':dasherdancer:processDebugJavaRes': NO_SOURCE,
+        ':dasherdancer:processDebugJavaRes': SUCCESS,
         ':dasherdancer:processDebugMainManifest': FROM_CACHE,
         ':dasherdancer:processDebugManifestForPackage': FROM_CACHE,
         ':dasherdancer:processDebugResources': FROM_CACHE,
@@ -226,14 +226,13 @@ class AndroidPluginExpectations8 {
         ':doodles-lib:assembleDebug': SUCCESS,
         ':doodles-lib:bundleDebugAar': SUCCESS,
         ':doodles-lib:bundleLibCompileToJarDebug': SUCCESS,
-        ':doodles-lib:bundleLibResDebug': NO_SOURCE,
         ':doodles-lib:bundleLibRuntimeToJarDebug': SUCCESS,
         ':doodles-lib:compileDebugJavaWithJavac': FROM_CACHE,
         ':doodles-lib:compileDebugLibraryResources': FROM_CACHE,
         ':doodles-lib:compileDebugShaders': NO_SOURCE,
         ':doodles-lib:copyDebugJniLibsProjectAndLocalJars': SUCCESS,
         ':doodles-lib:copyDebugJniLibsProjectOnly': SUCCESS,
-        ':doodles-lib:createFullJarDebug': FROM_CACHE,
+        ':doodles-lib:createFullJarDebug': SUCCESS,
         ':doodles-lib:extractDebugAnnotations': FROM_CACHE,
         ':doodles-lib:extractDeepLinksDebug': FROM_CACHE,
         ':doodles-lib:extractDeepLinksForAarDebug': FROM_CACHE,
@@ -331,7 +330,7 @@ class AndroidPluginExpectations8 {
         ':jetpack:preBuild': UP_TO_DATE,
         ':jetpack:preDebugBuild': UP_TO_DATE,
         ':jetpack:processApplicationManifestDebugForBundle': SUCCESS,
-        ':jetpack:processDebugJavaRes': NO_SOURCE,
+        ':jetpack:processDebugJavaRes': SUCCESS,
         ':jetpack:processDebugMainManifest': FROM_CACHE,
         ':jetpack:processDebugManifestForPackage': FROM_CACHE,
         ':jetpack:processDebugResources': FROM_CACHE,
@@ -416,14 +415,13 @@ class AndroidPluginExpectations8 {
         ':playgames:assembleDebug': SUCCESS,
         ':playgames:bundleDebugAar': SUCCESS,
         ':playgames:bundleLibCompileToJarDebug': SUCCESS,
-        ':playgames:bundleLibResDebug': NO_SOURCE,
         ':playgames:bundleLibRuntimeToJarDebug': SUCCESS,
         ':playgames:compileDebugJavaWithJavac': FROM_CACHE,
         ':playgames:compileDebugLibraryResources': FROM_CACHE,
         ':playgames:compileDebugShaders': NO_SOURCE,
         ':playgames:copyDebugJniLibsProjectAndLocalJars': SUCCESS,
         ':playgames:copyDebugJniLibsProjectOnly': SUCCESS,
-        ':playgames:createFullJarDebug': FROM_CACHE,
+        ':playgames:createFullJarDebug': SUCCESS,
         ':playgames:extractDebugAnnotations': FROM_CACHE,
         ':playgames:extractDeepLinksDebug': FROM_CACHE,
         ':playgames:extractDeepLinksForAarDebug': FROM_CACHE,
@@ -522,7 +520,7 @@ class AndroidPluginExpectations8 {
         ':rocketsleigh:preBuild': UP_TO_DATE,
         ':rocketsleigh:preDebugBuild': UP_TO_DATE,
         ':rocketsleigh:processApplicationManifestDebugForBundle': SUCCESS,
-        ':rocketsleigh:processDebugJavaRes': NO_SOURCE,
+        ':rocketsleigh:processDebugJavaRes': SUCCESS,
         ':rocketsleigh:processDebugMainManifest': FROM_CACHE,
         ':rocketsleigh:processDebugManifestForPackage': FROM_CACHE,
         ':rocketsleigh:processDebugResources': FROM_CACHE,
@@ -570,7 +568,7 @@ class AndroidPluginExpectations8 {
         ':santa-tracker:packageDebug': SUCCESS,
         ':santa-tracker:preBuild': UP_TO_DATE,
         ':santa-tracker:preDebugBuild': SUCCESS,
-        ':santa-tracker:processDebugJavaRes': NO_SOURCE,
+        ':santa-tracker:processDebugJavaRes': SUCCESS,
         ':santa-tracker:processDebugMainManifest': FROM_CACHE,
         ':santa-tracker:processDebugManifest': FROM_CACHE,
         ':santa-tracker:processDebugManifestForPackage': FROM_CACHE,
@@ -622,7 +620,6 @@ class AndroidPluginExpectations8 {
         ':tracker:assembleDebug': SUCCESS,
         ':tracker:bundleDebugAar': SUCCESS,
         ':tracker:bundleLibCompileToJarDebug': SUCCESS,
-        ':tracker:bundleLibResDebug': SUCCESS,
         ':tracker:bundleLibRuntimeToJarDebug': SUCCESS,
         ':tracker:compileDebugJavaWithJavac': SUCCESS,
         ':tracker:compileDebugKotlin': FROM_CACHE,
@@ -630,7 +627,7 @@ class AndroidPluginExpectations8 {
         ':tracker:compileDebugShaders': NO_SOURCE,
         ':tracker:copyDebugJniLibsProjectAndLocalJars': SUCCESS,
         ':tracker:copyDebugJniLibsProjectOnly': SUCCESS,
-        ':tracker:createFullJarDebug': FROM_CACHE,
+        ':tracker:createFullJarDebug': SUCCESS,
         ':tracker:extractDebugAnnotations': FROM_CACHE,
         ':tracker:extractDeepLinksDebug': FROM_CACHE,
         ':tracker:extractDeepLinksForAarDebug': FROM_CACHE,
@@ -654,7 +651,7 @@ class AndroidPluginExpectations8 {
         ':tracker:preDebugBuild': UP_TO_DATE,
         ':tracker:prepareDebugArtProfile': SUCCESS,
         ':tracker:prepareLintJarForPublish': SUCCESS,
-        ':tracker:processDebugJavaRes': NO_SOURCE,
+        ':tracker:processDebugJavaRes': SUCCESS,
         ':tracker:processDebugManifest': FROM_CACHE,
         ':tracker:stripDebugDebugSymbols': NO_SOURCE,
         ':tracker:syncDebugLibJars': FROM_CACHE,
@@ -692,7 +689,7 @@ class AndroidPluginExpectations8 {
         ':wearable:packageDebug': SUCCESS,
         ':wearable:preBuild': UP_TO_DATE,
         ':wearable:preDebugBuild': UP_TO_DATE,
-        ':wearable:processDebugJavaRes': NO_SOURCE,
+        ':wearable:processDebugJavaRes': SUCCESS,
         ':wearable:processDebugMainManifest': FROM_CACHE,
         ':wearable:processDebugManifest': FROM_CACHE,
         ':wearable:processDebugManifestForPackage': FROM_CACHE,

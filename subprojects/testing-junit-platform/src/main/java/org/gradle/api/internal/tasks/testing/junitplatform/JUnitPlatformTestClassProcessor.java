@@ -29,6 +29,7 @@ import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
@@ -38,6 +39,8 @@ import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
@@ -47,6 +50,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
@@ -107,7 +111,36 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         private void processAllTestClasses() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            launcherSession.getLauncher().execute(discoveryRequest, executionListener);
+            Launcher launcher = launcherSession.getLauncher();
+            if (spec.isDryRun()) {
+                TestPlan testPlan = launcher.discover(discoveryRequest);
+                executeDryRun(testPlan, executionListener);
+            } else {
+                launcher.execute(discoveryRequest, executionListener);
+            }
+        }
+    }
+
+    private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
+        listener.testPlanExecutionStarted(testPlan);
+
+        for (TestIdentifier root : testPlan.getRoots()) {
+            dryRun(root, testPlan, listener);
+        }
+
+        listener.testPlanExecutionFinished(testPlan);
+    }
+
+    private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
+        if (testIdentifier.isTest()) {
+            listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
+        } else {
+            listener.executionStarted(testIdentifier);
+
+            for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                dryRun(child, testPlan, listener);
+            }
+            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
         }
     }
 
@@ -153,29 +186,39 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (!spec.getIncludeEngines().isEmpty()) {
-            requestBuilder.filters(includeEngines(spec.getIncludeEngines()));
+        List<String> includeEngines = spec.getIncludeEngines();
+        if (!includeEngines.isEmpty()) {
+            requestBuilder.filters(includeEngines(includeEngines));
         }
-        if (!spec.getExcludeEngines().isEmpty()) {
-            requestBuilder.filters(excludeEngines(spec.getExcludeEngines()));
+        List<String> excludeEngines = spec.getExcludeEngines();
+        if (!excludeEngines.isEmpty()) {
+            requestBuilder.filters(excludeEngines(excludeEngines));
         }
     }
 
     private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (!spec.getIncludeTags().isEmpty()) {
-            requestBuilder.filters(includeTags(spec.getIncludeTags()));
+        List<String> includeTags = spec.getIncludeTags();
+        if (!includeTags.isEmpty()) {
+            requestBuilder.filters(includeTags(includeTags));
         }
-        if (!spec.getExcludeTags().isEmpty()) {
-            requestBuilder.filters(excludeTags(spec.getExcludeTags()));
+        List<String> excludeTags = spec.getExcludeTags();
+        if (!excludeTags.isEmpty()) {
+            requestBuilder.filters(excludeTags(excludeTags));
         }
     }
 
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
         TestFilterSpec filter = spec.getFilter();
-        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
+        if (isNotEmpty(filter)) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(filter);
             requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
+    }
+
+    private static boolean isNotEmpty(TestFilterSpec filter) {
+        return !filter.getIncludedTests().isEmpty()
+            || !filter.getIncludedTestsCommandLine().isEmpty()
+            || !filter.getExcludedTests().isEmpty();
     }
 
     private static class ClassMethodNameFilter implements PostDiscoveryFilter {
@@ -203,40 +246,59 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 return true;
             }
 
-            if (source.get() instanceof MethodSource) {
-                MethodSource methodSource = (MethodSource) source.get();
-                return matcher.matchesTest(methodSource.getClassName(), methodSource.getMethodName())
-                    || matchesParentMethod(descriptor, methodSource.getMethodName());
-            } else if (source.get() instanceof ClassSource) {
-                if (!checkingParent) {
-                    for (TestDescriptor child : descriptor.getChildren()) {
-                        if (shouldRun(child)) {
-                            return true;
-                        }
+            TestSource testSource = source.get();
+            if (testSource instanceof MethodSource) {
+                return shouldRun(descriptor, (MethodSource) testSource);
+            }
+
+            if (testSource instanceof ClassSource) {
+                return shouldRun(descriptor, checkingParent, (ClassSource) testSource);
+            }
+
+            Optional<TestDescriptor> parent = descriptor.getParent();
+            return parent.isPresent() && shouldRun(parent.get(), true);
+        }
+
+        private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent, ClassSource classSource) {
+            Set<? extends TestDescriptor> children = descriptor.getChildren();
+            if (!checkingParent) {
+                for (TestDescriptor child : children) {
+                    if (shouldRun(child)) {
+                        return true;
                     }
                 }
-                if (descriptor.getChildren().isEmpty()) {
-                    String className = ((ClassSource) source.get()).getClassName();
-                    return matcher.matchesTest(className, null)
-                        || matcher.matchesTest(className, descriptor.getLegacyReportingName());
-                } else {
-                    return true;
-                }
-            } else {
-                return descriptor.getParent().isPresent() && shouldRun(descriptor.getParent().get(), true);
             }
+            if (children.isEmpty()) {
+                String className = classSource.getClassName();
+                return matcher.matchesTest(className, null)
+                    || matcher.matchesTest(className, descriptor.getLegacyReportingName());
+            }
+            return true;
+        }
+
+        private boolean shouldRun(TestDescriptor descriptor, MethodSource methodSource) {
+            String methodName = methodSource.getMethodName();
+            return matcher.matchesTest(methodSource.getClassName(), methodName)
+                || matchesParentMethod(descriptor, methodName);
         }
 
         private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {
-            return descriptor.getParent().flatMap(this::className).filter(className -> matcher.matchesTest(className, methodName)).isPresent();
+            return descriptor.getParent()
+                .flatMap(this::className)
+                .filter(className -> matcher.matchesTest(className, methodName))
+                .isPresent();
         }
 
         private boolean classMatch(TestDescriptor descriptor) {
-            while (descriptor.getParent().isPresent()) {
+            while (true) {
+                Optional<TestDescriptor> parent = descriptor.getParent();
+                if (!parent.isPresent()) {
+                    break;
+                }
                 if (className(descriptor).filter(className -> matcher.matchesTest(className, null)).isPresent()) {
                     return true;
                 }
-                descriptor = descriptor.getParent().get();
+                descriptor = parent.get();
             }
             return false;
         }

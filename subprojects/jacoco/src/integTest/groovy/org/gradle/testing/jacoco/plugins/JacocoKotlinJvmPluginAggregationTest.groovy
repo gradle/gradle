@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
 
@@ -31,7 +32,8 @@ import spock.lang.Issue
  */
 @Issue("https://github.com/gradle/gradle/issues/20532")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
-    def kotlinVersion = "1.8.10" // Must remain >= 1.7, lower versions will produce deprecations warnings, on CI versions >= 1.7 will be used
+
+    def kotlinVersion = new KotlinGradlePluginVersions().latestStableOrRC
 
     def setup() {
         multiProjectBuild("root", ["direct", "transitive"]) {

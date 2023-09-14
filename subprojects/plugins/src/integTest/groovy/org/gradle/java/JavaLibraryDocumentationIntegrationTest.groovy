@@ -31,14 +31,16 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
             'build.gradle'('''
                 configurations {
                     javadoc {
-                        canBeResolved = true; canBeConsumed = false
+                        assert canBeResolved
+                        canBeConsumed = false
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
                         }
                     }
                     sources {
-                        canBeResolved = true; canBeConsumed = false
+                        assert canBeResolved
+                        canBeConsumed = false
                         attributes {
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))

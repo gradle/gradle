@@ -171,12 +171,17 @@ public abstract class Node {
         }
     }
 
+    /**
+     * Maybe update the group for this node when its dependencies are in groups with higher ordinal.
+     *
+     * That way we can ensure that the node is executed after all its dependencies, and we get rid of potential cycles.
+     */
     public void maybeUpdateOrdinalGroup() {
         OrdinalGroup ordinal = getGroup().asOrdinal();
         OrdinalGroup newOrdinal = ordinal;
         for (Node successor : getHardSuccessors()) {
             OrdinalGroup successorOrdinal = successor.getGroup().asOrdinal();
-            if (successorOrdinal != null && (ordinal == null || successorOrdinal.getOrdinal() > ordinal.getOrdinal())) {
+            if (successorOrdinal != null && (newOrdinal == null || successorOrdinal.getOrdinal() > newOrdinal.getOrdinal())) {
                 newOrdinal = successorOrdinal;
             }
         }
@@ -530,6 +535,16 @@ public abstract class Node {
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
         return dependencyNodes.getDependencySuccessors();
+    }
+
+    /**
+     * Iterates over the nodes which are hard successors applying a visitor, i.e. which have a non-removable relationship to the current node.
+     *
+     * This can be a more efficient way to iterate over the successors than {@link #getHardSuccessors()}.
+     */
+    @OverridingMethodsMustInvokeSuper
+    public void visitHardSuccessors(Consumer<? super Node> visitor) {
+        dependencyNodes.getDependencySuccessors().forEach(visitor);
     }
 
     public SortedSet<Node> getFinalizers() {

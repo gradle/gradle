@@ -17,17 +17,17 @@
 package org.gradle.workers.internal
 
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @IntegrationTestTimeout(120)
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
@@ -698,6 +698,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = """Assumptions about project locking do not hold.
+With CC enabled, the project is immutable so tasks run in parallel.
+This means task1-1 and task2 would be expected to run concurrently in this case.
+See https://github.com/gradle/gradle/pull/25540 for details."""
+    )
     def "does not start another task when a task awaits async work"() {
         given:
         buildFile << """
@@ -727,6 +734,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("allTasks")
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotConfigCached,
+        reason = """Assumptions about project locking do not hold.
+With CC enabled, the project is immutable so tasks run in parallel.
+This means task1-1 and task2 would be expected to run concurrently in this case.
+See https://github.com/gradle/gradle/pull/25540 for details."""
+    )
     def "does not start task in another project when a task awaits async work"() {
         given:
         settingsFile << """

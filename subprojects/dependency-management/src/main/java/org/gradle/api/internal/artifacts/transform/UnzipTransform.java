@@ -38,7 +38,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
-import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 
 /**
  * Provides a generic transform from a zipped file to an extracted directory.  The extracted directory
@@ -71,7 +71,7 @@ public abstract class UnzipTransform implements TransformAction<TransformParamet
                 if (entry.isDirectory()) {
                     continue;
                 }
-                File outFile = new File(unzipDir, safeZipEntryName(entry.getName()));
+                File outFile = new File(unzipDir, safePathName(entry.getName()));
                 Files.createParentDirs(outFile);
                 try (FileOutputStream outputStream = new FileOutputStream(outFile)) {
                     IOUtils.copyLarge(inputStream, outputStream);

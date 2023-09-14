@@ -16,12 +16,9 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * This internal interface extends {@link Configuration} adding functionality to allow plugins to deprecate
@@ -31,8 +28,8 @@ import java.util.function.Function;
  * other gradle subprojects.  These methods include:
  * <ul>
  *     <li>{@link #preventUsageMutation()}</li>
- *     <li>{@link #setCanBeDeclaredAgainst(boolean)}</li>
- *     <li>{@link #isCanBeDeclaredAgainst()}</li>
+ *     <li>{@link #setCanBeDeclared(boolean)}</li>
+ *     <li>{@link #isCanBeDeclared()}</li>
  * </ul>
  * These methods would be better suited for the base {@link Configuration} interface, or the (inaccessible from this project)
  * {@link org.gradle.api.internal.artifacts.configurations.ConfigurationInternal ConfigurationInternal}
@@ -40,97 +37,88 @@ import java.util.function.Function;
  */
 @SuppressWarnings("JavadocReference")
 public interface DeprecatableConfiguration extends Configuration {
+
     /**
-     * @return configurations that should be used to declare dependencies instead of this configuration.
-     *         Returns 'null' if this configuration is not deprecated for declaration.
+     * Return the names of configurations that should be used to declare dependencies instead of this configuration.
+     *
+     * <p>This property is only relevant if this configuration deprecated for declaration.</p>
      */
-    @Nullable
     List<String> getDeclarationAlternatives();
 
     /**
-     * @return deprecation message builder to be used for nagging when this configuration is consumed.
-     *         Returns 'null' if this configuration is not deprecated for consumption.
+     * Return the names of configurations that should be used to consume a component instead of consuming this configuration.
+     *
+     * <p>This property is only relevant if this configuration deprecated for resolution.</p>
      */
-    @Nullable
-    DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation();
-
-    /**
-     * @return configurations that should be used to consume a component instead of consuming this configuration.
-     *         Returns 'null' if this configuration is not deprecated for resolution.
-     */
-    @Nullable
     List<String> getResolutionAlternatives();
 
     /**
-     * Allows plugins to deprecate the consumability property (canBeConsumed() == true) of a configuration that will be changed in the next major Gradle version.
+     * Sets suggested configurations which can be used for dependency declaration instead of this configuration.
      *
-     * @param deprecation deprecation message builder to use for nagging upon consumption of this configuration
-     * @return this configuration
+     * <p>This property is only relevant if this configuration deprecated for declaration.</p>
      */
-    DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation);
+    void addDeclarationAlternatives(String... alternativesForDeclaring);
 
     /**
-     * Convenience method for {@link #deprecateForConsumption(Function)} which uses the default messaging behavior.
+     * Sets suggested configurations which can be used for dependency resolution instead of this configuration.
      *
-     * @return this configuration
-    */
-    default DeprecatableConfiguration deprecateForConsumption() {
-        return deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
+     * <p>This property is only relevant if this configuration deprecated for resolution.</p>
+     */
+    void addResolutionAlternatives(String... alternativesForResolving);
+
+    /**
+     * If this configuration is deprecated for consumption, emit a deprecation warning.
+     */
+    default void maybeEmitConsumptionDeprecation() {
+        if (isDeprecatedForConsumption()) {
+            DeprecationLogger.deprecateConfiguration(getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
-                .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .nagUser();
+        }
     }
 
     /**
-     * Allows plugins to deprecate the resolvability property (canBeResolved() == true) of a configuration that will be changed in the next major Gradle version.
-     *
-     * @param alternativesForResolving alternative configurations that can be used for dependency resolution
-     * @return this configuration
+     * If this configuration is deprecated for declaration, emit a deprecation warning.
      */
-    DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving);
+    default void maybeEmitDeclarationDeprecation() {
+        if (isDeprecatedForDeclarationAgainst()) {
+            DeprecationLogger.deprecateConfiguration(getName())
+                .forDependencyDeclaration()
+                .replaceWith(getDeclarationAlternatives())
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .nagUser();
+        }
+    }
 
     /**
-     * Allows plugins to deprecate a configuration that will be removed in the next major Gradle version.
-     *
-     * @param alternativesForDeclaring alternative configurations that can be used to declare dependencies
-     * @return this configuration
+     * If this configuration is deprecated for resolution, emit a deprecation warning.
      */
-    DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring);
+    default void maybeEmitResolutionDeprecation() {
+        if (isDeprecatedForResolution()) {
+            DeprecationLogger.deprecateConfiguration(getName())
+                .forResolution()
+                .replaceWith(getResolutionAlternatives())
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .nagUser();
+        }
+    }
 
     boolean isDeprecatedForConsumption();
     boolean isDeprecatedForResolution();
     boolean isDeprecatedForDeclarationAgainst();
 
     default boolean canSafelyBeResolved() {
-        if (!isCanBeResolved()) {
-            return false;
-        }
-        List<String> resolutionAlternatives = getResolutionAlternatives();
-        return resolutionAlternatives == null;
+        return isCanBeResolved() && !isDeprecatedForResolution();
     }
 
     /**
      * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
-     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * {@link #setCanBeResolved(boolean)}, {@link #setCanBeDeclared(boolean)}) from succeeding; and causes them
      * to throw an exception.
      */
     void preventUsageMutation();
-
-    /**
-     * Configures if a configuration can have dependencies declared upon it.
-     *
-     * @since 8.0
-     */
-    @Incubating
-    void setCanBeDeclaredAgainst(boolean allowed);
-
-    /**
-     * Returns true if it is allowed to declare dependencies upon this configuration.
-     * Defaults to true.
-     * @return true if this configuration can have dependencies declared
-     *
-     * @since 8.0
-     */
-    @Incubating
-    boolean isCanBeDeclaredAgainst();
 }

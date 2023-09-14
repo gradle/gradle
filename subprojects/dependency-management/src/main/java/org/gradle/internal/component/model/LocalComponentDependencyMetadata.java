@@ -17,18 +17,15 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
@@ -38,9 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
-    private final ComponentIdentifier componentId;
     private final ComponentSelector selector;
-    private final String moduleConfiguration;
     private final String dependencyConfiguration;
     private final List<ExcludeMetadata> excludes;
     private final List<IvyArtifactName> artifactNames;
@@ -52,14 +47,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean fromLock;
     private final String reason;
 
-    private final AttributeContainer moduleAttributes;
     private final ImmutableAttributes dependencyAttributes;
 
     public LocalComponentDependencyMetadata(
-        ComponentIdentifier componentId,
         ComponentSelector selector,
-        @Nullable String moduleConfiguration,
-        @Nullable AttributeContainer moduleAttributes,
         AttributeContainer dependencyAttributes,
         @Nullable String dependencyConfiguration,
         List<IvyArtifactName> artifactNames,
@@ -67,14 +58,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
         @Nullable String reason
     ) {
-        this(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
+        this(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, false, reason);
     }
 
     public LocalComponentDependencyMetadata(
-        ComponentIdentifier componentId,
         ComponentSelector selector,
-        @Nullable String moduleConfiguration,
-        AttributeContainer moduleAttributes,
         AttributeContainer dependencyAttributes,
         @Nullable String dependencyConfiguration,
         List<IvyArtifactName> artifactNames,
@@ -83,10 +71,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean constraint, boolean endorsing, boolean fromLock,
         @Nullable String reason
     ) {
-        this.componentId = componentId;
         this.selector = selector;
-        this.moduleConfiguration = moduleConfiguration;
-        this.moduleAttributes = moduleAttributes;
         this.dependencyAttributes = ((AttributeContainerInternal) dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = asImmutable(artifactNames);
@@ -106,7 +91,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public String toString() {
-        return "dependency: " + selector + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
+        return "dependency: " + selector + " to-conf: " + dependencyConfiguration;
     }
 
     @Override
@@ -115,17 +100,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public String getModuleConfiguration() {
-        return moduleConfiguration;
-    }
-
-    @Override
     public String getDependencyConfiguration() {
-        return getOrDefaultConfiguration(dependencyConfiguration);
-    }
-
-    private static String getOrDefaultConfiguration(String configuration) {
-        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+        return GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
     }
 
     /**
@@ -140,19 +116,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
      * @return A List containing a single `ConfigurationMetadata` representing the target variant.
      */
     @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
+        GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
         boolean consumerHasAttributes = !consumerAttributes.isEmpty();
-        Optional<List<? extends VariantGraphResolveMetadata>> targetVariants = targetComponent.getVariantsForGraphTraversal();
-        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || targetVariants.isPresent());
+        boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
-            return AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+            return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
         }
 
-        String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
-        ConfigurationGraphResolveMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
+        String targetConfiguration = getDependencyConfiguration();
+        ConfigurationGraphResolveState toConfiguration = targetComponentState.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(componentId, moduleConfiguration, targetConfiguration, targetComponent.getId());
+            throw new ConfigurationNotFoundException(targetConfiguration, targetComponent.getId());
         }
         verifyConsumability(targetComponent, toConfiguration);
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
@@ -160,19 +136,24 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw new IncompatibleConfigurationSelectionException(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, targetConfiguration, targetVariants.isPresent(), DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw variantSelector.getFailureProcessor().incompatibleConfigurationSelectionFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
-        return new VariantSelectionResult(ImmutableList.of(toConfiguration), false);
+        return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);
     }
 
-    private void verifyConsumability(ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveMetadata toConfiguration) {
-        if (!toConfiguration.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(targetComponent.toString(), toConfiguration.getName());
+    private void verifyConsumability(ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
+        ConfigurationGraphResolveMetadata metadata = toConfiguration.getMetadata();
+        if (!metadata.isCanBeConsumed()) {
+            throw new ConfigurationNotConsumableException(targetComponent.getId().getDisplayName(), toConfiguration.getName());
         }
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = toConfiguration.getConsumptionDeprecation();
-        if (consumptionDeprecation != null) {
-            consumptionDeprecation.nagUser();
+
+        if (metadata.isDeprecatedForConsumption()) {
+            DeprecationLogger.deprecateConfiguration(toConfiguration.getName())
+                .forConsumption()
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .nagUser();
         }
     }
 
@@ -204,10 +185,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     @Override
     public boolean isEndorsingStrictVersions() {
         return endorsing;
-    }
-
-    private boolean isExternalVariant() {
-        return false;
     }
 
     @Override
@@ -258,19 +235,19 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithTargetAndArtifacts(ComponentSelector selector, List<IvyArtifactName> artifactNames) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithReason(String reason) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithForce() {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, true, changing, transitive, constraint, endorsing, fromLock, reason);
+        return new LocalComponentDependencyMetadata(selector, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, true, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
 }

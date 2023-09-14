@@ -88,10 +88,15 @@ If this property is `true`, Gradle will continue with the project's build once t
 `failFast` —  (since Gradle 4.6) default: false::
 Set this to `true` if you want the build to fail and finish as soon as one of your tests fails. This can save a lot of time when you have a long-running test suite and is particularly useful when running the build on continuous integration servers. When a build fails before all tests have run, the test reports only include the results of the tests that have completed, successfully or not.
 +
-You can also enable this behavior by using the `--fail-fast` command line option.
+You can also enable this behavior by using the `--fail-fast` command line option, or disable it respectively with `--no-fail-fast`.
 
 `testLogging` — default: _not set_::
 This property represents a set of options that control which test events are logged and at what level. You can also configure other logging behavior via this property. See link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
+
+`dryRun` — default: false::
+If this property is `true`, Gradle will simulate the execution of the tests without actually running them. This will still generate reports, allowing for inspection of what tests were selected. This can be used to verify that your test filtering configuration is correct without actually running the tests.
++
+You can also enable this behavior by using the `--test-dry-run` command-line option, or disable it respectively with `--no-test-dry-run`.
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 [NOTE]
@@ -250,7 +255,7 @@ You should note that the `TestReport` type combines the results from multiple te
 The Test tasks creates XML files describing the test results, in the “JUnit XML” pseudo standard.
 It is common for CI servers and other tooling to observe test results via these XML files.
 
-By default, the files are written to `$buildDir/test-results/$testTaskName` with a file per test class.
+By default, the files are written to `layout.buildDirectory.dir("test-results/$testTaskName")` with a file per test class.
 The location can be changed for all test tasks of a project, or individually per test task.
 
 .Changing JUnit XML results location for all test tasks
@@ -259,7 +264,7 @@ include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gra
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
 ====
 
-With the above configuration, the XML files will be written to `$buildDir/junit-xml/$testTaskName`.
+With the above configuration, the XML files will be written to `layout.buildDirectory.dir("junit-xml/$testTaskName")`.
 
 .Changing JUnit XML results location for a particular test task
 ====
@@ -267,7 +272,7 @@ include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gra
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
 ====
 
-With the above configuration, the XML files for the `test` task will be written to `$buildDir/test-results/test-junit-xml`.
+With the above configuration, the XML files for the `test` task will be written to `layout.buildDirectory.dir("test-results/test-junit-xml")`.
 The location of the XML files for other test tasks will be unchanged.
 
 [[junit_xml_configuration]]
@@ -342,6 +347,33 @@ If `scanForTestClasses` is false and no include or exclude patterns are specifie
 ====
 With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes` and `excludes` are used to filter test classes — `scanForTestClasses` has no effect.
 ====
+
+[[sec:test_logging]]
+== Test logging
+
+Gradle allows fine-tuned control over events that are logged to the console.  
+Logging is configurable on a per-log-level basis and by default, the following events are logged:
+
+[cols="1,1,1"]
+|===
+|When the log level is |Events that are logged | Additional configuration
+| `ERROR`, `QUIET` or `WARNING`
+| None
+| None
+| `LIFECYCLE`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#FAILED[Test failures]
+| Exception format is link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestExceptionFormat.html#SHORT[SHORT]
+| `INFO`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#FAILED[Test failures], link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#SKIPPED[skipped tests], link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#STANDARD_OUT[test standard output] and link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html#STANDARD_ERROR[test standard error]
+| Stacktraces are truncated.
+| `DEBUG`
+| link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogEvent.html[All events]
+| Full stacktraces are logged.
+|===
+
+Test logging can be modified on a per-log-level basis by adjusting the appropriate link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogging.html[TestLogging] instances in the link:{javadocPath}/org/gradle/api/tasks/testing/AbstractTestTask.html#getTestLogging--[testLogging] property of the test task.
+For example, to adjust the `INFO` level test logging configuration, modify the
+link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html#getInfo--[TestLoggingContainer.getInfo()] property.
 
 [[test_grouping]]
 == Test grouping
@@ -641,7 +673,7 @@ Alternatively, if <<build_cache.adoc#sec:build_cache_enable,build caching>> is n
 [[sec:debugging_java_tests]]
 == Debugging when running tests
 
-On the few occasions that you want to debug your code while the tests are running, it can be helpful if you can attach a debugger at that point. You can either set the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:debug[Test.getDebug()] property to `true` or use the `--debug-jvm` command line option.
+On the few occasions that you want to debug your code while the tests are running, it can be helpful if you can attach a debugger at that point. You can either set the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:debug[Test.getDebug()] property to `true` or use the `--debug-jvm` command line option, or use `--no-debug-jvm` to set it to false.
 
 When debugging for tests is enabled, Gradle will start the test process suspended and listening on port 5005.
 

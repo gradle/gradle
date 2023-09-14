@@ -17,7 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.publish.ivy.internal.publication.IvyComponentParser
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 
@@ -114,7 +115,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
         if (ivyConfiguration == 'compile') {
             javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
@@ -254,7 +255,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
 
         def dep = javaLibrary.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
@@ -398,7 +399,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
         javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
@@ -445,7 +446,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
@@ -478,7 +479,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -548,8 +549,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         outputContains('commons-logging:commons-logging:1.1 declared as a dependency constraint')
         javaLibrary.assertPublished()
 
@@ -629,8 +630,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         outputContains('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -699,8 +700,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         outputDoesNotContain('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -760,8 +761,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         outputDoesNotContain('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -824,7 +825,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
@@ -883,8 +884,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -940,7 +941,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 
@@ -979,7 +980,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         outputContains("$silenceMethod(variant)")
         outputContains('Declares capability org:foo:1.0')
         outputContains("Variant runtimeElements")
@@ -1010,7 +1011,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         outputDoesNotContain("Ivy publication 'ivy' warnings:")
         outputDoesNotContain('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
@@ -1037,7 +1038,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         outputDoesNotContain("Ivy publication 'ivy' warnings:")
         outputDoesNotContain('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
@@ -1100,8 +1101,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
-        outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains(IvyComponentParser.UNSUPPORTED_FEATURE)
         javaLibrary.assertPublished()
 
         and:
@@ -1292,7 +1293,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -1312,7 +1313,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + variantAttributesLink())
+    }
+
+    private variantAttributesLink() {
+        documentationRegistry.getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category")
     }
 
     def "can not publish variant with attribute specifying category = verification if defining new attribute with string"() {
@@ -1322,7 +1328,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -1342,7 +1348,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testConf' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
     def "can not publish test results from java test suite"() {
@@ -1387,7 +1394,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         expect:
         fails('test', 'publish')
-        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  This attribute is reserved for test verification output and is not publishable.  See: ")
+        failure.assertHasCause("Cannot publish module metadata for component 'java' which would include a variant 'testResultsElementsForTest' that contains a 'org.gradle.category' attribute with a value of 'verification'.  " +
+            "This attribute is reserved for test verification output and is not publishable.  " + new DocumentationRegistry().getDocumentationRecommendationFor("on this", "variant_attributes", "sec:verification_category"))
     }
 
     def "can publish variants with attribute specifying category if value not verification"() {
@@ -1397,7 +1405,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 
@@ -1449,7 +1457,7 @@ $append
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }

@@ -24,7 +24,7 @@ class WorkerExecutorFixture {
     def outputFileDir
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
-    private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    private final TestNameTestDirectoryProvider temporaryFolder
     final WorkParameterClass testParameterType
     final WorkActionClass workActionThatCreatesFiles
     final WorkActionClass workActionThatFails
@@ -201,6 +201,7 @@ class WorkerExecutorFixture {
 
     void withJava7CompatibleClasses() {
         file('buildSrc/build.gradle') << """
+            java.toolchain.languageVersion = JavaLanguageVersion.of(11)
             tasks.withType(JavaCompile) {
                 sourceCompatibility = "1.7"
                 targetCompatibility = "1.7"

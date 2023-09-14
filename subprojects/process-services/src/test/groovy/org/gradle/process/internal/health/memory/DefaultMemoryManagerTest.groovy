@@ -210,9 +210,35 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
         memoryManager.stop()
     }
 
+    def "throwables are not propagated out of the run method of the memory check"() {
+        given:
+        def check = new DefaultMemoryManager(
+            Mock(OsMemoryInfo),
+            Mock(JvmMemoryInfo),
+            Stub(ListenerManager) {
+                getBroadcaster(JvmMemoryStatusListener) >> Mock(JvmMemoryStatusListener)
+                getBroadcaster(OsMemoryStatusListener) >> Mock(OsMemoryStatusListener)
+            },
+            Stub(ExecutorFactory)
+        ).new DefaultMemoryManager.MemoryCheck()
+
+        when:
+        check.run()
+
+        then:
+        1 * _ >> { throw throwable }
+        noExceptionThrown()
+
+        where:
+        throwable              | _
+        new Exception()        | _
+        new RuntimeException() | _
+        new Error()            | _
+    }
+
     private static class TestOsMemoryInfo implements OsMemoryInfo {
-        long totalMemory = -1
-        long freeMemory = -1
+        long totalMemory = 0
+        long freeMemory = 0
 
         @Override
         OsMemoryStatus getOsSnapshot() {

@@ -21,6 +21,7 @@ plugins {
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.ci-reporting")
+    id("gradlebuild.test-retry")
 }
 
 java.configureJavaToolChain()
@@ -34,8 +35,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        // Can be set to true when assignment plugin becomes stable
-        allWarningsAsErrors = false
+        allWarningsAsErrors = true
     }
 }
 

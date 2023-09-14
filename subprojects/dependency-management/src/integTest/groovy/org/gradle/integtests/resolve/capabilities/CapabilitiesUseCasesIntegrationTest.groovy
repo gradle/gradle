@@ -207,7 +207,9 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 root(":", ":test:") {
                     module('org:a:1.0') {
                         edge('org.apache:groovy:1.0', 'org.apache:groovy-all:1.0')
-                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-all:1.0')
+                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-all:1.0') {
+                            selectedByRule()
+                        }
                     }
                     module('org:b:1.0') {
                         edge('org.apache:groovy-all:1.0', 'org.apache:groovy-all:1.0')
@@ -325,7 +327,9 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 root(":", ":test:") {
                     module('org:a:1.0') {
                         edge('org.apache:groovy:1.0', 'org.apache:groovy:1.0')
-                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-json:1.0')
+                        edge('org.apache:groovy-json:1.0', 'org.apache:groovy-json:1.0') {
+                            selectedByRule()
+                        }
                     }
                     module('org:b:1.0') {
                         // this is not quite right, as we should replace with 2 edges
@@ -406,7 +410,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
 
         then:
         if (failOnVersionConflict) {
-            failure.assertHasCause("Conflict(s) found for the following module(s):\n  - org.ow2.asm:asm latest version of capability asm:asm")
+            failure.assertHasCause("Conflict found for the following module:\n  - org.ow2.asm:asm latest version of capability asm:asm")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {

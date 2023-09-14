@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -63,7 +65,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
-    def repo = new CachingModuleComponentRepository(realRepo, caches, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
+    def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
+    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
@@ -119,8 +122,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
         repo.localAccess.resolveComponentMetaData(componentId, prescribedMetaData, result)
 
         then:
-        realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
-            result.resolved(Mock(ModuleComponentResolveMetadata))
+        1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
+            r.resolved(Stub(ModuleComponentResolveMetadata))
         }
         0 * _
     }
@@ -191,8 +194,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata) {
-                isChanging() >> true
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState) {
+                getMetadata() >> Stub(ModuleComponentResolveMetadata) {
+                    isChanging() >> true
+                }
             }
             getAge() >> Duration.ofMillis(100)
         }
@@ -221,7 +226,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentResolveMetadata)
+            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
 

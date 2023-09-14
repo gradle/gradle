@@ -21,12 +21,12 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.problems.Problems;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -52,22 +52,22 @@ import java.util.function.Function;
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
+    private final Problems problems;
     private final GradleInternal thisBuild;
-    private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
 
     public TaskNodeFactory(
         GradleInternal thisBuild,
-        DocumentationRegistry documentationRegistry,
         BuildTreeWorkGraphController workGraphController,
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
-        ExecutionNodeAccessHierarchies accessHierarchies
+        ExecutionNodeAccessHierarchies accessHierarchies,
+        Problems problems
     ) {
         this.thisBuild = thisBuild;
-        this.documentationRegistry = documentationRegistry;
         this.workGraphController = workGraphController;
+        this.problems = problems;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
         resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
     }
@@ -85,7 +85,7 @@ public class TaskNodeFactory {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath())) {
-                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), resolveMutationsNodeFactory);
+                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
             }

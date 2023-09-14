@@ -140,10 +140,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, loadAfterStore)
+                readRootBuildState(graph, graphBuilder, loadAfterStore)
             }
         }
     }
@@ -182,9 +182,9 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
-
-        val build = host.currentBuild
-        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream), build.gradle.owner.displayName.displayName + " state")
+        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream)) {
+            host.currentBuild.gradle.owner.displayName.displayName + " state"
+        }
         return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
@@ -210,8 +210,11 @@ class ConfigurationCacheIO internal constructor(
         }
     }
 
+    /**
+     * @param profile the unique name associated with the output stream for debugging space usage issues
+     */
     internal
-    fun writerContextFor(outputStream: OutputStream, profile: String): Pair<DefaultWriteContext, Codecs> =
+    fun writerContextFor(outputStream: OutputStream, profile: () -> String): Pair<DefaultWriteContext, Codecs> =
         KryoBackedEncoder(outputStream).let { encoder ->
             writeContextFor(
                 encoder,
@@ -221,9 +224,9 @@ class ConfigurationCacheIO internal constructor(
         }
 
     private
-    fun loggingTracerFor(profile: String, encoder: KryoBackedEncoder) =
+    fun loggingTracerFor(profile: () -> String, encoder: KryoBackedEncoder) =
         loggingTracerLogLevel()?.let { level ->
-            LoggingTracer(profile, encoder::getWritePosition, logger, level)
+            LoggingTracer(profile(), encoder::getWritePosition, logger, level)
         }
 
     private
@@ -309,8 +312,9 @@ class ConfigurationCacheIO internal constructor(
             propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
+            objectFactory = service(),
             instantiator = service(),
-            listenerManager = service(),
+            fileSystemOperations = service(),
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),
             inputFingerprinter = service(),
@@ -331,6 +335,7 @@ class ConfigurationCacheIO internal constructor(
             documentationRegistry = service(),
             javaSerializationEncodingLookup = service(),
             flowProviders = service(),
+            transformStepNodeFactory = service(),
         )
 
     private

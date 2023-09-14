@@ -109,6 +109,11 @@ Every included build:
 * must not have a `rootProject.name` the same as a top-level project of the composite build.
 * must not have a `rootProject.name` the same as the composite build `rootProject.name`.
 
+[NOTE]
+====
+When a composite build is included into another composite build, then both included builds would have the same parent.
+In other words, nested composite build structure is flattened.
+====
 
 [[interacting_with_composite_builds]]
 == Interacting with a composite build

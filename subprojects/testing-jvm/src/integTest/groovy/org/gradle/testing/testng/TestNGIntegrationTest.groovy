@@ -356,6 +356,31 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         }
     }
 
+    @Issue("https://issues.gradle.org/browse/GRADLE-2313")
+    def "can clean test after extracting class file"() {
+        when:
+        buildFile << """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.testng:testng:6.3.1'
+            }
+            test.useTestNG()
+        """
+        and:
+        file("src/test/java/SomeTest.java") << """
+            public class SomeTest extends org.testng.Converter {
+                @org.testng.annotations.Test
+                public void test() {}
+            }
+        """
+        then:
+        succeeds "clean", "test"
+
+        and:
+        file("build/tmp/test").exists() // ensure we extracted classes
+    }
+
     private static String testListener() {
         return '''
             def listener = new TestListenerImpl()

@@ -29,10 +29,6 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
-kotlin.sourceSets.all {
-    languageSettings.progressiveMode = true
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.addAll(
@@ -87,7 +83,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.slf4jApi)
 
-    implementation(libs.futureKotlin("stdlib-jdk8"))
+    implementation(libs.futureKotlin("stdlib"))
     implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))

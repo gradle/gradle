@@ -17,11 +17,11 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-@IgnoreIf({ GradleContextualExecuter.parallel })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 // no point, always runs in parallel
 class ConcurrentDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -37,7 +37,7 @@ class ConcurrentDependencyResolutionIntegrationTest extends AbstractIntegrationS
         buildFile << '''
              def usage = Attribute.of('usage', String)
              allprojects {
-            
+
                 dependencies {
                     attributesSchema {
                         attribute(usage)
@@ -55,14 +55,15 @@ class ConcurrentDependencyResolutionIntegrationTest extends AbstractIntegrationS
                     }
                     'default'
                 }
-                
+
                 task resolve {
+                    def files = configurations.compile
                     doLast {
-                        configurations.compile.files
+                        files.files
                     }
                 }
             }
-           
+
         '''
         int groups = 20
         int iterations = 100

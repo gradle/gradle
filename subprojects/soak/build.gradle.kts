@@ -5,11 +5,13 @@ plugins {
 dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":jvm-services"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":workers")))
 
     integTestImplementation(project(":file-watching"))
     integTestImplementation(project(":jvm-services"))

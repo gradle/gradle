@@ -31,12 +31,14 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
+import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -44,6 +46,7 @@ import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static org.gradle.api.problems.TestProblemsUtil.createTestProblems
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractDependencyMetadataRulesTest extends Specification {
@@ -90,6 +93,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         ivyMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private mavenComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
             MavenDependencyType type = addAllDependenciesAsConstraints() ? MavenDependencyType.OPTIONAL_DEPENDENCY : MavenDependencyType.DEPENDENCY
@@ -97,6 +101,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         }
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
+
     private gradleComponentMetadata(String[] deps) {
         def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
@@ -269,18 +274,18 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toRemove")
     }
 
-    def selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
-        selectTargetConfigurationMetadata(targetComponent.asImmutable())
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(MutableModuleComponentResolveMetadata targetComponent) {
+        return selectTargetConfigurationMetadata(targetComponent.asImmutable())
     }
 
-    def selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
+    VariantGraphResolveMetadata selectTargetConfigurationMetadata(ModuleComponentResolveMetadata immutable) {
         def componentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "consumer"), "1.0")
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
-        def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-        def state = Stub(ComponentGraphResolveState)
-        state.metadata >> immutable
+        def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
+        def variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
 
-        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
+        return consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0].metadata
     }
 }

@@ -169,3 +169,14 @@ fun JarOutputStream.addJarEntry(entryName: String, sourceFile: File) {
     BufferedInputStream(FileInputStream(sourceFile)).use { inputStream -> inputStream.copyTo(this) }
     closeEntry()
 }
+
+
+fun File.getClassSuperTypes(): Set<String> {
+    if (!path.endsWith(".class")) {
+        throw IllegalArgumentException("Not a class file: $path")
+    }
+    inputStream().use {
+        val reader = ClassReader(it)
+        return setOf(reader.superName) + reader.interfaces
+    }
+}
