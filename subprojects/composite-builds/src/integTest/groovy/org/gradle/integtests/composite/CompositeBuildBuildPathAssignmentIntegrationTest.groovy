@@ -40,7 +40,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
-        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, "help")
         then:
         assignedBuildPaths ==~ [
@@ -79,7 +78,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
 
         when:
-        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
@@ -125,7 +123,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         }
 
         when:
-        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [
@@ -163,7 +160,6 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB-nested', ['project1', 'project2'])
 
         when:
-        executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         succeeds(includingBuild, 'help')
         then:
         assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
