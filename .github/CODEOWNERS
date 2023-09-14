@@ -64,7 +64,6 @@ platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 platforms/jvm/                              @gradle/bt-jvm
 subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
-subprojects/jacoco/                         @gradle/bt-jvm
 subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm

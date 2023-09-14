@@ -93,7 +93,6 @@ unassigned {
     subproject("diagnostics")
     subproject("publish")
     subproject("ivy")
-    subproject("jacoco")
     subproject("build-init")
     subproject("build-option")
     subproject("platform-base")
@@ -160,6 +159,7 @@ platform("ide") {
 platform("jvm") {
     subproject("code-quality")
     subproject("ear")
+    subproject("jacoco")
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
