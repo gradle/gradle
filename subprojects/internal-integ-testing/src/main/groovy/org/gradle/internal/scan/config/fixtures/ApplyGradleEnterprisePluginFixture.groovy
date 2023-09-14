@@ -18,27 +18,45 @@ package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin.VERSION
+
 /**
  * Applies the Gradle Enterprise plugin via the `settings.gradle` script.
  */
 class ApplyGradleEnterprisePluginFixture {
-    private static final String APPLY_ENTERPRISE_PLUGIN = """
-        plugins {
-            id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}')
-        }
-    """
+    private static final String APPLY_ENTERPRISE_PLUGIN = """plugins {
+        |    id("${AutoAppliedGradleEnterprisePlugin.ID}") version("${VERSION}")
+        |}""".stripMargin()
 
     static void applyEnterprisePlugin(File settingsFile) {
         def settingsText = settingsFile.text
         def matcher = settingsText =~ /id[ (]["']com.gradle.enterprise["'][)]? version[ (]["'](.*)["'][)]?/
         if (matcher.find()) {
-            settingsFile.text = settingsText.substring(0, matcher.start(1)) + AutoAppliedGradleEnterprisePlugin.VERSION + settingsText.substring(matcher.end(1))
+            settingsFile.text = settingsText.substring(0, matcher.start(1)) + VERSION + settingsText.substring(matcher.end(1))
         } else {
-            prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+            insertIntoFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
         }
     }
 
-    private static void prefixFile(File settingsFile, String... prefixes) {
-        settingsFile.text = prefixes*.stripIndent()*.trim().join("\n\n") + "\n\n" + settingsFile.text
+    private static void insertIntoFile(File settingsFile, String pluginBlock) {
+        def settingsText = settingsFile.text
+
+        def pluginManagementBlock
+        def pluginManagementMatcher = settingsText =~ /(?s)pluginManagement [{].*[}]/
+        if (pluginManagementMatcher.find()) {
+            def start = pluginManagementMatcher.start(0)
+            def end = pluginManagementMatcher.end(0)
+            pluginManagementBlock = settingsText.substring(start, end)
+            settingsText = settingsText.substring(0, start) + settingsText.substring(end)
+        } else {
+            pluginManagementBlock = null
+        }
+
+        // todo: handle more special blocks, when actually needed
+
+        settingsFile.text =
+            (pluginManagementBlock == null ? "" : pluginManagementBlock + "\n\n") +
+            pluginBlock + "\n\n" +
+            settingsText.trim()
     }
 }
