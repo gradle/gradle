@@ -88,6 +88,10 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     private static boolean hasConfigurableValue(@Nullable Object value) {
+        // TODO We should check the type of the property here, not its value
+        //   With the current code we'd assume a `Provider<String>` to be configurable when
+        //   the getter returns `null`. The property type is not currently available in this
+        //   context, though.
         return value == null || HasConfigurableValue.class.isAssignableFrom(value.getClass());
     }
 
