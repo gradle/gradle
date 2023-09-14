@@ -191,7 +191,7 @@ interface Extension {
 extension {
     // Using the set() method call
     description.set("Hello Property")
-    // Incubating: using lazy property assignment
+    // Using lazy property assignment
     description = "Hello Property"
 }
 ```
