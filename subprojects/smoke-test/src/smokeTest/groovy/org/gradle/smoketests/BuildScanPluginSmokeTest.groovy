@@ -24,7 +24,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
-import spock.lang.IgnoreIf
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
@@ -136,7 +135,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.13.4",
         "3.14",
         "3.14.1",
-        // TODO: once 3.15 is added here, drop @IgnoreIf from a isolated-projects test below
+        "3.15",
     ]
 
     // Current injection scripts support Gradle Enterprise plugin 3.3 and above
@@ -213,8 +212,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE
     }
 
-    // TODO: remove @IgnoreIf once 3.15 is added to the supported list, as this becomes a no-op
-    @IgnoreIf({ SUPPORTED_WITH_GRADLE_8_CONFIGURATION_CACHE.every { !it.startsWith("3.15") } })
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "can use plugin #version with isolated projects"() {
         given:
