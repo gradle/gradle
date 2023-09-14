@@ -108,7 +108,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectProjectConventionDeprecationWarning(agpVersion)
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
-            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
         }.build()
 
@@ -131,7 +130,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             maybeExpectReportDestinationPropertyDeprecation(agpVersion)
             maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
             maybeExpectBasePluginConventionDeprecation(agpVersion)
-            maybeExpectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
         }.build()
 
         then:
@@ -154,7 +152,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             }
         }.build()
 
@@ -184,7 +181,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 expectProjectConventionDeprecationWarning(agpVersion)
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             }
         }.build()
 

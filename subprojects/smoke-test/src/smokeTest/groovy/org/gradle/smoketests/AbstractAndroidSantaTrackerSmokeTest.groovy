@@ -68,7 +68,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             }
         }.build()
     }
@@ -80,15 +79,10 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             } else {
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
                 if (agpVersion.startsWith("7.4")){
                     expectConfigUtilDeprecationWarning(agpVersion)
-                }
-                // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
-                if (!agpVersion.startsWith("7.3")) {
-                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }
         }.build()
@@ -102,7 +96,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectAndroidConventionTypeDeprecationWarning(agpVersion)
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
             }.build()
     }
 
@@ -120,10 +113,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
                 if (agpVersion.startsWith("7.4")){
                     expectConfigUtilDeprecationWarning(agpVersion)
-                }
-                if (!agpVersion.startsWith("7.3")) {
-                    // TODO - this is here because AGP > 7.3 reads build/generated/source/kapt/debug at configuration time
-                    expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 }
             }.build()
     }

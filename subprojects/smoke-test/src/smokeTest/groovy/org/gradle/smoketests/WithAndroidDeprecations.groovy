@@ -78,29 +78,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    private static getBuildIdentifierIsCurrentBuildDeprecationMessage() {
-        return "The BuildIdentifier.isCurrentBuild() method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Use getBuildPath() to get a unique identifier for the build. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-    }
-
-    void maybeExpectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        runner.maybeExpectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
-            getBuildIdentifierIsCurrentBuildDeprecationMessage()
-        )
-    }
-
-    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber.baseVersion < VersionNumber.parse(fixedVersion),
-            getBuildIdentifierIsCurrentBuildDeprecationMessage()
-        )
-    }
-
     void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),

@@ -59,9 +59,6 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersionNumber, parallelTasksInProject, kotlinPluginVersionNumber)
                     expectReportDestinationPropertyDeprecation(androidPluginVersion)
                     expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersionNumber)
-                    if (GradleContextualExecuter.configCache || kotlinPluginVersionNumber >= VersionNumber.parse("1.8.0")) {
-                        expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
-                    }
                     2.times {
                         maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion)
                     }
