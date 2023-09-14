@@ -20,6 +20,16 @@ import org.gradle.api.internal.file.DefaultSettingsLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
+    private String printLocations() {
+        groovyScript """
+            println "settings root dir: " + layout.rootDirectory + "."
+            println "settings dir: " + layout.settingsDirectory + "."
+            println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get() + "."
+            println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get() + "."
+            println "layout implementation: " + layout.class.name + "."
+        """
+    }
+
     def "layout is available for injection"() {
         settingsFile """
             import javax.inject.Inject
@@ -34,11 +44,9 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
                 abstract ProviderFactory getProviders()
 
                 void apply(Settings s) {
-                    println "settings root dir: " + layout.rootDirectory
-                    println "settings dir: " + layout.settingsDirectory
-                    println "settings source file: " + layout.dir(providers.provider { s.buildscript.sourceFile }).get()
-                    println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get()
-                    println "layout implementation: " + layout.class.name
+                    s.with {
+                        ${printLocations()}
+                    }
                 }
             }
 
@@ -49,35 +57,47 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         run("help")
 
         then:
-        outputContains("settings root dir: " + testDirectory)
-        outputContains("settings dir: " + testDirectory)
-        outputContains("settings source file: " + settingsFile)
-        outputContains("settings relative location: " + testDirectory.file("somefile.txt"))
-        outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
+        outputContains("settings root dir: " + testDirectory + ".")
+        outputContains("settings dir: " + testDirectory + ".")
+        outputContains("settings source file: " + settingsFile + ".")
+        outputContains("settings relative location: " + testDirectory.file("somefile.txt") + ".")
+        outputContains("layout implementation: " + DefaultSettingsLayout.class.name + ".")
     }
 
     def "layout is available for scripts"() {
         settingsFile """
-            import javax.inject.Inject
-            import org.gradle.api.file.SettingsLayout
-            import org.gradle.api.provider.ProviderFactory
-            import org.gradle.api.initialization.Settings
-
-            println "settings root dir: " + layout.rootDirectory
-            println "settings dir: " + layout.settingsDirectory
-            println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get()
-            println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get()
-            println "layout implementation: " + layout.class.name
-"""
+            ${printLocations()}
+        """
 
         when:
         run("help")
 
         then:
-        outputContains("settings root dir: " + testDirectory)
-        outputContains("settings dir: " + testDirectory)
-        outputContains("settings source file: " + settingsFile)
-        outputContains("settings relative location: " + testDirectory.file("somefile.txt"))
-        outputContains("layout implementation: " + DefaultSettingsLayout.class.name)
+        outputContains("settings root dir: " + testDirectory + ".")
+        outputContains("settings dir: " + testDirectory + ".")
+        outputContains("settings source file: " + settingsFile + ".")
+        outputContains("settings relative location: " + testDirectory.file("somefile.txt") + ".")
+    }
+
+    def "locations are as expected for non-standard settings locations available for scripts"() {
+        def customSettingsPath = "custom-subdir/custom-settings.gradle"
+        def customSettingsFile = testDirectory.file(customSettingsPath)
+        def customSettingsDir = customSettingsFile.parentFile
+        // setting a custom settings location is deprecated
+        executer.noDeprecationChecks()
+        groovyFile(customSettingsFile, """
+            rootProject.projectDir = file('..')
+            ${printLocations()}
+        """)
+
+        when:
+        run("help", "--settings-file", customSettingsPath)
+
+        then:
+        outputContains("settings root dir: " + testDirectory + ".")
+        outputContains("settings dir: " + customSettingsDir + ".")
+        outputContains("settings source file: " + customSettingsFile + ".")
+        outputContains("settings relative location: " + customSettingsDir.file("somefile.txt") + ".")
+        outputContains("layout implementation: " + DefaultSettingsLayout.class.name + ".")
     }
 }
