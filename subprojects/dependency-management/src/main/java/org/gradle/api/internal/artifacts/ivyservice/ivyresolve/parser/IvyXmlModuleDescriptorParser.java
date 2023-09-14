@@ -74,6 +74,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -1345,6 +1346,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throws ParserConfigurationException, SAXException {
             if (schema == null) {
                 SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 parserFactory.setValidating(false);
                 parserFactory.setNamespaceAware(true);
                 SAXParser parser = parserFactory.newSAXParser();
@@ -1352,6 +1354,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 return parser;
             } else {
                 SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 parserFactory.setValidating(true);
                 parserFactory.setNamespaceAware(true);
 
