@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.xml.XmlFactories;
 import org.gradle.util.internal.MavenUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -29,7 +30,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.inject.Inject;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,7 +38,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import javax.xml.xpath.XPathFactoryConfigurationException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -62,14 +61,8 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         super(factory);
         toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
-        xPathFactory = XPathFactory.newInstance();
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        try {
-            xPathFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        } catch (XPathFactoryConfigurationException | ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        }
+        xPathFactory = XmlFactories.newXPathFactory();
+        documentBuilderFactory = XmlFactories.newDocumentBuilderFactory();
         this.fileResolver = fileResolver;
     }
 
