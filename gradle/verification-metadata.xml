@@ -322,6 +322,9 @@
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86">
+            <trusting group="com.gradle"/>
+         </trusted-key>
       </trusted-keys>
    </configuration>
    <components>
