@@ -56,7 +56,7 @@ import static org.gradle.internal.classpath.InstrumentingClasspathFileTransforme
 
 public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
-    private static final int CACHE_FORMAT = 6;
+    private static final int CACHE_FORMAT = 7;
     private static final int AGENT_INSTRUMENTATION_VERSION = 3;
 
     private final FileLockManager fileLockManager;
