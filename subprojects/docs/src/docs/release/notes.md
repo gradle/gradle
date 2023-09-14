@@ -168,7 +168,11 @@ val doesntMatch = property.filter { it.contains("baz") } // is empty
 ```
 
 Note that `filter` is evaluated lazily, so the predicate is only evaluated when the value is queried.
-
+This feature can be useful for validating external properties, for example:
+```kotlin
+providers.gradleProperty("someFlag").filter { it != "false" }
+```
+The provider above will return value only if the feature is present and does not equal "false". 
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
