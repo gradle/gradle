@@ -44,7 +44,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -68,10 +67,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         Project project,
         ObjectFactory objectFactory,
         ProviderFactory providerFactory,
-        JvmPluginServices jvmPluginServices,
-        Instantiator instantiator
+        JvmPluginServices jvmPluginServices
     ) {
-        super(componentName, instantiator);
+        super(componentName, objectFactory);
 
         RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         PluginContainer plugins = project.getPlugins();

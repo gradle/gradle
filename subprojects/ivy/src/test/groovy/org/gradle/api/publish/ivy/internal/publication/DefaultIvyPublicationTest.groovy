@@ -142,6 +142,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -176,8 +177,10 @@ class DefaultIvyPublicationTest extends Specification {
         and:
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.targetConfiguration >> "dep-configuration"
+        projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]
         projectDependency.attributes >> ImmutableAttributes.EMPTY
+        projectDependency.requestedCapabilities >> []
 
         when:
         publication.from(componentWithDependency(projectDependency))

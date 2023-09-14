@@ -131,6 +131,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             projectDependencyResolver,
             ivyArtifactNotationParser,
             documentationRegistry,
+            versionMappingStrategy,
             collectionCallbackActionDecorator
         );
 
@@ -156,7 +157,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptor.getConfigurations().set(this.configurations);
         this.descriptor.getArtifacts().set(providerFactory.provider(this::getArtifacts));
         this.descriptor.getDependencies().set(getComponent().<Set<IvyDependency>>map(component -> {
-            IvyComponentParser.DependencyResult result = ivyComponentParser.parseDependencies(component, versionMappingStrategy);
+            IvyComponentParser.ParsedDependencyResult result = ivyComponentParser.parseDependencies(component);
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
-
-import org.gradle.util.Path;
-
-public interface ProjectDependencyPublicationResolver {
-    /**
-     * Determines the coordinates of the given type that should be used to reference the
-     * project identified by {@code identityPath}.
-     *
-     * @throws UnsupportedOperationException if the project cannot be resolved.
-     */
-    <T> T resolve(Class<T> coordsType, Path identityPath);
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.publish.internal.mapping;

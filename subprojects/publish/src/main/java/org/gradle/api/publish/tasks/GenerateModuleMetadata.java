@@ -38,10 +38,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.metadata.DependencyAttributesValidator;
 import org.gradle.api.publish.internal.metadata.EnforcedPlatformPublicationValidator;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
+import org.gradle.api.publish.internal.metadata.InvalidPublicationChecker;
 import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
+import org.gradle.api.publish.internal.metadata.ModuleMetadataSpecBuilder;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -216,12 +219,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private GradleModuleMetadataWriter moduleMetadataWriter() {
-        return new GradleModuleMetadataWriter(
-            getBuildInvocationScopeId(),
-            getProjectDependencyPublicationResolver(),
-            getChecksumService(),
-            getPath(),
-            dependencyAttributeValidators());
+        return new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getChecksumService());
     }
 
     private List<DependencyAttributesValidator> dependencyAttributeValidators() {
@@ -256,7 +254,17 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
-        return moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications());
+        PublicationInternal<?> publication = publication();
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath());
+        ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
+            publication,
+            publications(),
+            checker,
+            new DefaultVariantDependencyResolverFactory(getProjectDependencyPublicationResolver(), publication.getVersionMappingStrategy()),
+            dependencyAttributeValidators()
+        ).build();
+        checker.validate();
+        return spec;
     }
 
     static class InputState {

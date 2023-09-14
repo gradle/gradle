@@ -20,7 +20,10 @@ import com.google.common.collect.Sets;
 
 import java.util.Set;
 
-public class CollectedWarnings {
+/**
+ * Collects all publication warnings for a single variant.
+ */
+public class VariantWarningCollector {
     private Set<String> unsupportedUsages = null;
     private Set<String> incompatibleUsages = null;
     private Set<String> variantUnsupported = null;
