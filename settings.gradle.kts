@@ -47,7 +47,7 @@ unassigned {
 unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
-    subproject("distributions-publishing")
+    subproject("distributions-jvm")
     subproject("distributions-native")
     subproject("distributions-full")
 }
