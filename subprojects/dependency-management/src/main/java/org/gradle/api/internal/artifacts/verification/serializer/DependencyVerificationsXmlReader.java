@@ -35,6 +35,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -101,7 +102,7 @@ public class DependencyVerificationsXmlReader {
 
     private static SAXParser createSecureParser() throws ParserConfigurationException, SAXException {
         SAXParserFactory spf = SAXParserFactory.newInstance();
-        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         spf.setFeature("http://xml.org/sax/features/namespaces", false);
         spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         return spf.newSAXParser();
