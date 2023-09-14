@@ -171,7 +171,6 @@ platforms:
       - 'platforms/jvm/'
       - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'
       - 'subprojects/language-groovy/'
