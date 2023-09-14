@@ -16,33 +16,84 @@
 
 package org.gradle.jvm.toolchain
 
+
+import org.apache.commons.compress.archivers.ArchiveOutputStream
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
+import org.apache.commons.compress.utils.IOUtils
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.nativeintegration.services.FileSystems
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.RelativePathUtil
 
-import static org.junit.Assume.assumeFalse
+import java.nio.file.Files
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
-    public static final int VERSION = 17
-    private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
-    public static final String FOOJAY_PLUGIN_SECTION = """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+    public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
+
+    private static final String getToolchainResolverSection(String uri) {
+        return """
+            public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
+                @Inject
+                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
+
+                void apply(Settings settings) {
+                    settings.getPlugins().apply("jvm-toolchain-management");
+
+                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
+                    registry.register(CustomToolchainResolver.class);
+                }
             }
-        """
+
+            import java.util.Optional;
+            import org.gradle.platform.BuildPlatform;
+
+            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
+                @Override
+                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                    return Optional.of(JavaToolchainDownload.fromUri(new URI("${uri}")));
+                }
+            }
+
+
+            apply plugin: CustomToolchainResolverPlugin
+
+            toolchainManagement {
+                jvm {
+                    javaRepositories {
+                        repository('custom') {
+                            resolverClass = CustomToolchainResolver
+                        }
+                    }
+                }
+            }
+    """.stripIndent()
+    }
 
     public static final String TOOLCHAIN_WITH_VERSION = """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($VERSION)
+                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
                 }
             }
         """
 
+    JdkRepository jdkRepository
+
     def setup() {
-        settingsFile << FOOJAY_PLUGIN_SECTION
+        jdkRepository = new JdkRepository()
+        jdkRepository.expectHead()
+        jdkRepository.expectGet()
+        def uri = jdkRepository.start()
+
+        settingsFile << getToolchainResolverSection(uri.toString())
 
         buildFile << """
             plugins {
@@ -55,7 +106,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-            .withToolchainDownloadEnabled()
+                .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
@@ -66,29 +117,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
-    }
-
-    def "can download missing j9 jdk automatically"() {
-        assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
-            System.getProperty("os.arch") == "aarch64")
-
-        buildFile << """
-            java {
-                toolchain {
-                    implementation = JvmImplementation.J9
-                }
-            }
-        """
-
-        when:
-        result = executer
-               .withTasks("compileJava")
-               .run()
-
-        then:
-        javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("openj9")
+        assertJdkWasDownloaded()
     }
 
     def "clean destination folder when downloading toolchain"() {
@@ -99,7 +128,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
+        assertJdkWasDownloaded()
 
         when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
         //delete marker file to make the previously downloaded installation undetectable
@@ -108,6 +137,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assert !markerFile.exists()
 
         and: "build runs again"
+        jdkRepository.expectHead()
         executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
                 .run()
@@ -124,7 +154,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
+        assertJdkWasDownloaded()
 
         when: "build has no toolchain repositories configured"
         settingsFile.text = ''
@@ -138,14 +168,15 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                 .run()
     }
 
-    private void assertJdkWasDownloaded(String implementation) {
+    private void assertJdkWasDownloaded(String implementation = null) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-$VERSION-") && file.name.contains(implementation)
+            file.name.contains("-$JAVA_VERSION-") && (implementation == null || file.name.contains(implementation))
         } as FileFilter)
     }
 
     def cleanup() {
         executer.gradleUserHomeDir.file("jdks").deleteDir()
+        jdkRepository.stop()
     }
 
     private static File findMarkerFile(File directory) {
@@ -167,4 +198,76 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         }
         return markerFile
     }
+
+    private static class JdkRepository {
+
+        private static final String ARCHIVE_NAME = "jdk.zip"
+
+        private BlockingHttpServer server
+
+        private Jvm jdk
+
+        JdkRepository() {
+            jdk = AvailableJavaHomes.getJdk(JAVA_VERSION)
+            assert jdk != null
+
+            server = new BlockingHttpServer(1000)
+        }
+
+        URI start() {
+            server.start()
+            server.uri(ARCHIVE_NAME)
+        }
+
+        void expectHead() {
+            server.expect(server.head(ARCHIVE_NAME))
+        }
+
+        void expectGet() {
+            server.expect(server.get(ARCHIVE_NAME, { e ->
+                e.sendResponseHeaders(200, 0)
+                zip(jdk.javaHome, e.getResponseBody())
+            }))
+        }
+
+        void stop() {
+            server.stop()
+        }
+
+        private static void zip(File jdkHomeDirectory, OutputStream outputStream) {
+            try (ArchiveOutputStream aos = new ZipArchiveOutputStream(outputStream)) {
+                def jdkHomeParentDirectory = jdkHomeDirectory.getParentFile()
+                List<File> jdkFiles = new LinkedList<>()
+                populateFilesList(jdkFiles, jdkHomeDirectory)
+
+                def fileSystem = FileSystems.getDefault()
+
+                for (File file : jdkFiles) {
+                    def path = RelativePathUtil.relativePath(jdkHomeParentDirectory, file)
+                    ZipArchiveEntry entry = (ZipArchiveEntry) aos.createArchiveEntry(file, path)
+                    entry.setUnixMode(fileSystem.getUnixMode(file))
+                    aos.putArchiveEntry(entry)
+                    if (file.isFile()) {
+                        try (InputStream i = Files.newInputStream(file.toPath())) {
+                            IOUtils.copy(i, aos)
+                        }
+                    }
+                    aos.closeArchiveEntry()
+                }
+                aos.finish()
+            }
+        }
+
+        private static void populateFilesList(List<File> fileList, File dir) throws IOException {
+            File[] files = dir.listFiles()
+            for (File file : files) {
+                if (file.isFile()) {
+                    fileList.add(file)
+                } else {
+                    populateFilesList(fileList, file)
+                }
+            }
+        }
+    }
+
 }

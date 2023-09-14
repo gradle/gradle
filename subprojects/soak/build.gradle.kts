@@ -18,6 +18,7 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":persistent-cache"))
+    integTestImplementation(libs.commonsCompress)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.assertj) {

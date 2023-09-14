@@ -19,11 +19,16 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.FOOJAY_PLUGIN_SECTION
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.VERSION
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.JAVA_VERSION
 
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
+
+    private static final String FOOJAY_PLUGIN_SECTION = """
+            plugins {
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+            }
+    """.stripIndent()
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -82,7 +87,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($VERSION)
+                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
                     vendor = JvmVendorSpec.${vendorName}
                 }
             }
