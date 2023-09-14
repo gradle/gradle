@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.property.upgrades;
 
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
@@ -38,18 +39,30 @@ public class BuildIdentifierInterceptorsDeclaration {
     @InterceptJvmCalls
     @CallableKind.InstanceMethod
     public static String intercept_getName(@ParameterKind.Receiver BuildIdentifier self) {
-        return getName(self);
+        return getName(self.getBuildPath());
     }
 
     @InterceptGroovyCalls
     @CallableKind.GroovyPropertyGetter
     public static String intercept_name(@ParameterKind.Receiver BuildIdentifier self) {
-        return getName(self);
+        return getName(self.getBuildPath());
     }
 
-    private static String getName(BuildIdentifier self) {
-        String[] buildPath = self.getBuildPath().split(":");
-        return buildPath.length == 0 ? ":" : buildPath[buildPath.length - 1];
+    @InterceptJvmCalls
+    @CallableKind.InstanceMethod
+    public static String intercept_getBuildName(@ParameterKind.Receiver ProjectComponentSelector self) {
+        return getName(self.getBuildPath());
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static String intercept_buildName(@ParameterKind.Receiver ProjectComponentSelector self) {
+        return getName(self.getBuildPath());
+    }
+
+    private static String getName(String buildPath) {
+        String[] buildPathSequence = buildPath.split(":");
+        return buildPathSequence.length == 0 ? ":" : buildPathSequence[buildPathSequence.length - 1];
     }
 
     @InterceptJvmCalls
