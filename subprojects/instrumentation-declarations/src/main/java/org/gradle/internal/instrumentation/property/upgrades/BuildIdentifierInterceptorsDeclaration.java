@@ -19,7 +19,8 @@ package org.gradle.internal.instrumentation.property.upgrades;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
+import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
@@ -33,9 +34,19 @@ import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclarati
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES + "_BuildIdentifier")
 public class BuildIdentifierInterceptorsDeclaration {
 
-    @InterceptCalls
+    @InterceptJvmCalls
     @CallableKind.InstanceMethod
     public static String intercept_getName(@ParameterKind.Receiver BuildIdentifier self) {
+        return getName(self);
+    }
+
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static String intercept_name(@ParameterKind.Receiver BuildIdentifier self) {
+        return getName(self);
+    }
+
+    private static String getName(BuildIdentifier self) {
         String[] buildPath = self.getBuildPath().split(":");
         return buildPath.length == 0 ? ":" : buildPath[buildPath.length - 1];
     }
