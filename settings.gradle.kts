@@ -91,7 +91,6 @@ unassigned {
     subproject("diagnostics")
     subproject("publish")
     subproject("ivy")
-    subproject("build-init")
     subproject("build-option")
     subproject("platform-base")
     subproject("platform-native")
@@ -156,6 +155,7 @@ platform("ide") {
 // Software Platform
 platform("software") {
     subproject("antlr")
+    subproject("build-init")
 }
 
 // JVM Platform

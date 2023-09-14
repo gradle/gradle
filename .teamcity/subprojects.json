@@ -92,7 +92,7 @@
   },
   {
     "name": "build-init",
-    "path": "subprojects/build-init",
+    "path": "platforms/software/build-init",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
