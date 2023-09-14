@@ -48,7 +48,6 @@ unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
     subproject("distributions-publishing")
-    subproject("distributions-jvm")
     subproject("distributions-native")
     subproject("distributions-full")
 }
@@ -159,6 +158,7 @@ platform("ide") {
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
+    subproject("distributions-jvm")
     subproject("ear")
     subproject("language-groovy")
     subproject("language-java")

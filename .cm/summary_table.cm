@@ -184,7 +184,6 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
       - 'subprojects/jacoco/'
       - 'subprojects/java-compiler-plugin/'
