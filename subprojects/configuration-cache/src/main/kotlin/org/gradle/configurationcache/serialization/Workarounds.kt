@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import java.lang.reflect.Field
 
 
@@ -28,6 +29,14 @@ object Workarounds {
         // TODO:configuration-cache remove once fixed
         "ndkLocation" to "com.android.build.gradle.tasks.ShaderCompile"
     )
+
+    private
+    val ignoredStartParameterProperties = arrayOf(
+        KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME // Changing by IDE
+    )
+
+    fun isIgnoredStartParameterProperty(key: String): Boolean =
+        ignoredStartParameterProperties.contains(key)
 
     fun isIgnoredBeanField(field: Field): Boolean {
         for (f in ignoredBeanFields) {
