@@ -47,7 +47,6 @@ class ApplyGradleEnterprisePluginFixture {
             def start = pluginManagementMatcher.start(0)
             def end = pluginManagementMatcher.end(0)
             pluginManagementBlock = settingsText.substring(start, end)
-            println "pluginManagementBlock = $pluginManagementBlock"
             settingsText = settingsText.substring(0, start) + settingsText.substring(end)
         } else {
             pluginManagementBlock = null
