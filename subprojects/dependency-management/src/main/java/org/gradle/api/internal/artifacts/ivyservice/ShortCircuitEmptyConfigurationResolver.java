@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -101,7 +101,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes());
+        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes());
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
         return DefaultResolverResults.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE, null);
     }
@@ -109,7 +109,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
         if (!resolveContext.hasDependencies() && graphResults.getVisitedArtifacts() == EmptyResults.INSTANCE) {
-            return DefaultResolverResults.artifactsResolved(graphResults.getResolutionResult(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+            return DefaultResolverResults.artifactsResolved(graphResults.getMinimalResolutionResult(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
             assert graphResults.getArtifactResolveState() != null;
             return delegate.resolveArtifacts(resolveContext, graphResults);

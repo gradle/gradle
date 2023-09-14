@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -25,6 +26,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
@@ -35,11 +39,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Default
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     private final DefaultResolutionResultBuilder resolutionResultBuilder = new DefaultResolutionResultBuilder();
-    private ResolutionResult resolutionResult;
+    private ResolvedComponentResult root;
+    private ImmutableAttributes requestAttributes;
 
     @Override
     public void start(RootGraphNode root) {
-        resolutionResultBuilder.setRequestedAttributes(root.getResolveState().getAttributes());
     }
 
     @Override
@@ -65,13 +69,15 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     @Override
     public void finish(DependencyGraphNode root) {
-        resolutionResult = resolutionResultBuilder.complete(root.getOwner().getResultId());
+        Long resultId = root.getOwner().getResultId();
+        this.root = resolutionResultBuilder.getRoot(resultId);
+        this.requestAttributes = root.getResolveState().getAttributes();
     }
 
-    public ResolutionResult getResolutionResult() {
-        if (resolutionResult == null) {
+    public MinimalResolutionResult getResolutionResult() {
+        if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        return resolutionResult;
+        return new DefaultMinimalResolutionResult(() -> root, requestAttributes, null);
     }
 }

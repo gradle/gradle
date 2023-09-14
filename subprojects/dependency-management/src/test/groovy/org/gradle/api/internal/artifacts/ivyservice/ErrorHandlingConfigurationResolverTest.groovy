@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
-import org.gradle.api.internal.artifacts.result.ResolutionResultInternal
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -36,10 +36,9 @@ import static org.junit.Assert.fail
 class ErrorHandlingConfigurationResolverTest extends Specification {
     private delegate = Mock(ConfigurationResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
-    private resolutionResult = Mock(ResolutionResultInternal)
+    private resolutionResult = Mock(MinimalResolutionResult)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
-    private artifactResolveState = Mock(ArtifactResolveState)
     private context = Mock(ConfigurationInternal)
     private contextualizer =  new ResolveExceptionContextualizer(Mock(DomainObjectContext), Mock(DocumentationRegistry))
     private resolver = new ErrorHandlingConfigurationResolver(delegate, contextualizer);
@@ -185,28 +184,6 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
                 .when { result.getFirstLevelModuleDependencies(Specs.satisfyAll()) }
                 .when { result.getArtifacts(Specs.satisfyAll()) }
                 .when { result.unresolvedModuleDependencies }
-    }
-
-    void "wraps exceptions thrown by resolution result"() {
-        given:
-        def graphResult = DefaultResolverResults.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet, artifactResolveState)
-        def failure = new RuntimeException()
-
-        resolutionResult.root >> {
-            throw failure
-        }
-
-        delegate.resolveGraph(context) >> graphResult
-        delegate.resolveArtifacts(context, _) >> delegateResults
-
-        when:
-        def results = resolver.resolveGraph(context)
-        results = resolver.resolveArtifacts(context, results)
-
-        then:
-        def result = results.resolutionResult
-        failsWith(failure)
-                .when { result.root }
     }
 
     ExceptionFixture failsWith(Throwable failure) {

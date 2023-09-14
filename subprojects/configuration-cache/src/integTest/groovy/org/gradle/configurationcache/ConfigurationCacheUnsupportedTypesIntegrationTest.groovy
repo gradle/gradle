@@ -58,7 +58,6 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
@@ -75,6 +74,7 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
 import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
+import org.gradle.api.internal.artifacts.result.DefaultResolutionResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
@@ -280,7 +280,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         ErrorHandlingResolvedConfiguration    | ResolvedConfiguration          | "project.configurations.maybeCreate('some').resolvedConfiguration"
         ErrorHandlingLenientConfiguration     | LenientConfiguration           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
         ConfigurationResolvableDependencies   | ResolvableDependencies         | "project.configurations.maybeCreate('some').incoming"
-        LenientResolutionResult               | ResolutionResult               | "project.configurations.maybeCreate('some').incoming.resolutionResult"
+        DefaultResolutionResult               | ResolutionResult               | "project.configurations.maybeCreate('some').incoming.resolutionResult"
         DefaultDependencyConstraintSet        | DependencyConstraintSet        | "project.configurations.maybeCreate('some').dependencyConstraints"
         DefaultRepositoryHandler              | RepositoryHandler              | "project.repositories"
         DefaultMavenArtifactRepository        | ArtifactRepository             | "project.repositories.mavenCentral()"
