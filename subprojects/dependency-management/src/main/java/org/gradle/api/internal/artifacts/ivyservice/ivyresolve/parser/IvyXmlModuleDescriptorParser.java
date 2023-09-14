@@ -63,6 +63,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
+import org.gradle.internal.xml.XmlFactories;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
@@ -74,7 +75,6 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -1345,16 +1345,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
                 throws ParserConfigurationException, SAXException {
             if (schema == null) {
-                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-                parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(false);
                 parserFactory.setNamespaceAware(true);
                 SAXParser parser = parserFactory.newSAXParser();
                 parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
                 return parser;
             } else {
-                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
-                parserFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(true);
                 parserFactory.setNamespaceAware(true);
 
