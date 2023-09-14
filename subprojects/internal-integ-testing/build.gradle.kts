@@ -35,7 +35,6 @@ dependencies {
     implementation(project(":cli"))
     implementation(project(":process-services"))
     implementation(project(":core-api"))
-    implementation(project(":model-core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
