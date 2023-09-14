@@ -21,20 +21,20 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ValidatingArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * A visitor which batches up all conflicts and reports them all at once at the end of
  * the resolution.
  */
-public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifactsVisitor {
+public class FailOnVersionConflictArtifactsVisitor implements DependencyGraphVisitor {
 
     private final Set<Conflict> allConflicts = Sets.newLinkedHashSet();
     private final String projectPath;
@@ -46,7 +46,7 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
     }
 
     @Override
-    public void startArtifacts(RootGraphNode root) {
+    public void start(RootGraphNode root) {
 
     }
 
@@ -77,24 +77,24 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitSelector(DependencyGraphSelector selector) {
 
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitEdges(DependencyGraphNode node) {
 
     }
 
     @Override
-    public void finishArtifacts() {
+    public void finish(DependencyGraphNode root) {
 
     }
 
-    @Override
-    public void complete() {
+    public Set<Throwable> collectConflictFailures() {
         if (!allConflicts.isEmpty()) {
-            throw VersionConflictException.create(projectPath, configurationName, allConflicts);
+            return Collections.singleton(VersionConflictException.create(projectPath, configurationName, allConflicts));
         }
+        return Collections.emptySet();
     }
 }

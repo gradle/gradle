@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -37,7 +38,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
@@ -77,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -185,27 +186,33 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
-        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(newModelBuilder, localComponentsVisitor, failureCollector);
 
-        ImmutableList.Builder<DependencyArtifactsVisitor> visitors = new ImmutableList.Builder<>();
-        visitors.add(oldModelVisitor);
-        visitors.add(fileDependencyVisitor);
-        visitors.add(artifactsBuilder);
+        List<DependencyGraphVisitor> graphVisitors = new ArrayList<>();
+        graphVisitors.add(newModelBuilder);
+        graphVisitors.add(localComponentsVisitor);
+        graphVisitors.add(failureCollector);
+
+        FailOnVersionConflictArtifactsVisitor versionConflictVisitor = null;
         if (resolutionStrategy.getConflictResolution() == ConflictResolution.strict) {
             Path projectPath = resolveContext.getDomainObjectContext().getProjectPath();
             // projectPath is null for settings execution
             String path = projectPath != null ? projectPath.getPath() : "";
-            visitors.add(new FailOnVersionConflictArtifactsVisitor(path, resolveContext.getName()));
+            versionConflictVisitor = new FailOnVersionConflictArtifactsVisitor(path, resolveContext.getName());
+            graphVisitors.add(versionConflictVisitor);
         }
+
         DependencyLockingArtifactVisitor lockingVisitor = null;
         if (resolutionStrategy.isDependencyLockingEnabled()) {
             lockingVisitor = new DependencyLockingArtifactVisitor(resolveContext.getName(), resolutionStrategy.getDependencyLockingProvider());
-            visitors.add(lockingVisitor);
+            graphVisitors.add(lockingVisitor);
         } else {
             resolutionStrategy.confirmUnlockedConfigurationResolved(resolveContext.getName());
         }
-        ImmutableList<DependencyArtifactsVisitor> allVisitors = visitors.build();
-        CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(allVisitors);
+
+        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(graphVisitors);
+        CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(
+            oldModelVisitor, fileDependencyVisitor, artifactsBuilder
+        );
 
         resolver.resolve(resolveContext, resolutionAwareRepositories, metadataHandler, Specs.satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, projectDependencyResolver, true);
 
@@ -213,24 +220,33 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults graphResults = oldModelBuilder.complete();
 
-        // Append to failures for locking and fail on version conflict
-        Set<UnresolvedDependency> extraFailures = lockingVisitor == null
-            ? Collections.emptySet()
-            : lockingVisitor.collectLockingFailures();
+        // TODO: Failures from dependency locking should be included in the extraFailuresBuilder.
+        Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
+        ImmutableSet.Builder<Throwable> extraFailuresBuilder = ImmutableSet.builder();
+        if (lockingVisitor != null) {
+            lockingFailures = lockingVisitor.collectLockingFailures();
+        }
+        if (versionConflictVisitor != null) {
+            for (Throwable failure : versionConflictVisitor.collectConflictFailures()) {
+                extraFailuresBuilder.add(failure);
+            }
+        }
 
-        Set<UnresolvedDependency> failures = failureCollector.complete(extraFailures);
+        Set<Throwable> extraFailures = extraFailuresBuilder.build();
+        Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
-        ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder);
-        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
-        ResolverResults results = DefaultResolverResults.graphResolved(newModelBuilder.complete(extraFailures), localComponentsVisitor, visitedArtifactSet, artifactResolveState);
+        ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, resolutionFailures, oldTransientModelBuilder);
+        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(resolutionFailures, artifactsResults, variantSelectorFactory, resolveContext.getDependenciesResolverFactory());
+        ResolverResults results = DefaultResolverResults.graphResolved(newModelBuilder.complete(lockingFailures), localComponentsVisitor, visitedArtifactSet, artifactResolveState);
+
+        // Only write dependency locks if resolution completed without failure.
+        if (lockingVisitor != null && resolutionFailures.isEmpty() && extraFailures.isEmpty() && lockingFailures.isEmpty()) {
+            lockingVisitor.writeLocks();
+        }
 
         // TODO: Attach these failures to the resolution result instead of the ResolverResults.
-        if (failures.isEmpty()) {
-            try {
-                artifactsVisitor.complete();
-            } catch (Exception e) {
-                results = results.withFailure(exceptionContextualizer.contextualize(e, resolveContext));
-            }
+        if (!extraFailures.isEmpty()) {
+            return results.withFailure(exceptionContextualizer.mapFailures(extraFailures, resolveContext.getDisplayName(), "dependencies"));
         }
 
         return results;

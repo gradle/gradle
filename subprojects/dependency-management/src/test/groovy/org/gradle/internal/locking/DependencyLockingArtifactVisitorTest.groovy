@@ -48,7 +48,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'initialises when there is lock state'() {
         when:
-        visitor.startArtifacts(rootNode)
+        visitor.start(rootNode)
 
         then:
         1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
@@ -59,7 +59,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'initialises when there is no lock state'() {
         when:
-        visitor.startArtifacts(rootNode)
+        visitor.start(rootNode)
 
         then:
         1 * dependencyLockingProvider.loadLockState(configuration) >> lockState
@@ -151,7 +151,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedNode(id)
 
         when:
-        visitor.finishArtifacts()
+        visitor.finish(rootNode)
 
         then:
         notThrown(LockOutOfDateException)
@@ -204,28 +204,28 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         }
     }
 
-    def 'invokes locking provider on complete with visited modules'() {
+    def 'invokes locking provider on writeLocks with visited modules'() {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
         addVisitedNode(identifier)
 
         when:
-        visitor.complete()
+        visitor.writeLocks()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), emptySet())
 
     }
 
-    def 'invokes locking provider on complete with visited modules and indicates changing modules seen'() {
+    def 'invokes locking provider on writeLocks with visited modules and indicates changing modules seen'() {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
         addVisitedChangingNode(identifier)
 
         when:
-        visitor.complete()
+        visitor.writeLocks()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), singleton(identifier))
@@ -275,7 +275,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         dependencyLockingProvider.loadLockState(configuration) >> lockState
         lockState.mustValidateLockState() >> false
 
-        visitor.startArtifacts(rootNode)
+        visitor.start(rootNode)
     }
 
     private startWithState(List<ModuleComponentIdentifier> locks, LockEntryFilter ignoredEntries = LockEntryFilterFactory.FILTERS_NONE) {
@@ -284,6 +284,6 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         lockState.lockedDependencies >> locks
         lockState.ignoredEntryFilter >> ignoredEntries
 
-        visitor.startArtifacts(rootNode)
+        visitor.start(rootNode)
     }
 }

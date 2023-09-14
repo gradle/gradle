@@ -45,7 +45,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,7 +77,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
@@ -105,7 +103,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -113,6 +110,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -1693,24 +1691,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
-        if (failures.isEmpty()) {
-            return Optional.empty();
-        }
-        if (failures.size() == 1) {
-            ResolveException resolveException = exceptionContextualizer.maybeContextualize(failures, this);
-            if (resolveException != null) {
-                return Optional.of(resolveException);
-            }
-            Throwable failure = failures.iterator().next();
-            if (failure instanceof ResolveException) {
-                resolveException = (ResolveException) failure;
-                return Optional.of(exceptionContextualizer.contextualize(resolveException, getDisplayName()));
-            }
-        }
-        return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
-    }
-
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -2417,7 +2397,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
-            return DefaultConfiguration.this.mapFailure(type, failures);
+            return Optional.ofNullable(exceptionContextualizer.mapFailures(failures, DefaultConfiguration.this.getDisplayName(), type));
         }
     }
 
