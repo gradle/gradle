@@ -38,6 +38,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -106,7 +107,10 @@ public class PomReader implements PomParent {
         Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
         try {
             DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+            DOCUMENT_BUILDER_FACTORY.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             DOCUMENT_BUILDER_FACTORY.setValidating(false);
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
         } finally {
             Thread.currentThread().setContextClassLoader(original);
         }
