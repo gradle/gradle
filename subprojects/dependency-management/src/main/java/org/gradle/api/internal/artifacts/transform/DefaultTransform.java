@@ -312,6 +312,9 @@ public class DefaultTransform implements Transform {
                     boolean optional
                 ) {
                     try {
+                        // TODO Unify this with AbstractValidatingProperty.validate();
+                        //   we are doing a slightly different version of the same code here,
+                        //   see https://github.com/gradle/gradle/issues/10846
                         Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                         if (preparedValue == null && !optional) {
