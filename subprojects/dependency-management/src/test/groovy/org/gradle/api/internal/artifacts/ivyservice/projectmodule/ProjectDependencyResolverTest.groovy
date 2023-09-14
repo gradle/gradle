@@ -103,21 +103,4 @@ class ProjectDependencyResolverTest extends Specification {
         0 * registry.getComponent(_)
         0 * _
     }
-
-    def "adds failure to resolution result if project does not exist"() {
-        def result = Mock(BuildableComponentResolveResult)
-        def componentIdentifier = newProjectId(":doesnotexist")
-        def overrideMetaData = Mock(ComponentOverrideMetadata)
-
-        when:
-        registry.getComponent(_) >> null
-        and:
-        resolver.resolve(componentIdentifier, overrideMetaData, result)
-
-        then:
-        1 * result.failed(_) >> { ModuleVersionResolveException failure ->
-            assert failure.message == "project :doesnotexist not found."
-        }
-        0 * _
-    }
 }

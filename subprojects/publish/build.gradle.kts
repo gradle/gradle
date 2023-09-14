@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":file-collections"))
+    implementation(project(":snapshots"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))

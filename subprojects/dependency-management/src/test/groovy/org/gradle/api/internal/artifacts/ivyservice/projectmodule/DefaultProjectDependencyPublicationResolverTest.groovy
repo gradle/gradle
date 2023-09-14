@@ -16,9 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -38,6 +40,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def project = Mock(ProjectInternal) {
         getOwner() >> projectState
         getIdentityPath() >> Path.path(":path")
+        getDependencies() >> Mock(DependencyHandler)
     }
     def publicationRegistry = Mock(ProjectPublicationRegistry)
     def projectConfigurer = Mock(ProjectConfigurer)
@@ -99,7 +102,9 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         def child2 = Stub(TestComponent)
         child2.variants >> [child1]
         def child3 = Stub(TestComponent)
-        def root = Stub(TestComponent)
+        def root = Stub(TestComponent) {
+            getUsages() >> [Stub(UsageContext)]
+        }
         root.variants >> [child2, child3]
 
         def publication = pub('mock', "pub-group", "pub-name", "pub-version", root)
@@ -183,7 +188,9 @@ Found the following publications in <project>:
 
     def "When target project has multiple publications with different coordinates, but only one has a component, that one is resolved"() {
         given:
-        def component1 = Stub(SoftwareComponentInternal)
+        def component1 = Stub(SoftwareComponentInternal) {
+            getUsages() >> [Stub(UsageContext)]
+        }
 
         when:
         def publication = pub('mock', "pub-group", "pub-name", "pub-version", component1)
@@ -218,7 +225,7 @@ Found the following publications in <project>:
 
     private ModuleVersionIdentifier resolve(Class type) {
         def resolver = new DefaultProjectDependencyPublicationResolver(publicationRegistry, projectConfigurer, projects)
-        return resolver.resolve(type, project.identityPath)
+        return resolver.resolveComponent(type, project.identityPath)
     }
 
     private void dependentProjectHasPublications(ProjectComponentPublication... added) {

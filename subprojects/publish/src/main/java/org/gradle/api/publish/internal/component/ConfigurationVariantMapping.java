@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.DependencyMappingDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
@@ -61,6 +62,7 @@ public class ConfigurationVariantMapping {
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
                 .nagUser();
         }
+
         Set<String> seen = Sets.newHashSet();
 
         // Visit implicit sub-variant
@@ -97,7 +99,8 @@ public class ConfigurationVariantMapping {
             outgoingConfiguration,
             subvariant,
             details.getMavenScope(),
-            details.isOptional()
+            details.isOptional(),
+            details.dependencyMappingDetails
         ));
     }
 
@@ -149,13 +152,16 @@ public class ConfigurationVariantMapping {
     // Cannot be private due to reflective instantiation
     static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetails {
         private final ConfigurationVariant variant;
+        private final ObjectFactory objectFactory;
         private boolean skip = false;
         private String mavenScope = "compile";
         private boolean optional = false;
+        private DependencyMappingDetails dependencyMappingDetails;
 
         @Inject
-        public DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+        public DefaultConfigurationVariantDetails(ConfigurationVariant variant, ObjectFactory objectFactory) {
             this.variant = variant;
+            this.objectFactory = objectFactory;
         }
 
         @Override
@@ -176,6 +182,14 @@ public class ConfigurationVariantMapping {
         @Override
         public void mapToMavenScope(String scope) {
             this.mavenScope = assertValidScope(scope);
+        }
+
+        @Override
+        public void dependencyMapping(Action<? super DependencyMappingDetails> action) {
+            if (dependencyMappingDetails == null) {
+                dependencyMappingDetails = objectFactory.newInstance(DependencyMappingDetails.class);
+            }
+            action.execute(dependencyMappingDetails);
         }
 
         private static String assertValidScope(String scope) {
