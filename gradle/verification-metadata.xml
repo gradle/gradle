@@ -321,6 +321,9 @@
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86">
+            <trusting group="com.gradle"/>
+         </trusted-key>
       </trusted-keys>
    </configuration>
    <components>
@@ -635,11 +638,6 @@
       <component group="com.googlecode.juniversalchardet" name="juniversalchardet" version="1.0.3">
          <artifact name="juniversalchardet-1.0.3.jar">
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
-         </artifact>
-      </component>
-      <component group="com.gradle" name="gradle-enterprise-gradle-plugin" version="3.15">
-         <artifact name="gradle-enterprise-gradle-plugin-3.15.jar">
-            <pgp value="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86"/>
          </artifact>
       </component>
       <component group="com.h2database" name="h2" version="2.2.220">
