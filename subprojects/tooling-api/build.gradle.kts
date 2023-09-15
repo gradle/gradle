@@ -50,6 +50,7 @@ dependencies {
 
     crossVersionTestImplementation(project(":jvm-services"))
     crossVersionTestImplementation(libs.jettyWebApp)
+    crossVersionTestImplementation(testFixtures(project(":toolchains-jvm")))
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
@@ -60,6 +61,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ide")))
     testImplementation(testFixtures(project(":workers")))
+    testImplementation(testFixtures(project(":toolchains-jvm")))
 
     integTestNormalizedDistribution(project(":distributions-full")) {
         because("Used by ToolingApiRemoteIntegrationTest")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.gradle.jvm.toolchain
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+class JavaToolchainDownloadUtil {
 
-class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
-
-    protected static String applyToolchainResolverPlugin(String pluginName = null, String resolverClass, String code) {
+    static String applyToolchainResolverPlugin(String resolverClass = "CustomToolchainResolver", String code, String pluginName = null) {
         if (pluginName == null) {
             pluginName = resolverClass + "Plugin"
         }
@@ -37,10 +35,31 @@ class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegratio
                 }
             }
 
-            ${code}
+            import java.util.Optional;
+            import org.gradle.platform.BuildPlatform;
+
+            ${(code == null) ? "" : """
+                public abstract class ${resolverClass} implements JavaToolchainResolver {
+                    @Override
+                    public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                        ${code}
+                    }
+                }
+            """}
 
             apply plugin: ${pluginName}
         """
+    }
+
+    static String singleUrlResolverCode(String uri) {
+        """
+            URI uri = URI.create("$uri");
+            return Optional.of(JavaToolchainDownload.fromUri(uri));
+        """
+    }
+
+    static String noUrlResolverCode() {
+        """return Optional.empty();"""
     }
 
 }

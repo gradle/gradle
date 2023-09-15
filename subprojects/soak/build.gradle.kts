@@ -12,6 +12,7 @@ dependencies {
     testImplementation(testFixtures(project(":kotlin-dsl")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":workers")))
+    testImplementation(testFixtures(project(":toolchains-jvm")))
 
     integTestImplementation(project(":file-watching"))
     integTestImplementation(project(":jvm-services"))

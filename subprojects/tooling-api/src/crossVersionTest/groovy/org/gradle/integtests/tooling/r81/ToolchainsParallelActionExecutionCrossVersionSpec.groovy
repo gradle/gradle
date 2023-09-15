@@ -21,6 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
+
 @ToolingApiVersion(">=8.1")
 @org.gradle.test.fixtures.Flaky(because='https://github.com/gradle/gradle-private/issues/3829')
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
@@ -93,29 +96,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
 
     def setupBuildWithToolchainsResolution() {
         settingsFile << """
-            import java.util.Optional;
-            import org.gradle.platform.BuildPlatform;
-
-            public abstract class FakeResolver implements JavaToolchainResolver {
-                @Override
-                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    return Optional.empty();
-                }
-            }
-            public abstract class FakeProvider implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-
-                void apply(Settings settings) {
-                    settings.getPlugins().apply("jvm-toolchain-management");
-
-                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-                    registry.register(FakeResolver.class);
-                }
-            }
-
-            apply plugin: FakeProvider
-
+            ${applyToolchainResolverPlugin("FakeResolver", noUrlResolverCode())}
             toolchainManagement {
                 jvm {
                     javaRepositories {

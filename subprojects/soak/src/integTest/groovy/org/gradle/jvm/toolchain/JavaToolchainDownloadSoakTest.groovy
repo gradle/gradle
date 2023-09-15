@@ -40,31 +40,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     private static final String getToolchainResolverSection(String uri) {
         return """
-            public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-
-                void apply(Settings settings) {
-                    settings.getPlugins().apply("jvm-toolchain-management");
-
-                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-                    registry.register(CustomToolchainResolver.class);
-                }
-            }
-
-            import java.util.Optional;
-            import org.gradle.platform.BuildPlatform;
-
-            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
-                @Override
-                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    return Optional.of(JavaToolchainDownload.fromUri(new URI("${uri}")));
-                }
-            }
-
-
-            apply plugin: CustomToolchainResolverPlugin
-
+            ${JavaToolchainDownloadUtil.applyToolchainResolverPlugin(JavaToolchainDownloadUtil.singleUrlResolverCode(uri))}
             toolchainManagement {
                 jvm {
                     javaRepositories {

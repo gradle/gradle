@@ -138,33 +138,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
     private void setupIncludedBuild() {
         /*file("plugin1/settings.gradle") << """
-            abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-
-                void apply(Settings settings) {
-                    settings.getPlugins().apply("jvm-toolchain-management");
-
-                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-                    registry.register(CustomToolchainResolver.class);
-                }
-            }
-
-
-            import javax.inject.Inject
-            import java.util.Optional;
-
-            abstract class CustomToolchainResolver implements JavaToolchainResolver {
-                @Override
-                Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    URI uri = URI.create("https://good_for_nothing.com/");
-                    return Optional.of(JavaToolchainDownload.fromUri(uri));
-                }
-            }
-
-
-            apply plugin: CustomToolchainResolverPlugin
-
+            ${JavaToolchainDownloadUtil.applyToolchainResolverPlugin(JavaToolchainDownloadUtil.singleUrlResolverCode("https://good_for_nothing.com/"))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
