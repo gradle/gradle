@@ -23,8 +23,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to important locations for a {@link Settings} instance.
- *
- * <p>An instance of this type can be injected into a plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link Settings#getLayout()}.
+ * <p>
+ * File system locations (or providers thereof) based on relative paths will be
+ * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
+ * <p>
+ * An instance of this type can be injected into a plugin or other object by
+ * annotating a public constructor or method with {@code javax.inject.Inject}.
+ * It is also available via {@link Settings#getLayout()}.
  *
  * @since 8.5
  */
@@ -33,6 +38,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface SettingsLayout extends FileSystemLayout {
     /**
      * Returns the settings directory.
+     * <p>
+     * The settings directory is the directory containing the settings file.
+     * </p>
      *
      * @see Settings#getSettingsDir()
      */
@@ -40,6 +48,9 @@ public interface SettingsLayout extends FileSystemLayout {
 
     /**
      * Returns the root directory of the build.
+     * <p>
+     * The root directory is the project directory of the root project.
+     * </p>
      *
      * @see Settings#getRootDir()
      */

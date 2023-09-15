@@ -22,7 +22,10 @@ import org.gradle.api.provider.Provider;
 import java.io.File;
 
 /**
- * Provides provider-based access to file system locations.
+ * Provides provider-based access to (absolute) file system locations.
+ * <p>
+ * File system locations (or providers thereof) based on relative paths will be resolved against this
+ * layout's reference location.
  *
  * @since 8.5
  */
