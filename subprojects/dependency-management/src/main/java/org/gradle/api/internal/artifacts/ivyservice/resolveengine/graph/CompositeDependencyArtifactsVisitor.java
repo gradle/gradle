@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -26,8 +25,8 @@ import java.util.List;
 public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsVisitor {
     private final List<DependencyArtifactsVisitor> visitors;
 
-    public CompositeDependencyArtifactsVisitor(DependencyArtifactsVisitor... visitors) {
-        this.visitors = ImmutableList.copyOf(visitors);
+    public CompositeDependencyArtifactsVisitor(List<DependencyArtifactsVisitor> visitors) {
+        this.visitors = visitors;
     }
 
     @Override

@@ -379,14 +379,6 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             this.displayName = displayName;
         }
 
-        // This constructor can be removed.
-        // `path` provided to the super constructor is not used since we override `getMessage`
-        public ArtifactResolveException(String type, String path, String displayName, Iterable<? extends Throwable> failures) {
-            super(path, failures);
-            this.type = type;
-            this.displayName = displayName;
-        }
-
         // Need to override as error message is hardcoded in constructor of public type ResolveException
         @Override
         public String getMessage() {

@@ -211,7 +211,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(graphVisitors);
         CompositeDependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(
-            oldModelVisitor, fileDependencyVisitor, artifactsBuilder
+            ImmutableList.of(oldModelVisitor, fileDependencyVisitor, artifactsBuilder)
         );
 
         resolver.resolve(resolveContext, resolutionAwareRepositories, metadataHandler, Specs.satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, projectDependencyResolver, true);

@@ -252,7 +252,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), "artifact transform", Collections.singleton(e));
+                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformStep.getDisplayName(), Collections.singleton(e));
                         }
 
                         return transformStep

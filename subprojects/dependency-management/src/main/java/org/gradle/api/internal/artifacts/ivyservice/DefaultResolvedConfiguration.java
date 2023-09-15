@@ -63,8 +63,8 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         if (!failures.isEmpty()) {
             throw new DefaultLenientConfiguration.ArtifactResolveException(
                 "files",
-                configuration.getResolveContext().getIdentityPath().toString(),
-                configuration.getResolveContext().getDisplayName(), failures
+                configuration.getResolveContext().getDisplayName(),
+                failures
             );
         }
         return visitor.getFiles();
