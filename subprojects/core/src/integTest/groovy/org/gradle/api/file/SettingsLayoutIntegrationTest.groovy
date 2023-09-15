@@ -18,6 +18,7 @@ package org.gradle.api.file
 
 import org.gradle.api.internal.file.DefaultSettingsLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
     private String printLocations() {
@@ -51,7 +52,7 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply plugin: SomePlugin
-"""
+        """
 
         when:
         run("help")
@@ -99,5 +100,29 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings source file: " + customSettingsFile + ".")
         outputContains("settings relative location: " + customSettingsDir.file("somefile.txt") + ".")
         outputContains("layout implementation: " + DefaultSettingsLayout.class.name + ".")
+    }
+
+    def "locations are as expected in an included build"() {
+        buildTestFixture.withBuildInSubDir()
+        def buildB = singleProjectBuild("buildB") { BuildTestFile build ->
+            groovyFile(build.settingsFile, """
+                ${printLocations()}
+            """)
+        }
+
+        def rootBuild = singleProjectBuild("buildA") { BuildTestFile build ->
+            groovyFile(build.settingsFile, """
+                includeBuild "${buildB.toURI()}"
+            """)
+        }
+
+        when:
+        run("project", "--project-dir", rootBuild.absolutePath)
+
+        then:
+        outputContains("settings root dir: " + buildB.absolutePath + ".")
+        outputContains("settings dir: " + buildB.absolutePath + ".")
+        outputContains("settings source file: " + buildB.settingsFile.absolutePath + ".")
+        outputContains("settings relative location: " + buildB.file("somefile.txt") + ".")
     }
 }
