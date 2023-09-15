@@ -178,7 +178,6 @@ platforms:
       - 'subprojects/normalization-java/'
       - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
-      - 'subprojects/scala/'
       - 'subprojects/testing-junit-platform/'
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
