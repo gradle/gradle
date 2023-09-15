@@ -28,6 +28,11 @@ import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure
 @TargetGradleVersion(">=8.3")
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
+    def setup() {
+        enableTestJvmDebugging = false
+        enableStdoutProxying = false
+    }
+
     def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5"() {
         setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
