@@ -67,8 +67,6 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
 @NonNullApi
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
-
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
         new OpenTestAssertionFailedMapper(),
         new OpenTestMultipleFailuresErrorMapper(),
