@@ -16,7 +16,6 @@
 
 package org.gradle.api.file
 
-import org.gradle.api.internal.file.DefaultSettingsLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
@@ -27,7 +26,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
             println "settings dir: " + layout.settingsDirectory + "."
             println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get() + "."
             println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get() + "."
-            println "layout implementation: " + layout.class.name + "."
         """
     }
 
@@ -62,7 +60,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings dir: " + testDirectory + ".")
         outputContains("settings source file: " + settingsFile + ".")
         outputContains("settings relative location: " + testDirectory.file("somefile.txt") + ".")
-        outputContains("layout implementation: " + DefaultSettingsLayout.class.name + ".")
     }
 
     def "layout is available for scripts"() {
@@ -99,7 +96,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings dir: " + customSettingsDir + ".")
         outputContains("settings source file: " + customSettingsFile + ".")
         outputContains("settings relative location: " + customSettingsDir.file("somefile.txt") + ".")
-        outputContains("layout implementation: " + DefaultSettingsLayout.class.name + ".")
     }
 
     def "locations are as expected in an included build"() {
@@ -124,5 +120,26 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings dir: " + buildB.absolutePath + ".")
         outputContains("settings source file: " + buildB.settingsFile.absolutePath + ".")
         outputContains("settings relative location: " + buildB.file("somefile.txt") + ".")
+    }
+
+    def "locations are as expected in buildSrc settings"() {
+        settingsFile """
+        // just a marker file
+        """
+
+        def buildSrcDir = file("buildSrc")
+        def buildSrcSettingsFile = buildSrcDir.file("settings.gradle")
+        groovyFile(buildSrcSettingsFile, """
+            ${printLocations()}
+        """)
+
+        when:
+        run("project")
+
+        then:
+        outputContains("settings root dir: " + buildSrcDir + ".")
+        outputContains("settings dir: " + buildSrcDir + ".")
+        outputContains("settings source file: " + buildSrcSettingsFile + ".")
+        outputContains("settings relative location: " + buildSrcDir.file("somefile.txt") + ".")
     }
 }
