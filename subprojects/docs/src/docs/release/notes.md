@@ -9,7 +9,7 @@ And there are [more improvements](#other-jvm) for JVM based projects in the full
 The Kotlin DSL continues to receive [improvements](#kotlin-dsl).
 The Kotlin version embedded in Gradle has been [updated to Kotlin 1.9.10](#kotlin_1.9.10).
 The Kotlin DSL assignment operator is [promoted to stable](#assign-stable).
-In addition, the reference documentation for the Kotlin DSL now provides [links back to sources](#doc-link-source) hosted on Github.
+In addition, the reference documentation for the Kotlin DSL now provides [links back to sources](#doc-link-source) hosted on GitHub.
 
 And finally, the `Provider` API now has a [`filter` method](#provider-filter).
 
@@ -48,12 +48,12 @@ However, you can expect support for running Gradle with Java 21 in a future vers
 
 When compiling Java code, Gradle uses worker processes to run the Java compiler as a compiler daemon.
 This allows the Java compiler to "warm up" and compile faster after a few uses.
-Reusing compiler daemons within a single build invocation speeds up overall build performance as every compile task can potentially execute more quickly.
+Reusing compiler daemons within a single build invocation speeds up overall build performance as every compile task executes more quickly.
 
-Since [Gradle 8.3](/8.3/release-notes.html#faster-java-compilation), Gradle attempts to keep Java compiler daemons alive after the end of the build, so that [subsequent builds are faster](https://blog.gradle.org/our-approach-to-faster-compilation).
-This was only supported on Linux and macOS.
+Since [Gradle 8.3](/8.3/release-notes.html#faster-java-compilation), Gradle keeps Java compiler daemons alive after the end of the build, so that [subsequent builds are faster](https://blog.gradle.org/our-approach-to-faster-compilation).
+Until now, this was only supported on Linux and macOS.
 
-With this release, persistent Java compiler daemons are now supported on Windows as well.
+With this release, persistent Java compiler daemons are supported on Windows as well.
 No configuration changes are required to enable this feature.
 
 <a name="configuration-role"></a>
@@ -110,22 +110,22 @@ configurations {
 <a name="other-jvm"></a>
 ### Other JVM improvements
 
-#### Support running code quality tools on larger code bases
+#### Memory settings of code quality tools for larger code bases
 
 Gradle uses worker processes to run code quality tools like Checkstyle, CodeNarc and PMD.
-On larger code bases, these workers can require more memory than is provided by Gradle by default.
+On larger code bases, these workers can require more memory than what Gradle provides by default.
 
 In this release, Gradle supports configuring the minimum and maximum heap sizes of workers on all code quality tasks.
 
 #### Improved Checkstyle HTML report format
 
-The Checkstyle HTML report has been changed to only show files that have violations and to properly link to the files with violations from the summary table.
+The Checkstyle HTML report has been improved to only show files that have violations and to properly link to the files with violations from the summary table.
 
 The report also contains the version of Gradle and Checkstyle that were used to analyze the sources.
 
 #### Introduce JetBrains as a known JVM vendor
 
-It is now possible to use JetBrains as a known JVM vendor when referring to [JetBrains Runtime](https://www.jetbrains.com/jetbrains-runtime) when using [Toolchains](userguide/toolchains.html):
+It is now possible to use JetBrains as a known JVM vendor of [Toolchains](userguide/toolchains.html) when referring to [JetBrains Runtime](https://www.jetbrains.com/jetbrains-runtime):
 
 ```kotlin
 java {
@@ -200,7 +200,7 @@ extension {
 }
 ```
 
-For more information see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
+For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 ## Fixed issues
 
