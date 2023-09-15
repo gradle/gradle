@@ -90,7 +90,7 @@ class TestFailureSpecification extends ToolingApiSpecification {
             return '''
                 debugOptions {
                     enabled = true
-                    host = 'localhost\\\'
+                    host = 'localhost'
                     port = 5006
                     server = false
                     suspend = true
