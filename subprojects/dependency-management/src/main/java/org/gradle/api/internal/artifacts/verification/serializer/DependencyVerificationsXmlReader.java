@@ -29,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
+import org.gradle.internal.xml.XmlFactories;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -100,8 +101,7 @@ public class DependencyVerificationsXmlReader {
     }
 
     private static SAXParser createSecureParser() throws ParserConfigurationException, SAXException {
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        SAXParserFactory spf = XmlFactories.newSAXParserFactory();
         spf.setFeature("http://xml.org/sax/features/namespaces", false);
         spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         return spf.newSAXParser();
