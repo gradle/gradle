@@ -30,10 +30,9 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -169,7 +168,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
                         .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(WARNING)
                         .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")

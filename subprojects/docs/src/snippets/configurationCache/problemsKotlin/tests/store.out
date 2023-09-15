@@ -1,4 +1,4 @@
-Calculating task graph as no configuration cache is available for tasks: someTask
+Calculating task graph as no cached configuration is available for tasks: someTask
 > Task :someTask
 
 1 problem was found storing the configuration cache.

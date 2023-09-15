@@ -218,7 +218,7 @@
   },
   {
     "name": "distributions-jvm",
-    "path": "subprojects/distributions-jvm",
+    "path": "platforms/jvm/distributions-jvm",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -456,7 +456,7 @@
   },
   {
     "name": "jacoco",
-    "path": "subprojects/jacoco",
+    "path": "platforms/jvm/jacoco",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -542,7 +542,7 @@
     "name": "language-jvm",
     "path": "platforms/jvm/language-jvm",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -669,6 +669,34 @@
     "path": "subprojects/plugins",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-groovy",
+    "path": "platforms/jvm/plugins-groovy",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-java",
+    "path": "platforms/jvm/plugins-java",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-jvm-test-suite",
+    "path": "platforms/jvm/plugins-jvm-test-suite",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-jvm-test-suite-base",
+    "path": "platforms/jvm/plugins-jvm-test-suite-base",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -836,7 +864,7 @@
     "name": "toolchains-jvm",
     "path": "platforms/jvm/toolchains-jvm",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

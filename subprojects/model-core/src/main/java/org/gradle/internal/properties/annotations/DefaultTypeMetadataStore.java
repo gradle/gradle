@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -109,7 +108,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .documentedAt(userManual("validation_problems", "missing_annotation"))
                         .noLocation()
                         .type(ValidationProblemId.MISSING_ANNOTATION.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
                         .details("A property without annotation isn't considered during up-to-date checking")
                         .solution("Add " + displayName)
@@ -127,7 +125,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                         .noLocation()
                         .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
                         .severity(Severity.ERROR)
                         .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the property")
@@ -151,10 +148,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .documentedAt(userManual("validation_problems", "incompatible_annotations"))
                             .noLocation()
                             .type(ValidationProblemId.INCOMPATIBLE_ANNOTATIONS.name())
-                            .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
                             .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
-//                            .withLongDescription(() -> "The list of allowed modifiers for '" + propertyType.getSimpleName() + "' is " + toListOfAnnotations(allowedPropertyModifiers))
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitPropertyProblem(problem ->
@@ -164,7 +159,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .documentedAt(userManual("validation_problems", "annotation_invalid_in_context"))
                             .noLocation()
                             .type(ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT.name())
-                            .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(Severity.ERROR)
                             .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
                             .solution("Remove the annotation")

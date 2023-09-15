@@ -64,3 +64,5 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
+
+integTest.usesJavadocCodeSnippets.set(true)

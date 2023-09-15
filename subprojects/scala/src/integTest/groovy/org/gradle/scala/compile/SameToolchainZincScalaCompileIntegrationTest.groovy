@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class SameToolchainZincScalaCompileIntegrationTest extends AbstractToolchainZincScalaCompileIntegrationTest {
     @Override
     Jvm computeJdkForTest() {

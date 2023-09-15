@@ -38,17 +38,11 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
-import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.util.Path;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -67,14 +61,20 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
-class ModuleMetadataSpecBuilder {
+/**
+ * Builds a {@link ModuleMetadataSpec} from a {@link PublicationInternal} and its {@link SoftwareComponent}.
+ *
+ * <p>This builder extracts the variants, dependencies, artifacts, etc from the component to build
+ * an independent representation of a GMM file that can be published without additional processing.</p>
+ */
+public class ModuleMetadataSpecBuilder {
 
     private final PublicationInternal<?> publication;
     private final ModuleVersionIdentifier publicationCoordinates;
     private final Provider<SoftwareComponentInternal> component;
     private final Collection<? extends PublicationInternal<?>> publications;
     private final Map<SoftwareComponent, ComponentData> componentCoordinates = new HashMap<>();
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
     private final InvalidPublicationChecker checker;
     private final List<DependencyAttributesValidator> dependencyAttributeValidators;
 
@@ -82,20 +82,21 @@ class ModuleMetadataSpecBuilder {
         PublicationInternal<?> publication,
         Collection<? extends PublicationInternal<?>> publications,
         InvalidPublicationChecker checker,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        List<DependencyAttributesValidator> dependencyAttributeValidators) {
+        VariantDependencyResolverFactory variantDependencyResolverFactory,
+        List<DependencyAttributesValidator> dependencyAttributeValidators
+    ) {
         this.component = publication.getComponent();
         this.publicationCoordinates = publication.getCoordinates();
         this.publication = publication;
         this.publications = publications;
         this.checker = checker;
-        this.projectDependencyResolver = projectDependencyResolver;
+        this.variantDependencyResolverFactory = variantDependencyResolverFactory;
         this.dependencyAttributeValidators = dependencyAttributeValidators;
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         collectCoordinates(componentCoordinates);
     }
 
-    ModuleMetadataSpec build() {
+    public ModuleMetadataSpec build() {
         return new ModuleMetadataSpec(identity(), variants(), publication.isPublishBuildId());
     }
 
@@ -205,11 +206,11 @@ class ModuleMetadataSpecBuilder {
     private ModuleMetadataSpec.Dependency dependencyFor(
         ModuleDependency dependency,
         Set<ExcludeRule> additionalExcludes,
-        VariantVersionMappingStrategyInternal versionMappingStrategy,
+        VariantDependencyResolver dependencyResolver,
         DependencyArtifact dependencyArtifact,
         String variant) {
         return new ModuleMetadataSpec.Dependency(
-            dependencyCoordinatesFor(dependency, versionMappingStrategy),
+            dependencyCoordinatesFor(dependency, dependencyResolver),
             excludedRulesFor(dependency, additionalExcludes),
             dependencyAttributesFor(variant, dependency.getGroup(), dependency.getName(), dependency.getAttributes()),
             capabilitiesFor(dependency.getRequestedCapabilities()),
@@ -221,11 +222,11 @@ class ModuleMetadataSpecBuilder {
 
     private ModuleMetadataSpec.DependencyCoordinates dependencyCoordinatesFor(
         ModuleDependency dependency,
-        VariantVersionMappingStrategyInternal versionMappingStrategy
+        VariantDependencyResolver dependencyResolver
     ) {
         return dependency instanceof ProjectDependency
-            ? projectDependencyCoordinatesFor((ProjectDependency) dependency, versionMappingStrategy)
-            : moduleDependencyCoordinatesFor(dependency, versionMappingStrategy);
+            ? projectDependencyCoordinatesFor((ProjectDependency) dependency, dependencyResolver)
+            : moduleDependencyCoordinatesFor(dependency, dependencyResolver);
     }
 
     private ModuleMetadataSpec.ArtifactSelector artifactSelectorFor(DependencyArtifact dependencyArtifact) {
@@ -299,51 +300,27 @@ class ModuleMetadataSpecBuilder {
 
     private ModuleMetadataSpec.DependencyCoordinates moduleDependencyCoordinatesFor(
         ModuleDependency dependency,
-        VariantVersionMappingStrategyInternal versionMappingStrategy
+        VariantDependencyResolver dependencyResolver
     ) {
-        String group = dependency.getGroup();
-        String name = dependency.getName();
-        String resolvedVersion = null;
-        if (versionMappingStrategy != null) {
-            ModuleVersionIdentifier resolvedVersionId = versionMappingStrategy.maybeResolveVersion(group, name, null);
-            if (resolvedVersionId != null) {
-                group = resolvedVersionId.getGroup();
-                name = resolvedVersionId.getName();
-                resolvedVersion = resolvedVersionId.getVersion();
-            }
-        }
+        VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveComponentCoordinates(dependency);
         return new ModuleMetadataSpec.DependencyCoordinates(
-            group,
-            name,
-            versionFor(versionConstraintFor(dependency), resolvedVersion)
+            coordinates.getGroup(),
+            coordinates.getName(),
+            versionFor(versionConstraintFor(dependency), coordinates.getVersion())
         );
     }
 
     private ModuleMetadataSpec.DependencyCoordinates projectDependencyCoordinatesFor(
         ProjectDependency projectDependency,
-        VariantVersionMappingStrategyInternal versionMappingStrategy
+        VariantDependencyResolver variantDependencyResolver
     ) {
-        String resolvedVersion = null;
-        Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
-        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
-        if (versionMappingStrategy != null) {
-            ModuleVersionIdentifier resolved =
-                versionMappingStrategy.maybeResolveVersion(
-                    identifier.getGroup(),
-                    identifier.getName(),
-                    identityPath
-                );
-            if (resolved != null) {
-                identifier = resolved;
-                resolvedVersion = identifier.getVersion();
-            }
-        }
+        VariantDependencyResolver.ResolvedCoordinates identifier = variantDependencyResolver.resolveComponentCoordinates(projectDependency);
         return new ModuleMetadataSpec.DependencyCoordinates(
             identifier.getGroup(),
             identifier.getName(),
             versionFor(
                 DefaultImmutableVersionConstraint.of(identifier.getVersion()),
-                resolvedVersion
+                identifier.getVersion()
             )
         );
     }
@@ -354,14 +331,14 @@ class ModuleMetadataSpecBuilder {
         }
         ArrayList<ModuleMetadataSpec.Dependency> dependencies = new ArrayList<>();
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
-        VariantVersionMappingStrategyInternal versionMappingStrategy = versionMappingStrategyFor(variant);
+        VariantDependencyResolver dependencyResolver = variantDependencyResolverFor(variant);
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
             if (moduleDependency.getArtifacts().isEmpty()) {
                 dependencies.add(
                     dependencyFor(
                         moduleDependency,
                         additionalExcludes,
-                        versionMappingStrategy,
+                        dependencyResolver,
                         null,
                         variant.getName())
                 );
@@ -371,7 +348,7 @@ class ModuleMetadataSpecBuilder {
                         dependencyFor(
                             moduleDependency,
                             additionalExcludes,
-                            versionMappingStrategy,
+                            dependencyResolver,
                             dependencyArtifact,
                             variant.getName())
                     );
@@ -385,47 +362,28 @@ class ModuleMetadataSpecBuilder {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();
         }
-        VariantVersionMappingStrategyInternal versionMappingStrategy = versionMappingStrategyFor(variant);
+        VariantDependencyResolver dependencyResolver = variantDependencyResolverFor(variant);
         ArrayList<ModuleMetadataSpec.DependencyConstraint> dependencyConstraints = new ArrayList<>();
         for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencyConstraints.add(
-                dependencyConstraintFor(dependencyConstraint, versionMappingStrategy, variant.getName())
+                dependencyConstraintFor(dependencyConstraint, dependencyResolver, variant.getName())
             );
         }
         return dependencyConstraints;
     }
 
-    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(DependencyConstraint dependencyConstraint,
-                                                                            VariantVersionMappingStrategyInternal variantVersionMappingStrategy,
-                                                                            String variant) {
-        String group;
-        String module;
-        String resolvedVersion = null;
-        Path identityPath = null;
-        if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
-            DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
-            ProjectDependency projectDependency = dependency.getProjectDependency();
-            identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
-            group = identifier.getGroup();
-            module = identifier.getName();
-            resolvedVersion = identifier.getVersion();
-        } else {
-            group = dependencyConstraint.getGroup();
-            module = dependencyConstraint.getName();
-        }
-        ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null
-            ? variantVersionMappingStrategy.maybeResolveVersion(group, module, identityPath)
-            : null;
-        String effectiveGroup = resolvedVersionId != null ? resolvedVersionId.getGroup() : group;
-        String effectiveModule = resolvedVersionId != null ? resolvedVersionId.getName() : module;
-        String effectiveVersion = resolvedVersionId != null ? resolvedVersionId.getVersion() : resolvedVersion;
+    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(
+        DependencyConstraint dependencyConstraint,
+        VariantDependencyResolver dependencyResolver,
+        String variant
+    ) {
+        VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveComponentCoordinates(dependencyConstraint);
         return new ModuleMetadataSpec.DependencyConstraint(
-            effectiveGroup,
-            effectiveModule,
+            identifier.getGroup(),
+            identifier.getName(),
             versionFor(
                 DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()),
-                effectiveVersion
+                identifier.getVersion()
             ),
             dependencyAttributesFor(variant, dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getAttributes()),
             isNotEmpty(dependencyConstraint.getReason()) ? dependencyConstraint.getReason() : null
@@ -533,15 +491,12 @@ class ModuleMetadataSpecBuilder {
         return null;
     }
 
-    private VariantVersionMappingStrategyInternal versionMappingStrategyFor(SoftwareComponentVariant variant) {
-        VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
-        return versionMappingStrategy != null
-            ? versionMappingStrategy.findStrategyForVariant(immutableAttributesOf(variant))
-            : null;
-    }
-
-    private ImmutableAttributes immutableAttributesOf(SoftwareComponentVariant variant) {
-        return ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
+    private VariantDependencyResolver variantDependencyResolverFor(SoftwareComponentVariant variant) {
+        return variantDependencyResolverFactory.createResolver(variant, (group, name, declaredVersion) -> {
+            // If we did not resolve a version, do not publish the declared version in the resolved field
+            // GMM already publishes the declared version regardless of the resolved version.
+            return null;
+        });
     }
 
     private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {

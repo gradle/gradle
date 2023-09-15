@@ -37,7 +37,7 @@ dependencies {
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":core"))
-    integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":plugins-java"))
 
     integTestImplementation(project(":platform-jvm"))
     integTestImplementation(project(":kotlin-dsl"))

@@ -28,7 +28,7 @@ class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCach
         given:
         configurationCacheRun(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}.*\n/, '')
+            .replaceAll(/Calculating task graph as no cached configuration is available for tasks: ${task}.*\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:

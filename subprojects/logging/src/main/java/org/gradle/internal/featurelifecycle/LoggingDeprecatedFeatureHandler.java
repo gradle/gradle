@@ -19,9 +19,12 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemBuilderSpec;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -40,7 +43,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.ProblemGroup.DEPRECATION_ID;
 import static org.gradle.api.problems.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
@@ -75,7 +77,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     @Override
     public void featureUsed(final DeprecatedFeatureUsage usage) {
         deprecationsFound = true;
-        ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
+        final ProblemDiagnostics diagnostics = problemStream.forCurrentCaller(new StackTraceSanitizer(usage.getCalledFrom()));
         if (warningMode.shouldDisplayMessages()) {
             maybeLogUsage(usage, diagnostics);
         }
@@ -85,15 +87,16 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            ProblemBuilderDefiningLocation genericDeprecation = problemsService.createProblemBuilder()
-                .label(usage.formattedMessage())
-                .documentedAt(usage.getDocumentationUrl());
-
-            addPossibleLocation(diagnostics, genericDeprecation)
-                .type("generic_deprecation")
-                .group(DEPRECATION_ID)
-                .severity(WARNING)
-                .build()
+            problemsService.createProblem(new ProblemBuilderSpec() {
+                    @Override
+                    public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                        ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
+                            .documentedAt(usage.getDocumentationUrl());
+                        return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
+                            .type("generic_deprecation")
+                            .severity(WARNING);
+                    }
+                })
                 .report();
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);

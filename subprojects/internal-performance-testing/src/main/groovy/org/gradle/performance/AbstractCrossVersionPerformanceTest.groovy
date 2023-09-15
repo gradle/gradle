@@ -90,6 +90,8 @@ class ApplyGradleEnterprisePluginMutator implements BuildMutator {
 
     @Override
     void beforeScenario(ScenarioContext context) {
-        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(new File(projectDir, "settings.gradle"))
+        def groovySettingsFile = new File(projectDir, "settings.gradle")
+        def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
+        ApplyGradleEnterprisePluginFixture.applyEnterprisePlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
     }
 }

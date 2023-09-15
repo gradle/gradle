@@ -19,5 +19,9 @@ package org.gradle.internal.nativeintegration.filesystem;
 import java.io.File;
 
 public interface FileModeAccessor {
+    /**
+     * @param f The file to get the mode for. Note that all symlinks are followed.
+     * @return The unix mode of the file
+     */
     public int getUnixMode(File f) throws Exception;
 }

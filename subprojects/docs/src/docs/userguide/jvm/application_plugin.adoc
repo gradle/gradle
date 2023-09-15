@@ -173,9 +173,9 @@ include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=
 ====
 
 [[sec:application_licensing]]
-== Licensing
+== License of start scripts
 
-The Gradle start scripts that are bundled with your application are licensed under the https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 Software License]. This does not affect your application, which you can license as you choose.
+The start scripts generated for the application are licensed under the https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 Software License]. 
 
 [[sec:application_convention_properties]]
 == Convention properties (deprecated)
