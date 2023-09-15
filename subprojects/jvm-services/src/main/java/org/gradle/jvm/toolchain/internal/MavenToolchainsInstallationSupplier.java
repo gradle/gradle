@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.xml.XmlFactories;
 import org.gradle.util.internal.MavenUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -60,8 +61,8 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         super(factory);
         toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
-        xPathFactory = XPathFactory.newInstance();
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        xPathFactory = XmlFactories.newXPathFactory();
+        documentBuilderFactory = XmlFactories.newDocumentBuilderFactory();
         this.fileResolver = fileResolver;
     }
 

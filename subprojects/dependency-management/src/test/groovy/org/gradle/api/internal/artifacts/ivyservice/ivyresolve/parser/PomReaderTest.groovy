@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.Maven
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
 
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+
 class PomReaderTest extends AbstractPomReaderTest {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
 
@@ -62,6 +64,30 @@ class PomReaderTest extends AbstractPomReaderTest {
         then:
         Throwable t = thrown(SAXParseException)
         t.message == 'project must be the root tag'
+    }
+
+    def "parse POM with external entities"() {
+        given:
+        def externalFile = tmpDir.file('external.txt').createFile()
+        pomFile << """
+        <!DOCTYPE data [
+          <!ENTITY file SYSTEM "file://${normaliseFileSeparators(externalFile.absolutePath)}">
+        ]>
+        <project>
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>group-one</groupId>
+            <artifactId>artifact-one</artifactId>
+            <version>&file;</version>
+        </project>
+        """
+
+        when:
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message.startsWith("Could not parse POM")
+        e.cause.message.contains("Already seen doctype")
     }
 
     def "parse simple POM"() {
