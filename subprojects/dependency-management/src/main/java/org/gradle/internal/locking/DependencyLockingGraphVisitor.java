@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DependencyLockingArtifactVisitor implements DependencyGraphVisitor {
+public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
 
     private final DependencyLockingProvider dependencyLockingProvider;
     private final String configurationName;
@@ -50,7 +50,7 @@ public class DependencyLockingArtifactVisitor implements DependencyGraphVisitor 
     private DependencyLockingState dependencyLockingState;
     private boolean lockOutOfDate = false;
 
-    public DependencyLockingArtifactVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
+    public DependencyLockingGraphVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationName = configurationName;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }

@@ -34,13 +34,13 @@ import java.util.Set;
  * A visitor which batches up all conflicts and reports them all at once at the end of
  * the resolution.
  */
-public class FailOnVersionConflictArtifactsVisitor implements DependencyGraphVisitor {
+public class FailOnVersionConflictGraphVisitor implements DependencyGraphVisitor {
 
     private final Set<Conflict> allConflicts = Sets.newLinkedHashSet();
     private final String projectPath;
     private final String configurationName;
 
-    public FailOnVersionConflictArtifactsVisitor(String projectPath, String configurationName) {
+    public FailOnVersionConflictGraphVisitor(String projectPath, String configurationName) {
         this.projectPath = projectPath;
         this.configurationName = configurationName;
     }

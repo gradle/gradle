@@ -35,7 +35,7 @@ import static java.util.Collections.emptySet
 import static java.util.Collections.singleton
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
-class DependencyLockingArtifactVisitorTest extends Specification {
+class DependencyLockingGraphVisitorTest extends Specification {
 
     String configuration = 'config'
     DependencyLockingProvider dependencyLockingProvider = Mock()
@@ -44,7 +44,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     ModuleIdentifier mid = DefaultModuleIdentifier.newId("org", "foo")
 
     @Subject
-    def visitor = new DependencyLockingArtifactVisitor(configuration, dependencyLockingProvider)
+    def visitor = new DependencyLockingGraphVisitor(configuration, dependencyLockingProvider)
 
     def 'initialises when there is lock state'() {
         when:
