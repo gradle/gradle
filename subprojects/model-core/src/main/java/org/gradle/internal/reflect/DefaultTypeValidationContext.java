@@ -34,7 +34,6 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    //    private final ImmutableMap.Builder<Problem, Severity> problems = ImmutableMap.builder();
     private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
@@ -60,7 +59,6 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
             return;
         }
         problems.add(problem);
-//        problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
     }
 
     public ImmutableList<Problem> getProblems() {

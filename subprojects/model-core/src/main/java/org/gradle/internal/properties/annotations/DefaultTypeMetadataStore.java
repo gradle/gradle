@@ -109,7 +109,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
                         .label("is missing " + displayName)
-                        .documentedAt(userManual("validation_problems", "missing_annotation"))
+                        .documentedAt(userManual("validation_problems", MISSING_ANNOTATION.toLowerCase()))
                         .noLocation()
                         .type(MISSING_ANNOTATION)
                         .severity(Severity.ERROR)
@@ -149,7 +149,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
                             .label("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
-                            .documentedAt(userManual("validation_problems", "incompatible_annotations"))
+                            .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase()))
                             .noLocation()
                             .type(INCOMPATIBLE_ANNOTATIONS)
                             .severity(Severity.ERROR)

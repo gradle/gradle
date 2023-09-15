@@ -136,7 +136,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
                     .label("has @Input annotation used on type '%s' or a property of this type", URL.class.getName())
-                    .documentedAt(userManual(VALIDATION_PROBLEMS, "unsupported_value_type"))
+                    .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase()))
                     .noLocation()
                     .type(UNSUPPORTED_VALUE_TYPE)
                     .severity(WARNING)

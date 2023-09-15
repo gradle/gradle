@@ -281,7 +281,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .label(String.format("has redundant getters: '%s()' and '%s()'",
                             previouslySeenBuilder.getter.getName(),
                             metadataBuilder.getter.getName()))
-                        .documentedAt(userManual("validation_problems", "redundant_getters"))
+                        .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase()))
                         .noLocation()
                         .type(REDUNDANT_GETTERS)
                         .severity(ERROR)
@@ -342,7 +342,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         problem
                             .withAnnotationType(type)
                             .label(String.format("field '%s' without corresponding getter has been annotated with %s", fieldName, simpleAnnotationNames(fieldAnnotations.keySet().stream())))
-                            .documentedAt(userManual("validation_problems", "ignored_annotations_on_field"))
+                            .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_FIELD.toLowerCase()))
                             .noLocation()
                             .type(IGNORED_ANNOTATIONS_ON_FIELD)
                             .severity(ERROR)
@@ -430,7 +430,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 problem
                     .forProperty(propertyName)
                     .label(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
-                    .documentedAt(userManual("validation_problems", "private_getter_must_not_be_annotated"))
+                    .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                     .noLocation()
                     .type(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED)
                     .severity(ERROR)
@@ -454,7 +454,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 problem
                     .forProperty(propertyName)
                     .label(String.format("of mutable type '%s' is writable", setterType.getName()))
-                    .documentedAt(userManual("validation_problems", "mutable_type_with_setter"))
+                    .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase()))
                     .noLocation()
                     .type(MUTABLE_TYPE_WITH_SETTER)
                     .severity(ERROR)
@@ -492,7 +492,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .label(String.format("%s '%s()' should not be annotated with: %s",
                         methodKind.getDisplayName(), method.getName(), simpleAnnotationNames(annotationTypes.stream())
                     ))
-                    .documentedAt(userManual("validation_problems", "ignored_annotations_on_method"))
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase()))
                     .noLocation()
                     .type(IGNORED_ANNOTATIONS_ON_METHOD)
                     .severity(ERROR)
@@ -596,7 +596,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                     simpleAnnotationNames(declaredAnnotations.values().stream()
                                         .<Class<? extends Annotation>>map(Annotation::annotationType)
                                         .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))))
-                                .documentedAt(userManual("validation_problems", "ignored_property_must_not_be_annotated"))
+                                .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase()))
                                 .noLocation()
                                 .type(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)
                                 .severity(ERROR)
@@ -653,7 +653,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             simpleAnnotationNames(annotationsForCategory.stream()
                                 .map(Annotation::annotationType))
                         ))
-                        .documentedAt(userManual("validation_problems", "conflicting_annotations"))
+                        .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase()))
                         .noLocation()
                         .type(CONFLICTING_ANNOTATIONS)
                         .severity(ERROR)

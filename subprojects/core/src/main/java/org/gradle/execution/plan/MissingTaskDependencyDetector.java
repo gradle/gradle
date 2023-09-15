@@ -171,7 +171,7 @@ public class MissingTaskDependencyDetector {
         validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
                 .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-                .documentedAt(userManual("validation_problems", "implicit_dependency"))
+                .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
                 .noLocation()
                 .type(IMPLICIT_DEPENDENCY)
                 .severity(Severity.ERROR)

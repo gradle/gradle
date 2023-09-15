@@ -366,7 +366,7 @@ public class DefaultTransform implements Transform {
                         problem
                             .forProperty(propertyName)
                             .label("declares an output")
-                            .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
                             .noLocation()
                             .type(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
                             .severity(ERROR)

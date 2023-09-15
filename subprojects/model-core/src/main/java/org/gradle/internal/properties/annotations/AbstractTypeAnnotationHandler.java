@@ -27,8 +27,6 @@ import static java.util.stream.Collectors.joining;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
 
-    private static final String INVALID_USE_OF_TYPE_ANNOTATION = "INVALID_USE_OF_TYPE_ANNOTATION";
-
     protected AbstractTypeAnnotationHandler(Class<? extends Annotation> annotationType) {
         this.annotationType = annotationType;
     }
@@ -51,7 +49,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                 .label("is incorrectly annotated with @" + annotationType.getSimpleName())
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .noLocation()
-                .type(INVALID_USE_OF_TYPE_ANNOTATION)
+                .type("INVALID_USE_OF_TYPE_ANNOTATION")
                 .severity(Severity.ERROR)
                 .details(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)

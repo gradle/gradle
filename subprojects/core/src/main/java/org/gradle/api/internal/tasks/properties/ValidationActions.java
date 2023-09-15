@@ -263,7 +263,7 @@ public enum ValidationActions implements ValidationAction {
                 problem
                     .forProperty(propertyName)
                     .label("points to '" + location + "' which is managed by Gradle")
-                    .documentedAt(userManual("validation_problems", "cannot_write_to_reserved_location"))
+                    .documentedAt(userManual("validation_problems", CANNOT_WRITE_TO_RESERVED_LOCATION.toLowerCase()))
                     .noLocation()
                     .type(CANNOT_WRITE_TO_RESERVED_LOCATION)
                     .severity(Severity.ERROR)
@@ -297,7 +297,7 @@ public enum ValidationActions implements ValidationAction {
                 ProblemBuilder describedProblem = problem
                     .forProperty(propertyName)
                     .label("has unsupported value '" + value + "'")
-                    .documentedAt(userManual("validation_problems", "unsupported_notation"))
+                    .documentedAt(userManual("validation_problems", UNSUPPORTED_NOTATION.toLowerCase()))
                     .noLocation()
                     .type(UNSUPPORTED_NOTATION)
                     .severity(Severity.ERROR)
