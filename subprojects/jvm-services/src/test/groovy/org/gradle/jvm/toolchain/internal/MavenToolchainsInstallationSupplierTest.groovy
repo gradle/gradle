@@ -26,6 +26,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @CleanupTestDirectory
 class MavenToolchainsInstallationSupplierTest extends Specification {
@@ -166,6 +167,36 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
             new File("/usr/lib/jvm/temurin-17.jdk").absolutePath
         ])
         directories*.source == ["Maven Toolchains", "Maven Toolchains"]
+
+        where:
+        useProperty << [true, false]
+    }
+
+    def "ignores toolchains with external xml entities"(boolean useProperty) {
+        given:
+        def externalFile = temporaryFolder.file('external.txt').createFile()
+        def toolchains = mavenHome.createFile("toolchains.xml")
+        toolchains << """
+        <!DOCTYPE data [
+          <!ENTITY file SYSTEM "file://${normaliseFileSeparators(externalFile.absolutePath)}">
+        ]>
+        <toolchains>
+        <toolchain>
+        <type>jdk</type>
+        <configuration>
+        <jdkHome>/usr/lib/jvm/adoptopenjdk-16.jdk/&file;</jdkHome>
+        </configuration>
+        </toolchain>
+        </toolchains>
+        """
+        def supplier = useProperty ? createSupplier(toolchains.getCanonicalPath(), null) : createSupplier(null, userHome)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == []
+        directories*.source == []
 
         where:
         useProperty << [true, false]
