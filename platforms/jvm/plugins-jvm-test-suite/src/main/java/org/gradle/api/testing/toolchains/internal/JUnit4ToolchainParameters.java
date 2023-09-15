@@ -19,7 +19,7 @@ package org.gradle.api.testing.toolchains.internal;
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters for configuring a JUnit4 test toolchain.
+ * Parameters for configuring a JUnit 4 test toolchain.
  *
  * @since 8.5
  */

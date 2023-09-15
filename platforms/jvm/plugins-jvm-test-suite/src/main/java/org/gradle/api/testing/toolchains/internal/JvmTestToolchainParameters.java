@@ -17,11 +17,14 @@
 package org.gradle.api.testing.toolchains.internal;
 
 /**
- * Marker interface for parameters of {@link JvmTestToolchain}s.  Imlementations of {@link JvmTestToolchain} be parameterized with
+ * Marker interface for parameters of {@link JvmTestToolchain}s.  Implementations of {@link JvmTestToolchain} be parameterized with
  * an implementation of this type or {@link JvmTestToolchainParameters.None}.
  *
  * @since 8.5
  */
 public interface JvmTestToolchainParameters {
+    /**
+     * Marker interface for {@link JvmTestToolchain} implementations that do not require any configuration.
+     */
     final class None implements JvmTestToolchainParameters {}
 }

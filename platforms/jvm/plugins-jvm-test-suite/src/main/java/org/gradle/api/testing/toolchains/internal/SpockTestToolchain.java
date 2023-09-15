@@ -25,6 +25,9 @@ import org.gradle.api.artifacts.Dependency;
  * @since 8.5
  */
 abstract public class SpockTestToolchain extends JUnitPlatformTestToolchain<SpockToolchainParameters> {
+    /**
+     * The default version of Spock to use for compiling and executing tests.
+     */
     public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
     private static final String GROUP_NAME = "org.spockframework:spock-core";
 

@@ -26,6 +26,9 @@ import java.util.Collections;
  * @since 8.5
  */
 abstract public class KotlinTestTestToolchain extends JUnitPlatformTestToolchain<KotlinTestToolchainParameters> {
+    /**
+     * The default version of KotlinTest to use for compiling and executing tests.
+     */
     public static final String DEFAULT_VERSION = "1.9.0";
     private static final String GROUP_NAME = "org.jetbrains.kotlin:kotlin-test-junit5";
 

@@ -26,6 +26,9 @@ import java.util.Collections;
  * @since 8.5
  */
 abstract public class JUnitJupiterTestToolchain extends JUnitPlatformTestToolchain<JUnitJupiterToolchainParameters> {
+    /**
+     * The default version of JUnit Jupiter to use for compiling and executing tests.
+     */
     public static final String DEFAULT_VERSION = "5.8.2";
     private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 

@@ -32,6 +32,9 @@ import javax.inject.Inject;
  * @since 8.5
  */
 abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4ToolchainParameters> {
+    /**
+     * The default version of JUnit 4 to use for compiling and executing tests.
+     */
     public static final String DEFAULT_VERSION = "4.13.2";
     private static final String GROUP_NAME = "junit:junit";
 

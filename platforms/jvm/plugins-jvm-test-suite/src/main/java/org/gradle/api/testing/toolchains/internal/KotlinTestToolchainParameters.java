@@ -24,5 +24,8 @@ import org.gradle.api.provider.Property;
  * @since 8.5
  */
 public interface KotlinTestToolchainParameters extends JUnitPlatformToolchainParameters {
+    /**
+     * The version of KotlinTest to use for compiling and executing tests.
+     */
     Property<String> getKotlinTestVersion();
 }

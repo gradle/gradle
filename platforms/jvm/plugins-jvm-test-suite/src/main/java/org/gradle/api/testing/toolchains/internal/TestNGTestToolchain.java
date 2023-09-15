@@ -33,6 +33,9 @@ import javax.inject.Inject;
  * @since 8.5
  */
 abstract public class TestNGTestToolchain implements JvmTestToolchain<TestNGToolchainParameters> {
+    /**
+     * The default version of TestNG to use for compiling and executing tests.
+     */
     public static final String DEFAULT_VERSION = "7.5";
     private static final String GROUP_NAME = "org.testng:testng";
 
