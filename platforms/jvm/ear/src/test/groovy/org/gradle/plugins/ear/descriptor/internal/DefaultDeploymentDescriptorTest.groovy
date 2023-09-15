@@ -172,4 +172,45 @@ class DefaultDeploymentDescriptorTest extends Specification {
 </application>
 """)
     }
+
+    def "writes version #version descriptor withXml #withXmlDescription"() {
+        given:
+        def out = new StringWriter()
+        descriptor.version = version
+        descriptor.withXml(withXmlClosure)
+
+        when:
+        descriptor.writeTo(out)
+
+        then:
+        def stringOutput = out.toString()
+        acceptableDescriptors.contains(stringOutput)
+
+        where:
+        version | withXmlDescription | withXmlClosure
+        '1.3'   | 'asNode'           | { it.asNode() }
+        '1.4'   | 'asNode'           | { it.asNode() }
+        '1.4'   | 'asElement'        | { it.asElement() }
+        '5'     | 'asNode'           | { it.asNode() }
+        '5'     | 'asElement'        | { it.asElement() }
+        '6'     | 'asNode'           | { it.asNode() }
+        '6'     | 'asElement'        | { it.asElement() }
+        '7'     | 'asNode'           | { it.asNode() }
+        '7'     | 'asElement'        | { it.asElement() }
+        acceptableDescriptors = defaultDescriptorForVersion(version)
+    }
+
+    def "fails to write version 1.3 descriptor withXml asElement"() {
+        given:
+        def out = new StringWriter()
+        descriptor.version = '1.3'
+        descriptor.withXml { it.asElement() }
+
+        when:
+        descriptor.writeTo(out)
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains('External DTD: Failed to read external DTD')
+    }
 }
