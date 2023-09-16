@@ -27,7 +27,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {

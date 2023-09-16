@@ -30,7 +30,7 @@ import org.junit.Assume
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ ScalaCoverage.DEFAULT })
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def getTargetJava8() {
@@ -251,7 +251,7 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_20 }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_21 }
     }
 
     private TestFile configureTool(Jvm jdk) {

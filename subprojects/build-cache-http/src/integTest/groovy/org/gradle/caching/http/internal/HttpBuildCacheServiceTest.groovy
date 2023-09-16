@@ -20,11 +20,11 @@ import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.caching.internal.DefaultBuildCacheKey
-import org.gradle.caching.internal.NextGenBuildCacheService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
@@ -356,18 +356,12 @@ class HttpBuildCacheServiceTest extends Specification {
 
     }
 
-    static class Writer implements NextGenBuildCacheService.NextGenWriter {
+    static class Writer implements BuildCacheEntryWriter {
         private final byte[] content
         private int writeCount = 0
 
         Writer(byte[] content) {
             this.content = content
-        }
-
-        @Override
-        InputStream openStream() throws IOException {
-            ++writeCount
-            return new ByteArrayInputStream(content)
         }
 
         @Override

@@ -738,4 +738,123 @@ testRuntimeClasspath
             }
 """
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/26334")
+    def "resolution result does not report duplicate variants for the same module reachable through different paths"() {
+        settingsFile << """
+            include "producer", "transitive"
+        """
+        file("producer/build.gradle") << """
+            configurations {
+                dependencyScope("runtimeOnly")
+                dependencyScope("implementation")
+                consumable("runtimeElements") {
+                    attributes.attribute(Attribute.of("attr1", Named), objects.named(Named,"value"))
+                    extendsFrom(runtimeOnly, implementation)
+                }
+            }
+            dependencies {
+              runtimeOnly(project(":transitive"))
+              implementation(project(":transitive"))
+            }
+        """
+        file("transitive/build.gradle") << """
+            configurations {
+                consumable("runtimeElements") {
+                    attributes.attribute(Attribute.of("attr1", Named), objects.named(Named,"value"))
+                }
+            }
+        """
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    attributes.attribute(Attribute.of("attr1", Named), objects.named(Named,"value"))
+                    extendsFrom(implementation)
+                }
+            }
+            dependencies {
+                implementation project(':producer')
+            }
+
+            task resolve {
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def root = rootComponent.get()
+                    assert root.dependencies.size() == 1
+                    def producer = root.dependencies[0]
+                    def producerDependencies = producer.selected.dependencies
+                    def producerDependenciesForVariant = producer.selected.getDependenciesForVariant(producer.resolvedVariant)
+                    assert producerDependencies.size() == 1 // producer has only one variant dependency on transitive
+                    assert producerDependencies.size() == producerDependenciesForVariant.size()
+                    assert producerDependencies.containsAll(producerDependenciesForVariant)
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+    }
+    def "resolution result does not realize artifact tasks"() {
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << """
+            plugins {
+                id("base")
+            }
+
+            def fooTask = tasks.register("foo", Zip) {
+                throw new RuntimeException("Realized artifact task")
+            }
+
+            configurations {
+                consumable("conf") {
+                    outgoing {
+                        artifact(fooTask)
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "cat"))
+                    }
+                }
+            }
+
+            dependencies {
+                conf project(":producer")
+            }
+
+            task resolve {
+                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
+                doLast {
+                    def root = rootComponent.get()
+                    assert root.dependencies.size() == 1
+                    def producer = root.dependencies[0].selected
+                    assert producer.variants.first().displayName == "conf"
+                }
+            }
+
+            task selectArtifacts {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    println files.files
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+
+        and:
+        fails("selectArtifacts")
+        failure.assertHasCause("Realized artifact task")
+    }
 }

@@ -130,6 +130,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             platformSupport,
             versionRangeMapper,
             documentationRegistry,
+            versionMappingStrategy,
             projectDependencyResolver,
             mavenArtifactParser
         );
@@ -147,7 +148,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
         this.pom.getDependencies().set(getComponent().map(component -> {
-            MavenComponentParser.DependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates(), versionMappingStrategy);
+            MavenComponentParser.ParsedDependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates());
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
             }

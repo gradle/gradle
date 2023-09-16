@@ -19,7 +19,6 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
 
@@ -31,8 +30,6 @@ import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Problem {
-
-    private ProblemGroup problemGroup;
     private String label;
     private Severity severity;
     private ProblemLocation where;
@@ -44,7 +41,6 @@ public class DefaultProblem implements Problem {
     private Map<String, String> additionalMetadata;
 
     public DefaultProblem(
-        ProblemGroup problemGroup,
         String label,
         Severity severity,
         @Nullable ProblemLocation location,
@@ -55,7 +51,6 @@ public class DefaultProblem implements Problem {
         String problemType,
         Map<String, String> additionalMetadata
     ) {
-        this.problemGroup = problemGroup;
         this.label = label;
         this.severity = severity;
         this.where = location;
@@ -68,11 +63,6 @@ public class DefaultProblem implements Problem {
     }
 
     public DefaultProblem() {
-    }
-
-    @Override
-    public ProblemGroup getProblemGroup() {
-        return problemGroup;
     }
 
     @Override
@@ -107,7 +97,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Throwable getCause() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
+    public Throwable getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 
@@ -134,8 +124,7 @@ public class DefaultProblem implements Problem {
             return false;
         }
         DefaultProblem that = (DefaultProblem) o;
-        return equals(problemGroup, that.problemGroup) &&
-            equals(label, that.label) &&
+        return equals(label, that.label) &&
             severity == that.severity &&
             equals(where, that.where) &&
             equals(problemType, that.problemType) &&
@@ -148,7 +137,7 @@ public class DefaultProblem implements Problem {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemGroup, label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
     }
 
     public void setSeverity(Severity severity) {

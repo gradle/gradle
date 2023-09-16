@@ -486,7 +486,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
                 DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE
             ),
             null,
-            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+            PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()
         )
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
@@ -498,7 +498,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
                 scriptPlugin.id
             ),
             null,
-            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+            PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage()
         )
     }
 }

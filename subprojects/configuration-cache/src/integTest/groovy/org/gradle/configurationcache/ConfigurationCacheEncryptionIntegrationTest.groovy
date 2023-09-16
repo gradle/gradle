@@ -148,7 +148,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: help")
     }
 
     def "new configuration cache entry if key is not found"() {
@@ -169,7 +169,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: help")
     }
 
     @Requires(UnitTestPreconditions.NotWindows)

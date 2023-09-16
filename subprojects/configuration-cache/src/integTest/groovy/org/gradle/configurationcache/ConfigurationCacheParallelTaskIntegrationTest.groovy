@@ -16,18 +16,20 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    // Don't run in parallel mode, as the expectation for the setup build are incorrect and running in parallel
-    // does not really make any difference to the coverage
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = """
+Don't run in parallel mode, as the expectation for the setup build are incorrect and running in parallel
+does not really make any difference to the coverage
+""")
     def "runs tasks in different projects in parallel by default"() {
         server.start()
 
@@ -62,10 +64,11 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         }
     }
 
-    // Don't run in parallel mode, as the expectation for the setup build are incorrect
-    // It could potentially be worth running this in parallel mode to demonstrate the difference between
-    // parallel and configuration cache
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = """
+Don't run in parallel mode, as the expectation for the setup build are incorrect
+It could potentially be worth running this in parallel mode to demonstrate the difference between
+parallel and configuration cache
+""")
     def "runs tasks in same project in parallel by default"() {
         server.start()
 
@@ -96,7 +99,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         }
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "finalizer task dependencies from sibling project must run after finalized task dependencies"() {
         server.start()
 
@@ -158,7 +161,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "finalizer task dependencies must run after finalized task dependencies"() {
         server.start()
 

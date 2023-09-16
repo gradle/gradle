@@ -19,28 +19,31 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.SelectionFailureHandler;
 
 public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
+    private final SelectionFailureHandler failureProcessor;
 
     public DefaultVariantSelectorFactory(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformedVariantFactory transformedVariantFactory
+        TransformedVariantFactory transformedVariantFactory,
+        SelectionFailureHandler failureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
+        this.failureProcessor = failureProcessor;
     }
 
     @Override
-    public VariantSelector create(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, boolean selectFromAllVariants, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, selectFromAllVariants, dependenciesResolverFactory);
+    public ArtifactVariantSelector create(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
+        return new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, dependenciesResolverFactory, failureProcessor);
     }
-
 }

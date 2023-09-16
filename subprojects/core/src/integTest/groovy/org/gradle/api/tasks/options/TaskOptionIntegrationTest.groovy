@@ -40,6 +40,13 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'Boolean'        | []                                   | 'null'              | 'not provided'
         'boolean'        | ['--myProp']                         | 'true'              | 'provided'
         'boolean'        | []                                   | 'false'             | 'not provided'
+        'Double'         | ['--myProp=123']                     | '123'               | 'provided'
+        'Double'         | ['--myProp=12.3']                    | '12.3'              | 'provided'
+        'Double'         | []                                   | 'null'              | 'not provided'
+        'Integer'        | ['--myProp=123']                     | '123'               | 'provided'
+        'Integer'        | []                                   | 'null'              | 'not provided'
+        'Long'           | ['--myProp=123']                     | '123'               | 'provided'
+        'Long'           | []                                   | 'null'              | 'not provided'
         'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
         'TestEnum'       | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
         'TestEnum'       | []                                   | 'null'              | 'not provided'
@@ -48,6 +55,12 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
         'List<String>'   | []                                   | 'null'              | 'not provided'
         'List<String>'   | ['--myProp=a,b']                     | '[a,b]'             | 'provided with incorrect syntax'
+        'List<Double>'   | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'List<Double>'   | []                                   | 'null'              | 'not provided'
+        'List<Integer>'  | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'List<Integer>'  | []                                   | 'null'              | 'not provided'
+        'List<Long>'     | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'List<Long>'     | []                                   | 'null'              | 'not provided'
         'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]'    | 'provided with upper case'
         'List<TestEnum>' | ['--myProp=opt_2', '--myProp=opt_3'] | '[OPT_2, OPT_3]'    | 'provided with lower case'
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
@@ -73,6 +86,13 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'Boolean'        | []                                   | 'null'              | 'not provided'
         'boolean'        | ['--myProp']                         | 'true'              | 'provided'
         'boolean'        | []                                   | 'false'             | 'not provided'
+        'Double'         | ['--myProp=123']                     | '123'               | 'provided'
+        'Double'         | ['--myProp=12.3']                    | '12.3'              | 'provided'
+        'Double'         | []                                   | 'null'              | 'not provided'
+        'Integer'        | ['--myProp=123']                     | '123'               | 'provided'
+        'Integer'        | []                                   | 'null'              | 'not provided'
+        'Long'           | ['--myProp=123']                     | '123'               | 'provided'
+        'Long'           | []                                   | 'null'              | 'not provided'
         'TestEnum'       | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
         'TestEnum'       | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
         'TestEnum'       | []                                   | 'null'              | 'not provided'
@@ -81,6 +101,12 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<String>'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
         'List<String>'   | []                                   | 'null'              | 'not provided'
         'List<String>'   | ['--myProp=a,b']                     | '[a,b]'             | 'provided with incorrect syntax'
+        'List<Double>'   | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'List<Double>'   | []                                   | 'null'              | 'not provided'
+        'List<Integer>'  | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'List<Integer>'  | []                                   | 'null'              | 'not provided'
+        'List<Long>'     | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'List<Long>'     | []                                   | 'null'              | 'not provided'
         'List<TestEnum>' | ['--myProp=OPT_2', '--myProp=OPT_3'] | '[OPT_2, OPT_3]'    | 'provided with upper case'
         'List<TestEnum>' | ['--myProp=opt_2', '--myProp=opt_3'] | '[OPT_2, OPT_3]'    | 'provided with lower case'
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
@@ -212,25 +238,43 @@ Options
         outputContains("Value of myProp: $optionValue")
 
         where:
-        propertyType     | optionType | options                              | optionValue         | description
-        'Property'       | 'String'   | ['--myProp=test']                    | 'test'              | 'provided'
-        'Property'       | 'String'   | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
-        'Property'       | 'String'   | []                                   | 'null '             | 'not provided'
-        'Property'       | 'Boolean'  | ['--myProp']                         | 'true'              | 'provided'
-        'Property'       | 'Boolean'  | []                                   | 'null '             | 'not provided'
-        'Property'       | 'TestEnum' | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
-        'Property'       | 'TestEnum' | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
-        'Property'       | 'TestEnum' | []                                   | 'null'              | 'not provided'
-        'ListProperty'   | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
-        'ListProperty'   | 'String'   | []                                   | '[]'                | 'not provided'
-        'ListProperty'   | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
-        'ListProperty'   | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
-        'ListProperty'   | 'TestEnum' | []                                   | '[]'                | 'not provided'
-        'SetProperty'    | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
-        'SetProperty'    | 'String'   | []                                   | '[]'                | 'not provided'
-        'SetProperty'    | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
-        'SetProperty'    | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
-        'SetProperty'    | 'TestEnum' | []                                   | '[]'                | 'not provided'
+        propertyType   | optionType | options                              | optionValue         | description
+        'Property'     | 'String'   | ['--myProp=test']                    | 'test'              | 'provided'
+        'Property'     | 'String'   | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'Property'     | 'String'   | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Boolean'  | ['--myProp']                         | 'true'              | 'provided'
+        'Property'     | 'Boolean'  | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Double'   | ['--myProp=12.3']                    | '12.3'              | 'provided'
+        'Property'     | 'Double'   | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Integer'  | ['--myProp=123']                     | '123'               | 'provided'
+        'Property'     | 'Integer'  | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Long'     | ['--myProp=123']                     | '123'               | 'provided'
+        'Property'     | 'Long'     | []                                   | 'null '             | 'not provided'
+        'Property'     | 'TestEnum' | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'Property'     | 'TestEnum' | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'Property'     | 'TestEnum' | []                                   | 'null'              | 'not provided'
+        'ListProperty' | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'ListProperty' | 'String'   | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Double'   | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'ListProperty' | 'Double'   | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Integer'  | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'ListProperty' | 'Integer'  | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Long'     | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'ListProperty' | 'Long'     | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'ListProperty' | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'ListProperty' | 'TestEnum' | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'SetProperty'  | 'String'   | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Double'   | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'SetProperty'  | 'Double'   | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Integer'  | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'SetProperty'  | 'Integer'  | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Long'     | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'SetProperty'  | 'Long'     | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'SetProperty'  | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'SetProperty'  | 'TestEnum' | []                                   | '[]'                | 'not provided'
     }
 
     def "set value of property of type #propertyType of type #optionType when #description for Groovy task"() {
@@ -245,25 +289,83 @@ Options
         outputContains("Value of myProp: $optionValue")
 
         where:
-        propertyType     | optionType | options                              | optionValue         | description
-        'Property'       |'String'    | ['--myProp=test']                    | 'test'              | 'provided'
-        'Property'       |'String'    | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
-        'Property'       |'String'    | []                                   | 'null '             | 'not provided'
-        'Property'       |'Boolean'   | ['--myProp']                         | 'true'              | 'provided'
-        'Property'       |'Boolean'   | []                                   | 'null '             | 'not provided'
-        'Property'       |'TestEnum'  | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
-        'Property'       |'TestEnum'  | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
-        'Property'       |'TestEnum'  | []                                   | 'null'              | 'not provided'
-        'ListProperty'   | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
-        'ListProperty'   | 'String'   | []                                   | '[]'                | 'not provided'
-        'ListProperty'   | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
-        'ListProperty'   | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
-        'ListProperty'   | 'TestEnum' | []                                   | '[]'                | 'not provided'
-        'SetProperty'    | 'String'   | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
-        'SetProperty'    | 'String'   | []                                   | '[]'                | 'not provided'
-        'SetProperty'    | 'TestEnum' | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
-        'SetProperty'    | 'TestEnum' | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
-        'SetProperty'    | 'TestEnum' | []                                   | '[]'                | 'not provided'
+        propertyType   | optionType  | options                              | optionValue         | description
+        'Property'     | 'String'    | ['--myProp=test']                    | 'test'              | 'provided'
+        'Property'     | 'String'    | ['--myProp=ab\'c=123:x\\yz45']       | 'ab\'c=123:x\\yz45' | 'provided with special characters'
+        'Property'     | 'String'    | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Boolean'   | ['--myProp']                         | 'true'              | 'provided'
+        'Property'     | 'Boolean'   | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Double'    | ['--myProp=12.3']                    | '12.3'              | 'provided'
+        'Property'     | 'Double'    | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Integer'   | ['--myProp=123']                     | '123'               | 'provided'
+        'Property'     | 'Integer'   | []                                   | 'null '             | 'not provided'
+        'Property'     | 'Long'      | ['--myProp=123']                     | '123'               | 'provided'
+        'Property'     | 'Long'      | []                                   | 'null '             | 'not provided'
+        'Property'     | 'TestEnum'  | ['--myProp=OPT_2']                   | 'OPT_2'             | 'provided with upper case'
+        'Property'     | 'TestEnum'  | ['--myProp=opt_2']                   | 'OPT_2'             | 'provided with lower case'
+        'Property'     | 'TestEnum'  | []                                   | 'null'              | 'not provided'
+        'ListProperty' | 'String'    | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'ListProperty' | 'String'    | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Double'    | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'ListProperty' | 'Double'    | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Integer'   | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'ListProperty' | 'Integer'   | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'Long'      | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'ListProperty' | 'Long'      | []                                   | '[]'                | 'not provided'
+        'ListProperty' | 'TestEnum'  | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'ListProperty' | 'TestEnum'  | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'ListProperty' | 'TestEnum'  | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'String'    | ['--myProp=a', '--myProp=b']         | '[a, b]'            | 'provided'
+        'SetProperty'  | 'String'    | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Double'    | ['--myProp=12.3', '--myProp=45.6']   | '[12.3, 45.6]'      | 'provided'
+        'SetProperty'  | 'Double'    | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Integer'   | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'SetProperty'  | 'Integer'   | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'Long'      | ['--myProp=123', '--myProp=456']     | '[123, 456]'        | 'provided'
+        'SetProperty'  | 'Long'      | []                                   | '[]'                | 'not provided'
+        'SetProperty'  | 'TestEnum'  | ['--myProp=OPT_1', '--myProp=OPT_2'] | '[OPT_1, OPT_2]'    | 'provided with upper case'
+        'SetProperty'  | 'TestEnum'  | ['--myProp=opt_1', '--myProp=opt_2'] | '[OPT_1, OPT_2]'    | 'provided with lower case'
+        'SetProperty'  | 'TestEnum'  | []                                   | '[]'                | 'not provided'
+    }
+
+    def "set value of property of type #propertyType when #description for Java task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithUnparameterizedPropertyOption(propertyType, methodName)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        def value = optionValue == 'null' ? optionValue : "${testDirectory.file(optionValue)}"
+        outputContains("Value of myProp: $value")
+
+        where:
+        propertyType          | options               | optionValue | methodName          | description
+        'RegularFileProperty' | ['--myProp=test.txt'] | 'test.txt'  | 'fileProperty'      | 'provided'
+        'RegularFileProperty' | []                    | 'null'      | 'fileProperty'      | 'not provided'
+        'DirectoryProperty'   | ['--myProp=testDir']  | 'testDir'   | 'directoryProperty' | 'provided'
+        'DirectoryProperty'   | []                    | 'null'      | 'directoryProperty' | 'not provided'
+    }
+
+    def "set value of property of type #propertyType when #description for Groovy task"() {
+        given:
+        buildFile << groovyTaskWithUnparameterizedPropertyOption(propertyType, methodName)
+        buildFile << sampleTask()
+
+        when:
+        run(['sample'] + options as String[])
+
+        then:
+        def value = optionValue == 'null' ? optionValue : "${testDirectory.file(optionValue)}"
+        outputContains("Value of myProp: $value")
+
+        where:
+        propertyType          | options               | optionValue | methodName          | description
+        'RegularFileProperty' | ['--myProp=test.txt'] | 'test.txt'  | 'fileProperty'      | 'provided'
+        'RegularFileProperty' | []                    | 'null'      | 'fileProperty'      | 'not provided'
+        'DirectoryProperty'   | ['--myProp=testDir']  | 'testDir'   | 'directoryProperty' | 'provided'
+        'DirectoryProperty'   | []                    | 'null'      | 'directoryProperty' | 'not provided'
     }
 
     static String sampleTask() {

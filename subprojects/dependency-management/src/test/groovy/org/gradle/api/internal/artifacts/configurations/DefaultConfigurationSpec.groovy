@@ -67,7 +67,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.Factories
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetadata

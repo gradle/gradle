@@ -83,8 +83,7 @@ The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>>
 [NOTE]
 ====
 GradleRunner supports the same range of Gradle versions as the Tooling API.
-At the time of writing Gradle 3.0 is the lowest supported version.
-To learn about the precise ranges, check the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
+The supported versions are defined in the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
 Builds with older Gradle versions _may_ still work but there are no guarantees.
 ====
 

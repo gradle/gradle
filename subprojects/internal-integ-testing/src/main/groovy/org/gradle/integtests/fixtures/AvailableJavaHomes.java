@@ -29,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -154,6 +155,14 @@ public abstract class AvailableJavaHomes {
             }
         }
         return result;
+    }
+
+    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithJavac() {
+        return getAvailableJdksWithVersion()
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getKey().getJavacExecutable()!=null && entry.getValue().isJava8Compatible())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Nullable

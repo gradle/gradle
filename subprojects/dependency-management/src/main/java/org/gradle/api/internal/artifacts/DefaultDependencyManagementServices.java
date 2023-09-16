@@ -109,12 +109,14 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -485,6 +487,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
+        SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+            return new SelectionFailureHandler(problems);
+        }
+
+        GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
+            return new GraphVariantSelector(selectionFailureHandler);
+        }
+
         ConfigurationResolver createDependencyResolver(
             ArtifactDependencyResolver artifactDependencyResolver,
             RepositoriesSupplier repositoriesSupplier,
@@ -509,7 +519,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             WorkerLeaseService workerLeaseService,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
-            SelectedVariantSerializer selectedVariantSerializer
+            SelectedVariantSerializer selectedVariantSerializer,
+            SelectionFailureHandler selectionFailureHandler
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
                 artifactDependencyResolver,
@@ -526,7 +537,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     ),
                     attributesSchema,
                     attributesFactory,
-                    transformedVariantFactory
+                    transformedVariantFactory,
+                    selectionFailureHandler
                 ),
                 moduleIdentifierFactory,
                 buildOperationExecutor,

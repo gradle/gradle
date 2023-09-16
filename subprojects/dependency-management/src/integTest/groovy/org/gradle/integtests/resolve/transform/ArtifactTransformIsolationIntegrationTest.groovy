@@ -24,7 +24,9 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
@@ -79,7 +81,7 @@ class Resolve extends Copy {
 """
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "serialized mutable class is isolated during artifact transformation"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()

@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -174,7 +173,6 @@ public class MissingTaskDependencyDetector {
                 .documentedAt(userManual("validation_problems", "implicit_dependency"))
                 .noLocation()
                 .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .severity(Severity.ERROR)
                 .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",

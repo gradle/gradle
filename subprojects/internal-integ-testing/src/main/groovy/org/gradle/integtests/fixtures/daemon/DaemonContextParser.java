@@ -43,7 +43,7 @@ public class DaemonContextParser {
         } catch(IOException e) {
             throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].", e);
         }
-        throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [" + file.getAbsolutePath() + "].");
+        return null;
     }
 
     public static DaemonContext parseFromString(String source) {

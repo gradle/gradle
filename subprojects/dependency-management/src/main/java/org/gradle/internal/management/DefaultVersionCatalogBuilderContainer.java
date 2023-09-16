@@ -32,7 +32,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -82,7 +82,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
         return super.create(name, model -> {
             UserCodeApplicationContext.Application current = context.current();
             DefaultVersionCatalogBuilder builder = (DefaultVersionCatalogBuilder) model;
-            builder.withContext(current == null ? "Settings" : current.getDisplayName().getDisplayName(), () -> configureAction.execute(model));
+            builder.withContext(current == null ? "Settings" : current.getSource().getDisplayName().getDisplayName(), () -> configureAction.execute(model));
         });
     }
 

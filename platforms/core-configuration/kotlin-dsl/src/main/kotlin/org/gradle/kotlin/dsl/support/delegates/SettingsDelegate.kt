@@ -32,6 +32,7 @@ import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.file.SettingsLayout
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.plugin.management.PluginManagementSpec
@@ -165,4 +166,7 @@ abstract class SettingsDelegate : Settings {
         delegate.caches
 
     override fun caches(cacheConfigurations: Action<in CacheConfigurations>) = delegate.caches(cacheConfigurations)
+
+    override fun getLayout(): SettingsLayout =
+        delegate.layout
 }

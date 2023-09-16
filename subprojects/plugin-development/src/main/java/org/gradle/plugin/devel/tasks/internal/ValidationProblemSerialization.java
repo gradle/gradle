@@ -27,8 +27,10 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemLocation;
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultProblemLocation;
+import org.gradle.api.problems.internal.DefaultReportableProblem;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -42,11 +44,13 @@ import java.util.stream.Stream;
 
 @Nonnull
 public class ValidationProblemSerialization {
-    public static List<DefaultProblem> parseMessageList(String lines) {
+    public static List<? extends ReportableProblem> parseMessageList(String lines, InternalProblems problemService) {
         GsonBuilder gsonBuilder = createGsonBuilder();
         Gson gson = gsonBuilder.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
-        return gson.fromJson(lines, type);
+        Type type = new TypeToken<List<DefaultReportableProblem>>() {}.getType();
+        List<DefaultReportableProblem> reportableProblems = gson.fromJson(lines, type);
+        reportableProblems.forEach(problem -> problem.setProblemService(problemService));
+        return reportableProblems;
     }
 
     public static GsonBuilder createGsonBuilder() {
@@ -59,7 +63,7 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<DefaultProblem> problems) {
+    public static Stream<String> toPlainMessage(List<? extends ReportableProblem> problems) {
         return problems.stream()
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
@@ -245,8 +249,8 @@ public class ValidationProblemSerialization {
             }
 
             out.beginObject();
-            out.name("url").value(value.url());
-            out.name("consultDocumentationMessage").value(value.consultDocumentationMessage());
+            out.name("url").value(value.getUrl());
+            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -276,12 +280,12 @@ public class ValidationProblemSerialization {
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
             return new DocLink() {
                 @Override
-                public String url() {
+                public String getUrl() {
                     return finalUrl;
                 }
 
                 @Override
-                public String consultDocumentationMessage() {
+                public String getConsultDocumentationMessage() {
                     return finalConsultDocumentationMessage;
                 }
             };

@@ -27,30 +27,33 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.internal.PublicationInternal
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolver
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory
+import org.gradle.api.publish.internal.validation.VariantWarningCollector
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
-import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 import static org.gradle.util.AttributeTestUtil.attributes
 import static org.gradle.util.AttributeTestUtil.attributesTyped
@@ -73,14 +76,23 @@ class GradleModuleMetadataWriterTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
-    def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
+    def resolverFactory = new TestVariantDependencyResolverFactory()
 
     private writeTo(Writer writer, PublicationInternal publication, List<PublicationInternal> publications) {
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), ':task')
+        ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
+            publication,
+            publications,
+            checker,
+            resolverFactory,
+            []
+        ).build()
+        checker.validate()
+
         new GradleModuleMetadataWriter(
-            new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService, ':task', []
-        ).writeTo(
-            writer, publication, publications
-        )
+            new BuildInvocationScopeId(buildId),
+            TestUtil.checksumService
+        ).writeTo(writer, spec)
     }
 
     def "fails to write file for component with no variants"() {
@@ -1024,13 +1036,8 @@ class GradleModuleMetadataWriterTest extends Specification {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
         def mappingStrategy = Mock(VersionMappingStrategyInternal)
-        def variantMappingStrategy = Mock(VariantVersionMappingStrategyInternal)
         def publication = publication(component, id, mappingStrategy)
-
-        mappingStrategy.findStrategyForVariant(_) >> variantMappingStrategy
-        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, Path identityPath ->
-            DefaultModuleVersionIdentifier.newId(group, name, 'v99')
-        }
+        resolverFactory.resolveToVersion('v99')
 
         def d1 = Stub(ModuleDependency)
         d1.group >> "g1"
@@ -1276,5 +1283,59 @@ class GradleModuleMetadataWriterTest extends Specification {
         }
         String name
         String uri
+    }
+
+    class TestVariantDependencyResolver implements VariantDependencyResolver {
+
+        String resolvedVersion
+        VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer
+
+        TestVariantDependencyResolver(
+            @Nullable String resolvedVersion,
+            VariantDependencyResolverFactory.DeclaredVersionTransformer declaredVersionTransformer
+        ) {
+            this.resolvedVersion = resolvedVersion
+            this.declaredVersionTransformer = declaredVersionTransformer
+        }
+
+        @Override
+        ResolvedCoordinates resolveVariantCoordinates(ModuleDependency dependency, VariantWarningCollector warnings) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ResolvedCoordinates resolveVariantCoordinates(DependencyConstraint dependency, VariantWarningCollector warnings) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ResolvedCoordinates resolveComponentCoordinates(ModuleDependency dependency) {
+            return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
+        }
+
+        @Override
+        ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency) {
+            return resolve(dependency.getGroup(), dependency.getName(), dependency.getVersion())
+        }
+
+        private ResolvedCoordinates resolve(String group, String name, String version) {
+            return resolvedVersion == null
+                ? ResolvedCoordinates.create(group, name, declaredVersionTransformer.transform(group, name, version))
+                : ResolvedCoordinates.create(group, name, resolvedVersion)
+        }
+    }
+
+    class TestVariantDependencyResolverFactory implements VariantDependencyResolverFactory {
+
+        String resolvedVersion
+
+        @Override
+        VariantDependencyResolver createResolver(SoftwareComponentVariant variant, DeclaredVersionTransformer declaredVersionTransformer) {
+            return new TestVariantDependencyResolver(resolvedVersion, declaredVersionTransformer)
+        }
+
+        void resolveToVersion(String resolvedVersion) {
+            this.resolvedVersion = resolvedVersion
+        }
     }
 }

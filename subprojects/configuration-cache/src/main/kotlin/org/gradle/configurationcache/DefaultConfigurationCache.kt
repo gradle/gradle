@@ -238,7 +238,7 @@ class DefaultConfigurationCache internal constructor(
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
                     logBootstrapSummary(
-                        "{} as no configuration cache is available for {}",
+                        "{} as no cached configuration is available for {}",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )

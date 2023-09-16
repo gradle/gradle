@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import static org.gradle.api.problems.Severity.ERROR
 import static org.gradle.api.problems.Severity.WARNING
@@ -319,5 +320,40 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
                 error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24444")
+    @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
+    def "value not set because it is derived from a property whose value cannot be configured"() {
+        groovyTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.model.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            abstract class MyTask extends DefaultTask {
+
+                @Input
+                @Optional
+                abstract Property<String> getGreeting();
+
+                @Input
+                Provider<String> message = greeting.map(it -> it + " from Gradle");
+
+                @TaskAction
+                void printMessage() {
+                    logger.quiet(message().get());
+                }
+            }
+        """
+
+        expect:
+        fails "run"
+        failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
+        failureDescriptionContains(missingNonConfigurableValueMessage({ type('MyTask').property('message') }))
     }
 }

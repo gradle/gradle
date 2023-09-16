@@ -26,7 +26,7 @@ val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.3"
-val nativePlatformVersion = "0.22-snapshot-20230807182135+0000"
+val nativePlatformVersion = "0.22-milestone-25"
 val slf4jVersion = "1.7.30"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
@@ -97,7 +97,7 @@ dependencies {
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
-        api(libs.ivy)                   { version { strictly("2.3.0"); because("2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457") }}
+        api(libs.ivy)                   { version { strictly("2.5.2") }}
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}

@@ -17,17 +17,17 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()

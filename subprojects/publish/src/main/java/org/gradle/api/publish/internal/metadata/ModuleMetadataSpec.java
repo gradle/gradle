@@ -24,6 +24,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A complete description of a GMM file that can be published without additional context.
+ */
 public class ModuleMetadataSpec {
 
     final Identity identity;

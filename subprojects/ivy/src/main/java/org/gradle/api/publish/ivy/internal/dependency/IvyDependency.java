@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.dependency;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -55,12 +54,10 @@ public interface IvyDependency {
     boolean isTransitive();
 
     /**
-     * The resolved version for this dependency, if any. If present, this will replace
-     * this dependency's organization and module, and the existing revision will be
-     * preserved in the {@code revConstraint} field.
+     * The dynamic revision constraint originally used for this dependency.
      */
     @Nullable
-    ModuleVersionIdentifier getResolvedVersion();
+    String getRevConstraint();
 
     /**
      * The requested artifacts for this dependency.

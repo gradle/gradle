@@ -17,13 +17,13 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
 class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeIntegrationTest {
 
     def setup() {

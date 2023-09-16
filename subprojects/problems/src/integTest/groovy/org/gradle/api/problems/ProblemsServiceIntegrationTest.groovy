@@ -41,12 +41,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblemBuilder()
-                        .label("label")
+                    problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
-                        .report();
+                        }.report();
                 }
             }
             """
@@ -73,14 +73,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.userManual("test-id", "test-section")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -90,12 +90,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "page": "test-id",
-                "section": "test-section"
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["page"] == "test-id"
+        link["properties"]["section"] == "test-section"
+        link["url"].startsWith("https://docs.gradle.org")
+        link["consultDocumentationMessage"].startsWith("For more information, please refer to https://docs.gradle.org")
     }
 
     def "can emit a problem with upgrade-guide documentation"() {
@@ -111,14 +110,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.upgradeGuide(8, "test-section")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -128,12 +127,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "page": "upgrading_version_8",
-                "section": "test-section"
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["page"] == "upgrading_version_8"
+        link["properties"]["section"] == "test-section"
+        link["url"].startsWith("https://docs.gradle.org")
+        link["consultDocumentationMessage"].startsWith("Consult the upgrading guide for further information: https://docs.gradle.org")
     }
 
     def "can emit a problem with dsl-reference documentation"() {
@@ -149,14 +147,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .documentedAt(
                             Documentation.dslReference(Problem.class, "label")
                         )
                         .noLocation()
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -166,12 +164,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["documentationLink"] == [
-            "properties": [
-                "targetClass": Problem.class.name,
-                "property": "label",
-            ]
-        ]
+        def link = this.collectedProblems[0]["documentationLink"]
+        link["properties"]["targetClass"] == Problem.class.name
+        link["properties"]["property"] == "label"
     }
 
     def "can emit a problem with partially specified location"() {
@@ -187,12 +182,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .location("test-location", 1)
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -222,12 +217,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .location("test-location", 1, 1)
                         .type("type")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -257,14 +252,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .solution("solution")
                         .severity(Severity.${severity.name()})
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -293,13 +288,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .solution("solution")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -327,13 +322,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .withException(new RuntimeException("test"))
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -343,8 +338,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
-        !(this.collectedProblems[0]["cause"]["stackTrace"] as List<String>).isEmpty()
+        this.collectedProblems[0]["exception"]["message"] == "test"
+        !(this.collectedProblems[0]["exception"]["stackTrace"] as List<String>).isEmpty()
     }
 
     def "can emit a problem with additional data"() {
@@ -360,13 +355,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblemBuilder()
-                        .label("label")
+                    Problem problem = problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .type("type")
                         .additionalData("key", "value")
-                        .report()
+                        }.report()
                 }
             }
             """
@@ -408,7 +403,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
+        this.collectedProblems[0]["exception"]["message"] == "test"
     }
 
     def "can rethrow a problem with a wrapper exception"() {
@@ -437,7 +432,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["cause"]["message"] == "test"
+        this.collectedProblems[0]["exception"]["message"] == "test"
     }
 
     def "can rethrow a problem with a wrapper exception"() {

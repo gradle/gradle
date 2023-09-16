@@ -64,7 +64,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     <artifactId>bom</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
-    
+
     <dependencies>
         <dependency>
             <groupId>group-a</groupId>
@@ -72,7 +72,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
             <version>1.0</version>
         </dependency>
     </dependencies>
-    
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -288,7 +288,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     <artifactId>bom</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
-    
+
     <distributionManagement>
         <relocation>
             <version>2.0</version>
@@ -338,13 +338,13 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
     <artifactId>bom</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
-    
+
     <parent>
         <groupId>group-a</groupId>
         <artifactId>parent</artifactId>
         <version>1.0</version>
     </parent>
-    
+
     <dependencyManagement>
         <dependencies>
             <dependency>

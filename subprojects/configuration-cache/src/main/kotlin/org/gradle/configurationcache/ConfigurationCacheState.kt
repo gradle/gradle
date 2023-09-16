@@ -146,7 +146,12 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
+    suspend fun DefaultReadContext.readRootBuildState(
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?,
+        loadAfterStore: Boolean
+    ): BuildTreeWorkGraph.FinalizedGraph {
+
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -202,17 +207,22 @@ class ConfigurationCacheState(
     private
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
+
+            graphBuilder?.invoke(builder, rootBuildState())
+
             for (build in builds) {
                 if (build is BuildWithWork) {
-                    val buildState = build.build.state
-                    graphBuilder?.invoke(builder, buildState)
-                    builder.withWorkGraph(buildState) {
+                    builder.withWorkGraph(build.build.state) {
                         it.setScheduledNodes(build.workGraph)
                     }
                 }
             }
         }
     }
+
+    private
+    fun rootBuildState() =
+        host.service<BuildState>()
 
     private
     suspend fun DefaultWriteContext.writeRootBuild(rootBuild: VintageGradleBuild) {
@@ -315,7 +325,10 @@ class ConfigurationCacheState(
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(stateFileFor(state.buildDefinition), buildTreeState)
+            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                stateFileFor(state.buildDefinition),
+                buildTreeState
+            )
         }
     }
 
@@ -327,10 +340,7 @@ class ConfigurationCacheState(
             val buildPath = read() as Path
             rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
-
-        build.gradle.loadGradleProperties()
-        // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
+        return readNestedBuildState(build)
     }
 
     private
@@ -350,7 +360,10 @@ class ConfigurationCacheState(
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
-            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(stateFileFor(state.buildDefinition), buildTreeState)
+            gradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                stateFileFor(state.buildDefinition),
+                buildTreeState
+            )
         }
     }
 
@@ -360,9 +373,17 @@ class ConfigurationCacheState(
             val ownerIdentifier = readNonNull<BuildIdentifier>()
             rootBuild.getBuildSrcOf(ownerIdentifier)
         }
+        return readNestedBuildState(build)
+    }
+
+    private
+    fun readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
         build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
-        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
+        return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
+            stateFileFor((build.state as NestedBuildState).buildDefinition),
+            build
+        )
     }
 
     private

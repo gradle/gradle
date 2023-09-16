@@ -254,7 +254,6 @@ public class Daemon implements Stoppable {
     private static class DaemonExpirationPeriodicCheck implements Runnable {
         private final DaemonExpirationStrategy expirationStrategy;
         private final DaemonExpirationListener listenerBroadcast;
-        private final Lock lock = new ReentrantLock();
 
         DaemonExpirationPeriodicCheck(DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
             this.expirationStrategy = expirationStrategy;
@@ -263,23 +262,15 @@ public class Daemon implements Stoppable {
 
         @Override
         public void run() {
-            if (lock.tryLock()) {
-                try {
-                    final DaemonExpirationResult result = expirationStrategy.checkExpiration();
-                    if (result.getStatus() != DO_NOT_EXPIRE) {
-                        listenerBroadcast.onExpirationEvent(result);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.error("Problem in daemon expiration check", t);
-                    if (t instanceof Error) {
-                        // never swallow java.lang.Error
-                        throw (Error) t;
-                    }
-                } finally {
-                    lock.unlock();
+            try {
+                final DaemonExpirationResult result = expirationStrategy.checkExpiration();
+                if (result.getStatus() != DO_NOT_EXPIRE) {
+                    listenerBroadcast.onExpirationEvent(result);
                 }
-            } else {
-                LOGGER.warn("Previous DaemonExpirationPeriodicCheck was still running when the next run was scheduled.");
+            } catch (Throwable t) {
+                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                // otherwise the further invocations of this task get automatically and silently cancelled
+                LOGGER.error("Problem in daemon expiration check", t);
             }
         }
     }

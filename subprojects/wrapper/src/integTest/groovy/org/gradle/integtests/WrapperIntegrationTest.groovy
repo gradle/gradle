@@ -16,13 +16,12 @@
 package org.gradle.integtests
 
 import groovy.io.FileType
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @IgnoreIf({ AbstractGradleExecuter.agentInstrumentationEnabled })
+    @Requires(IntegTestPreconditions.AgentInstrumentationDisabled)
     // TODO(mlopatkin) fails because of race between daemon shutdown and deleting the file, as --no-daemon still spawns the single-use daemon
     def "can recover from a broken distribution"() {
         buildFile << "task hello"

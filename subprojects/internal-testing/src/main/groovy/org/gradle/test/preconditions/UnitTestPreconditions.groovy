@@ -133,6 +133,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotJava8OnMacOs implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfied(MacOs) && JavaVersion.current() != JavaVersion.VERSION_1_8
+        }
+    }
+
     static final class MacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -544,4 +551,10 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class NotInGradleceptionBuild implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return System.getenv("BUILD_TYPE_ID")?.contains("Check_Gradleception") != true
+        }
+    }
 }

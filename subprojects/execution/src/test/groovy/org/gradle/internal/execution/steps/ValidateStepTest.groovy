@@ -16,10 +16,8 @@
 
 package org.gradle.internal.execution.steps
 
-
-import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Problem
-import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.execution.WorkValidationContext
@@ -42,7 +40,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def emitter = Mock(BuildOperationProgressEventEmitter)
-    def step = new ValidateStep<>(virtualFileSystem, warningReporter,new DefaultProblems(emitter), delegate)
+    def step = new ValidateStep<>(virtualFileSystem, warningReporter, new DefaultProblems(emitter), delegate)
     def delegateResult = Mock(Result)
 
     def setup() {
@@ -86,13 +84,12 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .details("Test")
                     .severity(Severity.ERROR)
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> { }
+        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "fails when there are multiple violations"() {
@@ -118,7 +115,6 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -129,13 +125,12 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> { }
+        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
@@ -152,14 +147,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> { }
+        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning
         })
@@ -191,7 +185,6 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -202,14 +195,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
                     .type(ValidationProblemId.TEST_PROBLEM.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> { }
+        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
 
         then:

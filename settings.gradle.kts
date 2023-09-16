@@ -24,9 +24,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
 includeBuild("build-logic-commons")
@@ -48,7 +48,6 @@ unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
     subproject("distributions-publishing")
-    subproject("distributions-jvm")
     subproject("distributions-native")
     subproject("distributions-full")
 }
@@ -93,16 +92,12 @@ unassigned {
     subproject("diagnostics")
     subproject("publish")
     subproject("ivy")
-    subproject("jacoco")
     subproject("build-init")
     subproject("build-option")
     subproject("platform-base")
     subproject("platform-native")
     subproject("platform-jvm")
-    subproject("language-jvm")
-    subproject("language-java")
     subproject("java-compiler-plugin")
-    subproject("language-groovy")
     subproject("language-native")
     subproject("tooling-native")
     subproject("plugin-use")
@@ -162,9 +157,18 @@ platform("ide") {
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
+    subproject("distributions-jvm")
     subproject("ear")
+    subproject("jacoco")
+    subproject("language-groovy")
+    subproject("language-java")
+    subproject("language-jvm")
     subproject("toolchains-jvm")
     subproject("java-platform")
+    subproject("plugins-groovy")
+    subproject("plugins-java")
+    subproject("plugins-jvm-test-suite")
+    subproject("plugins-jvm-test-suite-base")
     subproject("war")
 }
 

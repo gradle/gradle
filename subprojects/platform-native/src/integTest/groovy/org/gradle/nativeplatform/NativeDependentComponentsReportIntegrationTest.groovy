@@ -16,11 +16,10 @@
 
 package org.gradle.nativeplatform
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -219,7 +218,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()

@@ -18,9 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.MutableReference;
@@ -144,7 +143,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
@@ -161,7 +159,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
                 .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)

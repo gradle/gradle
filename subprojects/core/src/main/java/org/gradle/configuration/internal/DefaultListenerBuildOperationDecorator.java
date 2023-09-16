@@ -25,6 +25,8 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;

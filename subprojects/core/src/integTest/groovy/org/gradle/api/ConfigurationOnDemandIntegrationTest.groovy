@@ -22,20 +22,22 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
+    @Rule
+    ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = "parallel mode hides incubating message")
     def "presents incubating message"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"
@@ -48,7 +50,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         output.count("Configuration on demand is an incubating feature") == 1
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
+    @Requires(value = IntegTestPreconditions.NotParallelExecutor, reason = "parallel mode hides incubating message")
     def "presents incubating message with parallel mode"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
         buildFile << "task foo"

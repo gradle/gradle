@@ -31,7 +31,8 @@ import org.junit.Rule
 @NoDebug
 @Requires(
     value = IntegTestPreconditions.NotEmbeddedExecutor,
-    reason = "These tests run builds that themselves run a build in a test worker with 'gradleTestKit()' dependency, which needs to pick up Gradle modules from a real distribution")
+    reason = NOT_EMBEDDED_REASON
+)
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule

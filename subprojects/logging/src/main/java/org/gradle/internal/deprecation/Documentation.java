@@ -47,8 +47,8 @@ public abstract class Documentation implements DocLink {
     }
 
     @Nullable
-    public String consultDocumentationMessage() {
-        return String.format(RECOMMENDATION, "information", url());
+    public String getConsultDocumentationMessage() {
+        return String.format(RECOMMENDATION, "information", getUrl());
     }
 
     private static abstract class SerializerableDocumentation extends Documentation {
@@ -101,12 +101,12 @@ public abstract class Documentation implements DocLink {
         }
 
         @Override
-        public String url() {
+        public String getUrl() {
             return null;
         }
 
         @Override
-        public String consultDocumentationMessage() {
+        public String getConsultDocumentationMessage() {
             return null;
         }
 
@@ -135,7 +135,7 @@ public abstract class Documentation implements DocLink {
         }
 
         @Override
-        public String url() {
+        public String getUrl() {
             if (section == null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(page);
             }
@@ -164,8 +164,8 @@ public abstract class Documentation implements DocLink {
         }
 
         @Override
-        public String consultDocumentationMessage() {
-            return "Consult the upgrading guide for further information: " + url();
+        public String getConsultDocumentationMessage() {
+            return "Consult the upgrading guide for further information: " + getUrl();
         }
     }
 
@@ -179,7 +179,7 @@ public abstract class Documentation implements DocLink {
         }
 
         @Override
-        public String url() {
+        public String getUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
 

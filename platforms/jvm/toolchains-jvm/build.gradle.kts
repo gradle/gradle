@@ -48,17 +48,11 @@ dependencies {
     implementation(libs.futureKotlin("stdlib"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":language-groovy"))) {
-        because("These tests use the Groovy compiler, so even though this is the inverse dependency of the main sourceSets in these projects, it best keeps testing types located in the same project as the corresponding prod types")
-    }
     testImplementation(testFixtures(project(":logging")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-
-    integTestImplementation(testFixtures(project(":model-core")))
-    integTestImplementation(testFixtures(project(":language-groovy")))
 
     integTestImplementation(libs.slf4jApi)
 
@@ -70,3 +64,5 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/**")
 }
+
+integTest.usesJavadocCodeSnippets.set(true)

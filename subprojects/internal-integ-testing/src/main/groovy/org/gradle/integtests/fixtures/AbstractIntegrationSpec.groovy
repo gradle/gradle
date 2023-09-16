@@ -408,11 +408,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         this
     }
 
-    AbstractIntegrationSpec withBuildCacheNg() {
-        executer.withBuildCacheNgEnabled()
-        this
-    }
-
     /**
      * Synonym for succeeds()
      */

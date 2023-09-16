@@ -18,12 +18,12 @@ package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isParallel() })
+@Requires(IntegTestPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 

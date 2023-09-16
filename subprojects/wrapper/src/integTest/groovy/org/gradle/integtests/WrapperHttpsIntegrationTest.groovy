@@ -19,13 +19,13 @@ package org.gradle.integtests
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.wrapper.Download
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.integtests.WrapperHttpIntegrationTest.TEST_DISTRIBUTION_URL
@@ -34,7 +34,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
 
 // wrapperExecuter requires a real distribution
-@IgnoreIf({ GradleContextualExecuter.embedded })
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 @LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_USER = "jdoe"

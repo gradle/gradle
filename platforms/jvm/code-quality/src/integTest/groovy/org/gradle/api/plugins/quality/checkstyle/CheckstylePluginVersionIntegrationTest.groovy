@@ -18,8 +18,9 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.Matchers
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.ToBeImplemented
@@ -27,7 +28,6 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.junit.Assume
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -244,7 +244,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "is incremental"() {
         given:
         goodCode()

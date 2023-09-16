@@ -36,9 +36,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -208,7 +207,6 @@ public class DefaultTransform implements Transform {
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
                         .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
-                        .group(ProblemGroup.GENERIC_ID)
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -312,10 +310,13 @@ public class DefaultTransform implements Transform {
                     boolean optional
                 ) {
                     try {
+                        // TODO Unify this with AbstractValidatingProperty.validate();
+                        //   we are doing a slightly different version of the same code here,
+                        //   see https://github.com/gradle/gradle/issues/10846
                         Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                         if (preparedValue == null && !optional) {
-                            reportValueNotSet(propertyName, validationContext);
+                            reportValueNotSet(propertyName, validationContext, true);
                         }
                         visitor.visitInputProperty(propertyName, () -> preparedValue);
                     } catch (Throwable e) {
@@ -364,7 +365,6 @@ public class DefaultTransform implements Transform {
                             .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
                             .noLocation()
                             .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
-                            .group(ProblemGroup.TYPE_VALIDATION_ID)
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")

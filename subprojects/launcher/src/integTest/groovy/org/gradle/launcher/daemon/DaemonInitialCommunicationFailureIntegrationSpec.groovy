@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.KillProcessAvailability
+
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import org.junit.rules.ExternalResource
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.nio.ByteBuffer
@@ -31,7 +32,7 @@ import java.nio.channels.SocketChannel
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@IgnoreIf({ !KillProcessAvailability.CAN_KILL })
+@Requires(IntegTestPreconditions.CanKillProcess)
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     @Rule TestServer server = new TestServer()

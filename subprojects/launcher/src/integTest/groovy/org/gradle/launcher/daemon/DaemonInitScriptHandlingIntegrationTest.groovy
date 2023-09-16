@@ -20,11 +20,11 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 /**
@@ -33,7 +33,7 @@ import spock.lang.Issue
 @Issue("https://issues.gradle.org/browse/GRADLE-2408")
 @LeaksFileHandles("isolated daemons are not always stopped in time")
 //may fail with 'Unable to delete file: daemon.out.log'
-@IgnoreIf({ GradleContextualExecuter.embedded }) // tests a real Gradle distribution
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "tests a real Gradle distribution")
 class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     def "init scripts from client distribution are used, not the one the daemon was started with"() {
@@ -72,6 +72,7 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
         and:
         daemons.daemons.size() == 1
     }
+
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
         distro.copyFrom(distribution.getGradleHomeDir())

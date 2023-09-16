@@ -17,11 +17,11 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 // need to fork to run with different JAVA_OPTS
 class LauncherNoDaemonIntegrationTest extends AbstractIntegrationSpec {
 

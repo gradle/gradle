@@ -53,6 +53,18 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.VALUE_NOT_SET
+    )
+    String missingNonConfigurableValueMessage(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(SimpleMessage, 'value_not_set', spec)
+        config.description("doesn't have a configured value")
+            .reason("this property isn't marked as optional and no value has been configured")
+            .solution("The value of '${config.property}' is calculated, make sure a valid value can be calculated")
+            .solution("Mark property '${config.property}' as optional")
+            .render()
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
     )
     String methodShouldNotBeAnnotatedMessage(@DelegatesTo(value = MethodShouldNotBeAnnotated, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {

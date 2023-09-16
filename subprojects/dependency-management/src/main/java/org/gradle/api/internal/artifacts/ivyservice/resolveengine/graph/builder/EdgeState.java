@@ -31,7 +31,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.model.VariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -255,11 +255,11 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        VariantSelectionResult targetVariants;
+        GraphVariantSelectionResult targetVariants;
         try {
             ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
             attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
-            targetVariants = dependencyMetadata.selectVariants(attributes, targetComponentState, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
+            targetVariants = dependencyMetadata.selectVariants(resolveState.getVariantSelector(), attributes, targetComponentState, resolveState.getAttributesSchema(), dependencyState.getDependency().getSelector().getRequestedCapabilities());
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();

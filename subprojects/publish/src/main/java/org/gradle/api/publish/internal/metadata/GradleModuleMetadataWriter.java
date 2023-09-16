@@ -18,15 +18,11 @@ package org.gradle.api.publish.internal.metadata;
 
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * <p>The Gradle module metadata file generator is responsible for generating a JSON file
@@ -44,25 +40,14 @@ import java.util.List;
  */
 public class GradleModuleMetadataWriter {
     private final BuildInvocationScopeId buildInvocationScopeId;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ChecksumService checksumService;
-    private final String taskPath;
-    private final List<DependencyAttributesValidator> dependencyAttributeValidators;
 
-    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId,
-                                      ProjectDependencyPublicationResolver projectDependencyResolver,
-                                      ChecksumService checksumService,
-                                      String taskPath,
-                                      List<DependencyAttributesValidator> dependencyAttributeValidators) {
+    public GradleModuleMetadataWriter(
+        BuildInvocationScopeId buildInvocationScopeId,
+        ChecksumService checksumService
+    ) {
         this.buildInvocationScopeId = buildInvocationScopeId;
-        this.projectDependencyResolver = projectDependencyResolver;
         this.checksumService = checksumService;
-        this.taskPath = taskPath;
-        this.dependencyAttributeValidators = dependencyAttributeValidators;
-    }
-
-    public void writeTo(Writer writer, PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) throws IOException {
-        writeTo(writer, moduleMetadataSpecFor(publication, publications));
     }
 
     public void writeTo(Writer writer, ModuleMetadataSpec metadata) throws IOException {
@@ -81,17 +66,5 @@ public class GradleModuleMetadataWriter {
 
         jsonWriter.flush();
         writer.append('\n');
-    }
-
-    public ModuleMetadataSpec moduleMetadataSpecFor(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications) {
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), taskPath);
-        ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
-            publication,
-            publications,
-            checker,
-            projectDependencyResolver,
-            dependencyAttributeValidators).build();
-        checker.validate();
-        return spec;
     }
 }

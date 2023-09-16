@@ -319,7 +319,7 @@ a|
 [horizontal]
 link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13467[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
 link:{gradle-issues}24329[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}24328[[.yellow]#⚠#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
@@ -602,9 +602,9 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     build/analytics.json
 ----
 
-* Before Gradle 8.3, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
+* Before Gradle 8.4, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
 However, their changes would not invalidate the configuration cache afterward.
-Starting with Gradle 8.3, such undeclared configuration inputs are correctly tracked.
+Starting with Gradle 8.4, such undeclared configuration inputs are correctly tracked.
 +
 To temporarily revert to the earlier behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
 

@@ -134,7 +134,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) {
-        BuildState includedBuildState = buildsByIdentifier.get(buildIdentifier);
+        BuildState includedBuildState = findBuild(buildIdentifier);
         if (!(includedBuildState instanceof IncludedBuildState)) {
             throw new IllegalArgumentException("Could not find " + buildIdentifier);
         }
@@ -143,11 +143,16 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public BuildState getBuild(BuildIdentifier buildIdentifier) {
-        BuildState buildState = buildsByIdentifier.get(buildIdentifier);
+        BuildState buildState = findBuild(buildIdentifier);
         if (buildState == null) {
             throw new IllegalArgumentException("Could not find " + buildIdentifier);
         }
         return buildState;
+    }
+
+    @Override
+    public BuildState findBuild(BuildIdentifier buildIdentifier) {
+        return buildsByIdentifier.get(buildIdentifier);
     }
 
     @Override
