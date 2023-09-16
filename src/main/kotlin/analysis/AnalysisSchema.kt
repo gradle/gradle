@@ -2,15 +2,6 @@ package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import kotlin.reflect.KClass
 
-data class FqName(val packageName: String, val simpleName: String) {
-    companion object {
-        fun parse(fqNameString: String): FqName {
-            val parts = fqNameString.split(".")
-            return FqName(parts.dropLast(1).joinToString("."), parts.last())
-        } 
-    }
-}
-
 data class AnalysisSchema(
     val topLevelReceiverType: DataType.DataClass<*>,
     val dataClassesByFqName: Map<FqName, DataType.DataClass<*>>,
@@ -19,17 +10,33 @@ data class AnalysisSchema(
     val defaultImports: Set<FqName>,
 )
 
-data class DataParameter(
-    val name: String?,
-    val type: DataTypeRef,
-    val isDefault: Boolean,
-    val assignment: ParameterAssignment
-)
+sealed interface DataType {
+    interface ConstantType<JvmType> : DataType
+    data object IntDataType : ConstantType<Int>
+    data object StringDataType : ConstantType<String>
+    data object BooleanDataType : ConstantType<Boolean>
 
-sealed interface ParameterAssignment {
-    data class StoreValueInProperty(val dataProperty: DataProperty) : ParameterAssignment
-    object Intrinsic : ParameterAssignment
+    // TODO: `Any` type? 
+    // TODO: Support subtyping of some sort in the schema rather than via reflection?
+
+    data class DataClass<JvmDataClass : Any>(
+        val kClass: KClass<out JvmDataClass>,
+        val properties: List<DataProperty>,
+        val memberFunctions: List<SchemaMemberFunction>,
+        private val constructorSignatures: List<DataConstructorSignature>,
+    ) : DataType {
+        val constructors: List<DataConstructor>
+            get() = constructorSignatures.map { DataConstructor(it.parameters, DataTypeRef.Type(this)) }
+
+        override fun toString(): String = "${kClass.qualifiedName}"
+    }
 }
+
+data class DataProperty(
+    val name: String,
+    val type: DataTypeRef,
+    val isReadOnly: Boolean
+)
 
 sealed interface SchemaFunction {
     val simpleName: String
@@ -58,9 +65,7 @@ data class DataTopLevelFunction(
     override val simpleName: String,
     override val parameters: List<DataParameter>,
     override val semantics: FunctionSemantics.NewObjectFunctionSemantics,
-) : SchemaFunction 
-
-val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)
+) : SchemaFunction
 
 data class DataMemberFunction(
     override val receiver: DataTypeRef,
@@ -70,81 +75,12 @@ data class DataMemberFunction(
 ) : SchemaMemberFunction {
     init {
         if (semantics is FunctionSemantics.AccessAndConfigure) {
-            if (semantics.accessor is ObjectAccessor.Property) {
+            if (semantics.accessor is ConfigureAccessor.Property) {
                 require(semantics.accessor.receiver == receiver)
             }
         }
     }
 }
-
-sealed interface ObjectAccessor {
-    val objectType: DataTypeRef
-
-    data class Property(val receiver: DataTypeRef, val dataProperty: DataProperty) : ObjectAccessor {
-        override val objectType: DataTypeRef
-            get() = dataProperty.type
-    }
-
-    data class ExternalObject(val key: ExternalObjectProviderKey) : ObjectAccessor {
-        override val objectType: DataTypeRef
-            get() = DataTypeRef.Type(key.type)
-    }
-}
-
-sealed interface FunctionSemantics {
-    sealed interface ConfigureSemantics : FunctionSemantics
-    sealed interface NewObjectFunctionSemantics : FunctionSemantics
-    
-    val returnValueType: DataTypeRef
-
-    class Builder(val objectType: DataTypeRef) : FunctionSemantics {
-        override val returnValueType: DataTypeRef
-            get() = objectType
-    }
-    
-    class AccessAndConfigure(val accessor: ObjectAccessor) : ConfigureSemantics {
-        override val returnValueType: DataTypeRef
-            get() = accessor.objectType
-    }
-    
-    class AddAndConfigure(val objectType: DataTypeRef) : NewObjectFunctionSemantics, ConfigureSemantics {
-        override val returnValueType: DataTypeRef
-            get() = objectType
-    }
-
-    class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
-}
-
-data class ExternalObjectProviderKey(val type: DataType)
-
-sealed interface DataTypeRef {
-    data class Type(val type: DataType) : DataTypeRef
-    data class Name(val fqName: FqName) : DataTypeRef
-}
-
-sealed interface DataType {
-    interface ConstantType<JvmType> : DataType
-    data object IntDataType : ConstantType<Int>
-    data object StringDataType : ConstantType<String>
-    data object BooleanDataType : ConstantType<Boolean>
-
-    // TODO: Any type? Support subtyping of some sort in the schema rather than via reflection?
-
-    data class DataClass<JvmDataClass : Any>(
-        val kClass: KClass<out JvmDataClass>,
-        val properties: List<DataProperty>,
-        val memberFunctions: List<SchemaMemberFunction>,
-        private val constructorSignatures: List<DataConstructorSignature>,
-    ) : DataType {
-        val constructors: List<DataConstructor>
-            get() = constructorSignatures.map { DataConstructor(it.parameters, DataTypeRef.Type(this)) }
-
-        override fun toString(): String = "${kClass.qualifiedName}"
-    }
-    
-}
-
-val DataType.ref: DataTypeRef get() = DataTypeRef.Type(this)
 
 data class DataConstructorSignature(
     val parameters: List<DataParameter>
@@ -158,8 +94,69 @@ data class DataConstructor(
     override val semantics: FunctionSemantics = FunctionSemantics.Pure(dataClass)
 }
 
-data class DataProperty(
-    val name: String,
+data class DataParameter(
+    val name: String?,
     val type: DataTypeRef,
-    val isReadOnly: Boolean
+    val isDefault: Boolean,
+    val assignment: ParameterSemantics
 )
+
+sealed interface ParameterSemantics {
+    data class StoreValueInProperty(val dataProperty: DataProperty) : ParameterSemantics
+    data object UsedExternally : ParameterSemantics
+}
+
+sealed interface FunctionSemantics {
+    sealed interface ConfigureSemantics : FunctionSemantics
+    sealed interface NewObjectFunctionSemantics : FunctionSemantics
+
+    val returnValueType: DataTypeRef
+
+    class Builder(private val objectType: DataTypeRef) : FunctionSemantics {
+        override val returnValueType: DataTypeRef
+            get() = objectType
+    }
+
+    class AccessAndConfigure(val accessor: ConfigureAccessor) : ConfigureSemantics {
+        override val returnValueType: DataTypeRef
+            get() = accessor.objectType
+    }
+
+    class AddAndConfigure(val objectType: DataTypeRef) : NewObjectFunctionSemantics, ConfigureSemantics {
+        override val returnValueType: DataTypeRef
+            get() = objectType
+    }
+    class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
+}
+
+sealed interface ConfigureAccessor {
+    val objectType: DataTypeRef
+
+    data class Property(val receiver: DataTypeRef, val dataProperty: DataProperty) : ConfigureAccessor {
+        override val objectType: DataTypeRef
+            get() = dataProperty.type
+    }
+    
+    // TODO: configure all elements by addition key?
+    // TODO: Do we want to support configuring external objects?
+}
+
+data class FqName(val packageName: String, val simpleName: String) {
+    companion object {
+        fun parse(fqNameString: String): FqName {
+            val parts = fqNameString.split(".")
+            return FqName(parts.dropLast(1).joinToString("."), parts.last())
+        }
+    }
+}
+
+val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)
+
+data class ExternalObjectProviderKey(val type: DataType)
+
+sealed interface DataTypeRef {
+    data class Type(val type: DataType) : DataTypeRef
+    data class Name(val fqName: FqName) : DataTypeRef
+}
+
+val DataType.ref: DataTypeRef get() = DataTypeRef.Type(this)

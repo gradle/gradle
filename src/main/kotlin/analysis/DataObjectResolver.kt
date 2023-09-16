@@ -26,8 +26,8 @@ data class ResolutionError(
 sealed interface ErrorReason {
     data class AmbiguousImport(val fqName: FqName) : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
-    data object UnresolvedAssignmentLhs : ErrorReason // todo report candidate with rejection reasons
-    data object UnresolvedAssignmentRhs : ErrorReason
+    data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
+    data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
     data object ReadOnlyPropertyAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
 }

@@ -3,8 +3,8 @@ package com.example
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AddAndConfigure
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.Pure
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterAssignment.Intrinsic
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterAssignment.StoreValueInProperty
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.UsedExternally
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -27,7 +27,7 @@ internal fun demoSchema(): AnalysisSchema {
         memberFunctions = listOf(
             DataMemberFunction(
                 cRef, "f",
-                listOf(DataParameter("y", string, false, Intrinsic)),
+                listOf(DataParameter("y", string, false, UsedExternally)),
                 semantics = Pure(int)
             )
         ),
