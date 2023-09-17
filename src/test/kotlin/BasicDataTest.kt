@@ -1,9 +1,10 @@
-import com.h0tk3y.kotlin.staticObjectNotation.*
-import com.h0tk3y.kotlin.staticObjectNotation.ElementOrFailureResult.ElementResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
+import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BasicDataTest {
@@ -21,13 +22,13 @@ class BasicDataTest {
 
         assertAll(results.map {
             {
-                assertTrue(it is ElementResult)
+                assertTrue(it is Element<*>)
                 val element = it.element
                 assertTrue(element is Assignment)
                 assertTrue(element.rhs is Literal<*>)
             }
         })
-        val values = results.map { (((it as ElementResult).element as Assignment).rhs as Literal<*>).value }
+        val values = results.map { (((it as Element).element as Assignment).rhs as Literal<*>).value }
         assertEquals(listOf(1, "test", "test", true, false), values)
     }
     
@@ -44,7 +45,7 @@ class BasicDataTest {
         val expected = listOf("a.b.c", "a.b.MyData", "MyOtherData")
         assertAll(results.mapIndexed { index, it ->
             {
-                assertIs<ElementResult<*>>(it)
+                assertIs<Element<*>>(it)
                 val element = it.element
                 assertIs<Import>(element)
                 assertEquals(expected[index], element.name.nameParts.joinToString("."))
@@ -63,7 +64,7 @@ class BasicDataTest {
 
         assertAll(results.map {
             {
-                assertTrue(it is ElementResult)
+                assertTrue(it is Element)
                 assertTrue(it.element is FunctionCall)
             }
         })
@@ -75,7 +76,7 @@ class BasicDataTest {
             f.g.h.i.j.k(test)
         """.trimIndent()).single()
         
-        assertTrue(result is ElementResult && result.element is FunctionCall)
+        assertTrue(result is Element && result.element is FunctionCall)
     }
 
     @Test
@@ -85,7 +86,7 @@ class BasicDataTest {
             f(1, x, g())
             """.trimIndent()
         ).single()
-        assertIs<ElementResult<*>>(result)
+        assertIs<Element<*>>(result)
         val element = result.element
         assertIs<FunctionCall>(element)
         assertAll(element.args.map {
@@ -100,7 +101,7 @@ class BasicDataTest {
             f(a = b, c = d)            
             """.trimIndent()
         ).single()
-        assertIs<ElementResult<*>>(result)
+        assertIs<Element<*>>(result)
         val element = result.element
         assertIs<FunctionCall>(element)
         assertTrue(element.args.size == 2)
@@ -114,16 +115,16 @@ class BasicDataTest {
 
     @Test
     fun `parses an assignment chain`() {
-        val result = parse("a.b.c = 1").single() as ElementResult
+        val result = parse("a.b.c = 1").single() as Element
         val element = result.element
         assertIs<Assignment>(element)
-        assertEquals(listOf("a", "b", "c"), element.lhs.nameParts)
+        assertEquals(listOf("a", "b", "c"), element.lhs.asChainOrNull()?.nameParts)
     }
     
     @Test
     fun `parses a local val`() {
         val result = parse("val a = 1").single()
-        assertIs<ElementResult<*>>(result)
+        assertIs<Element<*>>(result)
         val element = result.element
         assertIs<LocalValue>(element)
         assertEquals("a", element.name)
@@ -133,19 +134,38 @@ class BasicDataTest {
     @Test
     fun `parses access chain in rhs`() {
         val result = parse("a = b.c.d").single()
-        assertIs<ElementResult<*>>(result)
+        assertIs<Element<*>>(result)
         val element = result.element
         assertIs<Assignment>(element)
-        assertIs<AccessChain>(element.rhs)
+        val rhs = element.rhs
+        assertIs<PropertyAccess>(rhs)
+        val rhs1 = rhs.receiver
+        assertIs<PropertyAccess>(rhs1)
+        val rhs2 = rhs1.receiver
+        assertIs<PropertyAccess>(rhs2)
+        assertNull(rhs2.receiver)
     }
 
     @Test
     fun `parses lambdas`() {
-        val result = parse("a { b = 1 }").single() as ElementResult
+        val result = parse("a { b = 1 }").single() as Element
         val element = result.element
         assertIs<FunctionCall>(element)
         val arg = element.args.single()
         assertIs<FunctionArgument.Lambda>(arg)
         assertIs<Assignment>(arg.block.statements.single())
+    }
+    
+    @Test
+    fun `parses call chain`() {
+        val result = parse("f(1).g(2).h(3)").single() as Element<*>
+        val element = result.element
+        assertIs<FunctionCall>(element)
+        val receiver = element.receiver
+        assertIs<FunctionCall>(receiver)
+        val receiver2 = receiver.receiver
+        assertIs<FunctionCall>(receiver2)
+        assertNull(receiver2.receiver)
+        assertEquals("f", receiver2.name)
     }
 }

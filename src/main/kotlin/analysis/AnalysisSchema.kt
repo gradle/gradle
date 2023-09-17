@@ -13,8 +13,10 @@ data class AnalysisSchema(
 sealed interface DataType {
     interface ConstantType<JvmType> : DataType
     data object IntDataType : ConstantType<Int>
+    data object LongDataType : ConstantType<Long>
     data object StringDataType : ConstantType<String>
     data object BooleanDataType : ConstantType<Boolean>
+    data object NullType : DataType
 
     // TODO: `Any` type? 
     // TODO: Support subtyping of some sort in the schema rather than via reflection?
@@ -148,6 +150,8 @@ data class FqName(val packageName: String, val simpleName: String) {
             return FqName(parts.dropLast(1).joinToString("."), parts.last())
         }
     }
+
+    override fun toString(): String = "$packageName.$simpleName"
 }
 
 val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)

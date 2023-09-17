@@ -1,11 +1,9 @@
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.DefaultLanguageTreeBuilder
-import com.h0tk3y.kotlin.staticObjectNotation.ElementOrFailureResult
-import com.h0tk3y.kotlin.staticObjectNotation.LanguageTreeResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeBuilderWithTopLevelBlock
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.parseToAst
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
 import org.intellij.lang.annotations.Language
 
-internal fun parse(@Language("kts") code: String): List<ElementOrFailureResult<*>> {
+internal fun parse(@Language("kts") code: String): List<ElementResult<*>> {
     val ast = parseToAst(code)
     val defaultLanguageTreeBuilder = DefaultLanguageTreeBuilder()
     return ast.flatMap { defaultLanguageTreeBuilder.build(it).results }

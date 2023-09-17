@@ -1,6 +1,5 @@
-import com.h0tk3y.kotlin.staticObjectNotation.*
-import com.h0tk3y.kotlin.staticObjectNotation.ElementOrFailureResult.UnsupportedConstruct
-import com.h0tk3y.kotlin.staticObjectNotation.LanguageModelUnsupportedConstruct.*
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -10,14 +9,14 @@ class RejectedLanguageFeaturesTest {
 
     @Test
     fun `rejects explicit package declaration`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<PackageHeader>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(PackageHeader, code)
 
         rejects("package com.example")
     }
 
     @Test
     fun `rejects star imports`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<StarImport>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(StarImport, code)
 
         assertAll(
             { rejects("import a.b.c.*") },
@@ -28,7 +27,7 @@ class RejectedLanguageFeaturesTest {
     
     @Test
     fun `rejects renaming imports`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<RenamingImport>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(RenamingImport, code)
         
         assertAll(
             { rejects("import a as b") },
@@ -37,19 +36,8 @@ class RejectedLanguageFeaturesTest {
     }
 
     @Test
-    fun `rejects fn call in access chain`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<FunctionCallInAccessChain>(code)
-        assertAll(
-            { rejects("a.b.c().d") },
-            { rejects("a.b.c().d = e") },
-            { rejects("a = b.c().d.e") },
-            { rejects("a.b.c().d { }") },
-        )
-    }
-
-    @Test
     fun `rejects indexed assignments`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<IndexedAssignment>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(Indexing, code)
         assertAll(
             { rejects("a[b] = 1") },
             { rejects("a.b.c[1] = 1") },
@@ -61,7 +49,7 @@ class RejectedLanguageFeaturesTest {
 
     @Test
     fun `rejects variable type labels`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<ExplicitVariableType>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(ExplicitVariableType, code)
         assertAll(
             { rejects("val a: Int = 0") },
         )
@@ -69,7 +57,12 @@ class RejectedLanguageFeaturesTest {
 
     @Test
     fun `rejects mutable vars`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<VarUnsupported>(code)
+        fun rejects(@Language("kts") code: String) = assertTrue {
+            fun isVarReported(failure: FailingResult): Boolean =
+                failure is UnsupportedConstruct && failure.languageFeature == LocalVarNotSupported ||
+                        failure is MultipleFailuresResult && failure.failures.any { isVarReported(it) }
+            isVarReported(parse(code).single() as FailingResult)
+        }
         assertAll(
             { rejects("var x = 0") },
             { rejects("var x: Int = 0") },
@@ -80,7 +73,7 @@ class RejectedLanguageFeaturesTest {
 
     @Test
     fun `rejects modifiers on vals`() {
-        fun rejects(@Language("kts") code: String) = assertRejectedAsUnsupported<ValModifierUnsupported>(code)
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(ValModifierNotSupported, code)
         assertAll(
             { rejects("public val x: Int = 0") },
             { rejects("private val x: Int") }
@@ -98,11 +91,18 @@ class RejectedLanguageFeaturesTest {
         )
     }
 
-    private inline fun <reified T : LanguageModelUnsupportedConstruct> assertRejectedAsUnsupported(code: String) {
-        assertTrue { parse(code).single().isUnsupported<T>() }
+    private fun isFeatureReported(feature: UnsupportedLanguageFeature, failure: FailingResult): Boolean =
+        failure is UnsupportedConstruct && failure.languageFeature == feature ||
+                failure is MultipleFailuresResult && failure.failures.any { isFeatureReported(feature, it) }
+
+    private fun rejectsAndReportsFeature(feature: UnsupportedLanguageFeature, code: String) {
+        assertTrue {
+            val result = parse(code).single()
+            result is FailingResult && isFeatureReported(feature, result)
+        }
     }
 
-    private inline fun <reified T : LanguageModelUnsupportedConstruct> ElementOrFailureResult<*>.isUnsupported(): Boolean {
-        return this is UnsupportedConstruct && this.failureResult is T
+    private inline fun <reified T : UnsupportedLanguageFeature> ElementResult<*>.isUnsupported(): Boolean {
+        return this is UnsupportedConstruct && this.languageFeature is T
     }
 }

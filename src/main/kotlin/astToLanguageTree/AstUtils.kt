@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation
+package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import kotlinx.ast.common.ast.Ast
 import kotlinx.ast.common.ast.AstNode
@@ -7,12 +7,14 @@ import kotlinx.ast.common.ast.AstTerminal
 fun Ast.flatten(): Ast = traverse().firstOrNull { it is AstTerminal || it is AstNode && it.children.size > 1 } ?: this
 
 fun Ast.findChild(predicate: (Ast) -> Boolean): Ast? = childrenOrEmpty.find { it != this && predicate(it) }
+fun Ast.findChild(kind: AstKind): Ast? = findChild { it.kind == kind }
 
 fun Ast.child(kind: AstKind): Ast = findChild { it.kind == kind } ?: error("AST does not have a child with kind $kind")
 
 fun Ast.hasChild(predicate: (Ast) -> Boolean): Boolean = findChild(predicate) != null
 fun Ast.hasChild(kind: AstKind) = hasChild { it.kind == kind }
 
+fun Ast.singleChild() = childrenOrEmpty.singleOrNull() ?: error("expected a single child")
 fun Ast.findSingleChild(predicate: (Ast) -> Boolean): Ast? = childrenOrEmpty.singleOrNull { it != this && predicate(it) }
 fun Ast.findSingleChild(kind: AstKind) = this@findSingleChild.findSingleChild { it.kind == kind }
 
@@ -36,7 +38,7 @@ fun Ast.traverse(): Sequence<Ast> =
         visit(this@traverse)
     }
 
-val Ast.kind: AstKind get() = AstKind.values().singleOrNull { it.astName == description } ?: AstKind.other
+val Ast.kind: AstKind get() = AstKind.entries.singleOrNull { it.astName == description } ?: AstKind.other
 
 val Ast.childrenOrEmpty: List<Ast>
     get() = when (this) {
@@ -52,40 +54,90 @@ val Ast.text: String
 
 @Suppress("EnumEntryName")
 enum class AstKind(astDescription: String? = null) {
+    script,
+    shebangLine,
+    fileAnnotation,
     importHeader,
     importList,
+    importAlias,
     packageHeader,
     statements,
     statement,
     assignment,
+    loopStatement,
+    assignmentAndOperator,
     directlyAssignableExpression,
+    parenthesizedDirectlyAssignableExpression,
+    parenthesizedExpression,
     expression,
+    disjunction,
+    conjunction,
+    equality,
+    comparison,
+    genericCallLikeComparison,
+    declaration,
     propertyDeclaration,
+    propertyDelegate,
     variableDeclaration,
+    multiVariableDeclaration,
+    typeConstraints,
+    getter,
+    setter,
+    receiverType,
     postfixUnaryExpression,
     classDeclaration,
+    functionDeclaration,
+    functionLiteral,
+    objectLiteral,
+    collectionLiteral,
+    thisExpression,
+    ifExpression,
+    tryExpression,
+    jumpExpression,
+    whenExpression,
+    superExpression,
+    objectDeclaration,
     typeAlias,
     postfixUnarySuffix,
+    postfixUnaryOperator,
     navigationSuffix,
     callSuffix,
     annotatedLambda,
+    lambdaLiteral,
+    lambdaParameter,
     valueArguments,
     valueArgument,
     simpleIdentifier,
+    literalConstant,
     primaryExpression,
     assignableSuffix,
+    typeArguments,
     indexingSuffix,
     modifiers,
+    memberAccessOperator,
     type,
     semi,
+    label,
+    annotation,
     identifierTerminal("Identifier"),
     asterisk("MULT"),
     identifier,
+    dot("DOT"),
+    colonColon("COLONCOLON"),
+    safeNav,
     asKeyword("AS"),
     varKeyword("VAR"),
+    classKeyword("CLASS"),
     integerLiteral("IntegerLiteral"),
+    longLiteral("LongLiteral"),
+    hexLiteral("HexLiteral"),
+    binLiteral("BinLiteral"),
+    characterLiteral("CharacterLiteral"),
+    unsignedLiteral("UnsignedLiteral"),
+    realLiteral("RealLiteral"),
     booleanLiteral("BooleanLiteral"),
     stringLiteral,
+    callableReference,
     lineStringLiteral,
     multiLineStringLiteral,
     multiLineStringText("MultiLineStrText"),

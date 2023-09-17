@@ -1,8 +1,7 @@
 package com.example
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AddAndConfigure
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.Pure
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.UsedExternally
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 
@@ -14,24 +13,32 @@ val abcRef = DataTypeRef.Name(FqName.parse("com.example.Abc"))
 val dRef = DataTypeRef.Name(FqName.parse("com.example.D"))
 
 internal fun demoSchema(): AnalysisSchema {
-    val c_x = DataProperty("x", int, false)
-    val d_id = DataProperty("id", string, false)
+    val cX = DataProperty("x", int, false)
+    val cD = DataProperty("d", dRef, false)
+    val dId = DataProperty("id", string, false)
 
     val cClass = DataType.DataClass(
         C::class,
         properties = listOf(
-            c_x,
+            cX,
             DataProperty("y", string, true),
-            DataProperty("d", dRef, false)
+            cD
         ),
         memberFunctions = listOf(
             DataMemberFunction(
                 cRef, "f",
                 listOf(DataParameter("y", string, false, UsedExternally)),
                 semantics = Pure(int)
+            ),
+            DataMemberFunction(
+                cRef, "d", 
+                listOf(DataParameter("newD", dRef, false, StoreValueInProperty(cD))),
+                semantics = Builder(cRef)
             )
         ),
-        constructorSignatures = emptyList()
+        constructorSignatures = listOf(
+            DataConstructorSignature(listOf(DataParameter("x", int, false, StoreValueInProperty(cD))))
+        )
     )
 
     val abcClass = DataType.DataClass(
@@ -41,7 +48,7 @@ internal fun demoSchema(): AnalysisSchema {
             DataMemberFunction(abcRef, "b", emptyList(), Pure(int)),
             DataMemberFunction(
                 abcRef, "c",
-                listOf(DataParameter("x", int, false, StoreValueInProperty(c_x))),
+                listOf(DataParameter("x", int, false, StoreValueInProperty(cX))),
                 semantics = AddAndConfigure(cRef)
             )
         ),
@@ -60,13 +67,13 @@ internal fun demoSchema(): AnalysisSchema {
     val newDFunction = DataTopLevelFunction(
         "com.example", "newD", 
         listOf(
-            DataParameter("id", DataType.StringDataType.ref, isDefault = false, StoreValueInProperty(d_id))),
+            DataParameter("id", DataType.StringDataType.ref, isDefault = false, StoreValueInProperty(dId))),
         semantics = Pure(dClass.ref)
     )
 
     val schema = AnalysisSchema(
         topLevelReceiverType = abcClass,
-        dataClassesByFqName = listOf(abcClass, cClass).associateBy { FqName.parse(it.kClass.qualifiedName!!) },
+        dataClassesByFqName = listOf(abcClass, cClass, dClass).associateBy { FqName.parse(it.kClass.qualifiedName!!) },
         externalFunctionsByFqName = mapOf(newDFunction.fqName to newDFunction),
         externalObjectsByFqName = emptyMap(),
         defaultImports = setOf(newDFunction.fqName)

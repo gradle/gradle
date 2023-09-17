@@ -1,6 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.evaluation
 
-import com.h0tk3y.kotlin.staticObjectNotation.LanguageTreeElement
+import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 
 interface Evaluator {

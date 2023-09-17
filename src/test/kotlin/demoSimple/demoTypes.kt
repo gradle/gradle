@@ -13,8 +13,12 @@ class Abc {
     val cItems = mutableListOf<C>()
 }
 
-class C {
-    var x: Int = 0
+class C(var x: Int = 0) {
+    fun d(newD: D): C { // builder function
+        this.d = newD
+        return this
+    }
+    
     var d: D = D()
     val y = "test"
     fun f(y: String) = 0

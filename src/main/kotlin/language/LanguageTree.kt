@@ -1,4 +1,4 @@
-package com.h0tk3y.kotlin.staticObjectNotation
+package com.h0tk3y.kotlin.staticObjectNotation.language
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
 import kotlinx.ast.common.ast.Ast
@@ -24,9 +24,11 @@ data class Block(val statements: List<DataStatement>, override val originAst: As
 
 data class Import(val name: AccessChain, override val originAst: Ast) : LanguageTreeElement 
 
-data class AccessChain(val nameParts: List<String>, override val originAst: Ast) : Expr
-data class FunctionCall(val accessChain: AccessChain, val args: List<FunctionArgument>, override val originAst: Ast) : Expr, DataStatement
-data class Assignment(val lhs: AccessChain, val rhs: Expr, override val originAst: Ast) : DataStatement
+data class AccessChain(val nameParts: List<String>, val originAst: Ast)
+
+data class PropertyAccess(val receiver: Expr?, val name: String, override val originAst: Ast) : Expr
+data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val originAst: Ast) : Expr
+data class Assignment(val lhs: PropertyAccess, val rhs: Expr, override val originAst: Ast) : DataStatement
 data class LocalValue(val name: String, val rhs: Expr, override val originAst: Ast) : DataStatement
 
 sealed interface Literal<T> : Expr {
@@ -45,9 +47,18 @@ sealed interface Literal<T> : Expr {
         override val type: DataType.IntDataType get() = DataType.IntDataType
     }
 
+    data class LongLiteral(
+        override val value: Long, override val originAst: Ast
+    ) : Literal<Long> {
+        override val type: DataType.LongDataType get() = DataType.LongDataType
+    }
+
     data class BooleanLiteral(
         override val value: Boolean, override val originAst: Ast
     ) : Literal<Boolean> {
         override val type: DataType.BooleanDataType get() = DataType.BooleanDataType
     }
 }
+
+data class Null(override val originAst: Ast) : Expr
+data class This(override val originAst: Ast) : Expr

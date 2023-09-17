@@ -1,10 +1,12 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.AccessChain
-import com.h0tk3y.kotlin.staticObjectNotation.FunctionCall
-import com.h0tk3y.kotlin.staticObjectNotation.LanguageTreeElement
-import com.h0tk3y.kotlin.staticObjectNotation.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.evaluation.DataValue
+import com.h0tk3y.kotlin.staticObjectNotation.language.*
+
+sealed interface AssignmentResolution {
+    data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution
+    data class ReassignLocalVal(val localValue: LocalValue) : AssignmentResolution
+}
 
 // TODO: report failures to resolve with potential candidates that could not work
 data class PropertyReferenceResolution(
@@ -34,6 +36,8 @@ sealed interface ObjectOrigin {
 
         override fun toString(): String = "${constant.value.let { if (it is String) "\"$it\"" else it }}"
     }
+    
+    data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
 
     data class FromFunctionInvocation(
         val function: SchemaFunction,
@@ -43,19 +47,33 @@ sealed interface ObjectOrigin {
         val invocationId: Long
     ) : ObjectOrigin {
         override fun toString(): String =
-            receiverObject?.toString()?.plus(".").orEmpty() +
-                    "${function.simpleName}#$invocationId(${parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" }})"
+            receiverObject?.toString()?.plus(".").orEmpty() + buildString {
+                if (function is DataConstructor) {
+                    val fqn = when (val ref = function.dataClass) {
+                        is DataTypeRef.Name -> ref.fqName.toString()
+                        is DataTypeRef.Type -> (ref.type as? DataType.DataClass<*>)?.kClass?.qualifiedName ?: ref.type.toString()
+                    }
+                    append(fqn)
+                    append(".")
+                }
+                append(function.simpleName)
+                append("#")
+                append(invocationId)
+                append("(")
+                append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" }) 
+                append(")")
+            }
     }
 
     data class PropertyReference(
         val receiver: ObjectOrigin,
         val property: DataProperty,
-        override val originElement: AccessChain
+        override val originElement: PropertyAccess
     ) : ObjectOrigin {
         override fun toString(): String = "$receiver${'.'}${property.name}"
     }
 
-    data class External(val key: ExternalObjectProviderKey, override val originElement: AccessChain) : ObjectOrigin {
+    data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
         override fun toString(): String = "${key.type}"
     }
 }
