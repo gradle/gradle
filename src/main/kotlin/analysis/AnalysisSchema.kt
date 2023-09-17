@@ -100,7 +100,7 @@ data class DataParameter(
     val name: String?,
     val type: DataTypeRef,
     val isDefault: Boolean,
-    val assignment: ParameterSemantics
+    val semantics: ParameterSemantics
 )
 
 sealed interface ParameterSemantics {
@@ -128,6 +128,7 @@ sealed interface FunctionSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
     }
+    
     class Pure(override val returnValueType: DataTypeRef) : NewObjectFunctionSemantics
 }
 

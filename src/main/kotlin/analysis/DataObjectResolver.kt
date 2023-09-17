@@ -352,7 +352,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         // TODO: check the resolution order with the Kotlin spec
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             if (functionCall.receiver == null) {
-                currentScopes.forEach { scope ->
+                currentScopes.reversed().forEach { scope ->
                     if (isEmpty()) {
                         addAll(findMemberFunction(scope.receiver, functionCall, argResolutions))
                     }
@@ -417,7 +417,7 @@ class DataObjectResolverImpl : DataObjectResolver {
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
                 ?: error("builder functions must have a single parameter")
-            val property = parameter.assignment as? ParameterSemantics.StoreValueInProperty
+            val property = parameter.semantics as? ParameterSemantics.StoreValueInProperty
                 ?: error("builder functions must assign their parameters to properties")
             val value = valueBinding.bindingMap.getValue(parameter)
             recordAssignment(PropertyReferenceResolution(receiver, property.dataProperty), value)

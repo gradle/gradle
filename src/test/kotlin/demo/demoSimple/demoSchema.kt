@@ -5,9 +5,6 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.UsedExternally
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 
-val int = DataType.IntDataType.ref
-val string = DataType.StringDataType.ref
-
 val cRef = DataTypeRef.Name(FqName.parse("com.example.C"))
 val abcRef = DataTypeRef.Name(FqName.parse("com.example.Abc"))
 val dRef = DataTypeRef.Name(FqName.parse("com.example.D"))
@@ -31,7 +28,7 @@ internal fun demoSchema(): AnalysisSchema {
                 semantics = Pure(int)
             ),
             DataMemberFunction(
-                cRef, "d", 
+                cRef, "d",
                 listOf(DataParameter("newD", dRef, false, StoreValueInProperty(cD))),
                 semantics = Builder(cRef)
             )
@@ -54,7 +51,7 @@ internal fun demoSchema(): AnalysisSchema {
         ),
         constructorSignatures = emptyList()
     )
-    
+
     val dClass = DataType.DataClass(
         D::class,
         properties = listOf(
@@ -63,21 +60,21 @@ internal fun demoSchema(): AnalysisSchema {
         memberFunctions = emptyList(),
         constructorSignatures = emptyList()
     )
-    
+
     val newDFunction = DataTopLevelFunction(
-        "com.example", "newD", 
+        "com.example", "newD",
         listOf(
-            DataParameter("id", DataType.StringDataType.ref, isDefault = false, StoreValueInProperty(dId))),
+            DataParameter("id", DataType.StringDataType.ref, isDefault = false, StoreValueInProperty(dId))
+        ),
         semantics = Pure(dClass.ref)
     )
 
-    val schema = AnalysisSchema(
+    return AnalysisSchema(
         topLevelReceiverType = abcClass,
         dataClassesByFqName = listOf(abcClass, cClass, dClass).associateBy { FqName.parse(it.kClass.qualifiedName!!) },
         externalFunctionsByFqName = mapOf(newDFunction.fqName to newDFunction),
         externalObjectsByFqName = emptyMap(),
         defaultImports = setOf(newDFunction.fqName)
     )
-    return schema
 }
 

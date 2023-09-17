@@ -1,4 +1,4 @@
-package demoSimple
+package demo.demoSimple
 
 import com.example.demoSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
