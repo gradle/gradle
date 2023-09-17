@@ -20,13 +20,11 @@ Gradle is an example of *dependency based programming*: you define tasks and dep
 Gradle guarantees that these tasks will execute in order of their dependencies.
 Your build scripts and plugins configure this dependency graph.
 
-There are phases of the lifecycle Gradle passes through as it interprets those scripts.
+There are phases Gradle passes through as it interprets those scripts.
 
 == Task Graphs
 
-Unlike other build tools, Gradle builds the task graph *before* executing any task.
-
-With *configuration avoidance*, Gradle skips configuration for tasks that aren't part of the current build.
+Gradle builds the task graph *before* executing any task.
 
 Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
 

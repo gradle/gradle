@@ -787,7 +787,6 @@ td.hdlist1, td.hdlist2 { vertical-align: top; padding: 0 0.625em; }
 td.hdlist1 { font-weight: bold; padding-bottom: 1.25em; }
 
 .literalblock + .colist { margin-top: -0.5em; }
-/*.literalblock + .colist, .listingblock + .colist { margin-top: -0.5em; }*/
 
 .colist > table tr > td:first-of-type { padding: 0 0.75em; line-height: 1; }
 .colist > table tr > td:first-of-type img { max-width: initial; }
