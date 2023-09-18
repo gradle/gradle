@@ -827,28 +827,28 @@
   },
   {
     "name": "testing-base",
-    "path": "subprojects/testing-base",
+    "path": "platforms/software/testing-base",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "testing-junit-platform",
-    "path": "subprojects/testing-junit-platform",
+    "path": "platforms/jvm/testing-junit-platform",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "testing-jvm",
-    "path": "subprojects/testing-jvm",
+    "path": "platforms/jvm/testing-jvm",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "testing-jvm-infrastructure",
-    "path": "subprojects/testing-jvm-infrastructure",
+    "path": "platforms/jvm/testing-jvm-infrastructure",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
