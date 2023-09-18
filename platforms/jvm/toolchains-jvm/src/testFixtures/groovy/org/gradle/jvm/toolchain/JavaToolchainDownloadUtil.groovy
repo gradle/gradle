@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain
 
+import java.util.stream.Collectors
+
 class JavaToolchainDownloadUtil {
 
     public static final String NO_RESOLVER = null
@@ -56,10 +58,7 @@ class JavaToolchainDownloadUtil {
 
             ${(resolverCode == null) ? "" : """
                 public abstract class ${resolverClass} implements JavaToolchainResolver {
-                    @Override
-                    public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                        ${resolverCode}
-                    }
+                    ${resolverCode}
                 }
             """}
 
@@ -79,15 +78,35 @@ class JavaToolchainDownloadUtil {
         """
     }
 
-    static String singleUrlResolverCode(String uri) {
+    static String multiUrlResolverCode(URI... uri) {
         """
-            URI uri = URI.create("$uri");
-            return Optional.of(JavaToolchainDownload.fromUri(uri));
+            private int index = 0;
+
+            @Override
+            Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                String[] uris = new String[] {${Arrays.stream(uri).map(Object::toString).collect(Collectors.joining("\", \"", "\"", "\""))}};
+                return index >= uris.length ? Optional.empty() : Optional.of(JavaToolchainDownload.fromUri(URI.create(uris[index++])));
+            }
+        """
+    }
+
+    static String singleUrlResolverCode(URI uri) {
+        """
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                URI uri = URI.create("${uri.toString()}");
+                return Optional.of(JavaToolchainDownload.fromUri(uri));
+            }
         """
     }
 
     static String noUrlResolverCode() {
-        """return Optional.empty();"""
+        """
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                return Optional.empty();
+            }
+        """
     }
 
 }

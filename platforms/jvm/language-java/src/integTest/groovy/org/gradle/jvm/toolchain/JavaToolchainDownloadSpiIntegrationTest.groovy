@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain
 
 import net.rubygrapefruit.platform.SystemInfo
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.nativeintegration.services.NativeServices
@@ -31,6 +32,7 @@ import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.DEFAULT_PLUGIN
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_RESOLVER
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_TOOLCHAIN_MANAGEMENT
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -67,8 +69,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "downloaded JDK is checked against the spec"() {
+        given:
+        def jdkRepository = new JdkRepository(JavaVersion.VERSION_17)
+        def uri = jdkRepository.start()
+
         settingsFile << """
-            ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
         """
 
         buildFile << """
@@ -90,11 +96,14 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
 
+        and:
+        jdkRepository.stop()
+
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-               .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
+               .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from '$uri'.")
+               .assertHasCause("Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
     }
 
     def "custom toolchain registries are consulted in order"() {
@@ -430,16 +439,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     private static String customToolchainResolverCode() {
         """
-            URI uri = URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
-            return Optional.of(JavaToolchainDownload.fromUri(uri));
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                URI uri = URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                return Optional.of(JavaToolchainDownload.fromUri(uri));
+            }
         """
-    }
-
-    private static String brokenToolchainResolverCode() {
-        """
-            URI uri = URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse");
-            return Optional.of(JavaToolchainDownload.fromUri(uri));
-        """ // todo
     }
 
     private static String os() {

@@ -31,7 +31,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
     HttpServer server
 
     TestFile toolchainArchive
-    String archiveUri
+    URI archiveUri
 
     def setup() {
         toolchainArchive = createZip('toolchain.zip') {
@@ -40,7 +40,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
 
         server.start()
 
-        archiveUri = server.uri.resolve("/path/toolchain.zip").toString()
+        archiveUri = server.uri.resolve("/path/toolchain.zip")
     }
 
     def "can download without authentication"() {

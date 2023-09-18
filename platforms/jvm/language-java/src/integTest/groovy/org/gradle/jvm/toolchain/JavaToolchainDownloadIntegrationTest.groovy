@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.platform.internal.DefaultBuildPlatform
-import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
@@ -73,7 +72,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def 'toolchain selection that requires downloading fails when it is disabled'() {
-        setFoojayDiscoToolchainProvider()
+        settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())}"""
 
         buildFile << """
             apply plugin: "java"
@@ -111,7 +110,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def 'toolchain download on http fails'() {
-        setUnsecuredToolchainProvider()
+        settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", unsecuredToolchainResolverCode())}"""
 
         buildFile << """
             apply plugin: "java"
@@ -140,51 +139,12 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
     }
 
-    private TestFile setFoojayDiscoToolchainProvider() {
-        settingsFile << """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-            }
+    private static String unsecuredToolchainResolverCode() {
         """
-    }
-
-    private TestFile setUnsecuredToolchainProvider() {
-        settingsFile << """
-            public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-
-                void apply(Settings settings) {
-                    settings.getPlugins().apply("jvm-toolchain-management");
-
-                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-                    registry.register(CustomToolchainResolver.class);
-                }
-            }
-
-
-            import java.util.Optional;
-            import org.gradle.platform.BuildPlatform;
-
-            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
-                @Override
-                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    URI uri = URI.create("http://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
-                    return Optional.of(JavaToolchainDownload.fromUri(uri));
-                }
-            }
-
-
-            apply plugin: CustomToolchainResolverPlugin
-
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                        }
-                    }
-                }
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                URI uri = URI.create("http://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                return Optional.of(JavaToolchainDownload.fromUri(uri));
             }
         """
     }

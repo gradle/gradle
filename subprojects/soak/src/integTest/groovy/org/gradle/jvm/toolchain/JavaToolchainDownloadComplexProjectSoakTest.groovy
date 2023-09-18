@@ -16,31 +16,45 @@
 
 package org.gradle.jvm.toolchain
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmVendor
 import spock.lang.Ignore
 
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.JAVA_VERSION
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.multiUrlResolverCode
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
 
-    private static final String FOOJAY_PLUGIN_SECTION = """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-            }
-    """.stripIndent()
+    JdkRepository jdkRepository
+    URI uri
 
     def setup() {
+        jdkRepository = new JdkRepository(JAVA_VERSION)
+        uri = jdkRepository.start()
+
         executer.requireOwnGradleUserHomeDir()
             .withToolchainDownloadEnabled()
     }
 
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
+        jdkRepository.stop()
+    }
+
     def "multiple subprojects with identical toolchain definitions"() {
         given:
-        settingsFile << settingsForBuildWithSubprojects()
+        settingsFile << settingsForBuildWithSubprojects(singleUrlResolverCode(uri))
 
-        setupSubproject("subproject1", "Foo", "ADOPTIUM")
-        setupSubproject("subproject2", "Bar", "ADOPTIUM")
+        def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
+        setupSubproject("subproject1", "Foo", jdkMetadata.vendor)
+        setupSubproject("subproject2", "Bar", jdkMetadata.vendor)
 
         when:
         result = executer
@@ -53,10 +67,16 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
     def "multiple subprojects with different toolchain definitions"() {
         given:
-        settingsFile << settingsForBuildWithSubprojects()
+        def otherJdk = getJdkWithDifferentVendor()
+        def otherUri = new JdkRepository(otherJdk, "other_jdk.zip").start()
 
-        setupSubproject("subproject1", "Foo", "ADOPTIUM")
-        setupSubproject("subproject2", "Bar", "ORACLE")
+
+        settingsFile << settingsForBuildWithSubprojects(multiUrlResolverCode(uri, otherUri))
+
+        def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
+        setupSubproject("subproject1", "Foo", jdkMetadata.vendor)
+        def otherJdkMetadata = getJvmInstallationMetadata(otherJdk)
+        setupSubproject("subproject2", "Bar", otherJdkMetadata.vendor)
 
         when:
         result = executer
@@ -64,13 +84,23 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
                 .withArgument("--info")
                 .run()
 
+
         then:
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*adoptium.*")
-        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*oracle.*")
+
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${jdkMetadata.javaHome.fileName}.*")
+        result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${otherJdkMetadata.javaHome.fileName}.*")
     }
 
-    private String settingsForBuildWithSubprojects() {
-        return """$FOOJAY_PLUGIN_SECTION
+    private Jvm getJdkWithDifferentVendor() {
+        def jdkMetadata = getJvmInstallationMetadata(jdkRepository.getJdk())
+        def filterForOtherJdk = metadata -> jdkRepository.getJdk().getJavaHome() != metadata.javaHome &&
+            JAVA_VERSION == metadata.languageVersion && metadata.vendor.rawVendor != jdkMetadata.vendor.rawVendor
+        AvailableJavaHomes.getAvailableJdks(filterForOtherJdk).stream().findFirst().orElseThrow()
+    }
+
+    private String settingsForBuildWithSubprojects(String resolverCode) {
+        return """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", resolverCode)}
 
             rootProject.name = 'main'
 
@@ -79,7 +109,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         """
     }
 
-    private void setupSubproject(String subprojectName, String className, String vendorName) {
+    private void setupSubproject(String subprojectName, String className, JvmVendor vendor) {
         file("${subprojectName}/build.gradle") << """
             plugins {
                 id 'java'
@@ -88,7 +118,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
-                    vendor = JvmVendorSpec.${vendorName}
+                    vendor = JvmVendorSpec.matching("${vendor.rawVendor}")
                 }
             }
         """
@@ -119,7 +149,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
                 includeBuild 'plugin1'
             }
 
-            $FOOJAY_PLUGIN_SECTION
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
 
             rootProject.name = 'main'
         """
@@ -138,21 +168,27 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
     private void setupIncludedBuild() {
         /*file("plugin1/settings.gradle") << """
-            ${JavaToolchainDownloadUtil.applyToolchainResolverPlugin(JavaToolchainDownloadUtil.singleUrlResolverCode("https://good_for_nothing.com/"))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
+            ${applyToolchainResolverPlugin(
+                "CustormToolchainResolver",
+                singleUrlResolverCode("https://good_for_nothing.com/"),
+                JavaToolchainDownloadUtil.DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('custom') {
+                                    resolverClass = CustomToolchainResolver
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
 
             rootProject.name = 'plugin1'
         """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
-            $FOOJAY_PLUGIN_SECTION
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
 
             rootProject.name = 'plugin1'
         """

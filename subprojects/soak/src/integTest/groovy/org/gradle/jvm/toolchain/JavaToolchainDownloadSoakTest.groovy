@@ -17,22 +17,11 @@
 package org.gradle.jvm.toolchain
 
 
-import org.apache.commons.compress.archivers.ArchiveOutputStream
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
-import org.apache.commons.compress.utils.IOUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.nativeintegration.services.FileSystems
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.RelativePathUtil
-
-import java.nio.file.Files
 
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
@@ -41,9 +30,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
 
-    private static final String getToolchainResolverSection(String uri) {
-        return """${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}"""
-    }
 
     public static final String TOOLCHAIN_WITH_VERSION = """
             java {
@@ -56,12 +42,12 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     JdkRepository jdkRepository
 
     def setup() {
-        jdkRepository = new JdkRepository()
-        jdkRepository.expectHead()
-        jdkRepository.expectGet()
+        jdkRepository = new JdkRepository(JAVA_VERSION)
         def uri = jdkRepository.start()
 
-        settingsFile << getToolchainResolverSection(uri.toString())
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
 
         buildFile << """
             plugins {
@@ -75,6 +61,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         executer.requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
+    }
+
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
+        jdkRepository.stop()
     }
 
     def "can download missing jdk automatically"() {
@@ -142,11 +133,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         } as FileFilter)
     }
 
-    def cleanup() {
-        executer.gradleUserHomeDir.file("jdks").deleteDir()
-        jdkRepository.stop()
-    }
-
     private static File findMarkerFile(File directory) {
         File markerFile
         new SingleIncludePatternFileTree(directory, "**").visit(new FileVisitor() {
@@ -165,77 +151,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
             throw new RuntimeException("Marker file not found in " + directory.getAbsolutePath() + "")
         }
         return markerFile
-    }
-
-    private static class JdkRepository {
-
-        private static final String ARCHIVE_NAME = "jdk.zip"
-
-        private BlockingHttpServer server
-
-        private Jvm jdk
-
-        JdkRepository() {
-            jdk = AvailableJavaHomes.getJdk(JAVA_VERSION)
-            assert jdk != null
-
-            server = new BlockingHttpServer(1000)
-        }
-
-        URI start() {
-            server.start()
-            server.uri(ARCHIVE_NAME)
-        }
-
-        void expectHead() {
-            server.expect(server.head(ARCHIVE_NAME))
-        }
-
-        void expectGet() {
-            server.expect(server.get(ARCHIVE_NAME, { e ->
-                e.sendResponseHeaders(200, 0)
-                zip(jdk.javaHome, e.getResponseBody())
-            }))
-        }
-
-        void stop() {
-            server.stop()
-        }
-
-        private static void zip(File jdkHomeDirectory, OutputStream outputStream) {
-            try (ArchiveOutputStream aos = new ZipArchiveOutputStream(outputStream)) {
-                def jdkHomeParentDirectory = jdkHomeDirectory.getParentFile()
-                List<File> jdkFiles = new LinkedList<>()
-                populateFilesList(jdkFiles, jdkHomeDirectory)
-
-                def fileSystem = FileSystems.getDefault()
-
-                for (File file : jdkFiles) {
-                    def path = RelativePathUtil.relativePath(jdkHomeParentDirectory, file)
-                    ZipArchiveEntry entry = (ZipArchiveEntry) aos.createArchiveEntry(file, path)
-                    entry.setUnixMode(fileSystem.getUnixMode(file))
-                    aos.putArchiveEntry(entry)
-                    if (file.isFile()) {
-                        try (InputStream i = Files.newInputStream(file.toPath())) {
-                            IOUtils.copy(i, aos)
-                        }
-                    }
-                    aos.closeArchiveEntry()
-                }
-                aos.finish()
-            }
-        }
-
-        private static void populateFilesList(List<File> fileList, File dir) throws IOException {
-            File[] files = dir.listFiles()
-            for (File file : files) {
-                if (file.isFile()) {
-                    fileList.add(file)
-                } else {
-                    populateFilesList(fileList, file)
-                }
-            }
-        }
     }
 
 }
