@@ -52,9 +52,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     // The variants to use for variant selection during graph resolution
     private final Lazy<Optional<List<? extends VariantGraphResolveState>>> allVariantsForGraphResolution;
 
-    // The variants of this component to use when variant reselection is enabled
-    private final Lazy<Optional<List<VariantArtifactResolveState>>> allVariantsForArtifactSelection;
-
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
@@ -64,12 +61,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
             variants.stream()
                 .map(ModuleConfigurationMetadata.class::cast)
                 .map(variant -> resolveStateFor(variant).asVariant())
-                .collect(Collectors.toList())
-        ));
-        allVariantsForArtifactSelection = Lazy.locking().of(() -> graphMetadata.getVariantsForGraphTraversal().map(variants ->
-            variants.stream()
-                .map(ModuleConfigurationMetadata.class::cast)
-                .map(variant -> resolveStateFor(variant).asVariant().prepareForArtifactResolution())
                 .collect(Collectors.toList())
         ));
         this.idGenerator = idGenerator;
@@ -103,11 +94,6 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
     @Override
     protected Optional<List<? extends VariantGraphResolveState>> getVariantsForGraphTraversal() {
         return allVariantsForGraphResolution.get();
-    }
-
-    @Override
-    public Optional<List<VariantArtifactResolveState>> getVariantsForArtifactSelection() {
-        return allVariantsForArtifactSelection.get();
     }
 
     @Nullable
