@@ -35,6 +35,23 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.5]]
+== Upgrading from 8.4 and earlier
+
+=== Potential breaking changes
+
+==== Changes to `JavaBasePlugin` conventions
+
+The `java-base` plugin now assumes a maximum of one ` `link:{javadocPath}/org/gradle/jvm/component/internal/JvmSoftwareComponentInternal.html[JvmSoftwareComponentInternal]` component will ever be created.
+The plugin's `java` extension block will now apply source and target compatibility versions and consistent resolution settings to every such component.
+Previously, the plugin would only apply these settings to component named `java`.
+
+As there is no public API for creating components of this type, we do not expect this change to affect many builds.
+
+Additionally, the `groovy-base` plugin will now be responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
+
+If you are using this task *without applying this plugin*, you will have to manually set compatibility versions on these tasks.
+
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 

@@ -92,6 +92,8 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>

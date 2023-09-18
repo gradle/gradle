@@ -30,7 +30,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":language-jvm"))
     implementation(project(":plugins-groovy"))
-    implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":workers"))
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.ant)
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":plugins-java"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
 

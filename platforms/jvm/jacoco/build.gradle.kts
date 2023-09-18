@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":reporting"))
     implementation(project(":file-collections"))

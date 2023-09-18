@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":plugins"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":war"))
 
     implementation(libs.groovy)
