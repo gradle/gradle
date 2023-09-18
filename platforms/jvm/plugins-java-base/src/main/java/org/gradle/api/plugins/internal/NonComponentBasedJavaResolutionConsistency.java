@@ -19,6 +19,7 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.tasks.SourceSetContainer;
 
@@ -28,9 +29,11 @@ import javax.inject.Inject;
  * Provides {@link JavaResolutionConsistency} for non-component based Java projects - by working
  * at the {@link org.gradle.api.tasks.SourceSet} level to align the given configurations for
  * consistent resolution directly.
+ *
+ * Must remain {@code non-final} to be instantiated by {@link ObjectFactory}.
  */
 @NonNullApi
-public final class NonComponentBasedJavaResolutionConsistency extends AbstractJavaResolutionConsistency {
+public abstract class NonComponentBasedJavaResolutionConsistency extends AbstractJavaResolutionConsistency {
     @Inject
     public NonComponentBasedJavaResolutionConsistency(Configuration mainCompileClasspath, Configuration mainRuntimeClasspath, Configuration testCompileClasspath, Configuration testRuntimeClasspath, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         super(mainCompileClasspath, mainRuntimeClasspath, testCompileClasspath, testRuntimeClasspath, sourceSets, configurations);
