@@ -373,8 +373,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         private final String type;
         private final String displayName;
 
-        public ArtifactResolveException(String type, String path, String displayName, Iterable<Throwable> failures) {
-            super(path, failures);
+        public ArtifactResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
+            super(displayName, failures);
             this.type = type;
             this.displayName = displayName;
         }
