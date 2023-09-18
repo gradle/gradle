@@ -27,8 +27,8 @@ import org.gradle.tooling.TestAssertionFailure
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
     def setup() {
-        enableTestJvmDebugging = false
-        enableStdoutProxying = false
+        enableTestJvmDebugging = true
+        enableStdoutProxying = true
     }
 
     def "Wrapped assertion errors are emitted as test failure events using JUnit 4"() {

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,11 +42,11 @@ public class AssertErrorMapper extends TestFailureMapper {
     @Override
     public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
         Throwable cause = throwable.getCause();
-        TestFailure mappedCause = null;
+        List<TestFailure> causeFailure = null;
         if (cause != null) {
-            mappedCause = rootMapper.createFailure(cause);
+            causeFailure = Collections.singletonList(rootMapper.createFailure(cause));
         }
 
-        return TestFailure.fromTestAssertionFailure(throwable, null, null, Collections.singletonList(mappedCause));
+        return TestFailure.fromTestAssertionFailure(throwable, null, null, causeFailure);
     }
 }
