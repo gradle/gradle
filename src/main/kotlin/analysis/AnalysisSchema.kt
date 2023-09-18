@@ -16,6 +16,8 @@ sealed interface DataType {
     data object LongDataType : ConstantType<Long>
     data object StringDataType : ConstantType<String>
     data object BooleanDataType : ConstantType<Boolean>
+    
+    // TODO: implement nulls?
     data object NullType : DataType
 
     // TODO: `Any` type? 

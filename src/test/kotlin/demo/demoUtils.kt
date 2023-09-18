@@ -6,8 +6,7 @@ val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
 val boolean = DataType.BooleanDataType.ref
 
-fun resolve(
-    schema: AnalysisSchema,
+fun AnalysisSchema.resolve(
     code: String
 ): ResolutionResult {
     val ast = parseToAst(code)
@@ -16,7 +15,7 @@ fun resolve(
     val tree = languageBuilder.build(ast.single())
     val resolver: DataObjectResolver = DataObjectResolverImpl()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
-    return resolver.resolve(schema, languageElements)
+    return resolver.resolve(this, languageElements)
 }
 
 fun printResolutionResults(

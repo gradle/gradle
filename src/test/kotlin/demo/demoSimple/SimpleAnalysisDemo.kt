@@ -9,8 +9,7 @@ object SimpleAnalysisDemo {
         val schema = demoSchema()
 
         printResolutionResults(
-            resolve(
-                schema,
+            schema.resolve(
                 """
                     val myB = b()
                     
@@ -37,8 +36,7 @@ object BuilderFunctionsDemo {
         val schema = demoSchema()
         
         printResolutionResults(
-            resolve(
-                schema,
+            schema.resolve(
                 """
                     import com.example.C
                     
