@@ -16,20 +16,16 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
@@ -40,7 +36,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
-import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
@@ -245,10 +240,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         final ProjectInternal projectInternal = (ProjectInternal) project;
 
         project.getPluginManager().apply(JavaBasePlugin.class);
-        project.getPluginManager().apply("org.gradle.jvm-test-suite");
+        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference class by name after project dependency cycles untangled
 
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(
+        DefaultJvmSoftwareComponent component = objectFactory.newInstance(
             DefaultJvmSoftwareComponent.class,
             JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
         );
@@ -264,7 +259,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
 
         configureTestTaskOrdering(project.getTasks());
-        configureBuiltInTest(project, component);
         configureDiagnostics(project, component);
         configureBuild(project);
     }
@@ -285,37 +279,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
     private static void configureTestTaskOrdering(TaskContainer tasks) {
         TaskCollection<Jar> jarTasks = tasks.withType(Jar.class);
         tasks.withType(Test.class).configureEach(test -> test.shouldRunAfter(jarTasks));
-    }
-
-    private static void configureBuiltInTest(Project project, JvmSoftwareComponentInternal component) {
-        TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JavaPluginHelper.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            final SourceSet testSourceSet = suite.getSources();
-            ConfigurationContainer configurations = project.getConfigurations();
-
-            Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
-            Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
-            Configuration testCompileClasspathConfiguration = configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
-            Configuration testRuntimeClasspathConfiguration = configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
-
-            // We cannot reference the main source set lazily (via a callable) since the IntelliJ model builder
-            // relies on the main source set being created before the tests. So, this code here cannot live in the
-            // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
-            // created the main source set.
-            final SourceSet mainSourceSet = component.getMainFeature().getSourceSet();
-            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
-            final FileCollection testSourceSetOutput = testSourceSet.getOutput();
-            testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
-            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
-
-            testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
-            testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
-        });
-
-        // Force the realization of this test suite, targets and task
-        testSuite.get();
-
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
     private static void configureDiagnostics(Project project, JvmSoftwareComponentInternal component) {

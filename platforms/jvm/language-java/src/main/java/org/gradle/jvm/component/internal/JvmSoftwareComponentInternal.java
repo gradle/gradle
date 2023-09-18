@@ -16,7 +16,10 @@
 
 package org.gradle.jvm.component.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 
 /**
@@ -32,6 +35,9 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
  * interface in order to add the proper getter methods? What about the concrete feature class which implements
  * that new interface? Does it extend the default implementation class? Is there a way we can avoid
  * Java inheritance?</p>
+ *
+ * Even though the single implementation of this interface also implements {@link org.gradle.api.component.AdhocComponentWithVariants},
+ * we do not want to extend that interface here, as it is slated for removal.
  */
 public interface JvmSoftwareComponentInternal extends SoftwareComponent {
 
@@ -60,4 +66,12 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      */
     JvmFeatureInternal getMainFeature();
 
+    /**
+     * Sets consistent resolution for this component, this ensures that the runtime classpath of the component
+     * uses the same version of dependencies as the compile classpath.
+     *
+     * @param action the action to configure the consistency
+     * @param project the project containing the component for which to enable consistent resolution
+     */
+    void consistentResolution(Action<? super JavaResolutionConsistency> action, Project project);
 }
