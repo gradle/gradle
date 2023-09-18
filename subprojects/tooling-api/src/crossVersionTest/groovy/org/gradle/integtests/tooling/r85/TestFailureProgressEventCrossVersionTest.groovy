@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r84
+package org.gradle.integtests.tooling.r85
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestFailureSpecification
@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.TestAssertionFailure
 
-@ToolingApiVersion(">=8.4")
-@TargetGradleVersion(">=8.4")
+@ToolingApiVersion(">=8.5")
+@TargetGradleVersion(">=8.5")
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
     def setup() {
