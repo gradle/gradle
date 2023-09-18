@@ -255,7 +255,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
      * Extends {@link org.gradle.api.plugins.internal.AbstractJavaResolutionConsistency} to function on
      * the {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal} that contains this instance.
      */
-    private final class IntraComponentJavaResolutionConsistency extends AbstractJavaResolutionConsistency {
+    private class IntraComponentJavaResolutionConsistency extends AbstractJavaResolutionConsistency {
         @Inject
         public IntraComponentJavaResolutionConsistency(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
             super(mainFeature.getCompileClasspathConfiguration(),
