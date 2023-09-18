@@ -312,9 +312,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24444")
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "value not set because it is derived from a property whose value cannot be configured"() {
         groovyTaskSource << """
             import org.gradle.api.*;
