@@ -136,7 +136,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
             AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
             if (!consumerSchema.withProducer(producerAttributeSchema).isMatching(toConfiguration.getAttributes(), consumerAttributes)) {
-                throw variantSelector.getFailureProcessor().incompatibleConfigurationSelectionFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
+                throw variantSelector.getFailureProcessor().incompatibleGraphVariantsFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
         return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);

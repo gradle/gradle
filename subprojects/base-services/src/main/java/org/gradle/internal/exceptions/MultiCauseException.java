@@ -20,6 +20,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.List;
 
 @UsedByScanPlugin
-public interface MultiCauseException {
+public interface MultiCauseException extends ResolutionProvider {
     List<? extends Throwable> getCauses();
 }
