@@ -78,7 +78,6 @@ unassigned {
     subproject("resources-s3")
     subproject("resources-sftp")
     subproject("plugins")
-    subproject("scala")
     subproject("ide")
     subproject("ide-native")
     subproject("maven")
@@ -173,6 +172,7 @@ platform("jvm") {
     subproject("plugins-java")
     subproject("plugins-jvm-test-suite")
     subproject("plugins-jvm-test-suite-base")
+    subproject("scala")
     subproject("war")
 }
 
