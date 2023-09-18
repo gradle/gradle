@@ -205,7 +205,7 @@ platforms:
   - software:
     name: 'software'
     subprojects:
-      - 'subprojects/antlr/'
+      - 'platforms/software/'
       - 'subprojects/build-init/'
       - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'

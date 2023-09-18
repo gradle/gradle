@@ -82,7 +82,6 @@ unassigned {
     subproject("ide")
     subproject("ide-native")
     subproject("maven")
-    subproject("antlr")
     subproject("tooling-api")
     subproject("build-events")
     subproject("tooling-api-builders")
@@ -152,6 +151,11 @@ platform("core-configuration") {
 platform("ide") {
     subproject("base-ide-plugins")
     subproject("ide-plugins")
+}
+
+// Software Platform
+platform("software") {
+    subproject("antlr")
 }
 
 // JVM Platform

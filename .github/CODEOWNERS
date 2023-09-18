@@ -74,7 +74,7 @@ subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
 subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
-subprojects/antlr/                          @gradle/bt-jvm
+platforms/software/                         @gradle/bt-jvm
 subprojects/build-init/                     @gradle/bt-jvm
 subprojects/dependency-management/          @gradle/bt-jvm
 subprojects/ivy/                            @gradle/bt-jvm
