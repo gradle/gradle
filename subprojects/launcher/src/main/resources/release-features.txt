@@ -1,3 +1,3 @@
- - Faster Java compilation on Windows
  - Compiling and testing with Java 21
- - Role focused configurations creation
+ - Faster Java compilation on Windows
+ - Role focused dependency configurations creation
