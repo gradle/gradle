@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.ThrowableToTestFailureMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
