@@ -205,7 +205,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/build-init/'
       - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
