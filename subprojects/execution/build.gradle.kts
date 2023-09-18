@@ -29,7 +29,6 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":logging"))
     testImplementation(project(":process-services"))
-    testImplementation(project(":model-core"))
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":base-services")))
@@ -43,7 +42,6 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":build-cache"))
     testFixturesImplementation(project(":snapshots"))
-    testFixturesImplementation(project(":model-core"))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

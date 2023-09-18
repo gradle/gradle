@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.reflect.validation;
 
-public interface Location {
+package org.gradle.plugin.devel.tasks.internal;
+
+
+import javax.annotation.Nonnull;
+
+@Nonnull
+public class ValidationTypes {
+    public static final String NOT_CACHEABLE_WITHOUT_REASON = "NOT_CACHEABLE_WITHOUT_REASON";
 }

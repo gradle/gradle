@@ -34,7 +34,6 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -43,6 +42,7 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ANNOTATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
@@ -115,9 +115,9 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 problem
                     .forProperty(propertyName)
                     .label(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
-                    .documentedAt(userManual("validation_problems", "missing_normalization_annotation"))
+                    .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase()))
                     .noLocation()
-                    .type(ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION.name())
+                    .type(MISSING_NORMALIZATION_ANNOTATION)
                     .severity(Severity.ERROR)
                     .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
                     .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath");

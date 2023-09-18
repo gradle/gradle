@@ -52,10 +52,8 @@ import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategor
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
@@ -133,6 +131,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         collectProblems(typeMetadata).empty
     }
 
+    private static final String TEST_PROBLEM = "test.problem"
+
     def "custom annotation handler can inspect for static property problems"() {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> true
@@ -144,7 +144,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -174,7 +174,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -201,7 +201,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("type is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(ValidationProblemId.TEST_PROBLEM.name())
+                    .type(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -406,9 +406,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         String useful
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
     def "warns about and ignores properties that are not annotated"() {
         when:
         def metadata = metadataStore.getTypeMetadata(TypeWithUnannotatedProperties)

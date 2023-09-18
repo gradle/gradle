@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -34,9 +33,6 @@ class ValidationMessageCheckerTest extends Specification implements ValidationMe
     @Delegate
     private VerificationFixture condition
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "tests output of missingValueMessage"() {
         when:
         render(missingValueMessage {
@@ -92,9 +88,6 @@ ${validationMessage("value_not_set")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
-    )
     def "tests outputof methodShouldNotBeAnnotatedMessage"() {
         when:
         render methodShouldNotBeAnnotatedMessage {
@@ -124,9 +117,6 @@ ${validationMessage("ignored_annotations_on_method")}
         new DocumentationRegistry().getDocumentationRecommendationFor("information", "validation_problems", ignoredAnnotationsOnMethod)
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
-    )
     def "tests outputof privateGetterAnnotatedMessage"() {
         when:
         render privateGetterAnnotatedMessage {
@@ -149,9 +139,6 @@ ${validationMessage("private_getter_must_not_be_annotated")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
     def "tests outputof ignoredAnnotatedPropertyMessage"() {
         when:
         render ignoredAnnotatedPropertyMessage {
@@ -175,9 +162,6 @@ ${validationMessage("ignored_property_must_not_be_annotated")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
     def "tests outputof conflictingAnnotationsMessage"() {
         when:
         render conflictingAnnotationsMessage {
@@ -198,9 +182,6 @@ ${validationMessage("conflicting_annotations")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
     def "tests output of annotationInvalidInContext"() {
         when:
         render annotationInvalidInContext {
@@ -259,9 +240,6 @@ Possible solutions:
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
     def "tests output of modifierAnnotationInvalidInContext"() {
         when:
         render modifierAnnotationInvalidInContext {
@@ -285,9 +263,6 @@ ${validationMessage("annotation_invalid_in_context")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
     def "tests output of missingAnnotationMessage"() {
         when:
         render missingAnnotationMessage {
@@ -310,9 +285,6 @@ ${validationMessage("missing_annotation")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
-    )
     def "tests output of ignoredAnnotationOnField"() {
         when:
         render ignoredAnnotationOnField {
@@ -335,9 +307,6 @@ ${validationMessage("ignored_annotations_on_field")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    )
     def "tests output of incompatibleAnnotations"() {
         when:
         render incompatibleAnnotations {
@@ -359,9 +328,6 @@ ${validationMessage("incompatible_annotations")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
-    )
     def "tests output of incorrectUseOfInputAnnotation"() {
         when:
         render incorrectUseOfInputAnnotation {
@@ -386,9 +352,6 @@ ${validationMessage("incorrect_use_of_input_annotation")}
     }
 
 
-    @ValidationTestFor(
-        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
-    )
     def "tests output of serviceReferenceMustBeABuildService"() {
         when:
         render serviceReferenceMustBeABuildService {
@@ -412,9 +375,6 @@ ${validationMessage("service_reference_must_be_a_build_service")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION
-    )
     def "tests output of missingNormalizationStrategy"() {
         when:
         render missingNormalizationStrategy {
@@ -435,9 +395,6 @@ ${validationMessage("missing_normalization_annotation")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
     def "tests output of implicitDependency"() {
         def location = new File(".").absoluteFile
         when:
@@ -463,9 +420,6 @@ ${validationMessage("implicit_dependency")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
     def "tests output of inputDoesNotExist"() {
         def location = dummyLocation()
         when:
@@ -509,9 +463,6 @@ ${validationMessage("input_file_does_not_exist")}
 
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE
-    )
     def "tests output of unexpectedInputType"() {
         def location = new File(".").absoluteFile
 
@@ -537,9 +488,6 @@ ${validationMessage("unexpected_input_file_type")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     def "tests output of cannotWriteToDir"() {
         def location = dummyLocation('/tmp/foo/bar')
         def ancestor = dummyLocation('/tmp/foo')
@@ -583,9 +531,6 @@ ${validationMessage("cannot_write_output")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     def "tests output of cannotWriteToFile"() {
         def location = dummyLocation('/tmp/foo/bar')
         def ancestor = dummyLocation('/tmp/foo')
@@ -631,9 +576,6 @@ ${validationMessage("cannot_write_output")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
-    )
     def "tests output of cannotWriteToReservedLocation"() {
         def reserved = dummyLocation()
 
@@ -656,9 +598,6 @@ ${validationMessage("cannot_write_to_reserved_location")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_OUTPUT
-    )
     def "tests output of cannotCreateRootOfFileTree"() {
         def location = dummyLocation('/tmp/foo/bar')
 
@@ -681,9 +620,6 @@ ${validationMessage("cannot_write_output")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNSUPPORTED_NOTATION
-    )
     def "tests output of unsupportedNotation"() {
         when:
         render unsupportedNotation {
@@ -708,9 +644,6 @@ ${validationMessage("unsupported_notation")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
     def "tests output of invalidUseOfCacheableAnnotation"() {
         when:
         render invalidUseOfCacheableAnnotation {
@@ -732,9 +665,6 @@ ${validationMessage("invalid_use_of_cacheable_annotation")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
-    )
     def "tests output of optionalOnPrimitive"() {
         when:
         render optionalOnPrimitive {
@@ -757,9 +687,6 @@ ${validationMessage("cannot_use_optional_on_primitive_types")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.REDUNDANT_GETTERS
-    )
     def "tests output of redundantGetters"() {
         when:
         render redundantGetters {
@@ -781,9 +708,6 @@ ${validationMessage("redundant_getters")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
-    )
     def "tests output of mutableSetter"() {
         when:
         render mutableSetter {
@@ -804,9 +728,6 @@ ${validationMessage("mutable_type_with_setter")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY
-    )
     def "tests output of invalidUseOfAbsoluteSensitivity"() {
         when:
         render invalidUseOfAbsoluteSensitivity {
@@ -826,9 +747,6 @@ ${validationMessage("cacheable_transform_cant_use_absolute_sensitivity")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "tests output of unknown implementation of nested property implemented by lambda"() {
         when:
         render implementationUnknown(true) {
@@ -849,9 +767,6 @@ ${validationMessage("implementation_unknown")}
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "tests output of unknown implementation of additional task action implemented by lambda"() {
         when:
         render implementationUnknown(true) {
@@ -871,9 +786,6 @@ Possible solution: Use an (anonymous inner) class instead.
 ${validationMessage("implementation_unknown")}"""
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "tests output of unknown implementation with unknown classloader"() {
         when:
         render implementationUnknown(true) {
@@ -893,9 +805,6 @@ Possible solution: Load your class by using one of Gradle's built-in ways.
 ${validationMessage("implementation_unknown")}"""
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
     def "tests output of dummyValidationProblem"() {
         when:
         render dummyValidationProblem('Foo', 'Bar', 'with some description', 'some reason')
@@ -908,9 +817,6 @@ Reason: Some reason.
 """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
     def "displays plugin id when available"() {
         when:
         render dummyValidationProblem {

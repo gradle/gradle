@@ -2792,8 +2792,6 @@ Class <org.gradle.internal.process.ArgWriter> is not annotated (directly or via 
 Class <org.gradle.internal.progress.PercentageProgressFormatter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (PercentageProgressFormatter.java:0)
 Class <org.gradle.internal.progress.ProgressFormatter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ProgressFormatter.java:0)
 Class <org.gradle.internal.progress.SimpleProgressFormatter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SimpleProgressFormatter.java:0)
-Class <org.gradle.internal.reflect.problems.ValidationProblemId> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ValidationProblemId.java:0)
-Class <org.gradle.internal.reflect.validation.Location> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Location.java:0)
 Class <org.gradle.internal.reflect.validation.ReplayingTypeValidationContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ReplayingTypeValidationContext.java:0)
 Class <org.gradle.internal.reflect.validation.TypeValidationContext$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TypeValidationContext.java:0)
 Class <org.gradle.internal.reflect.validation.TypeValidationContext> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TypeValidationContext.java:0)

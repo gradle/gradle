@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.builder;
-import static org.gradle.internal.reflect.problems.ValidationProblemId.onlyAffectsCacheableWork;
+import static org.gradle.internal.reflect.DefaultTypeValidationContext.onlyAffectsCacheableWork;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();

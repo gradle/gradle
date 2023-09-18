@@ -27,7 +27,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -133,6 +132,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         });
     }
 
+    private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
+
     private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
@@ -142,7 +143,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                .type(UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
@@ -158,7 +159,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
+                .type(UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)

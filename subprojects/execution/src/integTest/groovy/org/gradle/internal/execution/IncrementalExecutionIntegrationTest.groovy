@@ -64,7 +64,6 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
@@ -280,7 +279,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.type(ValidationProblemId.TEST_PROBLEM.name())
+                        it.type("test.problem")
                             .label("Validation problem")
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
@@ -594,7 +593,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         .label("Validation error")
                         .documentedAt(Documentation.userManual("id", "section"))
                         .noLocation()
-                        .type(ValidationProblemId.TEST_PROBLEM.name())
+                        .type("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)
                 }
