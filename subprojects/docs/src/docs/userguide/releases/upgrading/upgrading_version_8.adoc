@@ -42,7 +42,7 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Changes to `JavaBasePlugin` conventions
 
-The `java-base` plugin now assumes a maximum of one `link:{javadocPath}/org/gradle/jvm/component/internal/JvmSoftwareComponentInternal.html[JvmSoftwareComponentInternal]` component will ever be created.
+The `java-base` plugin now assumes a maximum of one `link:{javadocPath}/org/gradle/api/component/Component.html[Component]` with the *internal* type `JvmSoftwareComponentInternal` will ever be created.
 The plugin's `java` extension block will now apply source and target compatibility versions and consistent resolution settings to every such component.
 Previously, the plugin would only apply these settings to component named `java`.
 
