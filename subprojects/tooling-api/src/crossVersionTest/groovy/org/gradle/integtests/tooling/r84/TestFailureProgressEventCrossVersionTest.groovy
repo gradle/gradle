@@ -41,7 +41,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
             public class JUnitTest {
                 @Test
-                public void testingFileComparisonFailure() {
+                public void test() {
                     throw new RuntimeException(
                         "This exception wraps an assertion error",
                         new AssertionError("This is a wrapped assertion error")
@@ -73,7 +73,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
             public class JUnitTest {
                 @Test
-                void testingFileComparisonFailure() {
+                void test() {
                     throw new RuntimeException(
                         "This exception wraps an assertion error",
                         new AssertionError("This is a wrapped assertion error")
@@ -95,7 +95,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         failure.message == "This is a wrapped assertion error"
     }
 
-    def "Hierarchical assertion exceptions retain hierarchy using JUnit 5"() {
+    def "Test failure contains mapped causes using JUnit 5"() {
         given:
         setupJUnit5()
         file('src/test/java/org/gradle/JUnitTest.java') << '''
@@ -105,7 +105,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
             public class JUnitTest {
                 @Test
-                void testingFileComparisonFailure() {
+                void test() {
                     throw new AssertionError(
                         "This exception wraps an assertion error",
                         new AssertionError("This is a wrapped assertion error")
@@ -131,7 +131,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         failure.causes[0].message == "This is a wrapped assertion error"
     }
 
-    def "Hierarchical assertion exceptions retain hierarchy using JUnit 4"() {
+    def "Test failure contains mapped causes using JUnit 4"() {
         given:
         setupJUnit4()
         file('src/test/java/org/gradle/JUnitTest.java') << '''
@@ -141,7 +141,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
             public class JUnitTest {
                 @Test
-                void testingFileComparisonFailure() {
+                public void test() {
                     throw new AssertionError(
                         "This exception wraps an assertion error",
                         new AssertionError("This is a wrapped assertion error")
