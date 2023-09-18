@@ -240,7 +240,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         final ProjectInternal projectInternal = (ProjectInternal) project;
 
         project.getPluginManager().apply(JavaBasePlugin.class);
-        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference class by name after project dependency cycles untangled
+        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
 
         // Create the 'java' component.
         DefaultJvmSoftwareComponent component = objectFactory.newInstance(
