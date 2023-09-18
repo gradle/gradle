@@ -34,23 +34,15 @@ import org.gradle.util.internal.RelativePathUtil
 
 import java.nio.file.Files
 
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
+
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
 
     private static final String getToolchainResolverSection(String uri) {
-        return """
-            ${JavaToolchainDownloadUtil.applyToolchainResolverPlugin(JavaToolchainDownloadUtil.singleUrlResolverCode(uri))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                        }
-                    }
-                }
-            }
-    """.stripIndent()
+        return """${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}"""
     }
 
     public static final String TOOLCHAIN_WITH_VERSION = """

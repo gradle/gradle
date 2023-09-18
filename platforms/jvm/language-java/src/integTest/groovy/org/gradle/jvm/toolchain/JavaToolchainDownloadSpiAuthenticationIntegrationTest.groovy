@@ -23,6 +23,7 @@ import org.junit.Rule
 
 import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static JavaToolchainDownloadUtil.singleUrlResolverCode
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.DEFAULT_PLUGIN
 
 class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -45,15 +46,6 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
     def "can download without authentication"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(archiveUri))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                        }
-                    }
-                }
-            }
         """
 
         buildFile << """
@@ -88,25 +80,27 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
     }
 
     def "can download with basic authentication"() {
-        settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(archiveUri))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                            credentials {
-                                username "user"
-                                password "password"
-                            }
-                            authentication {
-                                digest(BasicAuthentication)
+        settingsFile <<
+            applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(archiveUri), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('custom') {
+                                    resolverClass = CustomToolchainResolver
+                                    credentials {
+                                        username "user"
+                                        password "password"
+                                    }
+                                    authentication {
+                                        digest(BasicAuthentication)
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-        """
+                """
+        )
 
         buildFile << """
             apply plugin: "java"

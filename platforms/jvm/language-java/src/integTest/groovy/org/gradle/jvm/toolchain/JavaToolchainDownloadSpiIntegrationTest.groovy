@@ -28,21 +28,15 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.DEFAULT_PLUGIN
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_RESOLVER
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_TOOLCHAIN_MANAGEMENT
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject custom toolchain registry via settings plugin"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                        }
-                    }
-                }
-            }
         """
 
         buildFile << """
@@ -75,15 +69,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     def "downloaded JDK is checked against the spec"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('broken') {
-                            resolverClass = BrokenToolchainResolver
-                        }
-                    }
-                }
-            }
         """
 
         buildFile << """
@@ -114,20 +99,23 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode ())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver
-                        }
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless') {
+                                    resolverClass = UselessToolchainResolver
+                                }
+                                repository('custom') {
+                                    resolverClass = CustomToolchainResolver
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
         """
 
         buildFile << """
@@ -159,20 +147,22 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on registration collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode(), "UselessPlugin1")}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", null, "UselessPlugin2")}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver1
-                        }
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver2
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", NO_RESOLVER, "UselessPlugin1", NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode(), "UselessPlugin2",
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless') {
+                                    resolverClass = UselessToolchainResolver1
+                                }
+                                repository('useless') {
+                                    resolverClass = UselessToolchainResolver2
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """)}
         """
 
         buildFile << """
@@ -201,19 +191,22 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on implementation class collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless1') {
-                            resolverClass = UselessToolchainResolver
-                        }
-                        repository('useless2') {
-                            resolverClass = UselessToolchainResolver
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless1') {
+                                    resolverClass = UselessToolchainResolver
+                                }
+                                repository('useless2') {
+                                    resolverClass = UselessToolchainResolver
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
         """
 
         buildFile << """
@@ -241,20 +234,23 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails on repository name collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver1
-                        }
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver2
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless') {
+                                    resolverClass = UselessToolchainResolver1
+                                }
+                                repository('useless') {
+                                    resolverClass = UselessToolchainResolver2
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
         """
 
         buildFile << """
@@ -282,21 +278,24 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "list of requested repositories can be queried"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver3", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless3') {
-                            resolverClass = UselessToolchainResolver3
-                        }
-                        repository('useless1') {
-                            resolverClass = UselessToolchainResolver1
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver3", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless3') {
+                                    resolverClass = UselessToolchainResolver3
+                                }
+                                repository('useless1') {
+                                    resolverClass = UselessToolchainResolver1
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
 
             println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().getAsList().collect { it.getName() }}.\"\"\")
         """
@@ -326,24 +325,27 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "created repository can be removed"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode())}
-            ${applyToolchainResolverPlugin("UselessToolchainResolver3", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless1') {
-                            resolverClass = UselessToolchainResolver1
-                        }
-                        repository('useless2') {
-                            resolverClass = UselessToolchainResolver2
-                        }
-                        repository('useless3') {
-                            resolverClass = UselessToolchainResolver3
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", noUrlResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
+            ${applyToolchainResolverPlugin("UselessToolchainResolver3", noUrlResolverCode(), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('useless1') {
+                                    resolverClass = UselessToolchainResolver1
+                                }
+                                repository('useless2') {
+                                    resolverClass = UselessToolchainResolver2
+                                }
+                                repository('useless3') {
+                                    resolverClass = UselessToolchainResolver3
+                                }
+                            }
                         }
                     }
-                }
-            }
+                """
+            )}
 
             toolchainManagement.jvm.javaRepositories.remove('useless2')
 
@@ -376,15 +378,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     def "cannot mutate repository rules after settings have been evaluated"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("UselessToolchainResolver", noUrlResolverCode())}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('useless') {
-                            resolverClass = UselessToolchainResolver
-                        }
-                    }
-                }
-            }
         """
 
         buildFile << """
@@ -400,7 +393,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
     def "throws informative error on repositories not being configured"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
         """
 
         buildFile << """
@@ -446,7 +439,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         """
             URI uri = URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse");
             return Optional.of(JavaToolchainDownload.fromUri(uri));
-        """
+        """ // todo
     }
 
     private static String os() {

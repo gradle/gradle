@@ -18,7 +18,23 @@ package org.gradle.jvm.toolchain
 
 class JavaToolchainDownloadUtil {
 
-    static String applyToolchainResolverPlugin(String resolverClass = "CustomToolchainResolver", String code, String pluginName = null) {
+    public static final String NO_RESOLVER = null
+
+    public static final String NO_TOOLCHAIN_MANAGEMENT = ""
+
+    public static final String DEFAULT_TOOLCHAIN_MANAGEMENT = null
+
+    public static final String DEFAULT_PLUGIN = null
+
+    static String applyToolchainResolverPlugin(String resolverClass, String resolverCode) {
+        applyToolchainResolverPlugin(resolverClass, resolverCode, DEFAULT_PLUGIN, DEFAULT_TOOLCHAIN_MANAGEMENT)
+    }
+
+    static String applyToolchainResolverPlugin(String resolverClass, String resolverCode, String pluginName) {
+        applyToolchainResolverPlugin(resolverClass, resolverCode, pluginName, DEFAULT_TOOLCHAIN_MANAGEMENT)
+    }
+
+    static String applyToolchainResolverPlugin(String resolverClass, String resolverCode, String pluginName, String toolchainManagementCode) {
         if (pluginName == null) {
             pluginName = resolverClass + "Plugin"
         }
@@ -38,16 +54,28 @@ class JavaToolchainDownloadUtil {
             import java.util.Optional;
             import org.gradle.platform.BuildPlatform;
 
-            ${(code == null) ? "" : """
+            ${(resolverCode == null) ? "" : """
                 public abstract class ${resolverClass} implements JavaToolchainResolver {
                     @Override
                     public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                        ${code}
+                        ${resolverCode}
                     }
                 }
             """}
 
             apply plugin: ${pluginName}
+
+            ${(toolchainManagementCode != null) ? toolchainManagementCode : """
+                toolchainManagement {
+                    jvm {
+                        javaRepositories {
+                            repository('custom') {
+                                resolverClass = ${resolverClass}
+                            }
+                        }
+                    }
+                }
+            """}
         """
     }
 

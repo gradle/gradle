@@ -27,11 +27,14 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.*
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails for missing combination"() {
-        setFoojayDiscoToolchainProvider()
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())}
+        """
 
         buildFile << """
             apply plugin: "java"
