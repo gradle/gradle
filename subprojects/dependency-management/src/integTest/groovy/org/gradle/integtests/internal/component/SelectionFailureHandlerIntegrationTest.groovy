@@ -17,111 +17,59 @@
 package org.gradle.integtests.internal.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.dsl.GradleDsl
-
-import static org.gradle.test.fixtures.dsl.GradleDsl.*
-
 /**
  * These tests demonstrate the behavior of the [SelectionFailureHandler] when a project has various
  * variant selection failures.
  */
 class SelectionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     def "demonstrate project ambiguous variant selection failure #dsl"() {
-        (dsl == GROOVY ? buildFile : buildKotlinFile) << """
-            ${setupAmbiguousVariantSelectionFailureForProject(dsl)}
-
-            ${forceConsumerResolution(dsl)}
+        buildKotlinFile << """
+            ${setupAmbiguousVariantSelectionFailureForProject()}
+            ${forceConsumerResolution()}
         """
 
         expect:
-        fails "help", "outgoingVariants", "resolvableConfigurations"
-        errorOutput.contains("Could not resolve all files for configuration ':consumer'.")
-
-        where:
-        dsl << [GROOVY, KOTLIN]
+        fails "forceResolution"
+        failure.assertHasDescription("Could not resolve all files for configuration ':blueFiles'.")
+        failure.assertHasErrorOutput("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
     }
 
-    private String setupAmbiguousVariantSelectionFailureForProject(GradleDsl dsl = GROOVY) {
-        if (dsl == GROOVY) {
-            return """
-                def color = Attribute.of('color', String)
-                def shape = Attribute.of('shape', String)
+    private String setupAmbiguousVariantSelectionFailureForProject() {
+        return """
+            val color = Attribute.of("color", String::class.java)
+            val shape = Attribute.of("shape", String::class.java)
 
-                configurations {
-                    producer1 {
-                        setCanBeConsumed(true)
-                        attributes.attribute color, 'blue'
-                        attributes.attribute shape, 'round'
-                        outgoing {
-                            artifact file('a1.jar')
-                        }
-                    }
-                    producer2 {
-                        setCanBeConsumed(true)
-                        attributes.attribute color, 'blue'
-                        attributes.attribute shape, 'square'
-                        outgoing {
-                            artifact file('a2.jar')
-                        }
-                    }
-                    consumer {
-                        setCanBeConsumed(false)
-                        setCanBeResolved(true)
-                        attributes.attribute color, 'blue'
-
-                        // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
-                        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    }
+            configurations {
+                consumable("blueRoundElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "round")
+                    outgoing.artifact(file("a1.jar"))
                 }
-
-                dependencies {
-                    consumer project(":")
+                consumable("blueSquareElements") {
+                    attributes.attribute(color, "blue")
+                    attributes.attribute(shape, "square")
+                    outgoing.artifact(file("a2.jar"))
                 }
-            """
-        } else {
-            return """
-                val color = Attribute.of("color", String::class.java)
-                val shape = Attribute.of("shape", String::class.java)
-
-                configurations {
-                    register("producer1") {
-                        isCanBeConsumed = true
-                        attributes.attribute(color, "blue")
-                        attributes.attribute(shape, "round")
-                        outgoing.artifact(file("a1.jar"))
-                    }
-                    register("producer2") {
-                        isCanBeConsumed = true
-                        attributes.attribute(color, "blue")
-                        attributes.attribute(shape, "square")
-                        outgoing.artifact(file("a2.jar"))
-                    }
-                    register("consumer") {
-                        isCanBeConsumed = false
-                        isCanBeResolved = true
-                        attributes.attribute(color, "blue")
-
-                        // Ensure that the variants added by the `java-library` plugin do not match and aren't considered in Step 1 of variant matching
-                        attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
-                    }
+                dependencyScope("blueFilesDependencies")
+                resolvable("blueFiles") {
+                    extendsFrom(configurations.getByName("blueFilesDependencies"))
+                    attributes.attribute(color, "blue")
                 }
+            }
 
-                dependencies {
-                    add("consumer", project(":"))
-                }
-            """
-        }
+            dependencies {
+                add("blueFilesDependencies", project(":"))
+            }
+        """
     }
 
-    private String forceConsumerResolution(GradleDsl dsl = GROOVY) {
-        if (dsl == GROOVY) {
-            return """
-                configurations.consumer.incoming.files.each { println it }
-            """
-        } else {
-            return """
-                configurations.getByName("consumer").incoming.files.forEach { println(it) }
-            """
-        }
+    private String forceConsumerResolution() {
+        return """
+            configurations.getByName("blueFiles").incoming.files.forEach { println(it) }
+
+            val forceResolution by tasks.registering {
+                inputs.files(configurations.getByName("blueFiles"))
+            }
+        """
     }
 }

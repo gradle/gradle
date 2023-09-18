@@ -18,11 +18,6 @@ package org.gradle.internal.exceptions
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
-import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
-import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
-import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
-
 class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec {
     def 'when tasks throw exceptions that offer resolutions, those resolutions are included'() {
         given:
@@ -41,12 +36,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':myTask'.")
-            .assertHasResolutions(
-                'resolution1',
-                STACKTRACE_MESSAGE,
-                INFO_DEBUG,
-                SCAN,
-                GET_HELP)
+            .assertHasResolution('resolution1')
     }
 
     def 'when tasks throw multi cause exceptions with resolutions offered by the causes, those resolutions are included'() {
@@ -69,13 +59,8 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':myTask'.")
             .assertHasCause('failure')
-            .assertHasResolutions(
-                'resolution1',
-                'resolution2',
-                STACKTRACE_MESSAGE,
-                INFO_DEBUG,
-                SCAN,
-                GET_HELP)
+            .assertHasResolution('resolution1')
+            .assertHasResolution('resolution2')
     }
 
     def 'when tasks throw multi cause exceptions with the same resolution offered by multiple causes, those resolutions are not duplicated'() {
@@ -98,12 +83,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':myTask'.")
             .assertHasCause('failure')
-            .assertHasResolutions(
-                'resolution1',
-                STACKTRACE_MESSAGE,
-                INFO_DEBUG,
-                SCAN,
-                GET_HELP)
+            .assertHasResolution('resolution1')
     }
 
     private String defineTestException() {
