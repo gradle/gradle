@@ -30,7 +30,7 @@ class SelectionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "forceResolution"
-        failure.assertHasDescription("Could not resolve all files for configuration ':blueFiles'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasErrorOutput("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
     }
 
@@ -65,8 +65,6 @@ class SelectionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private String forceConsumerResolution() {
         return """
-            configurations.getByName("blueFiles").incoming.files.forEach { println(it) }
-
             val forceResolution by tasks.registering {
                 inputs.files(configurations.getByName("blueFiles"))
             }
