@@ -101,11 +101,7 @@ unassigned {
     subproject("model-core")
     subproject("model-groovy")
     subproject("build-cache-http")
-    subproject("testing-base")
     subproject("testing-native")
-    subproject("testing-jvm")
-    subproject("testing-jvm-infrastructure")
-    subproject("testing-junit-platform")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
@@ -154,6 +150,7 @@ platform("ide") {
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("testing-base")
 }
 
 // JVM Platform
@@ -173,6 +170,9 @@ platform("jvm") {
     subproject("plugins-jvm-test-suite")
     subproject("plugins-jvm-test-suite-base")
     subproject("scala")
+    subproject("testing-jvm")
+    subproject("testing-jvm-infrastructure")
+    subproject("testing-junit-platform")
     subproject("war")
 }
 
