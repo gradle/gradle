@@ -463,7 +463,7 @@
   },
   {
     "name": "java-compiler-plugin",
-    "path": "subprojects/java-compiler-plugin",
+    "path": "platforms/jvm/java-compiler-plugin",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
