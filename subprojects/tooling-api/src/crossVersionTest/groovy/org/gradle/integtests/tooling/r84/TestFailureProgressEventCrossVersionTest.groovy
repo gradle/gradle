@@ -27,19 +27,19 @@ import org.gradle.tooling.TestAssertionFailure
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
 
     def setup() {
-        enableTestJvmDebugging = true
-        enableStdoutProxying = true
+        enableTestJvmDebugging = false
+        enableStdoutProxying = false
     }
 
     def "Wrapped assertion errors are emitted as test failure events using JUnit 4"() {
         given:
         setupJUnit4()
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
             package org.gradle;
 
             import org.junit.Test;
 
-            public class JUnitJupiterTest {
+            public class JUnitTest {
                 @Test
                 public void testingFileComparisonFailure() {
                     throw new RuntimeException(
@@ -66,12 +66,12 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
     def "Wrapped assertion errors are emitted as test failure events using JUnit 5"() {
         given:
         setupJUnit5()
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
             package org.gradle;
 
             import org.junit.jupiter.api.Test;
 
-            public class JUnitJupiterTest {
+            public class JUnitTest {
                 @Test
                 void testingFileComparisonFailure() {
                     throw new RuntimeException(
@@ -98,12 +98,48 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
     def "Hierarchical assertion exceptions retain hierarchy using JUnit 5"() {
         given:
         setupJUnit5()
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
             package org.gradle;
 
             import org.junit.jupiter.api.Test;
 
-            public class JUnitJupiterTest {
+            public class JUnitTest {
+                @Test
+                void testingFileComparisonFailure() {
+                    throw new AssertionError(
+                        "This exception wraps an assertion error",
+                        new AssertionError("This is a wrapped assertion error")
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+
+        TestAssertionFailure failure = collector.failures[0]
+        failure.message == "This exception wraps an assertion error"
+
+        failure.causes.size() == 1
+        failure.causes[0] instanceof TestAssertionFailure
+        failure.causes[0].message == "This is a wrapped assertion error"
+    }
+
+    def "Hierarchical assertion exceptions retain hierarchy using JUnit 4"() {
+        given:
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+
+            public class JUnitTest {
                 @Test
                 void testingFileComparisonFailure() {
                     throw new AssertionError(
