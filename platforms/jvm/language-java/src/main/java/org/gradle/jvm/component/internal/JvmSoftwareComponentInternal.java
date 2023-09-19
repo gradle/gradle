@@ -70,6 +70,10 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      * Sets consistent resolution for this component, this ensures that the runtime classpath of the component
      * uses the same version of dependencies as the compile classpath.
      *
+     * This also configures all {@link org.gradle.api.tasks.SourceSet}s in the project to resolve consistently
+     * with themselves, aligning their compile and runtime configurations as requested.  This is done in order
+     * to support custom {@link org.gradle.api.component.Component}-less source sets.
+     *
      * @param action the action to configure the consistency
      * @param project the project containing the component for which to enable consistent resolution
      */
