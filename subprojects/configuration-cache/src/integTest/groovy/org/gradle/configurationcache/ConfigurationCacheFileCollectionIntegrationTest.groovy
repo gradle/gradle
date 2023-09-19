@@ -212,7 +212,7 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
     }
 
     @Issue('https://github.com/gradle/gradle/issues/26352')
-    def 'ConfigurableFileCollection filter is lazy'() {
+    def 'intricate ConfigurableFileCollection filter chain carries task dependencies'() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 
