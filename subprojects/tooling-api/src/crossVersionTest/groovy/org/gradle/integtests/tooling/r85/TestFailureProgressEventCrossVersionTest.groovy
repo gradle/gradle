@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         failure.message == "This is a wrapped assertion error"
     }
 
-    def "Test failure contains mapped causes using JUnit 5"() {
+    def "Test failure using standard AssertionError contains mapped causes using JUnit 5"() {
         given:
         setupJUnit5()
         file('src/test/java/org/gradle/JUnitTest.java') << '''
@@ -120,18 +120,21 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
         then:
         thrown(BuildException)
+
+        // Extract and assert the wrapper failure
         collector.failures.size() == 1
         collector.failures[0] instanceof TestAssertionFailure
-
-        TestAssertionFailure failure = collector.failures[0]
+        def failure = collector.failures[0] as TestAssertionFailure
         failure.message == "This exception wraps an assertion error"
 
+        // Extract and assert the wrapped failure
         failure.causes.size() == 1
         failure.causes[0] instanceof TestAssertionFailure
-        failure.causes[0].message == "This is a wrapped assertion error"
+        def cause = failure.causes[0] as TestAssertionFailure
+        cause.message == "This is a wrapped assertion error"
     }
 
-    def "Test failure contains mapped causes using JUnit 4"() {
+    def "Test failure using standard AssertionError contains mapped causes using JUnit 4"() {
         given:
         setupJUnit4()
         file('src/test/java/org/gradle/JUnitTest.java') << '''
@@ -156,15 +159,102 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
 
         then:
         thrown(BuildException)
+
+        // Extract and assert the wrapper failure
         collector.failures.size() == 1
         collector.failures[0] instanceof TestAssertionFailure
-
-        TestAssertionFailure failure = collector.failures[0]
+        def failure = collector.failures[0] as TestAssertionFailure
         failure.message == "This exception wraps an assertion error"
 
+        // Extract and assert the wrapped failure
         failure.causes.size() == 1
         failure.causes[0] instanceof TestAssertionFailure
-        failure.causes[0].message == "This is a wrapped assertion error"
+        def cause = failure.causes[0] as TestAssertionFailure
+        cause.message == "This is a wrapped assertion error"
+    }
+
+    def "Test failure using AssertionFailedError contains mapped causes using JUnit 5"() {
+        given:
+        setupJUnit5()
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+            import org.opentest4j.AssertionFailedError;
+
+            public class JUnitTest {
+                @Test
+                void test() {
+                    throw new AssertionError(
+                        "This exception wraps an assertion error",
+                        new AssertionFailedError("This is a wrapped assertion error", "expected", "actual")
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+
+        // Extract and assert the wrapper failure
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+        def failure = collector.failures[0] as TestAssertionFailure
+        failure.message == "This exception wraps an assertion error"
+
+        // Extract and assert the wrapped failure
+        failure.causes.size() == 1
+        failure.causes[0] instanceof TestAssertionFailure
+        def cause = failure.causes[0] as TestAssertionFailure
+        cause.message == "This is a wrapped assertion error"
+        cause.getExpected() == "expected"
+        cause.getActual() == "actual"
+    }
+
+    def "Test failure using AssertionFailedError contains mapped causes using JUnit 4"() {
+        given:
+        setupJUnit4()
+        file('src/test/java/org/gradle/JUnitTest.java') << '''
+            package org.gradle;
+
+            import org.junit.Test;
+            import org.opentest4j.AssertionFailedError;
+
+            public class JUnitTest {
+                @Test
+                public void test() {
+                    throw new AssertionError(
+                        "This exception wraps an assertion error",
+                        new AssertionFailedError("This is a wrapped assertion error", "expected", "actual")
+                    );
+                }
+            }
+        '''
+        def collector = new TestFailureEventCollector()
+
+        when:
+        runTestTaskWithFailureCollection(collector)
+
+        then:
+        thrown(BuildException)
+
+        // Extract and assert the wrapper failure
+        collector.failures.size() == 1
+        collector.failures[0] instanceof TestAssertionFailure
+        def failure = collector.failures[0] as TestAssertionFailure
+        failure.message == "This exception wraps an assertion error"
+
+        // Extract and assert the wrapped failure
+        failure.causes.size() == 1
+        failure.causes[0] instanceof TestAssertionFailure
+        def cause = failure.causes[0] as TestAssertionFailure
+        cause.message == "This is a wrapped assertion error"
+        cause.getExpected() == "expected"
+        cause.getActual() == "actual"
     }
 
 }
