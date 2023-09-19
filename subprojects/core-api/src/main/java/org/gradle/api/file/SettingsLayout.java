@@ -33,6 +33,8 @@ import java.io.File;
  * An instance of this type can be injected into a plugin or other object by
  * annotating a public constructor or method with {@code javax.inject.Inject}.
  * It is also available via {@link Settings#getLayout()}.
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  *
  * @since 8.5
  */
@@ -43,7 +45,6 @@ public interface SettingsLayout extends FileSystemLayout {
      * Returns the settings directory.
      * <p>
      * The settings directory is the directory containing the settings file.
-     * </p>
      *
      * @see Settings#getSettingsDir()
      */
@@ -53,7 +54,6 @@ public interface SettingsLayout extends FileSystemLayout {
      * Returns the root directory of the build.
      * <p>
      * The root directory is the project directory of the root project.
-     * </p>
      *
      * @see Settings#getRootDir()
      */
@@ -66,7 +66,6 @@ public interface SettingsLayout extends FileSystemLayout {
      * <p>
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
-     * </p>
      */
     @Override
     Provider<RegularFile> file(Provider<File> file);
@@ -77,7 +76,6 @@ public interface SettingsLayout extends FileSystemLayout {
      * <p>
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
-     * </p>
      */
     @Override
     Provider<Directory> dir(Provider<File> file);

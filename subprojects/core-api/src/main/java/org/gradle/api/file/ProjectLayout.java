@@ -31,6 +31,7 @@ import java.io.File;
  *
  * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getLayout()}.
  *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * @since 4.1
  */
 @ServiceScope(Scopes.Project.class)
@@ -47,23 +48,18 @@ public interface ProjectLayout extends FileSystemLayout {
 
     /**
      * {@inheritDoc}
-     *
-     *  <p>
-     *  File system locations based on relative paths will be
-     *  resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
-     *  </p>
-     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
      */
     @Override
     Provider<RegularFile> file(Provider<File> file);
 
     /**
      * {@inheritDoc}
-     *
      * <p>
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
-     * </p>
      *
      * @since 6.0
      */
