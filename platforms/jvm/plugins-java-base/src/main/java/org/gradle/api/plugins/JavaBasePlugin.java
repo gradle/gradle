@@ -330,6 +330,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
                 return javaVersionSupplier.get();
             });
+
+            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
