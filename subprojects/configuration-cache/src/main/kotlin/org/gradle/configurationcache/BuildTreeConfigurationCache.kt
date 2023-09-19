@@ -34,9 +34,9 @@ interface BuildTreeConfigurationCache {
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
      * writes the result to the cache.
      *
-     * @param tasksOnly True if tasks execution only was requested. False if model building for tasks was requested.
+     * @param isModelBuildingRequested True if tasks scheduling was requested as a part of model building process. False if only tasks schedule was requested.
      */
-    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph, tasksOnly: Boolean): WorkGraphResult
+    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph, isModelBuildingRequested: Boolean): WorkGraphResult
 
     /**
      * Loads the scheduled tasks from cache.

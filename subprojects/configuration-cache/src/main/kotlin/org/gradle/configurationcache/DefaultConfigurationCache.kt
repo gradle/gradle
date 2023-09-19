@@ -129,7 +129,7 @@ class DefaultConfigurationCache internal constructor(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph,
-        tasksOnly: Boolean
+        isModelBuildingRequested: Boolean
     ): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
@@ -141,7 +141,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph(tasksOnly)
+                saveWorkGraph(isModelBuildingRequested)
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -335,11 +335,11 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun saveWorkGraph(tasksOnly: Boolean) {
+    fun saveWorkGraph(isModelBuildingRequested: Boolean) {
         saveToCache(
             stateType = StateType.Work,
             action = { stateFile -> writeConfigurationCacheState(stateFile) },
-            onSaveFinish = { if (tasksOnly) scopeRegistryListener.dispose() }
+            onSaveFinish = { if (!isModelBuildingRequested) scopeRegistryListener.dispose() }
         )
     }
 

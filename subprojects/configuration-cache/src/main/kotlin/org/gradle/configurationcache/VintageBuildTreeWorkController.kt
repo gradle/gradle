@@ -31,7 +31,7 @@ class VintageBuildTreeWorkController(
     private val taskGraph: BuildTreeWorkGraphController
 ) : BuildTreeWorkController {
 
-    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?, tasksOnly: Boolean): ExecutionResult<Void> {
+    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?, isModelBuildingRequested: Boolean): ExecutionResult<Void> {
         return taskGraph.withNewWorkGraph { graph: BuildTreeWorkGraph ->
             val finalizedGraph: BuildTreeWorkGraph.FinalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector)
             workExecutor.execute(finalizedGraph)
