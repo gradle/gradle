@@ -7,11 +7,11 @@ import kotlin.reflect.full.*
 fun schemaFromTypes(topLevelReceiver: KClass<*>, types: List<KClass<*>>): AnalysisSchema {
     val preIndex = createPreIndex(types)
 
-    val types = types.map { createDataType(it, preIndex) }
+    val dataTypes = types.map { createDataType(it, preIndex) }
 
     return AnalysisSchema(
-        types.single { it.kClass == topLevelReceiver },
-        types.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
+        dataTypes.single { it.kClass == topLevelReceiver },
+        dataTypes.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
         emptyMap(),
         emptyMap(),
         emptySet()
@@ -65,7 +65,7 @@ private fun constructors(kClass: KClass<*>, preIndex: PreIndex): List<DataConstr
     kClass.constructors.map { constructor ->
         val params = constructor.parameters
         val dataParams = params.mapIndexedNotNull { index, param ->
-            dataParameterIfNotLambda(param, kClass, preIndex)
+            dataParameter(constructor, param, kClass, FunctionSemantics.Pure(typeToRef(kClass)), preIndex)
         }
         DataConstructorSignature(dataParams)
     }
@@ -91,44 +91,48 @@ private fun dataMemberFunction(
     val returnClass = returnTypeClassifier as KClass<*>
     val fnParams = function.parameters
 
-    val params = fnParams.mapIndexedNotNull { index, fnParam ->
-        if (fnParam == function.instanceParameter) null else {
-            dataParameterIfNotLambda(
-                fnParam,
-                returnClass,
-                preIndex
-            )
+    val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, returnTypeClassifier, inType, preIndex)
+
+    val params = fnParams
+        .filterIndexed { index, it ->
+            it != function.instanceParameter && run {
+                index != fnParams.lastIndex || !isConfigureLambda(it, returnTypeClassifier)
+            }        
         }
-    }
+        .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
     val returnDataType = typeToRef(returnTypeClassifier)
 
-    val semantics: FunctionSemantics = when {
-        function.annotations.any { it is Adding } -> {
-            FunctionSemantics.AddAndConfigure(returnDataType)
-        }
+    return DataMemberFunction(
+        thisTypeRef,
+        function.name,
+        params,
+        semanticsFromSignature ?: FunctionSemantics.Pure(returnDataType)
+    )
+}
 
-        function.annotations.any { it is Builder } -> {
-            check(params.size == 1)
-            check(inType == returnType.classifier)
-            FunctionSemantics.Builder(returnDataType)
-        }
-
+private fun inferFunctionSemanticsFromSignature(
+    function: KFunction<*>,
+    returnTypeClassifier: KClassifier?,
+    inType: KClass<*>,
+    preIndex: PreIndex
+): FunctionSemantics {
+    val returnDataType = typeToRef(returnTypeClassifier as KClassifier)
+    return when {
+        function.annotations.any { it is Builder } -> FunctionSemantics.Builder(returnDataType)
+        function.annotations.any { it is Adding } -> FunctionSemantics.AddAndConfigure(returnDataType)
         function.annotations.any { it is Configuring } -> {
             val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
             check(annotation != null)
             val propertyName = if (annotation.propertyName.isEmpty()) function.name else annotation.propertyName
             val kProperty = inType.memberProperties.find { it.name == propertyName }
             check(kProperty != null)
+            val propertyTypeClassifier = kProperty.returnType.classifier as KClass<*>
             val property = preIndex.getProperty(inType, propertyName)
             check(property != null)
 
             val hasConfigureLambda = function.parameters.withIndex().any { (index, it) ->
-                isConfigureLambda(
-                    it,
-                    isLast = index == function.parameters.lastIndex,
-                    kProperty.returnType.classifier as KClass<*>
-                )
+                index == function.parameters.lastIndex && isConfigureLambda(it, propertyTypeClassifier)
             }
 
             check(hasConfigureLambda)
@@ -137,44 +141,50 @@ private fun dataMemberFunction(
 
         else -> FunctionSemantics.Pure(returnDataType)
     }
-    return DataMemberFunction(thisTypeRef, function.name, params, semantics)
 }
 
-private fun dataParameterIfNotLambda(
+private fun dataParameter(
+    function: KFunction<*>,
+    fnParam: KParameter,
+    returnClass: KClass<*>,
+    functionSemantics: FunctionSemantics,
+    preIndex: PreIndex
+): DataParameter {
+    val paramType = fnParam.type
+    checkInScope(paramType, preIndex)
+    val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
+    return DataParameter(fnParam.name, typeToRef(paramType.classifier as KClass<*>), fnParam.isOptional, paramSemantics)
+}
+
+private fun getParameterSemantics(
+    functionSemantics: FunctionSemantics,
+    function: KFunction<*>,
     fnParam: KParameter,
     returnClass: KClass<*>,
     preIndex: PreIndex
-): DataParameter? {
-    val paramType = fnParam.type
-
-    val isConfigureLambda = paramType.isSubtypeOf(
-        Function1::class.createType(listOf(KTypeProjection(null, null), KTypeProjection(null, null)))
-    )
-    
-    return if (isConfigureLambda) {
-        null
-    } else {
-        checkInScope(paramType, preIndex)
-
-        val isPropertyLike =
-            returnClass.memberProperties.any { it.name == fnParam.name && it.returnType == fnParam.type }
-
-        val paramSemantics = if (isPropertyLike) {
-            val storeProperty = preIndex.getProperty(returnClass, fnParam.name.orEmpty())
-            if (storeProperty != null) {
-                ParameterSemantics.StoreValueInProperty(storeProperty)
-            } else ParameterSemantics.UsedExternally
-        } else {
-            ParameterSemantics.UsedExternally
-        }
-
-        DataParameter(fnParam.name, typeToRef(paramType.classifier as KClass<*>), fnParam.isOptional, paramSemantics)
+): ParameterSemantics {
+    val propertyNamesToCheck = buildList {
+        if (functionSemantics is FunctionSemantics.Builder) add(function.name)
+        if (functionSemantics is FunctionSemantics.NewObjectFunctionSemantics) fnParam.name?.let(::add)
     }
+    propertyNamesToCheck.forEach { propertyName ->
+        val isPropertyLike =
+            returnClass.memberProperties.any {
+                it.visibility == KVisibility.PUBLIC &&
+                        it.name == propertyName &&
+                        it.returnType == fnParam.type
+            }
+        if (isPropertyLike) {
+            val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
+            return ParameterSemantics.StoreValueInProperty(storeProperty)
+        }
+    }
+    return ParameterSemantics.Unknown
 }
 
-private fun isConfigureLambda(kParam: KParameter, isLast: Boolean, returnTypeClassifier: KClass<*>): Boolean {
+private fun isConfigureLambda(kParam: KParameter, returnTypeClassifier: KClass<*>): Boolean {
     val paramType = kParam.type
-    return isLast && paramType.isSubtypeOf(configureLambdaTypeFor(returnTypeClassifier))
+    return paramType.isSubtypeOf(configureLambdaTypeFor(returnTypeClassifier))
 }
 
 private fun configureLambdaTypeFor(returnTypeClassifier: KClass<*>) =
