@@ -107,7 +107,7 @@ data class DataParameter(
 
 sealed interface ParameterSemantics {
     data class StoreValueInProperty(val dataProperty: DataProperty) : ParameterSemantics
-    data object UsedExternally : ParameterSemantics
+    data object Unknown : ParameterSemantics
 }
 
 sealed interface FunctionSemantics {

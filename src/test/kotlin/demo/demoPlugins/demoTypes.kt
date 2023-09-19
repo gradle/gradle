@@ -20,6 +20,6 @@ class PluginDefinition(val id: String) {
     var version: String = ""
     var apply: Boolean = false
     
-    @Builder fun version(version: String): PluginDefinition = apply { this.version = version }
-    @Builder fun apply(apply: Boolean): PluginDefinition = apply { this.apply = apply }
+    @Builder fun version(value: String): PluginDefinition = apply { version = value }
+    @Builder fun apply(value: Boolean): PluginDefinition = apply { apply = value }
 }

@@ -38,14 +38,29 @@ sealed interface ObjectOrigin {
     }
     
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
+    
+    sealed interface FunctionInvocationOrigin : ObjectOrigin {
+        val function: SchemaFunction
+        val receiverObject: ObjectOrigin?
+    }
+    
+    data class BuilderReturnedReceiver(
+        override val function: SchemaFunction,
+        override val receiverObject: ObjectOrigin,
+        override val originElement: FunctionCall,
+        val parameterBindings: ParameterValueBinding,
+        val invocationId: Long
+    ) : FunctionInvocationOrigin {
+        override fun toString(): String = receiverObject.toString()
+    }
 
     data class FromFunctionInvocation(
-        val function: SchemaFunction,
-        val receiverObject: ObjectOrigin?,
+        override val function: SchemaFunction,
+        override val receiverObject: ObjectOrigin?,
         val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
         val invocationId: Long
-    ) : ObjectOrigin {
+    ) : FunctionInvocationOrigin {
         override fun toString(): String =
             receiverObject?.toString()?.plus(".").orEmpty() + buildString {
                 if (function is DataConstructor) {
@@ -63,6 +78,14 @@ sealed interface ObjectOrigin {
                 append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" }) 
                 append(")")
             }
+    }
+    
+    data class ConfigureReceiver(
+        val receiver: ObjectOrigin,
+        val property: DataProperty,
+        override val originElement: FunctionCall
+    ) : ObjectOrigin {
+        override fun toString(): String = "$receiver${'.'}${property.name}"
     }
 
     data class PropertyReference(

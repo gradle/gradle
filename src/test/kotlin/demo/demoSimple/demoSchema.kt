@@ -2,7 +2,7 @@ package com.example
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.*
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.UsedExternally
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.Unknown
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 
 val cRef = DataTypeRef.Name(FqName.parse("com.example.C"))
@@ -24,7 +24,7 @@ internal fun demoSchema(): AnalysisSchema {
         memberFunctions = listOf(
             DataMemberFunction(
                 cRef, "f",
-                listOf(DataParameter("y", string, false, UsedExternally)),
+                listOf(DataParameter("y", string, false, Unknown)),
                 semantics = Pure(int)
             ),
             DataMemberFunction(

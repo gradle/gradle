@@ -2,6 +2,8 @@ package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.AssignProperty
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.ReassignLocalVal
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataObjectResolverImpl.FunctionResolutionAndBinding
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin.FunctionInvocationOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.evaluation.DataValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import java.util.concurrent.atomic.AtomicLong
@@ -27,10 +29,10 @@ data class ResolutionError(
 sealed interface ErrorReason {
     data class AmbiguousImport(val fqName: FqName) : ErrorReason
     data class UnresolvedReference(val reference: Expr) : ErrorReason
-    data class AmbiguousFunctions(val functions: List<DataObjectResolverImpl.FunctionResolutionAndBinding>) :
-        ErrorReason
-
+    data class AmbiguousFunctions(val functions: List<FunctionResolutionAndBinding>) : ErrorReason
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
+
+    data object UnusedConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
@@ -174,17 +176,43 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
     }
 
+    // If we can trace the function invocation back to something that is not transient, we consider it not dangling
+    fun isDanglingPureExpression(obj: FunctionInvocationOrigin): Boolean {
+        fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
+            is ObjectOrigin.ConfigureReceiver -> true
+            is ObjectOrigin.ConstantOrigin -> false
+            is ObjectOrigin.External -> true
+            is ObjectOrigin.FromFunctionInvocation -> {
+                val semantics = objectOrigin.function.semantics
+                when (semantics) {
+                    is FunctionSemantics.Builder -> error("should be impossible?")
+                    is FunctionSemantics.AccessAndConfigure -> true
+                    is FunctionSemantics.AddAndConfigure -> true
+                    is FunctionSemantics.Pure -> false
+                }
+            }
+
+            is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
+            is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiverObject)
+            is ObjectOrigin.NullObjectOrigin -> false
+            is ObjectOrigin.PropertyReference -> true
+            is ObjectOrigin.TopLevelReceiver -> true
+        }
+
+        return when {
+            obj.function.semantics is FunctionSemantics.Pure -> true
+            obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiverObject)
+            else -> false
+        }
+    }
+
     fun AnalysisContext.analyzeCodeInProgramOrder(trees: List<LanguageTreeElement>) {
         for (tree in trees) {
             when (tree) {
                 is Assignment -> doAnalyzeAssignment(tree)
                 is FunctionCall -> doResolveFunctionCall(tree).also { result ->
-                    if (result != null &&
-                        result.function.semantics !is FunctionSemantics.ConfigureSemantics &&
-                        result.function.semantics !is FunctionSemantics.Builder
-                    ) {
+                    if (result != null && isDanglingPureExpression(result))
                         errorCollector(ResolutionError(tree, ErrorReason.DanglingPureExpression))
-                    }
                 }
 
                 is LocalValue -> doAnalyzeLocal(tree)
@@ -335,8 +363,8 @@ class DataObjectResolverImpl : DataObjectResolver {
             val receiverType = getDataType(receiver)
             findDataProperty(receiverType, name)?.let { property -> PropertyReferenceResolution(receiver, property) }
         }
-    
-    fun AnalysisContext.doResolveFunctionCall(functionCall: FunctionCall): ObjectOrigin.FromFunctionInvocation? {
+
+    fun AnalysisContext.doResolveFunctionCall(functionCall: FunctionCall): FunctionInvocationOrigin? {
         val argResolutions = functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>()
             .associateWith {
                 doResolveExpression(it.expr)
@@ -374,7 +402,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         return when (overloads.size) {
             0 -> {
                 errorCollector(ResolutionError(functionCall, ErrorReason.UnresolvedReference(functionCall)))
-                return null
+                null
             }
 
             1 -> {
@@ -384,7 +412,7 @@ class DataObjectResolverImpl : DataObjectResolver {
 
             else -> {
                 errorCollector(ResolutionError(functionCall, ErrorReason.AmbiguousFunctions(overloads)))
-                return null
+                null
             }
         }
     }
@@ -394,18 +422,28 @@ class DataObjectResolverImpl : DataObjectResolver {
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): ObjectOrigin.FromFunctionInvocation? {
+    ): FunctionInvocationOrigin? {
         val newFunctionCallId = nextFunctionCallId()
         val valueBinding = function.binding.toValueBinding(argResolutions)
         val semantics = function.schemaFunction.semantics
 
-        val result = ObjectOrigin.FromFunctionInvocation(
-            function.schemaFunction,
-            function.receiver,
-            valueBinding,
-            functionCall,
-            newFunctionCallId
-        )
+        val result: FunctionInvocationOrigin = when (semantics) {
+            is FunctionSemantics.Builder -> ObjectOrigin.BuilderReturnedReceiver(
+                function.schemaFunction,
+                checkNotNull(function.receiver),
+                functionCall,
+                valueBinding,
+                newFunctionCallId
+            )
+
+            else -> ObjectOrigin.FromFunctionInvocation(
+                function.schemaFunction,
+                function.receiver,
+                valueBinding,
+                functionCall,
+                newFunctionCallId
+            )
+        }
 
         if (semantics is FunctionSemantics.AddAndConfigure) {
             require(receiver != null)
@@ -423,16 +461,26 @@ class DataObjectResolverImpl : DataObjectResolver {
             recordAssignment(PropertyReferenceResolution(receiver, property.dataProperty), value)
         }
 
-        // we have chosen the function, now we go to the lambda if it's there
+        // we have chosen the function and got its invocation result, now we go to the "configure" lambda if it's there
         val maybeLambda = functionCall.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
         if (maybeLambda != null) {
             if (semantics is FunctionSemantics.ConfigureSemantics) {
+                val configureReceiver = when (semantics) {
+                    is FunctionSemantics.AccessAndConfigure -> when (val accessor = semantics.accessor) {
+                        is ConfigureAccessor.Property -> {
+                            require(function.receiver != null)
+                            ObjectOrigin.ConfigureReceiver(function.receiver, accessor.dataProperty, functionCall)
+                        }
+                    }
+
+                    is FunctionSemantics.AddAndConfigure -> result
+                }
                 // TODO: avoid deep recursion?
-                withScope(AnalysisScope(currentScopes.last(), result, maybeLambda)) {
+                withScope(AnalysisScope(currentScopes.last(), configureReceiver, maybeLambda)) {
                     analyzeCodeInProgramOrder(maybeLambda.block.statements)
                 }
             } else {
-                return null
+                errorCollector(ResolutionError(functionCall, ErrorReason.UnusedConfigureLambda))
             }
         }
         return result
@@ -626,14 +674,11 @@ private fun AnalysisScopeView.resolveLocalValueAsObjectSource(name: String): Obj
 
 private fun findDataProperty(
     receiverType: DataType, name: String
-): DataProperty? = if (receiverType is DataType.DataClass<*>) receiverType.properties.find { it.name == name } else null
+): DataProperty? =
+    if (receiverType is DataType.DataClass<*>) receiverType.properties.find { it.name == name } else null
 
 fun PropertyReferenceResolution.asObjectOrigin(originElement: PropertyAccess): ObjectOrigin =
     ObjectOrigin.PropertyReference(this.receiverObject, property, originElement)
-
-private fun AnalysisContextView.resolveAccessChainToExternalObjectByFqn(accessChain: AccessChain): ExternalObjectProviderKey? =
-    schema.externalObjectsByFqName[accessChain.asFqName()]
-
 
 @OptIn(ExperimentalContracts::class)
 inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
@@ -670,4 +715,6 @@ private fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = w
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
     is ObjectOrigin.FromLocalValue -> getDataType(objectOrigin.assigned)
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType
+    is ObjectOrigin.ConfigureReceiver -> resolveRef(objectOrigin.property.type)
+    is ObjectOrigin.BuilderReturnedReceiver -> getDataType(objectOrigin.receiverObject)
 }
