@@ -1,9 +1,12 @@
 package com.example
 
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Adding
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Builder
+
 class Abc {
     var a: Int = 0
     fun b(): Int = 1
-    fun c(x: Int, configure: C.() -> Unit) =
+    @Adding fun c(x: Int, configure: C.() -> Unit) =
         C().apply {
             this.x = x;
             configure();
@@ -14,7 +17,7 @@ class Abc {
 }
 
 class C(var x: Int = 0) {
-    fun d(newD: D): C { // builder function
+    @Builder fun d(newD: D): C {
         this.d = newD
         return this
     }

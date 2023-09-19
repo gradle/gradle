@@ -1,13 +1,20 @@
 package demo.demoSimple
 
+import com.example.*
 import com.example.demoSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
+import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+
+val schema = schemaFromTypes(
+    topLevelReceiver = Abc::class,
+    types = listOf(Abc::class, C::class, D::class),
+    externalFunctions = listOf(::newD),
+    defaultImports = listOf(FqName("com.example", "newD"))
+)
 
 object SimpleAnalysisDemo {
     @JvmStatic
     fun main(args: Array<String>) {
-        val schema = demoSchema()
-
         printResolutionResults(
             schema.resolve(
                 """
@@ -33,17 +40,20 @@ object SimpleAnalysisDemo {
 object BuilderFunctionsDemo {
     @JvmStatic
     fun main(args: Array<String>) {
-        val schema = demoSchema()
-        
         printResolutionResults(
             schema.resolve(
                 """
                     import com.example.C
                     
-                    val c = C(1)
-                    c.d(newD("one"))
+                    c(1).d(newD("one"))
                     
-                    com.example.C(2).d(newD("two"))
+                    c(2) { 
+                        d(newD("two"))
+                    }
+                    
+                    c(3) {
+                        d = newD("three")
+                    }
                 """.trimIndent()
             )
         )

@@ -159,7 +159,7 @@ data class FqName(val packageName: String, val simpleName: String) {
 
 val DataTopLevelFunction.fqName: FqName get() = FqName(packageName, simpleName)
 
-data class ExternalObjectProviderKey(val type: DataType)
+data class ExternalObjectProviderKey(val type: DataTypeRef)
 
 sealed interface DataTypeRef {
     data class Type(val type: DataType) : DataTypeRef

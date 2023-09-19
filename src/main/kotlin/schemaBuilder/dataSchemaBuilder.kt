@@ -3,18 +3,27 @@ package com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
+import kotlin.reflect.jvm.javaMethod
 
-fun schemaFromTypes(topLevelReceiver: KClass<*>, types: List<KClass<*>>): AnalysisSchema {
+fun schemaFromTypes(
+    topLevelReceiver: KClass<*>,
+    types: List<KClass<*>>,
+    externalFunctions: List<KFunction<*>> = emptyList(),
+    externalObjects: Map<FqName, KClass<*>> = emptyMap(),
+    defaultImports: List<FqName> = emptyList(),
+): AnalysisSchema {
     val preIndex = createPreIndex(types)
 
     val dataTypes = types.map { createDataType(it, preIndex) }
 
+    val extFunctions = externalFunctions.map { dataTopLevelFunction(it, preIndex) }.associateBy { it.fqName }
+    val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(typeToRef(value)) }.toMap()
     return AnalysisSchema(
         dataTypes.single { it.kClass == topLevelReceiver },
         dataTypes.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
-        emptyMap(),
-        emptyMap(),
-        emptySet()
+        extFunctions,
+        extObjects,
+        defaultImports.toSet ()
     )
 }
 
@@ -50,13 +59,12 @@ fun createDataType(
     kClass: KClass<*>,
     preIndex: PreIndex
 ): DataType.DataClass<*> {
-    val thisTypeRef = typeToRef(kClass)
     val properties = preIndex.getAllProperties(kClass)
 
     val functions = kClass.memberFunctions
         .filter { it.visibility == KVisibility.PUBLIC && !it.isIgnored }
         .map { function ->
-            dataMemberFunction(kClass, function, thisTypeRef, preIndex)
+            dataMemberFunction(kClass, function, preIndex)
         }
     return DataType.DataClass(kClass, properties, functions, constructors(kClass, preIndex))
 }
@@ -75,15 +83,41 @@ private fun dataPropertiesOf(kClass: KClass<*>) = kClass.memberProperties
     .map { property ->
         val typeClassifier = property.returnType.classifier
             ?: error("cannot get a classifier for property return type")
-        DataProperty(property.name, typeToRef(typeClassifier), property is KMutableProperty<*>)
+        DataProperty(property.name, typeToRef(typeClassifier), property !is KMutableProperty<*>)
     }
+
+private fun dataTopLevelFunction(
+    function: KFunction<*>,
+    preIndex: PreIndex
+): DataTopLevelFunction {
+    check(function.instanceParameter == null)
+
+    val returnType = function.returnType
+    checkInScope(returnType, preIndex)
+
+    val returnTypeClassifier = function.returnType.classifier as KClass<*>
+    val semanticsFromSignature = FunctionSemantics.Pure(typeToRef(returnTypeClassifier))
+
+    val fnParams = function.parameters
+    val params = fnParams.filterIndexed { index, it ->
+        index != fnParams.lastIndex || !isConfigureLambda(it, returnTypeClassifier)
+    }.map { dataParameter(function, it, returnTypeClassifier, semanticsFromSignature, preIndex) }
+
+    return DataTopLevelFunction(
+        function.javaMethod!!.declaringClass.packageName,
+        function.name,
+        params,
+        semanticsFromSignature
+    )
+}
 
 private fun dataMemberFunction(
     inType: KClass<*>,
     function: KFunction<*>,
-    thisTypeRef: DataTypeRef,
     preIndex: PreIndex
 ): DataMemberFunction {
+    val thisTypeRef = typeToRef(inType)
+    
     val returnType = function.returnType
     val returnTypeClassifier = function.returnType.classifier
 
@@ -101,27 +135,34 @@ private fun dataMemberFunction(
         }
         .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
-    val returnDataType = typeToRef(returnTypeClassifier)
-
     return DataMemberFunction(
         thisTypeRef,
         function.name,
         params,
-        semanticsFromSignature ?: FunctionSemantics.Pure(returnDataType)
+        semanticsFromSignature
     )
 }
 
 private fun inferFunctionSemanticsFromSignature(
     function: KFunction<*>,
     returnTypeClassifier: KClassifier?,
-    inType: KClass<*>,
+    inType: KClass<*>?,
     preIndex: PreIndex
 ): FunctionSemantics {
     val returnDataType = typeToRef(returnTypeClassifier as KClassifier)
     return when {
-        function.annotations.any { it is Builder } -> FunctionSemantics.Builder(returnDataType)
-        function.annotations.any { it is Adding } -> FunctionSemantics.AddAndConfigure(returnDataType)
+        function.annotations.any { it is Builder } -> {
+            check(inType != null)
+            FunctionSemantics.Builder(returnDataType)
+        }
+
+        function.annotations.any { it is Adding } -> {
+            check(inType != null)
+            FunctionSemantics.AddAndConfigure(returnDataType)
+        }
         function.annotations.any { it is Configuring } -> {
+            check(inType != null)
+            
             val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
             check(annotation != null)
             val propertyName = if (annotation.propertyName.isEmpty()) function.name else annotation.propertyName

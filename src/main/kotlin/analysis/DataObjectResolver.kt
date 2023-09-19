@@ -709,7 +709,7 @@ private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinTo
 
 private fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.ConstantOrigin -> objectOrigin.constant.type
-    is ObjectOrigin.External -> objectOrigin.key.type
+    is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
     is ObjectOrigin.FromFunctionInvocation -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
