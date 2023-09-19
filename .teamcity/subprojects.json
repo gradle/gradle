@@ -351,14 +351,14 @@
   },
   {
     "name": "ide",
-    "path": "subprojects/ide",
+    "path": "platforms/ide/ide",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "ide-native",
-    "path": "subprojects/ide-native",
+    "path": "platforms/ide/ide-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -708,7 +708,7 @@
   },
   {
     "name": "problems",
-    "path": "subprojects/problems",
+    "path": "platforms/ide/problems",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
