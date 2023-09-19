@@ -18,7 +18,6 @@
 
 import gradlebuild.AbstractBuildScanInfoCollectingService
 import gradlebuild.registerBuildScanInfoCollectingService
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.tooling.events.task.TaskOperationResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 import java.io.Serializable

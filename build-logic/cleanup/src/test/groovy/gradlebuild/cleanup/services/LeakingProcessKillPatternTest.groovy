@@ -52,4 +52,18 @@ class LeakingProcessKillPatternTest extends Specification {
         expect:
         (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
     }
+
+    def "matches GradleDaemon on linux"() {
+        def line = 'tcagent1 3976365  8.4 12.7 17555200 8376108 ?    Ssl  02:50  14:27 /opt/files/jdk-linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.6_10.tar.gz/bin/java -XX:MaxMetaspaceSize=2G -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED -Xms1536m -Xmx6g -Dfile.encoding=UTF-8 -Djava.io.tmpdir=/home/tcagent1/agent/temp/buildTmp -Duser.country=US -Duser.language=en -Duser.variant -cp /home/tcagent1/.gradle/wrapper/dists/gradle-8.4-20230818222751+0000-bin/89h6cjxiw2m9bic290x647cni/gradle-8.4-20230818222751+0000/lib/gradle-launcher-8.4.jar -javaagent:/home/tcagent1/.gradle/wrapper/dists/gradle-8.4-20230818222751+0000-bin/89h6cjxiw2m9bic290x647cni/gradle-8.4-20230818222751+0000/lib/agents/gradle-instrumentation-agent-8.4.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.4-20230818222751+0000'
+
+        expect:
+        (line =~ KillLeakingJavaProcesses.generateAllGradleProcessPattern()).find()
+    }
+
+    def "not matches TC agent JVM"() {
+        def line = 'tcagent1  213966  0.0  0.1 3160628 102456 ?      Sl   Sep17   0:37 /opt/jdk/open-jdk-11/bin/java -ea -Xms16m -Xmx64m -cp ../launcher/lib/launcher.jar jetbrains.buildServer.agent.Launcher -ea -XX:+DisableAttachMechanism --add-opens=java.base/java.lang=ALL-UNNAMED -XX:+IgnoreUnrecognizedVMOptions -Xmx384m -Dteamcity_logs=../logs/ -Dlog4j2.configurationFile=file:../conf/teamcity-agent-log4j2.xml jetbrains.buildServer.agent.AgentMain -file ../conf/buildAgent.properties'
+
+        expect:
+        !(line =~ KillLeakingJavaProcesses.generateAllGradleProcessPattern()).find()
+    }
 }

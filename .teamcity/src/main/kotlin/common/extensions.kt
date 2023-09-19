@@ -16,6 +16,7 @@
 
 package common
 
+import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
@@ -191,6 +192,12 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
     }
 }
 
+fun BuildStep.onlyRunOnPreTestedCommitBuildBranch() {
+    conditions {
+        contains("teamcity.build.branch", "pre-test/")
+    }
+}
+
 fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     // we need to run CompileALl unconditionally because of artifact dependency
     if (buildType !is CompileAll) {
@@ -263,13 +270,25 @@ fun functionalTestParameters(os: Os): List<String> {
 fun promotionBuildParameters(dependencyBuildId: RelativeId, extraParameters: String, gitUserName: String, gitUserEmail: String) =
     """-PcommitId=%dep.$dependencyBuildId.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" $pluginPortalUrlOverride %additional.gradle.parameters%"""
 
-fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
+/**
+ * Align with build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java
+ */
+enum class KillProcessMode {
+    KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS,
+    KILL_PROCESSES_STARTED_BY_GRADLE,
+    KILL_ALL_GRADLE_PROCESSES
+}
+
+fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.AMD64, executionMode: BuildStep.ExecutionMode = BuildStep.ExecutionMode.ALWAYS) {
     steps {
         script {
-            name = stepName
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
+            name = mode.toString()
+            this.executionMode = executionMode
+            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode"
             skipConditionally(this@killProcessStep)
+            if (mode == KILL_ALL_GRADLE_PROCESSES) {
+                onlyRunOnPreTestedCommitBuildBranch()
+            }
         }
     }
 }
