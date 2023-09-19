@@ -69,7 +69,7 @@ class InstrumentationMetadataPluginTest {
     }
 
     @Test
-    fun `should output empty instrumentation files if none of types is instrumented`() {
+    fun `should not output files if none of types is instrumented`() {
         // Given
         // Override the build.gradle files to not write instrumented-classes.txt or upgraded-properties.json file
         File(projectRoot, "core/build.gradle").writeText("""
@@ -92,17 +92,14 @@ class InstrumentationMetadataPluginTest {
         // Then
         val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties")
         val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
-        instrumentedSuperTypes.assertExistsAndIsEmpty()
-        upgradedProperties.assertExistsAndIsEmpty()
+        instrumentedSuperTypes.assertDoesNotExist()
+        upgradedProperties.assertDoesNotExist()
     }
 
     private
-    fun File.assertExistsAndIsEmpty() {
-        assert(this.exists()) {
-            "Expected ${this.name} to exist, but it didn't"
-        }
-        assert(this.length() == 0L) {
-            "Expected ${this.name} to be empty but had length ${this.length()}"
+    fun File.assertDoesNotExist() {
+        assert(!this.exists()) {
+            "Expected ${this.name} to not exist, but it did"
         }
     }
 

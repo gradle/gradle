@@ -18,8 +18,9 @@ package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.io.IOUtils;
+import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.lazy.Lazy;
 
 import java.io.IOException;
@@ -70,6 +71,9 @@ public class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeReg
 
     private static Map<String, Set<String>> loadInstrumentedSuperTypes() {
         try (InputStream stream = GradleCoreInstrumentingTypeRegistry.class.getResourceAsStream(INSTRUMENTED_SUPER_TYPES_FILE)) {
+            if (stream == null) {
+                return Collections.emptyMap();
+            }
             Properties properties = new Properties();
             properties.load(stream);
             ImmutableMap.Builder<String, Set<String>> builder = ImmutableMap.builder();
@@ -90,11 +94,11 @@ public class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeReg
 
     private static Optional<HashCode> loadHashCodeFromResource(String resourceFile) {
         try (InputStream stream = GradleCoreInstrumentingTypeRegistry.class.getResourceAsStream(resourceFile)) {
-            byte[] bytes = IOUtils.toByteArray(stream);
-            if (bytes.length == 0) {
+            if (stream == null) {
                 return Optional.empty();
             }
-            return Optional.of(HashCode.fromBytes(bytes));
+            StreamHasher streamHasher = new DefaultStreamHasher();
+            return Optional.of(streamHasher.hash(stream));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
