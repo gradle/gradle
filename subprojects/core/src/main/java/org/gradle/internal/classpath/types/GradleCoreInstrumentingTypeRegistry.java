@@ -18,7 +18,6 @@ package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.lazy.Lazy;
@@ -45,31 +44,38 @@ public class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeReg
     private static final String INSTRUMENTED_SUPER_TYPES_FILE = "/instrumented-super-types.properties";
     private static final String UPGRADED_PROPERTIES_FILE = "/upgraded-properties.json";
 
-    private static final Lazy<Map<String, Set<String>>> INSTRUMENTED_SUPER_TYPES = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadInstrumentedSuperTypes);
-    private static final Lazy<Optional<HashCode>> INSTRUMENTED_HASH_CODE = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadInstrumentedSuperTypesHash);
-    private static final Lazy<Optional<HashCode>> UPGRADED_PROPERTIES_HASH_CODE = Lazy.locking().of(GradleCoreInstrumentingTypeRegistry::loadUpgradedPropertiesHash);
+    private final StreamHasher streamHasher;
+    private final Lazy<Map<String, Set<String>>> instrumentedSuperTypes;
+    private final Lazy<Optional<HashCode>> instrumentedHashCode;
+    private final Lazy<Optional<HashCode>> upgradedPropertiesHashCode;
+
+    public GradleCoreInstrumentingTypeRegistry(StreamHasher streamHasher) {
+        this.streamHasher = streamHasher;
+        this.instrumentedSuperTypes = Lazy.locking().of(this::loadInstrumentedSuperTypes);
+        this.instrumentedHashCode = Lazy.locking().of(this::loadInstrumentedSuperTypesHash);
+        this.upgradedPropertiesHashCode = Lazy.locking().of(this::loadUpgradedPropertiesHash);
+    }
 
     @Override
     public Set<String> getSuperTypes(String type) {
-        return INSTRUMENTED_SUPER_TYPES.get().getOrDefault(type, Collections.emptySet());
+        return instrumentedSuperTypes.get().getOrDefault(type, Collections.emptySet());
     }
 
     @Override
     public boolean isEmpty() {
-        return INSTRUMENTED_SUPER_TYPES.get().isEmpty();
+        return instrumentedSuperTypes.get().isEmpty();
     }
 
-    @SuppressWarnings("MethodMayBeStatic")
     public Optional<HashCode> getInstrumentedTypesHash() {
-        return INSTRUMENTED_HASH_CODE.get();
+        return instrumentedHashCode.get();
+    }
+
+    public Optional<HashCode> getUpgradedPropertiesHash() {
+        return upgradedPropertiesHashCode.get();
     }
 
     @SuppressWarnings("MethodMayBeStatic")
-    public Optional<HashCode> getUpgradedPropertiesHash() {
-        return UPGRADED_PROPERTIES_HASH_CODE.get();
-    }
-
-    private static Map<String, Set<String>> loadInstrumentedSuperTypes() {
+    private Map<String, Set<String>> loadInstrumentedSuperTypes() {
         try (InputStream stream = GradleCoreInstrumentingTypeRegistry.class.getResourceAsStream(INSTRUMENTED_SUPER_TYPES_FILE)) {
             if (stream == null) {
                 return Collections.emptyMap();
@@ -84,20 +90,19 @@ public class GradleCoreInstrumentingTypeRegistry implements InstrumentingTypeReg
         }
     }
 
-    private static Optional<HashCode> loadInstrumentedSuperTypesHash() {
+    private Optional<HashCode> loadInstrumentedSuperTypesHash() {
         return loadHashCodeFromResource(INSTRUMENTED_SUPER_TYPES_FILE);
     }
 
-    private static Optional<HashCode> loadUpgradedPropertiesHash() {
+    private Optional<HashCode> loadUpgradedPropertiesHash() {
         return loadHashCodeFromResource(UPGRADED_PROPERTIES_FILE);
     }
 
-    private static Optional<HashCode> loadHashCodeFromResource(String resourceFile) {
+    private Optional<HashCode> loadHashCodeFromResource(String resourceFile) {
         try (InputStream stream = GradleCoreInstrumentingTypeRegistry.class.getResourceAsStream(resourceFile)) {
             if (stream == null) {
                 return Optional.empty();
             }
-            StreamHasher streamHasher = new DefaultStreamHasher();
             return Optional.of(streamHasher.hash(stream));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
