@@ -111,6 +111,11 @@ fun Project.extractCiData() {
             buildScanPublished {
                 println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
             }
+            buildFinished {
+                if (failure == null) {
+                    println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
+                }
+            }
         }
     }
 }
