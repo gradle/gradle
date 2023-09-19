@@ -18,8 +18,11 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import java.io.File;
 
 /**
  * Provides access to important locations for a {@link Settings} instance.
@@ -30,17 +33,18 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * An instance of this type can be injected into a plugin or other object by
  * annotating a public constructor or method with {@code javax.inject.Inject}.
  * It is also available via {@link Settings#getLayout()}.
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  *
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public interface SettingsLayout extends FileSystemLayout {
     /**
      * Returns the settings directory.
      * <p>
      * The settings directory is the directory containing the settings file.
-     * </p>
      *
      * @see Settings#getSettingsDir()
      */
@@ -50,9 +54,29 @@ public interface SettingsLayout extends FileSystemLayout {
      * Returns the root directory of the build.
      * <p>
      * The root directory is the project directory of the root project.
-     * </p>
      *
      * @see Settings#getRootDir()
      */
     Directory getRootDirectory();
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
+     */
+    @Override
+    Provider<RegularFile> file(Provider<File> file);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
+     */
+    @Override
+    Provider<Directory> dir(Provider<File> file);
 }
