@@ -67,9 +67,11 @@ subprojects/jvm-services/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
-subprojects/testing-junit-platform/         @gradle/bt-jvm @gradle/ge-testing
-subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
-subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
+
+# These are located under platforms/jvm/, but we also want to inform the GE testing team of changes, so we need to list them explicitly to match multiple owners
+platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/ge-testing
+platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/ge-testing
+platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
 platforms/software/                         @gradle/bt-jvm
@@ -86,7 +88,6 @@ subprojects/resources-s3/                   @gradle/bt-jvm
 subprojects/resources-sftp/                 @gradle/bt-jvm
 subprojects/security/                       @gradle/bt-jvm
 subprojects/signing/                        @gradle/bt-jvm
-subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
 
 # Build infrastructure

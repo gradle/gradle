@@ -192,9 +192,6 @@ platforms:
       - 'subprojects/normalization-java/'
       - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
-      - 'subprojects/testing-junit-platform/'
-      - 'subprojects/testing-jvm/'
-      - 'subprojects/testing-jvm-infrastructure/'
   - kotlin_dsl:
     name: 'kotlin_dsl'
     subprojects:
@@ -232,5 +229,4 @@ platforms:
       - 'subprojects/resources-sftp/'
       - 'subprojects/security/'
       - 'subprojects/signing/'
-      - 'subprojects/testing-base/'
       - 'subprojects/version-control/'
