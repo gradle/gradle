@@ -77,7 +77,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
      * The name of the module must match the first header of {@code kotlin/Module.md} file.
      */
     private static void renameModule(Project project) {
-        getDokkatooExtension(project).getModuleName().set("gradle");
+        getDokkatooExtension(project).getModuleName().set("Kotlin DSL Reference for Gradle");
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
@@ -89,7 +89,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
         NamedDomainObjectContainer<DokkaSourceSetSpec> kotlinSourceSet = getDokkatooExtension(project).getDokkatooSourceSets();
         kotlinSourceSet.register("kotlin_dsl", spec -> {
-            spec.getDisplayName().set("Kotlin DSL");
+            spec.getDisplayName().set("DSL");
             spec.getSourceRoots().from(extension.getKotlinDslSource());
             spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
             spec.getClasspath().from(extension.getClasspath());
@@ -100,7 +100,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
         NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet = getDokkatooExtension(project).getDokkatooSourceSets();
         javaSourceSet.register("java_api", spec -> {
-            spec.getDisplayName().set("Java API");
+            spec.getDisplayName().set("API");
             spec.getSourceRoots().from(extension.getDocumentedSource());
             spec.getClasspath().from(extension.getClasspath());
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
