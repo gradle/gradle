@@ -26,7 +26,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 /**
  * Base class for {@link JavaResolutionConsistency} implementations, this class provides a means
  * for ensuring that compile and runtime classpaths are consistent with each other - meaning
- * the will resolve the same versionf of dependencies present on both - for both production and test code.
+ * the will resolve the same version of dependencies present on both - for both production and test code.
  */
 @NonNullApi
 public abstract class AbstractJavaResolutionConsistency implements JavaResolutionConsistency {
