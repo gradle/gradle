@@ -48,7 +48,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-jvm")) {
-        because("Tests create GlobalServices.")
+        because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 
