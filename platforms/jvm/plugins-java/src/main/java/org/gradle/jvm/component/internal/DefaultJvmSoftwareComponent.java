@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.component.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
@@ -35,9 +34,7 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.internal.AbstractJavaResolutionConsistency;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -70,6 +67,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
 
+    private final RoleBasedConfigurationContainerInternal configurations;
+
     private final JvmFeatureInternal mainFeature;
     @Nullable private final JvmTestSuite testSuite;
 
@@ -84,13 +83,13 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     ) {
         super(componentName, objectFactory);
 
-        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
         JavaPluginExtension javaExtension = getJavaPluginExtension(extensions);
         SourceSet sourceSet = createSourceSet(sourceSetName, javaExtension.getSourceSets());
 
+        this.configurations = ((ProjectInternal) project).getConfigurations();
         this.mainFeature = new DefaultJvmFeature(
             sourceSetName, sourceSet, Collections.emptyList(),
             (ProjectInternal) project, false, false);
@@ -206,8 +205,19 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     @Override
-    public void consistentResolution(Action<? super JavaResolutionConsistency> action, Project project) {
-        action.execute(new IntraComponentJavaResolutionConsistency(project.getExtensions().getByType(SourceSetContainer.class), project.getConfigurations()));
+    public void useCompileClasspathConsistency() {
+        if (testSuite != null) {
+            configurations.getByName(testSuite.getSources().getCompileClasspathConfigurationName())
+                .shouldResolveConsistentlyWith(mainFeature.getCompileClasspathConfiguration());
+        }
+    }
+
+    @Override
+    public void useRuntimeClasspathConsistency() {
+        if (testSuite != null) {
+            configurations.getByName(testSuite.getSources().getRuntimeClasspathConfigurationName())
+                .shouldResolveConsistentlyWith(mainFeature.getRuntimeClasspathConfiguration());
+        }
     }
 
     private JvmTestSuite configureBuiltInTest(Project project) {
@@ -248,21 +258,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
             return suite;
         } else {
             return null;
-        }
-    }
-
-    /**
-     * Extends {@link org.gradle.api.plugins.internal.AbstractJavaResolutionConsistency} to function on
-     * the {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal} that contains this instance.
-     */
-    private class IntraComponentJavaResolutionConsistency extends AbstractJavaResolutionConsistency {
-        @Inject
-        public IntraComponentJavaResolutionConsistency(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
-            super(mainFeature.getCompileClasspathConfiguration(),
-                mainFeature.getRuntimeClasspathConfiguration(),
-                configurations.getByName(getTestSuite().getSources().getCompileClasspathConfigurationName()),
-                configurations.getByName(getTestSuite().getSources().getRuntimeClasspathConfigurationName()),
-                sourceSets, configurations);
         }
     }
 }

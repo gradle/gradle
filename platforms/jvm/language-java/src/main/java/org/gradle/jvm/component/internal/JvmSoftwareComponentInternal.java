@@ -16,10 +16,7 @@
 
 package org.gradle.jvm.component.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 
 /**
@@ -67,11 +64,12 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
     JvmFeatureInternal getMainFeature();
 
     /**
-     * Sets consistent resolution for this component, this ensures that the runtime classpath of the component
-     * uses the same version of dependencies as the compile classpath.
-     *
-     * @param action the action to configure the consistency
-     * @param project the project containing the component for which to enable consistent resolution
+     * Ensures the runtime classpath of all features in this component resolve consistently with each other.
      */
-    void consistentResolution(Action<? super JavaResolutionConsistency> action, Project project);
+    void useRuntimeClasspathConsistency();
+
+    /**
+     * Ensures the compile classpath of all features in this component resolve consistently with each other.
+     */
+    void useCompileClasspathConsistency();
 }
