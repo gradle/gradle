@@ -481,29 +481,69 @@ object GrammarToTree {
         val disjunction = ast.child(disjunction)
         if (disjunction.children(conjunction).size > 1) {
             // TODO: support binary operators?
-            disjunction.unsupported(UnsupportedOperator)
+            return disjunction.unsupported(UnsupportedOperator)
         }
         val conjunction = disjunction.child(conjunction)
         if (conjunction.children(equality).size > 1) {
             // TODO: support binary operators?
-            conjunction.unsupported(UnsupportedOperator)
+            return conjunction.unsupported(UnsupportedOperator)
         }
         val equality = conjunction.child(equality)
         if (equality.children(comparison).size > 1) {
             // TODO: support binary operators?
-            equality.unsupported(UnsupportedOperator)
+            return equality.unsupported(UnsupportedOperator)
         }
         val comparison = equality.child(comparison)
         if (comparison.children(genericCallLikeComparison).size > 1) {
             // TODO: support binary operators?
-            comparison.unsupported(UnsupportedOperator)
+            return comparison.unsupported(UnsupportedOperator)
         }
-        val expr =
-            workaround(
-                "the expression structure is too nested for now",
-                comparison.findDescendant { it.kind == postfixUnaryExpression }
-            ) ?: return ast.unsupported(TodoNotCoveredYet)
-        return postfixUnaryExpression(expr)
+
+        val genericCallLikeComparison = comparison.child(genericCallLikeComparison)
+        if (genericCallLikeComparison.hasChild(callSuffix)) {
+            return genericCallLikeComparison.unsupported(TodoNotCoveredYet)
+        }
+
+        val infixOperation = genericCallLikeComparison.child(infixOperation)
+
+        if (infixOperation.hasChild(inOperator) || infixOperation.hasChild(isOperator)) {
+            return infixOperation.unsupported(UnsupportedOperator)
+        }
+
+        val elvisExpression = infixOperation.child(elvisExpression)
+        if (elvisExpression.children(infixFunctionCall).size > 1) {
+            return elvisExpression.unsupported(UnsupportedOperator)
+        }
+
+        val infixFunctionCall = elvisExpression.child(infixFunctionCall)
+
+        return if (infixFunctionCall.hasChild(simpleIdentifier)) {
+            elementOrFailure {
+                val (left, right) = infixFunctionCall.children(rangeExpression)
+                val (leftExpr, rightExpr) =
+                    listOf(left, right).map { collectingFailure(workaroundPostfixUnaryExpression(it)) }
+                val name = simpleIdentifier(infixFunctionCall.child(simpleIdentifier)).value
+                elementAfterBarrier {
+                    Element(
+                        FunctionCall(
+                            checked(leftExpr),
+                            name,
+                            listOf(FunctionArgument.Positional(checked(rightExpr), right)), ast
+                        )
+                    )
+                }
+            }
+        } else {
+            workaroundPostfixUnaryExpression(infixFunctionCall)
+        }
+    }
+
+    private fun workaroundPostfixUnaryExpression(ast: Ast): ElementResult<Expr> {
+        val exprAst = workaround(
+            "the expression structure is too nested for now",
+            ast.findDescendant { it.kind == postfixUnaryExpression }
+        ) ?: return ast.unsupported(TodoNotCoveredYet)
+        return postfixUnaryExpression(exprAst)
     }
 
     private fun <T : Any?> workaround(@Suppress("UNUSED_PARAMETER") reason: String, value: T): T = value
