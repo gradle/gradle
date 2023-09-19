@@ -32,13 +32,9 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
  *
  * This extension would be more appropriately named the {@code JvmPluginExtension} extension.  It
- * is used to configure all {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal} components.  At present there
- * is only one such component - the {@code java} component added by the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} - but
+ * is used to configure all JVM-related components.  At present there
+ * should only ever be one such component - the {@code java} component added by the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} - but
  * multiple components may be created by JVM language plugins in the future.
- *
- * This extension is used to implicitly configure all JVM components.  Some methods - such as {@link #registerFeature(String, Action)} -
- * are not applicable in this manner and will throw exceptions if used when multiple {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
- * components are present.
  *
  * @since 4.10
  */
@@ -78,7 +74,7 @@ public interface JavaPluginExtension {
     void setTargetCompatibility(JavaVersion value);
 
     /**
-     * Registers a feature.
+     * Registers a feature on the {@code java} component.
      * <p>
      * The new feature will have a default capability corresponding to the
      * "group", "name" + feature name and version of this project. For example,
@@ -101,6 +97,9 @@ public interface JavaPluginExtension {
      *
      * The {@link FeatureSpec#capability(String, String, String)} method can be
      * used to refine the capabilities of this feature.
+     *
+     * This method should not be called if there are multiple JVM {@link org.gradle.api.component.Component}s
+     * being managed by this extension.
      *
      * @param name the name of the feature
      * @param configureAction the configuration for the feature

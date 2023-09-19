@@ -50,6 +50,13 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
+/**
+ * Default implementation of {@link JavaPluginExtension}.
+ *
+ * This extension is used to implicitly configure all JVM components.  Some methods - such as {@link #registerFeature(String, Action)} -
+ * are not applicable in this manner and will throw exceptions if used when multiple {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
+ * components are present.
+ */
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
@@ -187,6 +194,10 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return !autoTargetJvm;
     }
 
+    /**
+     * @implNote throws an exception if used when multiple {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
+     * components are present.
+     */
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
