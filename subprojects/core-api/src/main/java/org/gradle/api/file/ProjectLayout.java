@@ -47,12 +47,23 @@ public interface ProjectLayout extends FileSystemLayout {
 
     /**
      * {@inheritDoc}
+     *
+     *  <p>
+     *  File system locations based on relative paths will be
+     *  resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
+     *  </p>
+     *
      */
     @Override
     Provider<RegularFile> file(Provider<File> file);
 
     /**
      * {@inheritDoc}
+     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
+     * </p>
      *
      * @since 6.0
      */

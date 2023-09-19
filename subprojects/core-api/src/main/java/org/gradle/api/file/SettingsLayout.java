@@ -18,8 +18,11 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import java.io.File;
 
 /**
  * Provides access to important locations for a {@link Settings} instance.
@@ -34,7 +37,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 8.5
  */
 @Incubating
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public interface SettingsLayout extends FileSystemLayout {
     /**
      * Returns the settings directory.
@@ -55,4 +58,27 @@ public interface SettingsLayout extends FileSystemLayout {
      * @see Settings#getRootDir()
      */
     Directory getRootDirectory();
+
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
+     * </p>
+     */
+    @Override
+    Provider<RegularFile> file(Provider<File> file);
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getSettingsDirectory()}.
+     * </p>
+     */
+    @Override
+    Provider<Directory> dir(Provider<File> file);
 }
