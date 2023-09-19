@@ -27,7 +27,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import java.util.ArrayDeque
 import java.util.Properties
 import java.util.Queue
@@ -53,7 +52,7 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
     fun mergeInstrumentedSuperTypes() {
         val instrumentedClasses = findInstrumentedClasses()
         if (instrumentedClasses.isEmpty()) {
-            instrumentedSuperTypes.asFile.get().toEmptyFile()
+            instrumentedSuperTypes.asFile.get().delete()
             return
         }
 
@@ -127,8 +126,8 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
     fun writeSuperTypes(onlyInstrumentedSuperTypes: Map<String, Set<String>>) {
         val outputFile = instrumentedSuperTypes.asFile.get()
         if (onlyInstrumentedSuperTypes.isEmpty()) {
-            // If there is no instrumented types just create an empty file
-            outputFile.toEmptyFile()
+            // If there is no instrumented types just don't output any file
+            outputFile.delete()
         } else {
             outputFile.writer().use {
                 onlyInstrumentedSuperTypes.toSortedMap().forEach { (className, superTypes) ->
@@ -136,11 +135,5 @@ abstract class InstrumentedSuperTypesMergeTask : DefaultTask() {
                 }
             }
         }
-    }
-
-    private
-    fun File.toEmptyFile() {
-        this.delete()
-        this.createNewFile()
     }
 }
