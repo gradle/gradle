@@ -19,31 +19,17 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderSpec;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 @ServiceScope(Scope.Global.class)
 public class DefaultProblems implements InternalProblems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
 
-    private final Map<String, ProblemGroup> problemGroups = new LinkedHashMap<>();
-
     public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
-        addPredefinedGroup(ProblemGroup.GENERIC_ID);
-        addPredefinedGroup(ProblemGroup.TYPE_VALIDATION_ID);
-        addPredefinedGroup(ProblemGroup.DEPRECATION_ID);
-        addPredefinedGroup(ProblemGroup.VERSION_CATALOG_ID);
-    }
-
-    private void addPredefinedGroup(String genericId) {
-        problemGroups.put(genericId, new ProblemGroup(genericId));
     }
 
     @Override
@@ -81,10 +67,5 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public void reportAsProgressEvent(Problem problem) {
         buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
-    }
-
-    @Override
-    public ProblemGroup getProblemGroup(String groupId) {
-        return problemGroups.get(groupId);
     }
 }

@@ -37,7 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -249,7 +248,7 @@ public class XmlTransformer implements Transformer<String, String> {
             if (element == null) {
                 Document document;
                 try {
-                    document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(toString())));
+                    document = XmlFactories.newDocumentBuilderFactory().newDocumentBuilder().parse(new InputSource(new StringReader(toString())));
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -305,7 +304,7 @@ public class XmlTransformer implements Transformer<String, String> {
             int indentAmount = determineIndentAmount();
 
             try {
-                TransformerFactory factory = TransformerFactory.newInstance();
+                TransformerFactory factory = XmlFactories.newTransformerFactory();
                 try {
                     factory.setAttribute("indent-number", indentAmount);
                 } catch (IllegalArgumentException ignored) {

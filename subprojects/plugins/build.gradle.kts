@@ -59,7 +59,6 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":language-groovy")))
     testFixturesImplementation(project(":language-jvm"))
     testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":model-core")))
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)

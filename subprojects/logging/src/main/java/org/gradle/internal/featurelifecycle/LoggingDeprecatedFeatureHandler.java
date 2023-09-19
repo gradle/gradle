@@ -43,7 +43,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.ProblemGroup.DEPRECATION_ID;
 import static org.gradle.api.problems.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
@@ -95,7 +94,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                             .documentedAt(usage.getDocumentationUrl());
                         return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
                             .type("generic_deprecation")
-                            .group(DEPRECATION_ID)
                             .severity(WARNING);
                     }
                 })

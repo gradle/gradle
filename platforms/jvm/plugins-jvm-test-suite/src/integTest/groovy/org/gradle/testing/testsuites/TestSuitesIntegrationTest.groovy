@@ -19,7 +19,11 @@ package org.gradle.testing.testsuites
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
+import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain
+import org.gradle.api.testing.toolchains.internal.JUnitJupiterTestToolchain
+import org.gradle.api.testing.toolchains.internal.KotlinTestTestToolchain
+import org.gradle.api.testing.toolchains.internal.SpockTestToolchain
+import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
@@ -86,7 +90,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert testFramework instanceof ${JUnitTestFramework.canonicalName}
                     assert classpath.size() == 2
-                    assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
+                    assert classpath.any { it.name == "junit-${JUnit4TestToolchain.DEFAULT_VERSION}.jar" }
                 }
             }
         """
@@ -176,7 +180,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                     assert classpath.size() == 8
                     assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert classpath.any { it.name == "junit-jupiter-${JUnitJupiterTestToolchain.DEFAULT_VERSION}.jar" }
                 }
             }
         """
@@ -261,7 +265,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                     assert classpath.size() == 8
                     assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert classpath.any { it.name == "junit-jupiter-${JUnitJupiterTestToolchain.DEFAULT_VERSION}.jar" }
                 }
             }
         """
@@ -297,16 +301,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         where: // When testing a custom version, this should be a different version that the default
         testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
-        'useJUnit()'                 | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar"
+        'useJUnit()'                 | JUnitTestFramework         | "junit-${JUnit4TestToolchain.DEFAULT_VERSION}.jar"
         'useJUnit("4.12")'           | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar"
+        'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${JUnitJupiterTestToolchain.DEFAULT_VERSION}.jar"
         'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.TestingFramework.SPOCK.getDefaultVersion()}.jar"
+        'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${SpockTestToolchain.DEFAULT_VERSION}.jar"
         'useSpock("2.2-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
         'useSpock("2.2-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.TestingFramework.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${KotlinTestTestToolchain.DEFAULT_VERSION}.jar"
         'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.TestingFramework.TESTNG.getDefaultVersion()}.jar"
+        'useTestNG()'                | TestNGTestFramework        | "testng-${TestNGTestToolchain.DEFAULT_VERSION}.jar"
         'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
@@ -551,15 +555,15 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("mytest", "assertNoTestClasses")
     }
 
-    def "multiple getTestingFramework() calls on a test suite return same instance"() {
+    def "multiple gets for toolchain on a test suite return same instance"() {
         given:
         buildFile << """
             plugins {
                 id 'java'
             }
 
-            def first = testing.suites.test.getTestSuiteTestingFramework()
-            def second = testing.suites.test.getTestSuiteTestingFramework()
+            def first = testing.suites.test.getTestToolchain()
+            def second = testing.suites.test.getTestToolchain()
 
             tasks.register('assertSameFrameworkInstance') {
                 doLast {
@@ -1037,5 +1041,47 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.noDeprecationChecks() // deprecated copy() on dependency scope
         succeeds("assertCopyCanBeResolved")
+    }
+
+    def "configuring different test suites with different framework versions is allowed"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnit("4.12")
+                        targets.all {
+                            testTask.configure {
+                                doLast {
+                                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                    assert classpath.size() == 2
+                                    assert classpath.any { it.name == "junit-4.12.jar" }
+                                }
+                            }
+                        }
+                    }
+                    anotherTest(JvmTestSuite) {
+                        useJUnit("4.13")
+                        targets.all {
+                            testTask.configure {
+                                doLast {
+                                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                    assert classpath.size() == 2
+                                    assert classpath.any { it.name == "junit-4.13.jar" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("test", "anotherTest")
     }
 }

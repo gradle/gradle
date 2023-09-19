@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect.validation
+package org.gradle.api.testing.toolchains.internal;
 
-import org.gradle.internal.reflect.problems.ValidationProblemId
-
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import org.gradle.api.provider.Property;
 
 /**
- * Used on tests to indicate that they are testing a particular
- * validation problem.
+ * Parameters for configuring a KotlinTest test toolchain.
+ *
+ * @since 8.5
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target([ElementType.METHOD, ElementType.TYPE])
-@interface ValidationTestFor {
-    ValidationProblemId[] value();
+public interface KotlinTestToolchainParameters extends JUnitPlatformToolchainParameters {
+    /**
+     * The version of KotlinTest to use for compiling and executing tests.
+     */
+    Property<String> getKotlinTestVersion();
 }

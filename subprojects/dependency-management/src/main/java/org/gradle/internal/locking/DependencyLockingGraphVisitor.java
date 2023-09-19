@@ -26,12 +26,11 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ValidatingArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collections;
@@ -39,7 +38,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisitor {
+public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
 
     private final DependencyLockingProvider dependencyLockingProvider;
     private final String configurationName;
@@ -51,13 +50,13 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     private DependencyLockingState dependencyLockingState;
     private boolean lockOutOfDate = false;
 
-    public DependencyLockingArtifactVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
+    public DependencyLockingGraphVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationName = configurationName;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
-    public void startArtifacts(RootGraphNode root) {
+    public void start(RootGraphNode root) {
         dependencyLockingState = dependencyLockingProvider.loadLockState(configurationName);
         if (dependencyLockingState.mustValidateLockState()) {
             Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
@@ -121,21 +120,21 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitSelector(DependencyGraphSelector selector) {
         // No-op
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitEdges(DependencyGraphNode node) {
         // No-op
     }
 
     @Override
-    public void finishArtifacts() {
+    public void finish(DependencyGraphNode root) {
+
     }
 
-    @Override
-    public void complete() {
+    public void writeLocks() {
         if (!lockOutOfDate) {
             Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.emptySet() : this.changingResolvedModules;
             dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);

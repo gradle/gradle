@@ -16,7 +16,6 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
@@ -26,7 +25,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
@@ -56,6 +54,8 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
         });
     }
 
+    private static final String SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE = "SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE";
+
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
@@ -65,10 +65,9 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
                     .label(String.format("has @ServiceReference annotation used on property of type '%s' which is not a build service implementation", typeVariables.get(0).getName()))
-                    .documentedAt(userManual("validation_problems", "service_reference_must_be_a_build_service"))
+                    .documentedAt(userManual("validation_problems", SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.toLowerCase()))
                     .noLocation()
-                    .type(ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE.name())
-                    .group(ProblemGroup.TYPE_VALIDATION_ID)
+                    .type(SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE)
                     .severity(Severity.ERROR)
                     .details(String.format("A property annotated with @ServiceReference must be of a type that implements '%s'", BuildService.class.getName()))
                     .solution(String.format("Make '%s' implement '%s'", typeVariables.get(0).getName(), BuildService.class.getName()))

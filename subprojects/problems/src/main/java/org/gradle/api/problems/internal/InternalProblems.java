@@ -19,11 +19,8 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
-
-import javax.annotation.Nullable;
 
 public interface InternalProblems extends Problems {
 
@@ -40,7 +37,4 @@ public interface InternalProblems extends Problems {
     ProblemBuilderDefiningLabel createProblemBuilder();
 
     void reportAsProgressEvent(Problem problem);
-
-    @Nullable
-    ProblemGroup getProblemGroup(String groupId);
 }

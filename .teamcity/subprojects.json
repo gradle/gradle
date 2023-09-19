@@ -1,7 +1,7 @@
 [
   {
     "name": "antlr",
-    "path": "subprojects/antlr",
+    "path": "platforms/software/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -92,7 +92,7 @@
   },
   {
     "name": "build-init",
-    "path": "subprojects/build-init",
+    "path": "platforms/software/build-init",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -218,7 +218,7 @@
   },
   {
     "name": "distributions-jvm",
-    "path": "subprojects/distributions-jvm",
+    "path": "platforms/jvm/distributions-jvm",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -456,14 +456,14 @@
   },
   {
     "name": "jacoco",
-    "path": "subprojects/jacoco",
+    "path": "platforms/jvm/jacoco",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "java-compiler-plugin",
-    "path": "subprojects/java-compiler-plugin",
+    "path": "platforms/jvm/java-compiler-plugin",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -778,7 +778,7 @@
   },
   {
     "name": "scala",
-    "path": "subprojects/scala",
+    "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

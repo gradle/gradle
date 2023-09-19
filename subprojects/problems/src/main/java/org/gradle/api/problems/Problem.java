@@ -29,14 +29,6 @@ import java.util.Map;
  */
 @Incubating
 public interface Problem {
-
-    /**
-     * Returns the problem group.
-     *
-     * @return the problem group
-     */
-    ProblemGroup getProblemGroup();
-
     /**
      * Returns the problem type.
      *

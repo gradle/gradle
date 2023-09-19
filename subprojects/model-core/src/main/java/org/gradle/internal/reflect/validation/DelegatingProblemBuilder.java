@@ -21,7 +21,6 @@ import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
-import org.gradle.api.problems.ProblemBuilderDefiningGroup;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
@@ -36,7 +35,6 @@ class DelegatingProblemBuilder implements
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningType,
-    ProblemBuilderDefiningGroup,
     BuildableProblemBuilder {
 
     private final Object delegate;
@@ -100,17 +98,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningGroup type(String problemType) {
-        ProblemBuilderDefiningGroup newDelegate = ((ProblemBuilderDefiningType) delegate).type(problemType);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
-    }
-
-    @Override
-    public BuildableProblemBuilder group(String group) {
-        ProblemBuilder newDelegate = ((ProblemBuilderDefiningGroup) delegate).group(group);
+    public ProblemBuilder type(String problemType) {
+        ProblemBuilder newDelegate = ((ProblemBuilderDefiningType) delegate).type(problemType);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }

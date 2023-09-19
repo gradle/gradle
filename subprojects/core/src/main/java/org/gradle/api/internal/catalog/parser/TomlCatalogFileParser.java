@@ -26,7 +26,6 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.tomlj.Toml;
@@ -144,7 +143,6 @@ public class TomlCatalogFileParser {
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
             .type(catalogProblemId.name())
-            .group(ProblemGroup.VERSION_CATALOG_ID)
             .severity(ERROR);
     }
 

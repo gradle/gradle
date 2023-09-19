@@ -169,10 +169,7 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'subprojects/jacoco/'
-      - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'
       - 'subprojects/language-groovy/'
       - 'subprojects/language-java/'
@@ -180,7 +177,6 @@ platforms:
       - 'subprojects/normalization-java/'
       - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
-      - 'subprojects/scala/'
       - 'subprojects/testing-junit-platform/'
       - 'subprojects/testing-jvm/'
       - 'subprojects/testing-jvm-infrastructure/'
@@ -207,8 +203,7 @@ platforms:
   - software:
     name: 'software'
     subprojects:
-      - 'subprojects/antlr/'
-      - 'subprojects/build-init/'
+      - 'platforms/software/'
       - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'

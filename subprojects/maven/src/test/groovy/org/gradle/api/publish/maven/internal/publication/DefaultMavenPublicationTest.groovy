@@ -241,7 +241,7 @@ class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
         def artifact = Mock(DependencyArtifact) {
-            getName() >> "artifact-name"
+            getName() >> "dep-name"
             getClassifier() >> "artifact-classifier"
             getType() >> "artifact-type"
         }
@@ -255,6 +255,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -263,7 +264,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.dependencies.get().dependencies.size() == 1
         with(publication.pom.dependencies.get().dependencies.first()) {
             groupId == "dep-group"
-            artifactId == "artifact-name"
+            artifactId == "dep-name"
             version == "mapped-dep-version"
             type == "artifact-type"
             classifier == "artifact-classifier"
@@ -286,6 +287,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -298,7 +300,7 @@ class DefaultMavenPublicationTest extends Specification {
         given:
         def publication = createPublication()
         def artifact = Mock(DependencyArtifact) {
-            getName() >> "artifact-name"
+            getName() >> "name"
             getClassifier() >> "artifact-classifier"
             getType() >> "artifact-type"
         }
@@ -314,6 +316,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -322,7 +325,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.dependencies.get().dependencies.size() == 1
         with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "group"
-            artifactId == "artifact-name"
+            artifactId == "name"
             version == "mapped-version"
             type == "artifact-type"
             classifier == "artifact-classifier"
@@ -336,7 +339,7 @@ class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
         def moduleDependency = Mock(ModuleDependency)
         def artifact = Mock(DependencyArtifact) {
-            getName() >> "artifact-name"
+            getName() >> "dep-name"
             getClassifier() >> "artifact-classifier"
             getType() >> "artifact-type"
         }
@@ -350,6 +353,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> false
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -358,7 +362,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.dependencies.get().dependencies.size() == 1
         with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "dep-group"
-            artifactId == "artifact-name"
+            artifactId == "dep-name"
             version == "mapped-dep-version"
             type == "artifact-type"
             classifier == "artifact-classifier"
@@ -383,6 +387,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> []
         moduleDependency.transitive >> true
         moduleDependency.attributes >> platformAttribute()
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(createComponent([], [moduleDependency], scope))
@@ -414,6 +419,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
+        projectDependency.requestedCapabilities >> []
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
@@ -427,7 +433,7 @@ class DefaultMavenPublicationTest extends Specification {
         with(publication.pom.dependencies.get().dependencies.asList().first()) {
             groupId == "pub-group"
             artifactId == "pub-name"
-            version == "mapped-pub-version"
+            version == "pub-version"
             type == null
             classifier == null
             scope == "runtime"
@@ -444,6 +450,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
+        projectDependency.requestedCapabilities >> []
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "group"
         projectDependency.getName() >> "name"

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -26,7 +25,6 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -34,19 +32,19 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
-import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
+import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
+import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
-import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
+import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
@@ -56,7 +54,6 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -64,8 +61,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Encapsulates all logic required to extract data from a {@link SoftwareComponentInternal} in order to
@@ -92,35 +92,32 @@ public class MavenComponentParser {
 
     private static final Logger LOG = Logging.getLogger(MavenComponentParser.class);
 
-    private final PublicationWarningsCollector publicationWarningsCollector =
-        new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
-
     private final PlatformSupport platformSupport;
     private final VersionRangeMapper versionRangeMapper;
     private final DocumentationRegistry documentationRegistry;
-    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
+    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
 
     public MavenComponentParser(
         PlatformSupport platformSupport,
         VersionRangeMapper versionRangeMapper,
         DocumentationRegistry documentationRegistry,
+        VersionMappingStrategyInternal versionMappingStrategy,
         ProjectDependencyPublicationResolver projectDependencyResolver,
         NotationParser<Object, MavenArtifact> mavenArtifactParser
     ) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
-        this.projectDependencyResolver = projectDependencyResolver;
         this.mavenArtifactParser = mavenArtifactParser;
+        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(projectDependencyResolver, versionMappingStrategy);
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
         // TODO Artifact names should be determined by the source variant. We shouldn't
         //      blindly "pass-through" the artifact file name.
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
-        return component.getUsages().stream()
-            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant))
+        return createSortedVariantsStream(component)
             .flatMap(variant -> variant.getArtifacts().stream())
             .filter(artifact -> {
                 ArtifactKey key = new ArtifactKey(artifact.getFile(), artifact.getClassifier(), artifact.getExtension());
@@ -130,12 +127,14 @@ public class MavenComponentParser {
             .collect(Collectors.toSet());
     }
 
-    public DependencyResult parseDependencies(
+    public ParsedDependencyResult parseDependencies(
         SoftwareComponentInternal component,
-        ModuleVersionIdentifier coordinates,
-        VersionMappingStrategyInternal versionMappingStrategy
+        ModuleVersionIdentifier coordinates
     ) {
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(
+            LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
 
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -144,20 +143,20 @@ public class MavenComponentParser {
         List<MavenDependency> constraints = new ArrayList<>();
         List<MavenDependency> platforms = new ArrayList<>();
 
-        for (SoftwareComponentVariant variant : getSortedVariants(component)) {
-            publicationWarningsCollector.newContext(variant.getName());
-
+        createSortedVariantsStream(component).forEach(variant -> {
+            VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
             MavenPublishingAwareVariant.ScopeMapping scopeMapping = MavenPublishingAwareVariant.scopeForVariant(variant);
             String scope = scopeMapping.getScope();
             boolean optional = scopeMapping.isOptional();
             Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
-            ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
+            VariantDependencyResolver dependencyResolver = variantDependencyResolverFactory.createResolver(variant, (group, name, version) -> toMavenVersion(group, name, version, warnings));
             MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
-                projectDependencyResolver,
-                versionRangeMapper,
-                versionMappingStrategy.findStrategyForVariant(attributes),
-                publicationWarningsCollector
+                warnings,
+                dependencyResolver,
+                scope,
+                optional,
+                globalExcludes
             );
 
             for (ModuleDependency dependency : variant.getDependencies()) {
@@ -167,33 +166,20 @@ public class MavenComponentParser {
                         continue;
                     }
                     if (platformSupport.isTargetingPlatform(dependency)) {
-                        if (dependency instanceof ProjectDependency) {
-                            platforms.add(dependencyFactory.asImportDependencyConstraint((ProjectDependency) dependency));
-                        } else {
-                            platforms.add(dependencyFactory.asImportDependencyConstraint(dependency));
-                        }
+                        dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
                     } else {
-                        if (!dependency.getAttributes().isEmpty()) {
-                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-                        }
-                        if (dependency instanceof ProjectDependency) {
-                            dependencies.add(dependencyFactory.asDependency((ProjectDependency) dependency, scope, optional, globalExcludes));
-                        } else {
-                            dependencies.addAll(dependencyFactory.asDependencies(dependency, scope, optional, globalExcludes));
-                        }
+                        dependencyFactory.convertDependency(dependency, dependencies::add);
                     }
                 }
             }
 
             for (DependencyConstraint dependency : variant.getDependencyConstraints()) {
                 if (seenConstraints.add(dependency)) { // TODO: Why do we not use PublishedDependency here?
-                    if (dependency instanceof DefaultProjectDependencyConstraint) {
-                        constraints.add(dependencyFactory.asDependencyConstraint((DefaultProjectDependencyConstraint) dependency));
-                    } else if (dependency.getVersion() != null) {
-                        constraints.add(dependencyFactory.asDependencyConstraint(dependency));
+                    if (dependency instanceof DefaultProjectDependencyConstraint || dependency.getVersion() != null) {
+                        dependencyFactory.convertDependencyConstraint(dependency, constraints::add);
                     } else {
                         // Some dependency constraints, like those with rejectAll() have no version and do not map to Maven.
-                        publicationWarningsCollector.addIncompatible(String.format("constraint %s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName()));
+                        warnings.addIncompatible(String.format("constraint %s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName()));
                     }
                 }
             }
@@ -201,19 +187,35 @@ public class MavenComponentParser {
             if (!variant.getCapabilities().isEmpty()) {
                 for (Capability capability : variant.getCapabilities()) {
                     if (isNotDefaultCapability(capability, coordinates)) {
-                        publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
+                        warnings.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
                     }
                 }
             }
-        }
+        });
 
-        return new DependencyResult(
+        return new ParsedDependencyResult(
             new DefaultMavenPomDependencies(
                 ImmutableList.copyOf(dependencies),
                 ImmutableList.<MavenDependency>builder().addAll(constraints).addAll(platforms).build()
             ),
             publicationWarningsCollector
         );
+    }
+
+    @Nullable
+    private String toMavenVersion(String groupId, String artifactId, @Nullable String version, VariantWarningCollector warnings) {
+        if (version == null) {
+            return null;
+        }
+
+        // Attempt to convert Gradle's rich version notation to Maven's.
+        if (DefaultVersionSelectorScheme.isSubVersion(version) ||
+            (DefaultVersionSelectorScheme.isLatestVersion(version) && !MavenVersionSelectorScheme.isSubstituableLatest(version))
+        ) {
+            warnings.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
+        }
+
+        return versionRangeMapper.map(version);
     }
 
     private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
@@ -233,114 +235,82 @@ public class MavenComponentParser {
         return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
     }
 
-    private static List<SoftwareComponentVariant> getSortedVariants(SoftwareComponentInternal component) {
+    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
         return component.getUsages().stream()
-            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant))
-            .collect(Collectors.toList());
+            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
     }
 
+    /**
+     * Converts the DSL representation of a variant's dependencies to one suitable for a POM.
+     * Dependencies are transformed by querying the provided {@link VariantDependencyResolver}
+     * for their resolved coordinates.
+     */
     private static class MavenDependencyFactory {
 
-        private final ProjectDependencyPublicationResolver projectDependencyResolver;
-        private final VersionRangeMapper versionRangeMapper;
-        private final VariantVersionMappingStrategyInternal versionMappingStrategy;
-        private final PublicationWarningsCollector publicationWarningsCollector;
+        private final VariantWarningCollector warnings;
+        private final VariantDependencyResolver dependencyResolver;
+
+        private final String scope;
+        private final boolean optional;
+        private final Set<ExcludeRule> globalExcludes;
 
         public MavenDependencyFactory(
-            ProjectDependencyPublicationResolver projectDependencyResolver,
-            VersionRangeMapper versionRangeMapper,
-            VariantVersionMappingStrategyInternal versionMappingStrategy,
-            PublicationWarningsCollector publicationWarningsCollector
+            VariantWarningCollector warnings,
+            VariantDependencyResolver dependencyResolver,
+            String scope,
+            boolean optional,
+            Set<ExcludeRule> globalExcludes
         ) {
-            this.projectDependencyResolver = projectDependencyResolver;
-            this.versionRangeMapper = versionRangeMapper;
-            this.versionMappingStrategy = versionMappingStrategy;
-            this.publicationWarningsCollector = publicationWarningsCollector;
+            this.warnings = warnings;
+            this.dependencyResolver = dependencyResolver;
+            this.scope = scope;
+            this.optional = optional;
+            this.globalExcludes = globalExcludes;
         }
 
-        private List<MavenDependency> asDependencies(ModuleDependency dependency, String scope, boolean optional, Set<ExcludeRule> globalExcludes) {
+        private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
+            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
 
             if (dependency.getArtifacts().isEmpty()) {
-                Coordinates coordinates = resolveCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion(), null);
-                return Collections.singletonList(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
+                collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
+                return;
             }
 
-            List<MavenDependency> dependencies = new ArrayList<>();
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
-                Coordinates coordinates = resolveCoordinates(
-                    dependency.getGroup(),
-                    artifact.getName(), // TODO: This seems wrong. We should not allow the artifact to change the dependency coordinates.
-                    dependency.getVersion(),
-                    null
-                );
+                VariantDependencyResolver.ResolvedCoordinates artifactCoordinates = coordinates;
+                if (!artifact.getName().equals(coordinates.getName())) {
+                    // TODO: We should not allow the artifact name to change the coordinates.
+                    //  Artifacts with name different from the coordinate name is not supported in Maven.
+                    //  This behavior should be deprecated.
+                    artifactCoordinates = VariantDependencyResolver.ResolvedCoordinates.create(
+                        coordinates.getGroup(),
+                        artifact.getName(),
+                        coordinates.getVersion()
+                    );
+                }
 
-                dependencies.add(newDependency(coordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
+                collector.accept(newDependency(artifactCoordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
             }
-            return dependencies;
         }
 
-        private MavenDependency asDependency(ProjectDependency dependency, String scope, boolean optional, Set<ExcludeRule> globalExcludes) {
-            Path identityPath = getIdentityPath(dependency);
-            Coordinates coordinates = resolveCoordinates(identityPath);
-            Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
-
-            return newDependency(coordinates, null, null, scope, allExcludeRules, optional);
-        }
-
-        private MavenDependency asDependencyConstraint(DependencyConstraint dependency) {
-            Coordinates coordinates = resolveCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion(), null);
-
+        private void convertDependencyConstraint(DependencyConstraint dependency, Consumer<MavenDependency> collector) {
+            VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            if (identifier.getVersion() == null) {
+                // Constraints with no version have no meaning in Maven.
+                return;
+            }
             // Do not publish scope, as it has too different of semantics in Maven
-            return newDependency(coordinates, null, null, null, Collections.emptySet(), false);
+            collector.accept(newDependency(identifier, null, null, null, Collections.emptySet(), false));
         }
 
-        private MavenDependency asDependencyConstraint(DefaultProjectDependencyConstraint dependency) {
-            Path identityPath = getIdentityPath(dependency.getProjectDependency());
-            Coordinates coordinates = resolveCoordinates(identityPath);
-
-            // Do not publish scope, as it has too different of semantics in Maven
-            return newDependency(coordinates, null, null, null, Collections.emptySet(), false);
-        }
-
-        private MavenDependency asImportDependencyConstraint(ModuleDependency dependency) {
-            Coordinates coordinates = resolveCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion(), null);
-            return newDependency(coordinates, "pom", null, "import", Collections.emptySet(), false);
-        }
-
-        private MavenDependency asImportDependencyConstraint(ProjectDependency dependency) {
-            Path identityPath = getIdentityPath(dependency);
-            Coordinates coordinates = resolveCoordinates(identityPath);
-            return newDependency(coordinates, "pom", null, "import", Collections.emptySet(), false);
-        }
-
-        private Coordinates resolveCoordinates(Path identityPath) {
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
-            return resolveCoordinates(identifier.getGroup(), identifier.getName(), identifier.getVersion(), identityPath);
-        }
-
-        private Coordinates resolveCoordinates(String groupId, String artifactId, @Nullable String version, @Nullable Path identityPath) {
-            ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.maybeResolveVersion(groupId, artifactId, identityPath);
-            if (resolvedVersion != null) {
-                return Coordinates.from(resolvedVersion);
-            }
-
-            // Version mapping is disabled or did not discover coordinates. Attempt to convert Gradle's rich version notation to Maven's.
-            if (version == null) {
-                return new Coordinates(groupId, artifactId, null);
-            }
-
-            if (DefaultVersionSelectorScheme.isSubVersion(version) ||
-                (DefaultVersionSelectorScheme.isLatestVersion(version) && !MavenVersionSelectorScheme.isSubstituableLatest(version))
-            ) {
-                publicationWarningsCollector.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
-            }
-
-            return new Coordinates(groupId, artifactId, versionRangeMapper.map(version));
+        private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
+            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            collector.accept(newDependency(coordinates, "pom", null, "import", Collections.emptySet(), false));
         }
 
         private static MavenDependency newDependency(
-            Coordinates coordinates,
+            VariantDependencyResolver.ResolvedCoordinates coordinates,
             @Nullable String type,
             @Nullable String classifier,
             @Nullable String scope,
@@ -348,13 +318,9 @@ public class MavenComponentParser {
             boolean optional
         ) {
             return new DefaultMavenDependency(
-                coordinates.group, coordinates.name, coordinates.version,
+                coordinates.getGroup(), coordinates.getName(), coordinates.getVersion(),
                 type, classifier, scope, excludeRules, optional
             );
-        }
-
-        private static Path getIdentityPath(ProjectDependency dependency) {
-            return ((ProjectDependencyInternal) dependency).getIdentityPath();
         }
 
         private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
@@ -375,11 +341,11 @@ public class MavenComponentParser {
         }
     }
 
-    public static class DependencyResult {
+    public static class ParsedDependencyResult {
         private final MavenPomDependencies dependencies;
         private final PublicationWarningsCollector warnings;
 
-        public DependencyResult(
+        public ParsedDependencyResult(
             MavenPomDependencies dependencies,
             PublicationWarningsCollector warnings
         ) {
@@ -393,25 +359,6 @@ public class MavenComponentParser {
 
         public PublicationWarningsCollector getWarnings() {
             return warnings;
-        }
-    }
-
-    /**
-     * Similar to {@link ModuleVersionIdentifier}, but allows a null version.
-     */
-    private static class Coordinates {
-        public final String group;
-        public final String name;
-        public final String version;
-
-        public Coordinates(String group, String name, @Nullable String version) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-        }
-
-        public static Coordinates from(ModuleVersionIdentifier identifier) {
-            return new Coordinates(identifier.getGroup(), identifier.getName(), identifier.getVersion());
         }
     }
 
@@ -429,12 +376,12 @@ public class MavenComponentParser {
         @Override
         public boolean equals(Object obj) {
             ArtifactKey other = (ArtifactKey) obj;
-            return file.equals(other.file) && Objects.equal(classifier, other.classifier) && Objects.equal(extension, other.extension);
+            return file.equals(other.file) && Objects.equals(classifier, other.classifier) && Objects.equals(extension, other.extension);
         }
 
         @Override
         public int hashCode() {
-            return file.hashCode() ^ Objects.hashCode(classifier, extension);
+            return file.hashCode() ^ Objects.hash(classifier, extension);
         }
     }
 
@@ -482,18 +429,18 @@ public class MavenComponentParser {
                 return false;
             }
             PublishedDependency that = (PublishedDependency) o;
-            return Objects.equal(group, that.group) &&
-                Objects.equal(name, that.name) &&
-                Objects.equal(targetConfiguration, that.targetConfiguration) &&
-                Objects.equal(attributes, that.attributes) &&
-                Objects.equal(artifacts, that.artifacts) &&
-                Objects.equal(excludeRules, that.excludeRules) &&
-                Objects.equal(requestedCapabilities, that.requestedCapabilities);
+            return Objects.equals(group, that.group) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(targetConfiguration, that.targetConfiguration) &&
+                Objects.equals(attributes, that.attributes) &&
+                Objects.equals(artifacts, that.artifacts) &&
+                Objects.equals(excludeRules, that.excludeRules) &&
+                Objects.equals(requestedCapabilities, that.requestedCapabilities);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
+            return Objects.hash(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
         }
     }
 }

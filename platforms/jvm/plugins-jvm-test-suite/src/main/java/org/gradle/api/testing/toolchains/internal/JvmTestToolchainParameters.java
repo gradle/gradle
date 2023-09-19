@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
+package org.gradle.api.testing.toolchains.internal;
 
 /**
- * {@link Problem} instance builder requiring the specification of the problem group.
+ * Marker interface for parameters of {@link JvmTestToolchain}s.  Implementations of {@link JvmTestToolchain} be parameterized with
+ * an implementation of this type or {@link JvmTestToolchainParameters.None}.
  *
- * @since 8.4
+ * @since 8.5
  */
-@Incubating
-public interface ProblemBuilderDefiningGroup {
-
+public interface JvmTestToolchainParameters {
     /**
-     * Declares the problem group. A problem group defines the main category for the problems (e.g. deprecation, type validation, task selection ,etc.). The available group IDs are declared in
-     * {@link ProblemGroup}.
-     *
-     * @param group the group ID
-     * @return the builder for the next required property
+     * Marker interface for {@link JvmTestToolchain} implementations that do not require any configuration.
      */
-    ProblemBuilder group(String group);
+    final class None implements JvmTestToolchainParameters {}
 }

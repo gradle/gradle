@@ -18,9 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.MutableReference;
@@ -28,7 +27,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -134,6 +132,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         });
     }
 
+    private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
+
     private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
@@ -143,8 +143,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .type(UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
@@ -160,8 +159,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .type(ValidationProblemId.UNKNOWN_IMPLEMENTATION.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .type(UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)

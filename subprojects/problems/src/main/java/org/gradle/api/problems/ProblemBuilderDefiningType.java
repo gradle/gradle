@@ -30,8 +30,7 @@ public interface ProblemBuilderDefiningType {
      * Declares the problem type. Type can a string to couple similar problems together.
      *
      * @param problemType the type name
-     *
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningGroup type(String problemType);
+    ProblemBuilder type(String problemType);
 }

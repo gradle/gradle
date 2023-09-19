@@ -19,13 +19,11 @@ package org.gradle.internal.execution.model.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
@@ -53,6 +51,8 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
         );
     }
 
+    private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
+
     private static void validateUnsupportedPropertyValueType(
         Class<? extends Annotation> annotationType,
         List<Class<?>> valueTypes,
@@ -66,10 +66,9 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                     ProblemBuilder describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
                         .label("has @%s annotation used on property of type '%s'", annotationType.getSimpleName(), TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName())
-                        .documentedAt(userManual("validation_problems", "unsupported_value_type"))
+                        .documentedAt(userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase()))
                         .noLocation()
-                        .type(ValidationProblemId.UNSUPPORTED_VALUE_TYPE.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
+                        .type(UNSUPPORTED_VALUE_TYPE)
                         .severity(Severity.ERROR)
                         .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {

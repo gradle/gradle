@@ -22,6 +22,8 @@ public interface ProjectDependencyPublicationResolver {
     /**
      * Determines the coordinates of the given type that should be used to reference the
      * project identified by {@code identityPath}.
+     *
+     * @throws UnsupportedOperationException if the project cannot be resolved.
      */
     <T> T resolve(Class<T> coordsType, Path identityPath);
 }

@@ -62,22 +62,17 @@ platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
 platforms/jvm/                              @gradle/bt-jvm
-subprojects/distributions-jvm/              @gradle/bt-jvm
 subprojects/distributions-publishing/       @gradle/bt-jvm
-subprojects/jacoco/                         @gradle/bt-jvm
-subprojects/java-compiler-plugin/           @gradle/bt-jvm
 subprojects/jvm-services/                   @gradle/bt-jvm
 subprojects/normalization-java/             @gradle/bt-jvm
 subprojects/platform-jvm/                   @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
-subprojects/scala/                          @gradle/bt-jvm
 subprojects/testing-junit-platform/         @gradle/bt-jvm @gradle/ge-testing
 subprojects/testing-jvm/                    @gradle/bt-jvm @gradle/ge-testing
 subprojects/testing-jvm-infrastructure/     @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
-subprojects/antlr/                          @gradle/bt-jvm
-subprojects/build-init/                     @gradle/bt-jvm
+platforms/software/                         @gradle/bt-jvm
 subprojects/dependency-management/          @gradle/bt-jvm
 subprojects/ivy/                            @gradle/bt-jvm
 subprojects/maven/                          @gradle/bt-jvm
