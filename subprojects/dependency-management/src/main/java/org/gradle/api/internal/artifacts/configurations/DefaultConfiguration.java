@@ -45,12 +45,12 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
@@ -81,6 +81,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
+import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
@@ -96,10 +98,8 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -109,7 +109,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -149,6 +148,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -750,7 +750,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                ResolutionResult resolutionResult = results.getResolutionResult();
+                ResolutionResult resolutionResult = new DefaultResolutionResult(results.getMinimalResolutionResult());
                 context.setResult(ResolveConfigurationResolutionBuildOperationResult.create(resolutionResult, attributesFactory));
             }
 
@@ -1631,12 +1631,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionResult getTaskDependencyValue() {
-            return getResultsForBuildDependencies().getResolutionResult();
+            return new DefaultResolutionResult(getResultsForBuildDependencies().getMinimalResolutionResult());
         }
 
         @Override
         public ResolutionResult getValue() {
-            return getResultsForArtifacts().getResolutionResult();
+            return new DefaultResolutionResult(getResultsForArtifacts().getMinimalResolutionResult());
         }
     }
 
@@ -2113,7 +2113,7 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public ResolutionResult getResolutionResult() {
             assertIsResolvable();
-            return new LenientResolutionResult(false);
+            return new DefaultResolutionResult(new LazyMinimalResolutionResult(false));
         }
 
         @Override
@@ -2149,8 +2149,8 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         @Override
-        public ResolutionResult getLenientResolutionResult() {
-            return new LenientResolutionResult(true);
+        public ResolutionResultInternal getLenientResolutionResult() {
+            return new DefaultResolutionResult(new LazyMinimalResolutionResult(true));
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
@@ -2191,17 +2191,17 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         /**
-         * A resolution result that lazily resolves the configuration. The laziness is needed to properly support {@link #getRootComponent}.
+         * A minimal resolution result that lazily resolves the configuration.
          */
-        private class LenientResolutionResult implements ResolutionResultInternal {
+        private class LazyMinimalResolutionResult implements MinimalResolutionResult {
+
             private final boolean lenient;
-            private volatile Throwable nonFatalFailure;
-            private volatile ResolutionResult delegate;
+            private volatile MinimalResolutionResult delegate;
 
             /**
-             * @param lenient If true, non-fatal failures will not be thrown during resolution.
+             * @param lenient If true, extra failures will not be thrown during resolution.
              */
-            private LenientResolutionResult(boolean lenient) {
+            public LazyMinimalResolutionResult(boolean lenient) {
                 this.lenient = lenient;
             }
 
@@ -2210,10 +2210,10 @@ since users cannot create non-legacy configurations and there is no current publ
                     synchronized (this) {
                         if (delegate == null) {
                             ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                            delegate = currentState.getCachedResolverResults().getResolutionResult();
-                            this.nonFatalFailure = currentState.getCachedResolverResults().getNonFatalFailure();
-                            if (nonFatalFailure != null && !lenient) {
-                                throw UncheckedException.throwAsUncheckedException(nonFatalFailure);
+                            delegate = currentState.getCachedResolverResults().getMinimalResolutionResult();
+                            ResolveException extraFailure = delegate.getExtraFailure();
+                            if (extraFailure != null && !lenient) {
+                                throw extraFailure;
                             }
                         }
                     }
@@ -2221,62 +2221,22 @@ since users cannot create non-legacy configurations and there is no current publ
             }
 
             @Override
-            public ResolvedComponentResult getRoot() {
+            public Supplier<ResolvedComponentResult> getRootSource() {
                 resolve();
-                return delegate.getRoot();
-            }
-
-            @Override
-            public Provider<ResolvedComponentResult> getRootComponent() {
-                return new DefaultProvider<>(this::getRoot);
-            }
-
-            public Provider<Throwable> getNonFatalFailure() {
-                return new DefaultProvider<>(() -> {
-                    resolve();
-                    return nonFatalFailure;
-                });
-            }
-
-            @Override
-            public Set<? extends DependencyResult> getAllDependencies() {
-                resolve();
-                return delegate.getAllDependencies();
-            }
-
-            @Override
-            public void allDependencies(Action<? super DependencyResult> action) {
-                resolve();
-                delegate.allDependencies(action);
-            }
-
-            @Override
-            public void allDependencies(Closure closure) {
-                resolve();
-                delegate.allDependencies(closure);
-            }
-
-            @Override
-            public Set<ResolvedComponentResult> getAllComponents() {
-                resolve();
-                return delegate.getAllComponents();
-            }
-
-            @Override
-            public void allComponents(Action<? super ResolvedComponentResult> action) {
-                resolve();
-                delegate.allComponents(action);
-            }
-
-            @Override
-            public void allComponents(Closure closure) {
-                resolve();
-                delegate.allComponents(closure);
+                return delegate.getRootSource();
             }
 
             @Override
             public AttributeContainer getRequestedAttributes() {
+                resolve();
                 return delegate.getRequestedAttributes();
+            }
+
+            @Nullable
+            @Override
+            public ResolveException getExtraFailure() {
+                resolve();
+                return delegate.getExtraFailure();
             }
 
             @Override
@@ -2287,16 +2247,11 @@ since users cannot create non-legacy configurations and there is no current publ
 
             @Override
             public boolean equals(Object obj) {
-                if (obj instanceof LenientResolutionResult) {
+                if (obj instanceof LazyMinimalResolutionResult) {
                     resolve();
-                    return delegate.equals(((LenientResolutionResult) obj).delegate);
+                    return delegate.equals(((LazyMinimalResolutionResult) obj).delegate);
                 }
                 return false;
-            }
-
-            @Override
-            public String toString() {
-                return "lenient resolution result for " + delegate;
             }
         }
     }

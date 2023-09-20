@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 import javax.annotation.Nullable;
-import java.util.function.Function;
 
 /**
  * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
@@ -54,13 +54,11 @@ public interface ResolverResults {
     /**
      * Returns the dependency graph resolve result.
      */
-    @Nullable
-    ResolutionResult getResolutionResult();
+    MinimalResolutionResult getMinimalResolutionResult();
 
     /**
      * Returns details of the local components in the resolved dependency graph.
      */
-    @Nullable
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     /**
@@ -70,27 +68,8 @@ public interface ResolverResults {
     ArtifactResolveState getArtifactResolveState();
 
     /**
-     * Returns the non-fatal failure, if present.
-     */
-    @Nullable
-    Throwable getNonFatalFailure();
-
-    /**
-     * Returns the failure, fatal or non-fatal, or null if there's no failure. Used internally to
-     * set the failure on the resolution build operation result.
+     * Returns an attached failure, if any.
      */
     @Nullable
     ResolveException getFailure();
-
-    /**
-     * Return a new result with the provided {@code resolveException} attached.
-     */
-    ResolverResults withFailure(ResolveException failure);
-
-    /**
-     * Returns a new result with a resolution result equal to the value returned by the provided updater.
-     *
-     * @param updater a function that takes the current resolution result and returns a new resolution result
-     */
-    ResolverResults updateResolutionResult(Function<ResolutionResult, ResolutionResult> updater);
 }

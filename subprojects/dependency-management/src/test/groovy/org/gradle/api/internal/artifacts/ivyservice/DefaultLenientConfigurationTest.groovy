@@ -119,7 +119,7 @@ class DefaultLenientConfigurationTest extends Specification {
     }
 
     private DefaultLenientConfiguration newConfiguration() {
-        new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
+        new DefaultLenientConfiguration(configuration, null, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {
