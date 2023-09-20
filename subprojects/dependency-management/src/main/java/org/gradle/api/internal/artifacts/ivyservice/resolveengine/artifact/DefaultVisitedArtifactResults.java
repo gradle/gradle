@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
@@ -47,14 +48,14 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
         this.artifactsById = artifactsById;
     }
 
-    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, boolean selectFromAllVariants) {
+    private SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, Function<ResolvedArtifactSet, ResolvedArtifactSet> artifactSetHandler, boolean selectFromAllVariants, boolean allowNoMatchingVariants, ImmutableAttributes requestAttributes) {
         if (artifactsById.isEmpty()) {
             return NoArtifactResults.INSTANCE;
         }
 
         List<ResolvedArtifactSet> resolvedArtifactSets = new ArrayList<>(artifactsById.size());
         for (ArtifactSet artifactSet : artifactsById) {
-            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, variantSelector, selectFromAllVariants);
+            ResolvedArtifactSet resolvedArtifacts = artifactSet.select(componentFilter, variantSelector, selectFromAllVariants, allowNoMatchingVariants, requestAttributes);
             resolvedArtifactSets.add(artifactSetHandler.apply(resolvedArtifacts));
         }
 
@@ -67,13 +68,13 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     }
 
     @Override
-    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
-        return select(componentFilter, variantSelector, DO_NOTHING, selectFromAllVariants);
+    public SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants, boolean allowNoMatchingVariants, ImmutableAttributes requestAttributes) {
+        return select(componentFilter, variantSelector, DO_NOTHING, selectFromAllVariants, allowNoMatchingVariants, requestAttributes);
     }
 
     @Override
-    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
-        return select(componentFilter, variantSelector, ALLOW_UNAVAILABLE, selectFromAllVariants);
+    public SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants, boolean allowNoMatchingVariants, ImmutableAttributes requestAttributes) {
+        return select(componentFilter, variantSelector, ALLOW_UNAVAILABLE, selectFromAllVariants, allowNoMatchingVariants, requestAttributes);
     }
 
     private static class NoArtifactResults implements SelectedArtifactResults {

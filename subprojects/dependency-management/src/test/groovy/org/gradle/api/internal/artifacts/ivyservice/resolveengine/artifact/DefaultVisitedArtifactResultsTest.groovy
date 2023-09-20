@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -32,11 +33,11 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, selector, selectFromAllVariants) >> variant1Artifacts
-        artifacts2.select(spec, selector, selectFromAllVariants) >> variant2Artifacts
+        artifacts1.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant1Artifacts
+        artifacts2.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(spec, selector, selectFromAllVariants)
+        def selected = results.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -59,11 +60,11 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, selector, selectFromAllVariants) >> variant1Artifacts
-        artifacts2.select(spec, selector, selectFromAllVariants) >> variant2Artifacts
+        artifacts1.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant1Artifacts
+        artifacts2.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.select(spec, selector, selectFromAllVariants)
+        def selected = results.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -86,11 +87,11 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, selector, selectFromAllVariants) >> variant1Artifacts
-        artifacts2.select(spec, selector, selectFromAllVariants) >> variant2Artifacts
+        artifacts1.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant1Artifacts
+        artifacts2.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(spec, selector, selectFromAllVariants)
+        def selected = results.selectLenient(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet
@@ -113,11 +114,11 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, selector, selectFromAllVariants) >> variant1Artifacts
-        artifacts2.select(spec, selector, selectFromAllVariants) >> variant2Artifacts
+        artifacts1.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant1Artifacts
+        artifacts2.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(spec, selector, selectFromAllVariants)
+        def selected = results.selectLenient(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
 
         expect:
         selected.getArtifacts() == variant2Artifacts
@@ -136,11 +137,11 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def spec = Stub(Spec)
 
         given:
-        artifacts1.select(spec, selector, selectFromAllVariants) >> variant1Artifacts
-        artifacts2.select(spec, selector, selectFromAllVariants) >> variant2Artifacts
+        artifacts1.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant1Artifacts
+        artifacts2.select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) >> variant2Artifacts
 
         def results = new DefaultVisitedArtifactResults(ResolutionStrategy.SortOrder.CONSUMER_FIRST, [artifacts1, artifacts2])
-        def selected = results.selectLenient(spec, selector, selectFromAllVariants)
+        def selected = results.selectLenient(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
 
         expect:
         selected.getArtifacts() instanceof CompositeResolvedArtifactSet

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,35 +24,35 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
-public class FileDependencyArtifactSet implements ArtifactSet {
-    private final LocalFileDependencyMetadata fileDependency;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+/**
+ * Default implementation of {@link LocalFileDependencyBackedArtifactSet}.
+ */
+public class DefaultLocalFileDependencyBackedArtifactSet extends LocalFileDependencyBackedArtifactSet {
 
-    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        this.fileDependency = fileDependency;
-        this.artifactTypeRegistry = artifactTypeRegistry;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-    }
+    private final ImmutableAttributes requestAttributes;
 
-    @Override
-    public ResolvedArtifactSet select(
+    public DefaultLocalFileDependencyBackedArtifactSet(
+        LocalFileDependencyMetadata dependencyMetadata,
         Spec<? super ComponentIdentifier> componentFilter,
         ArtifactVariantSelector variantSelector,
-        boolean selectFromAllVariants,
-        boolean allowNoMatchingVariants,
-        ImmutableAttributes requestAttributes
+        ArtifactTypeRegistry artifactTypeRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
     ) {
-        // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
-        return new DefaultLocalFileDependencyBackedArtifactSet(
-            fileDependency,
+        super(
+            dependencyMetadata,
             componentFilter,
             variantSelector,
             artifactTypeRegistry,
             calculatedValueContainerFactory,
-            requestAttributes,
             allowNoMatchingVariants
         );
+        this.requestAttributes = requestAttributes;
     }
 
+    @Override
+    public ImmutableAttributes getRequestAttributes() {
+        return requestAttributes;
+    }
 }

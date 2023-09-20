@@ -57,10 +57,10 @@ class VariantResolvingArtifactSetTest extends Specification {
     def "returns empty set when component id does not match spec"() {
         when:
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency)
-        def selected = artifactSet.select({ false }, selector, selectFromAll)
+        def selected = artifactSet.select({ false }, selector, selectFromAll, false, ImmutableAttributes.EMPTY)
 
         then:
-        0 * selector.select(_, _)
+        0 * selector.select(_, _, _, _)
         selected == ResolvedArtifactSet.EMPTY
 
         where:
@@ -90,17 +90,12 @@ class VariantResolvingArtifactSetTest extends Specification {
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency)
         artifactSet.select({ true }, new ArtifactVariantSelector() {
             @Override
-            ResolvedArtifactSet select(ResolvedVariantSet candidates, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
+            ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ArtifactVariantSelector.ResolvedArtifactTransformer factory) {
                 assert candidates.variants.size() == 2
                 // select the first variant
                 return candidates.variants[0].artifacts
             }
-
-            @Override
-            ImmutableAttributes getRequestedAttributes() {
-                return ImmutableAttributes.EMPTY
-            }
-        }, false)
+        }, false, false, ImmutableAttributes.EMPTY)
 
         then:
         1 * variantResolver.resolveVariant(_, subvariant1) >> Mock(ResolvedVariant)
@@ -125,10 +120,10 @@ class VariantResolvingArtifactSetTest extends Specification {
         def artifactSet = new VariantResolvingArtifactSet(variantResolver, component, variant, dependency)
 
         when:
-        def selected = artifactSet.select({ true }, selector, selectFromAll)
+        def selected = artifactSet.select({ true }, selector, selectFromAll, false, ImmutableAttributes.EMPTY)
 
         then:
-        1 * selector.select(_, _) >> artifacts
+        1 * selector.select(_, _, _, _) >> artifacts
         _ * variantResolver.resolveVariant(_, _) >> Mock(ResolvedVariant)
         selected == artifacts
 

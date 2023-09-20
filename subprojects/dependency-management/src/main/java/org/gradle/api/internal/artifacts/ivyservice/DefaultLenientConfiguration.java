@@ -110,7 +110,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.selectLenient(Specs.satisfyAll(), variantSelectorFactory.create(implicitAttributes, false, resolveContext.getDependenciesResolverFactory()), false);
+            ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+            artifactsForThisConfiguration = artifactResults.selectLenient(Specs.satisfyAll(), selector, false, false, implicitAttributes.asImmutable());
         }
         return artifactsForThisConfiguration;
     }
@@ -125,8 +126,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        ArtifactVariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, resolveContext.getDependenciesResolverFactory());
-        SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector, selectFromAllVariants);
+        ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
+        SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector, selectFromAllVariants, allowNoMatchingVariants, requestedAttributes.asImmutable());
 
         return new SelectedArtifactSet() {
             @Override

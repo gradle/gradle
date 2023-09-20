@@ -75,7 +75,13 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
+    public ResolvedArtifactSet select(
+        Spec<? super ComponentIdentifier> componentFilter,
+        ArtifactVariantSelector variantSelector,
+        boolean selectFromAllVariants,
+        boolean allowNoMatchingVariants,
+        ImmutableAttributes requestAttributes
+    ) {
         if (!componentFilter.isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
@@ -92,7 +98,8 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
             }
-            return variantSelector.select(variants, this);
+
+            return variantSelector.select(variants, requestAttributes, allowNoMatchingVariants, this);
         }
     }
 

@@ -54,7 +54,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, ArtifactVariantSelector.ResolvedArtifactTransformer {
+public abstract class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, ArtifactVariantSelector.ResolvedArtifactTransformer {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
@@ -62,13 +62,22 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
     private final ArtifactVariantSelector variantSelector;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final boolean allowNoMatchingVariants;
 
-    public LocalFileDependencyBackedArtifactSet(LocalFileDependencyMetadata dependencyMetadata, Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public LocalFileDependencyBackedArtifactSet(
+        LocalFileDependencyMetadata dependencyMetadata,
+        Spec<? super ComponentIdentifier> componentFilter,
+        ArtifactVariantSelector variantSelector,
+        ArtifactTypeRegistry artifactTypeRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        boolean allowNoMatchingVariants
+    ) {
         this.dependencyMetadata = dependencyMetadata;
         this.componentFilter = componentFilter;
         this.variantSelector = variantSelector;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.allowNoMatchingVariants = allowNoMatchingVariants;
     }
 
     public LocalFileDependencyMetadata getDependencyMetadata() {
@@ -86,6 +95,12 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
     public ArtifactVariantSelector getVariantSelector() {
         return variantSelector;
     }
+
+    public boolean getAllowNoMatchingVariants() {
+        return allowNoMatchingVariants;
+    }
+
+    public abstract ImmutableAttributes getRequestAttributes();
 
     @Override
     public void visit(Visitor listener) {
@@ -124,7 +139,7 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
 
             ImmutableAttributes variantAttributes = artifactTypeRegistry.mapAttributesFor(file);
             SingletonFileResolvedVariant variant = new SingletonFileResolvedVariant(file, artifactIdentifier, LOCAL_FILE, variantAttributes, dependencyMetadata, calculatedValueContainerFactory);
-            selectedArtifacts.add(variantSelector.select(variant, this));
+            selectedArtifacts.add(variantSelector.select(variant, getRequestAttributes(), allowNoMatchingVariants, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
     }

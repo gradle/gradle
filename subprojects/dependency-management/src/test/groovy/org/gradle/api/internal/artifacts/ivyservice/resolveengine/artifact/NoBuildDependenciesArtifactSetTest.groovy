@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
@@ -28,11 +29,11 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def spec = Stub(Spec)
         def selector = Stub(ArtifactVariantSelector)
 
-        given:
-        target.select(_, _, _) >> ResolvedArtifactSet.EMPTY
+        when:
+        target.select(_, _, _, _, _) >> ResolvedArtifactSet.EMPTY
 
-        expect:
-        new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants) == ResolvedArtifactSet.EMPTY
+        then:
+        new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) == ResolvedArtifactSet.EMPTY
 
         where:
         selectFromAllVariants << [false, true]
@@ -46,10 +47,10 @@ class NoBuildDependenciesArtifactSetTest extends Specification {
         def visitor = Mock(TaskDependencyResolveContext)
 
         given:
-        target.select(_, _, _) >> selected
+        target.select(_, _, _, _, _) >> selected
 
         when:
-        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec,selector, selectFromAllVariants)
+        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
         wrapper.visitDependencies(visitor)
 
         then:
