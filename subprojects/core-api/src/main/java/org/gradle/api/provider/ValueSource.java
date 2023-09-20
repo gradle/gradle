@@ -49,7 +49,7 @@ import javax.inject.Inject;
  * tasks and plugins. It can be done by adding a parameter to the constructor and annotating the
  * constructor with the {@code @Inject} annotation:
  * <pre>
- * public class MyValueSource implements ValueSource&lt;...&gt; {
+ * public abstract class MyValueSource implements ValueSource&lt;...&gt; {
  *     &#064;Inject
  *     public MyValueSource(ExecOperations execOperations) {
  *         ...
