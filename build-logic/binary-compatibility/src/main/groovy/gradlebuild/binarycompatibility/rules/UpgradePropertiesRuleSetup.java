@@ -16,13 +16,10 @@
 
 package gradlebuild.binarycompatibility.rules;
 
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperties;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.Map;
 
 public class UpgradePropertiesRuleSetup implements SetupRule {
@@ -36,20 +33,7 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContext context) {
-        try {
-            printFileContent(params.get("newUpgradedProperties"));
-            printFileContent(params.get("oldUpgradedProperties"));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static void printFileContent(String path) throws IOException {
-        File file = new File(path);
-        if (file.exists()) {
-            System.out.println(file.getName() + " content: " + Files.readString(file.toPath()));
-        } else {
-            System.out.println(file.getName() + " does not exist");
-        }
+        context.putUserData("newUpgradedProperties", UpgradedProperties.parse(params.get("newUpgradedProperties")));
+        context.putUserData("oldUpgradedProperties", UpgradedProperties.parse(params.get("oldUpgradedProperties")));
     }
 }
