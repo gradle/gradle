@@ -15,8 +15,6 @@
 [[ear_plugin]]
 = The Ear Plugin
 
-WARNING: The Ear Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Ear plugin adds support for assembling web application EAR files.
 It adds a default EAR archive task.
 It doesn't require the <<java_plugin.adoc#java_plugin,Java plugin>>, but for projects that also use the Java plugin it disables the default JAR archive generation.
