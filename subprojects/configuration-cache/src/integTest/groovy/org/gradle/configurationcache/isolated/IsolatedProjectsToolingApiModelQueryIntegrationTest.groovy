@@ -94,7 +94,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fixture.assertStateLoaded()
     }
 
-    def "can cache models for tasks"() {
+    def "can cache models with tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """

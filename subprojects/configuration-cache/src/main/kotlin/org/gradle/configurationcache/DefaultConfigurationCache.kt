@@ -330,7 +330,7 @@ class DefaultConfigurationCache internal constructor(
         saveToCache(
             stateType = StateType.Model,
             action = { stateFile -> cacheIO.writeModelTo(model, stateFile) },
-            onSaveFinish = { scopeRegistryListener.dispose() }
+            disposeResources = true
         )
     }
 
@@ -339,12 +339,12 @@ class DefaultConfigurationCache internal constructor(
         saveToCache(
             stateType = StateType.Work,
             action = { stateFile -> writeConfigurationCacheState(stateFile) },
-            onSaveFinish = { if (!isModelBuildingRequested) scopeRegistryListener.dispose() }
+            disposeResources = !isModelBuildingRequested,
         )
     }
 
     private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit, onSaveFinish: () -> Unit) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit, disposeResources: Boolean) {
 
         cacheEntryRequiresCommit = true
 
@@ -361,7 +361,9 @@ class DefaultConfigurationCache internal constructor(
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
-                    onSaveFinish()
+                    if (disposeResources) {
+                        scopeRegistryListener.dispose()
+                    }
                 }
             }
         }
