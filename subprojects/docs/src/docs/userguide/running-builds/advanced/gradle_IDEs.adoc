@@ -1,0 +1,56 @@
+// Copyright 2023 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_ides]]
+= Gradle in IDEs
+
+All major IDEs support Gradle including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+== Android Studio
+
+The Android build system compiles app resources and source code and packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
+
+Android Studio uses Gradle to automate and manage the build process while letting you define flexible, custom build configurations.
+
+image::android_studio.png[]
+
+== IntelliJ IDEA
+
+IntelliJ IDEA supports a fully-functional integration with Gradle that helps you automate your building process.
+
+image::intellij_idea.png[]
+
+You can easily create a new Gradle project, open and sync an existing one, work with several linked projects simultaneously, and manage them.
+
+== Visual Studio Code
+
+VS Code supports Gradle Java project (not including Android) via the link:https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle[Gradle for Java extension].
+
+image::visual_studio_code.png[]
+
+The extension provides a visual interface for your Gradle build, you can use this interface to view Gradle Tasks and Project dependencies, or run Gradle Tasks as VS Code Tasks. The extension also offers a better Gradle build file authoring experience including syntax highlighting, error reporting, and auto-completion.
+
+== Eclipse
+
+The Eclipse IDE is the essential tool for any Java developer, including a Java IDE, a Git client, XML Editor, and Gradle integration.
+
+image::eclipse.png[]
+
+link:https://marketplace.eclipse.org/content/buildship-gradle-integration[Buildship] is a set of Eclipse Plug-ins that provide a deep integration of Gradle into the Eclipse IDE.
+
+== NetBeans
+
+The Apache Software Foundation maintains NetBeans, an open-source IDE for Java, PHP, Javascript and other languages.
+
+image::netbeans.png[]
