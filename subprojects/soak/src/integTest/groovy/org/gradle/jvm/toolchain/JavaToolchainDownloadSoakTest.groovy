@@ -39,11 +39,21 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
             }
         """
 
-    JdkRepository jdkRepository
+    static JdkRepository jdkRepository
+
+    static URI uri
+
+    def setupSpec() {
+        jdkRepository = new JdkRepository(JAVA_VERSION)
+        uri = jdkRepository.start()
+    }
+
+    def cleanupSpec() {
+        jdkRepository.stop()
+    }
 
     def setup() {
-        jdkRepository = new JdkRepository(JAVA_VERSION)
-        def uri = jdkRepository.start()
+        jdkRepository.reset()
 
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
@@ -65,7 +75,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def cleanup() {
         executer.gradleUserHomeDir.file("jdks").deleteDir()
-        jdkRepository.stop()
     }
 
     def "can download missing jdk automatically"() {

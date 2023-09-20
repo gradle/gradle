@@ -32,12 +32,21 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolv
 
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
 
-    JdkRepository jdkRepository
-    URI uri
+    static JdkRepository jdkRepository
 
-    def setup() {
+    static URI uri
+
+    def setupSpec() {
         jdkRepository = new JdkRepository(JAVA_VERSION)
         uri = jdkRepository.start()
+    }
+
+    def cleanupSpec() {
+        jdkRepository.stop()
+    }
+
+    def setup() {
+        jdkRepository.reset()
 
         executer.requireOwnGradleUserHomeDir()
             .withToolchainDownloadEnabled()
@@ -45,7 +54,6 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
     def cleanup() {
         executer.gradleUserHomeDir.file("jdks").deleteDir()
-        jdkRepository.stop()
     }
 
     def "multiple subprojects with identical toolchain definitions"() {
@@ -68,8 +76,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     def "multiple subprojects with different toolchain definitions"() {
         given:
         def otherJdk = getJdkWithDifferentVendor()
-        def otherUri = new JdkRepository(otherJdk, "other_jdk.zip").start()
-
+        def otherJdkRepository = new JdkRepository(otherJdk, "other_jdk.zip")
+        def otherUri = otherJdkRepository.start()
+        otherJdkRepository.reset()
 
         settingsFile << settingsForBuildWithSubprojects(multiUrlResolverCode(uri, otherUri))
 
@@ -86,9 +95,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
 
         then:
-
         result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${jdkMetadata.javaHome.fileName}.*")
         result.plainTextOutput.matches("(?s).*Compiling with toolchain.*${otherJdkMetadata.javaHome.fileName}.*")
+        otherJdkRepository.stop()
     }
 
     private Jvm getJdkWithDifferentVendor() {

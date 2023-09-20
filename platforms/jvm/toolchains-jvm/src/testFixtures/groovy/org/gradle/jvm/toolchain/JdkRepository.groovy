@@ -37,6 +37,7 @@ class JdkRepository {
     private Jvm jdk
 
     private String archiveName
+    private File archiveFile
 
     JdkRepository(JavaVersion javaVersion) {
         this(Objects.requireNonNull(AvailableJavaHomes.getJdk(javaVersion)), "jdk.zip")
@@ -44,18 +45,20 @@ class JdkRepository {
 
     JdkRepository(Jvm jdk, String archiveName) {
         this.jdk = jdk
-
         this.archiveName = archiveName
 
+        archiveFile = zip(jdk.javaHome, File.createTempFile(archiveName, ".tmp").with {deleteOnExit(); it })
         server = new BlockingHttpServer(1000)
-
-        expectHead()
-        expectGet()
     }
 
     URI start() {
         server.start()
         server.uri(archiveName)
+    }
+
+    void reset() {
+        expectHead()
+        expectGet()
     }
 
     void expectHead() {
@@ -65,20 +68,21 @@ class JdkRepository {
     void expectGet() {
         server.expect(server.get(archiveName, { e ->
             e.sendResponseHeaders(200, 0)
-            zip(jdk.javaHome, e.getResponseBody())
+            IOUtils.copy(archiveFile, e.getResponseBody())
         }))
     }
 
     void stop() {
         server.stop()
+        archiveFile.delete()
     }
 
     Jvm getJdk() {
         jdk
     }
 
-    private static void zip(File jdkHomeDirectory, OutputStream outputStream) {
-        try (ArchiveOutputStream aos = new ZipArchiveOutputStream(outputStream)) {
+    private static File zip(File jdkHomeDirectory, File outputFile) {
+        try (ArchiveOutputStream aos = new ZipArchiveOutputStream(new FileOutputStream(outputFile))) {
             def jdkHomeParentDirectory = jdkHomeDirectory.getParentFile()
             List<File> jdkFiles = new LinkedList<>()
             populateFilesList(jdkFiles, jdkHomeDirectory)
@@ -99,6 +103,7 @@ class JdkRepository {
             }
             aos.finish()
         }
+        outputFile
     }
 
     private static void populateFilesList(List<File> fileList, File dir) throws IOException {

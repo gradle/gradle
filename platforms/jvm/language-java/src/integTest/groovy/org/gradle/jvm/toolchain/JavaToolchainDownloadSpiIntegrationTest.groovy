@@ -72,6 +72,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         given:
         def jdkRepository = new JdkRepository(JavaVersion.VERSION_17)
         def uri = jdkRepository.start()
+        jdkRepository.reset()
 
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
