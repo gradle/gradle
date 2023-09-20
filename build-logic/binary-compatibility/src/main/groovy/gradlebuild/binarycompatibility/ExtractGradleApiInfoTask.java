@@ -18,17 +18,32 @@ package gradlebuild.binarycompatibility;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+
 /**
  * Extracts Gradle API information from the given Gradle distribution archives.
  */
 @CacheableTask
 public abstract class ExtractGradleApiInfoTask extends DefaultTask {
+
+    private static final String GRADLE_API_INFO_JAR = "gradle-runtime-api-info";
+    private static final String UPGRADED_PROPERTIES_FILE = "upgraded-properties.json";
 
     @CompileClasspath
     abstract ConfigurableFileCollection getNewDistributionJars();
@@ -44,6 +59,22 @@ public abstract class ExtractGradleApiInfoTask extends DefaultTask {
 
     @TaskAction
     public void execute() {
-        // TODO
+        extractUpgradedProperties(getNewDistributionJars(), getNewUpgradedProperties());
+        extractUpgradedProperties(getOldDistributionJars(), getOldUpgradedProperties());
+    }
+
+    private void extractUpgradedProperties(FileCollection from, RegularFileProperty to) {
+        File gradleRuntimeApiInfoJar = from.filter(file -> file.getName().startsWith(GRADLE_API_INFO_JAR)).getSingleFile();
+        URI uri = URI.create("jar:file:" + gradleRuntimeApiInfoJar.getAbsolutePath());
+        try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+            Path upgradedPropertiesJson = fs.getPath(UPGRADED_PROPERTIES_FILE);
+            if (Files.exists(upgradedPropertiesJson)) {
+                Files.copy(upgradedPropertiesJson, to.getAsFile().get().toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                to.getAsFile().get().delete();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
