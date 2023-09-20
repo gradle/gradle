@@ -18,6 +18,30 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Ahmed Ehab](https://github.com/ahmedehabb),
+[Andrei Rybak](https://github.com/rybak),
+[Baptiste Decroix](https://github.com/bdecroix-spiria),
+[Björn Kautler](https://github.com/Vampire),
+[Cesar de la Vega](https://github.com/vegaro),
+[Ganavi Jayaram](https://github.com/ganavijayaram),
+[Gaurav Padam](https://github.com/Gauravpadam),
+[hwanseok](https://github.com/hwanseok-dev),
+[J.T. McQuigg](https://github.com/JT122406),
+[Jakub Chrzanowski](https://github.com/hsz),
+[Jendrik Johannes](https://github.com/jjohannes),
+[kackey0-1](https://github.com/kackey0-1),
+[Konstantin Gribov](https://github.com/grossws),
+[Pratik Haldankar](https://github.com/pratik2315),
+[Qinglin](https://github.com/nodmp),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Thad House](https://github.com/ThadHouse),
+[valery1707](https://github.com/valery1707),
+[Vladimir Sitnikov](https://github.com/vlsi),
+[wuyangnju](https://github.com/wuyangnju),
+[Yanming Zhou](https://github.com/quaff),
+[Yanshun Li](https://github.com/Chaoba),
+[Yusuke Uehara](https://github.com/uskey512),
+[zeners](https://github.com/zeners)
 
 ## Upgrade instructions
 
