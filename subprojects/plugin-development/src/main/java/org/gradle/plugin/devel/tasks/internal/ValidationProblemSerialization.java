@@ -26,9 +26,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.PluginIdLocation;
 import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.internal.DefaultProblemLocation;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -57,7 +57,8 @@ public class ValidationProblemSerialization {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
-        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(FileLocation.class, new FileLocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(PluginIdLocation.class, new PluginIdLocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -191,28 +192,31 @@ public class ValidationProblemSerialization {
 
     }
 
-    public static class ProblemLocationAdapter extends TypeAdapter<ProblemLocation> {
+    public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable ProblemLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
             }
 
-            out.beginObject();
+            out.beginArray();
+            out.name("type").value(value.getType());
             out.name("path").value(value.getPath());
             out.name("line").value(value.getLine());
             out.name("column").value(value.getColumn());
+            out.name("length").value(value.getLength());
             out.endObject();
         }
 
         @Override
-        public ProblemLocation read(JsonReader in) throws IOException {
+        public FileLocation read(JsonReader in) throws IOException {
             in.beginObject();
             String path = null;
             Integer line = null;
             Integer column = null;
+            Integer length = null;
             while (in.hasNext()) {
                 String name = in.nextName();
                 switch (name) {
@@ -228,6 +232,10 @@ public class ValidationProblemSerialization {
                         column = in.nextInt();
                         break;
                     }
+                    case "length": {
+                        length = in.nextInt();
+                        break;
+                    }
                     default:
                         in.skipValue();
                 }
@@ -235,7 +243,41 @@ public class ValidationProblemSerialization {
             in.endObject();
 
             Objects.requireNonNull(path, "path must not be null");
-            return new DefaultProblemLocation(path, line, column);
+            return new FileLocation(path, line, column, length);
+        }
+    }
+
+    public static class PluginIdLocationAdapter extends TypeAdapter<PluginIdLocation> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable PluginIdLocation value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginArray();
+            out.name("type").value(value.getType());
+            out.name("pluginId").value(value.getPluginId());
+            out.endObject();
+        }
+
+        @Override
+        public PluginIdLocation read(JsonReader in) throws IOException {
+            in.beginObject();
+            String pluginId = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                if (name.equals("pluginId")) {
+                    pluginId = in.nextString();
+                } else {
+                    in.skipValue();
+                }
+            }
+            in.endObject();
+
+            Objects.requireNonNull(pluginId, "pluginId must not be null");
+            return new PluginIdLocation(pluginId);
         }
     }
 

@@ -18,20 +18,17 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
- * A basic problem location pointing to a specific part of a file.
+ * Represents a location information of a problem.
  *
  * @since 8.4
  */
 @Incubating
 public interface ProblemLocation {
-    String getPath();
 
-    @Nullable
-    Integer getLine();
-
-    @Nullable
-    Integer getColumn();
+    /**
+     * Returns a
+     * @since 8.5
+     */
+    String getType();
 }

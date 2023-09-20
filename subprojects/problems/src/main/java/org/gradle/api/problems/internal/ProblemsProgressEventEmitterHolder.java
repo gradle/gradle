@@ -17,10 +17,44 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class ProblemsProgressEventEmitterHolder {
-    private static Problems problemsService = new DefaultProblems(new NoOpBuildOperationProgressEventEmitter());
+    private static Problems problemsService = new DefaultProblems(new NoOpBuildOperationProgressEventEmitter(), new BuildOperationAncestryTracker() {
+        @Override
+        public Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+            return Optional.empty();
+        }
+
+        @Override
+        public <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+            return Optional.empty();
+        }
+    }, new BuildOperationListenerManager() {
+        @Override
+        public void addListener(BuildOperationListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(BuildOperationListener listener) {
+
+        }
+
+        @Override
+        public BuildOperationListener getBroadcaster() {
+            return null;
+        }
+    });
 
     public static void init(Problems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;

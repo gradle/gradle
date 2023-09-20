@@ -19,6 +19,8 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.PluginIdLocation;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
@@ -32,8 +34,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Builder for problems.
@@ -51,10 +55,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     private String problemType;
     private final InternalProblems problemsService;
     private Severity severity;
-    private String path;
-    private Integer line;
-    private Integer column;
-    private boolean noLocation = false;
+    private Set<ProblemLocation> locations = new LinkedHashSet<>();
     private String description;
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;
@@ -78,22 +79,24 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningType location(String path, Integer line) {
-        this.path = path;
-        this.line = line;
+    public ProblemBuilderDefiningType location(String path, @Nullable Integer line) {
+        location(path, line, null);
         return this;
     }
 
-    public ProblemBuilderDefiningType location(String path, Integer line, Integer column) {
-        this.path = path;
-        this.line = line;
-        this.column = column;
+    public ProblemBuilderDefiningType location(String path, @Nullable Integer line, @Nullable Integer column) {
+        this.locations.add(new FileLocation(path, line, column, 0));
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderDefiningType pluginLocation(String pluginId) {
+        this.locations.add(new PluginIdLocation(pluginId));
         return this;
     }
 
     @Override
     public ProblemBuilderDefiningType noLocation() {
-        this.noLocation = true;
         return this;
     }
 
@@ -147,20 +150,10 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             throw new IllegalStateException("Problem is not documented: " + label);
         }
 
-        if (!noLocation) {
-            if (path == null) {
-                throw new IllegalStateException("Problem location path is not set: " + label);
-            }
-            if (line == null) {
-                throw new IllegalStateException("Problem location line is not set: " + label);
-            }
-            // Column is optional field, so we don't need to check it
-        }
-
         return new DefaultReportableProblem(
             label,
             getSeverity(severity),
-            getProblemLocation(),
+            locations,
             documentationUrl,
             description,
             solution,
@@ -168,12 +161,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             problemType,
             additionalMetadata,
             problemsService);
-    }
-
-
-    @Nullable
-    private ProblemLocation getProblemLocation() {
-        return path == null ? null : new DefaultProblemLocation(path, line, column);
     }
 
     @Nonnull

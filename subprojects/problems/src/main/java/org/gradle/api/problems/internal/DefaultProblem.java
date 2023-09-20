@@ -27,12 +27,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @NonNullApi
 public class DefaultProblem implements Problem {
     private String label;
     private Severity severity;
-    private ProblemLocation where;
+    private Set<ProblemLocation> where;
     private DocLink documentationLink;
     private String description;
     private List<String> solutions;
@@ -43,7 +44,7 @@ public class DefaultProblem implements Problem {
     public DefaultProblem(
         String label,
         Severity severity,
-        @Nullable ProblemLocation location,
+        Set<ProblemLocation> locations,
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,
@@ -53,7 +54,7 @@ public class DefaultProblem implements Problem {
     ) {
         this.label = label;
         this.severity = severity;
-        this.where = location;
+        this.where = locations;
         this.documentationLink = documentationUrl;
         this.description = description;
         this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
@@ -76,7 +77,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public ProblemLocation getWhere() {
+    public Set<ProblemLocation> getWhere() {
         return where;
     }
 

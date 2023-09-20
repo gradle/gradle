@@ -20,16 +20,30 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public class DefaultProblems implements InternalProblems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
+    private final BuildOperationAncestryTracker buildOperationAncestryTracker;
 
-    public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+    private final OperationListener operationListener = new OperationListener();
+
+    public DefaultProblems(
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        BuildOperationAncestryTracker buildOperationAncestryTracker,
+        BuildOperationListenerManager buildOperationListenerManager
+    ) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
+        this.buildOperationAncestryTracker = buildOperationAncestryTracker;
+        buildOperationListenerManager.addListener(operationListener);
+
     }
 
     @Override
@@ -66,6 +80,12 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public void reportAsProgressEvent(Problem problem) {
+//        System.out.println("XXX: " + buildOperationAncestryTracker
+//            .findClosestExistingAncestor(
+//                currentBuildOperationRef.getId(),
+//                operationListener.runningOps::get
+//            ));
+        operationListener.runningOps.forEach((k,v) -> System.out.println(k + ": " + v));
         buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
     }
 }

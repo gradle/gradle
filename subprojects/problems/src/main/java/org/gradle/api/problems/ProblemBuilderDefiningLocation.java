@@ -32,7 +32,7 @@ public interface ProblemBuilderDefiningLocation {
      * @param line the line number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningType location(String path, Integer line);
+    ProblemBuilderDefiningType location(String path, Integer line); // TODO rename to fileLocation
 
     /**
      * Declares that this problem is in a file at a particular line.
@@ -42,9 +42,21 @@ public interface ProblemBuilderDefiningLocation {
      * @param column the column number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningType location(String path, Integer line, Integer column);
+    ProblemBuilderDefiningType location(String path, Integer line, Integer column); // TODO rename to fileLocation
 
+    // TODO discuss how to compose multiple explicit location information in problem builders
+
+    // TODO think about use-case when plugin is applied using a class
     /**
+     * Declares that this problem is emitted while applying a plugin.
+     *
+     * @param pluginId the ID of the applied plugin
+     * @return the builder for the next required property
+     * @since 8.5
+     */
+    ProblemBuilderDefiningType pluginLocation(String pluginId);
+
+    /*
      * Declares that this problem has no associated location data.
      *
      * @return the builder for the next required property

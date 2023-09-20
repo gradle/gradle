@@ -16,42 +16,28 @@
 
 package org.gradle.api.problems;
 
-import javax.annotation.Nullable;
+import org.gradle.api.Incubating;
 
-public class FileLocation implements ProblemLocation {
+/**
+ * Represents an applied plugin ID.
+ *
+ * @since 8.5
+ */
+@Incubating
+public class PluginIdLocation implements ProblemLocation {
 
-    private final String path;
-    private final Integer line;
-    private final Integer column;
-    private final Integer length;
+    private final String pluginId;
 
-    public FileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
-        this.path = path;
-        this.line = line;
-        this.column = column;
-        this.length = length;
+    public PluginIdLocation(String pluginId) {
+        this.pluginId = pluginId;
     }
 
     @Override
     public String getType() {
-        return "file";
+        return "pluginId";
     }
 
-    public String getPath() {
-        return path;
-    }
-    @Nullable
-    public Integer getLine() {
-        return line;
-    }
-
-    @Nullable
-    public Integer getColumn() {
-        return column;
-    }
-
-    @Nullable
-    public Integer getLength() {
-        return length;
+    public String getPluginId() { // TODO rename to getId()
+        return pluginId;
     }
 }

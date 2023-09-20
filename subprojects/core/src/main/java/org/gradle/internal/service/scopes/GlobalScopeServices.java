@@ -75,6 +75,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -165,8 +166,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-    protected Problems createProblemsService(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
+    protected Problems createProblemsService(
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        BuildOperationAncestryTracker buildOperationAncestryTracker,
+        BuildOperationListenerManager buildOperationListenerManager) {
+        return new DefaultProblems(buildOperationProgressEventEmitter, buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     GradleBuildEnvironment createGradleBuildEnvironment() {

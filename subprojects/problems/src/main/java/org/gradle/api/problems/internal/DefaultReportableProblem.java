@@ -25,6 +25,7 @@ import org.gradle.api.problems.Severity;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @NonNullApi
 public class DefaultReportableProblem extends DefaultProblem implements ReportableProblem {
@@ -34,7 +35,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
     public DefaultReportableProblem(
         String message,
         Severity severity,
-        @Nullable ProblemLocation location,
+        Set<ProblemLocation> location,
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,

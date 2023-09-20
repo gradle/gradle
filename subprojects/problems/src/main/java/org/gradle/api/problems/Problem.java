@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface for describing structured information about a problem.
@@ -60,8 +61,7 @@ public interface Problem {
      */
     Severity getSeverity();
 
-    @Nullable
-    ProblemLocation getWhere();
+    Set<ProblemLocation> getWhere();
 
     /**
      * A link to the documentation for this problem.

@@ -197,11 +197,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"] == [
+        this.collectedProblems[0]["where"] == [[
+            "type": "file",
             "path": "test-location",
             "line": 1,
-            "column": null
-        ]
+            "column": null,
+            "length": 0
+        ]]
     }
 
     def "can emit a problem with fully specified location"() {
@@ -232,11 +234,47 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"] == [
+        this.collectedProblems[0]["where"] == [[
+            "type": "file",
             "path": "test-location",
             "line": 1,
-            "column": 1
-        ]
+            "column": 1,
+            "length": 0
+        ]]
+    }
+
+    def "can emit a problem with plugin location specified"() {
+        given:
+        buildFile << """
+            import org.gradle.api.problems.Problem
+            import org.gradle.api.problems.Severity
+            import org.gradle.internal.deprecation.Documentation
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    Problem problem = problems.createProblem{
+                        it.label("label")
+                        .undocumented()
+                        .pluginLocation("org.example.pluginid")
+                        .type("type")
+                        }.report()
+                }
+            }
+            """
+
+        when:
+        run("reportProblem")
+
+        then:
+        this.collectedProblems.size() == 1
+        this.collectedProblems[0]["where"] == [[
+           "type": "pluginId",
+           "pluginId": "org.example.pluginid",
+        ]]
     }
 
     def "can emit a problem with a severity"(Severity severity) {
