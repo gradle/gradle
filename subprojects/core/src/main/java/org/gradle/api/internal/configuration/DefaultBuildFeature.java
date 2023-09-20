@@ -17,24 +17,26 @@
 package org.gradle.api.internal.configuration;
 
 import org.gradle.api.configuration.BuildFeature;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 
 public class DefaultBuildFeature implements BuildFeature {
 
-    private final boolean requested;
-    private final boolean enabled;
+    private final Provider<Boolean> requested;
+    private final Provider<Boolean> active;
 
-    public DefaultBuildFeature(boolean requested, boolean enabled) {
-        this.requested = requested;
-        this.enabled = enabled;
+    public DefaultBuildFeature(boolean requested, boolean active) {
+        this.requested = Providers.of(requested);
+        this.active = Providers.of(active);
     }
 
     @Override
-    public boolean isRequested() {
+    public Provider<Boolean> getRequested() {
         return requested;
     }
 
     @Override
-    public boolean isEnabled() {
-        return enabled;
+    public Provider<Boolean> getActive() {
+        return active;
     }
 }

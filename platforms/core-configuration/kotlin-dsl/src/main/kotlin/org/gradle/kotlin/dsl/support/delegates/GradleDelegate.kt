@@ -23,7 +23,6 @@ import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
@@ -81,9 +80,6 @@ abstract class GradleDelegate : Gradle {
 
     override fun getStartParameter(): StartParameter =
         delegate.startParameter
-
-    override fun getBuildFeatures(): BuildFeatures =
-        delegate.buildFeatures
 
     override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener =
         delegate.addProjectEvaluationListener(listener)

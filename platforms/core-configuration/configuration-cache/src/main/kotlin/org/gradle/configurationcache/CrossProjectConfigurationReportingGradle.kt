@@ -23,7 +23,6 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
-import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
@@ -248,9 +247,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getStartParameter(): StartParameterInternal =
         delegate.startParameter
-
-    override fun getBuildFeatures(): BuildFeatures =
-        delegate.buildFeatures
 
     override fun beforeSettings(closure: Closure<*>) =
         delegate.beforeSettings(closure)

@@ -26,7 +26,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
@@ -87,7 +86,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private ProjectInternal defaultProject;
     private final BuildState parent;
     private final StartParameter startParameter;
-    private final BuildFeatures buildFeatures;
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
@@ -103,7 +101,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
-        this.buildFeatures = services.get(BuildFeatures.class);
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -191,11 +188,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public StartParameterInternal getStartParameter() {
         return (StartParameterInternal) startParameter;
-    }
-
-    @Override
-    public BuildFeatures getBuildFeatures() {
-        return buildFeatures;
     }
 
     @Override

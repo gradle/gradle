@@ -31,18 +31,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildFeatures {
 
     /**
-     * Status of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature in the build.
-     * <p>
-     * The Configuration Cache feature is considered implicitly requested when the {@link #getIsolatedProjects() Isolated Projects} feature is requested.
+     * Information about the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> build feature.
      *
      * @since 8.5
      */
     BuildFeature getConfigurationCache();
 
     /**
-     * Status of the <a href="https://gradle.github.io/configuration-cache/#project_isolation">Isolated Projects</a> feature in the build.
-     * <p>
-     * Requesting the Isolated Projects feature implies requesting the {@link #getConfigurationCache() Configuration Cache} feature.
+     * Information about the Isolated Projects feature in the build.
      *
      * @since 8.5
      */

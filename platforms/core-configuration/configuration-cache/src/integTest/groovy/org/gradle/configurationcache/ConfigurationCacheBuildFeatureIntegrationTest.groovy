@@ -19,15 +19,17 @@ package org.gradle.configurationcache
 
 class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "build feature indicates requested and enabled status"() {
+    def "build feature indicates requested and active status"() {
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile """
-            def buildFeatures = gradle.buildFeatures
+            import org.gradle.api.configuration.BuildFeatures
+
+            def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.isRequested=" + buildFeatures.configurationCache.isRequested()
-                    println "configurationCache.isEnabled=" + buildFeatures.configurationCache.isEnabled()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
                 }
             }
         """
@@ -36,33 +38,35 @@ class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfiguratio
         run "something"
         then:
         configurationCache.assertNoConfigurationCache()
-        outputContains("configurationCache.isRequested=false")
-        outputContains("configurationCache.isEnabled=false")
+        outputContains("configurationCache.requested=false")
+        outputContains("configurationCache.active=false")
 
         when:
         configurationCacheRun "something"
         then:
         configurationCache.assertStateStored()
-        outputContains("configurationCache.isRequested=true")
-        outputContains("configurationCache.isEnabled=true")
+        outputContains("configurationCache.requested=true")
+        outputContains("configurationCache.active=true")
 
         when:
         configurationCacheRun "something"
         then:
         configurationCache.assertStateLoaded()
-        outputContains("configurationCache.isRequested=true")
-        outputContains("configurationCache.isEnabled=true")
+        outputContains("configurationCache.requested=true")
+        outputContains("configurationCache.active=true")
     }
 
-    def "disabled even if requested due to --export-keys flag"() {
+    def "not active even if requested due to --export-keys flag"() {
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile """
-            def buildFeatures = gradle.buildFeatures
+            import org.gradle.api.configuration.BuildFeatures
+
+            def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.isRequested=" + buildFeatures.configurationCache.isRequested()
-                    println "configurationCache.isEnabled=" + buildFeatures.configurationCache.isEnabled()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
                 }
             }
         """
@@ -71,8 +75,8 @@ class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfiguratio
         configurationCacheRun "something", "--export-keys"
         then:
         configurationCache.assertNoConfigurationCache()
-        outputContains("configurationCache.isRequested=true")
-        outputContains("configurationCache.isEnabled=false")
+        outputContains("configurationCache.requested=true")
+        outputContains("configurationCache.active=false")
     }
 
 }

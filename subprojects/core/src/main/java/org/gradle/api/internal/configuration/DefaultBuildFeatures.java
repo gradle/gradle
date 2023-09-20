@@ -19,7 +19,6 @@ package org.gradle.api.internal.configuration;
 import org.gradle.api.configuration.BuildFeature;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 
 import javax.inject.Inject;
@@ -46,13 +45,14 @@ public class DefaultBuildFeatures implements BuildFeatures {
     }
 
     private static BuildFeature createConfigurationCacheFeature(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        // Not using an option value, because it does not account for the Isolated Projects
-        boolean isRequested = startParameter.isConfigurationCacheRequested();
-        return new DefaultBuildFeature(isRequested, buildModelParameters.isConfigurationCache());
+        boolean isRequested = startParameter.getConfigurationCache().get();
+        boolean isActive = buildModelParameters.isConfigurationCache();
+        return new DefaultBuildFeature(isRequested, isActive);
     }
 
     private static BuildFeature createIsolatedProjectsFeature(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        Option.Value<Boolean> option = startParameter.getIsolatedProjects();
-        return new DefaultBuildFeature(option.get(), buildModelParameters.isIsolatedProjects());
+        boolean isRequested = startParameter.getIsolatedProjects().get();
+        boolean isActive = buildModelParameters.isIsolatedProjects();
+        return new DefaultBuildFeature(isRequested, isActive);
     }
 }
