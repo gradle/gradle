@@ -22,8 +22,7 @@ image::gradle-basic-5.png[]
 A task represents some atomic piece of work that a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
-You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
-For example:
+You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory:
 
 [source]
 ----
@@ -104,7 +103,7 @@ There are two types of tasks:
 
 == Built-in tasks
 
-Gradle provides many _built-in_ tasks for developers to enhance build scripts.
+Gradle provides many _built-in_ tasks for common actions such as copying or deleting files.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
 
@@ -154,7 +153,7 @@ In this case, `hello` prints before `greet`. The output is `Hello! How are you?`
 
 Implicit dependencies are determined based on task inputs and outputs.
 
-In this example, the input of the `doSomethingWithJar` task is the output of the `jar` task:
+In this simple example, the input of the `doSomethingWithJar` task is the output of the `jar` task:
 
 [source]
 ----

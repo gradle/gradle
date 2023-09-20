@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[command_line_interface]]
-= Gradle Command-Line Interface Basics
+= Command-Line Interface Basics
 
 The command-line interface is the **primary method of interacting with Gradle**.
 
 image::gradle-basic-2.png[]
 
-**Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
+Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged.
 
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
@@ -75,9 +75,6 @@ $ gradle :myTask
 ----
 
 This will run the single `myTask` and all of its <<writing_tasks.adoc#sec:task_dependencies,dependencies>>.
-
-Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>.
-These include the `build`, `assemble`, and `check` tasks.
 
 [[sec:disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks
@@ -143,185 +140,12 @@ $ gradle taskName
 When executing the Gradle Wrapper from a subproject directory, reference `gradlew` relatively. For example: `../gradlew taskName`.
 ====
 
-=== Executing multiple tasks
-You can also specify multiple tasks.
-
-For example, the following will execute the `test` and `deploy` tasks in the order that they are listed on the command line and will also execute the dependencies for each task.
-
-----
-$ gradle test deploy
-----
-
-=== Command line order safety
-Although Gradle will always attempt to execute the build quickly, command line ordering safety will also be honored.
-
-For example, the following will execute `clean` and `build` along with their dependencies:
-
-----
-$ gradle clean build
-----
-
-However, the intention implied in the command line order is that `clean` should run first and then `build`.
-It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster since `clean` would remove what `build` created.
-
-Conversely, if the command line order were `build` followed by `clean`, it would not be correct to execute `clean` before `build`.
-Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
-
-NOTE: <<incremental_build.adoc#incremental_build,Command line order safety>> relies on tasks properly declaring what they create, consume, or remove.
-
 [[sec:excluding_tasks_from_the_command_line]]
-=== Excluding tasks from execution
-You can exclude a task from being executed using the `-x` or `--exclude-task` command-line option and providing the name of the task to exclude:
-
-----
-$ gradle dist --exclude-task test
-----
-----
-include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
-----
-
-image::commandLineTutorialTasks.png[]
-
-You can see that the `test` task is not executed, even though it depends on the `dist` task.
-The `test` task's dependencies, such as `compileTest`, are not executed either.
-Those dependencies of `test` that another task requires, such as `compile`, are still executed.
-
 [[sec:rerun_tasks]]
-=== Forcing tasks to execute
-You can force Gradle to execute all tasks ignoring <<incremental_build.adoc#incremental_build,up-to-date checks>> using the `--rerun-tasks` option:
-
-----
-$ gradle test --rerun-tasks
-----
-
-This will force `test` and _all_ task dependencies of `test` to execute. It is similar to running `gradle clean test`, but without the build's generated output being deleted.
-
-Alternatively, you can tell Gradle to rerun a specific task using the `--rerun` built-in <<#sec:task_options, task option>>.
-
 [[sec:continue_build_on_failure]]
-=== Continue the build after a task failure
-By default, Gradle aborts execution and fails the build when any task fails.
-This allows the build to complete sooner and prevents cascading failures from obfuscating the root cause of an error.
-
-You can use the `--continue` option to force Gradle to execute every task when a failure occurs:
-
-----
-$ gradle test --continue
-----
-
-When executed with `--continue`, Gradle executes _every_ task in the build if all the dependencies for that task are completed without failure.
-
-For example, tests do not run if there is a compilation error in the code under test because the `test` task depends on the `compilation` task.
-Gradle outputs each of the encountered failures at the end of the build.
-
 [[sec:name_abbreviation]]
-=== Name abbreviation
-When you specify tasks on the command line, you don't have to provide the full name of the task.
-You can provide enough of the task name to identify the task uniquely.
-For example, it is likely `gradle che` is enough for Gradle to identify the `check` task.
-
-The same applies to project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
-
-You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names.
-For example, the pattern `foBa` (or `fB`) matches `fooBar` and `foo-bar`.
-
-More concretely, you can run the `compileTest` task in the `my-awesome-library` subproject with the command `gradle mAL:cT`.
-
-----
-$ gradle mAL:cT
-----
-----
-include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
-----
-
-Abbreviations can also be used with the `-x` command-line option.
-
-== Common tasks
-
-The following are task conventions applied by built-in and most major Gradle plugins.
-
-=== Computing all outputs
-It is common in Gradle builds for the `build` task to designate assembling all outputs and running all checks:
-
-----
-$ gradle build
-----
-
-=== Running applications
-It is common for applications to run with the `run` task, which assembles the application and executes some script or binary:
-
-----
-$ gradle run
-----
-
-=== Running all checks
-It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task:
-
-----
-$ gradle check
-----
-
-=== Cleaning outputs
-You can delete the contents of the build directory using the `clean` task.
-Doing so will cause pre-computed outputs to be lost, causing significant additional build time for the subsequent task execution:
-
-----
-$ gradle clean
-----
-
 [[sec:command_line_project_reporting]]
-== Project reporting
-
-Gradle provides several built-in tasks that show particular details of your build.
-This can be useful for understanding your build's structure and dependencies and debugging problems.
-
-=== Listing projects
-Running the `projects` task gives you a list of the subprojects of the selected project, displayed in a hierarchy:
-
-----
-$ gradle projects
-----
-
-You also get a project report within https://scans.gradle.com/[Build Scans].
-
 [[sec:listing_tasks]]
-=== Listing tasks
-Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task:
-
-----
-$ gradle tasks
-----
-
-By default, this report shows only those tasks assigned to a task group.
-
-Groups (such as verification, publishing, help, build...) are available as the header of each section when listing tasks:
-
-----
-> Task :tasks
-
-Build tasks
------------
-assemble - Assembles the outputs of this project.
-
-Build Setup tasks
------------------
-init - Initializes a new Gradle build.
-
-Distribution tasks
-------------------
-assembleDist - Assembles the main distributions
-
-Documentation tasks
--------------------
-javadoc - Generates Javadoc API documentation for the main source code.
-----
-
-You can obtain more information in the task listing using the `--all` option:
-
-----
-$ gradle tasks --all
-----
-
 [[sec:show_task_details]]
 [[sec:listing_project_dependencies]]
 [[sec:listing_properties]]

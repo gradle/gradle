@@ -19,8 +19,8 @@ Every project has a build script that details build configuration, tasks, and pl
 
 image::gradle-basic-4.png[]
 
-Every Gradle build comprises one or more _projects_; a root project and subprojects.
-Each one has at least one build script.
+Every Gradle build comprises one or more projects; a root project and subprojects.
+Each one has a _build script_.
 
 For single-project builds, the build file contains dependencies and repository information for the build and the project.
 

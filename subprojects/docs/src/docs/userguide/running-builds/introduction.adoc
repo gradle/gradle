@@ -25,7 +25,7 @@ There are two options to get started using Gradle:
 [[gradle_intro]]
 == 1. Introduction to Gradle
 
-The introduction section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on Gradle features, apply plugins, add dependencies to your project and more.
+The introduction section goes through the Gradle basics so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
 
 [sidebar]
 _Training level_: **Beginner** +
@@ -38,10 +38,11 @@ The introduction covers:
 <<command_line_interface.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
 <<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
-<<task_basics.adoc#task_basics,Part 6.>> Tasks +
-<<plugin_basics.adoc#plugin_basics,Part 7.>> Plugins +
-<<gradle_optimizations.adoc#gradle_optimizations,Part 8.>> Gradle Optimizations +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 9.>> Multi-Project Builds +
+<<dependency_management_basics.adoc#task_basics,Part 6.>> Dependency Management +
+<<task_basics.adoc#task_basics,Part 7.>> Tasks +
+<<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Gradle Optimizations +
+<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 10.>> Multi-Project Builds +
 
 [[getting_started]]
 == 2. Getting Started Tutorial

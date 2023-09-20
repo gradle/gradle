@@ -38,11 +38,11 @@ Plugins are distributed in three ways:
 [[sec:types_of_plugins]]
 == Types of plugins
 
-There are two general types of plugins in Gradle, _binary_ plugins and _script_ plugins.
+There are two general types of plugins in Gradle, *binary* plugins and *script* plugins.
 
-Binary plugins can reside within a build script, within the project hierarchy, or externally in a plugin jar.
+*Binary plugins* can reside within a build script, within the project hierarchy, or externally in a plugin jar.
 
-Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
+*Script plugins* are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
 They are typically used within a build but can be externalized and accessed remotely.
 
 A plugin often starts as a script plugin (because they are easy to write).
@@ -53,16 +53,16 @@ Then, as the code becomes more valuable, it becomes a binary plugin that can be 
 
 To use the build logic encapsulated in a plugin, Gradle needs to perform two steps.
 
-First, it needs to _resolve_ the plugin, and then it needs to _apply_ the plugin to the project.
+First, it needs to *resolve* the plugin, and then it needs to **apply** the plugin to the project.
 
-_Resolving_ a plugin means finding the correct version of the jar that contains a given plugin and adding it to the project.
+*Resolving* a plugin means finding the correct version of the jar that contains a given plugin and adding it to the project.
 
-_Applying_ a plugin means executing the plugin on the project.
+*Applying* a plugin means executing the plugin on the project.
 
 [[sec:binary_plugins]]
 == Binary plugins
 
-You apply plugins in the build script using their _plugin id_, which is a globally unique identifier or name:
+You apply plugins in the build script using their *plugin id*, which is a globally unique identifier or name:
 
 [source]
 ----
@@ -92,7 +92,7 @@ Gradle has a vibrant community of plugin developers who contribute plugins for v
 
 The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
 
-You could search `generate unit test` in the Gradle Plugin Portal if you wanted to generate unit tests automatically for your project.
+You could search `generate unit test` in the Gradle Plugin Portal if you wanted to generate unit tests for your project automatically.
 There, you will find many plugins, including the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply as follows:
 
 [source]
@@ -103,6 +103,7 @@ plugins {
 ----
 
 == Plugin tasks
+
 Since plugins add tasks to your project when applied, you can view the `utbot` tasks by running:
 
 [source]

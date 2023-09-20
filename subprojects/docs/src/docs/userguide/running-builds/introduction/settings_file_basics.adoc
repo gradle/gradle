@@ -19,7 +19,7 @@ The settings file is the *entry point* of every Gradle project.
 
 image::gradle-basic-3.png[]
 
-The settings file has two primary purposes:
+The _settings file_ has two primary purposes:
 
 1. Register subprojects which will be part of the build process.
 2. Add libraries to your build.
@@ -32,7 +32,8 @@ Gradle supports single and multi-project builds.
 [[sec:settings_script]]
 == Settings script
 
-The settings script is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
+The settings file is a script.
+It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
@@ -148,7 +149,7 @@ The settings file defines your project name:
 
 [source]
 ----
-rootProject.name = "root-project" // settings.rootProject.name = "root-project"
+rootProject.name = "root-project"
 ----
 
 There is only one root per project.

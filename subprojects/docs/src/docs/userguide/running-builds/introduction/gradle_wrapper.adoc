@@ -19,8 +19,7 @@ The **recommended way to execute any Gradle build** is with the Gradle Wrapper.
 
 image::gradle-basic-2.png[]
 
-The Wrapper script invokes a declared version of Gradle, downloading it beforehand if necessary.
-As a result, developers can get up and running with a Gradle project quickly.
+The _Wrapper_ script invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 image::wrapper-workflow.png[]
 
@@ -55,6 +54,13 @@ To run the Wrapper on a Windows machine:
 
 ----
 $ gradlew.bat build
+----
+
+The command is run in the same directory that the Wrapper is located in.
+If you want to run the command in a different directory, you must provide the relative path to the Wrapper:
+
+----
+$ ../gradlew build
 ----
 
 The following console output demonstrates the use of the Wrapper on a Windows machine for a Java-based project:
