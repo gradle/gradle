@@ -19,7 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;

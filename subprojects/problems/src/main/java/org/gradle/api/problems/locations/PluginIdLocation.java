@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.locations;
 
 import org.gradle.api.Incubating;
 
 /**
- * Represents a location information of a problem.
+ * Represents an applied plugin ID.
  *
- * @since 8.4
+ * @since 8.5
  */
 @Incubating
-public interface ProblemLocation {
+public class PluginIdLocation implements ProblemLocation {
 
-    /**
-     * Returns a
-     * @since 8.5
-     */
-    String getType();
+    private final String pluginId;
+
+    public PluginIdLocation(String pluginId) {
+        this.pluginId = pluginId;
+    }
+
+    @Override
+    public String getType() {
+        return "pluginId";
+    }
+
+    public String getPluginId() { // TODO rename to getId()
+        return pluginId;
+    }
 }

@@ -26,12 +26,14 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.PluginIdLocation;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,6 +61,7 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(FileLocation.class, new FileLocationAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(PluginIdLocation.class, new PluginIdLocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(TaskPathLocation.class, new TaskLocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -278,6 +281,40 @@ public class ValidationProblemSerialization {
 
             Objects.requireNonNull(pluginId, "pluginId must not be null");
             return new PluginIdLocation(pluginId);
+        }
+    }
+
+    public static class TaskLocationAdapter extends TypeAdapter<TaskPathLocation> {
+
+        @Override
+        public void write(JsonWriter out, @Nullable TaskPathLocation value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginArray();
+            out.name("type").value(value.getType());
+            out.name("identityPath").value(value.getIdentityPath().getPath());
+            out.endObject();
+        }
+
+        @Override
+        public TaskPathLocation read(JsonReader in) throws IOException {
+            in.beginObject();
+            String identityPath = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                if (name.equals("identityPath")) {
+                    identityPath = in.nextString();
+                } else {
+                    in.skipValue();
+                }
+            }
+            in.endObject();
+
+            Objects.requireNonNull(identityPath, "identityPath must not be null");
+            return new TaskPathLocation(Path.path(identityPath));
         }
     }
 

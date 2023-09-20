@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.api.problems.locations;
 
 import org.gradle.api.Incubating;
 

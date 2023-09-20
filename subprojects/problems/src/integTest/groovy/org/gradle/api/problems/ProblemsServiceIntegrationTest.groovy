@@ -18,6 +18,7 @@ package org.gradle.api.problems
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Path
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -234,13 +235,18 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"] == [[
+        this.collectedProblems[0]["where"][0] == [
             "type": "file",
             "path": "test-location",
             "line": 1,
             "column": 1,
             "length": 0
-        ]]
+        ]
+
+        def taskPath = this.collectedProblems[0]["where"][1]
+        taskPath["type"] == "task"
+        taskPath["identityPath"]["absolute"] == true
+        taskPath["identityPath"]["path"] == ":reportProblem"
     }
 
     def "can emit a problem with plugin location specified"() {

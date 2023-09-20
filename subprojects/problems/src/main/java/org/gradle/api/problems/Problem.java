@@ -17,6 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.List;

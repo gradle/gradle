@@ -19,14 +19,14 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.PluginIdLocation;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ProblemBuilderDefiningType;
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 
