@@ -23,6 +23,7 @@ import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.ApiChange
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepository
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepositorySetupRule
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperties
 import groovy.transform.CompileStatic
 import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
@@ -141,6 +142,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         if (acceptationReason != null) {
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
+        } else if (member instanceof JApiMethod && UpgradedProperties.isUpgradedProperty(member, context)) {
+            seenApiChanges.add(change)
+            return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>Upgraded property</b>")
         }
         def acceptanceJson = new AcceptedApiChange(
             change.type,

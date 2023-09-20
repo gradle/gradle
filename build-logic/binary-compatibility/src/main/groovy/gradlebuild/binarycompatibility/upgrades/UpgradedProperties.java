@@ -16,8 +16,11 @@
 
 package gradlebuild.binarycompatibility.upgrades;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import japicmp.model.JApiMethod;
+import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,8 +28,21 @@ import java.io.FileReader;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
+import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
+import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
 
 public class UpgradedProperties {
+
+    private static final Set<String> LAZY_ACCEPTED_PROPERTY_TYPES = ImmutableSet.of(
+        "org.gradle.api.provider.Property",
+        "org.gradle.api.provider.ListProperty",
+        "org.gradle.api.provider.SetProperty",
+        "org.gradle.api.provider.MapProperty",
+        "org.gradle.api.file.ConfigurableFileCollection"
+    );
 
     public static List<UpgradedProperty> parse(String path) {
         File file = new File(path);
@@ -38,5 +54,34 @@ public class UpgradedProperties {
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static boolean isUpgradedProperty(JApiMethod jApiMethod, ViolationCheckContext context) {
+        if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
+            return isOldUpgradedPropertySetter(jApiMethod) || isOldUpgradedBooleanPropertyGetter(jApiMethod);
+        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
+            return isUpgradedPropertyGetter(jApiMethod);
+        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
+            return isUpgradedPropertyGetter(jApiMethod) && isUpgradedBooleanPropertyGetter(jApiMethod);
+        }
+        return false;
+    }
+
+    private static boolean isUpgradedBooleanPropertyGetter(JApiMethod jApiMethod) {
+        return false;
+    }
+
+    private static boolean isOldUpgradedBooleanPropertyGetter(JApiMethod jApiMethod) {
+        return false;
+    }
+
+    private static boolean isOldUpgradedPropertySetter(JApiMethod jApiMethod) {
+        return false;
+    }
+
+    private static boolean isUpgradedPropertyGetter(JApiMethod jApiMethod) {
+        return jApiMethod.getName().startsWith("get")
+            && jApiMethod.getParameters().isEmpty()
+            && LAZY_ACCEPTED_PROPERTY_TYPES.contains(jApiMethod.getReturnType().getNewReturnType());
     }
 }
