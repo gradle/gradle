@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[gradle_optimizations]]
-= Gradle Optimizations
+= Gradle Optimizations Basics
 
 Gradle uses two main features to reduce build time, *incremental builds* and *caching*.
 

@@ -38,7 +38,7 @@ The introduction covers:
 <<command_line_interface.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
 <<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
-<<dependency_management_basics.adoc#task_basics,Part 6.>> Dependency Management +
+<<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
 <<task_basics.adoc#task_basics,Part 7.>> Tasks +
 <<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
 <<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Gradle Optimizations +
