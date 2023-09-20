@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.result;
+@NonNullApi
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.provider.Provider;
-
-/**
- * Internal counterpart to {@link ResolutionResult}.
- */
-public interface ResolutionResultInternal extends ResolutionResult {
-
-    /**
-     * An optional non-fatal failure which may be attached to a resolution result.
-     */
-    Provider<ResolveException> getExtraFailure();
-}
+import org.gradle.api.NonNullApi;

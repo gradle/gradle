@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -42,7 +41,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -90,10 +88,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.desugaring = desugaring;
     }
 
-    public MinimalResolutionResult complete(@Nullable ResolveException extraFailure, Set<UnresolvedDependency> dependencyLockingFailures) {
+    public MinimalResolutionResult complete(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
-        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes, extraFailure);
+        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes);
     }
 
     @Override

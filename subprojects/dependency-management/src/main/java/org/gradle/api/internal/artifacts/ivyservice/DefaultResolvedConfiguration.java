@@ -37,12 +37,15 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public boolean hasError() {
-        return configuration.hasError();
+        return configuration.getGraphResults().hasResolutionFailure();
     }
 
     @Override
     public void rethrowFailure() throws ResolveException {
-        configuration.rethrowFailure();
+        ResolveException failure = configuration.getGraphResults().getResolutionFailure();
+        if (failure != null) {
+            throw failure;
+        }
     }
 
     @Override

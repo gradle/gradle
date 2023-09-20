@@ -42,23 +42,24 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
 class ResolutionErrorRenderer {
     private final Spec<DependencyResult> dependencySpec;
     private final List<Action<StyledTextOutput>> errorActions = new ArrayList<>(1);
-    private final List<Provider<ResolveException>> errorProviders = new ArrayList<>(1);
+    private final List<Provider<List<Throwable>>> errorSources = new ArrayList<>(1);
 
     public ResolutionErrorRenderer(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
     }
 
-    public void addErrorProvider(Provider<ResolveException> errorProvider) {
-        errorProviders.add(errorProvider);
+    public void addErrorSource(Provider<List<Throwable>> errorSource) {
+        errorSources.add(errorSource);
     }
 
     private void resolveErrorProviders() {
-        for (Provider<ResolveException> errorProvider : errorProviders) {
-            ResolveException error = errorProvider.getOrNull();
-            if (error != null) {
-                error.getCauses().forEach(this::handleResolutionError);
+        errorSources.stream().flatMap(x -> x.get().stream()).forEach(failure -> {
+            if (failure instanceof ResolveException) {
+                ((ResolveException) failure).getCauses().forEach(this::handleResolutionError);
+            } else {
+                handleResolutionError(failure);
             }
-        }
+        });
     }
 
     private void handleResolutionError(Throwable cause) {

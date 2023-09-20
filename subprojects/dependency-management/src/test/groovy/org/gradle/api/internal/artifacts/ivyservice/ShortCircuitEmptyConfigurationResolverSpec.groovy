@@ -78,7 +78,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         def results = dependencyResolver.resolveGraph(resolveContext)
 
         then:
-        results.minimalResolutionResult.rootSource.get().dependencies.empty
+        results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
 
         and:
         def localComponentsResult = results.resolvedLocalComponents

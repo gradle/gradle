@@ -67,7 +67,7 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
         ResolvedComponentResult root = builder.getRoot(0L);
-        return new DefaultMinimalResolutionResult(() -> root, attributes, null);
+        return new DefaultMinimalResolutionResult(() -> root, attributes);
     }
 
     public ResolvedComponentResult getRoot(long rootId) {

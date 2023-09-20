@@ -17,24 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
-
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
-    private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final VisitedGraphResults graphResults;
     private final VisitedArtifactsResults artifactsResults;
     ArtifactVariantSelector artifactVariantSelector;
 
     public BuildDependenciesOnlyVisitedArtifactSet(
-        Set<UnresolvedDependency> unresolvedDependencies,
+        VisitedGraphResults graphResults,
         VisitedArtifactsResults artifactsResults,
         ArtifactVariantSelector artifactVariantSelector
     ) {
-        this.unresolvedDependencies = unresolvedDependencies;
+        this.graphResults = graphResults;
         this.artifactsResults = artifactsResults;
         this.artifactVariantSelector = artifactVariantSelector;
     }
@@ -42,23 +40,21 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
     @Override
     public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
         ResolvedArtifactSet selectedArtifacts = artifactsResults.select(artifactVariantSelector, spec).getArtifacts();
-        return new BuildDependenciesOnlySelectedArtifactSet(unresolvedDependencies, selectedArtifacts);
+        return new BuildDependenciesOnlySelectedArtifactSet(graphResults, selectedArtifacts);
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
-        private final Set<UnresolvedDependency> unresolvedDependencies;
+        private final VisitedGraphResults graphResults;
         private final ResolvedArtifactSet selectedArtifacts;
 
-        BuildDependenciesOnlySelectedArtifactSet(Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts) {
-            this.unresolvedDependencies = unresolvedDependencies;
+        BuildDependenciesOnlySelectedArtifactSet(VisitedGraphResults graphResults, ResolvedArtifactSet selectedArtifacts) {
+            this.graphResults = graphResults;
             this.selectedArtifacts = selectedArtifacts;
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                context.visitFailure(unresolvedDependency.getProblem());
-            }
+            graphResults.visitResolutionFailures(context::visitFailure);
             context.add(selectedArtifacts);
         }
 

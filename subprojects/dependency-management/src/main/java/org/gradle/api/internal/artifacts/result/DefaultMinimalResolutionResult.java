@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 /**
@@ -30,28 +28,22 @@ public class DefaultMinimalResolutionResult implements MinimalResolutionResult {
 
     private final Supplier<ResolvedComponentResult> rootSource;
     private final AttributeContainer requestedAttributes;
-    private final ResolveException extraFailure;
 
     public DefaultMinimalResolutionResult(
         Supplier<ResolvedComponentResult> rootSource,
-        AttributeContainer requestedAttributes,
-        @Nullable ResolveException extraFailure
+        AttributeContainer requestedAttributes
     ) {
         this.rootSource = rootSource;
         this.requestedAttributes = requestedAttributes;
-        this.extraFailure = extraFailure;
     }
 
+    @Override
     public Supplier<ResolvedComponentResult> getRootSource() {
         return rootSource;
     }
 
+    @Override
     public AttributeContainer getRequestedAttributes() {
         return requestedAttributes;
-    }
-
-    @Nullable
-    public ResolveException getExtraFailure() {
-        return extraFailure;
     }
 }

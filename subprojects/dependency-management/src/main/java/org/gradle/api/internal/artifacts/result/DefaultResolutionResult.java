@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.result;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
@@ -36,7 +35,7 @@ import java.util.Set;
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 @SuppressWarnings("rawtypes")
-public class DefaultResolutionResult implements ResolutionResultInternal {
+public class DefaultResolutionResult implements ResolutionResult {
 
     private final MinimalResolutionResult minimal;
 
@@ -52,11 +51,6 @@ public class DefaultResolutionResult implements ResolutionResultInternal {
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
         return new DefaultProvider<>(() -> minimal.getRootSource().get());
-    }
-
-    @Override
-    public Provider<ResolveException> getExtraFailure() {
-        return Providers.ofNullable(minimal.getExtraFailure());
     }
 
     @Override
