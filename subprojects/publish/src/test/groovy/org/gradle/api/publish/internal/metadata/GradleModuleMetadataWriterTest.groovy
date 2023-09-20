@@ -43,7 +43,6 @@ import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolver
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.id.UniqueId
@@ -1328,13 +1327,8 @@ class GradleModuleMetadataWriterTest extends Specification {
         String resolvedVersion
 
         @Override
-        VariantDependencyResolver createVariantResolver(SoftwareComponentVariant variant) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ComponentDependencyResolver createComponentResolver(SoftwareComponentVariant variant) {
-            return new TestVariantDependencyResolver(resolvedVersion)
+        DependencyResolvers createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
+            return new DependencyResolvers(null, new TestVariantDependencyResolver(resolvedVersion))
         }
 
         void resolveToVersion(String resolvedVersion) {

@@ -119,9 +119,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
 
-        IvyComponentParser ivyComponentParser = objectFactory.newInstance(
-            IvyComponentParser.class, ivyArtifactNotationParser, versionMappingStrategy
-        );
+        IvyComponentParser ivyComponentParser = objectFactory.newInstance(IvyComponentParser.class, ivyArtifactNotationParser);
 
         this.componentArtifacts = objectFactory.setProperty(IvyArtifact.class);
         this.componentArtifacts.convention(getComponent().map(ivyComponentParser::parseArtifacts));
@@ -145,7 +143,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         this.descriptor.getConfigurations().set(this.configurations);
         this.descriptor.getArtifacts().set(providerFactory.provider(this::getArtifacts));
         this.descriptor.getDependencies().set(getComponent().<Set<IvyDependency>>map(component -> {
-            IvyComponentParser.ParsedDependencyResult result = ivyComponentParser.parseDependencies(component);
+            IvyComponentParser.ParsedDependencyResult result = ivyComponentParser.parseDependencies(component, versionMappingStrategy);
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " ivy metadata", silencedVariants);
             }

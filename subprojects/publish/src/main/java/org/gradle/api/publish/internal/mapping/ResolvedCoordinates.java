@@ -62,7 +62,7 @@ public interface ResolvedCoordinates {
     }
 
     // Returns a separate implementation than `create` to avoid deconstructing the identifier.
-    static ResolvedCoordinates from(ModuleVersionIdentifier identifier) {
+    static ResolvedCoordinates create(ModuleVersionIdentifier identifier) {
         return new ResolvedCoordinates() {
             @Override
             public String getGroup() {

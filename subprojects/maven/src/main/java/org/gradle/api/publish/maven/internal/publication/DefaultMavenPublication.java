@@ -118,9 +118,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
 
-        MavenComponentParser mavenComponentParser = objectFactory.newInstance(
-            MavenComponentParser.class, versionMappingStrategy, mavenArtifactParser
-        );
+        MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
 
         this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);
         this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
@@ -135,7 +133,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
         this.pom.getDependencies().set(getComponent().map(component -> {
-            MavenComponentParser.ParsedDependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates());
+            MavenComponentParser.ParsedDependencyResult result = mavenComponentParser.parseDependencies(component, versionMappingStrategy, getCoordinates());
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
             }

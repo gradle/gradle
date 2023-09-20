@@ -42,27 +42,14 @@ import javax.inject.Inject;
 public class DefaultDependencyCoordinateResolverFactory implements DependencyCoordinateResolverFactory {
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final VersionMappingStrategyInternal versionMappingStrategy;
 
     @Inject
-    public DefaultDependencyCoordinateResolverFactory(
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        VersionMappingStrategyInternal versionMappingStrategy
-    ) {
+    public DefaultDependencyCoordinateResolverFactory(ProjectDependencyPublicationResolver projectDependencyResolver) {
         this.projectDependencyResolver = projectDependencyResolver;
-        this.versionMappingStrategy = versionMappingStrategy;
-    }
-
-    public ComponentDependencyResolver createComponentResolver(SoftwareComponentVariant variant) {
-        return getDependencyResolutionStrategy(variant).componentResolver;
     }
 
     @Override
-    public VariantDependencyResolver createVariantResolver(SoftwareComponentVariant variant) {
-        return getDependencyResolutionStrategy(variant).variantResolver;
-    }
-
-    public DependencyResolvers getDependencyResolutionStrategy(SoftwareComponentVariant variant) {
+    public DependencyResolvers createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
         Configuration configuration = null;
 
         ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
@@ -81,21 +68,10 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         if (configuration != null) {
             componentResolver = new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration);
         } else {
-            componentResolver = new MinimalComponentDependencyResolver(projectDependencyResolver);
+            componentResolver = new ProjectOnlyComponentDependencyResolver(projectDependencyResolver);
         }
 
         return new DependencyResolvers(new VariantResolverAdapter(componentResolver), componentResolver);
-    }
-
-    private static class DependencyResolvers {
-
-        private final VariantDependencyResolver variantResolver;
-        private final ComponentDependencyResolver componentResolver;
-
-        public DependencyResolvers(VariantDependencyResolver variantResolver, ComponentDependencyResolver componentResolver) {
-            this.variantResolver = variantResolver;
-            this.componentResolver = componentResolver;
-        }
     }
 
     /**
@@ -104,7 +80,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
      */
     private static class VariantResolverAdapter implements VariantDependencyResolver {
 
-        ComponentDependencyResolver delegate;
+        private final ComponentDependencyResolver delegate;
 
         public VariantResolverAdapter(ComponentDependencyResolver delegate) {
             this.delegate = delegate;
@@ -125,11 +101,11 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
     /**
      * A {@link ComponentDependencyResolver} which does not depend on resolving a dependency graph.
      */
-    private static class MinimalComponentDependencyResolver implements ComponentDependencyResolver {
+    private static class ProjectOnlyComponentDependencyResolver implements ComponentDependencyResolver {
 
         private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
-        public MinimalComponentDependencyResolver(ProjectDependencyPublicationResolver projectDependencyResolver) {
+        public ProjectOnlyComponentDependencyResolver(ProjectDependencyPublicationResolver projectDependencyResolver) {
             this.projectDependencyResolver = projectDependencyResolver;
         }
 
@@ -142,7 +118,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         @Override
         public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
             Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
-            return ResolvedCoordinates.from(projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath));
+            return ResolvedCoordinates.create(projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath));
         }
 
         @Nullable

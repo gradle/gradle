@@ -17,6 +17,7 @@
 package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 
 /**
  * Creates {@link VariantDependencyResolver} and {@link ComponentDependencyResolver} scoped to a particular variant,
@@ -25,12 +26,29 @@ import org.gradle.api.component.SoftwareComponentVariant;
 public interface DependencyCoordinateResolverFactory {
 
     /**
-     * Create a {@link VariantDependencyResolver} for the given variant.
+     * Create coordinate resolvers for the given variant.
      */
-    VariantDependencyResolver createVariantResolver(SoftwareComponentVariant variant);
+    DependencyResolvers createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy);
 
     /**
-     * Create a {@link ComponentDependencyResolver} for the given variant.
+     * Contains the variant and component coordinate resolver for a given variant.
      */
-    ComponentDependencyResolver createComponentResolver(SoftwareComponentVariant variant);
+    class DependencyResolvers {
+
+        private final VariantDependencyResolver variantResolver;
+        private final ComponentDependencyResolver componentResolver;
+
+        public DependencyResolvers(VariantDependencyResolver variantResolver, ComponentDependencyResolver componentResolver) {
+            this.variantResolver = variantResolver;
+            this.componentResolver = componentResolver;
+        }
+
+        public VariantDependencyResolver getVariantResolver() {
+            return variantResolver;
+        }
+
+        public ComponentDependencyResolver getComponentResolver() {
+            return componentResolver;
+        }
+    }
 }

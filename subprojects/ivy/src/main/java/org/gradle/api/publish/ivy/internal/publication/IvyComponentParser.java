@@ -35,9 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVer
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.IvyPublishingAwareVariant;
-import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
@@ -95,19 +93,18 @@ public class IvyComponentParser {
     @Inject
     public IvyComponentParser(
         Instantiator instantiator,
-        ObjectFactory objectFactory,
         PlatformSupport platformSupport,
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
         DocumentationRegistry documentationRegistry,
-        VersionMappingStrategyInternal versionMappingStrategy,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory
     ) {
         this.instantiator = instantiator;
         this.platformSupport = platformSupport;
         this.ivyArtifactParser = ivyArtifactParser;
         this.documentationRegistry = documentationRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-        this.dependencyCoordinateResolverFactory = objectFactory.newInstance(DefaultDependencyCoordinateResolverFactory.class, versionMappingStrategy);
+        this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
     }
 
     public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
@@ -177,7 +174,7 @@ public class IvyComponentParser {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
-    public ParsedDependencyResult parseDependencies(SoftwareComponentInternal component) {
+    public ParsedDependencyResult parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
         PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
@@ -188,7 +185,7 @@ public class IvyComponentParser {
         for (SoftwareComponentVariant variant : component.getUsages()) {
             VariantWarningCollector warnings = publicationWarningsCollector.warningCollectorFor(variant.getName());
 
-            VariantDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createVariantResolver(variant);
+            VariantDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy).getVariantResolver();
 
             VariantDependencyFactory dependencyFactory = new VariantDependencyFactory(dependencyResolver, warnings);
 

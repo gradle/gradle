@@ -68,7 +68,7 @@ public class VersionMappingVariantDependencyResolver implements ComponentDepende
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
-        return ResolvedCoordinates.from(resolved != null ? resolved : coordinates);
+        return ResolvedCoordinates.create(resolved != null ? resolved : coordinates);
     }
 
     @Nullable
@@ -86,7 +86,7 @@ public class VersionMappingVariantDependencyResolver implements ComponentDepende
     public ResolvedCoordinates resolveModule(String group, String name) {
         ModuleVersionIdentifier resolved = maybeResolveVersion(group, name, null);
         if (resolved != null) {
-            return ResolvedCoordinates.from(resolved);
+            return ResolvedCoordinates.create(resolved);
         }
         return null;
     }

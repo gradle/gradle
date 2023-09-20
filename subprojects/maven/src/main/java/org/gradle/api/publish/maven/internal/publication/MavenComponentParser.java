@@ -41,10 +41,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVer
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
 import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
-import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
@@ -106,18 +104,17 @@ public class MavenComponentParser {
 
     @Inject
     public MavenComponentParser(
-        ObjectFactory objectFactory,
         PlatformSupport platformSupport,
         VersionRangeMapper versionRangeMapper,
         DocumentationRegistry documentationRegistry,
-        VersionMappingStrategyInternal versionMappingStrategy,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser
+        NotationParser<Object, MavenArtifact> mavenArtifactParser,
+        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory
     ) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.dependencyCoordinateResolverFactory = objectFactory.newInstance(DefaultDependencyCoordinateResolverFactory.class, versionMappingStrategy);
+        this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
@@ -136,6 +133,7 @@ public class MavenComponentParser {
 
     public ParsedDependencyResult parseDependencies(
         SoftwareComponentInternal component,
+        VersionMappingStrategyInternal versionMappingStrategy,
         ModuleVersionIdentifier coordinates
     ) {
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
@@ -157,12 +155,11 @@ public class MavenComponentParser {
             boolean optional = scopeMapping.isOptional();
             Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
-            VariantDependencyResolver variantDependencyResolver = dependencyCoordinateResolverFactory.createVariantResolver(variant);
-            ComponentDependencyResolver componentDependencyResolver = dependencyCoordinateResolverFactory.createComponentResolver(variant);
+            DependencyCoordinateResolverFactory.DependencyResolvers resolvers = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy);
             MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
                 warnings,
-                variantDependencyResolver,
-                componentDependencyResolver,
+                resolvers.getVariantResolver(),
+                resolvers.getComponentResolver(),
                 versionRangeMapper,
                 scope,
                 optional,
@@ -307,10 +304,6 @@ public class MavenComponentParser {
             // To publish a dependency constraint to Maven, we would need to publish a constraint for _each_ coordinate
             // that the component could be resolved to. Resolution results do not support this type of query, so this
             // remains incomplete for now.
-
-            if (!dependency.getAttributes().isEmpty()) {
-                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
-            }
 
             ResolvedCoordinates identifier;
             if (dependency instanceof DefaultProjectDependencyConstraint) {

@@ -47,6 +47,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
@@ -603,6 +604,7 @@ class DefaultMavenPublicationTest extends Specification {
             it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
             it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+            it.add(DefaultDependencyCoordinateResolverFactory)
         }.get(ObjectFactory)
 
         def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {

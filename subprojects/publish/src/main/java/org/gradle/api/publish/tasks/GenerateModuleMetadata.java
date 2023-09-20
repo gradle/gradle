@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -38,7 +39,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.metadata.DependencyAttributesValidator;
 import org.gradle.api.publish.internal.metadata.EnforcedPlatformPublicationValidator;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
@@ -93,10 +94,13 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
     private final SetProperty<String> suppressedValidationErrors;
 
-    private final ObjectFactory objectFactory;
+    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
     public GenerateModuleMetadata() {
-        this.objectFactory = getProject().getObjects();
+        Project project = getProject();
+        ObjectFactory objectFactory = project.getObjects();
+        this.dependencyCoordinateResolverFactory = ((ProjectInternal) project).getServices().get(DependencyCoordinateResolverFactory.class);
+
         publication = Transient.of(objectFactory.property(Publication.class));
         publications = Transient.of(objectFactory.listProperty(Publication.class));
 
@@ -262,7 +266,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
             publication,
             publications(),
             checker,
-            objectFactory.newInstance(DefaultDependencyCoordinateResolverFactory.class, publication.getVersionMappingStrategy()),
+            dependencyCoordinateResolverFactory,
             dependencyAttributeValidators()
         ).build();
         checker.validate();

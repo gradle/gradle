@@ -46,6 +46,7 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -127,6 +128,7 @@ public class ModuleMetadataSpecBuilder {
     private List<ModuleMetadataSpec.Variant> variants() {
         ArrayList<ModuleMetadataSpec.Variant> variants = new ArrayList<>();
         SoftwareComponentInternal softwareComponent = component.get();
+        VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
         checker.checkComponent(softwareComponent);
         for (SoftwareComponentVariant variant : softwareComponent.getUsages()) {
             checkVariant(variant);
@@ -135,8 +137,8 @@ public class ModuleMetadataSpecBuilder {
                     variant.getName(),
                     attributesFor(variant.getAttributes()),
                     capabilitiesFor(variant.getCapabilities()),
-                    dependenciesOf(variant),
-                    dependencyConstraintsFor(variant),
+                    dependenciesOf(variant, versionMappingStrategy),
+                    dependencyConstraintsFor(variant, versionMappingStrategy),
                     artifactsOf(variant)
                 )
             );
@@ -351,13 +353,13 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
-    private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant) {
+    private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
         if (variant.getDependencies().isEmpty()) {
             return emptyList();
         }
         ArrayList<ModuleMetadataSpec.Dependency> dependencies = new ArrayList<>();
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
-        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createComponentResolver(variant);
+        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy).getComponentResolver();
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
             if (moduleDependency.getArtifacts().isEmpty()) {
                 dependencies.add(
@@ -384,11 +386,11 @@ public class ModuleMetadataSpecBuilder {
         return dependencies;
     }
 
-    private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant) {
+    private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();
         }
-        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createComponentResolver(variant);
+        ComponentDependencyResolver dependencyResolver = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy).getComponentResolver();
         ArrayList<ModuleMetadataSpec.DependencyConstraint> dependencyConstraints = new ArrayList<>();
         for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencyConstraints.add(
