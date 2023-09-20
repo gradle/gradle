@@ -19,7 +19,9 @@ object GrammarToTree {
             val imports = importList(ast.child(importList))
             val statements = ast.children(statement).map { statement(it) }
 
-            Syntactic(failures + imports + statements)
+            syntacticAfterBarrier {
+                Syntactic(failures + imports + statements)
+            }
         }
         return (result as Syntactic).value
     }
@@ -63,7 +65,7 @@ object GrammarToTree {
         val singleChild = ast.childrenOrEmpty.singleOrNull() ?: error("expected a single child")
         elementAfterBarrier {
             when (singleChild.kind) {
-                loopStatement -> failNow(ast.unsupported(LoopStatement))
+                loopStatement -> failNow(singleChild.unsupported(LoopStatement))
                 declaration -> declaration(singleChild)
                 assignment -> assignment(singleChild)
                 expression -> expression(singleChild)
@@ -519,17 +521,23 @@ object GrammarToTree {
 
         return if (infixFunctionCall.hasChild(simpleIdentifier)) {
             elementOrFailure {
-                val (left, right) = infixFunctionCall.children(rangeExpression)
-                val (leftExpr, rightExpr) =
-                    listOf(left, right).map { collectingFailure(workaroundPostfixUnaryExpression(it)) }
-                val name = simpleIdentifier(infixFunctionCall.child(simpleIdentifier)).value
+                val children = infixFunctionCall.children(rangeExpression)
+                val leftExpr = collectingFailure(workaroundPostfixUnaryExpression(children[0]))
+                val rightExprs = children.drop(1).map {
+                    collectingFailure(workaroundPostfixUnaryExpression(it))
+                }
+                val names = infixFunctionCall.children(simpleIdentifier).map { simpleIdentifier(it).value }
                 elementAfterBarrier {
                     Element(
-                        FunctionCall(
-                            checked(leftExpr),
-                            name,
-                            listOf(FunctionArgument.Positional(checked(rightExpr), right)), ast
-                        )
+                        rightExprs.zip(names).fold(checked(leftExpr)) { acc, (rExp, name) ->
+                            val arg = checked(rExp)
+                            FunctionCall(
+                                acc, 
+                                name, 
+                                listOf(FunctionArgument.Positional(arg, infixFunctionCall)),
+                                infixOperation
+                            )
+                        }
                     )
                 }
             }
@@ -541,7 +549,7 @@ object GrammarToTree {
     private fun workaroundPostfixUnaryExpression(ast: Ast): ElementResult<Expr> {
         val exprAst = workaround(
             "the expression structure is too nested for now",
-            ast.findDescendant { it.kind == postfixUnaryExpression }
+            ast.flattenTo { it.kind == postfixUnaryExpression }
         ) ?: return ast.unsupported(TodoNotCoveredYet)
         return postfixUnaryExpression(exprAst)
     }

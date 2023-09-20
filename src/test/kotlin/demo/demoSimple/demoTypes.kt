@@ -6,7 +6,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Builder
 class Abc {
     var a: Int = 0
     fun b(): Int = 1
-    @Adding fun c(x: Int, configure: C.() -> Unit) =
+    @Adding
+    fun c(x: Int, configure: C.() -> Unit = { }) =
         C().apply {
             this.x = x;
             configure();

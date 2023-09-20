@@ -23,13 +23,13 @@ object SimpleAnalysisDemo {
                     a = myB
                     val myD = newD("shared")
                     
-                    c(1) {
-                        x = f(y)
-                        d = myD
-                    }
+                    val c1 = c(1)
+                    c1.x = c1.f1(c1.y)
+                    c1.d = myD
+                    
                     c(2) {
                         x = f("another test")
-                        d = myD
+                        this.d = myD
                     }
                 """.trimIndent()
             )

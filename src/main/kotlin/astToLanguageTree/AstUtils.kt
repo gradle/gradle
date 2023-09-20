@@ -21,6 +21,15 @@ fun Ast.findSingleChild(kind: AstKind) = this@findSingleChild.findSingleChild { 
 fun Ast.children(predicate: (Ast) -> Boolean) = childrenOrEmpty.filter(predicate)
 fun Ast.children(kind: AstKind): List<Ast> = childrenOrEmpty.filter { it.kind == kind }
 
+fun Ast.flattenTo(predicate: (Ast) -> Boolean): Ast? = 
+    traverse().find {
+        when {
+            it != this && predicate(it) -> true
+            it.childrenOrEmpty.size > 1 -> return@flattenTo null
+            else -> false
+        }
+    }
+
 fun Ast.findDescendant(predicate: (Ast) -> Boolean): Ast? = traverse().find { it != this && predicate(it) }
 fun Ast.hasDescendant(predicate: (Ast) -> Boolean): Boolean = findDescendant(predicate) != null
 

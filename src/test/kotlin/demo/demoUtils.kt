@@ -15,6 +15,22 @@ fun AnalysisSchema.resolve(
     val tree = languageBuilder.build(ast.single())
     val resolver: DataObjectResolver = DataObjectResolverImpl()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
+
+    val failures = tree.results.filterIsInstance<FailingResult>()
+
+    if (failures.isNotEmpty()) {
+        println("Failures:")
+        fun printFailures(failure: FailingResult) {
+            when (failure) {
+                is UnsupportedConstruct -> println(
+                    failure.languageFeature.toString() + " in " + ast.toString().take(100)
+                )
+                is MultipleFailuresResult -> printFailures(failure)
+            }
+        }
+        failures.forEach { printFailures(it) }
+    }
+    
     return resolver.resolve(this, languageElements)
 }
 
