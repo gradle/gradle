@@ -20,7 +20,7 @@ import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
-class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -92,6 +92,47 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateLoaded()
+    }
+
+    def "can cache models with tasks"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+
+            tasks.register("dummyTask") {
+                println("Configuration of dummyTask")
+                doLast {
+                    println("Execution of dummyTask")
+                }
+            }
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+        }
+        outputContains("Configuration of dummyTask")
+        outputContains("Execution of dummyTask")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("Configuration of dummyTask")
+        outputDoesNotContain("creating model")
+        outputContains("Execution of dummyTask")
     }
 
     def "can ignore problems and cache custom model"() {

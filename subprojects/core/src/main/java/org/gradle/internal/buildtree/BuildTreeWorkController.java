@@ -25,5 +25,11 @@ import javax.annotation.Nullable;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildTreeWorkController {
-    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
+
+    /**
+     * Schedules and runs requested tasks based on the provided {@code taskSelector}.
+     *
+     * @param isModelBuildingRequested True if tasks run was requested as a part of model building process.
+     * */
+    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector, boolean isModelBuildingRequested);
 }

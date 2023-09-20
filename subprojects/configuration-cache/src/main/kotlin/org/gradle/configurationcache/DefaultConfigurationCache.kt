@@ -125,7 +125,12 @@ class DefaultConfigurationCache internal constructor(
         this.host = host
     }
 
-    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
+    override fun loadOrScheduleRequestedTasks(
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?,
+        scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph,
+        isModelBuildingRequested: Boolean
+    ): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
             BuildTreeConfigurationCache.WorkGraphResult(
@@ -136,7 +141,7 @@ class DefaultConfigurationCache internal constructor(
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
-                saveWorkGraph()
+                saveWorkGraph(isModelBuildingRequested)
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
@@ -322,18 +327,24 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveModel(model: Any) {
-        saveToCache(StateType.Model) { stateFile ->
-            cacheIO.writeModelTo(model, stateFile)
-        }
+        saveToCache(
+            stateType = StateType.Model,
+            action = { stateFile -> cacheIO.writeModelTo(model, stateFile) },
+            disposeResources = true
+        )
     }
 
     private
-    fun saveWorkGraph() {
-        saveToCache(StateType.Work) { layout -> writeConfigurationCacheState(layout) }
+    fun saveWorkGraph(isModelBuildingRequested: Boolean) {
+        saveToCache(
+            stateType = StateType.Work,
+            action = { stateFile -> writeConfigurationCacheState(stateFile) },
+            disposeResources = !isModelBuildingRequested,
+        )
     }
 
     private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit, disposeResources: Boolean) {
 
         cacheEntryRequiresCommit = true
 
@@ -350,7 +361,9 @@ class DefaultConfigurationCache internal constructor(
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
-                    scopeRegistryListener.dispose()
+                    if (disposeResources) {
+                        scopeRegistryListener.dispose()
+                    }
                 }
             }
         }
