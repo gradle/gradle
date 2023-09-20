@@ -30,6 +30,7 @@ import gradlebuild.binarycompatibility.rules.NewIncubatingAPIRule
 import gradlebuild.binarycompatibility.rules.NullabilityBreakingChangesRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
+import gradlebuild.binarycompatibility.rules.UpgradePropertiesRuleSetup
 import japicmp.model.JApiChangeStatus
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
@@ -41,7 +42,9 @@ class BinaryCompatibilityHelper {
         FileCollection sourceRoots,
         String currentVersion,
         File apiChangesJsonFile,
-        Directory projectRootDir
+        Directory projectRootDir,
+        File newUpgradedProperties,
+        File oldUpgradedProperties
     ) {
         japicmpTask.tap {
             addExcludeFilter(AnonymousClassesFilter)
@@ -107,6 +110,10 @@ class BinaryCompatibilityHelper {
                 addSetupRule(BinaryCompatibilityRepositorySetupRule, [
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set
+                ])
+                addSetupRule(UpgradePropertiesRuleSetup, [
+                    newUpgradedProperties: newUpgradedProperties.absolutePath,
+                    oldUpgradedProperties: oldUpgradedProperties.absolutePath
                 ])
 
                 addPostProcessRule(AcceptedRegressionsRulePostProcess)

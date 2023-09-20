@@ -15,10 +15,11 @@
  */
 
 
+
 import gradlebuild.EnrichedReportRenderer
+import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
-import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
@@ -91,6 +92,11 @@ configurations {
     }
 }
 
+def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
+def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
+def baselineJars = configurations.baselineJars
+def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
+
 dependencies {
     baseline("gradle:gradle:${compatibilityBaselineVersion}@zip")
 
@@ -104,26 +110,6 @@ dependencies {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
-}
-
-def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
-    def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
-    def isSnapshot = moduleIdentity.snapshot
-    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
-    inputs.property("baseline.version", compatibilityBaselineVersion)
-    inputs.property("currentVersion", baseVersion)
-    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
-    inputs.files("apiSourceFolders", apiSourceFolders)
-    def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
-    inputs.files(currentClasspath)
-
-    newClasspath.from(currentClasspath)
-    oldClasspath.from(configurations.baselineClasspath)
-
-    def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
-    newArchives.from(currentDistributionJars)
-    oldArchives.from(configurations.baselineJars)
-
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
@@ -132,6 +118,32 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
             currentVersion.set(baseVersion)
         }
     }
+}
+
+def newUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/new-upgraded-properties.json")
+def oldUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/old-upgraded-properties.json")
+def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.binarycompatibility.ExtractGradleApiInfoTask) {
+    newDistributionJars = currentDistributionJars
+    oldDistributionJars = baselineJars
+    newUpgradedProperties = newUpgradedPropertiesFile
+    oldUpgradedProperties = oldUpgradedPropertiesFile
+}
+
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
+    def isSnapshot = moduleIdentity.snapshot
+    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
+    inputs.property("baseline.version", compatibilityBaselineVersion)
+    inputs.property("currentVersion", baseVersion)
+    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
+    inputs.files("apiSourceFolders", apiSourceFolders)
+    inputs.files(currentClasspath)
+    inputs.files(extractGradleApiInfo)
+
+    newClasspath.from(currentClasspath)
+    oldClasspath.from(configurations.baselineClasspath)
+
+    newArchives.from(currentDistributionJars)
+    oldArchives.from(baselineJars)
 
     // binary breaking change checking setup
     onlyModified = false
@@ -158,7 +170,16 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         it.renderer.set(EnrichedReportRenderer.class)
     } as Action)
 
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get(), apiChangesJsonFile.asFile, rootProject.layout.projectDirectory)
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
+        delegate,
+        acceptedViolations,
+        apiSourceFolders,
+        baseVersion.get(),
+        apiChangesJsonFile.asFile,
+        rootProject.layout.projectDirectory,
+        newUpgradedPropertiesFile.get().asFile,
+        oldUpgradedPropertiesFile.get().asFile
+    )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
