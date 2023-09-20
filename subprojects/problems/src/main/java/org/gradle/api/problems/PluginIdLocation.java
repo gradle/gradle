@@ -14,45 +14,44 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
-
-import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.ProblemLocation;
+package org.gradle.api.problems;
 
 import javax.annotation.Nullable;
 
-@NonNullApi
-public class DefaultProblemLocation implements ProblemLocation {
+public class FileLocation implements ProblemLocation {
 
     private final String path;
-
-    @Nullable
     private final Integer line;
-
-    @Nullable
     private final Integer column;
+    private final Integer length;
 
-    public DefaultProblemLocation(String path, @Nullable Integer line, @Nullable Integer column) {
+    public FileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
         this.path = path;
         this.line = line;
         this.column = column;
+        this.length = length;
     }
 
     @Override
+    public String getType() {
+        return "file";
+    }
+
     public String getPath() {
         return path;
     }
-
-    @Override
     @Nullable
     public Integer getLine() {
         return line;
     }
 
-    @Override
     @Nullable
     public Integer getColumn() {
         return column;
     }
 
+    @Nullable
+    public Integer getLength() {
+        return length;
+    }
 }
