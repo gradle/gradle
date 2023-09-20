@@ -61,7 +61,6 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ide")))
     testImplementation(testFixtures(project(":workers")))
-    testImplementation(testFixtures(project(":toolchains-jvm")))
 
     integTestNormalizedDistribution(project(":distributions-full")) {
         because("Used by ToolingApiRemoteIntegrationTest")

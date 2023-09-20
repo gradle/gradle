@@ -16,19 +16,17 @@
 
 package org.gradle.jvm.toolchain
 
-import net.rubygrapefruit.platform.SystemInfo
+
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
-import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 
+import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static JavaToolchainDownloadUtil.noUrlResolverCode
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
-import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.DEFAULT_PLUGIN
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_RESOLVER
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.NO_TOOLCHAIN_MANAGEMENT
@@ -446,32 +444,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                 return Optional.of(JavaToolchainDownload.fromUri(uri));
             }
         """
-    }
-
-    private static String os() {
-        OperatingSystem os = OperatingSystem.current()
-        if (os.isWindows()) {
-            return "windows"
-        } else if (os.isMacOsX()) {
-            return "mac"
-        } else if (os.isLinux()) {
-            return "linux"
-        }
-        return os.getFamilyName()
-    }
-
-    private static String architecture() {
-        SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class)
-        switch (systemInfo.architecture) {
-            case SystemInfo.Architecture.i386:
-                return "x32"
-            case SystemInfo.Architecture.amd64:
-                return "x64"
-            case SystemInfo.Architecture.aarch64:
-                return "aarch64"
-            default:
-                return "unknown"
-        }
     }
 
 }
