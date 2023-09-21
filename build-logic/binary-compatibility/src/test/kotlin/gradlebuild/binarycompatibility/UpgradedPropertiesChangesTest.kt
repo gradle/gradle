@@ -21,7 +21,47 @@ import org.junit.Test
 class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
 
     @Test
-    fun `should not report binary incompatibility for upgraded properties`() {
+    fun `should report binary incompatibility for incorrectly upgraded properties`() {
+        checkNotBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public String getSourceCompatibility() {
+                                return "";
+                            }
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<String> getSourceCompatibility();
+                        }
+                    """
+                )
+            }
+        ) {
+            assertHasErrors(
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible." to listOf("Method return type has changed", "Method is now abstract"),
+                removed("Method", "Task.setSourceCompatibility(java.lang.String)"),
+            )
+        }
+    }
+
+    @Test
+    fun `should automatically accept binary incompatibilities for upgraded properties`() {
         checkBinaryCompatible(
             v1 = {
                 withFile(
@@ -72,6 +112,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
             }
         ) {
             assertHasNoError()
+            assertHasAccepted(
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property",
+                "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property"
+            )
         }
     }
 

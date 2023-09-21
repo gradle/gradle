@@ -338,6 +338,10 @@ abstract class AbstractBinaryCompatibilityTest {
             assertThat("Has information", richReport.information.map { it.message }, CoreMatchers.equalTo(information.toList()))
         }
 
+        fun assertHasAccepted(vararg information: String) {
+            assertThat("Has accepted", richReport.accepted.map { it.message }, CoreMatchers.equalTo(information.toList()))
+        }
+
         fun assertHasErrors(vararg errors: List<String>) {
             assertHasErrors(*errors.toList().flatten().toTypedArray())
         }
