@@ -39,6 +39,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.tasks.util.PatternSet;
@@ -111,6 +112,7 @@ import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -170,7 +172,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         BuildOperationAncestryTracker buildOperationAncestryTracker,
         BuildOperationListenerManager buildOperationListenerManager) {
-        return new DefaultProblems(buildOperationProgressEventEmitter, buildOperationAncestryTracker, buildOperationListenerManager);
+
+        List<ProblemTransformer> transformers = new ArrayList<>();
+        //transformers.add(new TaskPathLocationTransformer(buildOperationAncestryTracker, buildOperationListenerManager));
+
+        return new DefaultProblems(buildOperationProgressEventEmitter, transformers);
     }
 
     GradleBuildEnvironment createGradleBuildEnvironment() {

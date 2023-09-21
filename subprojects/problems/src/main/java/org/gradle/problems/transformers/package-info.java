@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+@NonNullApi
+package org.gradle.problems.transformers;
 
-description = """Problem SPI implementations.
-    |
-    |This project contains the SPI implementations for the problem reporting infrastructure.
-""".trimMargin()
-
-dependencies {
-    api(project(":problems-api"))
-
-    implementation(project(":core"))
-    implementation(project(":build-operations"))
-    implementation(project(":base-services"))
-}
+import org.gradle.api.NonNullApi;

@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":problems"))
+    implementation(project(":problems-api"))
     implementation(project(":resources"))
     implementation(project(":cli"))
     implementation(project(":build-option"))

@@ -98,6 +98,7 @@ unassigned {
     subproject("normalization-java")
     subproject("build-operations")
     subproject("problems")
+    subproject("problems-api")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }

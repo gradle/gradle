@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.problems.internal;
 
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -57,5 +57,19 @@ public class OperationListener implements BuildOperationListener {
             throw new IllegalStateException(format("Build operation %s has no valid id", buildOperation));
         }
         return id;
+    }
+
+    /**
+     * Returns the operation with the given id.
+     * Returns null if no such operation is running or if the operation is not of the given type.
+     *
+     * @param id the operation identifier
+     * @param targetClass the expected type of the operation
+     * @return the operation if it is running and of the given type, null otherwise
+     * @param <T> the expected type of the operation
+     */
+    public <T> T getOp(OperationIdentifier id, Class<T> targetClass) {
+        Object op = runningOps.get(id);
+        return targetClass.isInstance(op) ? targetClass.cast(op) : null;
     }
 }

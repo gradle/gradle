@@ -18,15 +18,26 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = """Problem SPI implementations.
+description = """A problems description API
     |
-    |This project contains the SPI implementations for the problem reporting infrastructure.
+    |This project provides base classes to describe problems and their
+    |solutions, in a way that enforces the creation of good error messages.
+    |
+    |It's a stripped down version of the original code available
+    |at https://github.com/melix/jdoctor/
 """.trimMargin()
 
 dependencies {
-    api(project(":problems-api"))
-
-    implementation(project(":core"))
-    implementation(project(":build-operations"))
+    implementation(project(":base-annotations"))
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
+
+    implementation(libs.guava)
+    implementation(libs.inject)
+
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(testFixtures(project(":logging")))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    testFixturesImplementation(project(":enterprise-operations"))
 }
