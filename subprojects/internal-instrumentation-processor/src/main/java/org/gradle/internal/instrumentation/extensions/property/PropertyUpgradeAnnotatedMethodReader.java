@@ -70,6 +70,7 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANC
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
@@ -204,7 +205,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
-        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), upgradedPropertyType));
+        String methodDescriptor = extractMethodDescriptor(method);
+        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), methodDescriptor, upgradedPropertyType));
         return extras;
     }
 

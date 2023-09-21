@@ -70,10 +70,10 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             new UpgradedMethod("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;")
         ]
         def properties = [
-                // Order is important
-                new PropertyEntry("org.gradle.test.Task", "maxErrors", "getMaxErrors", maxErrorMethods),
-                new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", sourceCompatibilityMethods),
-                new PropertyEntry("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", targetCompatibilityMethods)
+            // Order is important
+            new PropertyEntry("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorMethods),
+            new PropertyEntry("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityMethods),
+            new PropertyEntry("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityMethods)
         ]
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
@@ -103,6 +103,6 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")
             .contentsAsString(StandardCharsets.UTF_8)
-            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
+            .isEqualTo("[{\"containingType\":\"org.gradle.test.Task\",\"methodDescriptor\":\"()Lorg/gradle/api/provider/Property;\",\"methodName\":\"getSourceCompatibility\",\"propertyName\":\"sourceCompatibility\",\"upgradedMethods\":[{\"descriptor\":\"()Ljava/lang/String;\",\"name\":\"getSourceCompatibility\"},{\"descriptor\":\"(Ljava/lang/String;)V\",\"name\":\"setSourceCompatibility\"}]}]")
     }
 }
