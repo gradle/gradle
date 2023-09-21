@@ -142,7 +142,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         if (acceptationReason != null) {
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
-        } else if (member instanceof JApiMethod && UpgradedProperties.isUpgradedProperty(member, context)) {
+        } else if (member instanceof JApiMethod && UpgradedProperties.acceptForUpgradedProperty(member, rejection, context)) {
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>Upgraded property</b>")
         }

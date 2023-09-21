@@ -19,6 +19,7 @@ package gradlebuild.binarycompatibility.upgrades;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import japicmp.model.JApiMethod;
+import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule.SINCE_ERROR_MESSAGE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
 import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
 import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
@@ -54,7 +56,12 @@ public class UpgradedProperties {
         }
     }
 
-    public static boolean isUpgradedProperty(JApiMethod jApiMethod, ViolationCheckContext context) {
+    public static boolean acceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
+        if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
+            // We still want to report the violation if @since is not added to a method
+            return false;
+        }
+
         Map<String, UpgradedProperty> currentMethods = context.getUserData(CURRENT_METHODS_OF_UPGRADED_PROPERTIES);
         Map<String, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
 

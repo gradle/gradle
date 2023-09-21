@@ -146,6 +146,9 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         import org.gradle.api.provider.Property;
 
                         public abstract class Task {
+                            /**
+                             * @since 2.0
+                             */
                             public abstract Property<Boolean> getFailOnError();
                         }
                     """
@@ -173,9 +176,62 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
             assertHasNoError()
             assertHasAccepted(
                 "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
-                "Method com.example.Task.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
                 "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
                 "Method com.example.Task.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
+            )
+        }
+    }
+
+    @Test
+    fun `should report an error if newly added method does not have @since`() {
+        checkNotBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public boolean isFailOnError() {
+                                return false;
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<Boolean> getFailOnError();
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getFailOnError",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "failOnError",
+                            "upgradedMethods": [{
+                                "descriptor": "()Z",
+                                "name": "isFailOnError"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertHasErrors("Method com.example.Task.getFailOnError(): Is not annotated with @since 2.0.")
+            assertHasAccepted(
+                "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
             )
         }
     }
