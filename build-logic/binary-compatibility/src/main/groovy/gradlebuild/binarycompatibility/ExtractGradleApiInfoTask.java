@@ -20,8 +20,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
@@ -45,17 +47,24 @@ public abstract class ExtractGradleApiInfoTask extends DefaultTask {
     private static final String GRADLE_API_INFO_JAR = "gradle-runtime-api-info";
     private static final String UPGRADED_PROPERTIES_FILE = "upgraded-properties.json";
 
-    @CompileClasspath
-    abstract ConfigurableFileCollection getNewDistributionJars();
+    public ExtractGradleApiInfoTask() {
+        getGradleApiInfoJarPrefix().convention(GRADLE_API_INFO_JAR);
+    }
+
+    @Input
+    public abstract Property<String> getGradleApiInfoJarPrefix();
 
     @CompileClasspath
-    abstract ConfigurableFileCollection getOldDistributionJars();
+    public abstract ConfigurableFileCollection getNewDistributionJars();
+
+    @CompileClasspath
+    public abstract ConfigurableFileCollection getOldDistributionJars();
 
     @OutputFile
-    abstract RegularFileProperty getNewUpgradedProperties();
+    public abstract RegularFileProperty getNewUpgradedProperties();
 
     @OutputFile
-    abstract RegularFileProperty getOldUpgradedProperties();
+    public abstract RegularFileProperty getOldUpgradedProperties();
 
     @TaskAction
     public void execute() {
@@ -64,7 +73,8 @@ public abstract class ExtractGradleApiInfoTask extends DefaultTask {
     }
 
     private void extractUpgradedProperties(FileCollection from, RegularFileProperty to) {
-        File gradleRuntimeApiInfoJar = from.filter(file -> file.getName().startsWith(GRADLE_API_INFO_JAR)).getSingleFile();
+        String gradleApiInfoJarPrefix = getGradleApiInfoJarPrefix().get();
+        File gradleRuntimeApiInfoJar = from.filter(file -> file.getName().startsWith(gradleApiInfoJarPrefix)).getSingleFile();
         URI uri = URI.create("jar:file:" + gradleRuntimeApiInfoJar.getAbsolutePath());
         try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
             Path upgradedPropertiesJson = fs.getPath(UPGRADED_PROPERTIES_FILE);

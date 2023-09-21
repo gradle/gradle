@@ -207,6 +207,11 @@ abstract class AbstractBinaryCompatibilityTest {
             )
             withDirectory("v1/src/main").v1()
             withDirectory("v2/src/main").v2()
+            val sourceRoots = if (File(withDirectory("v2/src/main"), "java").exists()) {
+                "v2/src/main/java"
+            } else {
+                "v2/src/main/kotlin"
+            }
             withDirectory("binary-compatibility").apply {
                 withBuildScript(
                     """
@@ -214,14 +219,24 @@ abstract class AbstractBinaryCompatibilityTest {
                     import gradlebuild.binarycompatibility.*
                     import gradlebuild.binarycompatibility.filters.*
 
+                    val v1 = rootProject.project(":v1")
+                    val v1Jar = v1.tasks.named("jar")
+                    val v2 = rootProject.project(":v2")
+                    val v2Jar = v2.tasks.named("jar")
+                    val newUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/new-upgraded-properties.json")
+                    val oldUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/old-upgraded-properties.json")
+                    val extractGradleApiInfo = tasks.register<ExtractGradleApiInfoTask>("extractGradleApiInfo") {
+                        gradleApiInfoJarPrefix = "v"
+                        newDistributionJars = files(v2Jar)
+                        oldDistributionJars = files(v1Jar)
+                        newUpgradedProperties = newUpgradedPropertiesFile
+                        oldUpgradedProperties = oldUpgradedPropertiesFile
+                    }
+
                     tasks.register<JapicmpTask>("checkBinaryCompatibility") {
 
                         dependsOn(":v1:jar", ":v2:jar")
-
-                        val v1 = rootProject.project(":v1")
-                        val v1Jar = v1.tasks.named("jar")
-                        val v2 = rootProject.project(":v2")
-                        val v2Jar = v2.tasks.named("jar")
+                        inputs.files(extractGradleApiInfo)
 
                         oldArchives.from(v1Jar)
                         oldClasspath.from(v1.configurations.named("runtimeClasspath"), v1Jar)
@@ -248,10 +263,12 @@ abstract class AbstractBinaryCompatibilityTest {
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
-                            rootProject.files("v2/src/main/kotlin"),
+                            rootProject.files("$sourceRoots"),
                             "2.0",
                             file("test-api-changes.json"),
-                            rootProject.layout.projectDirectory
+                            rootProject.layout.projectDirectory,
+                            newUpgradedPropertiesFile.get().asFile,
+                            oldUpgradedPropertiesFile.get().asFile
                         )
                     }
                     """
