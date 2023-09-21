@@ -262,4 +262,26 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation).generatedSourceFile("${GENERATED_CLASSES_PACKAGE_NAME}.Task_Adapter")
     }
+
+    def "should fail if @UpgradedProperty is not a simple getter"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<Integer> getMaxErrors(String arg0);
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        assertThat(compilation).failed()
+        assertThat(compilation).hadErrorContaining("Method 'org.gradle.test.Task.getMaxErrors(java.lang.String)' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.")
+    }
 }

@@ -110,6 +110,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         if (projectName == null) {
             // We validate project name here because we want to fail only if there is an @UpgradedProperty annotation used in the project
             return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
+        } else if (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get")) {
+            return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
         }
 
         try {
