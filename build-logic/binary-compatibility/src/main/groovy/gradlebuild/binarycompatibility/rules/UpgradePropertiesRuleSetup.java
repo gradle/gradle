@@ -22,12 +22,14 @@ import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.CURRENT_METHODS_OF_UPGRADED_PROPERTIES;
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.OLD_METHODS_OF_UPGRADED_PROPERTIES;
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES;
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.getMethodKey;
 
 public class UpgradePropertiesRuleSetup implements SetupRule {
@@ -45,8 +47,15 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
     public void execute(ViolationCheckContext context) {
         List<UpgradedProperty> currentUpgradedProperties = UpgradedProperties.parse(params.get(CURRENT_UPGRADED_PROPERTIES_KEY));
         List<UpgradedProperty> baseUpgradedProperties = UpgradedProperties.parse(params.get(BASE_UPGRADED_PROPERTIES_KEY));
-        context.putUserData(CURRENT_METHODS_OF_UPGRADED_PROPERTIES, diff(mapCurrentMethodsOfUpgradedProperties(currentUpgradedProperties), mapCurrentMethodsOfUpgradedProperties(baseUpgradedProperties)));
-        context.putUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES, diff(mapOldMethodsOfUpgradedProperties(currentUpgradedProperties), mapOldMethodsOfUpgradedProperties(baseUpgradedProperties)));
+        context.putUserData(CURRENT_METHODS_OF_UPGRADED_PROPERTIES, diff(
+            mapCurrentMethodsOfUpgradedProperties(currentUpgradedProperties),
+            mapCurrentMethodsOfUpgradedProperties(baseUpgradedProperties)
+        ));
+        context.putUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES, diff(
+            mapOldMethodsOfUpgradedProperties(currentUpgradedProperties),
+            mapOldMethodsOfUpgradedProperties(baseUpgradedProperties)
+        ));
+        context.putUserData(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES, new HashSet<>());
     }
 
     private static Map<String, UpgradedProperty> mapCurrentMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
@@ -76,6 +85,6 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
     private static <T> Map<String, T> diff(Map<String, T> first, Map<String, T> second) {
         return first.entrySet().stream()
             .filter(e -> !second.containsKey(e.getKey()))
-            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

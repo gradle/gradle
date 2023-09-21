@@ -18,10 +18,11 @@ package gradlebuild.binarycompatibility
 
 import org.junit.Test
 
+
 class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
 
     @Test
-    fun `should report binary incompatibility for incorrectly upgraded properties`() {
+    fun `should report binary incompatibility for upgraded property without any metadata`() {
         checkNotBinaryCompatible(
             v1 = {
                 withFile(
@@ -233,6 +234,63 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
                 "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
             )
+        }
+    }
+
+    @Test
+    fun `should fail if some method was upgraded but it was not actually changed`() {
+        checkBinaryCompatibleFailsWithoutReport(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public String getSourceCompatibility() {
+                                return "";
+                            }
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<String> getSourceCompatibility();
+                            public void setSourceCompatibility(String value) {
+                            }
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "upgradedMethods": [{
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompatibility"
+                            }, {
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompatibility"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertOutputContains("The following methods were upgraded, but didn't match any changed method:\n\ncom.example.Task#setSourceCompatibility(Ljava/lang/String;)V")
         }
     }
 }

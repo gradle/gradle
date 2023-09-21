@@ -81,6 +81,12 @@ abstract class AbstractBinaryCompatibilityTest {
             block()
         }
 
+    internal
+    fun checkBinaryCompatibleFailsWithoutReport(v1: File.() -> Unit = {}, v2: File.() -> Unit = {}, block: BuildResult.() -> Unit = {}): BuildResult =
+        runBinaryCompatibilityCheckWithFailure(v1, v2) {
+            block()
+        }
+
     private
     fun CheckResult.assertBinaryCompatible() {
         assertTrue(richReport.toAssertionMessage("Expected to be compatible but the check failed"), isBinaryCompatible)
@@ -174,7 +180,76 @@ abstract class AbstractBinaryCompatibilityTest {
     fun runBinaryCompatibilityCheck(v1: File.() -> Unit, v2: File.() -> Unit, block: CheckResult.() -> Unit = {}): CheckResult {
         rootDir.withFile("version.txt", "1.0")
 
-        val inputBuildDir = rootDir.withUniqueDirectory("input-build").apply {
+        val inputBuildDir = setupRunBinaryCompatibility(v1, v2)
+
+        val runner = GradleRunner.create()
+            .withProjectDir(inputBuildDir)
+            .withPluginClasspath()
+            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
+
+        val (buildResult, failure) = try {
+            runner.build()!! to null
+        } catch (ex: UnexpectedBuildFailure) {
+            ex.buildResult!! to ex
+        }
+
+        println(buildResult.output)
+
+        val richReportFile = inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
+            assertTrue("Rich report file doesn't exist", isFile)
+        }
+
+        return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
+            println(richReport.toText())
+            block()
+        }
+    }
+
+    /**
+     * Runs the binary compatibility check against two source trees, but fails without generating a rich report.
+     *
+     * The fixture build supports both Java and Kotlin sources.
+     *
+     * @param v1 sources producer for V1, receiver is the `src/main` directory
+     * @param v2 sources producer for V2, receiver is the `src/main` directory
+     * @param block convenience block invoked on the result
+     * @return the check result
+     */
+    private
+    fun runBinaryCompatibilityCheckWithFailure(v1: File.() -> Unit, v2: File.() -> Unit, block: BuildResult.() -> Unit = {}): BuildResult {
+        rootDir.withFile("version.txt", "1.0")
+
+        val inputBuildDir = setupRunBinaryCompatibility(v1, v2)
+
+        val runner = GradleRunner.create()
+            .withProjectDir(inputBuildDir)
+            .withPluginClasspath()
+            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
+
+        val (buildResult, failure) = try {
+            runner.build()!! to null
+        } catch (ex: UnexpectedBuildFailure) {
+            ex.buildResult!! to ex
+        }
+
+        println(buildResult.output)
+
+        inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
+            assertFalse("Rich report file exists", isFile)
+        }
+
+        return buildResult.apply {
+            assertTrue("Build result is not a failure", failure != null)
+            println(failure?.message)
+            block()
+        }
+    }
+
+    private
+    fun setupRunBinaryCompatibility(v1: File.() -> Unit, v2: File.() -> Unit): File {
+        rootDir.withFile("version.txt", "1.0")
+
+        return rootDir.withUniqueDirectory("input-build").apply {
 
             withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
@@ -275,28 +350,6 @@ abstract class AbstractBinaryCompatibilityTest {
                 )
             }
         }
-
-        val runner = GradleRunner.create()
-            .withProjectDir(inputBuildDir)
-            .withPluginClasspath()
-            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
-
-        val (buildResult, failure) = try {
-            runner.build()!! to null
-        } catch (ex: UnexpectedBuildFailure) {
-            ex.buildResult!! to ex
-        }
-
-        println(buildResult.output)
-
-        val richReportFile = inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
-            assertTrue("Rich report file exists", isFile)
-        }
-
-        return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
-            println(richReport.toText())
-            block()
-        }
     }
 
     internal
@@ -370,6 +423,9 @@ abstract class AbstractBinaryCompatibilityTest {
         fun describe(thing: String, desc: String) =
             if (thing == "Field") desc else "com.example.$desc"
     }
+
+    fun BuildResult.assertOutputContains(text: String) =
+        assertTrue("Output should contain text:\n'$text',\nbut given text was not matched.\n", output.contains(text))
 
     protected
     fun File.withFile(path: String, text: String = ""): File =

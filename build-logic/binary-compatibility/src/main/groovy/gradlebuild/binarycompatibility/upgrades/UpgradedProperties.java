@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility.upgrades;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
@@ -29,6 +30,7 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule.SINCE_ERROR_MESSAGE;
@@ -42,6 +44,7 @@ public class UpgradedProperties {
     private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z0-9].*");
     private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z0-9].*");
     public static final String OLD_METHODS_OF_UPGRADED_PROPERTIES = "oldMethodsOfUpgradedProperties";
+    public static final String SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES = "seenOldMethodsOfUpgradedProperties";
     public static final String CURRENT_METHODS_OF_UPGRADED_PROPERTIES = "currentMethodsOfUpgradedProperties";
 
     public static List<UpgradedProperty> parse(String path) {
@@ -56,7 +59,7 @@ public class UpgradedProperties {
         }
     }
 
-    public static boolean acceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
+    public static boolean shouldAcceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
         if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
             // We still want to report the violation if @since is not added to a method
             return false;
@@ -112,7 +115,20 @@ public class UpgradedProperties {
         return currentMethods.containsKey(getMethodKey(containingType, name, descriptor));
     }
 
+    public static Optional<String> maybeGetKeyOfOldMethodOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
+        if (!(jApiCompatibility instanceof JApiMethod) || !((JApiMethod) jApiCompatibility).getOldMethod().isPresent()) {
+            return Optional.empty();
+        }
+        JApiMethod jApiMethod = (JApiMethod) jApiCompatibility;
+        String name = jApiMethod.getName();
+        Map<String, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        String descriptor = jApiMethod.getOldMethod().get().getSignature();
+        String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
+        String key = getMethodKey(containingType, name, descriptor);
+        return oldMethods.containsKey(key) ? Optional.of(key) : Optional.empty();
+    }
+
     public static String getMethodKey(String containingType, String methodName, String descriptor) {
-        return containingType + "#" + methodName + "::" + descriptor;
+        return containingType + "#" + methodName + descriptor;
     }
 }

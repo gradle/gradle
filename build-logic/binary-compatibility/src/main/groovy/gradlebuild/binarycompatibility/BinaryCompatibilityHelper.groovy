@@ -30,6 +30,7 @@ import gradlebuild.binarycompatibility.rules.NewIncubatingAPIRule
 import gradlebuild.binarycompatibility.rules.NullabilityBreakingChangesRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
+import gradlebuild.binarycompatibility.rules.UpgradePropertiesRulePostProcess
 import gradlebuild.binarycompatibility.rules.UpgradePropertiesRuleSetup
 import japicmp.model.JApiChangeStatus
 import org.gradle.api.file.Directory
@@ -118,6 +119,7 @@ class BinaryCompatibilityHelper {
 
                 addPostProcessRule(AcceptedRegressionsRulePostProcess)
                 addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
+                addPostProcessRule(UpgradePropertiesRulePostProcess)
             }
         }
     }
