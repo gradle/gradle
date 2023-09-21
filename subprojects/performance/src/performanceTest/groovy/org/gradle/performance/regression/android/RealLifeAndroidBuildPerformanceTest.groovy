@@ -22,10 +22,13 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Issue
 
@@ -44,7 +47,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "run assembleDebug"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
         // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
@@ -56,6 +59,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            runner.addBuildMutator {is -> new PluginRemoveMutator(is)}
+        }
         applyEnterprisePlugin()
 
         when:
@@ -73,7 +79,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
     def "clean #tasks with clean transforms cache"() {
@@ -92,6 +98,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            runner.addBuildMutator {is -> new PluginRemoveMutator(is)}
         }
         applyEnterprisePlugin()
 
@@ -149,6 +158,21 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
                     }
                 }
             """.stripIndent()
+        }
+    }
+
+    // TODO: temporary workaround for https://github.com/gradle/gradle/issues/26462
+    private static class PluginRemoveMutator extends AbstractFileChangeMutator {
+        protected PluginRemoveMutator(InvocationSettings invocationSettings) {
+            super(new File(new File(invocationSettings.projectDir, "app"), "build.gradle.kts"))
+        }
+
+        @Override
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+            def searchString = "id(\"com.google.android.gms.oss-licenses-plugin\")"
+            def start = text.indexOf(searchString)
+            text.delete(start, start + searchString.length())
+            println "text = $text"
         }
     }
 }
