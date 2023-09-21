@@ -72,11 +72,4 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
-
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
-    int getEstimatedGraphSize();
 }

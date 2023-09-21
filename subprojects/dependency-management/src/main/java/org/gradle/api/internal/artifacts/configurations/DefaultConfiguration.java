@@ -962,14 +962,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return !getAllDependencies().isEmpty();
     }
 
-    @Override
-    public int getEstimatedGraphSize() {
-        // TODO #24641: Why are the numbers and operations here the way they are?
-        //  Are they up-to-date? We should be able to test if these values are still optimal.
-        int estimate = (int) (512 * Math.log(getAllDependencies().size()));
-        return Math.max(10, estimate);
-    }
-
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;

@@ -48,7 +48,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSer
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -185,7 +185,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(FileResourceConnector.class);
         registration.add(DefaultComponentSelectorConverter.class);
         registration.add(ProjectDependencyResolver.class);
-        registration.add(DefaultArtifactDependencyResolver.class);
+        registration.add(DefaultResolverFactory.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(

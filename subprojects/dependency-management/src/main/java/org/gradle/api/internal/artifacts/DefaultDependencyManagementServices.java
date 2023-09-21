@@ -61,7 +61,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
@@ -109,10 +109,10 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -496,7 +496,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationResolver createDependencyResolver(
-            ArtifactDependencyResolver artifactDependencyResolver,
+            ResolverFactory resolverFactory,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
             ComponentIdentifierFactory componentIdentifierFactory,
@@ -508,22 +508,23 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ImmutableAttributesFactory attributesFactory,
             BuildOperationExecutor buildOperationExecutor,
             ArtifactTypeRegistry artifactTypeRegistry,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
             ComponentSelectorConverter componentSelectorConverter,
             AttributeContainerSerializer attributeContainerSerializer,
             BuildState currentBuild,
             TransformedVariantFactory transformedVariantFactory,
             DependencyVerificationOverride dependencyVerificationOverride,
-            ProjectDependencyResolver projectDependencyResolver,
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             AttributeDesugaring attributeDesugaring,
             WorkerLeaseService workerLeaseService,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            SelectionFailureHandler selectionFailureHandler
+            SelectionFailureHandler selectionFailureHandler,
+            ResolvedVariantCache resolvedVariantCache
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                artifactDependencyResolver,
+                resolverFactory,
                 repositoriesSupplier,
                 metadataHandler,
                 resolutionResultsStoreFactory,
@@ -543,17 +544,18 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 moduleIdentifierFactory,
                 buildOperationExecutor,
                 artifactTypeRegistry,
+                calculatedValueContainerFactory,
                 componentSelectorConverter,
                 attributeContainerSerializer,
                 currentBuild.getBuildIdentifier(),
                 attributeDesugaring,
                 dependencyVerificationOverride,
-                projectDependencyResolver,
                 componentSelectionDescriptorFactory,
                 workerLeaseService,
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
-                selectedVariantSerializer
+                selectedVariantSerializer,
+                resolvedVariantCache
             );
 
             return new ErrorHandlingConfigurationResolver(
