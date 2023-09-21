@@ -93,7 +93,7 @@ configurations {
 }
 
 def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
-def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
+def currentDistroJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
 def baselineJars = configurations.baselineJars
 def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
 
@@ -114,7 +114,7 @@ dependencies {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
         parameters {
-            currentJars.from(currentDistributionJars)
+            currentJars.from(currentDistroJars)
             currentVersion.set(baseVersion)
         }
     }
@@ -123,7 +123,7 @@ dependencies {
 def currentUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/current-upgraded-properties.json")
 def baseUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/base-upgraded-properties.json")
 def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.binarycompatibility.ExtractGradleApiInfoTask) {
-    currentDistributionJars = currentDistributionJars
+    currentDistributionJars = currentDistroJars
     baseDistributionJars = baselineJars
     currentUpgradedProperties = currentUpgradedPropertiesFile
     baseUpgradedProperties = baseUpgradedPropertiesFile
@@ -142,7 +142,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
     newClasspath.from(currentClasspath)
     oldClasspath.from(configurations.baselineClasspath)
 
-    newArchives.from(currentDistributionJars)
+    newArchives.from(currentDistroJars)
     oldArchives.from(baselineJars)
 
     // binary breaking change checking setup
