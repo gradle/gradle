@@ -12,12 +12,14 @@ dependencies {
     testImplementation(testFixtures(project(":kotlin-dsl")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":workers")))
+    testImplementation(testFixtures(project(":toolchains-jvm")))
 
     integTestImplementation(project(":file-watching"))
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":persistent-cache"))
+    integTestImplementation(libs.commonsCompress)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.assertj) {
