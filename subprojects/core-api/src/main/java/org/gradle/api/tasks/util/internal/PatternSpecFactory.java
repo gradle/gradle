@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -99,7 +100,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     }
 
     private boolean invalidChangeOfExcludes(String[] defaultExcludes) {
-        return !Arrays.equals(previousDefaultExcludes, defaultExcludes);
+        return !(new HashSet(Arrays.asList(previousDefaultExcludes))).equals(new HashSet(Arrays.asList(defaultExcludes)));
     }
 
     private void failOnChangedDefaultExcludes(String[] excludesFromSettings, String[] newDefaultExcludes) {
