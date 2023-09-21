@@ -120,13 +120,13 @@ dependencies {
     }
 }
 
-def newUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/new-upgraded-properties.json")
-def oldUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/old-upgraded-properties.json")
+def currentUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/current-upgraded-properties.json")
+def baseUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/base-upgraded-properties.json")
 def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.binarycompatibility.ExtractGradleApiInfoTask) {
-    newDistributionJars = currentDistributionJars
-    oldDistributionJars = baselineJars
-    newUpgradedProperties = newUpgradedPropertiesFile
-    oldUpgradedProperties = oldUpgradedPropertiesFile
+    currentDistributionJars = currentDistributionJars
+    baseDistributionJars = baselineJars
+    currentUpgradedProperties = currentUpgradedPropertiesFile
+    baseUpgradedProperties = baseUpgradedPropertiesFile
 }
 
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
@@ -177,8 +177,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         baseVersion.get(),
         apiChangesJsonFile.asFile,
         rootProject.layout.projectDirectory,
-        newUpgradedPropertiesFile.get().asFile,
-        oldUpgradedPropertiesFile.get().asFile
+        currentUpgradedPropertiesFile.get().asFile,
+        baseUpgradedPropertiesFile.get().asFile
     )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }

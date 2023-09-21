@@ -227,10 +227,10 @@ abstract class AbstractBinaryCompatibilityTest {
                     val oldUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/old-upgraded-properties.json")
                     val extractGradleApiInfo = tasks.register<ExtractGradleApiInfoTask>("extractGradleApiInfo") {
                         gradleApiInfoJarPrefix = "v"
-                        newDistributionJars = files(v2Jar)
-                        oldDistributionJars = files(v1Jar)
-                        newUpgradedProperties = newUpgradedPropertiesFile
-                        oldUpgradedProperties = oldUpgradedPropertiesFile
+                        currentDistributionJars = files(v2Jar)
+                        baseDistributionJars = files(v1Jar)
+                        currentUpgradedProperties = newUpgradedPropertiesFile
+                        baseUpgradedProperties = oldUpgradedPropertiesFile
                     }
 
                     tasks.register<JapicmpTask>("checkBinaryCompatibility") {

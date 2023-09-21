@@ -38,11 +38,6 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                         }
                     """
                 )
-                withFile(
-                    "resources/upgraded-properties.json",
-                    """
-                    """
-                )
             },
             v2 = {
                 withFile(
@@ -59,8 +54,20 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 withFile(
                     "resources/upgraded-properties.json",
                     """
-
-                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getSourceCompatibility",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "sourceCompatibility",
+                            "upgradedMethods": [{
+                                "descriptor": "()Ljava/lang/String;",
+                                "name": "getSourceCompatibility"
+                            }, {
+                                "descriptor": "(Ljava/lang/String;)V",
+                                "name": "setSourceCompatibility"
+                            }]
+                        }]
+                        """
                 )
             }
         ) {
