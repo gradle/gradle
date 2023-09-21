@@ -113,10 +113,70 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasNoError()
             assertHasAccepted(
-                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property",
-                "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property"
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract"),
+                "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
             )
         }
     }
 
+    @Test
+    fun `should automatically accept binary incompatibilities for boolean upgraded properties`() {
+        checkBinaryCompatible(
+            v1 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+
+                        public abstract class Task {
+                            public boolean isFailOnError() {
+                                return false;
+                            }
+                            public void setFailOnError(boolean b) {
+                            }
+                        }
+                    """
+                )
+            },
+            v2 = {
+                withFile(
+                    "java/com/example/Task.java",
+                    """
+                        package com.example;
+                        import org.gradle.api.provider.Property;
+
+                        public abstract class Task {
+                            public abstract Property<Boolean> getFailOnError();
+                        }
+                    """
+                )
+                withFile(
+                    "resources/upgraded-properties.json",
+                    """
+                        [{
+                            "containingType": "com.example.Task",
+                            "methodName": "getFailOnError",
+                            "methodDescriptor": "()Lorg/gradle/api/provider/Property;",
+                            "propertyName": "failOnError",
+                            "upgradedMethods": [{
+                                "descriptor": "()Z",
+                                "name": "isFailOnError"
+                            }, {
+                                "descriptor": "(Z)V",
+                                "name": "setFailOnError"
+                            }]
+                        }]
+                        """
+                )
+            }
+        ) {
+            assertHasNoError()
+            assertHasAccepted(
+                "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
+                "Method com.example.Task.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
+            )
+        }
+    }
 }
