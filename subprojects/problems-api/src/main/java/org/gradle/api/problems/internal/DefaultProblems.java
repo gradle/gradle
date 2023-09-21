@@ -16,23 +16,16 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.ReportableProblem;
-import org.gradle.api.problems.locations.TaskPathLocation;
-import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Optional;
 
 @ServiceScope(Scope.Global.class)
 public class DefaultProblems implements InternalProblems {

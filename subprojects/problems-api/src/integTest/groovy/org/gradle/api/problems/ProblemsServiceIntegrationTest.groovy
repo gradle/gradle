@@ -16,9 +16,7 @@
 
 package org.gradle.api.problems
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Path
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 

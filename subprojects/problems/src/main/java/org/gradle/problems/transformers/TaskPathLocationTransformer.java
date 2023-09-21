@@ -20,15 +20,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.internal.OperationListener;
-import org.gradle.util.Path;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public class TaskPathLocationTransformer implements ProblemTransformer {

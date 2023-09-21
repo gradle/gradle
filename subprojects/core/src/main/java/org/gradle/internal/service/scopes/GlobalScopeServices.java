@@ -76,7 +76,6 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -112,7 +111,6 @@ import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -170,12 +168,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     protected Problems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        BuildOperationAncestryTracker buildOperationAncestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager) {
-
-        List<ProblemTransformer> transformers = new ArrayList<>();
-        //transformers.add(new TaskPathLocationTransformer(buildOperationAncestryTracker, buildOperationListenerManager));
-
+        ServiceRegistry serviceRegistry) {
+        List<ProblemTransformer> transformers = serviceRegistry.getAll(ProblemTransformer.class);
         return new DefaultProblems(buildOperationProgressEventEmitter, transformers);
     }
 
