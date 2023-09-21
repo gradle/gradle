@@ -69,25 +69,25 @@ public class UpgradedProperties {
         Map<String, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
-            return isOldMethodSetterOfUpgradedProperty(jApiMethod, oldMethods) || isOldMethodBooleanGetterOfUpgradedProperty(jApiMethod, oldMethods);
+            return isOldSetterOfUpgradedProperty(jApiMethod, oldMethods) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldMethods);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
-            return isCurrentMethodGetterOfUpgradedProperty(jApiMethod, currentMethods) && isOldMethodGetterOfUpgradedProperty(jApiMethod, oldMethods);
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods) && isOldGetterOfUpgradedProperty(jApiMethod, oldMethods);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
-            return isCurrentMethodGetterOfUpgradedProperty(jApiMethod, currentMethods);
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods);
         }
 
         return false;
     }
 
-    private static boolean isOldMethodSetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldSetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, SETTER_REGEX);
     }
 
-    private static boolean isOldMethodGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, GETTER_REGEX);
     }
 
-    private static boolean isOldMethodBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, BOOLEAN_GETTER_REGEX) && jApiMethod.getReturnType().getOldReturnType().equals("boolean");
     }
 
@@ -101,7 +101,7 @@ public class UpgradedProperties {
         return upgradedMethods.containsKey(getMethodKey(containingType, name, descriptor));
     }
 
-    private static boolean isCurrentMethodGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> currentMethods) {
+    private static boolean isCurrentGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> currentMethods) {
         return isCurrentMethod(jApiMethod, currentMethods, GETTER_REGEX);
     }
 
