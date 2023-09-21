@@ -20,12 +20,14 @@ import java.util.List;
 
 public class UpgradedProperty {
     private final String propertyName;
+    private final String methodName;
     private final String containingType;
     private final List<UpgradedMethod> upgradedMethods;
 
-    public UpgradedProperty(String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
+    public UpgradedProperty(String containingType, String propertyName, String methodName, List<UpgradedMethod> upgradedMethods) {
         this.containingType = containingType;
         this.propertyName = propertyName;
+        this.methodName = methodName;
         this.upgradedMethods = upgradedMethods;
     }
 
@@ -37,6 +39,10 @@ public class UpgradedProperty {
         return propertyName;
     }
 
+    public String getMethodName() {
+        return methodName;
+    }
+
     public List<UpgradedMethod> getUpgradedMethods() {
         return upgradedMethods;
     }
@@ -45,6 +51,7 @@ public class UpgradedProperty {
     public String toString() {
         return "UpgradedProperty{" +
             "propertyName='" + propertyName + '\'' +
+            ", methodName='" + methodName + '\'' +
             ", containingType='" + containingType + '\'' +
             ", upgradedMethods=" + upgradedMethods +
             '}';
