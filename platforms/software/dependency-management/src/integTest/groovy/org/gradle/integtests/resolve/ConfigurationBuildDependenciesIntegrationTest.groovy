@@ -21,7 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        settingsFile << "include 'child'"
+        settingsFile << """
+            include 'child'
+            rootProject.name = 'root'
+        """
+
         buildFile << """
             allprojects {
                 configurations {
@@ -146,6 +150,9 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'compile' has been selected by the following variants:
+    - root:child:unspecified variant default
+Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
         run("useCompileConfiguration")
 
         then:

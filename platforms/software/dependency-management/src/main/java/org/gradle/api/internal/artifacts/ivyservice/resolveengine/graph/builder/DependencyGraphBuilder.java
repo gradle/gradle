@@ -52,6 +52,7 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -390,6 +391,20 @@ public class DependencyGraphBuilder {
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
+        }
+        List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
+        if (!incomingRootEdges.isEmpty()) {
+            String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
+            String joinedSourceNodes = incomingRootEdges.stream().map(edge -> edge.getFrom().getNameWithVariant()).collect(Collectors.joining("\n    - "));
+            DeprecationLogger.deprecate(
+                String.format(
+                    "The resolved configuration '%s' has been selected by the following variants:\n    - %s\nDepending on the resolved configuration",
+                    rootNodeName, joinedSourceNodes
+                ))
+                .withAdvice("Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "depending_on_root_configuration")
+                .nagUser();
         }
     }
 

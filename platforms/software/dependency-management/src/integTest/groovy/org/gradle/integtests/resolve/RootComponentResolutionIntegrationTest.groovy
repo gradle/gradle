@@ -24,6 +24,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * ensuring the configuration can select other variants in the same component.
  */
 class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        settingsFile << "rootProject.name = 'root'"
+    }
+
     def "buildscript configuration can select itself"() {
         buildFile << """
             buildscript {
@@ -50,6 +54,10 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'conf' has been selected by the following variants:
+    - :root:unspecified variant conf
+Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
 
         expect:
         succeeds("resolve")
@@ -191,6 +199,10 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'conf' has been selected by the following variants:
+    - :root:unspecified variant conf
+Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
+
         expect:
         succeeds("resolve")
     }
@@ -233,12 +245,15 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'conf' has been selected by the following variants:
+    - :root:unspecified variant conf
+Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
+
         expect:
         succeeds("resolve")
     }
 
     def "buildscript resolvable configuration and consumable configuration from same project live in same resolved component"() {
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             buildscript {
                 configurations {
@@ -280,7 +295,6 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "resolvable configuration and consumable configuration from same project live in same resolved component"() {
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             configurations {
                 conf {

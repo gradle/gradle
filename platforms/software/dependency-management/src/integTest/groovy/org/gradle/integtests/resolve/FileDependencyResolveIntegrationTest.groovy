@@ -176,6 +176,9 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
 '''
 
         when:
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'compile' has been selected by the following variants:
+    - main:sub:unspecified variant compile
+Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
         run ":checkDeps"
 
         then:
