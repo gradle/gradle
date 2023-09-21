@@ -1,6 +1,6 @@
-# Module gradle
+# Module Kotlin DSL Reference for Gradle
 
-# Gradle Kotlin DSL Reference
+# Kotlin DSL Reference for Gradle
 
 Gradle’s Kotlin DSL provides an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 For an introduction see the <a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a>.
