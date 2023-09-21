@@ -16,33 +16,48 @@
 
 package org.gradle.jvm.toolchain
 
+
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.junit.Assume.assumeFalse
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
-    public static final int VERSION = 17
-    private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
-    public static final String FOOJAY_PLUGIN_SECTION = """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
-            }
-        """
+    public static final JavaVersion JAVA_VERSION = JavaVersion.VERSION_17
+
 
     public static final String TOOLCHAIN_WITH_VERSION = """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of($VERSION)
+                    languageVersion = JavaLanguageVersion.of($JAVA_VERSION)
                 }
             }
         """
 
+    static JdkRepository jdkRepository
+
+    static URI uri
+
+    def setupSpec() {
+        jdkRepository = new JdkRepository(JAVA_VERSION)
+        uri = jdkRepository.start()
+    }
+
+    def cleanupSpec() {
+        jdkRepository.stop()
+    }
+
     def setup() {
-        settingsFile << FOOJAY_PLUGIN_SECTION
+        jdkRepository.reset()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
 
         buildFile << """
             plugins {
@@ -55,7 +70,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-            .withToolchainDownloadEnabled()
+                .withToolchainDownloadEnabled()
+    }
+
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
     }
 
     def "can download missing jdk automatically"() {
@@ -66,29 +85,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
-    }
-
-    def "can download missing j9 jdk automatically"() {
-        assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
-            System.getProperty("os.arch") == "aarch64")
-
-        buildFile << """
-            java {
-                toolchain {
-                    implementation = JvmImplementation.J9
-                }
-            }
-        """
-
-        when:
-        result = executer
-               .withTasks("compileJava")
-               .run()
-
-        then:
-        javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("openj9")
+        assertJdkWasDownloaded()
     }
 
     def "clean destination folder when downloading toolchain"() {
@@ -99,7 +96,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
+        assertJdkWasDownloaded()
 
         when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
         //delete marker file to make the previously downloaded installation undetectable
@@ -108,6 +105,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assert !markerFile.exists()
 
         and: "build runs again"
+        jdkRepository.expectHead()
         executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
                 .run()
@@ -124,7 +122,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
+        assertJdkWasDownloaded()
 
         when: "build has no toolchain repositories configured"
         settingsFile.text = ''
@@ -138,14 +136,10 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                 .run()
     }
 
-    private void assertJdkWasDownloaded(String implementation) {
+    private void assertJdkWasDownloaded(String implementation = null) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-$VERSION-") && file.name.contains(implementation)
+            file.name.contains("-$JAVA_VERSION-") && (implementation == null || file.name.contains(implementation))
         } as FileFilter)
-    }
-
-    def cleanup() {
-        executer.gradleUserHomeDir.file("jdks").deleteDir()
     }
 
     private static File findMarkerFile(File directory) {
@@ -167,4 +161,5 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         }
         return markerFile
     }
+
 }
