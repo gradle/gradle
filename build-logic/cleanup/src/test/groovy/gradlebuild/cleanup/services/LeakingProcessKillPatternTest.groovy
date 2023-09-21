@@ -36,6 +36,14 @@ class LeakingProcessKillPatternTest extends Specification {
         (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
     }
 
+    def "matches daemon process with distribution full on Windows"() {
+        def line = '8916 "C:\\Program Files\\Java\\open-jdk-20\\bin\\java.exe" -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\distributions-full --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED -Xms256m -Xmx1024m -Dfile.encoding=UTF-8 -Djava.io.tmpdir=C:\\tcagent1\\work\\f63322e10dd6b396\\subprojects\\launcher\\build\\tmp -Duser.country=US -Duser.language=en -Duser.variant -ea -cp "C:\\tcagent1\\work\\f63322e10dd6b396\\subprojects\\distributions-full\\build\\bin distribution\\lib\\gradle-launcher-8.5.jar" "-javaagent:C:\\tcagent1\\work\\f63322e10dd6b396\\subprojects\\distributions-full\\build\\bin distribution\\lib\\agents\\gradle-instrumentation-agent-8.5.jar" org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.5-20230921032409+0000'
+        def projectDir = 'C:\\tcagent1\\work\\f63322e10dd6b396\\'
+
+        expect:
+        (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
+    }
+
     def "does not match worker process started by main build VM on Windows"() {
         def line = '"C:\\Program Files\\Java\\jdk1.7\\bin\\java.exe" -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\some\\agent\\.gradle\\caches\\4.4-rc-1\\workerMain\\gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain "\'Gradle Worker Daemon 318\'"'
         def projectDir = 'C:\\some\\agent\\workspace'
