@@ -330,7 +330,7 @@
   },
   {
     "name": "files",
-    "path": "subprojects/files",
+    "path": "platforms/core-runtime/files",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

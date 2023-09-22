@@ -103,7 +103,7 @@ platforms:
       - 'subprojects/build-cache-http/'
       - 'subprojects/build-cache-packaging/'
       - 'subprojects/build-operations/'
-      - 'subprojects/files/'
+      - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
       - 'subprojects/snapshots/'
   - build_infrastructure:
@@ -146,7 +146,6 @@ platforms:
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'
       - 'subprojects/file-watchind/'
-      - 'subprojects/files/'
       - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'
       - 'subprojects/workers/'
