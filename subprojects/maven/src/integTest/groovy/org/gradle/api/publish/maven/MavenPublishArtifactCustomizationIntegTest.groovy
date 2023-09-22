@@ -97,7 +97,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
     /**
      * Fails with module metadata.
-     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
     def "can modify artifacts added from component"() {
         given:
@@ -139,7 +138,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
     /**
      * Fails with module metadata.
-     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
     def "can override artifacts added from component"() {
         given:
@@ -178,9 +176,32 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
     /**
      * Cannot publish module metadata for component when artifacts are modified.
-     * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
+     * @see org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker#checkThatArtifactIsPublishedUnmodified
      */
     def "fails when publishing module metadata for component with modified artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifacts = ["customFile.jar"]
+                }
+            }
+
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.jar")}")
+    }
+
+    /**
+     * Cannot publish module metadata for component when artifacts are modified.
+     * @see org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker#checkThatArtifactIsPublishedUnmodified
+     */
+    def "fails when publishing module metadata for component with modified artifacts (extension)"() {
         given:
         createBuildScripts("""
             publications {
@@ -195,7 +216,34 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
+        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.txt")}\n"
+            + "- extension differs from component artifact: (artifact) jar != (best match) txt")
+    }
+
+    /**
+     * Cannot publish module metadata for component when artifacts are modified.
+     * @see org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker#checkThatArtifactIsPublishedUnmodified
+     */
+    def "fails when publishing module metadata for component with modified artifacts (classifier)"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    artifacts = []
+                    artifact source: "customFile-foobar.jar", classifier: "foobar"
+                }
+            }
+
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile-foobar.jar")}\n"
+            + "- classifier differs from component artifact: (artifact)  != (best match) foobar")
     }
 
     def "can configure custom artifacts when creating"() {
