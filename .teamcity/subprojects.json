@@ -911,7 +911,7 @@
   },
   {
     "name": "worker-services",
-    "path": "subprojects/worker-services",
+    "path": "platforms/core-runtime/worker-services",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
