@@ -116,8 +116,7 @@ public class CrossBuildSessionState implements Closeable {
             ExecutorFactory executorFactory,
             ParallelismConfiguration parallelismConfiguration,
             BuildOperationIdFactory buildOperationIdFactory,
-            BuildOperationListenerManager buildOperationListenerManager,
-            Problems problems
+            BuildOperationListenerManager buildOperationListenerManager
         ) {
             return new DefaultBuildOperationExecutor(
                 buildOperationListenerManager.getBroadcaster(),
@@ -126,8 +125,7 @@ public class CrossBuildSessionState implements Closeable {
                 new DefaultBuildOperationQueueFactory(workerLeaseService),
                 executorFactory,
                 parallelismConfiguration,
-                buildOperationIdFactory,
-                problems
+                buildOperationIdFactory
             );
         }
 

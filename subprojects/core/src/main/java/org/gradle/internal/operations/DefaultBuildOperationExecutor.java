@@ -19,7 +19,6 @@ package org.gradle.internal.operations;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.problems.Problems;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -43,8 +42,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    private final Problems problems;
-
     public DefaultBuildOperationExecutor(
         BuildOperationListener listener,
         Clock clock,
@@ -52,10 +49,8 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         BuildOperationQueueFactory buildOperationQueueFactory,
         ExecutorFactory executorFactory,
         ParallelismConfiguration parallelismConfiguration,
-        BuildOperationIdFactory buildOperationIdFactory,
-        Problems problems
+        BuildOperationIdFactory buildOperationIdFactory
     ) {
-        this.problems = problems;
 
         this.runner = new DefaultBuildOperationRunner(
             currentBuildOperationRef,

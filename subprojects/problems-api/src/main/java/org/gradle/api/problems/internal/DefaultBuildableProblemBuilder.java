@@ -157,7 +157,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             documentationUrl,
             description,
             solution,
-            exception,
+            exception == null ? new Exception() : exception,
             problemType,
             additionalMetadata,
             problemsService);

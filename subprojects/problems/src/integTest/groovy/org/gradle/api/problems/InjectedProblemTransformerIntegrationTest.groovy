@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
@@ -25,9 +27,6 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
 
     def setup() {
         enableProblemsApiCheck()
-        buildFile << """
-            tasks.register("reportProblem", ProblemReportingTask)
-        """
     }
 
     def "task is going to be implicitly added to the problem"() {
@@ -51,6 +50,8 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                     }.report();
                 }
             }
+
+            tasks.register("reportProblem", ProblemReportingTask)
             """
 
         when:
@@ -69,4 +70,71 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         taskPathLocation["identityPath"]["path"] == ":reportProblem"
     }
 
+    def "plugin id is going to be implicitly added to the problem"() {
+        given:
+        settingsFile << """
+            includeBuild("plugins")
+        """
+
+        file("plugins/src/main/java/PluginImpl.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Problems.name};
+            import javax.inject.Inject;
+
+            public abstract class PluginImpl implements Plugin<Project> {
+
+                @Inject
+                protected abstract Problems getProblems();
+
+                public void apply(Project project) {
+                    getProblems().createProblem(builder ->
+                        builder
+                            .label("label")
+                            .undocumented()
+                            .noLocation()
+                            .type("type")
+                    ).report();
+                    project.getTasks().register("reportProblem", t -> {
+                        t.doLast(t2 -> {
+
+                        });
+                    });
+                }
+            }
+        """
+        file("plugins/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    plugin {
+                        id = "test.plugin"
+                        implementationClass = "PluginImpl"
+                    }
+                }
+            }
+        """
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+            }
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        collectedProblems.size() == 1
+        def problem = collectedProblems[0]
+
+        def pluginIdLocations = problem["where"].findAll {
+            it["type"] == "pluginId"
+        }
+        pluginIdLocations.size() == 1
+
+        def pluginIdLocation = pluginIdLocations[0]
+        pluginIdLocation["pluginId"] == "test.plugin"
+    }
 }

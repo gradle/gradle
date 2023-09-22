@@ -39,9 +39,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -164,13 +161,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
         );
-    }
-
-    protected Problems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        ServiceRegistry serviceRegistry) {
-        List<ProblemTransformer> transformers = serviceRegistry.getAll(ProblemTransformer.class);
-        return new DefaultProblems(buildOperationProgressEventEmitter, transformers);
     }
 
     GradleBuildEnvironment createGradleBuildEnvironment() {

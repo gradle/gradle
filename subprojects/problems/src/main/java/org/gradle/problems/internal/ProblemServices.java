@@ -24,4 +24,9 @@ public class ProblemServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new ProblemsGlobalServices());
     }
+
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new ProblemsBuildTreeServices());
+    }
 }
