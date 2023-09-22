@@ -709,6 +709,13 @@
   {
     "name": "problems",
     "path": "subprojects/problems",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-api",
+    "path": "subprojects/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
