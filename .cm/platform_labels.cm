@@ -131,8 +131,6 @@ platforms:
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'
       - 'subprojects/file-watchind/'
-      - 'subprojects/worker-processes/'
-      - 'subprojects/workers/'
   - core_runtime:
     name: 'core_runtime'
     subprojects:

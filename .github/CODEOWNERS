@@ -22,8 +22,6 @@ subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-b
 subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
-subprojects/worker-processes/               @gradle/bt-execution
-subprojects/workers/                        @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 subprojects/api-metadata/                       @gradle/bt-configuration

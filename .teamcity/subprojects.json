@@ -904,7 +904,7 @@
   },
   {
     "name": "worker-processes",
-    "path": "subprojects/worker-processes",
+    "path": "platforms/core-execution/worker-processes",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -918,7 +918,7 @@
   },
   {
     "name": "workers",
-    "path": "subprojects/workers",
+    "path": "platforms/core-execution/workers",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

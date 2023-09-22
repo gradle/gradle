@@ -91,7 +91,6 @@ unassigned {
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
-    subproject("workers")
     subproject("build-cache-base")
     subproject("build-cache")
     subproject("core-api")
@@ -101,7 +100,6 @@ unassigned {
     subproject("build-cache-packaging")
     subproject("execution")
     subproject("build-profile")
-    subproject("worker-processes")
     subproject("security")
     subproject("normalization-java")
     subproject("build-operations")
@@ -146,6 +144,8 @@ platform("core-execution") {
     subproject("hashing")
     subproject("persistent-cache")
     subproject("snapshots")
+    subproject("worker-processes")
+    subproject("workers")
 }
 
 // IDE Platform
