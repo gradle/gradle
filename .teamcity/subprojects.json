@@ -344,7 +344,7 @@
   },
   {
     "name": "hashing",
-    "path": "subprojects/hashing",
+    "path": "platforms/core-execution/hashing",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

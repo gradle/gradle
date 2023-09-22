@@ -104,7 +104,7 @@ platforms:
       - 'subprojects/build-cache-packaging/'
       - 'subprojects/build-operations/'
       - 'subprojects/files/'
-      - 'subprojects/hashing/'
+      - 'platforms/core-execution/hashing/'
       - 'subprojects/snapshots/'
   - build_infrastructure:
     name: 'build_infrastructure'
@@ -147,7 +147,6 @@ platforms:
       - 'subprojects/execution/'
       - 'subprojects/file-watchind/'
       - 'subprojects/files/'
-      - 'subprojects/hashing/'
       - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'
       - 'subprojects/workers/'

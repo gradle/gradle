@@ -112,7 +112,6 @@ unassigned {
     subproject("file-collections")
     subproject("file-temp")
     subproject("files")
-    subproject("hashing")
     subproject("snapshots")
     subproject("file-watching")
     subproject("build-cache-packaging")
@@ -146,6 +145,7 @@ platform("core-configuration") {
 
 // Core Execution Platform
 platform("core-execution") {
+    subproject("hashing")
 }
 
 // IDE Platform

@@ -23,7 +23,6 @@ subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
 subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/worker-processes/               @gradle/bt-execution
 subprojects/workers/                        @gradle/bt-execution
@@ -156,3 +155,4 @@ platforms/core-runtime/functional/                          @gradle/bt-core-runt
 
 # Core Execution
 platforms/core-execution/                                   @gradle/bt-execution
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
