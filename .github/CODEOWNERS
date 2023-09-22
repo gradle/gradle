@@ -151,3 +151,9 @@ subprojects/docs/src/docs/userguide/dep-man/                                    
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
+
+# Core Runtime
+platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+
+# Core Execution
+platforms/core-execution/                                   @gradle/bt-execution

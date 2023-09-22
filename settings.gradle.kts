@@ -130,6 +130,10 @@ unassigned {
     subproject("instrumentation-declarations")
 }
 
+// Core Runtime Platform
+platform("core-runtime") {
+}
+
 // Core Configuration Platform
 platform("core-configuration") {
     subproject("kotlin-dsl")
@@ -138,6 +142,10 @@ platform("core-configuration") {
     subproject("kotlin-dsl-tooling-models")
     subproject("kotlin-dsl-plugins")
     subproject("kotlin-dsl-integ-tests")
+}
+
+// Core Execution Platform
+platform("core-execution") {
 }
 
 // IDE Platform

@@ -123,6 +123,7 @@ platforms:
   - core_execution:
     name: 'core_execution'
     subprojects:
+      - 'platforms/core-execution/'
       - 'subprojects/build-cache/'
       - 'subprojects/build-cache-base/'
       - 'subprojects/build-cache-http/'
@@ -137,9 +138,10 @@ platforms:
       - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'
       - 'subprojects/workers/'
-  - core_execution:
+  - core_runtime:
     name: 'core_runtime'
     subprojects:
+      - 'platforms/core-runtime/'
       - 'subprojects/installation-beacon/'
   - documentation:
     name: 'documentation'
