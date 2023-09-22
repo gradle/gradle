@@ -120,7 +120,7 @@
   },
   {
     "name": "cli",
-    "path": "subprojects/cli",
+    "path": "platforms/core-runtime/cli",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
