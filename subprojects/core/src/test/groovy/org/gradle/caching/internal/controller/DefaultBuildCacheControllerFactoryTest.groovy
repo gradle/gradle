@@ -35,11 +35,14 @@ import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.internal.services.DefaultBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.util.function.Consumer
 
 class DefaultBuildCacheControllerFactoryTest extends Specification {
 
@@ -253,7 +256,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
 
         @Override
-        void withTempFile(BuildCacheKey key, Action<? super File> action) {
+        void withTempFile(HashCode key, Consumer<? super File> action) {
 
         }
     }
