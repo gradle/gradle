@@ -36,7 +36,7 @@
   },
   {
     "name": "base-services",
-    "path": "subprojects/base-services",
+    "path": "platforms/core-runtime/base-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

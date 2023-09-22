@@ -56,7 +56,6 @@ unassigned {
 unassigned {
     subproject("configuration-cache")
     subproject("api-metadata")
-    subproject("base-services")
     subproject("base-services-groovy")
     subproject("logging-api")
     subproject("logging")
@@ -129,6 +128,7 @@ unassigned {
 // Core Runtime Platform
 platform("core-runtime") {
     subproject("base-annotations")
+    subproject("base-services")
     subproject("functional")
     subproject("worker-services")
 }
