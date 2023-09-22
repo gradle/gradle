@@ -109,7 +109,6 @@ unassigned {
     subproject("core-api")
     subproject("version-control")
     subproject("file-collections")
-    subproject("file-temp")
     subproject("files")
     subproject("snapshots")
     subproject("file-watching")
@@ -129,6 +128,7 @@ unassigned {
 platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
+    subproject("file-temp")
     subproject("functional")
     subproject("worker-services")
 }

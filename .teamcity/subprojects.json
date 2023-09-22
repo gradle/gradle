@@ -316,7 +316,7 @@
   },
   {
     "name": "file-temp",
-    "path": "subprojects/file-temp",
+    "path": "platforms/core-runtime/file-temp",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
