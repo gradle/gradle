@@ -31,7 +31,6 @@ subprojects/workers/                        @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 subprojects/api-metadata/                       @gradle/bt-configuration
-subprojects/base-annotations/                   @gradle/bt-configuration
 subprojects/base-services-groovy/               @gradle/bt-configuration
 subprojects/configuration-cache/                @gradle/bt-configuration
 subprojects/file-collections/                   @gradle/bt-configuration

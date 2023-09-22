@@ -126,7 +126,6 @@ platforms:
     name: 'configuration_cache'
     subprojects:
       - 'subprojects/api-metadata/'
-      - 'subprojects/base-annotations/'
       - 'subprojects/base-services-groovy/'
       - 'subprojects/configuration-cache/'
       - 'subprojects/file-collections/'

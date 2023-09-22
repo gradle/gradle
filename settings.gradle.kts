@@ -121,7 +121,6 @@ unassigned {
     subproject("execution")
     subproject("build-profile")
     subproject("worker-processes")
-    subproject("base-annotations")
     subproject("security")
     subproject("normalization-java")
     subproject("build-operations")
@@ -132,6 +131,7 @@ unassigned {
 
 // Core Runtime Platform
 platform("core-runtime") {
+    subproject("base-annotations")
 }
 
 // Core Configuration Platform

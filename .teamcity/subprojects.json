@@ -22,7 +22,7 @@
   },
   {
     "name": "base-annotations",
-    "path": "subprojects/base-annotations",
+    "path": "platforms/core-runtime/base-annotations",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
