@@ -561,14 +561,14 @@
   },
   {
     "name": "logging",
-    "path": "subprojects/logging",
+    "path": "platforms/core-runtime/logging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "logging-api",
-    "path": "subprojects/logging-api",
+    "path": "platforms/core-runtime/logging-api",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
