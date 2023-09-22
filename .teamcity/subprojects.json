@@ -603,7 +603,7 @@
   },
   {
     "name": "native",
-    "path": "subprojects/native",
+    "path": "platforms/core-runtime/native",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

@@ -77,7 +77,6 @@ unassigned {
     subproject("build-events")
     subproject("tooling-api-builders")
     subproject("signing")
-    subproject("native")
     subproject("reporting")
     subproject("diagnostics")
     subproject("publish")
@@ -130,6 +129,7 @@ platform("core-runtime") {
     subproject("logging")
     subproject("logging-api")
     subproject("messaging")
+    subproject("native")
     subproject("worker-services")
 }
 
