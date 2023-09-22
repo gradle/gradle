@@ -49,6 +49,17 @@ objItem("foo") {
 }
 ```
 
+Other functions should idempotently access an object and configure it, like:
+
+```kotlin
+f {
+    x = "foo"
+}
+f { // configures the same object
+    y = "bar"
+}
+```
+
 ### Reassigning values should be forbidden
 
 ```kotlin
@@ -60,17 +71,6 @@ myData {
 ```
 
 This results in a single source of truth for a value and helps with introducing out-of-order semantics.
-
-Other functions should idempotently access an object and configure it, like:
-
-```kotlin
-f {
-    x = "foo"
-}
-f { // configures the same object
-    y = "bar"
-}
-```
 
 Open question: how to avoid confusion between “add” and “access” semantics?
 
