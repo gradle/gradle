@@ -96,7 +96,6 @@ unassigned {
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("workers")
-    subproject("persistent-cache")
     subproject("build-cache-base")
     subproject("build-cache")
     subproject("core-api")
@@ -146,6 +145,7 @@ platform("core-configuration") {
 // Core Execution Platform
 platform("core-execution") {
     subproject("hashing")
+    subproject("persistent-cache")
 }
 
 // IDE Platform

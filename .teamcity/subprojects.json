@@ -624,7 +624,7 @@
   },
   {
     "name": "persistent-cache",
-    "path": "subprojects/persistent-cache",
+    "path": "platforms/core-execution/persistent-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
