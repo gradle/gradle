@@ -82,7 +82,7 @@ public class KillLeakingJavaProcesses {
     static String generateLeakingProcessKillPattern(String rootProjectDir) {
         String kotlinCompilerDaemonPattern = "(?:" + Pattern.quote("-Dkotlin.environment.keepalive org.jetbrains.kotlin.daemon.KotlinCompileDaemon") + ")";
         String quotedRootProjectDir = Pattern.quote(rootProjectDir);
-        String perfTestClasspathPattern = "(?:-cp.+" + "(" + quotedRootProjectDir + "|build\\\\tmp\\\\performance-test-files)" + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
+        String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";
         return "(?i)[/\\\\]" + "(" + JAVA_EXECUTABLE_PATTERN_STR + ".+?" + "(?:"
