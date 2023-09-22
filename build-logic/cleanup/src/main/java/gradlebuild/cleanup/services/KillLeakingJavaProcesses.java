@@ -123,6 +123,11 @@ public class KillLeakingJavaProcesses {
             throw new IllegalArgumentException("Requires 1 param: " + Stream.of(ExecutionMode.values()).map(ExecutionMode::toString).collect(Collectors.joining("/")));
         }
         executionMode = ExecutionMode.valueOf(args[0]);
+        if (executionMode == ExecutionMode.KILL_PROCESSES_STARTED_BY_GRADLE && !Boolean.parseBoolean(System.getenv("GRADLE_RUNNER_FINISHED"))) {
+            // https://github.com/gradle/gradle-private/issues/3991
+            System.out.println("Gradle runner not finished correctly (the build may be canceled). Fall back to KILL_ALL_GRADLE_PROCESSES.");
+            executionMode = ExecutionMode.KILL_ALL_GRADLE_PROCESSES;
+        }
     }
 
     private static void writePsOutputToFile(File rootProjectDir, List<String> psOutput) {

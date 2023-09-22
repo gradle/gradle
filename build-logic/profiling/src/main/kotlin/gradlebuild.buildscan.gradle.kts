@@ -112,6 +112,7 @@ fun Project.extractCiData() {
                 println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
             }
             buildFinished {
+                println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
                 if (failure == null) {
                     println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
                 }
