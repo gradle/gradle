@@ -284,7 +284,8 @@ fun BuildType.killProcessStep(mode: KillProcessMode, os: Os, arch: Arch = Arch.A
         script {
             name = mode.toString()
             this.executionMode = executionMode
-            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode"
+            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
+                if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
             skipConditionally(this@killProcessStep)
             if (mode == KILL_ALL_GRADLE_PROCESSES) {
                 onlyRunOnPreTestedCommitBuildBranch()
