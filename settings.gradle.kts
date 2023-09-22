@@ -57,7 +57,6 @@ unassigned {
     subproject("configuration-cache")
     subproject("api-metadata")
     subproject("base-services-groovy")
-    subproject("process-services")
     subproject("jvm-services")
     subproject("core")
     subproject("dependency-management")
@@ -129,6 +128,7 @@ platform("core-runtime") {
     subproject("logging-api")
     subproject("messaging")
     subproject("native")
+    subproject("process-services")
     subproject("worker-services")
 }
 

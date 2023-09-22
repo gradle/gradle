@@ -715,7 +715,7 @@
   },
   {
     "name": "process-services",
-    "path": "subprojects/process-services",
+    "path": "platforms/core-runtime/process-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
