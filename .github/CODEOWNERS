@@ -14,24 +14,11 @@
 * @gradle/bt-unassigned-maintainers
 
 # Core automation platform (core/execution)
-subprojects/build-cache/                    @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/build-cache-base/               @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/build-cache-http/               @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/build-cache-packaging/          @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-profile/                  @gradle/bt-execution
-subprojects/execution/                      @gradle/bt-execution
-subprojects/file-watching/                  @gradle/bt-execution
-subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/functional/                     @gradle/bt-execution @bamboo
-subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/worker-processes/               @gradle/bt-execution
-subprojects/workers/                        @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 subprojects/api-metadata/                       @gradle/bt-configuration
-subprojects/base-annotations/                   @gradle/bt-configuration
 subprojects/base-services-groovy/               @gradle/bt-configuration
 subprojects/configuration-cache/                @gradle/bt-configuration
 subprojects/file-collections/                   @gradle/bt-configuration
@@ -151,3 +138,17 @@ subprojects/docs/src/docs/userguide/dep-man/                                    
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
+
+# Core Runtime
+platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
+platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
+
+# Core Execution
+platforms/core-execution/                                   @gradle/bt-execution
+platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
+platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
