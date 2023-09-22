@@ -554,7 +554,7 @@
   },
   {
     "name": "launcher",
-    "path": "subprojects/launcher",
+    "path": "platforms/core-runtime/launcher",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
