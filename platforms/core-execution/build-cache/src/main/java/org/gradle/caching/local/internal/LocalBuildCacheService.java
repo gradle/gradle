@@ -38,7 +38,4 @@ public interface LocalBuildCacheService extends BuildCacheTempFileStore, Closeab
      * Store the given file in the local file store as a cache artifact.
      */
     void storeLocally(BuildCacheKey key, File file);
-
-    @Override
-    void close();
 }

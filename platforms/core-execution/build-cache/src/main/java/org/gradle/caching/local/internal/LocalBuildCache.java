@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,20 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoConsumer;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.function.Consumer;
 
-public interface BuildCacheTempFileStore {
+public interface LocalBuildCache extends Closeable {
+    boolean load(HashCode key, IoConsumer<InputStream> reader);
 
-    String PARTIAL_FILE_SUFFIX = ".part";
+    void loadLocally(HashCode key, Consumer<? super File> reader);
 
-    /**
-     * Run the given action with a temp file allocated based on the given cache key.
-     * The temp file will be deleted once the action is completed.
-     */
-    void withTempFile(HashCode key, Consumer<? super File> action);
+    void store(HashCode key, IoConsumer<OutputStream> result);
 
+    void storeLocally(HashCode key, File file);
 }

@@ -21,6 +21,7 @@ import org.gradle.caching.local.internal.LocalBuildCacheService;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -63,7 +64,7 @@ public class DefaultLocalBuildCacheServiceHandle implements LocalBuildCacheServi
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         service.close();
     }
 }
