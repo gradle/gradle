@@ -21,7 +21,6 @@ subprojects/build-cache-packaging/          @gradle/bt-execution @gradle/bt-ge-b
 subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
-subprojects/file-watching/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 subprojects/api-metadata/                       @gradle/bt-configuration

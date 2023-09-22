@@ -145,7 +145,6 @@ platforms:
       - 'subprojects/build-operations/'
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'
-      - 'subprojects/file-watchind/'
   - core_runtime:
     name: 'core_runtime'
     subprojects:

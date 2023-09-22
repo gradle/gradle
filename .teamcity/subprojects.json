@@ -323,7 +323,7 @@
   },
   {
     "name": "file-watching",
-    "path": "subprojects/file-watching",
+    "path": "platforms/core-execution/file-watching",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

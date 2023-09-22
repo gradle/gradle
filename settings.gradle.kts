@@ -96,7 +96,6 @@ unassigned {
     subproject("core-api")
     subproject("version-control")
     subproject("file-collections")
-    subproject("file-watching")
     subproject("build-cache-packaging")
     subproject("execution")
     subproject("build-profile")
@@ -141,6 +140,7 @@ platform("core-configuration") {
 
 // Core Execution Platform
 platform("core-execution") {
+    subproject("file-watching")
     subproject("hashing")
     subproject("persistent-cache")
     subproject("snapshots")
