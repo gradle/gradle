@@ -354,6 +354,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     def "start parameter indicates whether configuration cache was requested"() {
+        given:
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile """

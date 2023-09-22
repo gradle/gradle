@@ -71,13 +71,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
-    /**
-     * Returns the display name of this file collection. Used in log and error messages.
-     *
-     * @return the display name
-     */
-    public abstract String getDisplayName();
-
     @Override
     public String toString() {
         return getDisplayName();
