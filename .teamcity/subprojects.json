@@ -925,14 +925,14 @@
   },
   {
     "name": "wrapper",
-    "path": "subprojects/wrapper",
+    "path": "platforms/core-runtime/wrapper",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "wrapper-shared",
-    "path": "subprojects/wrapper-shared",
+    "path": "platforms/core-runtime/wrapper-shared",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

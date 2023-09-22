@@ -60,8 +60,6 @@ unassigned {
     subproject("jvm-services")
     subproject("core")
     subproject("dependency-management")
-    subproject("wrapper")
-    subproject("wrapper-shared")
     subproject("launcher")
     subproject("resources")
     subproject("resources-http")
@@ -130,6 +128,8 @@ platform("core-runtime") {
     subproject("native")
     subproject("process-services")
     subproject("worker-services")
+    subproject("wrapper")
+    subproject("wrapper-shared")
 }
 
 // Core Configuration Platform
