@@ -9,6 +9,7 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Philipp Schneider](https://github.com/p-schneider),
 
 ## Upgrade instructions
 
@@ -50,6 +51,19 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="ear-plugin"></a>
+### Ear Plugin
+
+It is now possible to generate valid deployment descriptors for Java EE 8, Jakarta EE 9 and Jakarta EE 10
+by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+
+```kotlin
+tasks.ear {
+    deploymentDescriptor {  // custom entries for application.xml:
+        version = "10"
+    }
+}
+```
 
 <a name="wrapper-improvements"></a>
 ### Wrapper Improvements
