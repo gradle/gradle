@@ -39,12 +39,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>dir</td>
-            </tr>
-            <tr>
-                <td>file</td>
-            </tr>
         </table>
     </section>
 </section>

@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.SettingsLayout;
-import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.initialization.Settings;
 
 
-public class DefaultSettingsLayout extends AbstractFileSystemLayout implements SettingsLayout {
-    private final SettingsInternal settings;
+public class DefaultBuildLayout implements BuildLayout {
+    protected final FileFactory fileFactory;
+    private final Settings settings;
 
-    public DefaultSettingsLayout(SettingsInternal settings, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-        super(fileResolver, fileCollectionFactory, fileFactory);
+    public DefaultBuildLayout(Settings settings, FileFactory fileFactory) {
+        this.fileFactory = fileFactory;
         this.settings = settings;
     }
 

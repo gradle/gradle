@@ -16,15 +16,14 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.file.SettingsLayout;
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheConfigurations;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultSettingsLayout;
-import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.DefaultBuildLayout;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
@@ -58,8 +57,8 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected SettingsLayout createSettingsLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory) {
-        return new DefaultSettingsLayout(settings, fileResolver, fileCollectionFactory, fileFactory);
+    protected BuildLayout createBuildLayout(FileFactory fileFactory) {
+        return new DefaultBuildLayout(settings, fileFactory);
     }
 
     protected FileResolver createFileResolver(FileLookup fileLookup) {

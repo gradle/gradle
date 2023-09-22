@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.file.ProjectLayout",
-            "member": "Class org.gradle.api.file.ProjectLayout",
-            "acceptation": "Pulled up stable API into a new super interface",
-            "changes": [
-                "org.gradle.api.file.FileSystemLayout"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
