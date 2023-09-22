@@ -29,8 +29,7 @@ Every Gradle build is made up of one or more _projects_; a root project and subp
 A project typically corresponds to a software component that needs to be built, like a library or an application.
 It might represent a library JAR, a web application, or a distribution ZIP assembled from the JARs produced by other projects.
 
-A project does not always represent something to be built.
-It might represent a thing to be done, such as deploying your application to staging or production environments.
+On the other hand, it might represent a thing to be done, such as deploying your application to staging or production environments.
 
 Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific language).
 
@@ -177,7 +176,7 @@ tasks.named<Test>("test") {
     useJUnitPlatform()                                                  // <8>
 }
 ----
-<1> Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
+<1> Apply the org.jetbrains.kotlin.jvm plugin to add support for Kotlin.
 <2> Apply the application plugin to add support for building a CLI application in Java.
 <3> Use Maven Central for resolving dependencies.
 <4> Use the Kotlin JUnit 5 integration.
@@ -203,33 +202,32 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'        // <4>
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'   // <5>
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.google.guava:guava:32.1.1-jre'                  // <6>
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'   // <4>
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'        // <4>
+    implementation 'com.google.guava:guava:32.1.1-jre'                  // <5>
 }
 
 application {
-    mainClass = 'main'                                                  // <7>
+    mainClass = 'main'                                                  // <6>
 }
 
 tasks.named('test') {
-    useJUnitPlatform()                                                  // <8>
+    useJUnitPlatform()                                                  // <7>
 }
 ----
 <1> Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
 <2> Apply the application plugin to add support for building a CLI application in Java.
 <3> Use Maven Central for resolving dependencies.
-<4> Use the Kotlin JUnit 5 integration.
-<5> Use the JUnit 5 integration.
-<6> This dependency from Google is used by the application.
-<7> Define the main class for the application.
-<8> Use JUnit Platform for unit tests.
+<4> Use the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit5[Kotlin JUnit 5] integration, link:https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine[JUnit engine], and link:https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher[JUnit 5] integration for testing code.
+<5> Use the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] dependency from Google for the application.
+<6> Define the main class for the application.
+<7> Use JUnit Platform, a JVM testing framework, for unit tests.
 =====
 ====
 
 === Add extensions via plugins
 
-Plugins are used to extend Gradle. They are also used to modularise and reuse project configuration.
+Plugins are used to extend Gradle. They are also used to modularize and reuse project configuration.
 
 Plugins can be applied using the `PluginAware.apply(java.util.Map)` method, or by using the `PluginDependenciesSpec` plugins script block:
 
@@ -248,7 +246,7 @@ This plugin is not included with Gradle and therefore has to be described using 
 
 === Add dependencies and dependency location
 
-A project generally has a number of dependencies it needs in order to do its work, typically found in the source code.
+A project generally has a number of dependencies it needs in order to do its work.
 
 Those dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
 
@@ -286,8 +284,19 @@ application {
 
 Tasks performs some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
-You add tasks to a project using one of the `create()` methods on `TaskContainer`, such as `TaskContainer.register(java.lang.String)`.
-You can locate existing tasks using one of the lookup methods on `TaskContainer`, such as `TaskCollection.nme(java.lang.String)`.
+You add tasks to a project using the `TaskContainer.register(java.lang.String)` method.
+
+[source]
+----
+tasks.register<Zip>("zip-reports") {
+    from 'Reports/'
+    include '*'
+    archiveName 'Reports.zip'
+    destinationDir(file('/dir'))
+}
+----
+
+You can locate existing tasks using the `TaskCollection.name(java.lang.String)` method:
 
 [source]
 ----
@@ -296,7 +305,7 @@ tasks.named<Test>("test") {
 }
 ----
 
-While tasks should be contained in plugins for best practices, tasks can be added to build scripts directly.
+While best practice is to define tasks via plugins, tasks can be added to build scripts directly.
 
 == Build scripting
 
@@ -326,12 +335,12 @@ The closure is treated as a configuration closure which configures some delegate
 
 [source]
 ----
-allprojects {
-    repositories {
-        mavenLocal()
-    }
+repositories {
+    mavenLocal()
 }
 ----
+
+NOTE: `mavenLocal` is a directory on a local machine that stores project artifacts.
 
 A build script is also a Groovy or a Kotlin script:
 
@@ -377,14 +386,12 @@ You can use any of the <<declaring_dependencies.adoc#sec:dependency-types,depend
 
 Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
 
-.A build script with external dependencies
 ====
 include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=all]"]
 include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=all]"]
 
-.Output of **`gradle -q encode`**
 ----
-> gradle -q encode
+$ gradle -q encode
 include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependency.out[]
 ----
 ====
@@ -429,14 +436,12 @@ Add, read, and set extra properties via the owning object's `extra` property. Al
 [.multi-language-text.lang-groovy]
 Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
 
-.Use extra properties
 ====
 include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
 include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 
-.Output of **`gradle -q printProperties`**
 ----
-> gradle -q printProperties
+$ gradle -q printProperties
 include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
 ----
 ====
@@ -458,16 +463,14 @@ link:{groovyDslPath}/org.gradle.api.plugins.ExtraPropertiesExtension.html[ExtraP
 [[sec:configuring_arbitrary_objects]]
 === Configure Arbitrary Objects
 
-Configure arbitrary objects with `configure()`:
+The example `configure()` task shows an example of arbitrary object configuration:
 
-.Configure arbitrary objects
 ====
 include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 
-.Output of **`gradle -q configure`**
 ----
-> gradle -q configure
+$ gradle -q configure
 include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
 ----
 ====
@@ -484,13 +487,11 @@ The Kotlin DSL does not support arbitrary object configuration using an external
 For more information, see link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659].
 ====
 
-.Configure arbitrary objects using a script
 ====
 include::sample[dir="snippets/tutorial/configureObjectUsingScript/groovy",files="build.gradle[];other.gradle[]"]
 
-.Output of `gradle -q configure`
 ----
-> gradle -q configure
+$ gradle -q configure
 include::{snippetsPath}/tutorial/configureObjectUsingScript/tests/configureObjectUsingScript.out[]
 ----
 ====

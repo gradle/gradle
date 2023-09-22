@@ -21,12 +21,12 @@ Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initializati
 
 When the settings file `settings.gradle(.kts)` is found, Gradle instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] object.
 
-One of the purposes of the `Settings` object is to allow you to declare all the projects which are to be included in the build.
+One of the purposes of the `Settings` object is to allow you to declare all the projects to be included in the build.
 
 [[sec:settings_script]]
 == Settings scripts
 
-The settings script is either a `settings.gradle` file when written in Groovy or a `settings.gradle.kts` file when written in Kotlin.
+The settings script is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
 
 Before Gradle assembles the projects for a build, it creates a `Settings` instance and executes the settings file against it.
 
@@ -103,9 +103,6 @@ The following table lists a few commonly used methods:
 
 | `includeBuild()`
 | Includes a build at the specified path to the composite build.
-
-| `include()`
-| Adds the given projects to the build.
 |===
 
 [[sec:the_script_api]]
@@ -226,7 +223,7 @@ dependencyResolutionManagement {
 
 === Define shared plugins
 
-The settings file can optionally define the plugins your project uses with `pluginManagement` including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
+The settings file can optionally define the plugins your project uses with `pluginManagement`, including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
 
 [source]
 ----
@@ -252,7 +249,7 @@ include("data-model")
 
 === Define shared plugins
 
-The settings file can optionally define the plugins which are used as shared configuration among several builds:
+The settings file can optionally define the plugins which are used as shared configurations among several builds:
 
 [source]
 ----
@@ -263,9 +260,9 @@ plugins {
 
 === Additional settings
 
-There are many more properties and methods on the `Settings` object which you can use to configure your build.
+There are many more properties and methods on the `Settings` object that you can use to configure your build.
 
-It's important to remember that while many gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
+It's important to remember that while many Gradle scripts are typically written in short Groovy or Kotlin syntax, every item in the settings script is essentially invoking a method on the `Settings` object in the Gradle API:
 
 [source]
 ----
