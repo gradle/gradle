@@ -105,7 +105,7 @@ platforms:
       - 'subprojects/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
-      - 'subprojects/snapshots/'
+      - 'platforms/core-execution/snapshots/'
   - build_infrastructure:
     name: 'build_infrastructure'
     subprojects:
@@ -146,7 +146,6 @@ platforms:
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'
       - 'subprojects/file-watchind/'
-      - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'
       - 'subprojects/workers/'
   - core_runtime:

@@ -97,7 +97,6 @@ unassigned {
     subproject("core-api")
     subproject("version-control")
     subproject("file-collections")
-    subproject("snapshots")
     subproject("file-watching")
     subproject("build-cache-packaging")
     subproject("execution")
@@ -146,6 +145,7 @@ platform("core-configuration") {
 platform("core-execution") {
     subproject("hashing")
     subproject("persistent-cache")
+    subproject("snapshots")
 }
 
 // IDE Platform

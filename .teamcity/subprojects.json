@@ -806,7 +806,7 @@
   },
   {
     "name": "snapshots",
-    "path": "subprojects/snapshots",
+    "path": "platforms/core-execution/snapshots",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
