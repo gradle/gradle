@@ -83,7 +83,7 @@ public class KillLeakingJavaProcesses {
         String kotlinCompilerDaemonPattern = "(?:" + Pattern.quote("-Dkotlin.environment.keepalive org.jetbrains.kotlin.daemon.KotlinCompileDaemon") + ")";
         String quotedRootProjectDir = Pattern.quote(rootProjectDir);
         String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
-        String buildDirClasspathPattern = "(?:-(classpath|cp) .+" + quotedRootProjectDir + ".+?" + Pattern.quote("\\build\\") + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
+        String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";
         return "(?i)[/\\\\]" + "(" + JAVA_EXECUTABLE_PATTERN_STR + ".+?" + "(?:"
             + perfTestClasspathPattern + "|"
@@ -123,6 +123,11 @@ public class KillLeakingJavaProcesses {
             throw new IllegalArgumentException("Requires 1 param: " + Stream.of(ExecutionMode.values()).map(ExecutionMode::toString).collect(Collectors.joining("/")));
         }
         executionMode = ExecutionMode.valueOf(args[0]);
+        if (executionMode == ExecutionMode.KILL_PROCESSES_STARTED_BY_GRADLE && !Boolean.parseBoolean(System.getenv("GRADLE_RUNNER_FINISHED"))) {
+            // https://github.com/gradle/gradle-private/issues/3991
+            System.out.println("Gradle runner not finished correctly (the build may be canceled). Fall back to KILL_ALL_GRADLE_PROCESSES.");
+            executionMode = ExecutionMode.KILL_ALL_GRADLE_PROCESSES;
+        }
     }
 
     private static void writePsOutputToFile(File rootProjectDir, List<String> psOutput) {

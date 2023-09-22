@@ -44,6 +44,22 @@ class LeakingProcessKillPatternTest extends Specification {
         (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
     }
 
+    def "matches daemon process in intTestHomeDir"() {
+        def line = '12460     "C:\\Program Files\\Java\\open-jdk-8\\bin\\java.exe" -XX:+HeapDumpOnOutOfMemoryError -Xmx1024m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\previousVersion\\4.7\\gradle-4.7\\lib\\gradle-launcher-4.7.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 4.7'
+        def projectDir = 'C:\\tcagent1\\work\\f63322e10dd6b396\\'
+
+        expect:
+        (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
+    }
+
+    def "matches worker daemon process in intTestHomeDir"() {
+        def line = '8252        "C:\\Program Files\\Java\\open-jdk-8\\bin\\java.exe" -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\distributions-full\\caches\\4.7\\workerMain\\gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain "Gradle Worker Daemon 12"'
+        def projectDir = 'C:\\tcagent1\\work\\f63322e10dd6b396\\'
+
+        expect:
+        (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
+    }
+
     def "does not match worker process started by main build VM on Windows"() {
         def line = '"C:\\Program Files\\Java\\jdk1.7\\bin\\java.exe" -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\some\\agent\\.gradle\\caches\\4.4-rc-1\\workerMain\\gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain "\'Gradle Worker Daemon 318\'"'
         def projectDir = 'C:\\some\\agent\\workspace'
