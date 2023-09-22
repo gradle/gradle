@@ -582,7 +582,7 @@
   },
   {
     "name": "messaging",
-    "path": "subprojects/messaging",
+    "path": "platforms/core-runtime/messaging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
