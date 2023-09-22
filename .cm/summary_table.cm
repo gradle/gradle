@@ -98,10 +98,10 @@ platforms:
   - bt_ge_build_cache:
     name: 'bt_ge_build_cache'
     subprojects:
-      - 'subprojects/build-cache/'
-      - 'subprojects/build-cache-base/'
-      - 'subprojects/build-cache-http/'
-      - 'subprojects/build-cache-packaging/'
+      - 'platforms/core-execution/build-cache/'
+      - 'platforms/core-execution/build-cache-base/'
+      - 'platforms/core-execution/build-cache-http/'
+      - 'platforms/core-execution/build-cache-packaging/'
       - 'subprojects/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
@@ -138,10 +138,6 @@ platforms:
     name: 'core_execution'
     subprojects:
       - 'platforms/core-runtime/'
-      - 'subprojects/build-cache/'
-      - 'subprojects/build-cache-base/'
-      - 'subprojects/build-cache-http/'
-      - 'subprojects/build-cache-packaging/'
       - 'subprojects/build-operations/'
       - 'subprojects/build-profile/'
       - 'subprojects/execution/'

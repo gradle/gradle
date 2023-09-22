@@ -57,28 +57,28 @@
   },
   {
     "name": "build-cache",
-    "path": "subprojects/build-cache",
+    "path": "platforms/core-execution/build-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "build-cache-base",
-    "path": "subprojects/build-cache-base",
+    "path": "platforms/core-execution/build-cache-base",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "build-cache-http",
-    "path": "subprojects/build-cache-http",
+    "path": "platforms/core-execution/build-cache-http",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "build-cache-packaging",
-    "path": "subprojects/build-cache-packaging",
+    "path": "platforms/core-execution/build-cache-packaging",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

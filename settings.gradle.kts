@@ -86,17 +86,13 @@ unassigned {
     subproject("plugin-development")
     subproject("model-core")
     subproject("model-groovy")
-    subproject("build-cache-http")
     subproject("testing-native")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
-    subproject("build-cache-base")
-    subproject("build-cache")
     subproject("core-api")
     subproject("version-control")
     subproject("file-collections")
-    subproject("build-cache-packaging")
     subproject("execution")
     subproject("build-profile")
     subproject("security")
@@ -140,6 +136,10 @@ platform("core-configuration") {
 
 // Core Execution Platform
 platform("core-execution") {
+    subproject("build-cache")
+    subproject("build-cache-base")
+    subproject("build-cache-http")
+    subproject("build-cache-packaging")
     subproject("file-watching")
     subproject("hashing")
     subproject("persistent-cache")
