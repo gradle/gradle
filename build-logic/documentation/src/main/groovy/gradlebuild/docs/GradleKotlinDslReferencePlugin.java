@@ -62,14 +62,6 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         renameModule(project);
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
-        setMemoryForWorkers(project);
-    }
-
-    private static void setMemoryForWorkers(Project project) {
-        project.getTasks().withType(DokkatooGenerateTask.class).configureEach(task -> {
-            task.getWorkerMinHeapSize().set("512m");
-            task.getWorkerMaxHeapSize().set("1g");
-        });
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
