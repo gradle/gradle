@@ -106,7 +106,7 @@
   },
   {
     "name": "build-option",
-    "path": "subprojects/build-option",
+    "path": "platforms/core-runtime/build-option",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
