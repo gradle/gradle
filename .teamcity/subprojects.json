@@ -50,7 +50,7 @@
   },
   {
     "name": "bootstrap",
-    "path": "subprojects/bootstrap",
+    "path": "platforms/core-runtime/bootstrap",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

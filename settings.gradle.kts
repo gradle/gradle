@@ -67,7 +67,6 @@ unassigned {
     subproject("wrapper-shared")
     subproject("cli")
     subproject("launcher")
-    subproject("bootstrap")
     subproject("messaging")
     subproject("resources")
     subproject("resources-http")
@@ -127,6 +126,7 @@ unassigned {
 platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
+    subproject("bootstrap")
     subproject("file-temp")
     subproject("files")
     subproject("functional")
