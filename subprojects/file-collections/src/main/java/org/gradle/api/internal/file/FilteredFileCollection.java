@@ -43,7 +43,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
         if (newCollection == collection) {
             return this;
         }
-        return new FilteredFileCollection(newCollection, filterSpec);
+        return newCollection.filter(filterSpec);
     }
 
     public FileCollectionInternal getCollection() {
@@ -56,7 +56,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
 
     @Override
     public String getDisplayName() {
-        return "file collection";
+        return collection.getDisplayName();
     }
 
     @Override
