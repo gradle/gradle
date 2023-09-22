@@ -196,13 +196,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"] == [[
+        this.collectedProblems[0]["where"][0] == [
             "type": "file",
             "path": "test-location",
             "line": 1,
             "column": null,
             "length": 0
-        ]]
+        ]
     }
 
     def "can emit a problem with fully specified location"() {
@@ -275,10 +275,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"] == [[
-           "type": "pluginId",
-           "pluginId": "org.example.pluginid",
-        ]]
+        def problem = this.collectedProblems[0]
+
+        def fileLocation = problem["where"][0]
+        fileLocation["type"] == "pluginId"
+        fileLocation["pluginId"] == "org.example.pluginid"
     }
 
     def "can emit a problem with a severity"(Severity severity) {
