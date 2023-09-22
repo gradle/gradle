@@ -33,4 +33,8 @@ dependencies {
     implementation(project(":enterprise-operations")) {
         because("ExecuteTaskBuildOperationType is used in the problem reporting infrastructure")
     }
+
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(testFixtures(project(":logging")))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
