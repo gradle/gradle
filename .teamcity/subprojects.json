@@ -302,7 +302,7 @@
   },
   {
     "name": "execution",
-    "path": "subprojects/execution",
+    "path": "platforms/core-execution/execution",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
