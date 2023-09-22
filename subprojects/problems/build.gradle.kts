@@ -26,7 +26,11 @@ description = """Problem SPI implementations.
 dependencies {
     api(project(":problems-api"))
 
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-operations"))
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations")) {
+        because("ExecuteTaskBuildOperationType is used in the problem reporting infrastructure")
+    }
 }
