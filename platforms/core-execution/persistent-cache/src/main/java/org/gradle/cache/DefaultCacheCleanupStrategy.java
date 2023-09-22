@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.cache;
-
-import org.gradle.api.provider.Provider;
-import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupFrequency;
+package org.gradle.cache;
 
 import java.util.function.Supplier;
 
@@ -32,8 +27,8 @@ public class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
         this.cleanupFrequency = cleanupFrequency;
     }
 
-    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
-        return new DefaultCacheCleanupStrategy(cleanupAction, cleanupFrequency::get);
+    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency) {
+        return new DefaultCacheCleanupStrategy(cleanupAction, cleanupFrequency);
     }
 
     public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction) {

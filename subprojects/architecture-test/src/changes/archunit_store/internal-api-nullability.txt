@@ -321,7 +321,6 @@ Class <org.gradle.api.internal.cache.CacheDirTagMarkingStrategy> is not annotate
 Class <org.gradle.api.internal.cache.CacheDirUtil> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheDirUtil.java:0)
 Class <org.gradle.api.internal.cache.CacheResourceConfigurationInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CacheResourceConfigurationInternal.java:0)
 Class <org.gradle.api.internal.cache.CleanupInternal> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CleanupInternal.java:0)
-Class <org.gradle.api.internal.cache.DefaultCacheCleanupStrategy> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCacheCleanupStrategy.java:0)
 Class <org.gradle.api.internal.cache.DefaultCacheConfigurations$ContextualErrorMessageProperty> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCacheConfigurations.java:0)
 Class <org.gradle.api.internal.cache.DefaultCacheConfigurations$DefaultCacheResourceConfiguration> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCacheConfigurations.java:0)
 Class <org.gradle.api.internal.cache.DefaultCacheConfigurations$MustBeConfiguredCleanupFrequency> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultCacheConfigurations.java:0)
