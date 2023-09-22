@@ -337,7 +337,7 @@
   },
   {
     "name": "functional",
-    "path": "subprojects/functional",
+    "path": "platforms/core-runtime/functional",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

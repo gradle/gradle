@@ -23,7 +23,6 @@ subprojects/build-profile/                  @gradle/bt-execution
 subprojects/execution/                      @gradle/bt-execution
 subprojects/file-watching/                  @gradle/bt-execution
 subprojects/files/                          @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/functional/                     @gradle/bt-execution @bamboo
 subprojects/hashing/                        @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/snapshots/                      @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/worker-processes/               @gradle/bt-execution
@@ -153,6 +152,7 @@ subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.ado
 
 # Core Runtime
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 
 # Core Execution
 platforms/core-execution/                                   @gradle/bt-execution

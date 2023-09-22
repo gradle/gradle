@@ -132,7 +132,6 @@ platforms:
       - 'subprojects/execution/'
       - 'subprojects/file-watchind/'
       - 'subprojects/files/'
-      - 'subprojects/functional/'
       - 'subprojects/hashing/'
       - 'subprojects/snapshots/'
       - 'subprojects/worker-processes/'

@@ -55,7 +55,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("configuration-cache")
-    subproject("functional")
     subproject("api-metadata")
     subproject("base-services")
     subproject("base-services-groovy")
@@ -132,6 +131,7 @@ unassigned {
 // Core Runtime Platform
 platform("core-runtime") {
     subproject("base-annotations")
+    subproject("functional")
 }
 
 // Core Configuration Platform
