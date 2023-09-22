@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -30,6 +31,8 @@ import spock.lang.Issue
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
@@ -60,7 +63,22 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 42 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 46 * 1024
+    }
+
+    def "wrapper jar has LICENSE file"() {
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        new ZipTestFixture(file("gradle/wrapper/gradle-wrapper.jar"))
+            .assertFileContent("META-INF/LICENSE", containsString("Apache License"))
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -77,7 +95,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("f20286ef7847b3caf30496a5b019a26d67df2e688d7fde87e7403537bf1790d2")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("73df397aa32f68b72ac94ed8609938e18cfbfa708bd51ab0bfbe8ed3776c3c21")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -258,7 +276,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         def url = target.toURI().toString()
 
         when:
-        run( "wrapper", "--gradle-distribution-url", url, "--validate-url")
+        run("wrapper", "--gradle-distribution-url", url, "--validate-url")
 
         then:
         succeeds()

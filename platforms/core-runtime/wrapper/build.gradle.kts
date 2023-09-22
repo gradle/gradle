@@ -42,6 +42,7 @@ val executableJar by tasks.registering(Jar::class) {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle Wrapper")
     }
+    from(layout.projectDirectory.dir("src/executable/resources"))
     from(sourceSets.main.get().output)
     // Exclude properties files from this project as they are not needed for the executable JAR
     exclude("gradle-*-classpath.properties")
