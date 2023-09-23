@@ -44,9 +44,13 @@ import java.util.Properties
  */
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
+    protected
+    open val injectLocalKotlinDslPluginsRepositories = true
+
     @Before
-    fun setupKotlinDslPluginsRepositories() {
-        val setupScript = file(".setupKotlinDslPlugins/setup-kotlin-dsl-plugins.init.gradle")
+    fun injectLocallyBuiltKotlinDslPluginsRepositories() {
+        if (!injectLocalKotlinDslPluginsRepositories) return
+        val setupScript = file(".integTest/inject-local-plugins-repos.init.gradle")
         setupScript.parentFile.mkdirs()
         setupScript.writeText(
             """
