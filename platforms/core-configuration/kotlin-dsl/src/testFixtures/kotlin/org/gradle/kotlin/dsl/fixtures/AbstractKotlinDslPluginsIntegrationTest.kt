@@ -9,7 +9,14 @@ import java.util.Properties
 
 /**
  * Base class for Gradle plugins tests.
- * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
+ *
+ * You must add the following dependencies to the project for this to work:
+ * ```
+ * integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
+ *     isTransitive = false
+ * }
+ * integTestLocalRepository(project(":kotlin-dsl-plugins"))
+ * ```
  */
 open class AbstractKotlinDslPluginsIntegrationTest : AbstractKotlinIntegrationTest() {
 
