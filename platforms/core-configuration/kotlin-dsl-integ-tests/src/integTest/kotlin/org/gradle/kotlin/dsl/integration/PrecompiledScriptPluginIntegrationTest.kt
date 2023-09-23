@@ -8,6 +8,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -26,7 +27,7 @@ import java.io.File
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
+class PrecompiledScriptPluginIntegrationTest : AbstractPluginTest() {
 
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {

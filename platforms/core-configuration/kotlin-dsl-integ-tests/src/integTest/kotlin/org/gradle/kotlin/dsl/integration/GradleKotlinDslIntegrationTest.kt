@@ -22,7 +22,8 @@ import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
@@ -40,7 +41,7 @@ import org.junit.Test
 import spock.lang.Issue
 
 
-class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
+class GradleKotlinDslIntegrationTest : AbstractPluginTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {

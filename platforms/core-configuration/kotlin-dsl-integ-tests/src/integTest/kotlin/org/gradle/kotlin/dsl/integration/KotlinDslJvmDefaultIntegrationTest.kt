@@ -17,13 +17,14 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinDslJvmDefaultIntegrationTest : AbstractPluginIntegrationTest() {
+class KotlinDslJvmDefaultIntegrationTest : AbstractPluginTest() {
 
     @Test
     fun `kotlin-dsl scripts can call and override java default methods`() {
