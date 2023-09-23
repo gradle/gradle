@@ -104,15 +104,13 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
     }
 }
 
-fun BuildType.cleanUpPerformanceBuildDir(os: Os) {
+fun BuildSteps.cleanUpPerformanceBuildDir(os: Os) {
     if (os == Os.WINDOWS) {
-        steps {
-            script {
-                name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
-                skipConditionally()
-            }
+        script {
+            name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
+            skipConditionally()
         }
     }
 }
