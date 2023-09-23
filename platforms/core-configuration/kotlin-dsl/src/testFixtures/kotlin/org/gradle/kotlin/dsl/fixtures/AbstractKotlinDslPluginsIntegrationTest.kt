@@ -11,7 +11,7 @@ import java.util.Properties
  * Base class for Gradle plugins tests.
  * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
  */
-open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
+open class AbstractKotlinDslPluginsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Before
     fun setupKotlinDslPluginsRepositories() {

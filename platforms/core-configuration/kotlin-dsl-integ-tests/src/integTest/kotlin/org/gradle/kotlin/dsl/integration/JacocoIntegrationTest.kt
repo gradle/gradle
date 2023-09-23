@@ -1,14 +1,14 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class JacocoIntegrationTest : AbstractPluginTest() {
+class JacocoIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     fun `jacoco ignore codegen`() {

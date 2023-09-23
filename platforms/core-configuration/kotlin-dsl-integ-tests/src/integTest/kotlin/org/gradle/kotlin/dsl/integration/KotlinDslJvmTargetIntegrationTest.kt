@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.internal.jvm.Jvm
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -28,7 +28,7 @@ import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
 
-class KotlinDslJvmTargetIntegrationTest : AbstractPluginTest() {
+class KotlinDslJvmTargetIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     fun `scripts are compiled using the build jvm target`() {

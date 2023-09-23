@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
@@ -12,7 +12,7 @@ import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class KotlinDslPluginTest : AbstractPluginTest() {
+class KotlinDslPluginTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     fun `warns on unexpected kotlin-dsl plugin version`() {

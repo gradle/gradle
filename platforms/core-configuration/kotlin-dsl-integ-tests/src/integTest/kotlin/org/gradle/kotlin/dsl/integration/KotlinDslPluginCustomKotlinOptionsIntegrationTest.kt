@@ -16,11 +16,11 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.junit.Test
 
 
-class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractPluginTest() {
+class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     fun `can configure custom kotlin options on a kotlin-dsl project`() {

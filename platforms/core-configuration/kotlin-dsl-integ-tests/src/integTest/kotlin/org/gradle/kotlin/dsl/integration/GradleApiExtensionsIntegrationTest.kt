@@ -23,7 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.allOf
@@ -36,7 +36,7 @@ import java.io.File
 import java.util.jar.JarFile
 
 
-class GradleApiExtensionsIntegrationTest : AbstractPluginTest() {
+class GradleApiExtensionsIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     @ToBeFixedForConfigurationCache(because = "test captures script reference")

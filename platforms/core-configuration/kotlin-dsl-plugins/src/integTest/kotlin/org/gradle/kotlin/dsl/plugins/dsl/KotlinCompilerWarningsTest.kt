@@ -17,11 +17,11 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.junit.Test
 
 
-class KotlinCompilerWarningsTest : AbstractPluginTest() {
+class KotlinCompilerWarningsTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     private
     val experimentalWarningHeader = "This build uses unsafe internal compiler arguments"

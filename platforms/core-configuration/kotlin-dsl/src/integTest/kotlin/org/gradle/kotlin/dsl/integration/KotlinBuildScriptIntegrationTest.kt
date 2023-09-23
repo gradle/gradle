@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
@@ -19,7 +19,7 @@ import spock.lang.Issue
 import java.io.StringWriter
 
 
-class KotlinBuildScriptIntegrationTest : AbstractPluginTest() {
+class KotlinBuildScriptIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {

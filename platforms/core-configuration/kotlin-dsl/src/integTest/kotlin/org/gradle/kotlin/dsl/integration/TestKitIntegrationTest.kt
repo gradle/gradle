@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Test
 
 
-class TestKitIntegrationTest : AbstractPluginTest() {
+class TestKitIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
