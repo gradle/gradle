@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Provider"
@@ -98,12 +99,6 @@ dependencies {
     testRuntimeOnly(project(":distributions-native")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
     }
-
-    integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
-        isTransitive = false
-        because("Tests require 'future-plugin-versions.properties' on the test classpath")
-    }
-    integTestLocalRepository(project(":kotlin-dsl-plugins"))
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
