@@ -50,6 +50,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     @Before
     fun injectLocallyBuiltKotlinDslPluginsRepositories() {
         if (!injectLocalKotlinDslPluginsRepositories) return
+        doInjectLocallyBuiltKotlinDslPluginsRepositories()
+    }
+
+    protected
+    fun doInjectLocallyBuiltKotlinDslPluginsRepositories() {
         val setupScript = file(".integTest/inject-local-plugins-repos.init.gradle")
         setupScript.parentFile.mkdirs()
         setupScript.writeText(
