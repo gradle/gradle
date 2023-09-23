@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.BuildOption;
@@ -84,7 +84,7 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(BuildLayoutResult layoutResult, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
+        BuildLocations layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
