@@ -18,14 +18,14 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class PluginSpecBuilderAccessorsIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
+class PluginSpecBuilderAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")

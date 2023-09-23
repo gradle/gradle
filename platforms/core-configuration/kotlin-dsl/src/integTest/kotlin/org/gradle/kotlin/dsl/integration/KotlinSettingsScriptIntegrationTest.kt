@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.internal.FeaturePreviews
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -11,7 +11,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinSettingsScriptIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
+class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {

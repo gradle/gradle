@@ -16,14 +16,14 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
 
 
 /**
  * Integration tests for API usage specific to Kotlin DSL nullness detection.
  */
-class KotlinDslNullnessIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
+class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `Provider#map works with a null return value in script`() {

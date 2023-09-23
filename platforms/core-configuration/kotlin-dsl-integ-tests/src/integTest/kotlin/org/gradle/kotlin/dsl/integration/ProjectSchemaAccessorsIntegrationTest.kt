@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -32,7 +32,7 @@ import java.io.File
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
+class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can access sub-project specific task`() {

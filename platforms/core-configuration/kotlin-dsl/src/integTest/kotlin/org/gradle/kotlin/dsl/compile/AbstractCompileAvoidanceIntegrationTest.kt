@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Before
@@ -25,7 +25,7 @@ import java.io.File
 import java.util.UUID
 
 
-abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinDslPluginsIntegrationTest() {
+abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
 
     companion object CacheBuster {
         var cacheBuster = UUID.randomUUID()

@@ -17,14 +17,14 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinDslPluginsIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 import spock.lang.Issue
 
 
-class GradleKotlinDslRegressionsTest : AbstractKotlinDslPluginsIntegrationTest() {
+class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/9919")
