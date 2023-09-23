@@ -29,6 +29,9 @@ import org.junit.Before
 import java.io.File
 
 
+/**
+ * Base class for Kotlin DSL integration tests.
+ */
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     @Before
