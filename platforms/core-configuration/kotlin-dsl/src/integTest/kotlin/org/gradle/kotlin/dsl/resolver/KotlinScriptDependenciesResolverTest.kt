@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.resolver
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.Flaky
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -41,7 +41,7 @@ import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3717")
-class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
+class KotlinScriptDependenciesResolverTest : AbstractPluginTest() {
 
     @Before
     fun setUpSettings() {

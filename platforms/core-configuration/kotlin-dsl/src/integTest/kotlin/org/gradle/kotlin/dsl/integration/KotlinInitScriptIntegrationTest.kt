@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.withFolders
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
@@ -12,7 +12,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
+class KotlinInitScriptIntegrationTest : AbstractPluginTest() {
 
     @Test
     fun `initscript classpath`() {
