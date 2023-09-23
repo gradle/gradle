@@ -1,5 +1,14 @@
+import gradlebuild.integrationtests.tasks.IntegrationTest
+
 plugins {
     id("gradlebuild.integration-tests")
+}
+
+tasks.withType<IntegrationTest>().configureEach {
+    // See AbstractKotlinIntegrationTest
+    "kotlinDslTestsExtraRepo".let {
+        systemProperty(it, System.getenv(it))
+    }
 }
 
 dependencies {

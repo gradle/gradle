@@ -35,6 +35,10 @@ import java.util.Properties
  * Base class for Kotlin DSL integration tests.
  *
  * You must apply the `gradlebuild.kotlin-dsl-plugin-bundle-integ-tests` plugin for this to work.
+ *
+ * You can also set the `kotlinDslTestsExtraRepo` system property
+ * to the path of a maven repository to be injected in all tests.
+ * This is useful for testing new/development Kotlin versions.
  */
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
@@ -110,7 +114,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     private
     val testRepositoryPaths: List<String>
-        get() = IntegrationTestBuildContext().localRepository?.let { listOf(it.normalisedPath) } ?: emptyList()
+        get() = listOfNotNull(
+            IntegrationTestBuildContext().localRepository,
+            System.getProperty("kotlinDslTestsExtraRepo")?.let(::File)
+        ).map(File::normalisedPath)
 
     @Before
     fun useRepositoryMirrors() {
