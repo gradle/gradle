@@ -98,7 +98,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = ::newFile) =
         writeFile(produceFile(fileName), text)
 
-    protected
+    private
     fun writeFile(file: File, text: String): File =
         file.apply { writeText(text) }
 

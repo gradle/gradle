@@ -14,50 +14,43 @@ import java.util.Properties
 open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
 
     @Before
-    fun setUpDefaultSetttings() {
+    fun setupKotlinDslPluginsRepositories() {
+        val setupScript = file(".setupKotlinDslPlugins/setup-kotlin-dsl-plugins.init.gradle")
+        setupScript.parentFile.mkdirs()
+        setupScript.writeText(
+            """
+            beforeSettings { settings ->
+                settings.pluginManagement {
+                    repositories {
+                        $testRepositories
+                        gradlePluginPortal()
+                    }
+                    resolutionStrategy {
+                        eachPlugin {
+                            $futurePluginRules
+                        }
+                    }
+                }
+            }
+            """
+        )
+        executer.beforeExecute {
+            usingInitScript(setupScript)
+        }
+    }
+
+    @Before
+    fun setUpDefaultSettings() {
         withDefaultSettings()
-    }
-
-    override val defaultSettingsScript: String
-        get() = pluginManagementBlock
-
-    private
-    val pluginManagementBlock by lazy {
-        """
-            pluginManagement {
-                $pluginRepositoriesBlock
-                $resolutionStrategyBlock
-            }
-        """
-    }
-
-    private
-    val pluginRepositoriesBlock by lazy {
-        """
-            repositories {
-                $testRepositories
-                gradlePluginPortal()
-            }
-        """
     }
 
     private
     val testRepositories: String
         get() = testRepositoryPaths.joinLines {
             """
-                maven(url = "$it")
+                maven { url = uri("$it") }
             """
         }
-
-    private
-    val resolutionStrategyBlock
-        get() = """
-            resolutionStrategy {
-                eachPlugin {
-                    $futurePluginRules
-                }
-            }
-        """
 
     private
     val futurePluginRules: String
@@ -84,8 +77,4 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
     private
     val testRepositoryPaths: List<String>
         get() = IntegrationTestBuildContext().localRepository?.let { listOf(it.normalisedPath) } ?: emptyList()
-
-    protected
-    fun buildWithPlugin(vararg arguments: String) =
-        build(*arguments)
 }
