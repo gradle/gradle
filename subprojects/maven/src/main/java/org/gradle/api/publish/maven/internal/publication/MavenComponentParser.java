@@ -20,11 +20,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -35,14 +38,14 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyCo
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.internal.component.MavenPublishingAwareVariant;
-import org.gradle.api.publish.internal.mapping.DefaultVariantDependencyResolverFactory;
+import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.mapping.VariantDependencyResolver;
-import org.gradle.api.publish.internal.mapping.VariantDependencyResolverFactory;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -56,6 +59,7 @@ import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChe
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,21 +100,21 @@ public class MavenComponentParser {
     private final VersionRangeMapper versionRangeMapper;
     private final DocumentationRegistry documentationRegistry;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
-    private final VariantDependencyResolverFactory variantDependencyResolverFactory;
+    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
+    @Inject
     public MavenComponentParser(
         PlatformSupport platformSupport,
         VersionRangeMapper versionRangeMapper,
         DocumentationRegistry documentationRegistry,
-        VersionMappingStrategyInternal versionMappingStrategy,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
-        NotationParser<Object, MavenArtifact> mavenArtifactParser
+        NotationParser<Object, MavenArtifact> mavenArtifactParser,
+        DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory
     ) {
         this.platformSupport = platformSupport;
         this.versionRangeMapper = versionRangeMapper;
         this.documentationRegistry = documentationRegistry;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.variantDependencyResolverFactory = new DefaultVariantDependencyResolverFactory(projectDependencyResolver, versionMappingStrategy);
+        this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
@@ -129,6 +133,7 @@ public class MavenComponentParser {
 
     public ParsedDependencyResult parseDependencies(
         SoftwareComponentInternal component,
+        VersionMappingStrategyInternal versionMappingStrategy,
         ModuleVersionIdentifier coordinates
     ) {
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
@@ -150,10 +155,12 @@ public class MavenComponentParser {
             boolean optional = scopeMapping.isOptional();
             Set<ExcludeRule> globalExcludes = variant.getGlobalExcludes();
 
-            VariantDependencyResolver dependencyResolver = variantDependencyResolverFactory.createResolver(variant, (group, name, version) -> toMavenVersion(group, name, version, warnings));
+            DependencyCoordinateResolverFactory.DependencyResolvers resolvers = dependencyCoordinateResolverFactory.createCoordinateResolvers(variant, versionMappingStrategy);
             MavenDependencyFactory dependencyFactory = new MavenDependencyFactory(
                 warnings,
-                dependencyResolver,
+                resolvers.getVariantResolver(),
+                resolvers.getComponentResolver(),
+                versionRangeMapper,
                 scope,
                 optional,
                 globalExcludes
@@ -202,22 +209,6 @@ public class MavenComponentParser {
         );
     }
 
-    @Nullable
-    private String toMavenVersion(String groupId, String artifactId, @Nullable String version, VariantWarningCollector warnings) {
-        if (version == null) {
-            return null;
-        }
-
-        // Attempt to convert Gradle's rich version notation to Maven's.
-        if (DefaultVersionSelectorScheme.isSubVersion(version) ||
-            (DefaultVersionSelectorScheme.isLatestVersion(version) && !MavenVersionSelectorScheme.isSubstituableLatest(version))
-        ) {
-            warnings.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
-        }
-
-        return versionRangeMapper.map(version);
-    }
-
     private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
         return !coordinates.getGroup().equals(capability.getGroup())
             || !coordinates.getName().equals(capability.getName())
@@ -248,7 +239,9 @@ public class MavenComponentParser {
     private static class MavenDependencyFactory {
 
         private final VariantWarningCollector warnings;
-        private final VariantDependencyResolver dependencyResolver;
+        private final VariantDependencyResolver variantDependencyResolver;
+        private final ComponentDependencyResolver componentDependencyResolver;
+        private final VersionRangeMapper versionRangeMapper;
 
         private final String scope;
         private final boolean optional;
@@ -256,21 +249,33 @@ public class MavenComponentParser {
 
         public MavenDependencyFactory(
             VariantWarningCollector warnings,
-            VariantDependencyResolver dependencyResolver,
+            VariantDependencyResolver variantDependencyResolver,
+            ComponentDependencyResolver componentDependencyResolver,
+            VersionRangeMapper versionRangeMapper,
             String scope,
             boolean optional,
             Set<ExcludeRule> globalExcludes
         ) {
             this.warnings = warnings;
-            this.dependencyResolver = dependencyResolver;
+            this.variantDependencyResolver = variantDependencyResolver;
+            this.componentDependencyResolver = componentDependencyResolver;
+            this.versionRangeMapper = versionRangeMapper;
             this.scope = scope;
             this.optional = optional;
             this.globalExcludes = globalExcludes;
         }
 
         private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
+
+            if (!dependency.getAttributes().isEmpty()) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            }
+            if (!dependency.getRequestedCapabilities().isEmpty()) {
+                warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle capabilities", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+            }
+
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
-            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            ResolvedCoordinates coordinates = resolveDependency(dependency);
 
             if (dependency.getArtifacts().isEmpty()) {
                 collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
@@ -278,12 +283,12 @@ public class MavenComponentParser {
             }
 
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
-                VariantDependencyResolver.ResolvedCoordinates artifactCoordinates = coordinates;
+                ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(coordinates.getName())) {
                     // TODO: We should not allow the artifact name to change the coordinates.
                     //  Artifacts with name different from the coordinate name is not supported in Maven.
                     //  This behavior should be deprecated.
-                    artifactCoordinates = VariantDependencyResolver.ResolvedCoordinates.create(
+                    artifactCoordinates = ResolvedCoordinates.create(
                         coordinates.getGroup(),
                         artifact.getName(),
                         coordinates.getVersion()
@@ -295,22 +300,68 @@ public class MavenComponentParser {
         }
 
         private void convertDependencyConstraint(DependencyConstraint dependency, Consumer<MavenDependency> collector) {
-            VariantDependencyResolver.ResolvedCoordinates identifier = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
+            // We use component-level precision for dependency constraints since it is hard to implement correctly.
+            // To publish a dependency constraint to Maven, we would need to publish a constraint for _each_ coordinate
+            // that the component could be resolved to. Resolution results do not support this type of query, so this
+            // remains incomplete for now.
+
+            ResolvedCoordinates identifier;
+            if (dependency instanceof DefaultProjectDependencyConstraint) {
+                identifier = componentDependencyResolver.resolveComponentCoordinates((DefaultProjectDependencyConstraint) dependency);
+            } else {
+                identifier = componentDependencyResolver.resolveComponentCoordinates(dependency);
+                if (identifier == null) {
+                    identifier = convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+                }
+            }
+
             if (identifier.getVersion() == null) {
-                // Constraints with no version have no meaning in Maven.
                 return;
             }
+
             // Do not publish scope, as it has too different of semantics in Maven
             collector.accept(newDependency(identifier, null, null, null, Collections.emptySet(), false));
         }
 
         private void convertImportDependencyConstraint(ModuleDependency dependency, Consumer<MavenDependency> collector) {
-            VariantDependencyResolver.ResolvedCoordinates coordinates = dependencyResolver.resolveVariantCoordinates(dependency, warnings);
-            collector.accept(newDependency(coordinates, "pom", null, "import", Collections.emptySet(), false));
+            ResolvedCoordinates identifier = resolveDependency(dependency);
+            collector.accept(newDependency(identifier, "pom", null, "import", Collections.emptySet(), false));
+        }
+
+        private ResolvedCoordinates resolveDependency(ModuleDependency dependency) {
+            if (dependency instanceof ProjectDependency) {
+                return variantDependencyResolver.resolveVariantCoordinates((ProjectDependency) dependency, warnings);
+            } else if (dependency instanceof ExternalDependency) {
+                ResolvedCoordinates identifier = variantDependencyResolver.resolveVariantCoordinates((ExternalDependency) dependency, warnings);
+                if (identifier != null) {
+                    return identifier;
+                }
+
+                return convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+            } else {
+                throw new GradleException("Unsupported dependency type: " + dependency.getClass().getName());
+            }
+        }
+
+        private ResolvedCoordinates convertDeclaredCoordinates(String groupId, String artifactId, @Nullable String version) {
+            if (version == null) {
+                return ResolvedCoordinates.create(groupId, artifactId, null);
+            }
+
+            // Attempt to convert Gradle's rich version notation to Maven's.
+            if (DefaultVersionSelectorScheme.isSubVersion(version) ||
+                (DefaultVersionSelectorScheme.isLatestVersion(version) && !MavenVersionSelectorScheme.isSubstituableLatest(version))
+            ) {
+                warnings.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", groupId, artifactId, version));
+            }
+
+            return ResolvedCoordinates.create(
+                groupId, artifactId, versionRangeMapper.map(version)
+            );
         }
 
         private static MavenDependency newDependency(
-            VariantDependencyResolver.ResolvedCoordinates coordinates,
+            ResolvedCoordinates coordinates,
             @Nullable String type,
             @Nullable String classifier,
             @Nullable String scope,
