@@ -75,12 +75,27 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can build plugin for oldest supported Kotlin language version`() {
+    fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
+
+        // Kotlin version leaks on the classpath when running embedded
+        assumeNonEmbeddedGradleExecuter()
+
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    @Test
+    fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
 
         // Kotlin version leaks on the classpath when running embedded
         assumeNonEmbeddedGradleExecuter()
 
         doInjectLocallyBuiltKotlinDslPluginsRepositories()
+
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    private
+    fun `can build plugin for oldest supported Kotlin language version`() {
 
         val oldestKotlinLanguageVersion = KotlinGradlePluginVersions.getLANGUAGE_VERSIONS().first()
 
