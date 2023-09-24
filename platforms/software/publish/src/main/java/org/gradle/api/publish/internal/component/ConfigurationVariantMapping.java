@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
@@ -32,6 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Optional;
 import java.util.Set;
@@ -61,6 +63,7 @@ public class ConfigurationVariantMapping {
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
                 .nagUser();
         }
+
         Set<String> seen = Sets.newHashSet();
 
         // Visit implicit sub-variant
@@ -97,7 +100,8 @@ public class ConfigurationVariantMapping {
             outgoingConfiguration,
             subvariant,
             details.getMavenScope(),
-            details.isOptional()
+            details.isOptional(),
+            details.dependencyMappingDetails
         ));
     }
 
@@ -147,15 +151,18 @@ public class ConfigurationVariantMapping {
     }
 
     // Cannot be private due to reflective instantiation
-    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetails {
+    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
         private final ConfigurationVariant variant;
+        private final ObjectFactory objectFactory;
         private boolean skip = false;
         private String mavenScope = "compile";
         private boolean optional = false;
+        private DefaultDependencyMappingDetails dependencyMappingDetails;
 
         @Inject
-        public DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+        public DefaultConfigurationVariantDetails(ConfigurationVariant variant, ObjectFactory objectFactory) {
             this.variant = variant;
+            this.objectFactory = objectFactory;
         }
 
         @Override
@@ -178,6 +185,14 @@ public class ConfigurationVariantMapping {
             this.mavenScope = assertValidScope(scope);
         }
 
+        @Override
+        public void dependencyMapping(Action<? super DependencyMappingDetails> action) {
+            if (dependencyMappingDetails == null) {
+                dependencyMappingDetails = objectFactory.newInstance(DefaultDependencyMappingDetails.class);
+            }
+            action.execute(dependencyMappingDetails);
+        }
+
         private static String assertValidScope(String scope) {
             scope = scope.toLowerCase();
             if ("compile".equals(scope) || "runtime".equals(scope)) {
@@ -196,6 +211,21 @@ public class ConfigurationVariantMapping {
 
         public boolean isOptional() {
             return optional;
+        }
+    }
+
+    public static abstract class DefaultDependencyMappingDetails implements ConfigurationVariantDetailsInternal.DependencyMappingDetails {
+
+        private Configuration resolutionConfiguration;
+
+        @Override
+        public void fromResolutionOf(Configuration configuration) {
+            this.resolutionConfiguration = configuration;
+        }
+
+        @Nullable
+        public Configuration getResolutionConfiguration() {
+            return resolutionConfiguration;
         }
     }
 }
