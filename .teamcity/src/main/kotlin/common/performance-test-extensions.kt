@@ -68,15 +68,6 @@ subprojects/*/build/tmp/**/profile.log => failure-logs
 subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
-fun BuildSteps.killGradleProcessesStep(os: Os) {
-    script {
-        name = "KILL_GRADLE_PROCESSES"
-        executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = os.killAllGradleProcesses
-        skipConditionally()
-    }
-}
-
 // to avoid pathname too long error
 fun BuildSteps.substDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
