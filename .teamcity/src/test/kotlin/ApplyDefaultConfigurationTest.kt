@@ -57,6 +57,7 @@ class ApplyDefaultConfigurationTest {
     @BeforeEach
     fun setUp() {
         val stepsCapturer = slot<BuildSteps.() -> Unit>()
+        every { buildType.steps } returns steps
         every {
             buildType.steps(capture(stepsCapturer))
         } answers {

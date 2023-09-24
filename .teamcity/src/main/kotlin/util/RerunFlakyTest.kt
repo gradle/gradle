@@ -61,7 +61,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    cleanUpPerformanceBuildDir(os)
+    steps.cleanUpPerformanceBuildDir(os)
 
     (1..10).forEach { idx ->
         steps {

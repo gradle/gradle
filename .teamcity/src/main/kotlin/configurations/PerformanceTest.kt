@@ -20,6 +20,7 @@ import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.cleanUpPerformanceBuildDir
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killGradleProcessesStep
@@ -80,6 +81,7 @@ class PerformanceTest(
             steps {
                 preBuildSteps()
                 killGradleProcessesStep(os)
+                cleanUpPerformanceBuildDir(os)
                 substDirOnWindows(os)
 
                 repeat(if (performanceTestBuildSpec.type == PerformanceTestType.flakinessDetection) 2 else 1) { repeatIndex: Int ->
