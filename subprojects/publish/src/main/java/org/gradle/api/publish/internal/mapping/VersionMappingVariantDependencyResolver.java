@@ -66,7 +66,7 @@ public class VersionMappingVariantDependencyResolver implements ComponentDepende
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
         Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
-        ModuleVersionIdentifier coordinates = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
+        ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
         return ResolvedCoordinates.create(resolved != null ? resolved : coordinates);
     }
@@ -135,7 +135,7 @@ public class VersionMappingVariantDependencyResolver implements ComponentDepende
         // Match found - need to make sure that if the selection is a project, we use its publication identity
         if (selected.getId() instanceof ProjectComponentIdentifier) {
             Path identityPath = ((ProjectComponentIdentifierInternal) selected.getId()).getIdentityPath();
-            return projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath);
+            return projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         }
         return selected.getModuleVersion();
     }

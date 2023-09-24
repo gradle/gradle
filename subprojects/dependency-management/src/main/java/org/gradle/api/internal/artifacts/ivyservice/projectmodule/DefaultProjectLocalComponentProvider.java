@@ -31,8 +31,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
-import javax.annotation.Nullable;
-
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
  *
@@ -56,7 +54,6 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    @Nullable
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectState projectState) {
         projectState.ensureConfigured();

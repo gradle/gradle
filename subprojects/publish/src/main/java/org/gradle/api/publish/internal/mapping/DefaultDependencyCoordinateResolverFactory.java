@@ -16,17 +16,21 @@
 
 package org.gradle.api.publish.internal.mapping;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.publish.internal.component.ResolutionBackedVariant;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -41,16 +45,53 @@ import javax.inject.Inject;
  */
 public class DefaultDependencyCoordinateResolverFactory implements DependencyCoordinateResolverFactory {
 
+    // TODO: Once dependency mapping is stabilized, we should be able to turn this off
+    private static final boolean USE_LEGACY_VERSION_MAPPING = true;
+
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final AttributeDesugaring attributeDesugaring;
 
     @Inject
-    public DefaultDependencyCoordinateResolverFactory(ProjectDependencyPublicationResolver projectDependencyResolver) {
+    public DefaultDependencyCoordinateResolverFactory(
+        ProjectDependencyPublicationResolver projectDependencyResolver,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.projectDependencyResolver = projectDependencyResolver;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
     public DependencyResolvers createCoordinateResolvers(SoftwareComponentVariant variant, VersionMappingStrategyInternal versionMappingStrategy) {
         Configuration configuration = null;
+        if (variant instanceof ResolutionBackedVariant) {
+            ResolutionBackedVariant resolutionBackedVariant = (ResolutionBackedVariant) variant;
+            configuration = resolutionBackedVariant.getResolutionConfiguration();
+
+            boolean useResolvedCoordinates = resolutionBackedVariant.getPublishResolvedCoordinates();
+            if (useResolvedCoordinates && configuration == null) {
+                throw new InvalidUserCodeException("Cannot enable dependency mapping without configuring a resolution configuration.");
+            } else if (useResolvedCoordinates) {
+
+                ComponentDependencyResolver componentResolver = new ResolutionBackedComponentDependencyResolver(
+                    configuration,
+                    moduleIdentifierFactory,
+                    projectDependencyResolver
+                );
+
+                VariantDependencyResolver variantResolver = new ResolutionBackedVariantDependencyResolver(
+                    projectDependencyResolver,
+                    moduleIdentifierFactory,
+                    configuration,
+                    attributeDesugaring,
+                    componentResolver
+                );
+
+                return new DependencyResolvers(variantResolver, componentResolver);
+            }
+        }
 
         ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
         VariantVersionMappingStrategyInternal versionMapping = versionMappingStrategy.findStrategyForVariant(attributes);
@@ -60,14 +101,21 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         if (versionMapping.isEnabled()) {
             if (versionMapping.getUserResolutionConfiguration() != null) {
                 configuration = versionMapping.getUserResolutionConfiguration();
-            } else if (versionMapping.getDefaultResolutionConfiguration() != null) {
+            } else if (versionMapping.getDefaultResolutionConfiguration() != null && configuration == null) {
+                // The configuration set on the variant is almost always more correct than the
+                // default version mapping configuration, which is currently set project-wide
+                // by the Java plugin. For this reason, we only use the version mapping default
+                // if the dependency mapping configuration is not set.
                 configuration = versionMapping.getDefaultResolutionConfiguration();
             }
         }
 
         if (configuration != null) {
-            componentResolver = new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration);
+            componentResolver = USE_LEGACY_VERSION_MAPPING
+                ? new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration)
+                : new ResolutionBackedComponentDependencyResolver(configuration, moduleIdentifierFactory, projectDependencyResolver);
         } else {
+            // Both version mapping and dependency mapping are disabled
             componentResolver = new ProjectOnlyComponentDependencyResolver(projectDependencyResolver);
         }
 
@@ -118,7 +166,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         @Override
         public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
             Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
-            return ResolvedCoordinates.create(projectDependencyResolver.resolve(ModuleVersionIdentifier.class, identityPath));
+            return ResolvedCoordinates.create(projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath));
         }
 
         @Nullable
