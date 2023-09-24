@@ -31,6 +31,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ExtraInfoHolder;
 import org.apache.ivy.core.module.descriptor.IncludeRule;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -62,6 +63,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.UrlExternalResource;
+import org.gradle.internal.xml.XmlFactories;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
@@ -1174,7 +1176,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"deprecation"})
         public void endElement(String uri, String localName, String qName) {
             if (state == State.PUB && "artifact".equals(qName)) {
                 if (artifact.getConfigurations().isEmpty()) {
@@ -1222,7 +1224,10 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.EXTRA_INFO) {
-                getMd().getExtraInfo().put(new NamespaceId(uri, localName), buffer == null ? "" : buffer.toString());
+                getMd().addExtraInfo(new ExtraInfoHolder(
+                    new NamespaceId(uri, localName).encode(),
+                    buffer == null ? "" : buffer.toString())
+                );
                 buffer = null;
                 state = State.INFO;
             } else if (state == State.DESCRIPTION) {
@@ -1340,14 +1345,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private static SAXParser newSAXParser(URL schema, InputStream schemaStream)
                 throws ParserConfigurationException, SAXException {
             if (schema == null) {
-                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(false);
                 parserFactory.setNamespaceAware(true);
                 SAXParser parser = parserFactory.newSAXParser();
                 parser.getXMLReader().setFeature(XML_NAMESPACE_PREFIXES, true);
                 return parser;
             } else {
-                SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+                SAXParserFactory parserFactory = XmlFactories.newSAXParserFactory();
                 parserFactory.setValidating(true);
                 parserFactory.setNamespaceAware(true);
 

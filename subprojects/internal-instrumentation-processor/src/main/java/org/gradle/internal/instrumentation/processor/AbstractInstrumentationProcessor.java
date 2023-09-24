@@ -46,9 +46,11 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,11 +62,13 @@ import java.util.stream.Stream;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
 
+    public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";
+
     protected abstract Collection<InstrumentationProcessorExtension> getExtensions();
 
     @Override
     public Set<String> getSupportedOptions() {
-        return Collections.singleton("org.gradle.annotation.processing.aggregating");
+        return new HashSet<>(Arrays.asList("org.gradle.annotation.processing.aggregating", PROJECT_NAME_OPTIONS));
     }
 
     @Override

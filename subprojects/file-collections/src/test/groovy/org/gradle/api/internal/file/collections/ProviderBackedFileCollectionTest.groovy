@@ -51,7 +51,7 @@ class ProviderBackedFileCollectionTest extends Specification {
         result == [task] as Set
     }
 
-    def "resolves task dependencies for provide with unknown producer and file value"() {
+    def "resolves task dependencies for provider with unknown producer and file value"() {
         when:
         def dependencies = fileCollection.buildDependencies
 
@@ -67,7 +67,7 @@ class ProviderBackedFileCollectionTest extends Specification {
         result.empty
     }
 
-    def "resolves task dependencies for provide with unknown producer and buildable value"() {
+    def "resolves task dependencies for provider with unknown producer and buildable value"() {
         def task = Stub(Task)
         def value = Mock(Buildable)
 

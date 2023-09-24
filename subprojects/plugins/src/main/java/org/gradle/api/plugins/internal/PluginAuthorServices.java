@@ -22,7 +22,6 @@ import org.gradle.api.plugins.jvm.internal.DefaultJvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -43,8 +42,8 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GlobalScopeServices {
-        SoftwareComponentFactory createSoftwareComponentFactory(Instantiator instantiator) {
-            return new DefaultSoftwareComponentFactory(instantiator);
+        SoftwareComponentFactory createSoftwareComponentFactory(ObjectFactory objectFactory) {
+            return new DefaultSoftwareComponentFactory(objectFactory);
         }
     }
 

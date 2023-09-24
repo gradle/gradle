@@ -30,8 +30,10 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.configuration.internal.UserCodeApplicationId;
+import org.gradle.internal.code.DefaultUserCodeSource;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationId;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -163,7 +165,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    userCodeApplicationContext.apply(plugin.getDisplayName(), userCodeApplicationId ->
+                    UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), pluginIdStr);
+                    userCodeApplicationContext.apply(source, userCodeApplicationId ->
                         buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
                 }
             }

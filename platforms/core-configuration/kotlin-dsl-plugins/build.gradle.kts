@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.1.2"
+version = "4.1.3"
 
 base.archivesName = "plugins"
 
@@ -37,7 +37,7 @@ dependencies {
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":core"))
-    integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":plugins-java"))
 
     integTestImplementation(project(":platform-jvm"))
     integTestImplementation(project(":kotlin-dsl"))

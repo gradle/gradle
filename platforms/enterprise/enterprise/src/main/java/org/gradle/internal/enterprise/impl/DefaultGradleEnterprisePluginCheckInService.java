@@ -24,24 +24,27 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
 import java.util.function.Supplier;
 
+@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
     private final GradleEnterprisePluginManager manager;
-    private final DefaultGradleEnterprisePluginAdapter adapter;
+    private final DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory;
     private final boolean isConfigurationCacheEnabled;
     private final boolean isIsolatedProjectsEnabled;
 
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
         GradleEnterprisePluginManager manager,
-        DefaultGradleEnterprisePluginAdapter adapter
+        DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory
     ) {
         this.manager = manager;
-        this.adapter = adapter;
+        this.pluginAdapterFactory = pluginAdapterFactory;
         this.isConfigurationCacheEnabled = buildModelParameters.isConfigurationCache();
         this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
@@ -90,7 +93,8 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
             nagAboutDeprecatedPluginVersion(pluginVersion);
         }
 
-        GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
+        DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);
+        GradleEnterprisePluginServiceRef ref = adapter.getPluginServiceRef();
         manager.registerAdapter(adapter);
         return checkInResult(null, () -> ref);
     }

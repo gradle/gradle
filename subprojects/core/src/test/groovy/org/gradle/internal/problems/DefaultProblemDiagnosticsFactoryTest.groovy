@@ -16,6 +16,8 @@
 
 package org.gradle.internal.problems
 
+import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.problems.Location
 import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
@@ -24,7 +26,8 @@ import java.util.function.Supplier
 
 class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
-    def factory = new DefaultProblemDiagnosticsFactory(locationAnalyzer, 2)
+    def userCodeContext = Mock(UserCodeApplicationContext)
+    def factory = new DefaultProblemDiagnosticsFactory(locationAnalyzer, userCodeContext, 2)
 
     def "uses caller's stack trace to calculate problem location"() {
         given:
@@ -140,6 +143,22 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         def diagnostics2 = factory.forException(failure2)
         diagnostics2.exception == failure2
         !diagnostics2.stack.empty
+    }
+
+    def "tracks user code source"() {
+        given:
+        def currentSource = Stub(UserCodeSource)
+        def stream = factory.newStream()
+
+        when:
+        def diagnostics = stream.forCurrentCaller()
+
+        then:
+        diagnostics.source == currentSource
+
+        1 * userCodeContext.current() >> Mock(UserCodeApplicationContext.Application) {
+            getSource() >> currentSource
+        }
     }
 
     void assertIsCallerStackTrace(List<StackTraceElement> trace) {

@@ -26,13 +26,10 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -56,7 +53,6 @@ import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
@@ -110,14 +106,10 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         DependencyMetaDataProvider dependencyMetaDataProvider,
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
         ObjectFactory objectFactory,
-        ProjectDependencyPublicationResolver projectDependencyResolver,
         FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         VersionMappingStrategyInternal versionMappingStrategy,
-        PlatformSupport platformSupport,
-        VersionRangeMapper versionRangeMapper,
-        DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providerFactory
     ) {
@@ -126,13 +118,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
 
-        MavenComponentParser mavenComponentParser = new MavenComponentParser(
-            platformSupport,
-            versionRangeMapper,
-            documentationRegistry,
-            projectDependencyResolver,
-            mavenArtifactParser
-        );
+        MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
 
         this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);
         this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
@@ -147,7 +133,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.pom.getWriteGradleMetadataMarker().set(providerFactory.provider(this::writeGradleMetadataMarker));
         this.pom.getPackagingProperty().convention(providerFactory.provider(this::determinePackagingFromArtifacts));
         this.pom.getDependencies().set(getComponent().map(component -> {
-            MavenComponentParser.DependencyResult result = mavenComponentParser.parseDependencies(component, getCoordinates(), versionMappingStrategy);
+            MavenComponentParser.ParsedDependencyResult result = mavenComponentParser.parseDependencies(component, versionMappingStrategy, getCoordinates());
             if (!silenceAllPublicationWarnings) {
                 result.getWarnings().complete(getDisplayName() + " pom metadata", silencedVariants);
             }

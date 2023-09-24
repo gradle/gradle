@@ -265,9 +265,9 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         writeArray("dependencyConstraints", () -> {
             for (ModuleMetadataSpec.DependencyConstraint constraint : constraints) {
                 writeObject(() -> {
-                    write("group", constraint.group);
-                    write("module", constraint.module);
-                    writeVersionConstraint(constraint.version);
+                    write("group", constraint.coordinates.group);
+                    write("module", constraint.coordinates.name);
+                    writeVersionConstraint(constraint.coordinates.version);
                     writeNonEmptyAttributes(constraint.attributes);
                     if (constraint.reason != null) {
                         write("reason", constraint.reason);

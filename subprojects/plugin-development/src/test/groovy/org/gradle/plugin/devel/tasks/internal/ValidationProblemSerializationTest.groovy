@@ -18,10 +18,10 @@ package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
 import org.gradle.api.problems.DocLink
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import spock.lang.Specification
 
@@ -34,46 +34,42 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .location("location", 1, 1)
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .location("location", 1, 1)
+                .type("type")
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where.path == "location"
         deserialized[0].where.line == 1
         deserialized[0].where.column == 1
@@ -82,28 +78,26 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .documentedAt(new TestDocLink())
-            .location("location", 1, 1)
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .documentedAt(new TestDocLink())
+                .location("location", 1, 1)
+                .type("type")
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where.path == "location"
         deserialized[0].where.line == 1
         deserialized[0].where.column == 1
-        deserialized[0].documentationLink.url() == "url"
-        deserialized[0].documentationLink.consultDocumentationMessage() == "consult"
+        deserialized[0].documentationLink.getUrl() == "url"
+        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
     }
 
     /**
@@ -113,61 +107,57 @@ class ValidationProblemSerializationTest extends Specification {
     class TestDocLink implements DocLink {
 
         @Override
-        String url() {
+        String getUrl() {
             return "url"
         }
 
         @Override
-        String consultDocumentationMessage() {
+        String getConsultDocumentationMessage() {
             return "consult"
         }
     }
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .withException(new RuntimeException("cause"))
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .withException(new RuntimeException("cause"))
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
-        deserialized[0].cause.message == "cause"
+        deserialized[0].exception.message == "cause"
     }
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .severity(severity)
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .severity(severity)
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
@@ -178,25 +168,23 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .solution("solution 0")
-            .solution("solution 1")
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .solution("solution 0")
+                .solution("solution 1")
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
@@ -205,29 +193,26 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problems.createProblemBuilder()
-            .label("label")
-            .undocumented()
-            .noLocation()
-            .type("type")
-            .group(ProblemGroup.GENERIC_ID)
-            .additionalData("key 1", "value 1")
-            .additionalData("key 2", "value 2")
-            .build()
+        def problem = problems.createProblem {
+            it.label("label")
+                .undocumented()
+                .noLocation()
+                .type("type")
+                .additionalData("key 1", "value 1")
+                .additionalData("key 2", "value 2")
+        }
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
 
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"
     }
-
 }

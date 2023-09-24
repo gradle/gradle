@@ -69,6 +69,9 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '5'     | _
         '6'     | _
         '7'     | _
+        '8'     | _
+        '9'     | _
+        '10'    | _
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
@@ -109,10 +112,21 @@ class DefaultDeploymentDescriptorTest extends Specification {
                 return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
                     toPlatformLineSeparators(descriptor)
                 }
-            default:
+            case '7':
+            case '8':
                 def attributes = [
                     'xmlns="http://xmlns.jcp.org/xml/ns/javaee"',
                     "xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_${version}.xsd\"",
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    "version=\"${version}\""
+                ]
+                return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+            default:
+                def attributes = [
+                    'xmlns="https://jakarta.ee/xml/ns/jakartaee"',
+                    "xsi:schemaLocation=\"https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_${version}.xsd\"",
                     'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
                     "version=\"${version}\""
                 ]
@@ -171,5 +185,52 @@ class DefaultDeploymentDescriptorTest extends Specification {
   <data-source>my/data/source</data-source>
 </application>
 """)
+    }
+
+    def "writes version #version descriptor withXml #withXmlDescription"() {
+        given:
+        def out = new StringWriter()
+        descriptor.version = version
+        descriptor.withXml(withXmlClosure)
+
+        when:
+        descriptor.writeTo(out)
+
+        then:
+        def stringOutput = out.toString()
+        acceptableDescriptors.contains(stringOutput)
+
+        where:
+        version | withXmlDescription | withXmlClosure
+        '1.3'   | 'asNode'           | { it.asNode() }
+        '1.4'   | 'asNode'           | { it.asNode() }
+        '1.4'   | 'asElement'        | { it.asElement() }
+        '5'     | 'asNode'           | { it.asNode() }
+        '5'     | 'asElement'        | { it.asElement() }
+        '6'     | 'asNode'           | { it.asNode() }
+        '6'     | 'asElement'        | { it.asElement() }
+        '7'     | 'asNode'           | { it.asNode() }
+        '7'     | 'asElement'        | { it.asElement() }
+        '8'     | 'asNode'           | { it.asNode() }
+        '8'     | 'asElement'        | { it.asElement() }
+        '9'     | 'asNode'           | { it.asNode() }
+        '9'     | 'asElement'        | { it.asElement() }
+        '10'    | 'asNode'           | { it.asNode() }
+        '10'    | 'asElement'        | { it.asElement() }
+        acceptableDescriptors = defaultDescriptorForVersion(version)
+    }
+
+    def "fails to write version 1.3 descriptor withXml asElement"() {
+        given:
+        def out = new StringWriter()
+        descriptor.version = '1.3'
+        descriptor.withXml { it.asElement() }
+
+        when:
+        descriptor.writeTo(out)
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains('External DTD: Failed to read external DTD')
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.component.ArtifactVariantSelectionException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 public class ResolutionBackedFileCollection extends AbstractFileCollection {
@@ -70,6 +71,15 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
         getSelectedArtifacts().visitFiles(collectingVisitor, lenient);
+        maybeThrowResolutionFailures(collectingVisitor);
+    }
+
+    /**
+     * If the file collection is not lenient, rethrow any failures that occurred during the visit.
+     *
+     * @throws ArtifactVariantSelectionException subtypes
+     */
+    private void maybeThrowResolutionFailures(ResolvedFileCollectionVisitor collectingVisitor) {
         if (!lenient) {
             resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
         }

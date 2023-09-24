@@ -92,13 +92,27 @@ fun BuildSteps.substDirOnWindows(os: Os) {
     }
 }
 
-fun BuildSteps.cleanUpPerformanceBuildDir(os: Os) {
-    if (os == Os.WINDOWS) {
+fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
+    steps {
         script {
-            name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """rmdir /s /q p:\subprojects\performance\build\santaTrackerAndroidBuild && (echo Directory removed) || (echo Directory not found) """
+            name = "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES"
+            executionMode = BuildStep.ExecutionMode.RUN_ONLY_ON_FAILURE
+            scriptContent = "git clean -fdx -e \"test-splits/\""
             skipConditionally()
+            onlyRunOnPreTestedCommitBuildBranch()
+        }
+    }
+}
+
+fun BuildType.cleanUpPerformanceBuildDir(os: Os) {
+    if (os == Os.WINDOWS) {
+        steps {
+            script {
+                name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
+                skipConditionally()
+            }
         }
     }
 }

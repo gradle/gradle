@@ -17,18 +17,18 @@ package org.gradle.api.publish.internal.component;
 
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.model.ObjectFactory;
 
 public class DefaultSoftwareComponentFactory implements SoftwareComponentFactory {
 
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
 
-    public DefaultSoftwareComponentFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
+    public DefaultSoftwareComponentFactory(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     @Override
     public AdhocComponentWithVariants adhoc(String name) {
-        return instantiator.newInstance(DefaultAdhocSoftwareComponent.class, name, instantiator);
+        return objectFactory.newInstance(DefaultAdhocSoftwareComponent.class, name, objectFactory);
     }
 }

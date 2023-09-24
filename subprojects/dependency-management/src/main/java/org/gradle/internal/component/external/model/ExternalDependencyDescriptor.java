@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,7 +45,7 @@ public abstract class ExternalDependencyDescriptor {
 
     protected abstract ExternalDependencyDescriptor withRequested(ModuleComponentSelector newRequested);
 
-    protected abstract VariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent);
+    protected abstract GraphVariantSelectionResult selectLegacyConfigurations(ComponentIdentifier fromComponent, ConfigurationMetadata fromConfiguration, ComponentGraphResolveState targetComponent);
 
     public abstract List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations);
 

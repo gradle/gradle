@@ -28,16 +28,15 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
@@ -53,7 +52,6 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
     private final Long2ObjectMap<DefaultResolvedComponentResult> components = new Long2ObjectOpenHashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
-    private AttributeContainer requestedAttributes;
     private long id;
     private ComponentSelectionReason selectionReason;
     private ComponentIdentifier componentId;
@@ -62,22 +60,18 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private ImmutableList<ResolvedVariantResult> allVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
-    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
+    public static MinimalResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-        builder.setRequestedAttributes(attributes);
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
         builder.visitComponentDetails(componentIdentifier, id);
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
-        return builder.complete(0L);
+        ResolvedComponentResult root = builder.getRoot(0L);
+        return new DefaultMinimalResolutionResult(() -> root, attributes, null);
     }
 
-    public void setRequestedAttributes(AttributeContainer attributes) {
-        requestedAttributes = attributes;
-    }
-
-    public ResolutionResult complete(long rootId) {
-        return new DefaultResolutionResult(new RootFactory(components.get(rootId)), requestedAttributes);
+    public ResolvedComponentResult getRoot(long rootId) {
+        return components.get(rootId);
     }
 
     @Override
@@ -147,7 +141,10 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
         }
     }
 
-    public void addExtraFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
+    // TODO: Dependency locking failures should be attached to the resolution result just like
+    // dependency verification failures are. Dependency locking failures are not unresolved dependencies
+    // and should not be modeled as one.
+    public void addDependencyLockingFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
         DefaultResolvedComponentResult root = components.get(rootId);
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
@@ -155,19 +152,6 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
             root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
                 ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
                 new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
-        }
-    }
-
-    private static class RootFactory implements Factory<ResolvedComponentResult> {
-        private final DefaultResolvedComponentResult rootModule;
-
-        public RootFactory(DefaultResolvedComponentResult rootModule) {
-            this.rootModule = rootModule;
-        }
-
-        @Override
-        public ResolvedComponentResult create() {
-            return rootModule;
         }
     }
 }

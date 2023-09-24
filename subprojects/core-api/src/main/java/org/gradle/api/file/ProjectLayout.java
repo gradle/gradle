@@ -25,13 +25,17 @@ import java.io.File;
 
 /**
  * Provides access to several important locations for a project.
+ * <p>
+ * File system locations (or providers thereof) based on relative paths will be
+ * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
  *
  * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getLayout()}.
  *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * @since 4.1
  */
 @ServiceScope(Scopes.Project.class)
-public interface ProjectLayout {
+public interface ProjectLayout extends FileSystemLayout {
     /**
      * Returns the project directory.
      */
@@ -43,15 +47,23 @@ public interface ProjectLayout {
     DirectoryProperty getBuildDirectory();
 
     /**
-     * Creates a {@link RegularFile} provider whose location is calculated from the given {@link Provider}.
+     * {@inheritDoc}
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
      */
+    @Override
     Provider<RegularFile> file(Provider<File> file);
 
     /**
-     * Creates a {@link Directory} provider whose location is calculated from the given {@link Provider}.
+     * {@inheritDoc}
+     * <p>
+     * File system locations based on relative paths will be
+     * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
      *
      * @since 6.0
      */
+    @Override
     Provider<Directory> dir(Provider<File> file);
 
     /**

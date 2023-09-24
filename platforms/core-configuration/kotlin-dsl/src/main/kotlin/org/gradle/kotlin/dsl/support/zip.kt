@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
 
-import org.gradle.util.internal.PathTraversalChecker.safePathName
+import org.gradle.internal.file.PathTraversalChecker.safePathName
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import java.io.File

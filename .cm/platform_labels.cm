@@ -1,0 +1,237 @@
+# -*- mode: yaml -*-
+manifest:
+  version: 1.0
+
+# The `automations` section lists automations to run on PRs in this repository.
+# Each automation has an `if` key that defines conditions to run the automation,
+# as well as a `run` key with the actions to do. All the conditions need to be true
+# for the actions to run (there is an implicit AND relation between
+# the conditions on each line).  Each condition is specified as a Jinja expression.  You
+# can also use the constant `true` if you want to always run the actions.
+
+# Each automation is independent of the others.  Every time a PR is opened or changed,
+# the conditions are evaluated and the actions are executed one by one in order
+# if all the conditions pass.  You can define multiple automations in a .cm file, but
+# each automation name should be unique within the file.
+
+automations:
+
+  # Add the a:documentation label to docs-only changes
+  docs_only:
+    if:
+      - {{ author.using_gitstream }}
+      - {{ is.docs }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'a:documentation'
+  # Add the a:chore label and auto-approve formatting-only changes
+  formatting_only:
+    if:
+      - {{ author.using_gitstream }}
+      - {{ is.formatting }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'a:chore'
+      - action: approve@v1
+
+  # Label changes by affected platforms (in blue)
+  {% for platform in platforms %}
+  label_platform_{{ platform.name }}:
+    if:
+      - {{ author.using_gitstream }}
+      - {{ files | match(list=platform.subprojects) | some }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'platform:{{ platform.name }}'
+          color: '0000FF'
+  {% endfor %}
+
+  # Call out PRs that change the build script (and will be longer to checkout and review)
+  label_build_script_change:
+    if:
+      - {{ author.using_gitstream }}
+      - {{ is.build_script_change }}
+    run:
+      - action: add-label@v1
+        args:
+          label: 'build-script-change'
+          color: 'E94637'
+
+# To simplify the automations section, some calculations are placed under unique YAML keys defined here.
+# Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
+
+# The results of these calculations are assigned to `is.formatting`, `is.docs` and `is.tests`.
+is:
+  formatting: {{ source.diff.files | isFormattingChange }}
+  docs: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
+  tests: {{ files | allTests }}
+
+  # Exclude anything under samples/snippets sourceSets, or any sort of test resource file
+  build_script_change: {{ files | reject(regex=r/.*\/src\/(samples|snippets)\//) | reject(regex=r/.*\/(crossVersionTest|docsTest|functionalTest|integTest|smokeTest|test|testFixtures)\/resources\//) | match(list=build_logic_files) | some }}
+
+build_logic_files:
+  - 'build.gradle.kts'
+  - 'build.gradle'
+  - 'settings.gradle.kts'
+  - 'settings.gradle'
+
+# Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+platforms:
+  - bt_ge_build_cache:
+    name: 'bt_ge_build_cache'
+    subprojects:
+      - 'platforms/core-execution/build-cache/'
+      - 'platforms/core-execution/build-cache-base/'
+      - 'platforms/core-execution/build-cache-http/'
+      - 'platforms/core-execution/build-cache-packaging/'
+      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/files/'
+      - 'platforms/core-execution/hashing/'
+      - 'platforms/core-execution/snapshots/'
+  - build_infrastructure:
+    name: 'build_infrastructure'
+    subprojects:
+      - '.teamcity/'
+      - '.github/'
+      - '/build-logic/'
+      - '/build-logic-commons/'
+      - '/build-logic-settings/'
+      - '/build.gradle*'
+      - '/settings.gradle*'
+      - 'gradle/shared-with-buildSrc/'
+      - 'subprojects/internal-architecture-testing/'
+      - 'subprojects/internal-build-reports/'
+      - 'subprojects/internal-integ-testing/'
+      - 'subprojects/internal-performance-testing/'
+      - 'subprojects/internal-testing/'
+  - cc:
+    name: 'configuration_cache'
+    subprojects:
+      - 'subprojects/api-metadata/'
+      - 'subprojects/base-services-groovy/'
+      - 'subprojects/configuration-cache/'
+      - 'subprojects/file-collections/'
+      - 'subprojects/instrumentation-agent'
+      - 'subprojects/internal-instrumentation-api/'
+      - 'subprojects/internal-instrumentation-processor/'
+      - 'subprojects/model-core/'
+      - 'subprojects/model-groovy/'
+  - core_execution:
+    name: 'core_execution'
+    subprojects:
+      - 'platforms/core-execution/'
+      - 'subprojects/build-operations/'
+      - 'subprojects/build-profile/'
+  - core_runtime:
+    name: 'core_runtime'
+    subprojects:
+      - 'platforms/core-runtime/'
+      - 'subprojects/installation-beacon/'
+  - documentation:
+    name: 'documentation'
+    subprojects:
+      - 'subprojects/docs/'
+      - 'subprojects/docs-asciidoctor-extensions/'
+      - 'subprojects/docs-asciidoctor-extensions-base/'
+      - 'subprojects/samples/'
+  - extensibility:
+    name: 'extensibility'
+    subprojects:
+      - 'subprojects/plugin-development/'
+      - 'subprojects/plugin-use/'
+      - 'subprojects/test-kit/'
+  - gradle_enterprise:
+    name: 'gradle_enterprise'
+    subprojects:
+      - 'platforms/enterprise/'
+  - ide:
+    name: 'ide'
+    subprojects:
+      - 'platforms/ide/'
+      - 'subprojects/ide/'
+      - 'subprojects/tooling-api/'
+      - 'subprojects/tooling-api-builders/'
+  - jvm:
+    name: 'jvm'
+    subprojects:
+      - 'platforms/jvm/'
+      - 'subprojects/distributions-publishing/'
+      - 'subprojects/jvm-services/'
+      - 'subprojects/language-groovy/'
+      - 'subprojects/language-java/'
+      - 'subprojects/language-jvm/'
+      - 'subprojects/normalization-java/'
+      - 'subprojects/platform-jvm/'
+      - 'subprojects/plugins/'
+  - kotlin_dsl:
+    name: 'kotlin_dsl'
+    subprojects:
+      - 'platforms/core-configuration/kotlin-dsl/'
+      - 'platforms/core-configuration/kotlin-dsl-integ-tests/'
+      - 'platforms/core-configuration/kotlin-dsl-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-provider-plugins/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-builders/'
+      - 'platforms/core-configuration/kotlin-dsl-tooling-models/'
+      - 'build-logic/kotlin-dsl/'
+      - 'subprojects/docs/src/snippets/kotlinDsl/'
+  - release_coordination:
+    name: 'release_coordination'
+    subprojects:
+      - 'subprojects/core-platform/'
+      - 'subprojects/distributions-dependencies/'
+      - 'subprojects/distributions-full/'
+      - 'subprojects/performance/'
+      - 'subprojects/smoke-test/'
+      - 'subprojects/soak/'
+  - software:
+    name: 'software'
+    subprojects:
+      - 'platforms/software/'
+      - 'subprojects/dependency-management/'
+      - 'subprojects/ivy/'
+      - 'subprojects/maven/'
+      - 'subprojects/platform-base/'
+      - 'subprojects/publish/'
+      - 'subprojects/reporting/'
+      - 'subprojects/resources/'
+      - 'subprojects/resources-gcs/'
+      - 'subprojects/resources-http/'
+      - 'subprojects/resources-s3/'
+      - 'subprojects/resources-sftp/'
+      - 'subprojects/security/'
+      - 'subprojects/signing/'
+      - 'subprojects/version-control/'
+
+author:
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+
+teams:
+  build_scan:
+    members:
+      - 'wolfs'
+  configuration:
+    members:
+      - 'alllex'
+  dev_prod:
+    members:
+      - 'blindpirate'
+  execution:
+    members:
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
+      - 'FrauBoes-DISABLED'
+  ide:
+    members:
+      - 'hegyibalint'
+      - 'donat'
+      - 'reinsch82'
+  jvm:
+    members:
+      - 'big-guy'
+      - 'ghale'
+      - 'jvandort'
+      - 'octylFractal'
+      - 'tresat'

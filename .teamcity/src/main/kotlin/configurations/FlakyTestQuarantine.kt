@@ -2,6 +2,7 @@ package configurations
 
 import common.Arch
 import common.BuildToolBuildJvm
+import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
@@ -68,7 +69,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
     }
 
     steps {

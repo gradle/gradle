@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -55,7 +55,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
+        BuildLocations layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), clock);

@@ -22,6 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -37,7 +38,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.Describables;
-import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.Pair;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.util.Path;
@@ -48,6 +49,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
@@ -96,7 +99,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.workExecutor = workExecutor;
         this.buildModelLifecycleListener = buildModelLifecycleListener;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
-        this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
+        this.state = controllerFactory.newController(Describables.of("state of", targetBuild().getDisplayName()), State.Configure);
     }
 
     @Override
@@ -206,15 +209,19 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public TaskSelection getSelection(String taskPath) {
             // We assume taskPath is valid since the selector has been used before
-            Path path = Path.path(taskPath);
-            Path projectPath = path.getParent();
-            String taskName = path.getName();
-            ProjectInternal project = findProject(projectPath, gradle.getOwner());
-            if (project != null) {
+            return selectionOf(path(taskPath));
+        }
+
+        private TaskSelection selectionOf(Path taskPath) {
+            Path taskProjectPath = taskPath.getParent();
+            assert taskProjectPath != null;
+            ProjectInternal taskProject = resolveProject(taskProjectPath);
+            if (taskProject != null) {
+                String taskName = taskPath.getName();
                 return new TaskSelection(
-                    project.getPath(),
+                    taskProject.getPath(),
                     taskName,
-                    tasks -> tasks.add(project.getTasks().getByName(taskName))
+                    tasks -> tasks.add(taskProject.getTasks().getByName(taskName))
                 );
             }
             return new TaskSelection(null, null, tasks -> {});
@@ -224,26 +231,68 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         public GradleInternal getGradle() {
             return gradle;
         }
-    }
 
-    @Nullable
-    private static ProjectInternal findProject(Path path, BuildState target) {
-        assert path.isAbsolute();
-        // Either the project is available at the current target
-        ProjectState targetProject = target.getProjects().findProject(path);
-        if (targetProject != null) {
-            return targetProject.getMutableModel();
-        }
-        // Or it must be from an included build.
-        String includedBuildName = path.segment(0);
-        for (IncludedBuildInternal includedBuild : target.getMutableModel().includedBuilds()) {
-            if (includedBuild.getName().equals(includedBuildName)) {
-                return findProject(path.removeFirstSegments(1), includedBuild.getTarget());
+        @Nullable
+        private ProjectInternal resolveProject(Path path) {
+            assert path.isAbsolute();
+
+            // Try to resolve the path as "<included-build-path>:<project-path>"
+            Pair<Path, BuildState> includedBuildPrefix = resolveIncludedBuildPrefixOf(path);
+            if (includedBuildPrefix != null) {
+                Path includedBuildPath = includedBuildPrefix.left;
+                BuildState includedBuild = includedBuildPrefix.right;
+                Path projectPath = path.removeFirstSegments(includedBuildPath.segmentCount());
+                return findProjectOf(includedBuild, projectPath);
             }
-        }
-        return null;
-    }
 
+            return findProjectOf(targetBuild(), path);
+        }
+
+        /**
+         * Finds the longest {@code path} prefix that identifies an included build and returns a pair
+         * with the matching {@code path} prefix and {@link BuildState included build reference}.
+         *
+         * @return {@code null} if no {@code path} prefix identifying an included build is found
+         */
+        @Nullable
+        private Pair<Path, BuildState> resolveIncludedBuildPrefixOf(Path path) {
+            Path resolvedPath = null;
+            BuildState resolvedBuild = null;
+
+            int prefixLength = 1;
+            while (prefixLength <= path.segmentCount()) {
+                Path candidatePath = path.takeFirstSegments(prefixLength);
+                BuildState existingBuild = findBuild(candidatePath);
+                if (existingBuild == null) {
+                    break;
+                }
+                resolvedPath = candidatePath;
+                resolvedBuild = existingBuild;
+                prefixLength++;
+            }
+
+            return resolvedPath != null
+                ? Pair.of(resolvedPath, resolvedBuild)
+                : null;
+        }
+
+        @Nullable
+        private ProjectInternal findProjectOf(BuildState build, Path projectPath) {
+            ProjectState project = build.getProjects().findProject(projectPath);
+            return project != null
+                ? project.getMutableModel()
+                : null;
+        }
+
+        @Nullable
+        private BuildState findBuild(Path buildPath) {
+            return getBuildStateRegistry().findBuild(new DefaultBuildIdentifier(buildPath));
+        }
+
+        private BuildStateRegistry getBuildStateRegistry() {
+            return gradle.getServices().get(BuildStateRegistry.class);
+        }
+    }
 
     @Override
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
@@ -275,7 +324,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(gradle.getOwner(), this));
+        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
+    }
+
+    private BuildState targetBuild() {
+        return gradle.getOwner();
     }
 
     @Override

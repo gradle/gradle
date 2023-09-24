@@ -121,11 +121,40 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Tar"    | "tarTo"    | "tarTree"
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(UnitTestPreconditions.Symlinks)
+    def "symlinked file permissions are preserved when using #taskName task"() {
+        given:
+        createDir('parent') {
+            mode = 0777
+            file('reference.txt').mode = 0746
+            link('link', 'reference.txt')
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
+                from 'parent'
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/reference.txt").mode == 0746
+        file("build/link").mode == file("build/reference.txt").mode
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(UnitTestPreconditions.NoFilePermissions)
     def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
         given:
         TestFile testDir = createDir('root') {
-            def testDir = testdir{
+            def testDir = testdir {
                 def testFile = file('reference.txt')
                 assertTrue testFile.setReadOnly()
             }

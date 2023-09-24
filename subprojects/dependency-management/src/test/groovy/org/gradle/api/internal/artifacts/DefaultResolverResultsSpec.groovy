@@ -18,73 +18,67 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import spock.lang.Specification
 
 class DefaultResolverResultsSpec extends Specification {
     private resolvedConfiguration = Mock(ResolvedConfiguration)
-    private resolutionResult = Mock(ResolutionResult)
+    private minimalResolutionResult = Mock(MinimalResolutionResult)
     private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactsSet = Mock(VisitedArtifactSet)
     private artifactResolveState = Mock(ArtifactResolveState)
-    private fatalFailure = Mock(ResolveException)
-
-    def "does not provide result in case of fatal failure"() {
-        when:
-        def results = DefaultResolverResults.failed(fatalFailure, fatalFailure)
-
-        and:
-        results.resolutionResult
-
-        then:
-        def ex = thrown(ResolveException)
-        ex == fatalFailure
-
-        when:
-        results.resolvedLocalComponents
-
-        then:
-        def ex2 = thrown(ResolveException)
-        ex2 == fatalFailure
-
-        when:
-        results.visitedArtifacts
-
-        then:
-        def ex3 = thrown(ResolveException)
-        ex3 == fatalFailure
-    }
 
     def "provides build dependencies results"() {
         when:
-        def results = DefaultResolverResults.buildDependenciesResolved(resolutionResult, projectConfigurationResult, visitedArtifactsSet)
+        def results = DefaultResolverResults.buildDependenciesResolved(minimalResolutionResult, projectConfigurationResult, visitedArtifactsSet)
 
         then:
-        results.resolutionResult == resolutionResult
+        results.minimalResolutionResult == minimalResolutionResult
         results.resolvedLocalComponents == projectConfigurationResult
         results.visitedArtifacts == visitedArtifactsSet
     }
 
     def "provides resolve results"() {
         when:
-        def results = DefaultResolverResults.graphResolved(resolutionResult, projectConfigurationResult, visitedArtifactsSet, artifactResolveState)
+        def results = DefaultResolverResults.graphResolved(minimalResolutionResult, projectConfigurationResult, visitedArtifactsSet, artifactResolveState)
 
         then:
-        results.resolutionResult == resolutionResult
+        results.minimalResolutionResult == minimalResolutionResult
         results.resolvedLocalComponents == projectConfigurationResult
         results.visitedArtifacts == visitedArtifactsSet
         results.artifactResolveState == artifactResolveState
 
         when:
-        results = DefaultResolverResults.artifactsResolved(resolutionResult, projectConfigurationResult, resolvedConfiguration, visitedArtifactsSet)
+        results = DefaultResolverResults.artifactsResolved(minimalResolutionResult, projectConfigurationResult, resolvedConfiguration, visitedArtifactsSet)
 
         then:
-        results.resolutionResult == resolutionResult
+        results.minimalResolutionResult == minimalResolutionResult
         results.resolvedLocalComponents == projectConfigurationResult
         results.visitedArtifacts == visitedArtifactsSet
         results.resolvedConfiguration == resolvedConfiguration
+    }
+
+    def "resolution result failures are passed-through"() {
+        def failure = Mock(ResolveException)
+        def resolutionResult = Mock(MinimalResolutionResult) {
+            getExtraFailure() >> failure
+        }
+
+        def results = DefaultResolverResults.graphResolved(resolutionResult, Mock(ResolvedLocalComponentsResult), Mock(VisitedArtifactSet), Mock(ArtifactResolveState))
+
+        when:
+        def hasFailure = results.hasError()
+
+        then:
+        hasFailure
+
+        when:
+        def actual = results.getFailure()
+
+        then:
+        actual == failure
     }
 }

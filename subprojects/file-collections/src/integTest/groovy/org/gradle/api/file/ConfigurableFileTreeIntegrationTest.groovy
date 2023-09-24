@@ -19,6 +19,27 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
+
+    def "calling files() with a single argument behaves the same in Kotlin and Groovy"() {
+        settingsFile << """
+            include("groovy-dsl", "kotlin-dsl")
+        """
+        file("kotlin-dsl/build.gradle.kts") << """
+            val collection = files("abc")
+            val froms = collection.from
+            assert(froms.size == 1)
+            assert(froms.first() == "abc")
+        """
+        file("groovy-dsl/build.gradle") << """
+            def collection = files("abc")
+            def froms = collection.from
+            assert froms.size() == 1
+            assert froms.first() == "abc"
+        """
+        expect:
+        succeeds("help")
+    }
+
     def "include and exclude patterns are case sensitive by default"() {
         given:
         file('files/one.txt').createFile()

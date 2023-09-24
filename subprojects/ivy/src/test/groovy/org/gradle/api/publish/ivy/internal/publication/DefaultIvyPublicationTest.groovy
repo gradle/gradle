@@ -27,22 +27,29 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -55,12 +62,9 @@ class DefaultIvyPublicationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
-    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    def objectFactory = TestUtil.objectFactory()
-    def coordinates = objectFactory.newInstance(IvyPublicationCoordinates)
+    def coordinates = TestUtil.objectFactory().newInstance(IvyPublicationCoordinates)
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
-    def attributesFactory = AttributeTestUtil.attributesFactory()
 
     File ivyDescriptorFile
     File moduleDescriptorFile
@@ -142,6 +146,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
+        moduleDependency.requestedCapabilities >> []
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -176,8 +181,10 @@ class DefaultIvyPublicationTest extends Specification {
         and:
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.targetConfiguration >> "dep-configuration"
+        projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]
         projectDependency.attributes >> ImmutableAttributes.EMPTY
+        projectDependency.requestedCapabilities >> []
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -289,21 +296,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
-        def publication = objectFactory.newInstance(DefaultIvyPublication,
-            "pub-name",
-            instantiator,
-            objectFactory,
-            coordinates,
-            notationParser,
-            projectDependencyResolver,
-            TestFiles.fileCollectionFactory(),
-            attributesFactory,
-            CollectionCallbackActionDecorator.NOOP,
-            Mock(VersionMappingStrategyInternal),
-            Mock(PlatformSupport),
-            Mock(DocumentationRegistry),
-            TestFiles.taskDependencyFactory()
-        )
+        def publication = createPublication()
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
         when:
@@ -368,24 +361,26 @@ class DefaultIvyPublicationTest extends Specification {
         publication.publishableArtifacts.files.contains(moduleDescriptorFile)
     }
 
-    def createPublication() {
+    DefaultIvyPublication createPublication() {
+        def objectFactory = TestUtil.createTestServices {
+            it.add(Instantiator, TestUtil.instantiatorFactory().decorateLenient())
+            it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
+            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(PlatformSupport, DependencyManagementTestUtil.platformSupport())
+            it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
+            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
+            it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+            it.add(DefaultDependencyCoordinateResolverFactory)
+        }.get(ObjectFactory)
+
         def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {
             findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
         }
         def publication = objectFactory.newInstance(DefaultIvyPublication,
             "pub-name",
-            instantiator,
-            objectFactory,
             coordinates,
             notationParser,
-            projectDependencyResolver,
-            TestFiles.fileCollectionFactory(),
-            attributesFactory,
-            CollectionCallbackActionDecorator.NOOP,
-            versionMappingStrategy,
-            Mock(PlatformSupport),
-            Mock(DocumentationRegistry),
-            TestFiles.taskDependencyFactory()
+            versionMappingStrategy
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))

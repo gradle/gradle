@@ -18,12 +18,13 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ System.getenv("BUILD_TYPE_ID")?.contains("Check_Gradleception") == true })
+@Requires(UnitTestPreconditions.NotInGradleceptionBuild)
 class BlockingHttpServerTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

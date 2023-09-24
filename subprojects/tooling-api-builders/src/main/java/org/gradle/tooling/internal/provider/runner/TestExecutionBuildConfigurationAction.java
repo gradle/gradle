@@ -88,20 +88,19 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void configureTestTask(AbstractTestTask test) {
-        test.setIgnoreFailures(true);
         test.getFilter().setFailOnNoMatchingTests(false);
         test.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         if (test instanceof Test) {
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
             if (debugOptions.isDebugMode()) {
-                ((Test)test).debugOptions(javaDebugOptions -> {
+                ((Test) test).debugOptions(javaDebugOptions -> {
                     DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
                     options.getEnabled().set(true);
                     options.getPort().set(debugOptions.getPort());
                     options.getServer().set(false);
                     options.getSuspend().set(false);
                 });
-        }
+            }
         }
     }
 

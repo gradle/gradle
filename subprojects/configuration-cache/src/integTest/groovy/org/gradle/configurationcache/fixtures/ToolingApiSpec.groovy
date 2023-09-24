@@ -164,8 +164,7 @@ trait ToolingApiSpec {
             }
         """
     }
-
-    def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {
+    def <T> T fetchModel(Class<T> type = SomeToolingModel.class, String... tasks = null) {
         def model = null
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
@@ -174,6 +173,7 @@ trait ToolingApiSpec {
             args.remove("--no-daemon")
 
             model = connection.model(type)
+                .forTasks(tasks)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))

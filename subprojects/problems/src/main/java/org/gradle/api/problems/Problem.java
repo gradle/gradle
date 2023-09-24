@@ -29,14 +29,6 @@ import java.util.Map;
  */
 @Incubating
 public interface Problem {
-
-    /**
-     * Returns the problem group.
-     *
-     * @return the problem group
-     */
-    ProblemGroup getProblemGroup();
-
     /**
      * Returns the problem type.
      *
@@ -84,9 +76,11 @@ public interface Problem {
 
     /**
      * The exception that caused the problem.
+     *
+     * @since 8.5
      */
     @Nullable
-    Throwable getCause();
+    Throwable getException();
 
     /**
      * Additional Data about the problem.

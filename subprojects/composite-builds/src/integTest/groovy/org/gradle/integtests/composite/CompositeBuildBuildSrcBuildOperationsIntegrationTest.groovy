@@ -22,11 +22,11 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.util.regex.Pattern
 
@@ -45,8 +45,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
-    // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -149,8 +148,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    // Also covered by tests in configuration cache project
-    @IgnoreIf({ GradleContextualExecuter.configCache })
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'

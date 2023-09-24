@@ -260,6 +260,11 @@ public class TestFile extends File {
         new TestFileHelper(this).unzipTo(target, useNativeTools);
     }
 
+    public void unzipToWithoutCheckingParentDirs(File target) {
+        assertIsFile();
+        new TestFileHelper(this).unzipTo(target, useNativeTools, false);
+    }
+
     public void untarTo(File target) {
         assertIsFile();
 

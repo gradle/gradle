@@ -85,7 +85,9 @@ class AndroidGradlePluginVersions {
     }
 
     List<String> getLatestsPlusNightly() {
-        return [latests, nightlies].flatten() as List<String>
+        // 8.2.0-dev is somehow very slow and blocking developer feedback build
+        // Disable for now: https://github.com/gradle/gradle-private/issues/3966
+        return ([latests, nightlies].flatten() as List<String>) - ['8.2.0-dev', '8.3.0-dev']
     }
 
     List<String> getLatestsFromMinor(String lowerBound) {

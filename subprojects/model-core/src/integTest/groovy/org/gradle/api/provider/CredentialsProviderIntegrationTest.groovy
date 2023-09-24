@@ -19,9 +19,9 @@ package org.gradle.api.provider
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -204,7 +204,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13770")
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {
         def buildScript = """
             tasks.register('executionCredentials') {

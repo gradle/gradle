@@ -16,6 +16,8 @@
 
 package org.gradle.problems;
 
+import org.gradle.internal.code.UserCodeSource;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -43,4 +45,10 @@ public interface ProblemDiagnostics {
      */
     @Nullable
     Location getLocation();
+
+    /**
+     * Returns the user code context when this problem was triggered.
+     */
+    @Nullable
+    UserCodeSource getSource();
 }

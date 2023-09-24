@@ -19,32 +19,29 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * {@link Problem} instance builder allowing the specification of all optional fields.
+ * {@link Problem} instance configurator allowing the specification of all optional fields.
  *
  * This is the last interface in the builder chain. The order of steps can be traced from the {@link Problems} service interface.
  *
  * An example of how to use the builder:
  * <pre>{@code
- *  <problemService>.createProblemBuilder()
+ *  <problemService>.report(configurator -> configurator
  *          .label("test problem")
  *          .undocumented()
  *          .noLocation()
- *          .type(ValidationProblemId.TEST_PROBLEM.name())
- *          .group(ProblemGroup.TYPE_VALIDATION)
+ *          .type("problemType")
  *          .severity(Severity.ERROR)
  *          .details("this is a test")
  *  }</pre>
  *
- * @since 8.4
+ * @since 8.5
  */
 @Incubating
 public interface ProblemBuilder {
-
     /**
      * The long description of this problem.
      *
      * @param details the details
-     *
      * @return this
      */
     ProblemBuilder details(String details);
@@ -53,7 +50,6 @@ public interface ProblemBuilder {
      * The description of how to solve this problem
      *
      * @param solution the solution.
-     *
      * @return this
      */
     ProblemBuilder solution(String solution);
@@ -69,23 +65,15 @@ public interface ProblemBuilder {
      * The exception causing this problem.
      *
      * @param e the exception.
-     *
      * @return this
      */
     ProblemBuilder withException(RuntimeException e);
 
     /**
      * Declares the severity of the problem.
-     * @param severity the severity
      *
+     * @param severity the severity
      * @return this
      */
     ProblemBuilder severity(Severity severity);
-
-    /**
-     * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
-     *
-     * @return the new problem
-     */
-    ReportableProblem build();
 }

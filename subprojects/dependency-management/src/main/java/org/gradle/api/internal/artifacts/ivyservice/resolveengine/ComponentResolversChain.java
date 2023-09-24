@@ -19,18 +19,13 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
-import org.gradle.internal.resolve.resolver.DefaultArtifactSelector;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -44,13 +39,12 @@ import java.util.List;
 /**
  * A factory for the various resolver services backed by a chain of repositories.
  */
-public class ComponentResolversChain {
+public class ComponentResolversChain implements ComponentResolvers {
     private final DependencyToComponentIdResolverChain dependencyToComponentIdResolver;
     private final ComponentMetaDataResolverChain componentMetaDataResolver;
     private final ArtifactResolver artifactResolverChain;
-    private final DefaultArtifactSelector artifactSelector;
 
-    public ComponentResolversChain(List<ComponentResolvers> providers, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory, ResolvedVariantCache resolvedVariantCache) {
+    public ComponentResolversChain(List<ComponentResolvers> providers) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<>(providers.size());
         List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<>(1 + providers.size());
         componentMetaDataResolvers.add(VirtualComponentMetadataResolver.INSTANCE);
@@ -63,21 +57,19 @@ public class ComponentResolversChain {
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);
         componentMetaDataResolver = new ComponentMetaDataResolverChain(componentMetaDataResolvers);
         artifactResolverChain = new ErrorHandlingArtifactResolver(new ArtifactResolverChain(artifactResolvers));
-        artifactSelector = new DefaultArtifactSelector(artifactResolverChain, artifactTypeRegistry, calculatedValueContainerFactory, resolvedVariantCache);
     }
 
-    public ArtifactSelector getArtifactSelector() {
-        return artifactSelector;
-    }
-
+    @Override
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return dependencyToComponentIdResolver;
     }
 
+    @Override
     public ComponentMetaDataResolver getComponentResolver() {
         return componentMetaDataResolver;
     }
 
+    @Override
     public ArtifactResolver getArtifactResolver() {
         return artifactResolverChain;
     }

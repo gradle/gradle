@@ -162,6 +162,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         file("artifact.txt") << "sample artifact"
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run "checkDependencies"
     }
 

@@ -50,7 +50,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.lazy.Lazy;
@@ -193,7 +193,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getDisplayName();
+        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
@@ -209,7 +209,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void ruleMutationDisallowedOnProject(DisplayName ruleName) {
         UserCodeApplicationContext.Application current = context.current();
-        DisplayName displayName = current == null ? null : current.getDisplayName();
+        DisplayName displayName = current == null ? null : current.getSource().getDisplayName();
         if (displayName == null) {
             displayName = UNKNOWN_CODE;
         }
