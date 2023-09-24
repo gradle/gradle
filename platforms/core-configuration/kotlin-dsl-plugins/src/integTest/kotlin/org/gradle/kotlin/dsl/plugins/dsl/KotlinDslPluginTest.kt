@@ -29,10 +29,9 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
         build("help").apply {
             assertOutputContains(
-                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$appliedKotlinDslPluginsVersion' has been applied to root project 'forty-two'."
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$futureKotlinDslPluginVersion' has been applied to root project 'forty-two'."
             )
         }
     }

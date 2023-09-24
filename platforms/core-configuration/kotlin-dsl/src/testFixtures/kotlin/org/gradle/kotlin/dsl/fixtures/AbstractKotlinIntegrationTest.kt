@@ -100,11 +100,15 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             """
         }
 
-    protected
+    private
     val futurePluginVersions by lazy {
         loadPropertiesFromResource("/future-plugin-versions.properties")
             ?: throw IllegalStateException("/future-plugin-versions.properties resource not found.")
     }
+
+    protected
+    val futureKotlinDslPluginVersion: String =
+        futurePluginVersions["org.gradle.kotlin.kotlin-dsl"] as String
 
     private
     fun loadPropertiesFromResource(name: String): Properties? =
