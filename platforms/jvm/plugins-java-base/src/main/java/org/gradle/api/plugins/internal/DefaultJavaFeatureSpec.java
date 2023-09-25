@@ -63,7 +63,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         NamedDomainObjectSet<JvmSoftwareComponentInternal> jvmComponents = project.getComponents().withType(JvmSoftwareComponentInternal.class);
         if (jvmComponents.size() > 1) {
             String componentNames = CollectionUtils.join(", ", jvmComponents.getNames());
-            throw new GradleException("Can not register feature '" + name + "'.  Can not register features using the java extension if multiple jvm components are present.  These components were found: '" + componentNames + "'.");
+            throw new GradleException("Cannot register feature '" + name + "' because multiple JVM components are present.  These components were found: " + componentNames + ".");
         }
 
         setupConfigurations(sourceSet);
