@@ -67,9 +67,7 @@ unassigned {
     subproject("resources-sftp")
     subproject("plugins")
     subproject("maven")
-    subproject("tooling-api")
     subproject("build-events")
-    subproject("tooling-api-builders")
     subproject("signing")
     subproject("reporting")
     subproject("diagnostics")
@@ -152,6 +150,9 @@ platform("ide") {
     subproject("ide-native")
     subproject("ide-plugins")
     subproject("problems")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
+
 }
 
 // Software Platform

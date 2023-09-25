@@ -869,14 +869,14 @@
   },
   {
     "name": "tooling-api",
-    "path": "subprojects/tooling-api",
+    "path": "platforms/ide/tooling-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "tooling-api-builders",
-    "path": "subprojects/tooling-api-builders",
+    "path": "platforms/ide/tooling-api-builders",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
