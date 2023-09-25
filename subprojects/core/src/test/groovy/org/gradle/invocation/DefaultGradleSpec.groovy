@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.Task
-import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
@@ -88,7 +87,6 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
-        _ * serviceRegistry.get(BuildFeatures) >> Mock(BuildFeatures)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
