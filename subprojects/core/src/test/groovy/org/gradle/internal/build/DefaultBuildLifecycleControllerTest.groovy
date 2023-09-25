@@ -90,7 +90,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan)
         def executionResult = controller.executeTasks(plan)
         executionResult.failures.empty
@@ -114,7 +114,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         controller.prepareToScheduleTasks()
         def plan1 = controller.newWorkGraph()
-        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan1)
         def executionResult = controller.executeTasks(plan1)
         executionResult.failures.empty
@@ -145,7 +145,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         controller.prepareToScheduleTasks()
         def plan1 = controller.newWorkGraph()
-        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan1)
 
         def resetResult = controller.beforeModelReset()
@@ -405,13 +405,13 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(null, executionPlan,) >> { throw failure }
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan, false) >> { throw failure }
 
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
 
         then:
         def t = thrown RuntimeException
@@ -442,7 +442,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = this.controller()
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan)
         def executionResult = controller.executeTasks(plan)
 
@@ -476,7 +476,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = this.controller()
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan)
         def executionResult = controller.executeTasks(plan)
 
@@ -508,7 +508,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan)
         controller.executeTasks(plan)
 
@@ -539,7 +539,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
         controller.prepareToScheduleTasks()
         def plan = controller.newWorkGraph()
-        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(,) }
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks(null, false) }
         controller.finalizeWorkGraph(plan)
 
         when:
@@ -632,7 +632,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(null, executionPlan,)
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan, false)
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
