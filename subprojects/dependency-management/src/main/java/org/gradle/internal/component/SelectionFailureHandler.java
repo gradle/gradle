@@ -85,7 +85,7 @@ public class SelectionFailureHandler {
 //            .label("No matching variants found")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -101,7 +101,7 @@ public class SelectionFailureHandler {
 //            .label("Multiple matching variants found")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -117,7 +117,7 @@ public class SelectionFailureHandler {
 //            .label("Ambiguous artifact transformation")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -130,7 +130,7 @@ public class SelectionFailureHandler {
 //            .label("Variant selection failed")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(t)
 //            .build();
@@ -242,7 +242,7 @@ public class SelectionFailureHandler {
 //            .label("Multiple matching configurations found")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -265,7 +265,7 @@ public class SelectionFailureHandler {
 //            .label("Configuration does not match consumer attributes")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -287,7 +287,7 @@ public class SelectionFailureHandler {
 //            .label("No matching configuration found")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -303,7 +303,7 @@ public class SelectionFailureHandler {
 //            .label("No matching variant found for requested capabilities")
 //            .undocumented()
 //            .noLocation()
-//            .type(FAILURE_TYPE)
+//            .category(FAILURE_TYPE)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();

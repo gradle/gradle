@@ -51,7 +51,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
                 .label("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase()))
                 .noLocation()
-                .type(VALUE_NOT_SET)
+                .category(VALUE_NOT_SET)
                 .severity(Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {

@@ -36,13 +36,23 @@ public class Path implements Comparable<Path> {
     public static final String SEPARATOR = ":";
 
     public static Path path(@Nullable String path) {
-        if (Strings.isNullOrEmpty(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        if (path.equals(SEPARATOR)) {
+        validatePath(path);
+        if (SEPARATOR.equals(path)) {
             return ROOT;
         } else {
             return parsePath(path);
+        }
+    }
+
+    /**
+     * throws if no path is specified
+     *
+     * @since 8.5
+     */
+    @Incubating
+    public static void validatePath(@Nullable String path) {
+        if (Strings.isNullOrEmpty(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
         }
     }
 
@@ -100,14 +110,7 @@ public class Path implements Comparable<Path> {
         if (absolute) {
             path.append(SEPARATOR);
         }
-        for (int i = 0; i < segments.length; i++) {
-            if (i > 0) {
-                path.append(SEPARATOR);
-            }
-            String segment = segments[i];
-            path.append(segment);
-        }
-        return path.toString();
+        return path.append(StringUtils.join(segments, SEPARATOR)).toString();
     }
 
     @Override

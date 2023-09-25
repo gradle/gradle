@@ -19,6 +19,7 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -50,7 +51,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     }
 
     public static boolean onlyAffectsCacheableWork(String type) {
-        return MISSING_NORMALIZATION_ANNOTATION.equals(type);
+        return new ProblemCategory(MISSING_NORMALIZATION_ANNOTATION).toString().equals(type);
     }
 
     @Override

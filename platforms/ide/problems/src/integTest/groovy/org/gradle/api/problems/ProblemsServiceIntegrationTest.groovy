@@ -45,7 +45,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report();
                 }
             }
@@ -79,7 +79,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             Documentation.userManual("test-id", "test-section")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -116,7 +116,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             Documentation.upgradeGuide(8, "test-section")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -153,7 +153,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             Documentation.dslReference(Problem.class, "label")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -186,7 +186,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1)
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -221,7 +221,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1, 1)
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -256,7 +256,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .solution("solution")
                         .severity(Severity.${severity.name()})
                         }.report()
@@ -292,7 +292,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .solution("solution")
                         }.report()
                 }
@@ -326,7 +326,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .withException(new RuntimeException("test"))
                         }.report()
                 }
@@ -359,7 +359,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .additionalData("key", "value")
                         }.report()
                 }
@@ -391,7 +391,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             .label("label")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                             .withException(exception)
                     }
                 }
@@ -421,7 +421,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             .label("label")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                     }
                 }
             }
@@ -450,7 +450,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             .label("inner")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                             .withException(exception)
                         }
                     } catch (Exception ex) {
@@ -458,7 +458,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                             .label("outer")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                         }
                     }
                 }
