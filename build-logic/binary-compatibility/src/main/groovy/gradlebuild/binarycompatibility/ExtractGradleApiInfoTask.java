@@ -58,18 +58,18 @@ public abstract class ExtractGradleApiInfoTask extends DefaultTask {
     public abstract ConfigurableFileCollection getCurrentDistributionJars();
 
     @CompileClasspath
-    public abstract ConfigurableFileCollection getBaseDistributionJars();
+    public abstract ConfigurableFileCollection getBaselineDistributionJars();
 
     @OutputFile
     public abstract RegularFileProperty getCurrentUpgradedProperties();
 
     @OutputFile
-    public abstract RegularFileProperty getBaseUpgradedProperties();
+    public abstract RegularFileProperty getBaselineUpgradedProperties();
 
     @TaskAction
     public void execute() {
         extractUpgradedProperties(getCurrentDistributionJars(), getCurrentUpgradedProperties());
-        extractUpgradedProperties(getBaseDistributionJars(), getBaseUpgradedProperties());
+        extractUpgradedProperties(getBaselineDistributionJars(), getBaselineUpgradedProperties());
     }
 
     private void extractUpgradedProperties(FileCollection from, RegularFileProperty to) {

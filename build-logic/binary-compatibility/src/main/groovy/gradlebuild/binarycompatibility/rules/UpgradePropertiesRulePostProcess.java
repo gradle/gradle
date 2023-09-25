@@ -17,6 +17,7 @@
 package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.MethodKey;
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContextWithViolations;
 import org.gradle.util.internal.CollectionUtils;
@@ -33,9 +34,9 @@ public class UpgradePropertiesRulePostProcess implements PostProcessViolationsRu
     @Override
     @SuppressWarnings("unchecked")
     public void execute(ViolationCheckContextWithViolations context) {
-        Set<String> seenUpgradedMethodChanges = (Set<String>) context.getUserData().get(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<String, UpgradedProperty> oldMethodsOfUpgradedProperties = (Map<String, UpgradedProperty>) context.getUserData().get(OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<String, UpgradedProperty> left = new HashMap<>(oldMethodsOfUpgradedProperties);
+        Set<MethodKey> seenUpgradedMethodChanges = (Set<MethodKey>) context.getUserData().get(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        Map<MethodKey, UpgradedProperty> oldMethodsOfUpgradedProperties = (Map<MethodKey, UpgradedProperty>) context.getUserData().get(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        Map<MethodKey, UpgradedProperty> left = new HashMap<>(oldMethodsOfUpgradedProperties);
         left.keySet().removeIf(seenUpgradedMethodChanges::contains);
         if (!left.isEmpty()) {
             String formattedLeft = CollectionUtils.join("\n", left.keySet());

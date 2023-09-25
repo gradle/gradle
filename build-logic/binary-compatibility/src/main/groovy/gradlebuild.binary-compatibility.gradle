@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
@@ -121,12 +119,12 @@ dependencies {
 }
 
 def currentUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/current-upgraded-properties.json")
-def baseUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/base-upgraded-properties.json")
+def baselineUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/baseline-upgraded-properties.json")
 def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.binarycompatibility.ExtractGradleApiInfoTask) {
     currentDistributionJars = currentDistroJars
-    baseDistributionJars = baselineJars
+    baselineDistributionJars = baselineJars
     currentUpgradedProperties = currentUpgradedPropertiesFile
-    baseUpgradedProperties = baseUpgradedPropertiesFile
+    baselineUpgradedProperties = baselineUpgradedPropertiesFile
 }
 
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
@@ -178,7 +176,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         apiChangesJsonFile.asFile,
         rootProject.layout.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
-        baseUpgradedPropertiesFile.get().asFile
+        baselineUpgradedPropertiesFile.get().asFile
     )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }

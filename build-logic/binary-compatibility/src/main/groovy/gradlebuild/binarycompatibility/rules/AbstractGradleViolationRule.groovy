@@ -40,6 +40,7 @@ import org.gradle.api.Incubating
 import javax.inject.Inject
 
 import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.MethodKey
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -135,7 +136,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
-        Set<String> seenOldMethodsOfUpgradedProperties = (Set<String>) context.userData[SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES]
+        Set<MethodKey> seenOldMethodsOfUpgradedProperties = (Set<MethodKey>) context.userData[SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES]
         UpgradedProperties.maybeGetKeyOfOldMethodOfUpgradedProperty(member, context).ifPresent { seenOldMethodsOfUpgradedProperties.add(it) }
 
         def change = new ApiChange(

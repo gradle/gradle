@@ -16,7 +16,11 @@
 
 package gradlebuild.binarycompatibility.upgrades;
 
+import com.google.common.collect.ImmutableList;
+import japicmp.model.JApiMethod;
+
 import java.util.List;
+import java.util.Objects;
 
 public class UpgradedProperty {
     private final String propertyName;
@@ -30,7 +34,7 @@ public class UpgradedProperty {
         this.propertyName = propertyName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor;
-        this.upgradedMethods = upgradedMethods;
+        this.upgradedMethods = ImmutableList.copyOf(upgradedMethods);
     }
 
     public String getContainingType() {
@@ -87,6 +91,74 @@ public class UpgradedProperty {
                 "name='" + name + '\'' +
                 ", descriptor='" + descriptor + '\'' +
                 '}';
+        }
+    }
+
+    public static class MethodKey {
+        private final String containingType;
+        private final String methodName;
+        private final String descriptor;
+
+        public MethodKey(String containingType, String methodName, String descriptor) {
+            this.containingType = containingType;
+            this.methodName = methodName;
+            this.descriptor = descriptor;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public String getDescriptor() {
+            return descriptor;
+        }
+
+        public String getContainingType() {
+            return containingType;
+        }
+
+        public static MethodKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
+            return new MethodKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
+        }
+
+        public static MethodKey ofUpgradedMethod(String containingType, UpgradedMethod upgradedMethod) {
+            return new MethodKey(containingType, upgradedMethod.getName(), upgradedMethod.getDescriptor());
+        }
+
+        public static MethodKey ofNewMethod(JApiMethod jApiMethod) {
+            String name = jApiMethod.getName();
+            String descriptor = jApiMethod.getNewMethod().get().getSignature();
+            String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
+            return new MethodKey(containingType, name, descriptor);
+        }
+
+        public static MethodKey ofOldMethod(JApiMethod jApiMethod) {
+            String name = jApiMethod.getName();
+            String descriptor = jApiMethod.getOldMethod().get().getSignature();
+            String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
+            return new MethodKey(containingType, name, descriptor);
+        }
+
+        @Override
+        public String toString() {
+            return containingType + "#" + methodName + descriptor;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            MethodKey that = (MethodKey) o;
+            return Objects.equals(containingType, that.containingType) && Objects.equals(methodName, that.methodName) && Objects.equals(descriptor, that.descriptor);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(containingType, methodName, descriptor);
         }
     }
 }

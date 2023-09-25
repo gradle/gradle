@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility.upgrades;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.MethodKey;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
@@ -40,9 +41,9 @@ import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
 
 public class UpgradedProperties {
 
-    private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z0-9].*");
-    private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z0-9].*");
-    private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z0-9].*");
+    private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z].*");
+    private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
+    private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
     public static final String OLD_METHODS_OF_UPGRADED_PROPERTIES = "oldMethodsOfUpgradedProperties";
     public static final String SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES = "seenOldMethodsOfUpgradedProperties";
     public static final String CURRENT_METHODS_OF_UPGRADED_PROPERTIES = "currentMethodsOfUpgradedProperties";
@@ -65,8 +66,8 @@ public class UpgradedProperties {
             return false;
         }
 
-        Map<String, UpgradedProperty> currentMethods = context.getUserData(CURRENT_METHODS_OF_UPGRADED_PROPERTIES);
-        Map<String, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        Map<MethodKey, UpgradedProperty> currentMethods = context.getUserData(CURRENT_METHODS_OF_UPGRADED_PROPERTIES);
+        Map<MethodKey, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
             return isOldSetterOfUpgradedProperty(jApiMethod, oldMethods) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldMethods);
@@ -79,56 +80,45 @@ public class UpgradedProperties {
         return false;
     }
 
-    private static boolean isOldSetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldSetterOfUpgradedProperty(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, SETTER_REGEX);
     }
 
-    private static boolean isOldGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, GETTER_REGEX);
     }
 
-    private static boolean isOldBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods) {
+    private static boolean isOldBooleanGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> upgradedMethods) {
         return isOldMethod(jApiMethod, upgradedMethods, BOOLEAN_GETTER_REGEX) && jApiMethod.getReturnType().getOldReturnType().equals("boolean");
     }
 
-    private static boolean isOldMethod(JApiMethod jApiMethod, Map<String, UpgradedProperty> upgradedMethods, Pattern pattern) {
+    private static boolean isOldMethod(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> upgradedMethods, Pattern pattern) {
         String name = jApiMethod.getName();
         if (!pattern.matcher(name).matches()) {
             return false;
         }
-        String descriptor = jApiMethod.getOldMethod().get().getSignature();
-        String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-        return upgradedMethods.containsKey(getMethodKey(containingType, name, descriptor));
+        return upgradedMethods.containsKey(MethodKey.ofOldMethod(jApiMethod));
     }
 
-    private static boolean isCurrentGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<String, UpgradedProperty> currentMethods) {
+    private static boolean isCurrentGetterOfUpgradedProperty(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> currentMethods) {
         return isCurrentMethod(jApiMethod, currentMethods, GETTER_REGEX);
     }
 
-    private static boolean isCurrentMethod(JApiMethod jApiMethod, Map<String, UpgradedProperty> currentMethods, Pattern pattern) {
+    private static boolean isCurrentMethod(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> currentMethods, Pattern pattern) {
         String name = jApiMethod.getName();
         if (!pattern.matcher(name).matches()) {
             return false;
         }
-        String descriptor = jApiMethod.getNewMethod().get().getSignature();
-        String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-        return currentMethods.containsKey(getMethodKey(containingType, name, descriptor));
+        return currentMethods.containsKey(MethodKey.ofNewMethod(jApiMethod));
     }
 
-    public static Optional<String> maybeGetKeyOfOldMethodOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
+    public static Optional<MethodKey> maybeGetKeyOfOldMethodOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
         if (!(jApiCompatibility instanceof JApiMethod) || !((JApiMethod) jApiCompatibility).getOldMethod().isPresent()) {
             return Optional.empty();
         }
         JApiMethod jApiMethod = (JApiMethod) jApiCompatibility;
-        String name = jApiMethod.getName();
-        Map<String, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
-        String descriptor = jApiMethod.getOldMethod().get().getSignature();
-        String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-        String key = getMethodKey(containingType, name, descriptor);
+        Map<MethodKey, UpgradedProperty> oldMethods = context.getUserData(OLD_METHODS_OF_UPGRADED_PROPERTIES);
+        MethodKey key = MethodKey.ofOldMethod(jApiMethod);
         return oldMethods.containsKey(key) ? Optional.of(key) : Optional.empty();
-    }
-
-    public static String getMethodKey(String containingType, String methodName, String descriptor) {
-        return containingType + "#" + methodName + descriptor;
     }
 }

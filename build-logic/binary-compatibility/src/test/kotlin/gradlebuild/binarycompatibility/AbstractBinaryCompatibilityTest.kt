@@ -303,9 +303,9 @@ abstract class AbstractBinaryCompatibilityTest {
                     val extractGradleApiInfo = tasks.register<ExtractGradleApiInfoTask>("extractGradleApiInfo") {
                         gradleApiInfoJarPrefix = "v"
                         currentDistributionJars = files(v2Jar)
-                        baseDistributionJars = files(v1Jar)
+                        baselineDistributionJars = files(v1Jar)
                         currentUpgradedProperties = newUpgradedPropertiesFile
-                        baseUpgradedProperties = oldUpgradedPropertiesFile
+                        baselineUpgradedProperties = oldUpgradedPropertiesFile
                     }
 
                     tasks.register<JapicmpTask>("checkBinaryCompatibility") {
