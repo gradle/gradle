@@ -76,7 +76,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         0 * _
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
         ]
@@ -87,7 +87,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         then:
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
@@ -282,7 +282,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API)
+            (USAGE_ATTRIBUTE): named(Usage, JAVA_API)
         ]
 
         when:

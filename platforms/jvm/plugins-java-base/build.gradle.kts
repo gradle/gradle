@@ -47,9 +47,6 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributions-jvm")) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 
     testFixturesImplementation(project(":internal-integ-testing"))
