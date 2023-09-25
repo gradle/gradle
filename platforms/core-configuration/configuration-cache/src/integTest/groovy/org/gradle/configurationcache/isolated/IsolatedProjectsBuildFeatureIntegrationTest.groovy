@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.isolated
 
-
 class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "build feature indicates requested and active status"() {
@@ -26,9 +25,9 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
             def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.getOrNull()
                     println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
-                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.get()
+                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.getOrNull()
                     println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
                 }
             }
@@ -38,7 +37,16 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         run "something"
         then:
         fixture.assertNoConfigurationCache()
-        outputContains("configurationCache.requested=false")
+        outputContains("configurationCache.requested=null")
+        outputContains("configurationCache.active=false")
+        outputContains("isolatedProjects.requested=null")
+        outputContains("isolatedProjects.active=false")
+
+        when:
+        run "something", "-Dorg.gradle.unsafe.isolated-projects=false"
+        then:
+        fixture.assertNoConfigurationCache()
+        outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=false")
         outputContains("isolatedProjects.requested=false")
         outputContains("isolatedProjects.active=false")
@@ -49,7 +57,7 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         fixture.assertStateStored {
             projectConfigured(":")
         }
-        outputContains("configurationCache.requested=false")
+        outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=true")
         outputContains("isolatedProjects.requested=true")
         outputContains("isolatedProjects.active=true")
@@ -58,7 +66,7 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         isolatedProjectsRun "something"
         then:
         fixture.assertStateLoaded()
-        outputContains("configurationCache.requested=false")
+        outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=true")
         outputContains("isolatedProjects.requested=true")
         outputContains("isolatedProjects.active=true")
@@ -71,9 +79,9 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
             def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.getOrNull()
                     println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
-                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.get()
+                    println "isolatedProjects.requested=" + buildFeatures.isolatedProjects.requested.getOrNull()
                     println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
                 }
             }
@@ -83,7 +91,7 @@ class IsolatedProjectsBuildFeatureIntegrationTest extends AbstractIsolatedProjec
         isolatedProjectsRun "something", "--export-keys"
         then:
         fixture.assertNoConfigurationCache()
-        outputContains("configurationCache.requested=false")
+        outputContains("configurationCache.requested=null")
         outputContains("configurationCache.active=false")
         outputContains("isolatedProjects.requested=true")
         outputContains("isolatedProjects.active=false")

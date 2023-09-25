@@ -17,7 +17,6 @@
 package org.gradle.api.internal.configuration;
 
 import org.gradle.api.configuration.BuildFeature;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
 public class DefaultBuildFeature implements BuildFeature {
@@ -25,9 +24,9 @@ public class DefaultBuildFeature implements BuildFeature {
     private final Provider<Boolean> requested;
     private final Provider<Boolean> active;
 
-    public DefaultBuildFeature(boolean requested, boolean active) {
-        this.requested = Providers.of(requested);
-        this.active = Providers.of(active);
+    public DefaultBuildFeature(Provider<Boolean> requested, Provider<Boolean> active) {
+        this.requested = requested;
+        this.active = active;
     }
 
     @Override

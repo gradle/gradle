@@ -19,6 +19,10 @@ package org.gradle.api.internal.configuration;
 import org.gradle.api.configuration.BuildFeature;
 import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 
 import javax.inject.Inject;
@@ -30,8 +34,8 @@ public class DefaultBuildFeatures implements BuildFeatures {
 
     @Inject
     public DefaultBuildFeatures(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        this.configurationCache = createConfigurationCacheFeature(startParameter, buildModelParameters);
-        this.isolatedProjects = createIsolatedProjectsFeature(startParameter, buildModelParameters);
+        this.configurationCache = createConfigurationCache(startParameter, buildModelParameters);
+        this.isolatedProjects = createIsolatedProjects(startParameter, buildModelParameters);
     }
 
     @Override
@@ -44,15 +48,19 @@ public class DefaultBuildFeatures implements BuildFeatures {
         return isolatedProjects;
     }
 
-    private static BuildFeature createConfigurationCacheFeature(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        boolean isRequested = startParameter.getConfigurationCache().get();
-        boolean isActive = buildModelParameters.isConfigurationCache();
+    private static BuildFeature createConfigurationCache(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
+        Provider<Boolean> isRequested = getRequestedProvider(startParameter.getConfigurationCache());
+        Provider<Boolean> isActive = Providers.of(buildModelParameters.isConfigurationCache());
         return new DefaultBuildFeature(isRequested, isActive);
     }
 
-    private static BuildFeature createIsolatedProjectsFeature(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        boolean isRequested = startParameter.getIsolatedProjects().get();
-        boolean isActive = buildModelParameters.isIsolatedProjects();
+    private static BuildFeature createIsolatedProjects(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
+        Provider<Boolean> isRequested = getRequestedProvider(startParameter.getIsolatedProjects());
+        Provider<Boolean> isActive = Providers.of(buildModelParameters.isIsolatedProjects());
         return new DefaultBuildFeature(isRequested, isActive);
+    }
+
+    private static ProviderInternal<Boolean> getRequestedProvider(Option.Value<Boolean> configurationCacheOption) {
+        return Providers.ofNullable(configurationCacheOption.isExplicit() ? configurationCacheOption.get() : null);
     }
 }

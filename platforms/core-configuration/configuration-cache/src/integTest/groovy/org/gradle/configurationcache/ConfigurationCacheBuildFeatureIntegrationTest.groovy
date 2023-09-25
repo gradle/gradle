@@ -28,7 +28,7 @@ class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfiguratio
             def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.getOrNull()
                     println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
                 }
             }
@@ -36,6 +36,13 @@ class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfiguratio
 
         when:
         run "something"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("configurationCache.requested=null")
+        outputContains("configurationCache.active=false")
+
+        when:
+        run "something", "--no-configuration-cache"
         then:
         configurationCache.assertNoConfigurationCache()
         outputContains("configurationCache.requested=false")
@@ -65,7 +72,7 @@ class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfiguratio
             def buildFeatures = gradle.services.get(BuildFeatures)
             tasks.register("something") {
                 doLast {
-                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.get()
+                    println "configurationCache.requested=" + buildFeatures.configurationCache.requested.getOrNull()
                     println "configurationCache.active=" + buildFeatures.configurationCache.active.get()
                 }
             }

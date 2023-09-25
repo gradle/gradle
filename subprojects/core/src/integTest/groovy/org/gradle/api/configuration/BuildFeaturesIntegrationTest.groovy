@@ -28,7 +28,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
                 abstract BuildFeatures getBuildFeatures()
 
                 void apply(Settings s) {
-                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().get()
+                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().getOrNull()
                 }
             }
 
@@ -39,7 +39,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache}")
+        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache ? "true" : "null"}")
     }
 
     def "can inject service into project plugin"() {
@@ -49,7 +49,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
                 abstract BuildFeatures getBuildFeatures()
 
                 void apply(Project p) {
-                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().get()
+                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().getOrNull()
                 }
             }
 
@@ -60,6 +60,6 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache}")
+        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache ? "true" : "null"}")
     }
 }
