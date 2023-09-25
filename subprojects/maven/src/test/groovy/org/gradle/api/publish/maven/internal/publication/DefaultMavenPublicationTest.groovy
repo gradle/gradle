@@ -21,26 +21,33 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
+import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
@@ -239,7 +246,7 @@ class DefaultMavenPublicationTest extends Specification {
     def "adopts module dependency from added component"() {
         given:
         def publication = createPublication()
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalDependency)
         def artifact = Mock(DependencyArtifact) {
             getName() >> "dep-name"
             getClassifier() >> "artifact-classifier"
@@ -276,7 +283,7 @@ class DefaultMavenPublicationTest extends Specification {
     def "filters self referencing module dependency from added component"() {
         given:
         def publication = createPublication()
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalDependency)
         def excludeRule = Mock(ExcludeRule)
 
         when:
@@ -304,7 +311,7 @@ class DefaultMavenPublicationTest extends Specification {
             getClassifier() >> "artifact-classifier"
             getType() >> "artifact-type"
         }
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalDependency)
         def excludeRule = Mock(ExcludeRule)
 
         when:
@@ -337,7 +344,7 @@ class DefaultMavenPublicationTest extends Specification {
     def "adopts non-transitive module dependency from added component"() {
         given:
         def publication = createPublication()
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalDependency)
         def artifact = Mock(DependencyArtifact) {
             getName() >> "dep-name"
             getClassifier() >> "artifact-classifier"
@@ -377,7 +384,7 @@ class DefaultMavenPublicationTest extends Specification {
     def 'adopts platform in #scope declaration from added components'() {
         given:
         def publication = createPublication()
-        def moduleDependency = Mock(ModuleDependency)
+        def moduleDependency = Mock(ExternalDependency)
 
         when:
         moduleDependency.group >> "plat-group"
@@ -586,17 +593,29 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def objectFactory = TestUtil.objectFactory()
         def versionRangeMapper = Mock(VersionRangeMapper) {
             map(_) >> { "mapped-" + it[0] }
         }
+        def objectFactory = TestUtil.createTestServices {
+            it.add(PlatformSupport, DependencyManagementTestUtil.platformSupport())
+            it.add(VersionRangeMapper, versionRangeMapper)
+            it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
+            it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
+            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
+            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+            it.add(DefaultDependencyCoordinateResolverFactory)
+        }.get(ObjectFactory)
 
         def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {
             findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)
         }
-        def publication = objectFactory.newInstance(DefaultMavenPublication.class, "pub-name", module, notationParser, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory(),
-            AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, versionMappingStrategy, DependencyManagementTestUtil.platformSupport(),
-            versionRangeMapper, Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
+        def publication = objectFactory.newInstance(DefaultMavenPublication,
+            "pub-name",
+            module,
+            notationParser,
+            versionMappingStrategy
+        )
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication

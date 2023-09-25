@@ -118,7 +118,7 @@ class Codecs(
     includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
-    javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+    val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
 ) {
@@ -201,7 +201,6 @@ class Codecs(
 
             // Java serialization integration
             bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
-            bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
             bind(BeanSpecCodec)
 
@@ -232,17 +231,19 @@ class Codecs(
     }
 
     private
-    fun Bindings.completeWithReentrantBeanCodec() = append {
-        // This protects the BeanCodec against StackOverflowErrors but
+    fun Bindings.completeWithStatefulCodecs() = append {
+        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+
+        // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         // The reentrant codec is stateful, and cannot be cached because of it.
         bind(reentrant(BeanCodec))
     }.build()
 
-    fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithReentrantBeanCodec()
+    fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
 
-    fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithReentrantBeanCodec()
+    fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
 
     private
     val internalTypesBindings = Bindings.of {
