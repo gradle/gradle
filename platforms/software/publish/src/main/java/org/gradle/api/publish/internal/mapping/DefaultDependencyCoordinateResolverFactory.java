@@ -16,7 +16,8 @@
 
 package org.gradle.api.publish.internal.mapping;
 
-import org.gradle.api.InvalidUserCodeException;
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -72,7 +73,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
             boolean useResolvedCoordinates = resolutionBackedVariant.getPublishResolvedCoordinates();
             if (useResolvedCoordinates && configuration == null) {
-                throw new InvalidUserCodeException("Cannot enable dependency mapping without configuring a resolution configuration.");
+                throw new InvalidUserDataException("Cannot enable dependency mapping without configuring a resolution configuration.");
             } else if (useResolvedCoordinates) {
 
                 ComponentDependencyResolver componentResolver = new ResolutionBackedComponentDependencyResolver(
@@ -97,7 +98,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
         VariantVersionMappingStrategyInternal versionMapping = versionMappingStrategy.findStrategyForVariant(attributes);
 
         // Fallback to component coordinate mapping if variant mapping is not enabled
-        ComponentDependencyResolver componentResolver;
+        ComponentDependencyResolver componentResolver = null;
         if (versionMapping.isEnabled()) {
             if (versionMapping.getUserResolutionConfiguration() != null) {
                 configuration = versionMapping.getUserResolutionConfiguration();
@@ -108,13 +109,15 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
                 // if the dependency mapping configuration is not set.
                 configuration = versionMapping.getDefaultResolutionConfiguration();
             }
+
+            if (configuration != null) {
+                componentResolver = USE_LEGACY_VERSION_MAPPING
+                    ? new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration)
+                    : new ResolutionBackedComponentDependencyResolver(configuration, moduleIdentifierFactory, projectDependencyResolver);
+            }
         }
 
-        if (configuration != null) {
-            componentResolver = USE_LEGACY_VERSION_MAPPING
-                ? new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration)
-                : new ResolutionBackedComponentDependencyResolver(configuration, moduleIdentifierFactory, projectDependencyResolver);
-        } else {
+        if (componentResolver == null) {
             // Both version mapping and dependency mapping are disabled
             componentResolver = new ProjectOnlyComponentDependencyResolver(projectDependencyResolver);
         }
@@ -149,7 +152,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
     /**
      * A {@link ComponentDependencyResolver} which does not depend on resolving a dependency graph.
      */
-    private static class ProjectOnlyComponentDependencyResolver implements ComponentDependencyResolver {
+    @VisibleForTesting
+    static class ProjectOnlyComponentDependencyResolver implements ComponentDependencyResolver {
 
         private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
