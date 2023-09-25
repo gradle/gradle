@@ -22,8 +22,10 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Build features applicable for the main build and any included builds.
+ * Provides information about various build features supported by Gradle,
+ * and their state in the current build.
  *
+ * @see BuildFeature
  * @since 8.5
  */
 @Incubating
@@ -31,14 +33,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildFeatures {
 
     /**
-     * Information about the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> build feature.
+     * State the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature in the build.
      *
      * @since 8.5
      */
     BuildFeature getConfigurationCache();
 
     /**
-     * Information about the Isolated Projects feature in the build.
+     * State of the Isolated Projects feature in the build.
      *
      * @since 8.5
      */
