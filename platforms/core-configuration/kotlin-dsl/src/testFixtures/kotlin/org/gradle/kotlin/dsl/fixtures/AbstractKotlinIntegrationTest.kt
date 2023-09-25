@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.zipTo
@@ -354,10 +353,5 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun assumeJava11OrHigher() {
         assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
-    }
-
-    protected
-    fun assumeNonEmbeddedGradleExecuter() {
-        assumeFalse(GradleContextualExecuter.isEmbedded())
     }
 }

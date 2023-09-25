@@ -32,6 +32,8 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -203,9 +205,11 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Class path isolation, tested here, is not correct in embedded mode"
+    )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
-
-        assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
         val differentKotlinVersion = "1.6.0"
         val expectedKotlinCompilerVersionString = "1.6.0"

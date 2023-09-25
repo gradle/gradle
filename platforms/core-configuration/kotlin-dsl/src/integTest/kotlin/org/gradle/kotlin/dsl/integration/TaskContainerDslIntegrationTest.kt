@@ -26,6 +26,8 @@ import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
 import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
@@ -38,17 +40,13 @@ import kotlin.reflect.KClass
 
 class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @Before
-    fun doNotRunEmbedded() {
-        assumeNonEmbeddedGradleExecuter() // Due to testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir)
-    }
-
     private
     val dslTestFixture: DslTestFixture by lazy {
         DslTestFixture(projectRoot)
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container api`() {
 
         testTaskContainerVia(
@@ -123,6 +121,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope api`() {
 
         testTaskContainerVia(
@@ -198,6 +197,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container delegated properties`() {
 
         testTaskContainerVia(
@@ -261,6 +261,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope delegated properties`() {
 
         testTaskContainerVia(
@@ -340,6 +341,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope string invoke`() {
 
         testTaskContainerVia(
