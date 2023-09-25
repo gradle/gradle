@@ -330,6 +330,16 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 * Either start gradle using `-Porg.gradle.java.installations.auto-download=false`
 * Or put `org.gradle.java.installations.auto-download=false` into a `gradle.properties` file.
 
+[[sub:remove_auto_provisioned_toolchain]]
+=== How to remove an auto-provisioned toolchain
+
+To properly remove an auto-provisioned toolchain, you can remove or modify any reference to the toolchain from `settings.gradle.kts` or `settings.gradle`
+
+[NOTE]
+====
+<<gradle_daemon.adoc#sec:stopping_an_existing_daemon,Stop the Gradle Daemon>> to clear the cache before running the build again.
+====
+
 [[sec:custom_loc]]
 == Custom toolchain locations
 
