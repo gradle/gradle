@@ -100,6 +100,11 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     options.getServer().set(false);
                     options.getSuspend().set(false);
                 });
+            } else {
+                ((Test) test).debugOptions(javaDebugOptions -> {
+                    DefaultJavaDebugOptions options = (DefaultJavaDebugOptions) javaDebugOptions;
+                    options.getEnabled().set(false);
+                });
             }
         }
     }
@@ -109,6 +114,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
             for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
+                configureTestTask(testTask);
                 for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
@@ -150,6 +156,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         forEachTaskIn(plan, task -> {
             if (task instanceof AbstractTestTask) {
                 AbstractTestTask testTask = (AbstractTestTask) task;
+                configureTestTask(testTask);
                 for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
@@ -163,6 +170,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
             for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
+                configureTestTask(testTask);
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
                         includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
