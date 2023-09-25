@@ -44,6 +44,7 @@ public class UpgradedProperties {
     private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z].*");
     private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
     private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
+    private static final String BOOLEAN_GETTER_DESCRIPTOR = "()Z";
     public static final String OLD_METHODS_OF_UPGRADED_PROPERTIES = "oldMethodsOfUpgradedProperties";
     public static final String SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES = "seenOldMethodsOfUpgradedProperties";
     public static final String CURRENT_METHODS_OF_UPGRADED_PROPERTIES = "currentMethodsOfUpgradedProperties";
@@ -60,6 +61,17 @@ public class UpgradedProperties {
         }
     }
 
+    /**
+     * Automatically accept changes that are valid property upgrades of a getter or setter.
+     *
+     * Here we automatically accept the following cases:
+     * - A setter `setX` of an upgraded property is removed
+     * - A boolean `isX` of an upgraded property is removed
+     * - A new getter `getX` is added, where the old getter is a boolean getter `isX` of an upgraded property
+     * - A return type is changed for a getter `getX` of an upgraded property
+     *
+     * We don't automatically accept changes when the @since annotation is missing, because we want to keep this information on the API.
+     */
     public static boolean shouldAcceptForUpgradedProperty(JApiMethod jApiMethod, Violation violation, ViolationCheckContext context) {
         if (violation.getHumanExplanation().startsWith(SINCE_ERROR_MESSAGE)) {
             // We still want to report the violation if @since is not added to a method
@@ -71,10 +83,10 @@ public class UpgradedProperties {
 
         if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
             return isOldSetterOfUpgradedProperty(jApiMethod, oldMethods) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldMethods);
+        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
+            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods) && hasOldGetterOfUpgradedPropertyBooleanReturnType(jApiMethod, oldMethods, currentMethods);
         } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods) && isOldGetterOfUpgradedProperty(jApiMethod, oldMethods);
-        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS)) {
-            return isCurrentGetterOfUpgradedProperty(jApiMethod, currentMethods);
         }
 
         return false;
@@ -110,6 +122,15 @@ public class UpgradedProperties {
             return false;
         }
         return currentMethods.containsKey(MethodKey.ofNewMethod(jApiMethod));
+    }
+
+    private static boolean hasOldGetterOfUpgradedPropertyBooleanReturnType(JApiMethod jApiMethod, Map<MethodKey, UpgradedProperty> oldMethods, Map<MethodKey, UpgradedProperty> currentMethods) {
+        UpgradedProperty property = currentMethods.get(MethodKey.ofNewMethod(jApiMethod));
+        if (property != null) {
+            String oldName = "is" + property.getPropertyName().substring(0, 1).toUpperCase() + property.getPropertyName().substring(1);
+            return oldMethods.containsKey(MethodKey.of(property.getContainingType(), oldName, BOOLEAN_GETTER_DESCRIPTOR));
+        }
+        return false;
     }
 
     public static Optional<MethodKey> maybeGetKeyOfOldMethodOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {

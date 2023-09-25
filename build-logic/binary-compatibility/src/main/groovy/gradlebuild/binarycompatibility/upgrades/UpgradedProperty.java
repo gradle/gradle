@@ -99,22 +99,14 @@ public class UpgradedProperty {
         private final String methodName;
         private final String descriptor;
 
-        public MethodKey(String containingType, String methodName, String descriptor) {
+        private MethodKey(String containingType, String methodName, String descriptor) {
             this.containingType = containingType;
             this.methodName = methodName;
             this.descriptor = descriptor;
         }
 
-        public String getMethodName() {
-            return methodName;
-        }
-
-        public String getDescriptor() {
-            return descriptor;
-        }
-
-        public String getContainingType() {
-            return containingType;
+        public static MethodKey of(String containingType, String methodName, String descriptor) {
+            return new MethodKey(containingType, methodName, descriptor);
         }
 
         public static MethodKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
@@ -153,7 +145,9 @@ public class UpgradedProperty {
                 return false;
             }
             MethodKey that = (MethodKey) o;
-            return Objects.equals(containingType, that.containingType) && Objects.equals(methodName, that.methodName) && Objects.equals(descriptor, that.descriptor);
+            return Objects.equals(containingType, that.containingType)
+                && Objects.equals(methodName, that.methodName)
+                && Objects.equals(descriptor, that.descriptor);
         }
 
         @Override
