@@ -17,6 +17,8 @@
 
 Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>.
 
+image::author-gradle-1.png[]
+
 [[dir:gradle_user_home]]
 == Gradle User Home directory
 
@@ -140,10 +142,11 @@ It is common to share a single Gradle User Home between multiple versions of Gra
 As stated above, caches in Gradle User Home are version-specific.
 Different versions of Gradle will perform maintenance on only the version-specific caches associated with each version.
 
-On the other hand, other caches are shared between versions (e.g., the dependency artifact cache or the artifact transform cache).
+On the other hand, some caches are shared between versions (e.g., the dependency artifact cache or the artifact transform cache).
 
 Beginning with Gradle version 8.0, the cache cleanup settings can be configured to custom retention periods.
-However, older versions have retention periods that are fixed (7 or 30 days, depending on the cache) and, so the shared caches could be accessed by versions of Gradle with different settings for the retention of cache artifacts.
+However, older versions have retention periods that are fixed (7 or 30 days, depending on the cache).
+These shared caches could be accessed by versions of Gradle with different settings for the retention of cache artifacts.
 
 This means that:
 

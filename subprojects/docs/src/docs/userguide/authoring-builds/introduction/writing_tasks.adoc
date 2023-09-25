@@ -17,7 +17,9 @@
 
 The work that Gradle can do on a project is defined by one or more _tasks_.
 
-A task represents some atomic piece of work which a build performs.
+image::author-gradle-1.png[]
+
+A task represents some atomic piece of work that a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 You run a Gradle build using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory.
@@ -45,17 +47,17 @@ include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 
 [TIP]
 ====
-The `-q` option suppresses Gradle's log messages, so that only the output of the tasks is shown.
+The `-q` option suppresses Gradle's log messages, so only the tasks' output is shown.
 ====
 
-In the example, the build script defines a single task, called `hello`, and adds an action to it.
+In the example, the build script defines a single task called `hello`, and adds an action.
 
-When you run `./gradlew hello`, Gradle executes the `hello` task, which in turn executes the action you've provided.
+When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
 The action is simply a block containing some code to execute: `println("Hello world!")`.
 
 == Available tasks
 
-Even if your build script is empty, Gradle provides a number of default tasks for a project which are listed by running `./gradlew tasks`:
+Even if your build script is empty, Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
 
 [source]
 ----
@@ -74,7 +76,7 @@ buildEnvironment - Displays all buildscript dependencies declared in root projec
 ...
 ----
 
-Once we apply a plugin to our project such as the `application` plugin, the default tasks available include:
+Once we apply a plugin to our project, such as the `application` plugin, the default tasks available include:
 
 [source]
 ----
@@ -102,18 +104,18 @@ compileJava - Compiles main Java source.
 ...
 ----
 
-This is because the `application` plugin code contains additional tasks which are now available in your project.
+This is because the `application` plugin code contains additional tasks now available in your project.
 
 == Task types
 
-There are two types of tasks:
+Two types of tasks can be executed:
 
 1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
 2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
 
 == Built-in tasks
 
-Gradle provides many built-in tasks with common and popular functionality such as copying or deleting files.
+Gradle provides many built-in tasks with common and popular functionality, such as copying or deleting files.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
 
@@ -158,9 +160,9 @@ The dependency of `taskX` to `taskY` may be declared before `taskY` is defined.
 [[sec:dynamic_tasks]]
 == Flexible task registration
 
-Groovy or Kotlin can be used for more than defining what a task does.
+The capabilities of the Groovy or Kotlin language can be used in a task.
 
-As an example, you can use it to register multiple tasks of the same type in a loop:
+As an example, you can register multiple tasks of the same type in a loop:
 
 ====
 include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
@@ -206,21 +208,6 @@ They add an action to the beginning or the end of the task's actions list.
 When the task executes, the actions in the action list are executed in order.
 
 [[sec:using_methods]]
-== Using methods
-
-Gradle scales in how you can organize your build logic.
-
-The first level of organizing your build logic for the example above, is extracting a method:
-
-====
-include::sample[dir="snippets/tutorial/antLoadfileWithMethod/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/antLoadfileWithMethod/groovy", files="build.gradle[]"]
-
-----
-$ gradle -q loadfile
-include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMethod.out[]
-----
-====
 
 [[sec:default_tasks]]
 == Default tasks

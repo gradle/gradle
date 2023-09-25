@@ -17,6 +17,8 @@
 
 In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
 
+image::author-gradle-1.png[]
+
 Then, for each project included in the settings file, Gradle creates a `Project()` instance.
 
 Gradle then looks for a corresponding build script file which is used in the configuration phase.
@@ -284,7 +286,7 @@ application {
 
 Tasks performs some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
-You add tasks to a project using the `TaskContainer.register(java.lang.String)` method.
+You add OR DEFININING? tasks to a project using the `TaskContainer.register(java.lang.String)` method:
 
 [source]
 ----
@@ -296,7 +298,7 @@ tasks.register<Zip>("zip-reports") {
 }
 ----
 
-You can locate existing tasks using the `TaskCollection.name(java.lang.String)` method:
+You can locate existing tasks (to update the configuration, or modfiy...) using the `TaskCollection.named(java.lang.String)` method:
 
 [source]
 ----
@@ -305,7 +307,7 @@ tasks.named<Test>("test") {
 }
 ----
 
-While best practice is to define tasks via plugins, tasks can be added to build scripts directly.
+While tasks can be added in build scripts, best practice is to define tasks via plugins, tasks can be added to build scripts directly.
 
 == Build scripting
 

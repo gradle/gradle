@@ -17,6 +17,8 @@
 
 The settings file is the entry point of every Gradle project.
 
+image::author-gradle-1.png[]
+
 Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initialization,initialization phase>> finds the settings file in your <<directory_layout#dir:project_root,project root directory>>.
 
 When the settings file `settings.gradle(.kts)` is found, Gradle instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] object.

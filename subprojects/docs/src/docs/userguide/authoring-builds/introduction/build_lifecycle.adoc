@@ -17,6 +17,8 @@
 
 Gradle is an example of *dependency-based programming*: you define tasks and dependencies between tasks.
 
+image::author-gradle-1.png[]
+
 Gradle guarantees that these tasks will execute in order of their dependencies.
 Your build scripts and plugins configure this dependency graph.
 
