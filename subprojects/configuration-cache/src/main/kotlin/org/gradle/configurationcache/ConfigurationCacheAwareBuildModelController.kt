@@ -50,9 +50,9 @@ class ConfigurationCacheAwareBuildModelController(
         } // Else, already done
     }
 
-    override fun scheduleRequestedTasks(selector: EntryTaskSelector?, plan: ExecutionPlan) {
+    override fun scheduleRequestedTasks(selector: EntryTaskSelector?, plan: ExecutionPlan, isModelBuildingRequested: Boolean) {
         if (!maybeLoadFromCache()) {
-            delegate.scheduleRequestedTasks(selector, plan)
+            delegate.scheduleRequestedTasks(selector, plan, isModelBuildingRequested)
         } // Else, already scheduled
     }
 

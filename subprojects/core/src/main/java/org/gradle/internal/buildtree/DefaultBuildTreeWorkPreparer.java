@@ -32,13 +32,13 @@ public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     }
 
     @Override
-    public BuildTreeWorkGraph.FinalizedGraph scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector) {
+    public BuildTreeWorkGraph.FinalizedGraph scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector, boolean isModelBuildingRequested) {
         targetBuildController.prepareToScheduleTasks();
         return graph.scheduleWork(graphBuilder -> {
             if (selector != null) {
                 graphBuilder.addFinalization(targetBuild, selector::postProcessExecutionPlan);
             }
-            graphBuilder.withWorkGraph(targetBuild, builder -> builder.addRequestedTasks(selector));
+            graphBuilder.withWorkGraph(targetBuild, builder -> builder.addRequestedTasks(selector, isModelBuildingRequested));
         });
     }
 }

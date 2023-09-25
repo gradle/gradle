@@ -400,8 +400,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addRequestedTasks(@Nullable EntryTaskSelector selector) {
-            modelController.scheduleRequestedTasks(selector, plan);
+        public void addRequestedTasks(@Nullable EntryTaskSelector selector, boolean isModelBuildingRequested) {
+            modelController.scheduleRequestedTasks(selector, plan, isModelBuildingRequested);
         }
 
         @Override

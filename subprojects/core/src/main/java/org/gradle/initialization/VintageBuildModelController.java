@@ -72,8 +72,8 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
-    public void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan) {
-        state.inState(Stage.Configured, () -> taskExecutionPreparer.scheduleRequestedTasks(gradle, selector, plan));
+    public void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested) {
+        state.inState(Stage.Configured, () -> taskExecutionPreparer.scheduleRequestedTasks(gradle, selector, plan, isModelBuildingRequested));
     }
 
     private void prepareSettings() {

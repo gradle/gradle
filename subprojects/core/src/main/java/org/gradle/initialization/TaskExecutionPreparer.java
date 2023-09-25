@@ -28,5 +28,5 @@ import javax.annotation.Nullable;
  * <p>This includes resolving the entry tasks and calculating the task graph.</p>
  */
 public interface TaskExecutionPreparer {
-    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
+    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested);
 }

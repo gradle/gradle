@@ -44,7 +44,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         val executionResult = workGraph.withNewWorkGraph { graph ->
             val result = cache.loadOrScheduleRequestedTasks(
                 graph = graph,
-                scheduler = { workPreparer.scheduleRequestedTasks(graph, taskSelector) },
+                scheduler = { workPreparer.scheduleRequestedTasks(graph, taskSelector, isModelBuildingRequested) },
                 graphBuilder = scheduleTaskSelectorPostProcessing,
                 isModelBuildingRequested = isModelBuildingRequested
             )

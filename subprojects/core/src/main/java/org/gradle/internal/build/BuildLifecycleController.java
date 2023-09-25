@@ -140,7 +140,7 @@ public interface BuildLifecycleController {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
          */
-        void addRequestedTasks(@Nullable EntryTaskSelector selector);
+        void addRequestedTasks(@Nullable EntryTaskSelector selector, boolean isModelBuildingRequested);
 
         /**
          * Adds the given tasks and their dependencies to the work graph for this build.

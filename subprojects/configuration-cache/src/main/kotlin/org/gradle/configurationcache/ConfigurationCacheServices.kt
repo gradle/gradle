@@ -23,15 +23,22 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.initialization.SyncWorkaroundTaskExecutionPreparer
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.ProblemFactory
+import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.execution.BuildTaskScheduler
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.initialization.DefaultTaskExecutionPreparer
+import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
@@ -82,6 +89,32 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
+            addProvider(TaskExecutionPreparerProvider)
+        }
+    }
+
+    private
+    object TaskExecutionPreparerProvider {
+        fun createTaskExecutionPreparerProvider(
+            buildTaskScheduler: BuildTaskScheduler,
+            buildOperationExecutor: BuildOperationExecutor,
+            buildModelParameters: BuildModelParameters,
+            /** In non-CC builds, [ProblemsListener] and [ProblemFactory] are not registered; accepting a list here is a way to ignore its absence. */
+            problemsListener: List<ProblemsListener>,
+            problemFactory: List<ProblemFactory>
+        ): TaskExecutionPreparer {
+            val defaultTaskExecutionPreparer = DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationExecutor, buildModelParameters)
+            return when {
+                buildModelParameters.isConfigurationCache ->
+                    SyncWorkaroundTaskExecutionPreparer(
+                        buildModelParameters,
+                        problemsListener.single(),
+                        problemFactory.single(),
+                        defaultTaskExecutionPreparer
+                    )
+
+                else -> defaultTaskExecutionPreparer
+            }
         }
     }
 

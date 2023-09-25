@@ -41,7 +41,7 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested) {
         gradle.getOwner().getProjects().withMutableStateOfAllProjects(() -> {
             buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan);
 

@@ -27,5 +27,5 @@ public interface BuildTreeWorkPreparer {
     /**
      * Prepares the given work graph for execution. May configure the build model and calculate the task graph from this, or may load a cached task graph if available.
      */
-    BuildTreeWorkGraph.FinalizedGraph scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector);
+    BuildTreeWorkGraph.FinalizedGraph scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector, boolean isModelBuildingRequested);
 }

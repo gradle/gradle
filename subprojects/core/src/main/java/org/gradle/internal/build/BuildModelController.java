@@ -51,5 +51,5 @@ public interface BuildModelController {
     /**
      * Schedules the user requested tasks for this build into the given plan.
      */
-    void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan);
+    void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested);
 }
