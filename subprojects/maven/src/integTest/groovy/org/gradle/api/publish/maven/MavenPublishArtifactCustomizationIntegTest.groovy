@@ -193,7 +193,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
             + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.jar")}")
     }
 
@@ -207,7 +207,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             publications {
                 mavenCustom(MavenPublication) {
                     from components.java
-                    artifacts = ["customFile.txt"]
+                    artifacts = []
+                    artifact source: "customFile.txt", extension: "csv"
                 }
             }
 
@@ -216,9 +217,9 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
             + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.txt")}\n"
-            + "- extension differs from component artifact: (artifact) jar != (best match) txt")
+            + "- extension differs from component artifact: (artifact) jar != (best match) csv")
     }
 
     /**
@@ -241,7 +242,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n"
+        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
             + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile-foobar.jar")}\n"
             + "- classifier differs from component artifact: (artifact)  != (best match) foobar")
     }

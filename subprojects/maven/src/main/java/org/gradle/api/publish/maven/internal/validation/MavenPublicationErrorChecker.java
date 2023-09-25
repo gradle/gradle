@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.validation;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -26,6 +27,7 @@ import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Static util class containing publication checks specific to Maven publications.
@@ -43,13 +45,13 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
      * <p>
      * Should only be called after publication is populated from the component.
      *
+     * @param componentName name of the component
      * @param source original artifact
      * @param mainArtifacts set of published artifacts to verify
      * @throws PublishException if the artifacts are modified
      */
-    public static void checkThatArtifactIsPublishedUnmodified(PublishArtifact source, DefaultMavenArtifactSet mainArtifacts) {
-        // Do we want to allow _additional_ artifacts to published? If not, we need to completely associate the source and artifacts
-        // at a higher level. As-is, this just verifies that none are removed from the components artifacts.
+    public static void checkThatArtifactIsPublishedUnmodified(String componentName, PublishArtifact source, DefaultMavenArtifactSet mainArtifacts) {
+        // Note: this just verifies that no component artifact has been removed. Additional artifacts are allowed.
         MavenArtifact bestMatch = null;
         Set<Difference> bestMatchDifferences = null;
         for (MavenArtifact mavenArtifact : mainArtifacts) {
@@ -60,6 +62,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             if (!source.getExtension().equals(mavenArtifact.getExtension())) {
                 difference.add(Difference.EXTENSION);
             }
+            // Necessary as the classifier can be converted from an empty string to null
             if (!Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
                 difference.add(Difference.CLASSIFIER);
             }
@@ -76,10 +79,12 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
             throw new PublishException("Cannot publish module metadata because it does not contain any artifacts.");
         }
         String differences = getDifferences(source, bestMatch, bestMatchDifferences);
-        throw new PublishException("Cannot publish module metadata because an artifact from a component has been removed. The best match had these problems:\n" + differences);
+        throw new PublishException("Cannot publish module metadata because an artifact from the '" + componentName +
+            "' component has been removed. The best match had these problems:\n" + differences);
     }
 
     private static String getDifferences(PublishArtifact source, MavenArtifact bestMatch, Set<Difference> bestMatchDifferences) {
+        Preconditions.checkArgument(!bestMatchDifferences.isEmpty(), "Empty differences should not be passed to this method");
         return bestMatchDifferences.stream().map(diff -> {
             switch (diff) {
                 case FILE:
@@ -91,7 +96,7 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
                 default:
                     throw new IllegalArgumentException("Unknown difference: " + diff);
             }
-        }).reduce((a, b) -> a + "\n" + b).orElseThrow(() -> new IllegalStateException("Empty differences should not be passed to this method"));
+        }).collect(Collectors.joining("\n"));
     }
 
     @NonNullApi

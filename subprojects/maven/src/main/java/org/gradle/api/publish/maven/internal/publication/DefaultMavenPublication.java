@@ -502,7 +502,9 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     @Override
     public PublishedFile getPublishedFile(final PublishArtifact source) {
         populateFromComponent();
-        MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(source, mainArtifacts);
+        if (getComponent().isPresent()) {
+            MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(getComponent().get().getName(), source, mainArtifacts);
+        }
         final String publishedUrl = getPublishedUrl(source);
         final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
