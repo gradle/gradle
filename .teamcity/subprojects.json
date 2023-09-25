@@ -688,7 +688,7 @@
   {
     "name": "plugins-java-base",
     "path": "platforms/jvm/plugins-java-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
