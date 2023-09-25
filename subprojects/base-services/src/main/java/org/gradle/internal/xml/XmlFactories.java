@@ -41,7 +41,7 @@ public final class XmlFactories {
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return dbf;
         } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Unable to create secure DocumentBuilderFactory", e);
+            throw new RuntimeException(errorMessageFor("DocumentBuilderFactory"), e);
         }
     }
 
@@ -51,11 +51,11 @@ public final class XmlFactories {
             spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return spf;
         } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Unable to create secure SAXParserFactory", e);
+            throw new RuntimeException(errorMessageFor("SAXParserFactory"), e);
         } catch (SAXNotSupportedException e) {
-            throw new RuntimeException("Unable to create secure SAXParserFactory", e);
+            throw new RuntimeException(errorMessageFor("SAXParserFactory"), e);
         } catch (SAXNotRecognizedException e) {
-            throw new RuntimeException("Unable to create secure SAXParserFactory", e);
+            throw new RuntimeException(errorMessageFor("SAXParserFactory"), e);
         }
     }
 
@@ -65,7 +65,7 @@ public final class XmlFactories {
             xpf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return xpf;
         } catch (XPathFactoryConfigurationException e) {
-            throw new RuntimeException("Unable to create secure XPathFactory", e);
+            throw new RuntimeException(errorMessageFor("XPathFactory"), e);
         }
     }
 
@@ -75,8 +75,12 @@ public final class XmlFactories {
             tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             return tf;
         } catch (TransformerConfigurationException e) {
-            throw new RuntimeException("Unable to create secure TransformerFactory", e);
+            throw new RuntimeException(errorMessageFor("TransformerFactory"), e);
         }
+    }
+
+    private static String errorMessageFor(String factory) {
+        return "Unable to create secure " + factory + ", please make sure that your build does not depend on an old XML parser.";
     }
 
     private XmlFactories() {}
