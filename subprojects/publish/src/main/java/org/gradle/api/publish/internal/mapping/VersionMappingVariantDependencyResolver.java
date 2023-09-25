@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.internal.mapping;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -138,5 +139,10 @@ public class VersionMappingVariantDependencyResolver implements ComponentDepende
             return projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         }
         return selected.getModuleVersion();
+    }
+
+    @VisibleForTesting
+    public Configuration getVersionMappingConfiguration() {
+        return versionMappingConfiguration;
     }
 }

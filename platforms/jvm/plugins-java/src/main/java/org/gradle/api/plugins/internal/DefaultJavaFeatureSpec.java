@@ -92,17 +92,17 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         if (withJavadocJar && component != null) {
             feature.withJavadocJar();
             Configuration javadocElements = feature.getJavadocElementsConfiguration();
-            component.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+            component.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true, null));
         }
         if (withSourcesJar && component != null) {
             feature.withSourcesJar();
             Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-            component.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+            component.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true, null));
         }
 
         if (allowPublication && component != null) {
-            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
-            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true, feature.getCompileClasspathConfiguration()));
+            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true, feature.getRuntimeClasspathConfiguration()));
         }
     }
 

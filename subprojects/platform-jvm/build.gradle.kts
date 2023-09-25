@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":platform-base"))
     implementation(project(":process-services"))
+    implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":enterprise-operations"))
 

@@ -51,6 +51,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -106,7 +107,12 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         ResolvedComponentResult rootComponent = resolutionResult.getRoot();
         ResolvedVariantResult rootVariant = rootComponent.getVariants().stream()
             .filter(x -> x.getDisplayName().equals(resolutionConfiguration.getName()))
-            .findFirst().get();
+            .findFirst().orElse(null);
+
+        if (rootVariant == null) {
+            // Happens when the resolved configuration has no dependencies.
+            return new ResolvedMappings(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet(), Collections.emptySet());
+        }
 
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
