@@ -93,6 +93,23 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
         succeeds('help')
     }
 
+    def 'can create project directories in afterEvaluate'() {
+        given:
+        settingsFile << '''
+        include 'has-no-dir'
+        def collectChildren(def obj) {
+            [obj] + obj.getChildren().collectMany { collectChildren(it) }
+        }
+        gradle.settingsEvaluated { settings ->
+            collectChildren(settings.rootProject).each { project ->
+                project.projectDir.mkdirs()
+            }
+        }
+        '''
+        expect:
+        succeeds(':has-no-dir:help')
+    }
+
     private List<BuildOperationRecord> operations() {
         buildOperations.all(EvaluateSettingsBuildOperationType)
     }
