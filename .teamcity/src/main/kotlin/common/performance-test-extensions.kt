@@ -68,15 +68,6 @@ subprojects/*/build/tmp/**/profile.log => failure-logs
 subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
-fun BuildSteps.killGradleProcessesStep(os: Os) {
-    script {
-        name = "KILL_GRADLE_PROCESSES"
-        executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = os.killAllGradleProcesses
-        skipConditionally()
-    }
-}
-
 // to avoid pathname too long error
 fun BuildSteps.substDirOnWindows(os: Os) {
     if (os == Os.WINDOWS) {
@@ -104,15 +95,13 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
     }
 }
 
-fun BuildType.cleanUpPerformanceBuildDir(os: Os) {
+fun BuildSteps.cleanUpPerformanceBuildDir(os: Os) {
     if (os == Os.WINDOWS) {
-        steps {
-            script {
-                name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
-                skipConditionally()
-            }
+        script {
+            name = "CLEAN_UP_PERFORMANCE_BUILD_DIR"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo Directory removed) || (echo Directory not found) """
+            skipConditionally()
         }
     }
 }
