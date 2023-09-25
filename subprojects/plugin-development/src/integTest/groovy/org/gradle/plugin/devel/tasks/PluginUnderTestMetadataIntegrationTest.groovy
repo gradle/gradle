@@ -17,9 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.internal.GUtil
 
 import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
@@ -36,9 +34,6 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
         expectReindentedValidationMessage()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "fails the task for null plugin classpath and output directory"() {
         given:
         buildFile << """

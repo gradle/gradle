@@ -18,9 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.internal.TextUtil
 
@@ -417,9 +415,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         skipped ":jar"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
+
     def "cannot create a JAR without destination dir"() {
         given:
         buildFile << """
@@ -432,6 +428,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         fails('jar')
 
         then:
+        // TODO We are producing the wrong message here: this should be a missingNonConfigurableValueMessage
+        //   However, because of the type of the object returned by `getArchiveFile()` is a `Property`,
+        //   we assume it's mutable, even though the _return type_ is `Provider`.
+        //   We will produce the correct message after https://github.com/gradle/gradle/issues/26141 is fixed.
         failureDescriptionContains(missingValueMessage { type('org.gradle.api.tasks.bundling.Jar').property('archiveFile') })
     }
 

@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
-import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.util.Path
@@ -152,7 +151,7 @@ class DefaultResolutionResultTest extends Specification {
     }
 
     private static ResolutionResult newResolutionResult(root) {
-        new DefaultResolutionResult({ root } as Factory, ImmutableAttributes.EMPTY)
+        new DefaultResolutionResult(new DefaultMinimalResolutionResult(() -> root, ImmutableAttributes.EMPTY, null))
     }
 
 }

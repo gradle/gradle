@@ -35,6 +35,24 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         e.message == "Unable to read dependency verification metadata"
     }
 
+    def "reasonable error message when external xml entities are used"() {
+
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE data [
+          <!ENTITY file SYSTEM "file://external.txt">
+        ]>
+        <verification-metadata>
+            &file;
+        </verification-metadata>
+        """
+
+        then:
+        DependencyVerificationException e = thrown()
+        e.message == "Unable to read dependency verification metadata"
+        e.cause.message.contains("DOCTYPE is disallowed")
+    }
+
     def "can parse file with namespace declaration"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

@@ -23,9 +23,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -420,9 +418,6 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
         checkCompileOutput('Cannot find matching method java.lang.String#bar()')
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST
-    )
     def "failsBecauseOfMissingConfigFile"() {
         Assume.assumeFalse(versionLowerThan("2.1"))
         expectReindentedValidationMessage()

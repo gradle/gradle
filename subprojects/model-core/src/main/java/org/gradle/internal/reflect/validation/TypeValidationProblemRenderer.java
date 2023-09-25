@@ -34,15 +34,6 @@ import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class TypeValidationProblemRenderer {
 
-    // We should get rid of this method quickly, as the validation message
-    // system was designed to display the same message unconditionally
-    // whatever asks for it, when it should be the responisiblity of the
-    // consumer to render it as they need. For example, an HTML renderer
-    // may use the same information differently
-//    public static String renderMinimalInformationAbout(TypeValidationProblem problem) {
-//        return renderMinimalInformationAbout(problem, true);
-//    }
-
     public static String renderMinimalInformationAbout(Problem problem) {
         return renderMinimalInformationAbout(problem, true);
     }
@@ -59,7 +50,7 @@ public class TypeValidationProblemRenderer {
             formatter.node("Reason: " + capitalize(endLineWithDot(problem.getDetails())));
         });
         if (renderSolutions) {
-            renderNewSolutions(formatter, problem.getSolutions());
+            renderSolutionsWithNewProblemsApi(formatter, problem.getSolutions());
         }
         if (renderDocLink) {
             ofNullable(problem.getDocumentationLink()).ifPresent(docLink -> {
@@ -68,23 +59,6 @@ public class TypeValidationProblemRenderer {
             });
         }
         return formatter.toString();
-    }
-
-    private static void renderNewSolutions(TreeFormatter formatter, List<String> possibleSolutions) {
-        int solutionCount = possibleSolutions.size();
-        if (solutionCount > 0) {
-            formatter.blankLine();
-            if (solutionCount == 1) {
-                formatter.node("Possible solution: " + capitalize(endLineWithDot(possibleSolutions.get(0))));
-            } else {
-                formatter.node("Possible solutions");
-                formatter.startNumberedChildren();
-                possibleSolutions.forEach(solution ->
-                    formatter.node(capitalize(endLineWithDot(solution)))
-                );
-                formatter.endChildren();
-            }
-        }
     }
 
     public static void renderSolutionsWithNewProblemsApi(TreeFormatter formatter, List<String> possibleSolutions) {

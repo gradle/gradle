@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -38,10 +39,13 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.metadata.DependencyAttributesValidator;
 import org.gradle.api.publish.internal.metadata.EnforcedPlatformPublicationValidator;
 import org.gradle.api.publish.internal.metadata.GradleModuleMetadataWriter;
+import org.gradle.api.publish.internal.metadata.InvalidPublicationChecker;
 import org.gradle.api.publish.internal.metadata.ModuleMetadataSpec;
+import org.gradle.api.publish.internal.metadata.ModuleMetadataSpecBuilder;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -90,8 +94,13 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
     private final SetProperty<String> suppressedValidationErrors;
 
+    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
+
     public GenerateModuleMetadata() {
-        ObjectFactory objectFactory = getProject().getObjects();
+        Project project = getProject();
+        ObjectFactory objectFactory = project.getObjects();
+        this.dependencyCoordinateResolverFactory = ((ProjectInternal) project).getServices().get(DependencyCoordinateResolverFactory.class);
+
         publication = Transient.of(objectFactory.property(Publication.class));
         publications = Transient.of(objectFactory.listProperty(Publication.class));
 
@@ -216,12 +225,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private GradleModuleMetadataWriter moduleMetadataWriter() {
-        return new GradleModuleMetadataWriter(
-            getBuildInvocationScopeId(),
-            getProjectDependencyPublicationResolver(),
-            getChecksumService(),
-            getPath(),
-            dependencyAttributeValidators());
+        return new GradleModuleMetadataWriter(getBuildInvocationScopeId(), getChecksumService());
     }
 
     private List<DependencyAttributesValidator> dependencyAttributeValidators() {
@@ -256,7 +260,17 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
-        return moduleMetadataWriter().moduleMetadataSpecFor(publication(), publications());
+        PublicationInternal<?> publication = publication();
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath());
+        ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
+            publication,
+            publications(),
+            checker,
+            dependencyCoordinateResolverFactory,
+            dependencyAttributeValidators()
+        ).build();
+        checker.validate();
+        return spec;
     }
 
     static class InputState {

@@ -29,13 +29,13 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -55,20 +55,24 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.Factories
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.dispatch.Dispatch
@@ -87,6 +91,8 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -374,7 +380,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def failure = new ResolveException("bad", new RuntimeException())
 
         and:
-        _ * resolver.resolveGraph(_) >> DefaultResolverResults.failed(failure, failure)
+        _ * resolver.resolveGraph(_) >> new ErrorHandlingConfigurationResolver.BrokenResolverResults(failure)
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
@@ -478,7 +484,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     }
 
     private void expectResolved(Set<File> files) {
-        def resolutionResults = stubResolutionResults()
+        def resolutionResults = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY, null)
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
@@ -499,20 +505,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(resolutionResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
     }
 
-    private ResolutionResult stubResolutionResults() {
-        def resolutionResults
-        resolutionResults = Stub(ResolutionResult) {
-            hashCode() >> 123
-            equals(_) >> {
-                it[0].is(resolutionResults)
-            }
-            getRoot() >> Stub(ResolvedComponentResult)
-        }
-        resolutionResults
-    }
 
     private void expectResolved(Throwable failure) {
-        def resolutionResults = Stub(ResolutionResult)
+        def resolutionResults = Mock(MinimalResolutionResult)
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
@@ -521,6 +516,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
             visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l -> v.visitFailure(failure) }
         }
         _ * resolvedConfiguration.hasError() >> true
+        _ * resolvedConfiguration.getLenientConfiguration() >> Stub(LenientConfiguration)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
         def graphResults = DefaultResolverResults.graphResolved(resolutionResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
@@ -588,7 +584,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifactSet)
+        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Mock(MinimalResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifactSet)
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1096,7 +1092,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def result = stubResolutionResults()
+        def resolvedComponentResult = Mock(ResolvedComponentResult)
+        Supplier<ResolvedComponentResult> rootSource = () -> resolvedComponentResult
+        def result = new DefaultMinimalResolutionResult(rootSource, ImmutableAttributes.EMPTY, null)
 
         resolves(config, result, Mock(ResolvedConfiguration))
 
@@ -1104,10 +1102,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def out = config.incoming.resolutionResult
 
         then:
-        out.root == result.root
+        out.root == result.rootSource.get()
     }
 
-    def resolves(ConfigurationInternal config, ResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
+    def resolves(ConfigurationInternal config, MinimalResolutionResult resolutionResult, ResolvedConfiguration resolvedConfiguration) {
         def localComponentsResult = Mock(ResolvedLocalComponentsResult)
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
@@ -1118,7 +1116,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(resolutionResult, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
         resolver.resolveArtifacts(config, _ as ResolverResults) >> { ResolveContext conf, ResolverResults res ->
-            DefaultResolverResults.artifactsResolved(res.resolutionResult, res.resolvedLocalComponents, resolvedConfiguration, visitedArtifactSet)
+            DefaultResolverResults.artifactsResolved(res.minimalResolutionResult, res.resolvedLocalComponents, resolvedConfiguration, visitedArtifactSet)
         }
     }
 
@@ -1126,7 +1124,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def parent = conf("parent", ":parent")
         def config = conf("conf")
         config.extendsFrom parent
-        def result = Mock(ResolutionResult)
+        def result = Mock(MinimalResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
 
         when:
@@ -1143,7 +1141,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         when:
         config = conf("conf")
-        def result = Mock(ResolutionResult)
+        def result = Mock(MinimalResolutionResult) {
+            getRootSource() >> Mock(Supplier)
+        }
         resolves(config, result, Mock(ResolvedConfiguration))
         config.incoming.getResolutionResult().root
 
@@ -1170,7 +1170,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(Mock(MinimalResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
         1 * resolver.getRepositories() >> []
         0 * resolver._
     }
@@ -1189,13 +1189,16 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == UNRESOLVED
 
         and:
-        1 * resolver.resolveBuildDependencies(config) >> DefaultResolverResults.buildDependenciesResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
+        1 * resolver.resolveBuildDependencies(config) >> DefaultResolverResults.buildDependenciesResolved(Mock(MinimalResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts())
         0 * resolver._
     }
 
     def "resolving graph for task dependencies, and then resolving it for results does not re-resolve graph"() {
         def config = conf("conf")
-        def graphResults = DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        def minimalResolutionResult = Mock(MinimalResolutionResult) {
+            getRootSource() >> Mock(Supplier)
+        }
+        def graphResults = DefaultResolverResults.graphResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
 
         given:
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
@@ -1220,13 +1223,16 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         0 * resolver._
     }
 
     def "resolves graph when result requested after resolving task dependencies"() {
         def config = conf("conf")
-        def graphResults = DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        def minimalResolutionResult = Mock(MinimalResolutionResult) {
+            getRootSource() >> Mock(Supplier)
+        }
+        def graphResults = DefaultResolverResults.graphResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
 
         given:
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> false
@@ -1250,15 +1256,18 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
     }
 
     def "resolving configuration for results, and then resolving task dependencies required does not re-resolve graph"() {
         def config = conf("conf")
-        def graphResults = DefaultResolverResults.graphResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        def minimalResolutionResult = Mock(MinimalResolutionResult) {
+            getRootSource() >> Mock(Supplier)
+        }
+        def graphResults = DefaultResolverResults.graphResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
 
         given:
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> graphResolveRequired
@@ -1272,7 +1281,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         and:
         1 * resolver.resolveGraph(config) >> graphResults
-        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(Stub(ResolutionResult), Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
+        1 * resolver.resolveArtifacts(config, _) >> DefaultResolverResults.artifactsResolved(minimalResolutionResult, Stub(ResolvedLocalComponentsResult), Stub(ResolvedConfiguration), visitedArtifacts())
         1 * resolver.getRepositories() >> []
         0 * resolver._
 
@@ -1326,7 +1335,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "copied configuration is not resolved"() {
         def config = conf("conf")
-        def result = Mock(ResolutionResult)
+        def result = Mock(MinimalResolutionResult)
 
         given:
         resolves(config, result, Mock(ResolvedConfiguration))
@@ -1362,7 +1371,9 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     def "mutations are prohibited after resolution"() {
         def conf = conf("conf")
-        def result = Mock(ResolutionResult)
+        def result = Mock(MinimalResolutionResult) {
+            getRootSource() >> Mock(Supplier)
+        }
 
         given:
         resolves(conf, result, Mock(ResolvedConfiguration))
@@ -1858,7 +1869,7 @@ All Artifacts:
     // You need to wrap this in an interaction {} block when calling it
     private ResolvedConfiguration resolveConfig(ConfigurationInternal config) {
         def resolvedConfiguration = Mock(ResolvedConfiguration)
-        def resolutionResult = Mock(ResolutionResult)
+        def resolutionResult = Mock(MinimalResolutionResult)
 
         resolves(config, resolutionResult, resolvedConfiguration)
         resolvedConfiguration

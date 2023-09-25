@@ -17,7 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
+import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -75,7 +75,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
                                         // .collect() is intentional for a better error message on failure
                                         // The 6 elements are: junit, hamcrest, test classes and resources, main classes and resources
                                         assert classpath.collect().size() == 6
-                                        assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
+                                        assert classpath.any { it.name == "junit-${JUnit4TestToolchain.DEFAULT_VERSION}.jar" }
                                     }
                                 }
                             }

@@ -9,6 +9,7 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Philipp Schneider](https://github.com/p-schneider),
 
 ## Upgrade instructions
 
@@ -50,6 +51,36 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="ear-plugin"></a>
+### Ear Plugin
+
+It is now possible to generate valid deployment descriptors for Java EE 8, Jakarta EE 9 and Jakarta EE 10
+by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+
+```kotlin
+tasks.ear {
+    deploymentDescriptor {  // custom entries for application.xml:
+        version = "10"
+    }
+}
+```
+
+<a name="wrapper-improvements"></a>
+### Wrapper Improvements
+
+The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](userguide/gradle_wrapper.html) (in short just “Wrapper”).
+The Wrapper invokes a declared version of Gradle, downloading it beforehand if necessary.
+
+#### Smaller Wrapper JAR
+
+The Wrapper JAR file size was reduced from ~65K down to ~45K by eliminating dead code.
+
+#### Wrapper JAR LICENSE File
+
+The Wrapper JAR now contains a `META-INF/LICENSE` file.
+This alleviates any doubts about the licensing of the Wrapper JAR file.
+Like the Gradle Build Tool, its Wrapper is licensed under the Apache Software License 2.0.
+The JAR file is now self-attributing and you don't need to consider whether you need to add a separate `LICENSE` file whenever you place that JAR file in your codebases.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

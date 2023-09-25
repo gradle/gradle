@@ -103,9 +103,9 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         try {
             return doSelect(producer, ignoreWhenNoMatches, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging());
         } catch (ArtifactVariantSelectionException t) {
-            return failureProcessor.unknownSelectionFailure(schema, t);
+            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, t);
         } catch (Exception t) {
-            return failureProcessor.unknownSelectionFailure(schema, producer, t);
+            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, t);
         }
     }
 
@@ -124,7 +124,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
             AttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
-            throw failureProcessor.ambiguousVariantSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded, describer);
+            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded, describer);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -141,14 +141,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingVariantsSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw failureProcessor.noMatchingArtifactVariantFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     /**

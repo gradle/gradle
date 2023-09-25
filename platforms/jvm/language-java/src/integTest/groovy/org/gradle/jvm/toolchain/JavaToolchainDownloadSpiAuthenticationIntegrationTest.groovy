@@ -16,17 +16,22 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
+import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static JavaToolchainDownloadUtil.singleUrlResolverCode
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.DEFAULT_PLUGIN
+
+class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     HttpServer server
 
     TestFile toolchainArchive
-    String archiveUri
+    URI archiveUri
 
     def setup() {
         toolchainArchive = createZip('toolchain.zip') {
@@ -35,21 +40,12 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
 
         server.start()
 
-        archiveUri = server.uri.resolve("/path/toolchain.zip").toString()
+        archiveUri = server.uri.resolve("/path/toolchain.zip")
     }
 
     def "can download without authentication"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                        }
-                    }
-                }
-            }
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(archiveUri))}
         """
 
         buildFile << """
@@ -84,25 +80,27 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     }
 
     def "can download with basic authentication"() {
-        settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('custom') {
-                            resolverClass = CustomToolchainResolver
-                            credentials {
-                                username "user"
-                                password "password"
-                            }
-                            authentication {
-                                digest(BasicAuthentication)
+        settingsFile <<
+            applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(archiveUri), DEFAULT_PLUGIN,
+                """
+                    toolchainManagement {
+                        jvm {
+                            javaRepositories {
+                                repository('custom') {
+                                    resolverClass = CustomToolchainResolver
+                                    credentials {
+                                        username "user"
+                                        password "password"
+                                    }
+                                    authentication {
+                                        digest(BasicAuthentication)
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
-        """
+                """
+        )
 
         buildFile << """
             apply plugin: "java"
@@ -133,20 +131,5 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
                    "A problem occurred starting process 'command '")
-    }
-
-    private static String customToolchainResolverCode(String uri) {
-        """
-            import java.util.Optional;
-            import org.gradle.platform.BuildPlatform;
-
-            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
-                @Override
-                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    URI uri = URI.create("$uri");
-                    return Optional.of(JavaToolchainDownload.fromUri(uri));
-                }
-            }
-            """
     }
 }

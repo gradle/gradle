@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.internal.dependency;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -30,7 +29,7 @@ public class DefaultIvyDependency implements IvyDependency {
     private final String revision;
     private final String confMapping;
     private final boolean transitive;
-    private final ModuleVersionIdentifier resolvedVersion;
+    private final String revConstraint;
     private final Set<DependencyArtifact> artifacts;
     private final Set<ExcludeRule> excludeRules;
 
@@ -40,7 +39,7 @@ public class DefaultIvyDependency implements IvyDependency {
         String revision,
         String confMapping,
         boolean transitive,
-        @Nullable ModuleVersionIdentifier resolvedVersion,
+        @Nullable String revConstraint,
         Set<DependencyArtifact> artifacts,
         Set<ExcludeRule> excludeRules
     ) {
@@ -49,7 +48,7 @@ public class DefaultIvyDependency implements IvyDependency {
         this.revision = Strings.nullToEmpty(revision);
         this.confMapping = confMapping;
         this.transitive = transitive;
-        this.resolvedVersion = resolvedVersion;
+        this.revConstraint = revConstraint;
         this.excludeRules = excludeRules;
         this.artifacts = artifacts;
     }
@@ -71,8 +70,8 @@ public class DefaultIvyDependency implements IvyDependency {
 
     @Nullable
     @Override
-    public ModuleVersionIdentifier getResolvedVersion() {
-        return resolvedVersion;
+    public String getRevConstraint() {
+        return revConstraint;
     }
 
     @Override

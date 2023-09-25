@@ -9,6 +9,8 @@ body:
         Please search related information in our [latest documentation](https://docs.gradle.org/current/userguide/userguide.html) before opening a documentation issue.
         If you need help with Gradle or have a usage question, please reach [our community](http://help.gradle.org/) instead of creating an issue.
 
+        If you found a clear typo, please open a PR with a fix instead of opening an issue.
+
   - type: dropdown
     id: issue-type
     attributes:
@@ -16,7 +18,7 @@ body:
       options:
         - Wrong or misleading information
         - Missing information
-        - Typo
+        - Typo (please open a PR instead)
     validations:
       required: true
   - type: textarea
@@ -25,7 +27,6 @@ body:
       label: Problem description
       description: |
         Please describe the problem as concisely as possible.
-        If it's a clear typo, consider opening a PR to fix it instead of opening an issue.
     validations:
       required: true
   - type: textarea

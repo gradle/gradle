@@ -159,8 +159,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
             ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-            ResolutionResultInternal result = (ResolutionResultInternal) incoming.getLenientResolutionResult();
-            errorHandler.addErrorProvider(result.getNonFatalFailure());
+            ResolutionResultInternal result = incoming.getLenientResolutionResult();
+            errorHandler.addErrorProvider(result.getExtraFailure());
             rootComponentProperty.set(result.getRootComponent());
         }
         return rootComponentProperty;

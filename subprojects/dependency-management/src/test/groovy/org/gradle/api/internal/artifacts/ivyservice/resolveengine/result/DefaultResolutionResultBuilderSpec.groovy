@@ -60,10 +60,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf4", [])
 
         when:
-        def result = builder.complete(id("root"))
+        def result = builder.getRoot(id("root"))
 
         then:
-        printGraph(result.root) == """x:root:1
+        printGraph(result) == """x:root:1
   x:mid1:1 [root]
     x:leaf1:1 [mid1]
     x:leaf2:1 [mid1]
@@ -87,10 +87,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("b3", [])
 
         when:
-        def result = builder.complete(id("a"))
+        def result = builder.getRoot(id("a"))
 
         then:
-        printGraph(result.root) == """x:a:1
+        printGraph(result) == """x:a:1
   x:b1:1 [a]
     x:b2:1 [a,b1]
       x:b3:1 [a,b1,b2]
@@ -110,10 +110,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def result = builder.complete(id("a"))
+        def result = builder.getRoot(id("a"))
 
         then:
-        printGraph(result.root) == """x:a:1
+        printGraph(result) == """x:a:1
   x:b:1 [a]
     x:c:1 [b]
       x:a:1 [c]
@@ -132,7 +132,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.complete(id("a")).root.dependencies
+        def deps = builder.getRoot(id("a")).dependencies
 
         then:
         def b = deps.find { it.selected.id.module == 'b' }
@@ -152,7 +152,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def a = builder.complete(id("a")).root
+        def a = builder.getRoot(id("a"))
 
         then:
         def b  = first(a.dependencies).selected
@@ -187,10 +187,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf2", [])
 
         when:
-        def result = builder.complete(id("root"))
+        def result = builder.getRoot(id("root"))
 
         then:
-        printGraph(result.root) == """x:root:1
+        printGraph(result) == """x:root:1
   x:mid1:1 [root]
     x:leaf1:1 [mid1]
     x:leaf2:1 [mid1]
@@ -210,10 +210,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
 
         when:
-        def result = builder.complete(id("root"))
+        def result = builder.getRoot(id("root"))
 
         then:
-        def mid1 = first(result.root.dependencies)
+        def mid1 = first(result.dependencies)
         mid1.selected.dependencies.size() == 2
         mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }
@@ -228,10 +228,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [])
 
         when:
-        def result = builder.complete(id("a"))
+        def result = builder.getRoot(id("a"))
 
         then:
-        printGraph(result.root) == """x:a:1
+        printGraph(result) == """x:a:1
   x:b:1 [a]
   x:c:1 [a]
   x:U:1 -> x:U:1 - Could not resolve x:U:1.

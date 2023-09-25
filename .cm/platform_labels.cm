@@ -83,14 +83,14 @@ platforms:
   - bt_ge_build_cache:
     name: 'bt_ge_build_cache'
     subprojects:
-      - 'subprojects/build-cache/'
-      - 'subprojects/build-cache-base/'
-      - 'subprojects/build-cache-http/'
-      - 'subprojects/build-cache-packaging/'
+      - 'platforms/core-execution/build-cache/'
+      - 'platforms/core-execution/build-cache-base/'
+      - 'platforms/core-execution/build-cache-http/'
+      - 'platforms/core-execution/build-cache-packaging/'
       - 'subprojects/build-operations/'
-      - 'subprojects/files/'
-      - 'subprojects/hashing/'
-      - 'subprojects/snapshots/'
+      - 'platforms/core-runtime/files/'
+      - 'platforms/core-execution/hashing/'
+      - 'platforms/core-execution/snapshots/'
   - build_infrastructure:
     name: 'build_infrastructure'
     subprojects:
@@ -111,7 +111,6 @@ platforms:
     name: 'configuration_cache'
     subprojects:
       - 'subprojects/api-metadata/'
-      - 'subprojects/base-annotations/'
       - 'subprojects/base-services-groovy/'
       - 'subprojects/configuration-cache/'
       - 'subprojects/file-collections/'
@@ -123,23 +122,13 @@ platforms:
   - core_execution:
     name: 'core_execution'
     subprojects:
-      - 'subprojects/build-cache/'
-      - 'subprojects/build-cache-base/'
-      - 'subprojects/build-cache-http/'
-      - 'subprojects/build-cache-packaging/'
+      - 'platforms/core-execution/'
       - 'subprojects/build-operations/'
       - 'subprojects/build-profile/'
-      - 'subprojects/execution/'
-      - 'subprojects/file-watchind/'
-      - 'subprojects/files/'
-      - 'subprojects/functional/'
-      - 'subprojects/hashing/'
-      - 'subprojects/snapshots/'
-      - 'subprojects/worker-processes/'
-      - 'subprojects/workers/'
-  - core_execution:
+  - core_runtime:
     name: 'core_runtime'
     subprojects:
+      - 'platforms/core-runtime/'
       - 'subprojects/installation-beacon/'
   - documentation:
     name: 'documentation'
@@ -169,10 +158,7 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/distributions-jvm/'
       - 'subprojects/distributions-publishing/'
-      - 'subprojects/jacoco/'
-      - 'subprojects/java-compiler-plugin/'
       - 'subprojects/jvm-services/'
       - 'subprojects/language-groovy/'
       - 'subprojects/language-java/'
@@ -180,10 +166,6 @@ platforms:
       - 'subprojects/normalization-java/'
       - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
-      - 'subprojects/scala/'
-      - 'subprojects/testing-junit-platform/'
-      - 'subprojects/testing-jvm/'
-      - 'subprojects/testing-jvm-infrastructure/'
   - kotlin_dsl:
     name: 'kotlin_dsl'
     subprojects:
@@ -207,8 +189,7 @@ platforms:
   - software:
     name: 'software'
     subprojects:
-      - 'subprojects/antlr/'
-      - 'subprojects/build-init/'
+      - 'platforms/software/'
       - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
@@ -222,7 +203,6 @@ platforms:
       - 'subprojects/resources-sftp/'
       - 'subprojects/security/'
       - 'subprojects/signing/'
-      - 'subprojects/testing-base/'
       - 'subprojects/version-control/'
 
 author:

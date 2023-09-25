@@ -23,8 +23,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.FileUtils
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
@@ -36,7 +36,7 @@ class DefaultSettingsLoaderTest extends Specification {
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
     def state = Mock(SettingsState)
-    def buildLayout = new BuildLayout(null, FileUtils.canonicalize(new File("someDir")), null, Stub(ScriptFileResolver))
+    def buildLayout = new BuildLocations(null, FileUtils.canonicalize(new File("someDir")), null, Stub(ScriptFileResolver))
     def buildLayoutFactory = Mock(BuildLayoutFactory)
     def settingsScript = Mock(ScriptSource)
     def startParameter = new StartParameterInternal()

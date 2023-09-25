@@ -23,7 +23,11 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     private final List<DependencyGraphVisitor> visitors;
 
     public CompositeDependencyGraphVisitor(DependencyGraphVisitor... visitors) {
-        this.visitors = Arrays.asList(visitors);
+        this(Arrays.asList(visitors));
+    }
+
+    public CompositeDependencyGraphVisitor(List<DependencyGraphVisitor> visitors) {
+        this.visitors = visitors;
     }
 
     @Override

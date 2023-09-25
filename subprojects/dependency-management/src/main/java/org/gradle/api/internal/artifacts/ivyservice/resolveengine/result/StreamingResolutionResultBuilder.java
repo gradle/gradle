@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -29,7 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,6 +42,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -65,7 +67,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final ComponentSelectorSerializer componentSelectorSerializer;
     private final DependencyResultSerializer dependencyResultSerializer;
     private final Set<Long> visitedComponents = new HashSet<>();
-    private final AttributeContainerSerializer attributeContainerSerializer;
     private final AttributeDesugaring desugaring;
 
     private AttributeContainer rootAttributes;
@@ -86,14 +87,13 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
-        this.attributeContainerSerializer = attributeContainerSerializer;
         this.desugaring = desugaring;
     }
 
-    public ResolutionResult complete(Set<UnresolvedDependency> extraFailures) {
+    public MinimalResolutionResult complete(@Nullable ResolveException extraFailure, Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
-        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, attributeContainerSerializer, extraFailures);
-        return new DefaultResolutionResult(rootSource, rootAttributes);
+        RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
+        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes, extraFailure);
     }
 
     @Override
@@ -107,7 +107,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         store.write(encoder -> {
             encoder.writeByte(ROOT);
             encoder.writeSmallLong(root.getOwner().getResultId());
-            attributeContainerSerializer.write(encoder, rootAttributes);
         });
     }
 
@@ -167,18 +166,16 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final Object lock = new Object();
         private final ComponentSelectorSerializer componentSelectorSerializer;
         private final DependencyResultSerializer dependencyResultSerializer;
-        private final AttributeContainerSerializer attributeContainerSerializer;
-        private final Set<UnresolvedDependency> extraFailures;
+        private final Set<UnresolvedDependency> dependencyLockingFailures;
 
-        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer, AttributeContainerSerializer attributeContainerSerializer, Set<UnresolvedDependency> extraFailures) {
+        RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures, Store<ResolvedComponentResult> cache, ComponentSelectorSerializer componentSelectorSerializer, DependencyResultSerializer dependencyResultSerializer, ComponentResultSerializer componentResultSerializer, Set<UnresolvedDependency> dependencyLockingFailures) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
             this.componentResultSerializer = componentResultSerializer;
             this.componentSelectorSerializer = componentSelectorSerializer;
             this.dependencyResultSerializer = dependencyResultSerializer;
-            this.attributeContainerSerializer = attributeContainerSerializer;
-            this.extraFailures = extraFailures;
+            this.dependencyLockingFailures = dependencyLockingFailures;
         }
 
         @Override
@@ -213,9 +210,8 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         case ROOT:
                             // Last entry, complete the result
                             Long rootId = decoder.readSmallLong();
-                            builder.setRequestedAttributes(attributeContainerSerializer.read(decoder));
-                            builder.addExtraFailures(rootId, extraFailures);
-                            ResolvedComponentResult root = builder.complete(rootId).getRoot();
+                            builder.addDependencyLockingFailures(rootId, dependencyLockingFailures);
+                            ResolvedComponentResult root = builder.getRoot(rootId);
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return root;
                         case COMPONENT:
