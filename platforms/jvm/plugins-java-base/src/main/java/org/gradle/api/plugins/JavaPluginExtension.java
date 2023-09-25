@@ -29,16 +29,14 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 /**
- * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
+ * Common configuration for JVM (Java) based projects.
  *
- * This extension would be more appropriately named the {@code JvmPluginExtension} extension.  It
- * is used to configure all JVM-related components.  At present there
- * should only ever be one such component - the {@code java} component added by the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} - but
- * multiple components may be created by JVM language plugins in the future.
+ * This extension is added by the {@link JavaBasePlugin} and would be more appropriately named
+ * the {@code JvmPluginExtension} extension.  It is used to configure many of the project's
+ * JVM-related settings and behavior.
  *
  * @since 4.10
  */
-@SuppressWarnings("JavadocReference")
 public interface JavaPluginExtension {
 
     /**
