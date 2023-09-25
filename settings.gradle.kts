@@ -152,7 +152,6 @@ platform("ide") {
     subproject("problems")
     subproject("tooling-api")
     subproject("tooling-api-builders")
-
 }
 
 // Software Platform
