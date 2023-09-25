@@ -18,9 +18,9 @@ subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-b
 subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
+platforms/core-configuration/configuration-cache/       @gradle/bt-configuration
 subprojects/api-metadata/                       @gradle/bt-configuration
 subprojects/base-services-groovy/               @gradle/bt-configuration
-subprojects/configuration-cache/                @gradle/bt-configuration
 subprojects/file-collections/                   @gradle/bt-configuration
 subprojects/instrumentation-agent/              @gradle/bt-configuration
 subprojects/internal-instrumentation-api/       @gradle/bt-configuration

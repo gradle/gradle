@@ -141,7 +141,7 @@
   },
   {
     "name": "configuration-cache",
-    "path": "subprojects/configuration-cache",
+    "path": "platforms/core-configuration/configuration-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true

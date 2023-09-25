@@ -110,9 +110,9 @@ platforms:
   - cc:
     name: 'configuration_cache'
     subprojects:
+      - 'platforms/core-configuration/configuration-cache/'
       - 'subprojects/api-metadata/'
       - 'subprojects/base-services-groovy/'
-      - 'subprojects/configuration-cache/'
       - 'subprojects/file-collections/'
       - 'subprojects/instrumentation-agent'
       - 'subprojects/internal-instrumentation-api/'
