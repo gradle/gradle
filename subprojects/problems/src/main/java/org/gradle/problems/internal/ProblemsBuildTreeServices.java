@@ -22,7 +22,9 @@ import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.transformers.PluginIdLocationTransformer;
+import org.gradle.problems.transformers.StackLocationTransformer;
 
 import java.util.List;
 
@@ -37,5 +39,9 @@ public class ProblemsBuildTreeServices {
 
     ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, BuildOperationListenerManager buildOperationListenerManager) {
         return new PluginIdLocationTransformer(buildOperationAncestryTracker, buildOperationListenerManager);
+    }
+
+    ProblemTransformer createStackLocationTransformer(ProblemLocationAnalyzer problemLocationAnalyzer) {
+        return new StackLocationTransformer(problemLocationAnalyzer);
     }
 }
