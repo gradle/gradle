@@ -113,15 +113,16 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private ClassPath classes = DefaultClassPath.of();
 
     @Inject
-    public DefaultDependenciesAccessors(ClassPathRegistry registry,
-                                        DependenciesAccessorsWorkspaceProvider workspace,
-                                        DefaultProjectDependencyFactory projectDependencyFactory,
-                                        FeatureFlags featureFlags,
-                                        ExecutionEngine engine,
-                                        FileCollectionFactory fileCollectionFactory,
-                                        InputFingerprinter inputFingerprinter,
-                                        ImmutableAttributesFactory attributesFactory,
-                                        CapabilityNotationParser capabilityNotationParser
+    public DefaultDependenciesAccessors(
+        ClassPathRegistry registry,
+        DependenciesAccessorsWorkspaceProvider workspace,
+        DefaultProjectDependencyFactory projectDependencyFactory,
+        FeatureFlags featureFlags,
+        ExecutionEngine engine,
+        FileCollectionFactory fileCollectionFactory,
+        InputFingerprinter inputFingerprinter,
+        ImmutableAttributesFactory attributesFactory,
+        CapabilityNotationParser capabilityNotationParser
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
@@ -183,7 +184,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
         if (!descriptor.isExplicitName()) {
             LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
-                    "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
+                "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }
     }
 
@@ -248,7 +249,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         ExtensionContainer container = project.getExtensions();
         ProviderFactory providerFactory = project.getProviders();
         try {
-            if (!models.isEmpty()) {
+            if (models.isEmpty()) {
+                addVersionCatalogsProjectExtension(container, Collections.emptyMap());
+            } else {
                 ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
@@ -259,7 +262,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                         }
                     }
                 }
-                container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
+                addVersionCatalogsProjectExtension(container, catalogs.build());
             }
         } finally {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
@@ -269,6 +272,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 createProjectsExtension(container, drm, projectFinder);
             }
         }
+    }
+
+    private void addVersionCatalogsProjectExtension(ExtensionContainer container, Map<String, VersionCatalog> catalogs) {
+        container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs);
     }
 
     private String accessorClassNameSuffix(DefaultVersionCatalog model) {
