@@ -16,12 +16,12 @@
 
 package org.gradle.caching.local.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
 
@@ -32,12 +32,12 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
     }
 
     @Override
-    public void withTempFile(BuildCacheKey key, Action<? super File> action) {
-        String hashCode = key.getHashCode();
+    public void withTempFile(HashCode key, Consumer<? super File> action) {
+        String hashCode = key.toString();
         File tempFile = null;
         try {
             tempFile = temporaryFileProvider.createTemporaryFile(hashCode + "-", PARTIAL_FILE_SUFFIX);
-            action.execute(tempFile);
+            action.accept(tempFile);
         } finally {
             GFileUtils.deleteQuietly(tempFile);
         }

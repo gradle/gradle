@@ -18,10 +18,8 @@ package org.gradle.caching.local.internal
 
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.cache.PersistentCache
-import org.gradle.caching.BuildCacheEntryReader
-import org.gradle.caching.BuildCacheEntryWriter
-import org.gradle.caching.BuildCacheKey
 import org.gradle.internal.file.FileAccessTracker
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,8 +30,9 @@ import spock.lang.Specification
 
 @UsesNativeServices
 @CleanupTestDirectory
-class DirectoryBuildCacheServiceTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+class DirectoryBuildCacheTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.createDir("cache")
     def fileStore = new DefaultPathKeyFileStore(TestUtil.checksumService, cacheDir)
     def persistentCache = Mock(PersistentCache) {
@@ -42,39 +41,29 @@ class DirectoryBuildCacheServiceTest extends Specification {
     }
     def tempFileStore = new DefaultBuildCacheTempFileStore(new DefaultTemporaryFileProvider(() -> cacheDir))
     def fileAccessTracker = Mock(FileAccessTracker)
-    def service = new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, ".failed")
-    def hashCode = "1234abcd"
-    def key = Mock(BuildCacheKey) {
-        getHashCode() >> hashCode
-    }
+    def cache = new DirectoryBuildCache(fileStore, persistentCache, tempFileStore, fileAccessTracker, ".failed")
+    def key = TestHashCodes.hashCodeFrom(12345678)
+    def hashCode = key.toString()
 
     def "does not store partial result"() {
         when:
-        service.store(key, new BuildCacheEntryWriter() {
-            @Override
-            void writeTo(OutputStream output) throws IOException {
-                // Check that partial result file is created inside the cache directory
-                def cacheDirFiles = cacheDir.listFiles()
-                assert cacheDirFiles.length == 1
+        cache.store(key) { output ->
+            // Check that partial result file is created inside the cache directory
+            def cacheDirFiles = cacheDir.listFiles()
+            assert cacheDirFiles.length == 1
 
-                def partialCacheFile = cacheDirFiles[0]
-                assert partialCacheFile.name.startsWith(hashCode)
-                assert partialCacheFile.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX)
+            def partialCacheFile = cacheDirFiles[0]
+            assert partialCacheFile.name.startsWith(hashCode)
+            assert partialCacheFile.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX)
 
-                output << "abcd"
-                throw new RuntimeException("Simulated write error")
-            }
+            output << "abcd"
+            throw new RuntimeException("Simulated write error")
+        }
 
-            @Override
-            long getSize() {
-                return 100
-            }
-        })
         then:
         def ex = thrown RuntimeException
         ex.message == "Simulated write error"
         cacheDir.listFiles() as List == []
-        1 * key.getHashCode() >> hashCode
         0 * fileAccessTracker.markAccessed(_)
     }
 
@@ -86,14 +75,14 @@ class DirectoryBuildCacheServiceTest extends Specification {
         originalFile.text = "bar"
 
         when:
-        service.storeLocally(key, originalFile)
+        cache.storeLocally(key, originalFile)
 
         then:
         1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
         cachedFile.absolutePath.startsWith(cacheDir.absolutePath)
 
         when:
-        service.loadLocally(key, { file ->
+        cache.loadLocally(key, { file ->
             assert file == cachedFile
             assert file.text == "bar"
         })
@@ -106,30 +95,18 @@ class DirectoryBuildCacheServiceTest extends Specification {
         File cachedFile = null
 
         when:
-        service.store(key, new BuildCacheEntryWriter() {
-            @Override
-            void writeTo(OutputStream output) throws IOException {
-                output.write("foo".getBytes())
-            }
-
-            @Override
-            long getSize() {
-                return 100
-            }
-        })
+        cache.store(key) { output ->
+            output.write("foo".getBytes())
+        }
 
         then:
         1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
         cachedFile.absolutePath.startsWith(cacheDir.absolutePath)
 
         when:
-        def loaded = service.load(key, new BuildCacheEntryReader() {
-            @Override
-            void readFrom(InputStream input) throws IOException {
-                assert input.text == "foo"
-            }
-        })
-
+        def loaded = cache.load(key) { input ->
+            assert input.text == "foo"
+        }
         then:
         1 * fileAccessTracker.markAccessed(cachedFile)
         loaded

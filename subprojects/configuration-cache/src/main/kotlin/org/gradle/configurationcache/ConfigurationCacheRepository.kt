@@ -16,14 +16,13 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.internal.CleanupActionDecorator
+import org.gradle.cache.DefaultCacheCleanupStrategy
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy
+import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
@@ -40,6 +39,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.time.TimestampSuppliers
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
