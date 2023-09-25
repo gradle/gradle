@@ -21,15 +21,107 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.zipTo
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import java.io.File
+import java.util.Properties
 
 
+/**
+ * Base class for Kotlin DSL integration tests.
+ *
+ * You must apply the `gradlebuild.kotlin-dsl-plugin-bundle-integ-tests` plugin for this to work.
+ *
+ * You can also set the `kotlinDslTestsExtraRepo` system property
+ * to the path of a maven repository to be injected in all tests.
+ * This is useful for testing new/development Kotlin versions.
+ */
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
+
+    protected
+    open val injectLocalKotlinDslPluginsRepositories = true
+
+    @Before
+    fun injectLocallyBuiltKotlinDslPluginsRepositories() {
+        if (!injectLocalKotlinDslPluginsRepositories) return
+        doInjectLocallyBuiltKotlinDslPluginsRepositories()
+    }
+
+    protected
+    fun doInjectLocallyBuiltKotlinDslPluginsRepositories() {
+        val setupScript = file(".integTest/inject-local-plugins-repos.init.gradle")
+        setupScript.parentFile.mkdirs()
+        setupScript.writeText(
+            """
+            beforeSettings { settings ->
+                settings.pluginManagement {
+                    repositories {
+                        $testRepositories
+                        gradlePluginPortal()
+                    }
+                    resolutionStrategy {
+                        eachPlugin {
+                            $futurePluginRules
+                        }
+                    }
+                }
+            }
+            """
+        )
+        executer.beforeExecute {
+            usingInitScript(setupScript)
+        }
+    }
+
+    @Before
+    fun setUpDefaultSettings() {
+        withDefaultSettings()
+    }
+
+    private
+    val testRepositories: String
+        get() = testRepositoryPaths.joinLines {
+            """
+                maven { url = uri("$it") }
+            """
+        }
+
+    private
+    val futurePluginRules: String
+        get() = futurePluginVersions.entries.joinLines { (id, version) ->
+            """
+                if (requested.id.id == "$id") {
+                    useVersion("$version")
+                }
+            """
+        }
+
+    private
+    val futurePluginVersions by lazy {
+        loadPropertiesFromResource("/future-plugin-versions.properties")
+            ?: throw IllegalStateException("/future-plugin-versions.properties resource not found.")
+    }
+
+    protected
+    val futureKotlinDslPluginVersion: String =
+        futurePluginVersions["org.gradle.kotlin.kotlin-dsl"] as String
+
+    private
+    fun loadPropertiesFromResource(name: String): Properties? =
+        javaClass.getResourceAsStream(name)?.use {
+            Properties().apply { load(it) }
+        }
+
+    private
+    val testRepositoryPaths: List<String>
+        get() = listOfNotNull(
+            IntegrationTestBuildContext().localRepository,
+            System.getProperty("kotlinDslTestsExtraRepo")?.let(::File)
+        ).map(File::normalisedPath)
 
     @Before
     fun useRepositoryMirrors() {
@@ -98,7 +190,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun withFile(fileName: String, text: String = "", produceFile: (String) -> File = ::newFile) =
         writeFile(produceFile(fileName), text)
 
-    protected
+    private
     fun writeFile(file: File, text: String): File =
         file.apply { writeText(text) }
 

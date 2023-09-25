@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Provider"
