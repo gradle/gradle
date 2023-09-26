@@ -21,6 +21,8 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
+
 /**
  * Resolves a build script classpath to a set of files in a composite build, ensuring that the
  * required tasks are executed to build artifacts in included builds.
@@ -32,5 +34,5 @@ public interface ScriptClassPathResolver {
      */
     void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpath);
+    ClassPath resolveClassPath(@Nullable Configuration classpath);
 }
