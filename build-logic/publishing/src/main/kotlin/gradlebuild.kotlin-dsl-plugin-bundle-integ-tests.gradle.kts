@@ -7,7 +7,7 @@ plugins {
 tasks.withType<IntegrationTest>().configureEach {
     // See AbstractKotlinIntegrationTest
     "kotlinDslTestsExtraRepo".let {
-        systemProperty(it, System.getenv(it))
+        systemProperty(it, System.getProperty(it))
     }
 }
 
