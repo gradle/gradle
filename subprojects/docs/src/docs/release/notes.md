@@ -98,17 +98,20 @@ Code which previously used the mutable role properties:
 ```kotlin
 configurations {
     create("implementation") { 
-        isCanBeConsumed = false
+        isCanBeDeclared = true  // Defaults to true
         isCanBeResolved = false 
-    }
-    create("runtimeClasspath") { 
         isCanBeConsumed = false
-        isCanBeDeclared = false
+    }
+    create("runtimeClasspath") {
+        isCanBeDeclared = false 
+        isCanBeResolved = true  // Defaults to true
+        isCanBeConsumed = false
         extendsFrom(configurations["implementation"]) 
     }
     create("runtimeElements") { 
+        isCanBeDeclared = false 
         isCanBeResolved = false
-        isCanBeDeclared = false
+        isCanBeConsumed = true  // Defaults to true
         extendsFrom(configurations["implementation"]) 
     }
 }
@@ -118,11 +121,11 @@ May now use the factory methods:
 ```kotlin
 configurations { 
     dependencyScope("implementation")
-    consumable("apiElements") { 
+    resolvable("runtimeClasspath") {
         extendsFrom(configurations["implementation"]) 
     }
-    resolvable("runtimeClasspath") {
-        extendsFrom(configurations["apiElements"]) 
+    consumable("runtimeElements") { 
+        extendsFrom(configurations["implementation"]) 
     }
 }
 ```
