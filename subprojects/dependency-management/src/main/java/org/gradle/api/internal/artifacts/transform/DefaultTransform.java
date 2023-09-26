@@ -90,9 +90,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
+import static org.gradle.api.problems.ProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -207,7 +208,7 @@ public class DefaultTransform implements Transform {
                         .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
-                        .category(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .category(VALIDATION, CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -368,7 +369,7 @@ public class DefaultTransform implements Transform {
                             .label("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
                             .noLocation()
-                            .category(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                            .category(VALIDATION, ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -388,7 +389,7 @@ public class DefaultTransform implements Transform {
                     .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                     .sorted()
                     .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
+                    .collect(toImmutableList())
             );
         }
 

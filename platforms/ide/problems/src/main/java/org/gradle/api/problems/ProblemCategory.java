@@ -31,6 +31,9 @@ public class ProblemCategory {
 
     public static final int NAMESPACE_START_INDEX = 0;
     public static final String GRADLE_PLUGIN_MARKER = "gradle-plugin";
+    public static final String DEPRECATION = "deprecation";
+    public static final String VALIDATION = "validation";
+
     public static final String SEPARATOR = Path.SEPARATOR;
     protected Path category;
 

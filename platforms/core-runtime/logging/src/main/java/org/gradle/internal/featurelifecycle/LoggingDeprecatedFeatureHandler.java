@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import static org.gradle.api.problems.ProblemCategory.DEPRECATION;
 import static org.gradle.api.problems.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
@@ -93,7 +94,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
                             .documentedAt(usage.getDocumentationUrl());
                         return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
-                            .category("generic_deprecation")
+                            .category(DEPRECATION, "generic_deprecation")
                             .severity(WARNING);
                     }
                 })

@@ -18,12 +18,13 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -60,8 +61,8 @@ public class NestedValidationUtil {
                     .label("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
-                    .category("NESTED_TYPE_UNSUPPORTED")
-                    .severity(Severity.WARNING)
+                    .category(VALIDATION, "NESTED_TYPE_UNSUPPORTED")
+                    .severity(WARNING)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
                     .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
@@ -102,8 +103,8 @@ public class NestedValidationUtil {
                     .label("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .noLocation()
-                    .category("NESTED_MAP_UNSUPPORTED_KEY_TYPE")
-                    .severity(Severity.WARNING)
+                    .category(VALIDATION, "NESTED_MAP_UNSUPPORTED_KEY_TYPE")
+                    .severity(WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())
             );

@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
+import static org.gradle.api.problems.ProblemCategory.SEPARATOR;
+import static org.gradle.api.problems.ProblemCategory.VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
 
@@ -51,7 +53,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     }
 
     public static boolean onlyAffectsCacheableWork(String type) {
-        return new ProblemCategory(MISSING_NORMALIZATION_ANNOTATION).toString().equals(type);
+        return new ProblemCategory(VALIDATION + SEPARATOR + MISSING_NORMALIZATION_ANNOTATION).toString().equals(type);
     }
 
     @Override

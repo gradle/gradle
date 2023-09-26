@@ -529,7 +529,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .category(catalogProblemId.name().toLowerCase())
+            .category(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase())
             .severity(ERROR);
     }
 

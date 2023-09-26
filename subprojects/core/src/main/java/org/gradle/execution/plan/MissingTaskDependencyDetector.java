@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
+import static org.gradle.api.problems.ProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
@@ -173,7 +174,7 @@ public class MissingTaskDependencyDetector {
                 .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
                 .noLocation()
-                .category(IMPLICIT_DEPENDENCY)
+                .category(VALIDATION, IMPLICIT_DEPENDENCY)
                 .severity(Severity.ERROR)
                 .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",

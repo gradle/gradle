@@ -46,6 +46,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static org.gradle.api.problems.ProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
@@ -143,7 +144,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .category(UNKNOWN_IMPLEMENTATION)
+                .category(VALIDATION, UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
@@ -159,7 +160,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
                 .label(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .noLocation()
-                .category(UNKNOWN_IMPLEMENTATION)
+                .category(VALIDATION, UNKNOWN_IMPLEMENTATION)
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
                 .severity(ERROR)
