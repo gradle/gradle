@@ -225,7 +225,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails "tasks"
-        result.assertHasErrorOutput("Can not register feature 'myFeature'.  Can not register features using the java extension if multiple jvm components are present.  These components were found: 'module, thing'.")
+        result.assertHasErrorOutput("Cannot register feature 'myFeature' because multiple JVM components are present.  These components were found: module, thing.")
     }
 
     private static final String factoryRegistrationGroovy() {
