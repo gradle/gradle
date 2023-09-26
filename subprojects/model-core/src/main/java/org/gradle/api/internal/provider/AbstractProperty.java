@@ -326,10 +326,30 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public abstract void disallowUnsafeRead();
 
+        /**
+         * Assigns a new explicit value.
+         *
+         * @param value the new explicit value
+         * @return the new explicit value
+         */
         public abstract S explicitValue(S value);
 
+        /**
+         * Returns the actual value.
+         *
+         * @param value the current explicit value, if any
+         * @param defaultValue the (implicit) default value to fallback to
+         * @return the actual value
+         */
         public abstract S explicitValue(S value, S defaultValue);
 
+        /**
+         * Assigns a new convention value.
+         *
+         * @param value
+         * @param convention
+         * @return the new actual value
+         */
         public abstract S applyConvention(S value, S convention);
 
         public abstract S implicitValue();

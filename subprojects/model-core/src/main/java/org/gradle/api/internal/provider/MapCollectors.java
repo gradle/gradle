@@ -19,10 +19,14 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class MapCollectors {
 
@@ -212,6 +216,58 @@ public class MapCollectors {
         @Override
         public ValueProducer getProducer() {
             return providerOfEntries.getProducer();
+        }
+    }
+
+    public static class FilteringCollector<K, V> implements MapCollector<K, V> {
+        private final MapCollector<K, V> upstream;
+        private final Predicate<K> keyFilter;
+        private final Predicate<V> valueFilter;
+
+        public FilteringCollector(MapCollector<K, V> collector, Predicate<K> keyFilter, Predicate<V> valueFilter) {
+            this.upstream = collector;
+            this.keyFilter = keyFilter;
+            this.valueFilter = valueFilter;
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            ImmutableSet.Builder<K> baseBuilder = ImmutableSet.builder();
+            Value<Void> baseValue = upstream.collectKeys(consumer, collector, baseBuilder);
+            if (baseValue.isMissing()) {
+                return baseValue;
+            }
+            ImmutableCollection<K> baseElements = baseBuilder.build();
+            dest.addAll(Iterables.filter(baseElements, keyFilter::test));
+            return baseValue;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Map<K, V> baseEntries = new LinkedHashMap<>();
+            Value<Void> baseValue = upstream.collectEntries(consumer, collector, baseEntries);
+            if (baseValue.isMissing()) {
+                return baseValue;
+            }
+            Iterables.filter(baseEntries.entrySet(), e -> keyFilter.test(e.getKey()) && valueFilter.test(e.getValue()))
+                .forEach(e -> dest.put(e.getKey(), e.getValue()));
+            return baseValue;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            // TODO-RC should only invoke visitors for entries that match the filter?
+            upstream.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return upstream.calculatePresence(consumer);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return upstream.getProducer();
         }
     }
 }

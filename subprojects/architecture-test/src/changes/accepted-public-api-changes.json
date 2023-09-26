@@ -1,3 +1,84 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.addAllToConvention(java.lang.Iterable)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.addAllToConvention(org.gradle.api.provider.Provider)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.emptyConvention()",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.exclude(java.util.function.Predicate)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.excludeFromConvention(java.util.function.Predicate)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.modifyValue(org.gradle.api.Transformer)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.HasMultipleValues",
+            "member": "Method org.gradle.api.provider.HasMultipleValues.prune()",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.MapProperty",
+            "member": "Method org.gradle.api.provider.MapProperty.exclude(java.util.function.Predicate)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.MapProperty",
+            "member": "Method org.gradle.api.provider.MapProperty.exclude(java.util.function.Predicate,java.util.function.Predicate)",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.MapProperty",
+            "member": "Method org.gradle.api.provider.MapProperty.prune()",
+            "acceptation": "exploratory spike",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }
