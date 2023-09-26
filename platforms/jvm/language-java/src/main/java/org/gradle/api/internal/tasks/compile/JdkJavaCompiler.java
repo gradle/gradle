@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -26,6 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -34,16 +39,19 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private final Problems problems;
 
     @Inject
-    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+    public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, Problems problems) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
+        this.problems = problems;
     }
 
     @Override
@@ -51,15 +59,56 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result);
+        DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result, diagnosticCollector);
         boolean success = task.call();
+        reportProblems(diagnosticCollector);
         if (!success) {
             throw new CompilationFailedException(result);
         }
         return result;
     }
 
-    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result) {
+    private void reportProblems(DiagnosticCollector<JavaFileObject> diagnosticCollector) {
+        for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticCollector.getDiagnostics()) {
+            reportProblem(diagnostic);
+        }
+    }
+
+    private void reportProblem(Diagnostic<? extends JavaFileObject> diagnostic) {
+        String message = diagnostic.getMessage(Locale.getDefault());
+
+        String resourceName = diagnostic.getSource().getName();
+        Integer line = Math.toIntExact(diagnostic.getLineNumber());
+        Integer column = Math.toIntExact(diagnostic.getColumnNumber());
+        Severity severity = mapKindToSeverity(diagnostic.getKind());
+
+        problems.createProblem(problem -> problem
+            .label("urn:gradle:compilation/error/java")
+            .undocumented()
+            .location(resourceName, line, column)
+            .type("compiler_diagnostic")
+            .severity(severity)
+            .details(message)
+        );
+    }
+
+    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return Severity.ERROR;
+            case WARNING:
+            case MANDATORY_WARNING:
+                return Severity.WARNING;
+            case NOTE:
+            case OTHER:
+            default:
+                return Severity.ADVICE;
+        }
+    }
+
+
+    private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result, DiagnosticListener<JavaFileObject> diagnosticListener) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
         JavaCompiler compiler = javaHomeBasedJavaCompilerFactory.create();
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
@@ -68,7 +117,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClassesToProcess(), compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticListener, options, spec.getClassesToProcess(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
                 task,
