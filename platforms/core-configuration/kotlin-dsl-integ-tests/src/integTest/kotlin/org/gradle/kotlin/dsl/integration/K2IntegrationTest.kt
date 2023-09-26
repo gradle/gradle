@@ -18,11 +18,12 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.junit.Test
 
 
-class K2IntegrationTest : AbstractPluginIntegrationTest() {
+class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     val kotlinVersion = KotlinGradlePluginVersions().latestStableOrRC

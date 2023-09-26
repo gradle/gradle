@@ -44,6 +44,13 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.10[Kotlin 1.9.10].
 
+==== XML parsing now requires recent parsers
+
+Gradle 8.4 now configures XML parsers with security features enabled.
+If your build logic has dependencies on old XML parsers that don't support secure parsing your build may now fail.
+If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
+
+
 ==== EAR plugin with customized JEE 1.3 descriptor
 
 Gradle 8.4 forbids external XML entities when parsing XML documents.

@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
@@ -12,7 +12,7 @@ import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class KotlinDslPluginTest : AbstractPluginTest() {
+class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `warns on unexpected kotlin-dsl plugin version`() {
@@ -29,10 +29,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             """
         )
 
-        val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
         build("help").apply {
             assertOutputContains(
-                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$appliedKotlinDslPluginsVersion' has been applied to root project 'forty-two'."
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$futureKotlinDslPluginVersion' has been applied to root project 'forty-two'."
             )
         }
     }

@@ -46,7 +46,4 @@ public interface LocalBuildCacheServiceHandle extends Closeable {
      */
     boolean maybeStore(BuildCacheKey key, File file);
 
-    @Override
-    void close();
-
 }

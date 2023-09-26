@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
-import org.gradle.api.file.SettingsLayout;
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
@@ -321,7 +321,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public abstract SettingsLayout getLayout();
+    public abstract BuildLayout getLayout();
 
     @Override
     public void includeBuild(Object rootProject) {

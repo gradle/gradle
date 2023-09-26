@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.portalplugin.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-extensions")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
@@ -52,7 +53,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("KotlinDslPluginTest tests against TestKit")
     }
-    integTestLocalRepository(project)
 }
 
 packageCycles {

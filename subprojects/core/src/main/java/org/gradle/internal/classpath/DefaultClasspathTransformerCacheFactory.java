@@ -18,9 +18,9 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -72,7 +72,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
         return DefaultCacheCleanupStrategy.from(
             createCleanupAction(fileAccessTimeJournal),
-            cacheConfigurations.getCleanupFrequency()
+            cacheConfigurations.getCleanupFrequency()::get
         );
     }
 

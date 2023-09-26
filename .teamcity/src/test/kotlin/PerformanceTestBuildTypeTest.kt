@@ -126,7 +126,7 @@ class PerformanceTestBuildTypeTest {
         assertEquals(
             listOf(
                 "KILL_ALL_GRADLE_PROCESSES",
-                "CLEAN_UP_PERFORMANCE_BUILD_DIR",
+                "CLEAN_UP_READ_ONLY_DIR",
                 "SETUP_VIRTUAL_DISK_FOR_PERF_TEST",
                 "GRADLE_RUNNER",
                 "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST",

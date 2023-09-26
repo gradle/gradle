@@ -17,11 +17,11 @@
 package org.gradle.internal.execution.workspace.impl;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -120,7 +120,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
         return DefaultCacheCleanupStrategy.from(
             createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations),
-            cacheConfigurations.getCleanupFrequency()
+            cacheConfigurations.getCleanupFrequency()::get
         );
     }
 

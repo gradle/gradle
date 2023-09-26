@@ -501,8 +501,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     private
     fun buildJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
         val baseDir = "buildscript"
-        withSettingsIn(
-            baseDir,
+        withDefaultSettingsIn(baseDir).appendText(
             """
                 rootProject.name = "buildscript"
             """
@@ -525,8 +524,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     private
     fun buildKotlinJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
         val baseDir = "buildscript"
-        withSettingsIn(
-            baseDir,
+        withDefaultSettingsIn(baseDir).appendText(
             """
                 rootProject.name = "buildscript"
             """

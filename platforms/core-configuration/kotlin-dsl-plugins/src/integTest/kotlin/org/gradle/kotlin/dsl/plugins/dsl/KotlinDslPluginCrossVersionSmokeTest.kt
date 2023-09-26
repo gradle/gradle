@@ -31,6 +31,8 @@ import org.junit.Test
  */
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
+    override val injectLocalKotlinDslPluginsRepositories = false
+
     // Previous versions depend on Kotlin that is not supported with Gradle >= 8.0
     val oldestSupportedKotlinDslPluginVersion = "3.2.4"
 
@@ -73,10 +75,27 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can build plugin for oldest supported Kotlin language version`() {
+    fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
 
         // Kotlin version leaks on the classpath when running embedded
         assumeNonEmbeddedGradleExecuter()
+
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    @Test
+    fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
+
+        // Kotlin version leaks on the classpath when running embedded
+        assumeNonEmbeddedGradleExecuter()
+
+        doInjectLocallyBuiltKotlinDslPluginsRepositories()
+
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    private
+    fun `can build plugin for oldest supported Kotlin language version`() {
 
         val oldestKotlinLanguageVersion = KotlinGradlePluginVersions.getLANGUAGE_VERSIONS().first()
 
@@ -112,7 +131,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         val previousKotlinLanguageVersion = "1.2"
 
         withDefaultSettingsIn("producer")
-        withBuildScriptIn("producer",
+        withBuildScriptIn(
+            "producer",
             """
             plugins {
                 `kotlin-dsl` version "$oldestSupportedKotlinDslPluginVersion"

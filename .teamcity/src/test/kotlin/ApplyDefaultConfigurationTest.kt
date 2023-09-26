@@ -123,7 +123,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(
             listOf(
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
-                "CLEAN_UP_PERFORMANCE_BUILD_DIR",
+                "CLEAN_UP_READ_ONLY_DIR",
                 "GRADLE_RUNNER",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
