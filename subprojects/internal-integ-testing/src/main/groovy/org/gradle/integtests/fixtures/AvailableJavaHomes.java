@@ -136,11 +136,11 @@ public abstract class AvailableJavaHomes {
     }
 
     public static List<Jvm> getAvailableJvms() {
-        return getJvms().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
+        return getAvailableJvmMetadatas().stream().map(AvailableJavaHomes::jvmFromMetadata).collect(Collectors.toList());
     }
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallationMetadata> filter) {
-        return getJvms().stream()
+        return getAvailableJvmMetadatas().stream()
             .filter(input -> input.hasCapability(JAVA_COMPILER))
             .filter(filter::isSatisfiedBy)
             .map(AvailableJavaHomes::jvmFromMetadata)
@@ -263,7 +263,7 @@ public abstract class AvailableJavaHomes {
         return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), metadata.getLanguageVersion());
     }
 
-    private static List<JvmInstallationMetadata> getJvms() {
+    public static List<JvmInstallationMetadata> getAvailableJvmMetadatas() {
         return INSTALLATIONS.get();
     }
 
