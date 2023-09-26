@@ -19,7 +19,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * {@link Problem} instance builder requiring the specification of the problem type.
+ * {@link Problem} instance builder requiring the specification of the problem category.
  *
  * @since 8.5
  */
@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
 public interface ProblemBuilderDefiningCategory {
 
     /**
-     * Declares the problem category string.
+     * Declares the problem category.
      * The category string is a ":" separated string that starts either with a specific problem category or with "gradle-plugin"
      * and the plugin id where the problem is raised followed by the specific category.
      * <pre>{@code

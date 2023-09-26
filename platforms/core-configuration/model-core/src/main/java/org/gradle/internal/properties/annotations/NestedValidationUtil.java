@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 

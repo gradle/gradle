@@ -37,7 +37,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {

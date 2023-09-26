@@ -16,13 +16,14 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.problems.internal.DefaultProblemCategory
 import spock.lang.Specification
 
 class ProblemCategoryTest extends Specification {
 
     def 'can be created with #path'() {
         expect:
-        new ProblemCategory(path).segmentCount() > 0
+        new DefaultProblemCategory(path).segmentCount() > 0
 
         where:
         path << ['gradle:deprecation',
@@ -32,13 +33,13 @@ class ProblemCategoryTest extends Specification {
 
     def 'hasPluginId true'() {
         expect:
-        def category = new ProblemCategory('gradle-plugin:plugin-id:deprecation')
+        def category = new DefaultProblemCategory('gradle-plugin:plugin-id:deprecation')
         category.hasPluginId()
     }
 
     def 'hasPluginId false'() {
         expect:
-        def category = new ProblemCategory('gradle:deprecation')
+        def category = new DefaultProblemCategory('gradle:deprecation')
         !category.hasPluginId()
     }
 }

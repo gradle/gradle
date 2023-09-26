@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
 

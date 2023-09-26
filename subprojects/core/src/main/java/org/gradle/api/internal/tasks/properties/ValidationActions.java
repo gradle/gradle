@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public enum ValidationActions implements ValidationAction {

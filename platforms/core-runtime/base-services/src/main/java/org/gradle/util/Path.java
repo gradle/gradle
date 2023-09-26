@@ -25,6 +25,10 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.join;
 
 /**
  * Represents a path in Gradle.
@@ -110,7 +114,17 @@ public class Path implements Comparable<Path> {
         if (absolute) {
             path.append(SEPARATOR);
         }
-        return path.append(StringUtils.join(segments, SEPARATOR)).toString();
+        return path.append(join(segments, SEPARATOR)).toString();
+    }
+
+    /**
+     * returns an immutable list of the segments of this path
+     *
+     * @since 8.5
+     */
+    @Incubating
+    public List<String> segments(){
+        return asList(segments);
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
@@ -49,7 +48,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     ProblemBuilderDefiningCategory {
 
     private String label;
-    private String problemType;
+    private String problemCategory;
     private final InternalProblems problemsService;
     private Severity severity;
     private String path;
@@ -116,7 +115,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
 
     @Override
     public ProblemBuilder category(String category, String... details){
-        this.problemType = ProblemCategory.category(category, details).toString();
+        this.problemCategory = DefaultProblemCategory.category(category, details).toString();
         return this;
     }
 
@@ -167,7 +166,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             description,
             solution,
             exception,
-            problemType,
+            problemCategory,
             additionalMetadata,
             problemsService);
     }

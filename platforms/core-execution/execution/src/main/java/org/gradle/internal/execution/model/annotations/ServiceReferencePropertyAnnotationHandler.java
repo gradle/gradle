@@ -31,7 +31,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 

@@ -16,66 +16,24 @@
 
 package org.gradle.api.problems;
 
-import org.gradle.api.Incubating;
-import org.gradle.util.Path;
 
-import static java.lang.String.join;
+import org.gradle.api.Incubating;
+
+import java.util.List;
 
 /**
- * Represents a category of problems.
+ * Interface for utility class that provide a category for a problem.
  *
  * @since 8.5
  */
 @Incubating
-public class ProblemCategory {
+public interface ProblemCategory {
+    boolean hasPluginId();
 
-    public static final int NAMESPACE_START_INDEX = 0;
-    public static final String GRADLE_PLUGIN_MARKER = "gradle-plugin";
-    public static final String DEPRECATION = "deprecation";
-    public static final String VALIDATION = "validation";
+    String getPluginId();
 
-    public static final String SEPARATOR = Path.SEPARATOR;
-    protected Path category;
+    String getNamespace();
 
-    public ProblemCategory(String category) {
-        if (category.startsWith(SEPARATOR)) {
-            throw new IllegalArgumentException("Problem category cannot start with '" + SEPARATOR + "'");
-        }
-        Path path = Path.path(category);
-        if (path.segmentCount() < NAMESPACE_START_INDEX + 1) {
-            throw new IllegalArgumentException("Problem category must have at least " + (NAMESPACE_START_INDEX + 1) + " segments");
-        }
-        this.category = path;
-    }
-
-    public static ProblemCategory category(String category, String... details) {
-        if (details.length == 0) {
-            return new ProblemCategory(category);
-        }
-        return new ProblemCategory(category + SEPARATOR + join(SEPARATOR, details));
-    }
-
-    public String segment(int i) {
-        return category.segment(i);
-    }
-
-    public int segmentCount() {
-        return category.segmentCount();
-    }
-
-    public String toString() {
-        return category.toString();
-    }
-
-    public boolean hasPluginId() {
-        return category.segmentCount() > NAMESPACE_START_INDEX + 1 && category.segment(NAMESPACE_START_INDEX).equals(GRADLE_PLUGIN_MARKER);
-    }
-
-    public String getPluginId() {
-        return category.segment(NAMESPACE_START_INDEX + 1);
-    }
-
-    public String getNamespace() {
-        return category.segment(NAMESPACE_START_INDEX);
-    }
+    String getCategory();
+    List<String> getSubCateogies();
 }

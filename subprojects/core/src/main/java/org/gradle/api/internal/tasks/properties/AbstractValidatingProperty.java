@@ -28,7 +28,7 @@ import org.gradle.util.internal.DeferredUtil;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-import static org.gradle.api.problems.ProblemCategory.VALIDATION;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
