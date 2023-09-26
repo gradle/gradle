@@ -124,8 +124,8 @@ platforms:
       - 'subprojects/internal-integ-testing/'
       - 'subprojects/internal-performance-testing/'
       - 'subprojects/internal-testing/'
-  - configuration:
-    name: 'configuration'
+  - core_configuration:
+    name: 'core_configuration'
     subprojects:
       - 'platforms/core-configuration/'
       - 'subprojects/api-metadata/'
