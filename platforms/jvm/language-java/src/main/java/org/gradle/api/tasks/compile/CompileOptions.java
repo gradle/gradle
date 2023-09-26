@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -77,8 +76,6 @@ public abstract class CompileOptions extends AbstractOptions {
     private FileCollection bootstrapClasspath;
 
     private String extensionDirs;
-
-    private final List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
     private boolean incremental = true;
 
@@ -329,7 +326,7 @@ public abstract class CompileOptions extends AbstractOptions {
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(CollectionUtils.stringize(getCompilerArgs().get()));
-        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
+        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders().get()) {
             builder.addAll(compilerArgumentProvider.asArguments());
         }
         return builder.build();
@@ -341,9 +338,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.5
      */
     @Nested
-    public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
-        return compilerArgumentProviders;
-    }
+    public abstract ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders();
 
     /**
      * Convenience method to set {@link ForkOptions} with named parameter syntax.
