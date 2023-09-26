@@ -335,7 +335,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * ThreadPoolExecutorFactory class used by TestNG
-     * @since 8.3
+     * @since 8.5
      */
     @Internal
     @Incubating
@@ -382,7 +382,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
      * More details in https://github.com/testng-team/testng/pull/2042
      * Requires TestNG 7.0 or higher
-     * @since 8.3
+     * @since 8.5
      */
     @Incubating
     public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
