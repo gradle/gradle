@@ -46,10 +46,10 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         _ * startParameter.taskRequests >> [new DefaultTaskExecutionRequest(['a'])]
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
     }
 
     def "proceeds when no task requests specified in StartParameter"() {
@@ -57,10 +57,10 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         _ * startParameter.taskRequests >> []
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
     }
 
     def "sets task names to project defaults when single task requests specified in StartParameter"() {
@@ -69,11 +69,11 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
         1 * startParameter.setTaskNames(['a', 'b'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
     }
 
     def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
@@ -83,10 +83,10 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         _ * buildInCommand.asDefaultTask() >> ['default1', 'default2']
 
         when:
-        action.scheduleRequestedTasks(gradle, selector, plan)
+        action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
         1 * startParameter.setTaskNames(['default1', 'default2'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
     }
 }

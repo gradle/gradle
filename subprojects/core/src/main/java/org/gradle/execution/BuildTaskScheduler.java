@@ -21,5 +21,5 @@ import org.gradle.execution.plan.ExecutionPlan;
 import javax.annotation.Nullable;
 
 public interface BuildTaskScheduler {
-    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
+    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested);
 }

@@ -45,7 +45,7 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested) {
         StartParameter startParameter = gradle.getStartParameter();
 
         if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
@@ -69,6 +69,6 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
             startParameter.setTaskNames(defaultTasks);
         }
 
-        delegate.scheduleRequestedTasks(gradle, selector, plan);
+        delegate.scheduleRequestedTasks(gradle, selector, plan, isModelBuildingRequested);
     }
 }

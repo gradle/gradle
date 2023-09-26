@@ -22,23 +22,25 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.configurationcache.initialization.SyncWorkaroundTaskExecutionPreparer
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.execution.BuildTaskScheduler
+import org.gradle.execution.DefaultTasksBuildTaskScheduler
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
-import org.gradle.initialization.DefaultTaskExecutionPreparer
-import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.execution.ProjectConfigurer
+import org.gradle.execution.TaskNameResolvingBuildTaskScheduler
+import org.gradle.execution.commandline.CommandLineTaskParser
+import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
@@ -89,31 +91,36 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
-            addProvider(TaskExecutionPreparerProvider)
+            addProvider(BuildTaskSchedulerProvider)
         }
     }
 
     private
-    object TaskExecutionPreparerProvider {
-        fun createTaskExecutionPreparerProvider(
-            buildTaskScheduler: BuildTaskScheduler,
-            buildOperationExecutor: BuildOperationExecutor,
+    object BuildTaskSchedulerProvider {
+        fun createBuildTaskSchedulerProvider(
             buildModelParameters: BuildModelParameters,
+            commandLineTaskParser: CommandLineTaskParser,
+            projectConfigurer: ProjectConfigurer,
+            selector: BuildTaskSelector.BuildSpecificSelector,
+            builtInCommands: List<BuiltInCommand>,
             /** In non-CC builds, [ProblemsListener] and [ProblemFactory] are not registered; accepting a list here is a way to ignore its absence. */
             problemsListener: List<ProblemsListener>,
             problemFactory: List<ProblemFactory>
-        ): TaskExecutionPreparer {
-            val defaultTaskExecutionPreparer = DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationExecutor, buildModelParameters)
+        ): BuildTaskScheduler {
+            val taskNameResolvingBuildTaskScheduler = TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector)
             return when {
-                buildModelParameters.isConfigurationCache ->
-                    SyncWorkaroundTaskExecutionPreparer(
+                buildModelParameters.isConfigurationCache -> {
+                    val ignoringHelpBuildTaskScheduler = IgnoringHelpBuildTaskScheduler(
                         buildModelParameters,
-                        problemsListener.single(),
                         problemFactory.single(),
-                        defaultTaskExecutionPreparer
+                        problemsListener.single(),
+                        taskNameResolvingBuildTaskScheduler
                     )
 
-                else -> defaultTaskExecutionPreparer
+                    DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, ignoringHelpBuildTaskScheduler)
+                }
+
+                else -> DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, taskNameResolvingBuildTaskScheduler)
             }
         }
     }

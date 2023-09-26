@@ -48,7 +48,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         _ * gradle.getStartParameter() >> startParameters
         _ * startParameters.getTaskRequests() >> []
 
-        action.scheduleRequestedTasks(gradle, null, executionPlan)
+        action.scheduleRequestedTasks(gradle, null, executionPlan, false)
 
         then:
         0 * executionPlan._
@@ -75,7 +75,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         _ * selection2.tasks >> tasks2
 
         when:
-        action.scheduleRequestedTasks(gradle, null, executionPlan)
+        action.scheduleRequestedTasks(gradle, null, executionPlan, false)
 
         then:
         1 * parser.parseTasks(request1) >> [selection1]
@@ -92,7 +92,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         _ * gradle.getStartParameter() >> startParameters
         _ * startParameters.getTaskRequests() >> []
 
-        action.scheduleRequestedTasks(gradle, selector, executionPlan)
+        action.scheduleRequestedTasks(gradle, selector, executionPlan,)
 
         then:
         1 * selector.applyTasksTo(_, executionPlan)

@@ -42,7 +42,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     }
 
     @Override
-    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested) {
         if (selector != null) {
             selector.applyTasksTo(new EntryTaskSelectorContext(gradle), plan);
         }

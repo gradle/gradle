@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.initialization
+package org.gradle.configurationcache
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.execution.BuildTaskScheduler
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.execution.plan.ExecutionPlan
-import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.internal.buildtree.BuildModelParameters
 
 
-/**
- * This service must be removed in prior to use [DefaultTaskExecutionPreparer] as soon as
- * IDE will stop requesting `help` task execution during sync.
- * */
-class SyncWorkaroundTaskExecutionPreparer(
+class IgnoringHelpBuildTaskScheduler(
     private val buildModelParameters: BuildModelParameters,
-    private val problemsListener: ProblemsListener,
     private val problemFactory: ProblemFactory,
-    private val delegate: TaskExecutionPreparer,
-) : TaskExecutionPreparer {
+    private val problemsListener: ProblemsListener,
+    private val delegate: BuildTaskScheduler
+) : BuildTaskScheduler {
 
-    override fun scheduleRequestedTasks(
-        gradle: GradleInternal,
-        selector: EntryTaskSelector?,
-        plan: ExecutionPlan,
-        isModelBuildingRequested: Boolean
-    ) {
+    override fun scheduleRequestedTasks(gradle: GradleInternal, selector: EntryTaskSelector?, plan: ExecutionPlan, isModelBuildingRequested: Boolean) {
         val helpTaskOnly = gradle.startParameter.taskRequests.size == 1 &&
             gradle.startParameter.taskRequests.first().args.contains("help")
 
@@ -50,7 +41,7 @@ class SyncWorkaroundTaskExecutionPreparer(
                 return // sync scenario
             } else {
                 val problem = problemFactory.problem {
-                    text("Requesting tasks execution during model building is not compatible with incremental sync.")
+                    text("Requesting tasks execution during model building is not supported with isolated projects. Requested tasks: ${gradle.startParameter.taskNames}.")
                 }.build()
 
                 problemsListener.onProblem(problem)

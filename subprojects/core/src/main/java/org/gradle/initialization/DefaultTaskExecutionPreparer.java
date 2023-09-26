@@ -43,7 +43,7 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     @Override
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan, boolean isModelBuildingRequested) {
         gradle.getOwner().getProjects().withMutableStateOfAllProjects(() -> {
-            buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan);
+            buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan, isModelBuildingRequested);
 
             if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
                 new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);
