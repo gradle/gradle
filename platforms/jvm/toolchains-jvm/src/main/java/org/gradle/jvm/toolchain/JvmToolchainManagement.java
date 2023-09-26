@@ -38,7 +38,7 @@ public interface JvmToolchainManagement {
      * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
      * ordered collection of Java toolchain repositories:
      *
-     * <pre class='autoTested'>
+     * <pre>
      * toolchainManagement {
      *     jvm {
      *         javaRepositories {

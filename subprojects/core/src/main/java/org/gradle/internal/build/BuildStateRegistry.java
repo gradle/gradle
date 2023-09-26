@@ -65,6 +65,12 @@ public interface BuildStateRegistry {
     BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
+     * Finds a build. Returns null if there's no build with the given identifier.
+     */
+    @Nullable
+    BuildState findBuild(BuildIdentifier buildIdentifier);
+
+    /**
      * Notification that the settings have been loaded for the root build.
      *
      * <p>This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.

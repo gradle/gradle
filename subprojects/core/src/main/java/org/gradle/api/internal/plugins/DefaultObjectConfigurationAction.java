@@ -120,14 +120,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
                 throw new InsecureProtocolException(
                     String.format("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '%s' uses an insecure protocol (HTTP). ", scriptUri),
                     String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri),
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
                 );
             },
             redirect -> {
                 throw new InsecureProtocolException(
                     String.format("Applying script plugins from an insecure redirect, without explicit opt-in, is unsupported. '%s' redirects to insecure '%s'. ", scriptUri, redirect),
                     "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
-                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").consultDocumentationMessage()
+                    Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
                 );
             }
         );

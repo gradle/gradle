@@ -19,6 +19,8 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":language-groovy"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java"))
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
@@ -30,6 +32,8 @@ dependencies {
         because("We need it for BuildOutputCleanupRegistry")
     }
     implementation(project(":toolchains-jvm"))
+    implementation(project(":plugins-jvm-test-suite"))
+    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -48,7 +52,6 @@ dependencies {
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":jvm-services")))
-    testImplementation(testFixtures(project(":language-groovy")))
 
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":base-services-groovy"))
@@ -56,7 +59,6 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":language-groovy")))
     testFixturesImplementation(project(":language-jvm"))
     testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(testFixtures(project(":model-core")))
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)

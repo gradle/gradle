@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.provider.Provider;
 
@@ -27,5 +28,5 @@ public interface ResolutionResultInternal extends ResolutionResult {
     /**
      * An optional non-fatal failure which may be attached to a resolution result.
      */
-    Provider<Throwable> getNonFatalFailure();
+    Provider<ResolveException> getExtraFailure();
 }

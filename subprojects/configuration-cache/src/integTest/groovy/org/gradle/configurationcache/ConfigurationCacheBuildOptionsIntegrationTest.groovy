@@ -16,9 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 
 import static org.junit.Assume.assumeFalse
@@ -114,9 +112,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             : 'producer.flatMap { it.outputFile }.map { it.asFile.readText() }'
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     @Issue("https://github.com/gradle/gradle/issues/13334")
     def "task input property with convention set to absent #operator is reported correctly"() {
 

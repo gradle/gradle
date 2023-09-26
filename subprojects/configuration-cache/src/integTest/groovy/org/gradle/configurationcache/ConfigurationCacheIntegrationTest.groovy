@@ -41,7 +41,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         settingsFile.createFile()
         configurationCacheRun(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}.*\n/, '')
+            .replaceAll(/Calculating task graph as no cached configuration is available for tasks: ${task}.*\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
@@ -243,7 +243,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: a")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -265,7 +265,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as no configuration cache is available for tasks: b")
+        outputContains("Calculating task graph as no cached configuration is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
@@ -351,5 +351,62 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def projectName2 = testDirectory.name
         outputContains("name: ${projectName2}")
         projectName1 != projectName2
+    }
+
+    def "start parameter indicates whether configuration cache was requested"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def startParameter = gradle.startParameter
+            tasks.help {
+                doLast {
+                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                }
+            }
+        """
+
+        when:
+        run "help"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=false")
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        outputContains("isConfigurationCacheRequested=true")
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("isConfigurationCacheRequested=true")
+    }
+
+    def "configuration cache is marked requested even if disabled due to --export-keys"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def startParameter = gradle.startParameter
+            tasks.help {
+                doLast {
+                    println "isConfigurationCacheRequested=" + startParameter.isConfigurationCacheRequested()
+                }
+            }
+        """
+
+        when:
+        run "help"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=false")
+
+        when:
+        configurationCacheRun "help", "--export-keys"
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("isConfigurationCacheRequested=true")
     }
 }

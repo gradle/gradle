@@ -43,7 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -62,6 +62,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,6 +80,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private final ResolveContext resolveContext;
     private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final ResolveException extraFailure;
     private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
@@ -92,10 +94,11 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private SelectedArtifactResults artifactsForThisConfiguration;
     private DependencyVerificationException dependencyVerificationException;
 
-    public DefaultLenientConfiguration(ResolveContext resolveContext, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, VariantSelectorFactory variantSelectorFactory, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
+    public DefaultLenientConfiguration(ResolveContext resolveContext, Set<UnresolvedDependency> unresolvedDependencies, @Nullable ResolveException extraFailure, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, VariantSelectorFactory variantSelectorFactory, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
         this.resolveContext = resolveContext;
         this.implicitAttributes = resolveContext.getAttributes().asImmutable();
         this.unresolvedDependencies = unresolvedDependencies;
+        this.extraFailure = extraFailure;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
@@ -122,7 +125,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
-        VariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, resolveContext.getDependenciesResolverFactory());
+        ArtifactVariantSelector selector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariants, resolveContext.getDependenciesResolverFactory());
         SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector, selectFromAllVariants);
 
         return new SelectedArtifactSet() {
@@ -130,6 +133,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             public void visitDependencies(TaskDependencyResolveContext context) {
                 for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
                     context.visitFailure(unresolvedDependency.getProblem());
+                }
+                if (extraFailure != null) {
+                    context.visitFailure(extraFailure);
                 }
                 context.add(artifactResults.getArtifacts());
             }
@@ -140,9 +146,12 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                     for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
                         visitor.visitFailure(unresolvedDependency.getProblem());
                     }
-                    if (!continueOnSelectionFailure) {
-                        return;
-                    }
+                }
+                if (extraFailure != null) {
+                    visitor.visitFailure(extraFailure);
+                }
+                if ((!unresolvedDependencies.isEmpty() || extraFailure != null) && !continueOnSelectionFailure) {
+                    return;
                 }
                 // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
                 // It would be better to instead to memoize the results on the first visit so that this is not required
@@ -373,8 +382,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         private final String type;
         private final String displayName;
 
-        public ArtifactResolveException(String type, String path, String displayName, Iterable<Throwable> failures) {
-            super(path, failures);
+        public ArtifactResolveException(String type, String displayName, Iterable<? extends Throwable> failures) {
+            super(displayName, failures);
             this.type = type;
             this.displayName = displayName;
         }

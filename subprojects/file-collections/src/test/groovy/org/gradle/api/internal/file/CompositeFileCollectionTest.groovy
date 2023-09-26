@@ -220,8 +220,6 @@ class CompositeFileCollectionTest extends Specification {
     def "can filter the elements of collection"() {
         def source1 = Mock(FileCollectionInternal)
         def source2 = Mock(FileCollectionInternal)
-        def filtered1 = Mock(FileCollectionInternal)
-        def filtered2 = Mock(FileCollectionInternal)
         def spec = Stub(Spec)
         def collection = new TestCompositeFileCollection(source1, source2)
 
@@ -231,20 +229,13 @@ class CompositeFileCollectionTest extends Specification {
         then:
         0 * _
 
-        when:
-        def result = filtered.getSourceCollections()
-
-        then:
-        result == [filtered1, filtered2]
-        1 * source1.filter(spec) >> filtered1
-        1 * source2.filter(spec) >> filtered2
-        0 * _
+        and:
+        filtered instanceof FilteredFileCollection
     }
 
     def "can replace backing collection of filtered collection"() {
         def source1 = Mock(FileCollectionInternal)
         def source2 = Mock(FileCollectionInternal)
-        def filtered2 = Mock(FileCollectionInternal)
         def other = Mock(FileCollectionInternal)
         def spec = Stub(Spec)
         def collection = new TestCompositeFileCollection(source1, source2)
@@ -259,14 +250,6 @@ class CompositeFileCollectionTest extends Specification {
         then:
         replaced.is(filtered)
         replaced2 != filtered
-        0 * _
-
-        when:
-        def result = replaced2.getSourceCollections()
-
-        then:
-        result == [filtered2]
-        1 * source2.filter(spec) >> filtered2
         0 * _
     }
 

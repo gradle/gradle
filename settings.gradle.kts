@@ -24,9 +24,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.14.1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
 includeBuild("build-logic-commons")
@@ -48,7 +48,6 @@ unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
     subproject("distributions-publishing")
-    subproject("distributions-jvm")
     subproject("distributions-native")
     subproject("distributions-full")
 }
@@ -56,88 +55,72 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("configuration-cache")
-    subproject("functional")
     subproject("api-metadata")
-    subproject("base-services")
     subproject("base-services-groovy")
-    subproject("worker-services")
-    subproject("logging-api")
-    subproject("logging")
-    subproject("process-services")
     subproject("jvm-services")
     subproject("core")
     subproject("dependency-management")
-    subproject("wrapper")
-    subproject("wrapper-shared")
-    subproject("cli")
-    subproject("launcher")
-    subproject("bootstrap")
-    subproject("messaging")
     subproject("resources")
     subproject("resources-http")
     subproject("resources-gcs")
     subproject("resources-s3")
     subproject("resources-sftp")
     subproject("plugins")
-    subproject("scala")
     subproject("ide")
     subproject("ide-native")
     subproject("maven")
-    subproject("antlr")
     subproject("tooling-api")
     subproject("build-events")
     subproject("tooling-api-builders")
     subproject("signing")
-    subproject("native")
     subproject("reporting")
     subproject("diagnostics")
     subproject("publish")
     subproject("ivy")
-    subproject("jacoco")
-    subproject("build-init")
-    subproject("build-option")
     subproject("platform-base")
     subproject("platform-native")
     subproject("platform-jvm")
-    subproject("java-compiler-plugin")
     subproject("language-native")
     subproject("tooling-native")
     subproject("plugin-use")
     subproject("plugin-development")
     subproject("model-core")
     subproject("model-groovy")
-    subproject("build-cache-http")
-    subproject("testing-base")
     subproject("testing-native")
-    subproject("testing-jvm")
-    subproject("testing-jvm-infrastructure")
-    subproject("testing-junit-platform")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
-    subproject("workers")
-    subproject("persistent-cache")
-    subproject("build-cache-base")
-    subproject("build-cache")
     subproject("core-api")
     subproject("version-control")
     subproject("file-collections")
-    subproject("file-temp")
-    subproject("files")
-    subproject("hashing")
-    subproject("snapshots")
-    subproject("file-watching")
-    subproject("build-cache-packaging")
-    subproject("execution")
     subproject("build-profile")
-    subproject("worker-processes")
-    subproject("base-annotations")
     subproject("security")
     subproject("normalization-java")
     subproject("build-operations")
     subproject("problems")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
+}
+
+// Core Runtime Platform
+platform("core-runtime") {
+    subproject("base-annotations")
+    subproject("base-services")
+    subproject("bootstrap")
+    subproject("build-option")
+    subproject("cli")
+    subproject("file-temp")
+    subproject("files")
+    subproject("functional")
+    subproject("launcher")
+    subproject("logging")
+    subproject("logging-api")
+    subproject("messaging")
+    subproject("native")
+    subproject("process-services")
+    subproject("worker-services")
+    subproject("wrapper")
+    subproject("wrapper-shared")
 }
 
 // Core Configuration Platform
@@ -150,21 +133,54 @@ platform("core-configuration") {
     subproject("kotlin-dsl-integ-tests")
 }
 
+// Core Execution Platform
+platform("core-execution") {
+    subproject("build-cache")
+    subproject("build-cache-base")
+    subproject("build-cache-http")
+    subproject("build-cache-packaging")
+    subproject("file-watching")
+    subproject("execution")
+    subproject("hashing")
+    subproject("persistent-cache")
+    subproject("snapshots")
+    subproject("worker-processes")
+    subproject("workers")
+}
+
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
     subproject("ide-plugins")
 }
 
+// Software Platform
+platform("software") {
+    subproject("antlr")
+    subproject("build-init")
+    subproject("testing-base")
+}
+
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
+    subproject("distributions-jvm")
     subproject("ear")
+    subproject("jacoco")
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
+    subproject("java-compiler-plugin")
     subproject("java-platform")
+    subproject("plugins-groovy")
+    subproject("plugins-java")
+    subproject("plugins-jvm-test-suite")
+    subproject("plugins-jvm-test-suite-base")
+    subproject("scala")
+    subproject("testing-jvm")
+    subproject("testing-jvm-infrastructure")
+    subproject("testing-junit-platform")
     subproject("war")
 }
 

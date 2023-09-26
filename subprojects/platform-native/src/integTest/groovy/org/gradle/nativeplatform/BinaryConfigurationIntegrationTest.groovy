@@ -17,15 +17,14 @@ package org.gradle.nativeplatform
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -215,7 +214,7 @@ model {
     }
 
     @Issue("GRADLE-2973")
-    @IgnoreIf({ !GradleContextualExecuter.isParallel() })
+    @Requires(IntegTestPreconditions.IsParallelExecutor)
     @ToBeFixedForConfigurationCache
     def "releases cache lock when compilation fails with --parallel"() {
         def helloWorldApp = new CppHelloWorldApp()

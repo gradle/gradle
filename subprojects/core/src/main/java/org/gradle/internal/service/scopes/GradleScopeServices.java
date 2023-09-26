@@ -35,7 +35,7 @@ import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildTaskScheduler;

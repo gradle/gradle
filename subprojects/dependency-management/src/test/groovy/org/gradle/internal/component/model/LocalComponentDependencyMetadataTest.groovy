@@ -32,8 +32,8 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
-import org.gradle.internal.component.AmbiguousConfigurationSelectionException
-import org.gradle.internal.component.IncompatibleConfigurationSelectionException
+import org.gradle.internal.component.AmbiguousGraphVariantsException
+import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.util.AttributeTestUtil
@@ -49,12 +49,12 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 class LocalComponentDependencyMetadataTest extends Specification {
     AttributesSchemaInternal attributesSchema
     ImmutableAttributesFactory factory
-    AttributeMatchingConfigurationSelector configurationSelector
+    GraphVariantSelector variantSelector
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        configurationSelector = new AttributeMatchingConfigurationSelector(new SelectionFailureHandler(createTestProblems()))
+        variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {
@@ -71,7 +71,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def toConfig = consumableConfiguration(toComponent, "to")
 
         expect:
-        dep.selectVariants(configurationSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
+        dep.selectVariants(variantSelector, attributes([:]), toComponent, attributesSchema, [] as Set).variants == [toConfig]
     }
 
     @Unroll("selects variant '#expected' from target component (#scenario)")
@@ -90,7 +90,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -114,10 +114,10 @@ class LocalComponentDependencyMetadataTest extends Specification {
         attributesSchema.attribute(Attribute.of('will', String))
 
         when:
-        dep.selectVariants(configurationSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(variantSelector, attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
-        def e = thrown(IncompatibleConfigurationSelectionException)
+        def e = thrown(IncompatibleGraphVariantsException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in [target] does not match the consumer attributes
 Configuration 'default':
   - Incompatible because this component declares attribute 'key' with value 'nothing' and the consumer needed attribute 'key' with value 'other'""")
@@ -138,10 +138,10 @@ Configuration 'default':
         attributesSchema.attribute(Attribute.of('key', String))
 
         when:
-        dep.selectVariants(configurationSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
+        dep.selectVariants(variantSelector, attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
-        def e = thrown(IncompatibleConfigurationSelectionException)
+        def e = thrown(IncompatibleGraphVariantsException)
         e.message == toPlatformLineSeparators("""Configuration 'bar' in [target] does not match the consumer attributes
 Configuration 'bar':
   - Incompatible because this component declares attribute 'key' with value 'something else' and the consumer needed attribute 'key' with value 'something'""")
@@ -174,12 +174,12 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (AmbiguousConfigurationSelectionException e) {
+        } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
                 assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '$queryAttributes.flavor'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
@@ -234,12 +234,12 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectVariants(configurationSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
+            def result = dep.selectVariants(variantSelector, attributes(queryAttributes), toComponent, attributesSchema, [] as Set).variants.name as Set
             if (expected == null && result) {
                 throw new Exception("Expected an ambiguous result, but got $result")
             }
             assert result == [expected] as Set
-        } catch (AmbiguousConfigurationSelectionException e) {
+        } catch (AmbiguousGraphVariantsException e) {
             if (expected == null) {
                 assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '${queryAttributes.flavor}'":""}. However we cannot choose between the following variants of [target]:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
@@ -279,7 +279,7 @@ Configuration 'bar':
         toState.getConfiguration("to") >> null
 
         when:
-        dep.selectVariants(configurationSelector, attributes([:]), toState, attributesSchema,[] as Set)
+        dep.selectVariants(variantSelector, attributes([:]), toState, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -350,7 +350,7 @@ Configuration 'bar':
         attributeSchemaWithCompatibility.attribute(Attribute.of('extra', String))
 
         expect:
-        dep.selectVariants(configurationSelector, attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
+        dep.selectVariants(variantSelector, attributes(queryAttributes), toState, attributeSchemaWithCompatibility, [] as Set).variants.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

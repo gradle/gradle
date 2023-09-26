@@ -17,9 +17,9 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
@@ -28,7 +28,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
-@IgnoreIf({ GradleContextualExecuter.configCache })
+@Requires(IntegTestPreconditions.NotConfigCached)
 class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
@@ -59,23 +59,46 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
 
     def "returned service ref refers to service for that build"() {
         given:
-        buildFile << """
-            def serviceRef = gradle.extensions.serviceRef
-            task p {
-                doLast {
-                    println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
-                }
-            }
-        """
+        def taskName = "printInvocationId"
+        buildFile << taskPrintBuildInvocationId(taskName)
 
         when:
-        succeeds "p", "--configuration-cache"
+        succeeds taskName, "--configuration-cache"
         def firstInvocationId = output.find(~/(?<=extension-buildInvocationId=).+(?=\n)/)
-        succeeds "p", "--configuration-cache"
+        succeeds taskName, "--configuration-cache"
         def secondInvocationId = output.find(~/(?<=extension-buildInvocationId=).+(?=\n)/)
 
         then:
         firstInvocationId != secondInvocationId
+    }
+
+    def "returned service ref for included build refers to service for the root build"() {
+        given:
+        def rootTaskName = "printInvocationId"
+        def includedTaskName = "includedPrintInvocationId"
+
+        and:
+        buildTestFixture.withBuildInSubDir()
+        singleProjectBuild("included") {
+            settingsFile.prepend(plugin.plugins())
+            settingsFile.prepend(plugin.pluginManagement())
+            buildFile << taskPrintRootBuildInvocationId(includedTaskName)
+        }
+
+        and:
+        settingsFile << "includeBuild('included')"
+        buildFile << taskPrintBuildInvocationId(rootTaskName) << """
+            tasks.$rootTaskName {
+                dependsOn(gradle.includedBuild("included").task(":$includedTaskName"))
+            }
+        """
+
+        when:
+        succeeds rootTaskName, "--configuration-cache"
+        def invocationIds = output.findAll(~/(?<=extension-buildInvocationId=).+(?=\n)/)
+
+        then:
+        invocationIds[0] == invocationIds[1]
     }
 
     def "--scan does not auto apply plugin for build from cache"() {
@@ -172,5 +195,35 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
 
         then:
         output.contains("offline: true")
+    }
+
+    private String taskPrintBuildInvocationId(String taskName) {
+        """
+            def serviceRef = gradle.extensions.serviceRef
+            task $taskName {
+                doLast {
+                    println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
+                }
+            }
+        """
+    }
+
+    private String taskPrintRootBuildInvocationId(String taskName) {
+        """
+            def rootServiceRef() {
+                def rootGradle = gradle
+                while (rootGradle.parent != null) {
+                    rootGradle = gradle.parent
+                }
+                rootGradle.extensions.serviceRef
+            }
+
+            def serviceRef = rootServiceRef()
+            task $taskName {
+                doLast {
+                    println "extension-buildInvocationId=" + serviceRef.get()._buildState.buildInvocationId
+                }
+            }
+        """
     }
 }

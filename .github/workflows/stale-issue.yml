@@ -11,90 +11,10 @@ permissions:
   pull-requests: write
 
 jobs:
-  stale:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/stale@v6
-        with:
-          # GLOBAL ------------------------------------------------------------
-          operations-per-run: 30
-          exempt-all-milestones: true
-
-          # ISSUES ------------------------------------------------------------
-          days-before-issue-stale: 365
-          exempt-issue-labels: epic
-          stale-issue-label: stale
-          stale-issue-message: >
-            This issue has been automatically marked as stale because it has not had recent activity.
-            Given the limited bandwidth of the team, it will be scheduled for a (potentially) final
-            review and might be closed afterwards (if no further activity occurs).
-            If you feel this is something you could contribute to, please have a look
-            at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
-            Thank you for your contribution.
-          days-before-issue-close: -1
-          close-issue-message: >
-            This issue has been automatically closed due to inactivity. If you can reproduce this on a
-            recent version of Gradle or if you have a good use case for this feature, please feel free
-            to let know so we can reopen the issue. Please try to provide steps to reproduce, a quick
-            explanation of your use case or a high-quality pull request.
-          close-issue-reason: not_planned
-
-          # PULL REQUESTS -----------------------------------------------------
-          days-before-pr-stale: 60
-          exempt-pr-labels: "from:contributor"
-          stale-pr-label: stale
-          stale-pr-message: >
-            This pull request has been automatically marked as stale because it has not had recent activity.
-            Given the limited bandwidth of the team, it will be closed if no further activity occurs.
-            If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
-            Thank you for your contributions.
-          days-before-pr-close: -1
-          close-pr-message: >
-            This pull request has been automatically closed due to inactivity.
-            If you are still interested in contributing this, please ensure that
-            it is rebased against the latest branch (usually `master`), all review
-            comments have been addressed and the build is passing.
-  stale-community-pr:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/stale@v6
-        with:
-          # GLOBAL ------------------------------------------------------------
-          operations-per-run: 30
-          only-labels: 'from:contributor'
-
-          # ISSUES (deactivated) ----------------------------------------------
-          # This workflow should touch no issues, so times are set to -1
-          # (see actions/stale documentation for the behavior)
-          days-before-issue-stale: -1
-          stale-issue-label: stale
-          stale-issue-message: >
-            **BUG!** This issue should not be marked stale by the "stale-community-pr" workflow.
-            Please report it to @bt-developer-productivity
-          days-before-issue-close: -1
-          close-issue-message: >
-            **BUG!** This issue should not be closed by the "stale-community-pr" workflow.
-            Please report it to @bt-developer-productivity
-          close-issue-reason: not_planned
-
-          # PULL REQUESTS -----------------------------------------------------
-          days-before-pr-stale: 365
-          stale-pr-label: stale
-          stale-pr-message: >
-            This pull request has been automatically marked as stale because it has not had recent activity.
-            Given the limited bandwidth of the team, it will be closed if no further activity occurs.
-            If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
-            Thank you for your contributions.
-          days-before-pr-close: -1
-          close-pr-message: >
-            This pull request has been automatically closed due to inactivity.
-            If you are still interested in contributing this, please ensure that
-            it is rebased against the latest branch (usually `master`), all review
-            comments have been addressed and the build is passing.
   close-pending:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v8
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30

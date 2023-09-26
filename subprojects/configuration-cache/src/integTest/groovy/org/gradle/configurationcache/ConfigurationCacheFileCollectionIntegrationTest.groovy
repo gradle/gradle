@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
+
 class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "directory tree is treated as build input when its contents are queried during configuration"() {
         buildFile << """
@@ -207,5 +209,55 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         "files.files.name"      | "[file1, file2]"
         "files.empty"           | "false"
         "files.contains(file1)" | "true"
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/26352')
+    def 'intricate ConfigurableFileCollection filter chain carries task dependencies'() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        and:
+        buildFile '''
+            abstract class ConcatTask extends DefaultTask {
+
+                @InputFiles
+                abstract ConfigurableFileCollection getInputFiles()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void run() {
+                    outputFile.get().asFile.text = inputFiles.files.collect { it.text }.join()
+                }
+            }
+
+            def producer = tasks.register('producer', ConcatTask) {
+                inputFiles.from(file("producer-input.txt"))
+                outputFile = layout.buildDirectory.file("producer-output.txt")
+            }
+
+            tasks.register('consumer', ConcatTask) {
+                // Create a complex file collection chain involving `flatMap`, `map` and `filter`
+                Provider<RegularFile> producerOutputFile = producer.flatMap { it.outputFile }
+                Provider<List<RegularFile>> mappedOutputFile = producerOutputFile.map { [it] }
+                ConfigurableFileCollection fileCollection = files(mappedOutputFile)
+
+                inputFiles.from(fileCollection.filter { it.file })
+                outputFile.set(layout.buildDirectory.file("consumer-output.txt"))
+            }
+        '''
+
+        and:
+        file('producer-input.txt').text = '42'
+
+        when:
+        configurationCacheRun 'consumer'
+
+        then:
+        configurationCache.assertStateStored(true)
+
+        and:
+        file('build/consumer-output.txt').text == '42'
     }
 }

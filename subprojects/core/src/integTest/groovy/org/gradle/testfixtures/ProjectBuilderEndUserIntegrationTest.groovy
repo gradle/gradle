@@ -16,14 +16,13 @@
 
 package org.gradle.testfixtures
 
-
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isEmbedded()}) // this requires a full distribution
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // this requires a full distribution
 class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

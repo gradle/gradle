@@ -21,7 +21,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
@@ -36,7 +36,7 @@ import java.io.File
 
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
-    private val buildLayout: BuildLayout,
+    private val buildLocations: BuildLocations,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters
@@ -94,14 +94,14 @@ class ConfigurationCacheStartParameter(
         get() = startParameter.currentDir
 
     val settingsDirectory: File
-        get() = buildLayout.settingsDir
+        get() = buildLocations.settingsDir
 
     @Suppress("DEPRECATION")
     val settingsFile: File?
         get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
-        get() = buildLayout.rootDirectory
+        get() = buildLocations.rootDirectory
 
     val isOffline
         get() = startParameter.isOffline
@@ -136,6 +136,14 @@ class ConfigurationCacheStartParameter(
 
     val isNoBuildScan: Boolean
         get() = startParameter.isNoBuildScan
+
+    /**
+     * Determines whether Isolated Projects option was enabled.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
+    val isIsolatedProjects: Boolean
+        get() = modelParameters.isIsolatedProjects
 }
 
 

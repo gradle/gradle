@@ -19,13 +19,11 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.problems.ProblemGroup.TYPE_VALIDATION_ID;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -33,6 +31,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  */
 @NonNullApi
 public class NestedValidationUtil {
+
     /**
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
@@ -61,8 +60,7 @@ public class NestedValidationUtil {
                     .label("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .noLocation()
-                    .type(ValidationProblemId.NESTED_TYPE_UNSUPPORTED.name())
-                    .group(TYPE_VALIDATION_ID)
+                    .type("NESTED_TYPE_UNSUPPORTED")
                     .severity(Severity.WARNING)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
@@ -104,8 +102,7 @@ public class NestedValidationUtil {
                     .label("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .noLocation()
-                    .type(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE.name())
-                    .group(TYPE_VALIDATION_ID)
+                    .type("NESTED_MAP_UNSUPPORTED_KEY_TYPE")
                     .severity(Severity.WARNING)
                     .details("Key of nested map must be one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to one of the following types: " + getSupportedKeyTypes())

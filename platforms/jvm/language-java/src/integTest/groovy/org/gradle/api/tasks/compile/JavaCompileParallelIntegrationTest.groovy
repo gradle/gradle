@@ -17,39 +17,19 @@
 package org.gradle.api.tasks.compile
 
 import com.google.common.collect.Iterables
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.jvm.JavaHomeException
-import org.gradle.internal.jvm.JavaInfo
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@IgnoreIf({ //noinspection UnnecessaryQualifiedReference
-    GradleContextualExecuter.parallel || JavaCompileParallelIntegrationTest.availableJdksWithJavac().keySet().size() < 2
-})
+@Requires([IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.MoreThanOneJavacAvailable])
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
-
-    static Map<JavaInfo, JavaVersion> availableJdksWithJavac() {
-        AvailableJavaHomes.availableJdksWithVersion.findAll { jdk, version ->
-            try {
-                if (jdk.javacExecutable && version >= JavaVersion.VERSION_1_8) {
-                    return true
-                }
-            }
-            catch (JavaHomeException ignore) {
-                // ignore
-            }
-            false
-        }
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-        def jdks = Iterables.cycle(availableJdksWithJavac().entrySet()).iterator()
+        def jdks = Iterables.cycle(AvailableJavaHomes.availableJdksWithJavac.entrySet()).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """

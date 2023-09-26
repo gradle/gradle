@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
 import org.gradle.api.artifacts.ResolutionStrategy
-import org.gradle.api.internal.artifacts.transform.VariantSelector
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def variant2Artifacts = Stub(ResolvedArtifactSet)
 
-        def selector = Stub(VariantSelector)
+        def selector = Stub(ArtifactVariantSelector)
         def spec = Stub(Spec)
 
         given:
@@ -55,7 +55,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = new BrokenResolvedArtifactSet(new Exception())
         def variant2Artifacts = new UnavailableResolvedArtifactSet(new Exception())
 
-        def selector = Stub(VariantSelector)
+        def selector = Stub(ArtifactVariantSelector)
         def spec = Stub(Spec)
 
         given:
@@ -82,7 +82,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def variant2Artifacts = Stub(ResolvedArtifactSet)
 
-        def selector = Stub(VariantSelector)
+        def selector = Stub(ArtifactVariantSelector)
         def spec = Stub(Spec)
 
         given:
@@ -109,7 +109,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = new UnavailableResolvedArtifactSet(new Exception())
         def variant2Artifacts = Stub(ResolvedArtifactSet)
 
-        def selector = Stub(VariantSelector)
+        def selector = Stub(ArtifactVariantSelector)
         def spec = Stub(Spec)
 
         given:
@@ -132,7 +132,7 @@ class DefaultVisitedArtifactResultsTest extends Specification {
         def variant1Artifacts = new BrokenResolvedArtifactSet(new Exception())
         def variant2Artifacts = Stub(ResolvedArtifactSet)
 
-        def selector = Stub(VariantSelector)
+        def selector = Stub(ArtifactVariantSelector)
         def spec = Stub(Spec)
 
         given:

@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomPr
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.xml.XmlFactories;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -105,7 +106,7 @@ public class PomReader implements PomParent {
         ClassLoader original = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
         try {
-            DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+            DOCUMENT_BUILDER_FACTORY = XmlFactories.newDocumentBuilderFactory();
             DOCUMENT_BUILDER_FACTORY.setValidating(false);
         } finally {
             Thread.currentThread().setContextClassLoader(original);

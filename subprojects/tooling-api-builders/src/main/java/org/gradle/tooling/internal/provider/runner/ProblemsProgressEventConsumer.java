@@ -47,7 +47,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         Object details = progressEvent.getDetails();
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            Throwable problemCause = problem.getCause();
+            Throwable problemCause = problem.getException();
             if (seenProblems.containsKey(problemCause)) {
                 return;
             }

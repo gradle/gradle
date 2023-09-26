@@ -61,7 +61,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
-import org.gradle.internal.component.model.AttributeMatchingConfigurationSelector;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -99,7 +99,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final AttributeDesugaring attributeDesugaring;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final ComponentIdGenerator idGenerator;
-    private final AttributeMatchingConfigurationSelector configurationSelector;
+    private final GraphVariantSelector variantSelector;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -120,7 +120,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         AttributeDesugaring attributeDesugaring,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         ComponentIdGenerator idGenerator,
-        AttributeMatchingConfigurationSelector configurationSelector
+        GraphVariantSelector variantSelector
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -140,7 +140,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.attributeDesugaring = attributeDesugaring;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.idGenerator = idGenerator;
-        this.configurationSelector = configurationSelector;
+        this.variantSelector = variantSelector;
     }
 
     @Override
@@ -215,7 +215,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
             versionComparator.asVersionComparator(),
             idGenerator,
             versionParser,
-            configurationSelector
+            variantSelector
         );
     }
 

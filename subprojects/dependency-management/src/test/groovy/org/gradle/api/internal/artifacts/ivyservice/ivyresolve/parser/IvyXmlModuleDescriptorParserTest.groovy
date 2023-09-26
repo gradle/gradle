@@ -40,6 +40,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.component.ArtifactType.IVY_DESCRIPTOR
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
@@ -722,6 +723,28 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         hasGradleMetadataRedirectionMarker
+    }
+
+    def "parse IVY descriptor with external entities"() {
+        given:
+        def externalFile = temporaryFolder.file('external.txt').createFile()
+        def ivyXml = temporaryFolder.file("ivy.xml") << """
+        <!DOCTYPE data [
+          <!ENTITY file SYSTEM "file://${normaliseFileSeparators(externalFile.absolutePath)}">
+        ]>
+        <ivy-module version="1.0">
+            <info organisation="myorg" module="mymodule" revision="myrev">
+                &file;
+            </info>
+        </ivy-module>
+        """
+
+        when:
+        parser.parseMetaData(parseContext, ivyXml)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.cause.message == "External Entity: Failed to read external document 'external.txt', because 'file' access is not allowed due to restriction set by the accessExternalDTD property."
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {

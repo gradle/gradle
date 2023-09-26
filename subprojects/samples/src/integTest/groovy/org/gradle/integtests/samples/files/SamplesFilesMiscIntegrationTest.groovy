@@ -19,9 +19,9 @@ package org.gradle.integtests.samples.files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
@@ -71,7 +71,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample("files/misc")
-    @IgnoreIf({ GradleContextualExecuter.isNotConfigCache() })
+    @Requires(IntegTestPreconditions.IsConfigCached)
     def "can move a directory with #dsl dsl with configuration cache"() {
         given:
         def dslDir = sample.dir.file(dsl)

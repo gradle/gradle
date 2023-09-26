@@ -27,10 +27,8 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.AnnotationCategory
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -51,6 +49,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getDisplayName() {
             return "color"
         }
+
         @Override
         String toString() {
             return displayName
@@ -94,9 +93,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         private String getPrivateProperty() { "private" }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
-    )
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
@@ -159,9 +155,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getInjectedProperty() { injectedProperty }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
     def "warns about annotation on field conflicting with annotation on getter and prefers getter annotation"() {
         expect:
         assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
@@ -180,9 +173,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getProperty() { property }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_FIELD
-    )
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
@@ -217,9 +207,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getIgnoredProperty()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.REDUNDANT_GETTERS
-    )
     def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
@@ -292,9 +279,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         boolean isBool() { true }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
     def "fails when ignored property has other annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
@@ -311,9 +295,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getIgnoredProperty()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
     def "fails when ignored property has other ignore annotations"() {
         expect:
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
@@ -330,9 +311,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getTwiceIgnoredProperty()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
     def "fails when field is ignored but there is another annotation on the getter"() {
         expect:
         assertProperties TypeWithIgnoredFieldAndGetterInput, [
@@ -433,9 +411,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getOverriddenProperty() { "test" }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
     def "implemented properties inherit annotation from first conflicting interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
@@ -571,9 +546,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getPropertyIgnoredInBase()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
     def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
@@ -596,9 +568,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         String getSmallThenLarge()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
     def "warns about both method and field having the same annotation, prefers method annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotation, [
@@ -619,9 +588,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
-    )
     def "report setters for property of mutable type"() {
         expect:
         assertProperties TypeWithPropertiesWithMutableProperties, [
@@ -677,9 +643,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
-    )
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
@@ -745,9 +708,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     @Irrelevant
     interface TypeWithAnnotations {}
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
-    )
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [

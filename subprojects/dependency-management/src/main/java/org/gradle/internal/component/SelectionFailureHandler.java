@@ -26,21 +26,21 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
-import org.gradle.api.internal.artifacts.transform.AmbiguousTransformException;
+import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
+import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-//import org.gradle.api.problems.ProblemGroup;
-//import org.gradle.api.problems.Severity;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -60,8 +60,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  * Provides a central location for logging and reporting variant selection failures appearing during
  * each stage of the selection process.
  *
- * All variant selection failures encountered during selection by the {@link org.gradle.internal.component.model.AttributeMatchingConfigurationSelector AttributeMatchingConfigurationSelector} or
- * {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingVariantSelector AttributeMatchingVariantSelector}
+ * All variant selection failures encountered during selection by the {@link GraphVariantSelector} or
+ * {@link AttributeMatchingArtifactVariantSelector}
  * should be routed through this class.
  *
  * This class reports failures to the {@link Problems} service.  It is a
@@ -76,17 +76,16 @@ public class SelectionFailureHandler {
         this.problemsService = problemsService;
     }
 
-    // region Variant Selection Failures
-    public NoMatchingVariantSelectionException noMatchingVariantsSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
+    // region Artifact Variant Selection Failures
+    public NoMatchingArtifactVariantsException noMatchingArtifactVariantFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
-        NoMatchingVariantSelectionException e = new NoMatchingVariantSelectionException(message);
+        NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("No matching variants found")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -94,16 +93,15 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public AmbiguousVariantSelectionException ambiguousVariantSelectionFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
+    public AmbiguousArtifactVariantsException ambiguousArtifactVariantsFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
         String message = buildMultipleMatchingVariantsFailureMsg(attributeDescriber, displayName, componentRequested, matches, matcher, discarded);
-        AmbiguousVariantSelectionException e = new AmbiguousVariantSelectionException(message);
+        AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Multiple matching variants found")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -111,16 +109,15 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public AmbiguousTransformException ambiguousTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
+    public AmbiguousArtifactTransformException ambiguousArtifactTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
         String message = buildAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
-        AmbiguousTransformException e = new AmbiguousTransformException(message);
+        AmbiguousArtifactTransformException e = new AmbiguousArtifactTransformException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Ambiguous artifact transformation")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -128,13 +125,12 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public BrokenResolvedArtifactSet unknownSelectionFailure(AttributesSchema schema, VariantSelectionException t) {
+    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ArtifactVariantSelectionException t) {
 //        problemsService.createProblemBuilder()
 //            .label("Variant selection failed")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(t)
 //            .build();
@@ -142,14 +138,16 @@ public class SelectionFailureHandler {
         return new BrokenResolvedArtifactSet(t);
     }
 
-    public BrokenResolvedArtifactSet unknownSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception t) {
-        return unknownSelectionFailure(schema, VariantSelectionException.selectionFailed(producer, t));
+    public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception t) {
+        return unknownArtifactVariantSelectionFailure(schema, ArtifactVariantSelectionException.selectionFailed(producer, t));
     }
 
-    private String buildNoMatchingVariantsFailureMsg(String producerDisplayName,
-                                                     AttributeContainerInternal consumer,
-                                                     Collection<? extends ResolvedVariant> candidates,
-                                                     AttributeMatcher matcher, AttributeDescriber describer) {
+    private String buildNoMatchingVariantsFailureMsg(
+        String producerDisplayName,
+        AttributeContainerInternal consumer,
+        Collection<? extends ResolvedVariant> candidates,
+        AttributeMatcher matcher, AttributeDescriber describer
+    ) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("No variants of " + style(StyledTextOutput.Style.Info, producerDisplayName) + " match the consumer attributes");
         formatter.startChildren();
@@ -228,22 +226,23 @@ public class SelectionFailureHandler {
         }
         formatter.endChildren();
     }
-    // endregion Variant Selection Failures
+    // endregion Artifact Variant Selection Failures
 
-    // region Configuration Selection Failures
-    public AmbiguousConfigurationSelectionException ambiguousConfigurationSelectionFailure(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
-                                                                                           AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
-                                                                                           ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-                                                                                           Set<VariantGraphResolveState> discarded) {
-        String message = buildAmbiguousConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
-        AmbiguousConfigurationSelectionException e = new AmbiguousConfigurationSelectionException(message);
+    // region Graph Variant Selection Failures
+    public AmbiguousGraphVariantsException ambiguousGraphVariantsFailure(
+        AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
+        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
+        Set<VariantGraphResolveState> discarded
+    ) {
+        String message = buildAmbiguousGraphVariantsFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
+        AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Multiple matching configurations found")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -251,21 +250,22 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public IncompatibleConfigurationSelectionException incompatibleConfigurationSelectionFailure(AttributeContainerInternal fromConfigurationAttributes,
-                                                                                                 AttributeMatcher attributeMatcher,
-                                                                                                 ComponentGraphResolveMetadata targetComponent,
-                                                                                                 ConfigurationGraphResolveState targetConfiguration,
-                                                                                                 boolean variantAware,
-                                                                                                 AttributeDescriber describer) {
-        String message = buildIncompatibleConfigurationSelectionFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
-        IncompatibleConfigurationSelectionException e = new IncompatibleConfigurationSelectionException(message);
+    public IncompatibleGraphVariantsException incompatibleGraphVariantsFailure(
+        AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher,
+        ComponentGraphResolveMetadata targetComponent,
+        ConfigurationGraphResolveState targetConfiguration,
+        boolean variantAware,
+        AttributeDescriber describer
+    ) {
+        String message = buildIncompatibleGraphVariantsFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
+        IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("Configuration does not match consumer attributes")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -273,20 +273,21 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    public NoMatchingConfigurationSelectionException noMatchingConfigurationSelectionFailure(AttributeDescriber describer,
-                                                                                             AttributeContainerInternal fromConfigurationAttributes,
-                                                                                             AttributeMatcher attributeMatcher,
-                                                                                             ComponentGraphResolveMetadata targetComponent,
-                                                                                             GraphSelectionCandidates candidates) {
-        String message = buildNoMatchingConfigurationSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
-        NoMatchingConfigurationSelectionException e = new NoMatchingConfigurationSelectionException(message);
+    public NoMatchingGraphVariantsException noMatchingGraphVariantFailure(
+        AttributeDescriber describer,
+        AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher,
+        ComponentGraphResolveMetadata targetComponent,
+        GraphSelectionCandidates candidates
+    ) {
+        String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
+        NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
 
 //        problemsService.createProblemBuilder()
 //            .label("No matching configuration found")
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -303,7 +304,6 @@ public class SelectionFailureHandler {
 //            .undocumented()
 //            .noLocation()
 //            .type(FAILURE_TYPE)
-//            .group(ProblemGroup.GENERIC_ID)
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
@@ -311,10 +311,12 @@ public class SelectionFailureHandler {
         return e;
     }
 
-    private String buildAmbiguousConfigurationSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
-                                                                  AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
-                                                                  ComponentGraphResolveMetadata targetComponent, boolean variantAware,
-                                                                  Set<VariantGraphResolveState> discarded) {
+    private String buildAmbiguousGraphVariantsFailureMsg(
+        AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher, List<? extends VariantGraphResolveState> matches,
+        ComponentGraphResolveMetadata targetComponent, boolean variantAware,
+        Set<VariantGraphResolveState> discarded
+    ) {
         Map<String, VariantGraphResolveState> ambiguousVariants = new TreeMap<>();
         for (VariantGraphResolveState match : matches) {
             ambiguousVariants.put(match.getName(), match);
@@ -352,19 +354,21 @@ public class SelectionFailureHandler {
         return formatter.toString();
     }
 
-    private String buildIncompatibleConfigurationSelectionFailureMsg(AttributeContainerInternal fromConfigurationAttributes,
-                                                                     AttributeMatcher attributeMatcher,
-                                                                     ComponentGraphResolveMetadata targetComponent,
-                                                                     ConfigurationGraphResolveState targetConfiguration,
-                                                                     boolean variantAware,
-                                                                     AttributeDescriber describer) {
+    private String buildIncompatibleGraphVariantsFailureMsg(
+        AttributeContainerInternal fromConfigurationAttributes,
+        AttributeMatcher attributeMatcher,
+        ComponentGraphResolveMetadata targetComponent,
+        ConfigurationGraphResolveState targetConfiguration,
+        boolean variantAware,
+        AttributeDescriber describer
+    ) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Configuration '" + targetConfiguration.getName() + "' in " + style(StyledTextOutput.Style.Info, targetComponent.getId().getDisplayName()) + " does not match the consumer attributes");
         formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetConfiguration.asVariant().getMetadata(), variantAware, false, describer);
         return formatter.toString();
     }
 
-    private String buildNoMatchingConfigurationSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
+    private String buildNoMatchingGraphVariantSelectionFailureMsg(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentGraphResolveMetadata targetComponent, GraphSelectionCandidates candidates) {
         boolean variantAware = candidates.isUseVariants();
         Map<String, VariantGraphResolveMetadata> variants = new TreeMap<>();
         if (variantAware) {
@@ -409,14 +413,16 @@ public class SelectionFailureHandler {
         return sb.toString();
     }
 
-    private void formatConfiguration(TreeFormatter formatter,
-                                     ComponentGraphResolveMetadata targetComponent,
-                                     AttributeContainerInternal consumerAttributes,
-                                     AttributeMatcher attributeMatcher,
-                                     VariantGraphResolveMetadata variant,
-                                     boolean variantAware,
-                                     boolean ambiguous,
-                                     AttributeDescriber describer) {
+    private void formatConfiguration(
+        TreeFormatter formatter,
+        ComponentGraphResolveMetadata targetComponent,
+        AttributeContainerInternal consumerAttributes,
+        AttributeMatcher attributeMatcher,
+        VariantGraphResolveMetadata variant,
+        boolean variantAware,
+        boolean ambiguous,
+        AttributeDescriber describer
+    ) {
         AttributeContainerInternal producerAttributes = variant.getAttributes();
         if (variantAware) {
             formatter.node("Variant '");
@@ -435,11 +441,13 @@ public class SelectionFailureHandler {
         }
     }
 
-    private void formatAttributeMatchesForIncompatibility(TreeFormatter formatter,
-                                                          ImmutableAttributes immutableConsumer,
-                                                          AttributeMatcher attributeMatcher,
-                                                          ImmutableAttributes immutableProducer,
-                                                          AttributeDescriber describer) {
+    private void formatAttributeMatchesForIncompatibility(
+        TreeFormatter formatter,
+        ImmutableAttributes immutableConsumer,
+        AttributeMatcher attributeMatcher,
+        ImmutableAttributes immutableProducer,
+        AttributeDescriber describer
+    ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
@@ -472,11 +480,13 @@ public class SelectionFailureHandler {
         formatter.endChildren();
     }
 
-    private void formatAttributeMatchesForAmbiguity(TreeFormatter formatter,
-                                                    ImmutableAttributes immutableConsumer,
-                                                    AttributeMatcher attributeMatcher,
-                                                    ImmutableAttributes immutableProducer,
-                                                    AttributeDescriber describer) {
+    private void formatAttributeMatchesForAmbiguity(
+        TreeFormatter formatter,
+        ImmutableAttributes immutableConsumer,
+        AttributeMatcher attributeMatcher,
+        ImmutableAttributes immutableProducer,
+        AttributeDescriber describer
+    ) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
@@ -526,5 +536,5 @@ public class SelectionFailureHandler {
             formatter.endChildren();
         }
     }
-    // endregion Configuration Selection Failures
+    // endregion Graph Variant Selection Failures
 }

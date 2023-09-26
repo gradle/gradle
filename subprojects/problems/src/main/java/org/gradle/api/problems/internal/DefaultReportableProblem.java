@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
@@ -30,10 +29,9 @@ import java.util.Map;
 @NonNullApi
 public class DefaultReportableProblem extends DefaultProblem implements ReportableProblem {
 
-    private transient final InternalProblems problemService;
+    private transient InternalProblems problemService;
 
     public DefaultReportableProblem(
-        ProblemGroup problemGroup,
         String message,
         Severity severity,
         @Nullable ProblemLocation location,
@@ -46,7 +44,6 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable InternalProblems problemService
     ) {
         super(
-            problemGroup,
             message,
             severity,
             location,
@@ -57,6 +54,10 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
             problemType,
             additionalMetadata
         );
+        this.problemService = problemService;
+    }
+
+    public void setProblemService(InternalProblems problemService) {
         this.problemService = problemService;
     }
 

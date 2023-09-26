@@ -144,6 +144,48 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
+    String taskWithUnparameterizedPropertyOption(String propertyType, String methodName) {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFileProperty;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+            import org.gradle.api.provider.Property;
+
+            public class SampleTask extends DefaultTask {
+                private final $propertyType myProp = getProject().getObjects().${methodName}();
+
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                public $propertyType getMyProp() {
+                    return myProp;
+                }
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of myProp: " + myProp.getOrNull());
+                }
+            }
+        """
+    }
+
+    String groovyTaskWithUnparameterizedPropertyOption(String propertyType, String methodName) {
+        """
+            public class SampleTask extends DefaultTask {
+                @Internal
+                @Option(option = "myProp", description = "Configures command line option 'myProp'.")
+                final $propertyType myProp = project.objects.$methodName()
+
+                @TaskAction
+                public void renderOptionValue() {
+                    println("Value of myProp: " + myProp.getOrNull())
+                }
+            }
+        """
+    }
+
     String taskWithMultipleOptions() {
         """
             import org.gradle.api.DefaultTask;

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.VersionNumber
@@ -38,7 +38,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     private
     val kotlinVersion: String
 
-) : AbstractPluginTest() {
+) : AbstractKotlinIntegrationTest() {
 
     companion object {
 

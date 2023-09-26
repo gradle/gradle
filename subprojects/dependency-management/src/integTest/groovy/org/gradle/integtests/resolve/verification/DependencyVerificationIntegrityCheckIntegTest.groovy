@@ -19,9 +19,9 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
@@ -1108,7 +1108,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/18498")
     def "fails validation for local repository with cached metadata rule"() {
         def repoDir = testDirectory.createDir("repo")

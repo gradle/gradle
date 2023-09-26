@@ -59,8 +59,8 @@ object ClosureCodec : Codec<Closure<*>> {
     fun findOwningScript(value: Any): Any? {
         return when (value) {
             is org.gradle.api.Script -> value
-            is ConfigureDelegate -> findOwningScript(value._original_owner())
-            is Closure<*> -> findOwningScript(value.owner)
+            is ConfigureDelegate -> value._original_owner()?.let { findOwningScript(it) }
+            is Closure<*> -> value.owner?.let { findOwningScript(it) }
             else -> null
         }
     }

@@ -26,6 +26,7 @@ import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -75,6 +76,7 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
             .stream()
             .map(ElementUtils::getTopLevelType)
             .map(ElementUtils::getElementName)
+            .filter(Objects::nonNull)
             .collect(Collectors.toSet());
     }
 

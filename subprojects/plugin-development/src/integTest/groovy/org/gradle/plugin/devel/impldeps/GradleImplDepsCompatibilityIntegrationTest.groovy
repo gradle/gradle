@@ -18,16 +18,16 @@ package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-@IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "TestKit dependency artifacts contain Gradle API artifact"() {

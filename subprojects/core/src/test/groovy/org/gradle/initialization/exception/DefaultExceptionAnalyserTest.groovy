@@ -23,6 +23,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.exceptions.ResolutionProvider
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -353,8 +354,14 @@ class DefaultExceptionAnalyserTest extends Specification {
             this.causes = Arrays.asList(throwables)
         }
 
+        @Override
         List<? extends Throwable> getCauses() {
             return causes
+        }
+
+        @Override
+        List<String> getResolutions() {
+            return causes.collect { it instanceof ResolutionProvider ? ((ResolutionProvider) it).getResolutions() : null }.flatten() as List<String>
         }
     }
 

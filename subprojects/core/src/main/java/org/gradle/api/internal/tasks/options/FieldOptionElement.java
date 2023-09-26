@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
@@ -25,6 +27,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -56,6 +59,9 @@ public class FieldOptionElement {
     private static PropertySetter mutateUsingGetter(final Field field) {
         if (HasMultipleValues.class.isAssignableFrom(field.getType())) {
             return new MultipleValuePropertyFieldSetter(getGetter(field), field);
+        }
+        if (FileSystemLocationProperty.class.isAssignableFrom(field.getType())) {
+            return new FileSystemLocationPropertyFieldSetter(getGetter(field), field);
         }
         return new PropertyFieldSetter(getGetter(field), field);
     }
@@ -124,9 +130,13 @@ public class FieldOptionElement {
         private final Class<?> elementType;
 
         public PropertyFieldSetter(Method getter, Field field) {
+            this(getter, field, ModelType.of(getter.getGenericReturnType()).getTypeVariables().get(0).getRawClass());
+        }
+
+        public PropertyFieldSetter(Method getter, Field field, Class<?> elementType) {
             this.getter = getter;
             this.field = field;
-            this.elementType = ModelType.of(getter.getGenericReturnType()).getTypeVariables().get(0).getRawClass();
+            this.elementType = elementType;
         }
 
         @Override
@@ -165,6 +175,19 @@ public class FieldOptionElement {
         public void setValue(Object target, Object value) {
             HasMultipleValues<Object> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
             property.set((Iterable<?>) value);
+        }
+    }
+
+    @NonNullApi
+    private static class FileSystemLocationPropertyFieldSetter extends PropertyFieldSetter {
+        public FileSystemLocationPropertyFieldSetter(Method getter, Field field) {
+            super(getter, field, FileSystemLocation.class);
+        }
+
+        @Override
+        public void setValue(Object target, Object value) {
+            FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
+            property.set(new File((String)value));
         }
     }
 }

@@ -16,16 +16,11 @@
 
 package org.gradle.integtests.resolve.versions
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
+@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 class VersionRangeResolvePairBatch2IntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
     def "resolve pair #permutation"() {
         given:

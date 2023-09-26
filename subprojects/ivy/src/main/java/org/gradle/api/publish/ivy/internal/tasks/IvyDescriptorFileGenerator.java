@@ -22,9 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -41,6 +39,7 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
@@ -213,22 +212,13 @@ public final class IvyDescriptorFileGenerator {
             for (IvyDependency dependency : model.dependencies) {
                 String org = dependency.getOrganisation();
                 String module = dependency.getModule();
-                ModuleVersionIdentifier resolvedVersion = dependency.getResolvedVersion();
-
-                if (resolvedVersion != null) {
-                    org = resolvedVersion.getGroup();
-                    module = resolvedVersion.getName();
-                }
 
                 xmlWriter.startElement("dependency")
                     .attribute("org", org)
                     .attribute("name", module)
-                    .attribute("rev", resolvedVersion != null ? resolvedVersion.getVersion() : dependency.getRevision())
-                    .attribute("conf", dependency.getConfMapping());
-
-                if (resolvedVersion != null && isDynamicVersion(dependency.getRevision())) {
-                    xmlWriter.attribute("revConstraint", dependency.getRevision());
-                }
+                    .attribute("rev", dependency.getRevision())
+                    .attribute("conf", dependency.getConfMapping())
+                    .attribute("revConstraint", dependency.getRevConstraint());
 
                 if (!dependency.isTransitive()) {
                     xmlWriter.attribute("transitive", "false");
@@ -273,10 +263,6 @@ public final class IvyDescriptorFileGenerator {
                 .endElement();
         }
 
-        private static boolean isDynamicVersion(String version) {
-            return !ExactVersionSelector.isExact(version);
-        }
-
         private static boolean usesClassifier(Model model) {
             for (IvyArtifact artifact : model.artifacts) {
                 if (artifact.getClassifier() != null) {
@@ -305,7 +291,7 @@ public final class IvyDescriptorFileGenerator {
             }
 
             @Override
-            public OptionalAttributeXmlWriter attribute(String name, String value) throws IOException {
+            public OptionalAttributeXmlWriter attribute(String name, @Nullable String value) throws IOException {
                 if (value != null) {
                     super.attribute(name, value);
                 }

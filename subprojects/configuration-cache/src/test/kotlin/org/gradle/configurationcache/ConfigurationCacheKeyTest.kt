@@ -19,8 +19,9 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.hash.HashCode
@@ -116,6 +117,38 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours isolated projects option`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            },
+            equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            })
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(false)
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.defaultValue(false)
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(false)
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},
@@ -128,7 +161,7 @@ class ConfigurationCacheKeyTest {
         val startParameter = StartParameterInternal().apply(configure)
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildLayout(
+                BuildLocations(
                     file("root"),
                     file("settings"),
                     null,
@@ -136,7 +169,7 @@ class ConfigurationCacheKeyTest {
                 ),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
-                BuildModelParameters(false, false, true, false, false, false, false, false, LogLevel.LIFECYCLE)
+                BuildModelParameters(false, false, true, startParameter.isolatedProjects.get(), false, false, false, false, LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

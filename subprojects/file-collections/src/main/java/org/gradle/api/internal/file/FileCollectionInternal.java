@@ -49,6 +49,13 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
     void visitStructure(FileCollectionStructureVisitor visitor);
 
     /**
+     * Returns the display name of this file collection. Used in log and error messages.
+     *
+     * @return the display name
+     */
+    String getDisplayName();
+
+    /**
      * Appends diagnostic information about the contents of this collection to the given formatter.
      */
     TreeFormatter describeContents(TreeFormatter formatter);

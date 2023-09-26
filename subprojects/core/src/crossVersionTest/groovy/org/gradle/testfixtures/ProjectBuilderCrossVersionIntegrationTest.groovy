@@ -18,12 +18,11 @@ package org.gradle.testfixtures
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
@@ -42,8 +41,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         executers.each { it.cleanup() }
     }
 
-    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
         writeSourceFiles()
         expect:

@@ -18,11 +18,11 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Assume
-import spock.lang.IgnoreIf
 
 abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegrationSpec {
     def compilerDaemonIdentityFileName = "build/compilerId"
@@ -63,7 +63,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         """
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a single project build"() {
         withSingleProjectSources()
@@ -78,7 +78,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
@@ -93,7 +93,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "reuses compiler daemons within a composite build"() {
         Assume.assumeTrue(supportsCompositeBuilds())
 
@@ -109,7 +109,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
         buildFile << """

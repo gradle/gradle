@@ -29,7 +29,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -59,7 +59,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails("assemble")
+        isolatedProjectsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -84,7 +84,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help", ":b:help")
+        isolatedProjectsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -112,7 +112,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        configurationCacheFails(":a:help", ":b:help")
+        isolatedProjectsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {

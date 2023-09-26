@@ -140,8 +140,10 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             buildRegistry.visitBuilds(build -> {
                 if (build.isImportableBuild() && build.isProjectsLoaded()) {
                     ProjectState rootProject = build.getProjects().getRootProject();
-                    if (Objects.equals(rootProject.getIdentityPath().getParent(), project.getIdentityPath())) {
-                        candidates.put(rootProject.getIdentityPath().getName(), rootProject);
+                    Path rootProjectIdentityPath = rootProject.getIdentityPath();
+                    Path buildIdentityPath = rootProjectIdentityPath.getParent();
+                    if (Objects.equals(buildIdentityPath, project.getIdentityPath())) {
+                        candidates.put(rootProjectIdentityPath.getName(), rootProject);
                     }
                 }
             });
