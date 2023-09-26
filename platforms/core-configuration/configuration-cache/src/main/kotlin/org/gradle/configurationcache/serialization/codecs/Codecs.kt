@@ -138,6 +138,7 @@ class Codecs(
 
             providersBlock()
 
+            bind(DefaultContextAwareTaskLoggerCodec)
             bind(LoggerCodec)
 
             fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)

@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
 
@@ -33,7 +32,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     val experimentalFeatureToWarnAbout = "-XXLanguage:+FunctionReferenceWithDefaultValueAsOtherType"
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     fun `experimental compiler warnings are not shown for known experimental features`() {
         withBuildScriptForKotlinCompile()
         withKotlinSourceFile()
@@ -45,7 +43,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     fun `experimental compiler warnings are not shown for known experimental features with allWarningsAsErrors`() {
         withBuildScriptForKotlinCompile("allWarningsAsErrors.set(true)")
         withKotlinSourceFile()
@@ -58,7 +55,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
 
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     fun `compileKotlin task output is retained when known experimental feature warnings are silenced`() {
         withBuildScriptForKotlinCompile(
             "",
@@ -82,7 +78,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     fun `compiler warning for an explicitly enabled experimental feature is shown`() {
         withBuildScriptForKotlinCompile("freeCompilerArgs.add(\"$experimentalFeatureToWarnAbout\")")
         withKotlinSourceFile()
@@ -95,7 +90,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
     fun `compiler warning for an explicitly enabled experimental feature is shown with allWarningsAsErrors`() {
         withBuildScriptForKotlinCompile(
             """
