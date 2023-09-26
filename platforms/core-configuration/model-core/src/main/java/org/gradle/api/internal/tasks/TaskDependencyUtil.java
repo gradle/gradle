@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
@@ -38,5 +39,9 @@ public class TaskDependencyUtil {
         return taskDependency instanceof TaskDependencyInternal ?
             ((TaskDependencyInternal) taskDependency).getDependenciesForInternalUse(task) :
             taskDependency.getDependencies(task);
+    }
+
+    public static Set<? extends Task> getDependenciesForInternalUse(Buildable buildable) {
+        return getDependenciesForInternalUse(buildable.getBuildDependencies(), null);
     }
 }

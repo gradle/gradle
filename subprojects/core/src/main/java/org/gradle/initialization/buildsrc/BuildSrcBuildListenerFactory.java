@@ -24,7 +24,6 @@ import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -35,6 +34,8 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
+
+import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
 @ServiceScope(Scopes.Build.class)
 public class BuildSrcBuildListenerFactory {
@@ -84,7 +85,7 @@ public class BuildSrcBuildListenerFactory {
                 classpathConfiguration = rootProject.getConfigurations().resolvableDependencyScopeUnlocked("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
-                plan.addEntryTasks(TaskDependencyUtil.getDependenciesForInternalUse(classpathConfiguration.getBuildDependencies(), null));
+                plan.addEntryTasks(getDependenciesForInternalUse(classpathConfiguration));
             });
         }
 
