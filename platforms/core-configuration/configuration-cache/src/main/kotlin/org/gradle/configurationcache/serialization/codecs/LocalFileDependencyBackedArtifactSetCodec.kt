@@ -179,6 +179,9 @@ class LocalFileDependencyBackedArtifactSetCodec(
 }
 
 
+// Deserialized counterpart of DefaultLocalFileDependencyBackedArtifactSet.
+// Stores less state than the original, since we perform selection for each possible extension at serialization time
+// This data is encoded in the variantSelector, meaning we no longer need to store the request attributes
 private
 class DeserializedLocalFileDependencyArtifactSet(
     dependencyMetadata: LocalFileDependencyMetadata,

@@ -78,6 +78,7 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
@@ -1682,12 +1683,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public SelectedArtifactSet getTaskDependencyValue() {
-            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
+            return resultProvider.getTaskDependencyValue().select(dependencySpec, artifactSpec);
         }
 
         @Override
         public SelectedArtifactSet getValue() {
-            return resultProvider.getValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
+            return resultProvider.getValue().select(dependencySpec, artifactSpec);
         }
     }
 

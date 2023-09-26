@@ -54,6 +54,27 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Abstract file dependency implementation. The two {@code default} and {@code deserialized} subtypes
+ * represent the artifact set before and after configuration cache serialization. The deserialized
+ * type only stores a subset of the information originally stored by the default type.
+ *
+ * <p>This is required since the files in a given file dependency artifact set are unknown until
+ * dependencies are executed. For this reason, we delay artifact selection until after this artifact
+ * set is restored from the configuration cache. This differs from normal artifact variant selection
+ * where we can perform selection before serialization.</p>
+ *
+ * <p>The tricky part that due to the artifactType registry, artifact variant selection depends on the
+ * file names of the artifacts exposed by a variant. Normal variants have access to these file names
+ * before the dependencies are executed, but file dependencies do not.</p>
+ *
+ * <p>We should do one of these things to fix the current mess here:</p>
+ * <ul>
+ *     <li>Kill file dependencies</li>
+ *     <li>Enhance file dependencies to know what files they produce</li>
+ *     <li>Kill artifactType registry</li>
+ * </ul>
+ */
 public abstract class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, ArtifactVariantSelector.ResolvedArtifactTransformer {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 

@@ -16,47 +16,36 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
-
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class NoBuildDependenciesArtifactSetTest extends Specification {
     def "returns original selected artifacts when they are empty"() {
         def target = Stub(ArtifactSet)
-        def spec = Stub(Spec)
         def selector = Stub(ArtifactVariantSelector)
 
         when:
-        target.select(_, _, _, _, _) >> ResolvedArtifactSet.EMPTY
+        target.select(_, _) >> ResolvedArtifactSet.EMPTY
 
         then:
-        new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY) == ResolvedArtifactSet.EMPTY
-
-        where:
-        selectFromAllVariants << [false, true]
+        new NoBuildDependenciesArtifactSet(target).select(selector, Mock(ArtifactSelectionSpec)) == ResolvedArtifactSet.EMPTY
     }
 
     def "creates wrapper for non-empty set of selected artifacts"() {
         def target = Stub(ArtifactSet)
-        def spec = Stub(Spec)
         def selector = Stub(ArtifactVariantSelector)
         def selected = Stub(ResolvedArtifactSet)
         def visitor = Mock(TaskDependencyResolveContext)
 
         given:
-        target.select(_, _, _, _, _) >> selected
+        target.select(_, _) >> selected
 
         when:
-        def wrapper = new NoBuildDependenciesArtifactSet(target).select(spec, selector, selectFromAllVariants, false, ImmutableAttributes.EMPTY)
+        def wrapper = new NoBuildDependenciesArtifactSet(target).select(selector, Mock(ArtifactSelectionSpec))
         wrapper.visitDependencies(visitor)
 
         then:
         0 * visitor._
-
-        where:
-        selectFromAllVariants << [false, true]
     }
 }

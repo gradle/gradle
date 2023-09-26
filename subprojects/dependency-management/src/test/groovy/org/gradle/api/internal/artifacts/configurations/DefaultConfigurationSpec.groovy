@@ -488,7 +488,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
             visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
                 files.each {
                     visitor.visitFile(it)
@@ -512,7 +512,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
-        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
             visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l -> v.visitFailure(failure) }
         }
         _ * resolvedConfiguration.hasError() >> true
@@ -579,7 +579,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _, _, _, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -1110,7 +1110,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { return it[0] }
         }
 
@@ -1878,7 +1878,7 @@ All Artifacts:
     private visitedArtifacts() {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def selectedArtifactSet = Stub(SelectedArtifactSet)
-        _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { Collection<Object> deps -> deps }
         visitedArtifactSet
     }

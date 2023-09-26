@@ -16,19 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.specs.Spec;
 
 public interface VisitedArtifactsResults {
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    SelectedArtifactResults select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants, boolean allowNoMatchingVariants, ImmutableAttributes requestAttributes);
+    SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec);
 
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal, ignoring artifacts that are resolved, but unavailable. The implementation should attempt to select artifacts eagerly, but may be lazy where the selection cannot happen until the results are queried.
      */
-    SelectedArtifactResults selectLenient(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants, boolean allowNoMatchingVariants, ImmutableAttributes requestAttributes);
+    SelectedArtifactResults selectLenient(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec);
 }

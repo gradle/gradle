@@ -20,12 +20,13 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.ResolveContext
+import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Specs
@@ -56,7 +57,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations as List == []
 
         def visitedArtifacts = results.visitedArtifacts
-        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true, false)
+        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))
         artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
@@ -84,7 +85,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations as List == []
 
         def visitedArtifacts = results.visitedArtifacts
-        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), null, Specs.satisfyAll(), true, false)
+        def artifactSet = visitedArtifacts.select(Specs.satisfyAll(), Mock(ArtifactSelectionSpec))
         artifactSet.visitDependencies(depVisitor)
         artifactSet.visitArtifacts(artifactVisitor, true)
 
