@@ -250,7 +250,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void validateForkOptionsMatchToolchain() {
-        if (!getOptions().isFork()) {
+        if (!getOptions().getFork().get()) {
             return;
         }
 

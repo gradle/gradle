@@ -38,6 +38,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -68,8 +69,6 @@ public abstract class CompileOptions extends AbstractOptions {
     private boolean debug = true;
 
     private DebugOptions debugOptions;
-
-    private boolean fork;
 
     private ForkOptions forkOptions;
 
@@ -105,6 +104,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
         this.debugOptions = new DebugOptions();
+        this.getFork().convention(false);
     }
 
     /**
@@ -237,19 +237,23 @@ public abstract class CompileOptions extends AbstractOptions {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
+     *
+     * @since 8.5
      */
     @Input
-    public boolean isFork() {
-        return fork;
-    }
+    @Incubating
+    @UpgradedProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
 
     /**
-     * Sets whether to run the compiler in its own process. Note that this does
-     * not necessarily mean that a new process will be created for each compile task.
-     * Defaults to {@code false}.
+     * TODO: Add deprecation warning
+     *
+     * @since 8.5
      */
-    public void setFork(boolean fork) {
-        this.fork = fork;
+    @Incubating
+    @ReplacedBy("fork")
+    public Property<Boolean> getIsFork() {
+        return getFork();
     }
 
     /**
@@ -360,7 +364,7 @@ public abstract class CompileOptions extends AbstractOptions {
      * Calling this method will set {@code fork} to {@code true}.
      */
     public CompileOptions fork(Map<String, Object> forkArgs) {
-        fork = true;
+        getFork().set(true);
         forkOptions.define(forkArgs);
         return this;
     }

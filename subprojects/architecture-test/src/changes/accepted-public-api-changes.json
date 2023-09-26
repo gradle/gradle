@@ -7,6 +7,22 @@
             "changes": [
                 "org.gradle.api.file.FileSystemLayout"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.isFork()",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setFork(boolean)",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

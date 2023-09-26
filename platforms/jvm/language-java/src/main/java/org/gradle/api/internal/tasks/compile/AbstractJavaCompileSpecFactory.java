@@ -41,7 +41,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return chooseSpecForToolchain();
         }
 
-        if (compileOptions.isFork()) {
+        if (compileOptions.getFork().get()) {
             return chooseSpecFromCompileOptions(Jvm.current().getJavaHome());
         }
 
@@ -54,7 +54,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
 
-        if (compileOptions.isFork()) {
+        if (compileOptions.getFork().get()) {
             return chooseSpecFromCompileOptions(toolchainJavaHome);
         }
 

@@ -42,7 +42,7 @@ class CompileOptionsTest extends Specification {
         !compileOptions.deprecation
         !compileOptions.listFiles
         !compileOptions.verbose
-        !compileOptions.fork
+        !compileOptions.fork.get()
 
         compileOptions.compilerArgs.empty
         compileOptions.encoding == null
@@ -54,12 +54,12 @@ class CompileOptionsTest extends Specification {
     }
 
     def testFork() {
-        compileOptions.fork = false
+        compileOptions.fork.set(false)
         assertNull(compileOptions.forkOptions.memoryMaximumSize)
 
         expect:
         compileOptions.fork([memoryMaximumSize: '1g'])
-        assertTrue(compileOptions.fork)
+        assertTrue(compileOptions.fork.get())
         assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
     }
 
@@ -80,12 +80,12 @@ class CompileOptionsTest extends Specification {
 
     def "define"() {
         compileOptions.debug = false
-        compileOptions.fork = false
+        compileOptions.fork.set(false)
         compileOptions.define(debug: true)
 
         expect:
         compileOptions.debug
-        !compileOptions.fork
+        !compileOptions.fork.get()
     }
 
     def "converts GStrings to Strings when getting all compiler arguments"() {

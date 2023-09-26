@@ -55,7 +55,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def invalidExecutable = temporaryFolder.file("invalidExecutable")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.executable = invalidExecutable
         javaCompile.createSpec()
 
@@ -72,7 +72,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def executableDir = temporaryFolder.createDir("javac")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.executable = executableDir.absolutePath
         javaCompile.createSpec()
 
@@ -89,7 +89,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def invalidJavac = temporaryFolder.createFile("invalidJavac")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.executable = invalidJavac.absolutePath
         javaCompile.createSpec()
 
@@ -105,7 +105,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def invalidJavaHome = "invalidJavaHome"
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = new File(invalidJavaHome)
         javaCompile.createSpec()
 
@@ -122,7 +122,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaHomeFile = temporaryFolder.createFile("javaHome")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = javaHomeFile
         javaCompile.createSpec()
 
@@ -139,7 +139,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaHomeDir = temporaryFolder.createDir("javaHome")
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = javaHomeDir
         javaCompile.createSpec()
 
@@ -282,7 +282,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def executable = Jvm.current().javacExecutable.absolutePath
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.executable = executable
         def spec = javaCompile.createSpec()
 
@@ -298,7 +298,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaHome = jvm.javaHome
 
         when:
-        javaCompile.options.fork = true
+        javaCompile.options.fork.set(true)
         javaCompile.options.forkOptions.javaHome = javaHome
         def spec = javaCompile.createSpec()
 

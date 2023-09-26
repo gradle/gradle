@@ -29,7 +29,7 @@ public class JavaCompileExecutableUtils {
 
     @Nullable
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, ObjectFactory objectFactory) {
-        if (!task.getOptions().isFork()) {
+        if (!task.getOptions().getFork().get()) {
             return null;
         }
 

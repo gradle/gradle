@@ -260,7 +260,6 @@ Method <org.gradle.api.tasks.compile.CompileOptions.getForkOptions()> does not h
 Method <org.gradle.api.tasks.compile.CompileOptions.isDebug()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isDeprecation()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isFailOnError()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
-Method <org.gradle.api.tasks.compile.CompileOptions.isFork()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isIncremental()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isListFiles()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isVerbose()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
