@@ -19,25 +19,20 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
-class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
+class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
     private String printLocations() {
         groovyScript """
             println "settings root dir: " + layout.rootDirectory + "."
             println "settings dir: " + layout.settingsDirectory + "."
-            println "settings source file: " + layout.dir(providers.provider { buildscript.sourceFile }).get() + "."
-            println "settings relative location: " + layout.file(providers.provider { new File("somefile.txt") }).get() + "."
+            println "settings source file: " + layout.settingsDirectory.file(providers.provider { buildscript.sourceFile.name }).get() + "."
         """
     }
 
     def "layout is available for injection"() {
         settingsFile """
-            import javax.inject.Inject
-            import org.gradle.api.file.FileSystemLayout
-            import org.gradle.api.provider.ProviderFactory
-            import org.gradle.api.initialization.Settings
             abstract class SomePlugin implements Plugin<Settings> {
                 @Inject
-                abstract SettingsLayout getLayout()
+                abstract BuildLayout getLayout()
 
                 @Inject
                 abstract ProviderFactory getProviders()
@@ -59,7 +54,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory + ".")
         outputContains("settings dir: " + testDirectory + ".")
         outputContains("settings source file: " + settingsFile + ".")
-        outputContains("settings relative location: " + testDirectory.file("somefile.txt") + ".")
     }
 
     def "layout is available for scripts"() {
@@ -74,7 +68,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory + ".")
         outputContains("settings dir: " + testDirectory + ".")
         outputContains("settings source file: " + settingsFile + ".")
-        outputContains("settings relative location: " + testDirectory.file("somefile.txt") + ".")
     }
 
     def "locations are as expected for non-standard settings locations available for scripts"() {
@@ -95,7 +88,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + testDirectory + ".")
         outputContains("settings dir: " + customSettingsDir + ".")
         outputContains("settings source file: " + customSettingsFile + ".")
-        outputContains("settings relative location: " + customSettingsDir.file("somefile.txt") + ".")
     }
 
     def "locations are as expected in an included build"() {
@@ -119,7 +111,6 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + buildB.absolutePath + ".")
         outputContains("settings dir: " + buildB.absolutePath + ".")
         outputContains("settings source file: " + buildB.settingsFile.absolutePath + ".")
-        outputContains("settings relative location: " + buildB.file("somefile.txt") + ".")
     }
 
     def "locations are as expected in buildSrc settings"() {
@@ -140,6 +131,5 @@ class SettingsLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings root dir: " + buildSrcDir + ".")
         outputContains("settings dir: " + buildSrcDir + ".")
         outputContains("settings source file: " + buildSrcSettingsFile + ".")
-        outputContains("settings relative location: " + buildSrcDir.file("somefile.txt") + ".")
     }
 }
