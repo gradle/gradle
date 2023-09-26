@@ -40,6 +40,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 
+import static java.lang.Boolean.getBoolean;
+
 @NonExtensible
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
 
@@ -92,7 +94,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
-            if (!System.getProperty(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY, "false").equals("true") && classpathConfiguration != null) {
+            if (classpathConfiguration != null && !getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                 ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
             }
         }
