@@ -79,6 +79,8 @@ build_logic_files:
   - 'settings.gradle'
 
 # Perhaps a task could generate this list from the CODEOWNERS, or both this and CODEOWNERS could be generated from different single source of truth?
+# Keys like `- build_infrastructure:` do not mean anything, they just need to be unique
+# The `name:` field specifies the platform label, e.g. `name: build_infrastructure` => `platform:build_infrastructure` label
 platforms:
   - bt_ge_build_cache:
     name: 'bt_ge_build_cache'
@@ -107,10 +109,10 @@ platforms:
       - 'subprojects/internal-integ-testing/'
       - 'subprojects/internal-performance-testing/'
       - 'subprojects/internal-testing/'
-  - cc:
-    name: 'configuration_cache'
+  - configuration:
+    name: 'configuration'
     subprojects:
-      - 'platforms/core-configuration/configuration-cache/'
+      - 'platforms/core-configuration'
       - 'subprojects/api-metadata/'
       - 'subprojects/base-services-groovy/'
       - 'subprojects/file-collections/'

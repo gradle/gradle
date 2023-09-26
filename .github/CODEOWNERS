@@ -3,7 +3,7 @@
 ## CODEOWNERS style rules:
 ## 1. Prefer team ownership over individual user ownership.
 ## 2. GBT-related team should be listed first.
-## 3. Try to keep paths alphabetically sorted.
+## 3. Try to keep paths alphabetically sorted within visual groups.
 ## 4. List individual owners last.
 ##
 
@@ -18,7 +18,7 @@ subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-b
 subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
-platforms/core-configuration/configuration-cache/       @gradle/bt-configuration
+platforms/core-configuration/                   @gradle/bt-configuration
 subprojects/api-metadata/                       @gradle/bt-configuration
 subprojects/base-services-groovy/               @gradle/bt-configuration
 subprojects/file-collections/                   @gradle/bt-configuration
