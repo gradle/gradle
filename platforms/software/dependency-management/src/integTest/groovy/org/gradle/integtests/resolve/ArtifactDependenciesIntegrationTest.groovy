@@ -81,6 +81,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
 
     void dependencyReportWithConflicts() {
         given:
+        createDirs("subproject")
         resolve.prepare {
             config("evictedTransitive")
             config("evictedDirect")
@@ -173,6 +174,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
 
     void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
         expect:
+        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
         file('build.gradle') << """
 subprojects {
@@ -260,6 +262,7 @@ Searched in the following locations:
         repo1.module('org.gradle.test', 'external1', '1.0').publish()
         def repo2 = maven('repo2')
 
+        createDirs("a", "b")
         file('settings.gradle') << 'include "a", "b"'
         file('build.gradle') << """
 subprojects {
@@ -398,6 +401,7 @@ tasks.register("test", CheckArtifacts) {
         lib.artifact(classifier: 'classifier2')
         lib.publish()
 
+        createDirs("a", "b", "c")
         file('settings.gradle') << """
             rootProject.name = "test"
             include "a", "b", "c"

@@ -28,6 +28,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2889")
     def "detached configurations may have separate dependencies"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -79,6 +80,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     def "detached configurations may have dependencies on other projects"() {
         given:
+        createDirs("other")
         settingsFile << "include 'other'"
         buildFile << """
             plugins {

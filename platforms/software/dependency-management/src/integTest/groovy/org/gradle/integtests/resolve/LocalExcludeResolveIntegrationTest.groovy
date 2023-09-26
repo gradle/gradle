@@ -183,6 +183,7 @@ task check {
             .dependsOn('org.gradle.test', 'transitive', '1.0')
             .publish()
 
+        createDirs("a", "b", "c")
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b', 'c'

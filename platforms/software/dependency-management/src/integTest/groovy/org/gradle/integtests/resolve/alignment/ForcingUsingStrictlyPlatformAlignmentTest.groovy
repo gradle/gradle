@@ -178,6 +178,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
 
         given:
+        createDirs("other")
         settingsFile << """
 include 'other'
 """

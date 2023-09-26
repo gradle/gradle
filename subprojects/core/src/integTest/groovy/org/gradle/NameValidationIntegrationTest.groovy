@@ -38,6 +38,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
     @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
     def "subproject names must not contain forbidden characters"() {
         given:
+        createDirs("folder", "folder/name|with|pipes")
         settingsFile << "include 'folder:name|with|pipes'"
 
         when:

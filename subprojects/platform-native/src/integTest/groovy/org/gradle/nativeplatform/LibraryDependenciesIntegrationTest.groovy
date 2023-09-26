@@ -54,6 +54,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         app.library.writeSources(file("lib/src/hello"))
 
         and:
+        createDirs("exe", "other")
         settingsFile.text = "include ':exe', ':other'"
         buildFile << """
 project(":exe") {
@@ -193,6 +194,7 @@ model {
         app.library.writeSources(file("lib/src/hello"))
 
         and:
+        createDirs("lib", "exe")
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
 project(":exe") {
@@ -230,6 +232,7 @@ project(":lib") {
         app.library.writeSources(file("lib/src/hello"))
 
         and:
+        createDirs("lib", "exe")
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
 project(":exe") {
@@ -267,6 +270,7 @@ project(":lib") {
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
 
         and:
+        createDirs("exe", "lib", "greet")
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
 project(":exe") {
@@ -314,6 +318,7 @@ project(":greet") {
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
 
         and:
+        createDirs("exe", "lib")
         settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
 project(":exe") {

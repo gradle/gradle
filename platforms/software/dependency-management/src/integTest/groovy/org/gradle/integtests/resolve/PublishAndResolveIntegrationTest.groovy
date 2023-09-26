@@ -56,6 +56,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
     @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in another project in the same build"() {
+        createDirs("child")
         settingsFile << """
             include ':child'
         """

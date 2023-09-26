@@ -38,6 +38,7 @@ import java.util.regex.Pattern
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def setup() {
+        createDirs("common", "lib", "app")
         settingsFile << """
             rootProject.name = 'transform-deps'
             include 'common', 'lib', 'app'
@@ -362,6 +363,7 @@ project(':common') {
             .publish()
             .allowAll()
 
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         setupBuildWithColorAttributes()
         buildFile << """
@@ -1063,6 +1065,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
     def "transforms with different dependencies in multiple dependency graphs in different projects are executed"() {
         given:
         withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26")).publish().allowAll()
+        createDirs("app2")
         settingsFile << "include('app2')"
         setupBuildWithTwoSteps()
         buildFile << """

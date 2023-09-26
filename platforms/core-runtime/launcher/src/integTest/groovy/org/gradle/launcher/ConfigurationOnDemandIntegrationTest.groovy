@@ -34,6 +34,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     def "can be enabled from command line and start parameter informs about it, too"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
 
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects { task foo };

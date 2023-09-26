@@ -24,6 +24,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "multiproject settings with customizations are exposed correctly"() {
+        createDirs("b", "a", "a/c", "d")
         settingsFile << """
         include "b"
         include "a"
@@ -66,8 +67,8 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "settings set via cmdline flag are exposed correctly"() {
+        createDirs("custom", "custom/a")
         def customSettingsDir = file("custom")
-        customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
         rootProject.name = "root"
@@ -101,6 +102,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "composite participants expose their project structure"() {
+        createDirs("a", "nested", "nested/b")
         settingsFile << """
         include "a"
         includeBuild "nested"

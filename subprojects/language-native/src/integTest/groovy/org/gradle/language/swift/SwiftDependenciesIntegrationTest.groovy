@@ -29,6 +29,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     def "can combine swift builds in a composite"() {
         given:
+        createDirs("app", "hello", "log")
         settingsFile << """
             include 'app'
             includeBuild 'hello'
@@ -55,6 +56,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
     @ToBeFixedForConfigurationCache
     def "can depend on swift libraries from VCS"() {
         given:
+        createDirs("app")
         settingsFile << """
             include 'app'
 

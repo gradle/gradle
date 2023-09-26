@@ -22,6 +22,7 @@ abstract class AbstractNativeLibraryDependenciesIntegrationTest extends Abstract
     @ToBeFixedForConfigurationCache(bottomSpecs = ['CppLibraryDependenciesIntegrationTest'])
     def "can define api dependencies on component"() {
         given:
+        createDirs("lib")
         settingsFile << 'include "lib"'
         makeComponentWithLibrary()
         buildFile << """

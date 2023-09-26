@@ -69,6 +69,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         mavenRepo.module("myorg", "ModuleB", '1.0').dependsOn("myorg", "ModuleC", transitiveDep).publish()
 
         //setup the project structure
+        settingsFile.parentFile.createDirs("ModuleC", "ProjectA")
         settingsFile << "$includeMechanism 'ModuleC'\n$includeMechanism 'ProjectA'\n"
 
         when:

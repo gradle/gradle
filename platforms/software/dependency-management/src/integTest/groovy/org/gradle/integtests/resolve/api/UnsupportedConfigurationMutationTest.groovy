@@ -129,6 +129,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
@@ -215,6 +216,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing artifacts of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {
@@ -403,6 +405,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     }
 
     def "does not allow changing a dependency project's dependencies after included in resolution"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         buildFile << """
             allprojects {

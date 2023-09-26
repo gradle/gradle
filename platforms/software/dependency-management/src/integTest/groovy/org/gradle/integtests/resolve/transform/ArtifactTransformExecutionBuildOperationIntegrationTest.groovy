@@ -44,6 +44,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             }
         """
 
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """

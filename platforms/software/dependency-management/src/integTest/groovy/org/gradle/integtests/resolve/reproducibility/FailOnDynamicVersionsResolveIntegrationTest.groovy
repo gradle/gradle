@@ -35,6 +35,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
     }
 
     def "does not fail with a project and direct dependency with non dynamic version"() {
+        createDirs("other")
         settingsFile << """
             include("other")
 """

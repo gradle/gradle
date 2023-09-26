@@ -29,6 +29,7 @@ class ProfilingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can generate profiling report"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << 'include "a", "b", "c"'
         buildFile << '''
 allprojects {

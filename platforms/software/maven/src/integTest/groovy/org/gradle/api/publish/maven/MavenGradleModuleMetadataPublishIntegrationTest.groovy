@@ -376,6 +376,7 @@ class TestCapability implements Capability {
 
     def "maps project dependencies"() {
         given:
+        createDirs("a", "b")
         settingsFile << """rootProject.name = 'root'
             include 'a', 'b'
 """

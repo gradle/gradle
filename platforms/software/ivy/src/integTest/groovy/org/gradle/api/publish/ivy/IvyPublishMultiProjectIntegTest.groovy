@@ -189,6 +189,7 @@ project(":project2") {
 
     def "ivy-publish plugin uses target project name for project dependency when target project does not have ivy-publish plugin applied"() {
         given:
+        createDirs("project1", "project2")
         settingsFile << """
 include "project1", "project2"
         """
@@ -236,6 +237,7 @@ project(":project2") {
 
     def "ivy-publish plugin publishes project dependency excludes in descriptor"() {
         given:
+        createDirs("project1", "project2")
         settingsFile << """
 include 'project1', 'project2'
 """
@@ -293,6 +295,7 @@ project(':project2') {
     }
 
     private void createBuildScripts(String append = "") {
+        createDirs("project1", "project2", "project3")
         settingsFile << """
 include "project1", "project2", "project3"
         """

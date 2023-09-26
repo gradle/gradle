@@ -624,7 +624,8 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent()
     }
 
-    private static String multiProjectSettings() {
+    private String multiProjectSettings() {
+        createDirs("api", "spi", "runtime", "extensions", "libraries", "bootstrap")
         return '''
             include 'api'
             include 'spi'

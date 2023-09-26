@@ -166,6 +166,7 @@ dependencies {
         def someOtherArtifactJar = mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish().artifactFile
 
         //when
+        createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
     apply plugin: 'java'
@@ -212,6 +213,7 @@ configure(project(":c")){
         def someOtherArtifactJar = mavenRepo.module('someGroup', 'someOtherArtifact', '1.0').publish().artifactFile
 
         //when
+        createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
     apply plugin: 'java'
@@ -256,6 +258,7 @@ configure(project(":c")){
     @ToBeFixedForConfigurationCache
     void transitiveProjectDependenciesMappedAsDirectDependencies() {
         given:
+        createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
     apply plugin: 'java'
@@ -288,6 +291,7 @@ configure(project(":b")){
     @Test
     @ToBeFixedForConfigurationCache
     void transitiveFileDependenciesMappedAsDirectDependencies() {
+        createDirs("a", "b", "c")
         runEclipseTask """include 'a', 'b', 'c'""", """
 subprojects {
     apply plugin: 'java'
@@ -334,6 +338,7 @@ configure(project(":c")){
         def someLib2Jar = mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
 
         def settingsFile = file("settings.gradle")
+        createDirs("a", "b")
         settingsFile << """ include 'a', 'b'"""
         def buildFile = file("build.gradle")
         buildFile << """
@@ -559,6 +564,7 @@ eclipse.classpath {
     @ToBeFixedForConfigurationCache
     void handlesPlusMinusConfigurationsForProjectDeps() {
         //when
+        createDirs("foo", "bar", "unwanted")
         runEclipseTask "include 'foo', 'bar', 'unwanted'",
             """
 allprojects {
@@ -936,6 +942,7 @@ eclipseClasspath.doLast() {
         file('someGroovySrc').mkdirs()
 
         def settingsFile = file('settings.gradle')
+        createDirs("api")
         settingsFile << "include 'api'"
 
         def buildFile = file('build.gradle')
@@ -1015,6 +1022,7 @@ task generateForTest
         def repoJar = mavenRepo.module('coolGroup', 'niceArtifact', '1.0').publish().artifactFile
         def localJar = file('someDependency.jar').createFile()
 
+        createDirs("someApiProject")
         file("settings.gradle") << "include 'someApiProject'\n"
 
         //when
@@ -1133,6 +1141,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
 
         // when
+        createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
 allprojects {
     apply plugin: 'java'
@@ -1175,6 +1184,7 @@ project(':b') {
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
 
         // when
+        createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1222,6 +1232,7 @@ project(':b') {
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
 
         // when
+        createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1269,6 +1280,7 @@ project(':b') {
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
 
         // when
+        createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'
@@ -1316,6 +1328,7 @@ project(':b') {
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
 
         // when
+        createDirs("a", "b")
         runEclipseTask "include 'a', 'b'", """
             allprojects {
                 apply plugin: 'java'

@@ -198,6 +198,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "generates report for multiple projects"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << """
             rootProject.name = 'fooProject'
             include 'a', 'b'
@@ -246,6 +247,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "generates index.html file"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << """
             rootProject.name = 'fooProject'
             include 'a', 'b'
@@ -396,6 +398,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "bar", "2.0").publish()
 
+        createDirs("a", "b", "a/c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """

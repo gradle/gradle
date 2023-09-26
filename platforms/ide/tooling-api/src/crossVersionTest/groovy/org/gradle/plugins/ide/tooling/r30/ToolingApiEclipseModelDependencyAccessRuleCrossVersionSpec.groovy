@@ -34,6 +34,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
 
+        createDirs("sub")
         settingsFile <<
         """rootProject.name = 'root'
            include 'sub'

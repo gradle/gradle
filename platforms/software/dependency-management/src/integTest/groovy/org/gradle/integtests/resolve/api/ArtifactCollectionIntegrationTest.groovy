@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
+        createDirs("project-lib")
         settingsFile << """
             rootProject.name = 'root'
             include 'project-lib'

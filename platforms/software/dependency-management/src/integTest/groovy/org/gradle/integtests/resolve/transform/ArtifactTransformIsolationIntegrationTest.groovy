@@ -231,6 +231,7 @@ class Resolve extends Copy {
     }
 
     def "cannot register a transform from a custom classloader"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """

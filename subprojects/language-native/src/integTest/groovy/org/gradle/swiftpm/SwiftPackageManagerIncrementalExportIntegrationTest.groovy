@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
     def swiftBuild() {
+        createDirs("lib", "app")
         settingsFile << """
             include 'lib', 'app'
         """
@@ -43,6 +44,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
     }
 
     private cppBuild() {
+        createDirs("lib", "app")
         settingsFile << """
             include 'lib', 'app'
         """
@@ -117,6 +119,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
 
         when:
+        createDirs("lib2")
         settingsFile << """
             include 'lib2'
         """
@@ -255,6 +258,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
 
         when:
+        createDirs("other")
         settingsFile << """
             include 'other'
         """
@@ -310,6 +314,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
 
         when:
+        createDirs("lib2")
         settingsFile << """
             include 'lib2'
         """
@@ -389,6 +394,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
 
         when:
+        createDirs("other")
         settingsFile << """
             include 'other'
         """

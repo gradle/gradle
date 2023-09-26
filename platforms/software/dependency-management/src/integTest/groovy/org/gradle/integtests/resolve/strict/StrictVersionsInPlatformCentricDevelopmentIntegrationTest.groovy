@@ -405,6 +405,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
     void "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
         updatedRepository(platformType)
+        createDirs("recklessLibrary", "secondLibrary")
         settingsFile << "\ninclude 'recklessLibrary', 'secondLibrary'"
         buildFile << """
             project(':recklessLibrary') {

@@ -36,8 +36,8 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     }
 
     def "settings set via cmdline flag are exposed"() {
+        createDirs("custom", "custom/a")
         def customSettingsDir = file("custom")
-        customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
 
@@ -55,6 +55,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     }
 
     def "composite participants expose their settings details"() {
+        createDirs("a", "nested")
         settingsFile << """
             include "a"
             includeBuild "nested"
