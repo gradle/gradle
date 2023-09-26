@@ -18,7 +18,7 @@ package gradlebuild.binarycompatibility.rules;
 
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperties;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty;
-import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.MethodKey;
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey;
 import me.champeau.gradle.japicmp.report.SetupRule;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 
@@ -60,24 +60,25 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
         context.putUserData(SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES, new HashSet<>());
     }
 
-    private static Map<MethodKey, UpgradedProperty> mapCurrentMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
-        return upgradedProperties.stream().collect(Collectors.toMap(MethodKey::ofUpgradedProperty, Function.identity()));
+    private static Map<UpgradedMethodKey, UpgradedProperty> mapCurrentMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
+        return upgradedProperties.stream().collect(Collectors.toMap(UpgradedMethodKey::ofUpgradedProperty, Function.identity()));
     }
 
-    private static Map<MethodKey, UpgradedProperty> mapOldMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
+    private static Map<UpgradedMethodKey, UpgradedProperty> mapOldMethodsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
         return upgradedProperties.stream()
             .flatMap(UpgradePropertiesRuleSetup::mapOldMethodsOfUpgradedProperty)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static Stream<Map.Entry<MethodKey, UpgradedProperty>> mapOldMethodsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
-        return upgradedProperty.getUpgradedMethods().stream().map(upgradedMethod -> {
-            MethodKey key = MethodKey.ofUpgradedMethod(upgradedProperty.getContainingType(), upgradedMethod);
-            return new AbstractMap.SimpleEntry<>(key, upgradedProperty);
-        });
+    private static Stream<Map.Entry<UpgradedMethodKey, UpgradedProperty>> mapOldMethodsOfUpgradedProperty(UpgradedProperty upgradedProperty) {
+        return upgradedProperty.getUpgradedMethods().stream()
+            .map(upgradedMethod -> {
+                UpgradedMethodKey key = UpgradedMethodKey.ofUpgradedMethod(upgradedProperty.getContainingType(), upgradedMethod);
+                return new AbstractMap.SimpleEntry<>(key, upgradedProperty);
+            });
     }
 
-    private static <T> Map<MethodKey, T> diff(Map<MethodKey, T> first, Map<MethodKey, T> second) {
+    private static <T> Map<UpgradedMethodKey, T> diff(Map<UpgradedMethodKey, T> first, Map<UpgradedMethodKey, T> second) {
         return first.entrySet().stream()
             .filter(e -> !second.containsKey(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

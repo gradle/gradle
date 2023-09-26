@@ -94,41 +94,41 @@ public class UpgradedProperty {
         }
     }
 
-    public static class MethodKey {
+    public static class UpgradedMethodKey {
         private final String containingType;
         private final String methodName;
         private final String descriptor;
 
-        private MethodKey(String containingType, String methodName, String descriptor) {
+        private UpgradedMethodKey(String containingType, String methodName, String descriptor) {
             this.containingType = containingType;
             this.methodName = methodName;
             this.descriptor = descriptor;
         }
 
-        public static MethodKey of(String containingType, String methodName, String descriptor) {
-            return new MethodKey(containingType, methodName, descriptor);
+        public static UpgradedMethodKey of(String containingType, String methodName, String descriptor) {
+            return new UpgradedMethodKey(containingType, methodName, descriptor);
         }
 
-        public static MethodKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
-            return new MethodKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
+        public static UpgradedMethodKey ofUpgradedProperty(UpgradedProperty upgradedProperty) {
+            return new UpgradedMethodKey(upgradedProperty.getContainingType(), upgradedProperty.getMethodName(), upgradedProperty.getMethodDescriptor());
         }
 
-        public static MethodKey ofUpgradedMethod(String containingType, UpgradedMethod upgradedMethod) {
-            return new MethodKey(containingType, upgradedMethod.getName(), upgradedMethod.getDescriptor());
+        public static UpgradedMethodKey ofUpgradedMethod(String containingType, UpgradedMethod upgradedMethod) {
+            return new UpgradedMethodKey(containingType, upgradedMethod.getName(), upgradedMethod.getDescriptor());
         }
 
-        public static MethodKey ofNewMethod(JApiMethod jApiMethod) {
+        public static UpgradedMethodKey ofNewMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getNewMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new MethodKey(containingType, name, descriptor);
+            return new UpgradedMethodKey(containingType, name, descriptor);
         }
 
-        public static MethodKey ofOldMethod(JApiMethod jApiMethod) {
+        public static UpgradedMethodKey ofOldMethod(JApiMethod jApiMethod) {
             String name = jApiMethod.getName();
             String descriptor = jApiMethod.getOldMethod().get().getSignature();
             String containingType = jApiMethod.getjApiClass().getFullyQualifiedName();
-            return new MethodKey(containingType, name, descriptor);
+            return new UpgradedMethodKey(containingType, name, descriptor);
         }
 
         @Override
@@ -144,7 +144,7 @@ public class UpgradedProperty {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            MethodKey that = (MethodKey) o;
+            UpgradedMethodKey that = (UpgradedMethodKey) o;
             return Objects.equals(containingType, that.containingType)
                 && Objects.equals(methodName, that.methodName)
                 && Objects.equals(descriptor, that.descriptor);
