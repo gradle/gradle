@@ -1,3 +1,21 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getCompilerArgs()",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.setCompilerArgs(java.util.List)",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

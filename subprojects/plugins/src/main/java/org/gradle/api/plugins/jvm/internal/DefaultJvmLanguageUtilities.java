@@ -76,7 +76,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
                 return compileTask.getOptions().getRelease().get();
             }
 
-            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
+            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs().get();
             int flagIndex = compilerArgs.indexOf("--release");
 
             if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
