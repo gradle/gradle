@@ -21,13 +21,14 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
@@ -51,17 +52,22 @@ public class BuildLayoutValidator {
         this.builtInCommands = builtInCommands;
     }
 
-    public void validate(StartParameterInternal startParameter) {
+    /**
+     * Returns the {@link BuildLocations} for the build when the given {@code startParameter} represents
+     * a valid build definition.
+     */
+    @Nullable
+    public BuildLocations validate(StartParameterInternal startParameter) {
         BuildLocations buildLocations = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         if (!buildLocations.isBuildDefinitionMissing()) {
             // All good
-            return;
+            return buildLocations;
         }
 
         for (BuiltInCommand command : builtInCommands) {
             if (command.commandLineMatches(startParameter.getTaskNames())) {
                 // Allow missing settings and build scripts when running a built-in command
-                return;
+                return null;
             }
         }
 

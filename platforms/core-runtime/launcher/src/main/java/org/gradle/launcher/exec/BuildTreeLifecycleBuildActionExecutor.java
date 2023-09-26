@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.cache.FileLockManager;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
@@ -30,39 +32,43 @@ import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 
+import java.io.File;
+import java.util.function.Supplier;
+
+import static org.gradle.api.internal.initialization.FileLocking.withExclusiveFileLockFor;
+
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
 public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
     private final BuildLayoutValidator buildLayoutValidator;
+    private final FileLockManager fileLockManager;
 
-    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices, BuildLayoutValidator buildLayoutValidator) {
+    public BuildTreeLifecycleBuildActionExecutor(
+        BuildTreeModelControllerServices buildTreeModelControllerServices,
+        BuildLayoutValidator buildLayoutValidator,
+        FileLockManager fileLockManager
+    ) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
         this.buildLayoutValidator = buildLayoutValidator;
+        this.fileLockManager = fileLockManager;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         BuildActionRunner.Result result = null;
         try {
-            buildLayoutValidator.validate(action.getStartParameter());
+            BuildLocations locations = buildLayoutValidator.validate(action.getStartParameter());
 
-            BuildActionModelRequirements actionRequirements;
-            if (action instanceof BuildModelAction && action.isCreateModel()) {
-                BuildModelAction buildModelAction = (BuildModelAction) action;
-                actionRequirements = new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
-            } else if (action instanceof ClientProvidedBuildAction) {
-                actionRequirements = new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else if (action instanceof ClientProvidedPhasedAction) {
-                actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else {
-                actionRequirements = new RunTasksRequirements(action.getStartParameter());
-            }
+            BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
             BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
             BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), modelServices);
             try {
-                result = buildTree.run(context -> context.execute(action));
+                result = runWithBuildTreeLock(
+                    locations,
+                    () -> buildTree.run(context -> context.execute(action))
+                );
             } finally {
                 buildTree.close();
             }
@@ -80,5 +86,30 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             }
         }
         return result;
+    }
+
+    private BuildActionRunner.Result runWithBuildTreeLock(BuildLocations locations, Supplier<BuildActionRunner.Result> supplier) {
+        if (locations != null) {
+            return withExclusiveFileLockFor(
+                fileLockManager,
+                new File(locations.getRootDirectory(), ".gradle/noVersion/buildLock"),
+                "Build tree lock",
+                supplier
+            );
+        }
+        return supplier.get();
+    }
+
+    private static BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
+        if (action instanceof BuildModelAction && action.isCreateModel()) {
+            BuildModelAction buildModelAction = (BuildModelAction) action;
+            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
+        } else if (action instanceof ClientProvidedBuildAction) {
+            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else if (action instanceof ClientProvidedPhasedAction) {
+            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else {
+            return new RunTasksRequirements(action.getStartParameter());
+        }
     }
 }
