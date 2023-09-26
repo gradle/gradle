@@ -43,12 +43,15 @@ import java.util.Properties
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
-    open val injectLocalKotlinDslPluginsRepositories = true
+    open val injectLocalTestRepositories = true
+
+    protected
+    open val forceLocallyBuiltKotlinDslPlugins = true
 
     @Before
     fun injectLocallyBuiltKotlinDslPluginsRepositories() {
-        if (!injectLocalKotlinDslPluginsRepositories) return
-        doInjectLocallyBuiltKotlinDslPluginsRepositories()
+        if (injectLocalTestRepositories) doInjectLocallyBuiltKotlinDslPluginsRepositories()
+        if (forceLocallyBuiltKotlinDslPlugins) doForceLocallyBuiltKotlinDslPlugins()
     }
 
     protected
@@ -63,17 +66,36 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                         $testRepositories
                         gradlePluginPortal()
                     }
-                    resolutionStrategy {
-                        eachPlugin {
-                            $futurePluginRules
-                        }
-                    }
                 }
             }
             """
         )
         executer.beforeExecute {
             usingInitScript(setupScript)
+        }
+    }
+
+    protected
+    fun doForceLocallyBuiltKotlinDslPlugins() {
+        file(".integTest/force-local-plugins.init.gradle").apply {
+            parentFile.mkdirs()
+            writeText(
+                """
+                beforeSettings { settings ->
+                    settings.pluginManagement {
+                        resolutionStrategy {
+                            eachPlugin {
+                                $futurePluginRules
+                            }
+                        }
+                    }
+                }
+                """
+            )
+        }.let { setupScript ->
+            executer.beforeExecute {
+                usingInitScript(setupScript)
+            }
         }
     }
 
