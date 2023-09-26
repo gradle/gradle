@@ -92,7 +92,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         _ * gradle.getStartParameter() >> startParameters
         _ * startParameters.getTaskRequests() >> []
 
-        action.scheduleRequestedTasks(gradle, selector, executionPlan,)
+        action.scheduleRequestedTasks(gradle, selector, executionPlan, false)
 
         then:
         1 * selector.applyTasksTo(_, executionPlan)

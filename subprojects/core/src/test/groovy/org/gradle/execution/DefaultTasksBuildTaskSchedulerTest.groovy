@@ -49,7 +49,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan, false)
     }
 
     def "proceeds when no task requests specified in StartParameter"() {
@@ -60,7 +60,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         action.scheduleRequestedTasks(gradle, selector, plan, false)
 
         then:
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan, false)
     }
 
     def "sets task names to project defaults when single task requests specified in StartParameter"() {
@@ -73,7 +73,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
         then:
         1 * startParameter.setTaskNames(['a', 'b'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan, false)
     }
 
     def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
@@ -87,6 +87,6 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
         then:
         1 * startParameter.setTaskNames(['default1', 'default2'])
-        1 * delegate.scheduleRequestedTasks(gradle, selector, plan,)
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan, false)
     }
 }
