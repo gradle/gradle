@@ -150,13 +150,7 @@ platforms:
   - ide:
     name: 'ide'
     subprojects:
-      - 'platforms/ide/base-ide-plugins'
-      - 'platforms/ide/ide'
-      - 'platforms/ide/ide-native/'
-      - 'platforms/ide/ide-plugins/'
-      - 'platforms/ide/problems/'
-      - 'platforms/ide/tooling-api/'
-      - 'platforms/ide/tooling-api-builders/'
+      - 'platforms/ide/'
   - jvm:
     name: 'jvm'
     subprojects:
