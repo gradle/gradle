@@ -18,24 +18,16 @@ package org.gradle.api.publish.internal.component;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.DependencyMappingDetails;
-import org.gradle.api.component.SoftwareComponentVariant;
 
 import javax.annotation.Nullable;
 
 /**
- * A {@link SoftwareComponentVariant} which is optionally backed by resolution during publication.
- * If enabled, the resolution configuration is resolved in order to override declared dependencies
- * with the resolved coordinates and versions.
+ * Internal counterpart to {@link DependencyMappingDetails}.
  */
-public interface ResolutionBackedVariant extends SoftwareComponentVariant {
+public interface DependencyMappingDetailsInternal extends DependencyMappingDetails {
 
     /**
-     * See {@link DependencyMappingDetails#getPublishResolvedCoordinates()}
-     */
-    boolean getPublishResolvedCoordinates();
-
-    /**
-     * See {@link DependencyMappingDetails#fromResolutionOf(Configuration)}
+     * Gets the configuration set by {@link #fromResolutionOf(Configuration)}
      */
     @Nullable
     Configuration getResolutionConfiguration();

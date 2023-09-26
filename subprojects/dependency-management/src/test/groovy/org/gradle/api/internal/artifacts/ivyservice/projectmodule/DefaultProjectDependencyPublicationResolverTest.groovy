@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -40,6 +41,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
     def project = Stub(ProjectInternal) {
         getOwner() >> projectState
         getIdentityPath() >> Path.path(":path")
+        getDependencies() >> Mock(DependencyHandler)
     }
     def registry = new TestProjectPublicationRegistry()
     def projectConfigurer = Mock(ProjectConfigurer)

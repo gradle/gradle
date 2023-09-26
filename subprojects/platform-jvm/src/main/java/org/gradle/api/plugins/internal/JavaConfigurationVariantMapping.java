@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.component.ConfigurationVariantDetails;
-import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
@@ -61,7 +60,7 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
                 details.mapToOptional();
             }
             if (resolutionConfiguration != null) {
-                ((ConfigurationVariantDetailsInternal) details).dependencyMapping(dependencyMapping -> {
+                details.dependencyMapping(dependencyMapping -> {
                     dependencyMapping.fromResolutionOf(resolutionConfiguration);
                 });
             }

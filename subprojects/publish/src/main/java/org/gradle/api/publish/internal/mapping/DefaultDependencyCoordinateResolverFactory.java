@@ -30,7 +30,9 @@ import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.publish.internal.component.ResolutionBackedVariant;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
@@ -51,16 +53,22 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final AttributesSchemaInternal consumerSchema;
+    private final ImmutableAttributesFactory attributesFactory;
     private final AttributeDesugaring attributeDesugaring;
 
     @Inject
     public DefaultDependencyCoordinateResolverFactory(
         ProjectDependencyPublicationResolver projectDependencyResolver,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ImmutableModuleIdentifierFactory moduleIdentifierFacatory,
+        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesFactory attributesFactory,
         AttributeDesugaring attributeDesugaring
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFacatory;
+        this.consumerSchema = consumerSchema;
+        this.attributesFactory = attributesFactory;
         this.attributeDesugaring = attributeDesugaring;
     }
 
@@ -86,6 +94,8 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
                     projectDependencyResolver,
                     moduleIdentifierFactory,
                     configuration,
+                    consumerSchema,
+                    attributesFactory,
                     attributeDesugaring,
                     componentResolver
                 );

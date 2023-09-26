@@ -23,10 +23,12 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.publish.internal.component.ResolutionBackedVariant
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 import javax.annotation.Nullable
@@ -41,7 +43,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
     AttributeDesugaring attributeDesugaring = Mock()
 
     def factory = new DefaultDependencyCoordinateResolverFactory(
-        projectDependencyResolver, moduleIdentifierFactory, attributeDesugaring
+        projectDependencyResolver, moduleIdentifierFactory, EmptySchema.INSTANCE, AttributeTestUtil.attributesFactory(), attributeDesugaring
     )
 
     def "returns project-only resolver when version mapping is disabled and variant is not resolution-backed"() {

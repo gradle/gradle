@@ -27,6 +27,10 @@ public class PublishServices extends AbstractPluginServiceRegistry {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultProjectDependencyPublicationResolver.class);
         registration.add(DuplicatePublicationTracker.class);
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
         registration.add(DefaultDependencyCoordinateResolverFactory.class);
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 /**
@@ -628,7 +627,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
     }
 
     // This simulates the way AGP and KGP publish
-    @NotYetImplemented
     def "publishes resolved child coordinates for multi-coordinate project dependency when target component uses separate local and published configurations"() {
         given:
         publishes(multiCoordinateComponent {
@@ -648,6 +646,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
+        executer.expectDeprecationWarning("Creating separate configurations for local consumption and publishing has been deprecated. This will fail with an error in Gradle 9.0. Use the same consumable configuration to model both local and published variants.")
         succeeds(":publish")
 
         then:
@@ -815,8 +814,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             output += """
                 configurations {
                     create("${publicationConf}") {
-                        canBeConsumed = false
-                        canBeResolved = false
                         extendsFrom(${implementation})
                         attributes {
                             ${details.attributes}
@@ -824,6 +821,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                         outgoing {
                             ${details.capabilities}
                         }
+                        canBeConsumed = false
+                        canBeResolved = false
                     }
                 }
             """

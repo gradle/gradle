@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.DependencyMappingDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
@@ -151,7 +152,7 @@ public class ConfigurationVariantMapping {
     }
 
     // Cannot be private due to reflective instantiation
-    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
+    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetails {
         private final ConfigurationVariant variant;
         private final ObjectFactory objectFactory;
         private boolean skip = false;
@@ -214,7 +215,7 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    public static abstract class DefaultDependencyMappingDetails implements ConfigurationVariantDetailsInternal.DependencyMappingDetails {
+    public static abstract class DefaultDependencyMappingDetails implements DependencyMappingDetailsInternal {
 
         private Configuration resolutionConfiguration;
 

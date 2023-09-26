@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * Given project coordinates, and optionally the name of a variant in that project,
@@ -45,4 +49,17 @@ public interface ProjectDependencyPublicationResolver {
      */
     @Nullable
     <T> T resolveVariant(Class<T> coordsType, Path identityPath, String variantName);
+
+    /**
+     * Performs variant aware matching against the published variants of the project identified
+     * by {@code identityPath}, and returns the coordinates of the variant that best matches
+     */
+    @Nullable
+    <T> T resolveVariantWithAttributeMatching(
+        Class<T> coordsType,
+        Path identityPath,
+        ImmutableAttributes consumerAttributes,
+        Collection<? extends Capability> explicitRequestedCapabilities,
+        AttributesSchemaInternal consumerSchema
+    );
 }

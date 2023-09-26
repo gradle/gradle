@@ -44,13 +44,17 @@ import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,6 +80,8 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Configuration resolutionConfiguration;
+    private final AttributesSchemaInternal consumerSchema;
+    private final ImmutableAttributesFactory attributesFactory;
     private final AttributeDesugaring attributeDesugaring;
     private final ComponentDependencyResolver fallback;
 
@@ -85,12 +91,16 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         Configuration resolutionConfiguration,
+        AttributesSchemaInternal consumerSchema,
+        ImmutableAttributesFactory attributesFactory,
         AttributeDesugaring attributeDesugaring,
         ComponentDependencyResolver fallback
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.resolutionConfiguration = resolutionConfiguration;
+        this.consumerSchema = consumerSchema;
+        this.attributesFactory = attributesFactory;
         this.attributeDesugaring = attributeDesugaring;
         this.fallback = fallback;
 
@@ -114,10 +124,11 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
             return new ResolvedMappings(Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet(), Collections.emptySet());
         }
 
+        ImmutableAttributes requestAttributes = ((AttributeContainerInternal) resolutionResult.getRequestedAttributes()).asImmutable();
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
             ComponentSelector requested = edge.getRequested();
-            ModuleVersionIdentifier coordinates = getVariantCoordinates(edge);
+            ModuleVersionIdentifier coordinates = getVariantCoordinates(edge, requestAttributes);
             if (requested instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
 
@@ -170,7 +181,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
     }
 
-    private ModuleVersionIdentifier getVariantCoordinates(ResolvedDependencyResult edge) {
+    private ModuleVersionIdentifier getVariantCoordinates(ResolvedDependencyResult edge, ImmutableAttributes requestAttributes) {
         ResolvedVariantResult variant = edge.getResolvedVariant();
         ComponentIdentifier componentId = variant.getOwner();
 
@@ -178,7 +189,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         // artifact information like type or classifier.
 
         if (componentId instanceof ProjectComponentIdentifier) {
-            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId);
+            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId, edge.getRequested(), requestAttributes);
         } else if (componentId instanceof ModuleComponentIdentifier) {
             return getModuleCoordinates(variant, (ModuleComponentIdentifier) componentId);
         } else {
@@ -200,13 +211,27 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         return moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());
     }
 
-    private ModuleVersionIdentifier getProjectCoordinates(ResolvedVariantResult variant, ProjectComponentIdentifierInternal componentId) {
+    private ModuleVersionIdentifier getProjectCoordinates(ResolvedVariantResult variant, ProjectComponentIdentifierInternal componentId, ComponentSelector requested, ImmutableAttributes requestAttributes) {
         Path identityPath = componentId.getIdentityPath();
 
         // TODO: Using the display name here is not great, however it is the same as the variant name.
         // Instead, the resolution result should expose the project coordinates via getExternalVariant.
         String variantName = variant.getDisplayName();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveVariant(ModuleVersionIdentifier.class, identityPath, variantName);
+
+        if (coordinates == null) {
+            // The variant we resolved has not been published. Perform an extra round of attribute matching against
+            // the _published_ component to see if we can find a matching variant.
+            coordinates = getProjectCoordinatesWithAttributeMatching(requested, requestAttributes, identityPath);
+
+            if (coordinates != null) {
+                DeprecationLogger.deprecate("Creating separate configurations for local consumption and publishing")
+                    .withAdvice("Use the same consumable configuration to model both local and published variants.")
+                    .willBecomeAnErrorInGradle9()
+                    .undocumented()
+                    .nagUser();
+            }
+        }
 
         if (coordinates == null) {
             throw new InvalidUserDataException(String.format(
@@ -216,6 +241,27 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         }
 
         return coordinates;
+    }
+
+    /**
+     * Kotlin and Android use separate local and published configurations (Kotlin's -published configurations).
+     * Perform an extra round of attribute matching on all published variants to see if we find a match.
+     *
+     * We should not be doing this. This is a terrible hack.
+     *
+     * dependency-management implements a more complex version of this logic where attributes on constraints
+     * that select the variant are also included as part of the variant matching attributes. This logic is too complex
+     * to duplicate here, so we implement a _mostly_ correct version of it here.
+     */
+    @Nullable
+    private ModuleVersionIdentifier getProjectCoordinatesWithAttributeMatching(ComponentSelector requested, ImmutableAttributes requestAttributes, Path identityPath) {
+        ImmutableAttributes edgeAttributes = ((AttributeContainerInternal) requested.getAttributes()).asImmutable();
+        ImmutableAttributes attributes = attributesFactory.concat(requestAttributes, edgeAttributes);
+        Collection<? extends Capability> capabilities = requested.getRequestedCapabilities();
+
+        return projectDependencyResolver.resolveVariantWithAttributeMatching(
+            ModuleVersionIdentifier.class, identityPath, attributes, capabilities, consumerSchema
+        );
     }
 
     @Override

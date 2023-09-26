@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentVariant implements MavenPublishingAwareVariant, IvyPublishingAwareVariant, ResolutionBackedVariant {
     private final ScopeMapping scopeMapping;
     private final boolean optional;
-    ConfigurationVariantMapping.DefaultDependencyMappingDetails dependencyMapping;
+    DependencyMappingDetailsInternal dependencyMapping;
 
     public FeatureConfigurationVariant(
         String name,
@@ -36,7 +36,7 @@ public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentV
         ConfigurationVariant variant,
         String mavenScope,
         boolean optional,
-        @Nullable ConfigurationVariantMapping.DefaultDependencyMappingDetails dependencyMapping
+        @Nullable DependencyMappingDetailsInternal dependencyMapping
     ) {
         super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);

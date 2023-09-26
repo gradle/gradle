@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":snapshots"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":dependency-management"))
 

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.component;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -71,4 +73,14 @@ public interface ConfigurationVariantDetails {
      *
      */
     void mapToMavenScope(String scope);
+
+    /**
+     * Configure the dependency mapping options for this configuration variant.
+     *
+     * @param action The action to execute against this variant's dependency mapping details.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    void dependencyMapping(Action<? super DependencyMappingDetails> action);
 }

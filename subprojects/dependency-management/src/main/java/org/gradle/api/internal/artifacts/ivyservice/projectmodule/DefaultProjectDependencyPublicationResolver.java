@@ -15,19 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.scopes.Scopes;
@@ -35,12 +43,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -82,10 +92,32 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         );
     }
 
+    @Nullable
+    @Override
+    public <T> T resolveVariantWithAttributeMatching(
+        Class<T> coordsType,
+        Path identityPath,
+        ImmutableAttributes attributes,
+        Collection<? extends Capability> capabilities,
+        AttributesSchemaInternal consumerSchema
+    ) {
+        return withResolver(coordsType, identityPath, resolver ->
+            resolver.getVariantCoordinatesWithAttributeMatching(
+                attributes,
+                capabilities,
+                consumerSchema
+            )
+        );
+    }
+
     /**
      * Execute the action with a resolver for the given project.
      */
-    private <T> T withResolver(Class<T> coordsType, Path identityPath, Function<VariantCoordinateResolver<T>, T> action) {
+    private <T> T withResolver(
+        Class<T> coordsType,
+        Path identityPath,
+        Function<VariantCoordinateResolver<T>, T> action
+    ) {
         ProjectState projectState = projects.stateFor(identityPath);
 
         // Ensure target project is configured
@@ -126,7 +158,8 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         if (topLevelWithComponent.size() == 1) {
             SoftwareComponentInternal singleComponent = topLevelWithComponent.iterator().next().getComponent().get();
             Map<SoftwareComponent, T> componentCoordinates = getComponentCoordinates(coordsType, publications.keySet());
-            return new MultiCoordinateVariantResolver<>(singleComponent, identityPath, componentCoordinates);
+            AttributesSchemaInternal producerSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+            return new MultiCoordinateVariantResolver<>(singleComponent, identityPath, componentCoordinates, producerSchema);
         }
 
         // See if all entry points have the same identifier
@@ -243,6 +276,13 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         @Nullable
         T getVariantCoordinates(String variantName);
 
+        @Nullable
+        T getVariantCoordinatesWithAttributeMatching(
+            ImmutableAttributes attributes,
+            Collection<? extends Capability> capabilities,
+            AttributesSchemaInternal consumerSchema
+        );
+
         /**
          * Create a resolver that always returns the given coordinates
          */
@@ -266,6 +306,15 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             public T getVariantCoordinates(String resolvedVariant) {
                 return coordinates;
             }
+
+            @Override
+            public T getVariantCoordinatesWithAttributeMatching(
+                ImmutableAttributes attributes,
+                Collection<? extends Capability> capabilities,
+                AttributesSchemaInternal consumerSchema
+            ) {
+                return coordinates;
+            }
         }
     }
 
@@ -275,13 +324,20 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     private static class MultiCoordinateVariantResolver<T> implements VariantCoordinateResolver<T> {
         private final SoftwareComponent root;
         private final Map<SoftwareComponent, T> componentCoordinates;
+        private final AttributesSchemaInternal producerSchema;
 
-        private final Lazy<Map<String, T>> variantCoordinatesMap;
+        private final Lazy<ComponentWalkResult<T>> variants;
 
-        private MultiCoordinateVariantResolver(SoftwareComponent root, Path identityPath, Map<SoftwareComponent, T> componentCoordinates) {
+        private MultiCoordinateVariantResolver(
+            SoftwareComponent root,
+            Path identityPath,
+            Map<SoftwareComponent, T> componentCoordinates,
+            AttributesSchemaInternal producerSchema
+        ) {
             this.root = root;
             this.componentCoordinates = componentCoordinates;
-            this.variantCoordinatesMap = Lazy.locking().of(() -> variantNameToCoordinates(root, componentCoordinates, identityPath));
+            this.producerSchema = producerSchema;
+            this.variants = Lazy.locking().of(() -> walkRoot(root, componentCoordinates, identityPath));
         }
 
         public T getComponentCoordinates() {
@@ -290,20 +346,63 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         @Nullable
         public T getVariantCoordinates(String resolvedVariant) {
-            return variantCoordinatesMap.get().get(resolvedVariant);
+            return variants.get().nameToCoordinates.get(resolvedVariant);
         }
 
-        private static <T>  Map<String, T> variantNameToCoordinates(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
-            Map<String, T> result = new HashMap<>();
+        @Nullable
+        public T getVariantCoordinatesWithAttributeMatching(
+            ImmutableAttributes attributes,
+            Collection<? extends Capability> capabilities,
+            AttributesSchemaInternal consumerSchema
+        ) {
+            ModuleIdentifier producerModule;
+            T coordinates = getComponentCoordinates();
+            if (coordinates instanceof ModuleVersionIdentifier) {
+                producerModule = ((ModuleVersionIdentifier) coordinates).getModule();
+            } else {
+                throw new UnsupportedOperationException("Cannot variant match against a non-module component");
+            }
+
+            List<SoftwareComponentVariant> candidates = variants.get().allVariants;
+            SoftwareComponentVariant match = AttributeSoftwareComponentVariantSelector.selectVariantsUsingAttributeMatching(
+                candidates, attributes, capabilities, producerSchema, consumerSchema, producerModule
+            );
+
+            if (match == null) {
+                return null;
+            }
+
+            return getVariantCoordinates(match.getName());
+        }
+
+        private static <T>  ComponentWalkResult<T> walkRoot(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
+            Map<String, T> map = new HashMap<>();
+            List<SoftwareComponentVariant> variants = new ArrayList<>();
             ComponentWalker.walkComponent(root, componentsMap, (variant, coordinates) -> {
-                if (result.put(variant.getName(), coordinates) != null) {
+                T existing = map.put(variant.getName(), coordinates);
+                if (existing != null) {
                     throw new InvalidUserDataException(String.format(
                         "Found multiple variants with name '%s' in component '%s' of project '%s'",
                         variant.getName(), root.getName(), identityPath
                     ));
                 }
+                variants.add(variant);
             });
-            return result;
+            return new ComponentWalkResult<T>(map, variants);
+        }
+
+        static class ComponentWalkResult<T> {
+
+            public final Map<String, T> nameToCoordinates;
+            public final List<SoftwareComponentVariant> allVariants;
+
+            public ComponentWalkResult(
+                Map<String, T> nameToCoordinates,
+                List<SoftwareComponentVariant> allVariants
+            ) {
+                this.nameToCoordinates = nameToCoordinates;
+                this.allVariants = allVariants;
+            }
         }
     }
 
@@ -391,6 +490,148 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             public int hashCode() {
                 return identityPath.hashCode() ^ coordsType.hashCode();
             }
+        }
+    }
+
+
+    /**
+     * A simplified re-implementation of variant-aware matching, adapted to work for publishing types
+     * like {@link SoftwareComponentVariant} instead of internal dependency-management types.
+     *
+     * Eventually, we should consider merging this with the original implementation,
+     * {@link org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector}.
+     */
+    private static class AttributeSoftwareComponentVariantSelector {
+
+        private static final AttributeMatchingExplanationBuilder EXPLANATION_BUILDER = AttributeMatchingExplanationBuilder.logging();
+
+        @Nullable
+        public static SoftwareComponentVariant selectVariantsUsingAttributeMatching(
+            List<SoftwareComponentVariant> candidates,
+            ImmutableAttributes attributes,
+            Collection<? extends Capability> capabilities,
+            AttributesSchemaInternal producerSchema,
+            AttributesSchemaInternal consumerSchema,
+            ModuleIdentifier componentModule
+        ) {
+            AttributeMatcher attributeMatcher = consumerSchema.withProducer(producerSchema);
+            ImmutableList<SoftwareComponentVariant> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(componentModule, capabilities, candidates, true);
+            if (variantsProvidingRequestedCapabilities.isEmpty()) {
+                return null;
+            }
+
+            List<SoftwareComponentVariant> matches = attributeMatcher.matches(variantsProvidingRequestedCapabilities, attributes, EXPLANATION_BUILDER);
+            if (matches.size() == 1) {
+                return matches.get(0);
+            }
+
+            // there's an ambiguity, but we may have several variants matching the requested capabilities.
+            // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
+            List<SoftwareComponentVariant> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(componentModule, capabilities, matches, false);
+            if (strictlyMatchingCapabilities.size() == 1) {
+                return strictlyMatchingCapabilities.get(0);
+            } else if (strictlyMatchingCapabilities.size() > 1) {
+                // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
+                // so we perform another round of selection on the remaining candidates
+                strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, attributes, EXPLANATION_BUILDER);
+                if (strictlyMatchingCapabilities.size() == 1) {
+                    return strictlyMatchingCapabilities.get(0);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private static ImmutableList<SoftwareComponentVariant> filterVariantsByRequestedCapabilities(ModuleIdentifier componentModule, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends SoftwareComponentVariant> consumableVariants, boolean lenient) {
+        if (consumableVariants.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<SoftwareComponentVariant> builder = ImmutableList.builderWithExpectedSize(consumableVariants.size());
+        boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
+        for (SoftwareComponentVariant variant : consumableVariants) {
+            Set<? extends Capability> capabilities = variant.getCapabilities();
+            MatchResult result;
+            if (explicitlyRequested) {
+                // some capabilities are explicitly required (in other words, we're not _necessarily_ looking for the default capability
+                // so we need to filter the configurations
+                result = providesAllCapabilities(componentModule, explicitRequestedCapabilities, capabilities);
+            } else {
+                // we need to make sure the variants we consider provide the implicit capability
+                result = containsImplicitCapability(capabilities, componentModule.getGroup(), componentModule.getName());
+            }
+            if (result.matches) {
+                if (lenient || result == MatchResult.EXACT_MATCH) {
+                    builder.add(variant);
+                }
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * Determines if a producer variant provides all the requested capabilities. When doing so it does
+     * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
+     */
+    private static MatchResult providesAllCapabilities(ModuleIdentifier componentModule, Collection<? extends Capability> explicitRequestedCapabilities, Set<? extends Capability> providerCapabilities) {
+        if (providerCapabilities.isEmpty()) {
+            // producer doesn't declare anything, so we assume that it only provides the implicit capability
+            if (explicitRequestedCapabilities.size() == 1) {
+                Capability requested = explicitRequestedCapabilities.iterator().next();
+                if (requested.getGroup().equals(componentModule.getGroup()) && requested.getName().equals(componentModule.getName())) {
+                    return MatchResult.EXACT_MATCH;
+                }
+            }
+        }
+        for (Capability requested : explicitRequestedCapabilities) {
+            String requestedGroup = requested.getGroup();
+            String requestedName = requested.getName();
+            boolean found = false;
+            for (Capability provided : providerCapabilities) {
+                if (provided.getGroup().equals(requestedGroup) && provided.getName().equals(requestedName)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return MatchResult.NO_MATCH;
+            }
+        }
+        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilities.size();
+        return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
+    }
+
+    private static MatchResult containsImplicitCapability(Collection<? extends Capability> capabilities, String group, String name) {
+        if (capabilities.isEmpty()) {
+            // An empty capability list means that it's an implicit capability only
+            return MatchResult.EXACT_MATCH;
+        }
+        for (Capability capability : capabilities) {
+            capability = unwrap(capability);
+            if (group.equals(capability.getGroup()) && name.equals(capability.getName())) {
+                boolean exactMatch = capabilities.size() == 1;
+                return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
+            }
+        }
+        return MatchResult.NO_MATCH;
+    }
+
+    private static Capability unwrap(Capability capability) {
+        if (capability instanceof ShadowedCapability) {
+            return ((ShadowedCapability) capability).getShadowedCapability();
+        }
+        return capability;
+    }
+
+    private enum MatchResult {
+        NO_MATCH(false),
+        MATCHES_ALL(true),
+        EXACT_MATCH(true);
+
+        private final boolean matches;
+
+        MatchResult(boolean match) {
+            this.matches = match;
         }
     }
 }
