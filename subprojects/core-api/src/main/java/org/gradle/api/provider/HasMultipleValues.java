@@ -16,11 +16,10 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
@@ -31,7 +30,7 @@ import java.util.function.Predicate;
  * @since 4.5
  */
 @SupportsKotlinAssignmentOverloading
-public interface HasMultipleValues<T> extends HasConfigurableValue {
+public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPropertyConfigurer<T> {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
      *
@@ -79,68 +78,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     HasMultipleValues<T> empty();
 
-    HasMultipleValues<T> prune();
-
-    //TODO-RC what would the difference to convention([]) be?
-    HasMultipleValues<T> emptyConvention();
-
-    /**
-     * Adds an element to the property value.
-     *
-     * @param element The element
-     */
-    void add(T element);
-
-    /**
-     * Adds an element to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider The provider of an element
-     */
-    void add(Provider<? extends T> provider);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * @param elements The elements to add
-     * @since 4.10
-     */
-    @SuppressWarnings("unchecked")
-    void addAll(T... elements);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>The given iterable will be queried when the value of this property is queried.
-     *
-     * @param elements The elements to add.
-     * @since 4.10
-     */
-    void addAll(Iterable<? extends T> elements);
-
-    //TODO-RC WIP
-    void addAllToConvention(Iterable<? extends T> elements);
-
-    /**
-     * Adds zero or more elements to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider Provider of elements
-     */
-    void addAll(Provider<? extends Iterable<? extends T>> provider);
-
-    //TODO-RC WIP
-    void addAllToConvention(Provider<? extends Iterable<? extends T>> provider);
-
-    HasMultipleValues<T> exclude(Predicate<T> filter);
-
-    //TODO-RC WIP
-    HasMultipleValues<T> excludeFromConvention(Predicate<T> filter);
-
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
@@ -159,8 +96,21 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
 
-    //TODO-RC should remove
-    void modifyValue(Transformer<Iterable<T>, Iterable<T>> newExplicit);
+    /**
+     * Returns the configurer for this property's convention value.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    CollectionPropertyConfigurer<T> getConventionValue();
+
+    /**
+     * Returns the configurer for this property's explicit value.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    CollectionPropertyConfigurer<T> getExplicitValue();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.

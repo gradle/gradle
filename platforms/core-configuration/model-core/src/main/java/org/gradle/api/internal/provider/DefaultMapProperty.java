@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.provider.MapConfigurer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -180,23 +181,33 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(getExplicitValue(defaultValue).plus(collector));
     }
 
-    @Override
-    public MapProperty<K, V> prune() {
-        setSupplier(getSupplier().pruned());
-        return this;
+    private void addConventionCollector(MapCollector<K, V> collector) {
+        assertCanMutate();
+        setConvention(getConventionSupplier().plus(collector));
     }
 
     @Override
-    public MapProperty<K, V> exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+    public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
         setSupplier(getSupplier().keep(keyFilter.negate(), valueFilter.negate()));
-        return this;
     }
 
     @Override
-    public MapProperty<K, V> exclude(Predicate<K> keyFilter) {
+    public void exclude(Predicate<K> keyFilter) {
         setSupplier(getSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
-        return this;
     }
+
+    @Override
+    public MapConfigurer<K, V> getConventionValue() {
+        assertCanMutate();
+        return new ConventionConfigurer();
+    }
+
+    @Override
+    public MapConfigurer<K, V> getExplicitValue() {
+        assertCanMutate();
+        return new ExplicitConfigurer();
+    }
+
 
     @SuppressWarnings("unchecked")
     private ProviderInternal<? extends Map<? extends K, ? extends V>> checkMapProvider(@Nullable Provider<? extends Map<? extends K, ? extends V>> provider) {
@@ -668,6 +679,104 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
+        }
+    }
+
+    //TODO-RC consider combining these two implementations so they just delegate to diff collectors
+    class ConventionConfigurer implements MapConfigurer<K, V> {
+
+        private boolean pruned;
+
+        private void prune() {
+            if (!pruned) {
+                pruned = true;
+                setConvention(getConventionSupplier().pruned());
+            }
+        }
+
+        @Override
+        public void put(K key, V value) {
+            prune();
+            addConventionCollector(new MapCollectors.SingleEntry<>(key, value));
+        }
+
+        @Override
+        public void put(K key, Provider<? extends V> providerOfValue) {
+            prune();
+            addConventionCollector(new MapCollectors.EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
+        }
+
+        @Override
+        public void putAll(Map<? extends K, ? extends V> entries) {
+            prune();
+            addConventionCollector(new MapCollectors.EntriesFromMap<>(entries));
+        }
+
+        @Override
+        public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
+            prune();
+            addConventionCollector(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(provider)));
+        }
+
+        @Override
+        public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+            prune();
+            setConvention(getConventionSupplier().keep(keyFilter.negate(), valueFilter.negate()));
+        }
+
+        @Override
+        public void exclude(Predicate<K> keyFilter) {
+            prune();
+            setConvention(getConventionSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
+        }
+    }
+
+    /**
+     * Instead of delegating to parent, consider inverting delegation (but with pruning optional).
+     */
+    class ExplicitConfigurer implements MapConfigurer<K, V> {
+
+        private boolean pruned;
+
+        private void prune() {
+            if (!pruned) {
+                pruned = true;
+                setSupplier(getSupplier().pruned());
+            }
+        }
+
+        @Override
+        public void put(K key, V value) {
+            prune();
+            DefaultMapProperty.this.put(key, value);
+        }
+
+        @Override
+        public void put(K key, Provider<? extends V> providerOfValue) {
+            prune();
+            DefaultMapProperty.this.put(key, providerOfValue);
+        }
+
+        @Override
+        public void putAll(Map<? extends K, ? extends V> entries) {
+            prune();
+            DefaultMapProperty.this.putAll(entries);
+        }
+
+        @Override
+        public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
+            prune();
+            DefaultMapProperty.this.putAll(provider);
+        }
+
+        @Override
+        public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+            DefaultMapProperty.this.exclude(keyFilter, valueFilter);
+        }
+
+        @Override
+        public void exclude(Predicate<K> keyFilter) {
+            DefaultMapProperty.this.exclude(keyFilter);
         }
     }
 }

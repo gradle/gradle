@@ -1088,42 +1088,32 @@ The value of this property is derived from: <source>""")
         assertValueIs(["4", "8"])
     }
 
-    def "prune skips future absent values "() {
+    def "adding explicit value via configurer is undefined-safe"() {
         given:
-        property.prune()
-        property.addAll(Providers.of(["1", "2"]))
-        property.addAll(Providers.notDefined())
-        property.addAll(Providers.of(["4"]))
+        property.explicitValue.addAll(Providers.of(["1", "2"]))
+        property.explicitValue.addAll(Providers.notDefined())
+        property.explicitValue.addAll(Providers.of(["4"]))
 
         expect:
         assertValueIs(["1", "2", "4"])
     }
 
-    def "can prune an absent value"() {
+    def "adding convention value via configurer is undefined-safe"() {
         given:
-        property.set((Iterable) null)
+        property.conventionValue.addAll(Providers.of(["1", "2"]))
+        property.conventionValue.addAll(Providers.notDefined())
+        property.conventionValue.addAll(Providers.of(["4"]))
 
         expect:
-        !property.present
-
-        when:
-        property.prune()
-
-        then:
-        property.present
+        property.getOrNull() == toImmutable(["1", "2", "4"])
     }
 
-    def "pruning does not change the past"() {
+    def "can exclude value from convention"() {
         given:
-        property.addAll(Providers.of(["-1"]))
-        property.addAll(Providers.notDefined())
-        property.addAll(Providers.of(["0"]))
-        property.prune()
-        property.addAll(Providers.of(["1", "2"]))
-        property.addAll(Providers.notDefined())
-        property.addAll(Providers.of(["4"]))
+        property.conventionValue.addAll("1", "2", "3", "4")
+        property.conventionValue.exclude {it.toInteger() % 2 == 1}
 
         expect:
-        assertValueIs(["-1", "1", "2", "4"])
+        assertValueIs toImmutable(["2", "4"])
     }
 }
