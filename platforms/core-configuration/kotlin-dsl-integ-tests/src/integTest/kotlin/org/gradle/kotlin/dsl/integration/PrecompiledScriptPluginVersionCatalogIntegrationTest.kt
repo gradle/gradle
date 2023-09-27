@@ -32,6 +32,7 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
             // Can use outer build version catalog when applied
             println(versionCatalogs.named("libs").findLibrary("groovy").get().get())
         """
+        withFile("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts", scriptBody)
         withFile(
             "buildSrc/src/main/kotlin/plugin-with-plugins.gradle.kts",
             """
@@ -42,6 +43,7 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
         withBuildScript(
             """
                 plugins {
+                    id("plugin-without-plugins")
                     id("plugin-with-plugins")
                 }
             """

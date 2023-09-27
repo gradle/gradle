@@ -214,9 +214,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val loader = createPluginsClassLoader()
         try {
             for (plugin in projectScriptPlugins) {
-                loader.scriptPluginPluginsFor(plugin)?.let {
-                    yield(it)
-                }
+                yield(loader.scriptPluginPluginsFor(plugin))
             }
         } finally {
             stoppable(loader).stop()
@@ -224,13 +222,13 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? =
+    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins =
         withCapturedOutputOnError(
             {
                 if (getResource(compiledScriptClassFile(plugin)) == null) {
                     // The compiled script class won't be present for precompiled script plugins
                     // which don't include a `plugins` block
-                    null
+                    ScriptPluginPlugins(plugin, emptyList())
                 } else {
                     val pluginRequests = collectPluginRequestsOf(plugin)
                     validatePluginRequestsOf(plugin, pluginRequests)
