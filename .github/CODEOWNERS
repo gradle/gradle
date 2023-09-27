@@ -101,9 +101,9 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
-subprojects/ide/                  @gradle/bt-ide-experience
-subprojects/tooling-api/          @gradle/bt-ide-experience
-subprojects/tooling-api-builders/ @gradle/bt-ide-experience
+# Eventually be moved to the core platform.
+# Currently heavily developed by the bt-ide-experience team.
+platforms/ide/problems            @gradle/bt-ide-experience
 
 # Release coordination
 subprojects/core-platform/              @gradle/bt-support
