@@ -333,7 +333,7 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 [[sub:remove_auto_provisioned_toolchain]]
 === How to remove an auto-provisioned toolchain
 
-To properly remove an auto-provisioned toolchain, you can remove or modify any reference to the toolchain from `settings.gradle.kts` or `settings.gradle`
+To properly remove an auto-provisioned toolchain, you can remove or modify any reference to the toolchain from `settings.gradle.kts` or `settings.gradle`.
 
 [NOTE]
 ====
