@@ -54,7 +54,6 @@ unassigned {
 
 // Gradle implementation projects
 unassigned {
-    subproject("configuration-cache")
     subproject("api-metadata")
     subproject("base-services-groovy")
     subproject("jvm-services")
@@ -120,6 +119,7 @@ platform("core-runtime") {
 
 // Core Configuration Platform
 platform("core-configuration") {
+    subproject("configuration-cache")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")
