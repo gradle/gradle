@@ -18,13 +18,13 @@ package org.gradle.api.internal.catalog;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -61,13 +61,13 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    public Configuration findProjectConfiguration() {
-        return delegate.findProjectConfiguration();
+    public Project getDependencyProject() {
+        return delegate.getDependencyProject();
     }
 
     @Override
-    public Project getDependencyProject() {
-        return delegate.getDependencyProject();
+    public ProjectComponentIdentifier getProjectComponentIdentifier() {
+        return delegate.getProjectComponentIdentifier();
     }
 
     @Override
@@ -196,16 +196,22 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public Set<File> resolve() {
         return delegate.resolve();
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public Set<File> resolve(boolean transitive) {
         return delegate.resolve(transitive);
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public TaskDependency getBuildDependencies() {
         return delegate.getBuildDependencies();
     }

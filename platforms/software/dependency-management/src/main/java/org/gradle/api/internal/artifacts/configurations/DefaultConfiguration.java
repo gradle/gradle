@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -899,7 +900,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, this::getAllDependencies, taskDependencyFactory);
+            return new TasksFromProjectDependencies(taskName, () -> {
+                return getAllDependencies().withType(ProjectDependency.class);
+            }, taskDependencyFactory, projectStateRegistry);
         } else {
             return new TasksFromDependentProjects(taskName, getName(), taskDependencyFactory);
         }

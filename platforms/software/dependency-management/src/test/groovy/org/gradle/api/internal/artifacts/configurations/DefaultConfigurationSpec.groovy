@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -296,7 +295,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         then:
         configuration.dependencies as Set == [dependency, projectDependency] as Set
         configuration.dependencies.withType(ProjectDependency) as Set == [projectDependency] as Set
-        configuration.dependencies.withType(SelfResolvingDependency) as Set == [projectDependency] as Set
     }
 
     def "get all dependencies"() {

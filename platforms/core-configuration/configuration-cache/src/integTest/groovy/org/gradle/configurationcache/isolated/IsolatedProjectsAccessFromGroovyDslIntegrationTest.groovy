@@ -706,7 +706,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
         "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
         "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "dependencies.project([path: ':', configuration: 'test'])" | "plugins { id('java') }"
         "configurations.compileClasspath"                          | "plugins { id('java') }"
         "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
         "sourceSets.main.java"                                     | "plugins { id('java') }"

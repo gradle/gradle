@@ -19,40 +19,40 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
-public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
+public class DefaultFileCollectionDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
     private final ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
 
-    public DefaultSelfResolvingDependency(FileCollectionInternal source) {
+    public DefaultFileCollectionDependency(FileCollectionInternal source) {
         this.targetComponentId = null;
         this.source = source;
     }
 
-    public DefaultSelfResolvingDependency(ComponentIdentifier targetComponentId, FileCollectionInternal source) {
+    public DefaultFileCollectionDependency(ComponentIdentifier targetComponentId, FileCollectionInternal source) {
         this.targetComponentId = targetComponentId;
         this.source = source;
     }
 
     @Override
     public boolean contentEquals(Dependency dependency) {
-        if (!(dependency instanceof DefaultSelfResolvingDependency)) {
+        if (!(dependency instanceof DefaultFileCollectionDependency)) {
             return false;
         }
-        DefaultSelfResolvingDependency selfResolvingDependency = (DefaultSelfResolvingDependency) dependency;
+        DefaultFileCollectionDependency selfResolvingDependency = (DefaultFileCollectionDependency) dependency;
         return source.equals(selfResolvingDependency.source);
     }
 
     @Override
-    public DefaultSelfResolvingDependency copy() {
-        return new DefaultSelfResolvingDependency(targetComponentId, source);
+    public DefaultFileCollectionDependency copy() {
+        return new DefaultFileCollectionDependency(targetComponentId, source);
     }
 
     @Nullable
@@ -77,22 +77,41 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     }
 
     @Override
-    public void resolve(DependencyResolveContext context) {
+    @Deprecated
+    @SuppressWarnings("deprecation")
+    public void resolve(org.gradle.api.internal.artifacts.CachingDependencyResolveContext context) {
         context.add(source);
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve() {
-        return source.getFiles();
+        return resolve(true);
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve(boolean transitive) {
+
+        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
+            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+            .nagUser();
+
         return source.getFiles();
     }
 
     @Override
+    @Deprecated
     public TaskDependency getBuildDependencies() {
+
+        DeprecationLogger.deprecate("Accessing the build dependencies of a file collection dependency")
+            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
+            .nagUser();
+
         return source.getBuildDependencies();
     }
 

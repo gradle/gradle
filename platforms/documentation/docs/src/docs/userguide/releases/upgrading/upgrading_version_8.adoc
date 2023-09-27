@@ -235,6 +235,94 @@ dependencies {
 ======
 =====
 
+[[deprecate_self_resolving_dependency]]
+==== Deprecated `SelfResolvingDependency`
+
+The `SelfResolvingDependency` interface has been deprecated for removal in Gradle 9.0.
+This type dates back to the first versions of Gradle, where some dependencies could be resolved independently.
+Now, all dependencies should be resolved as part of a dependency graph using a `Configuration`.
+
+Currently, `ProjectDependency` and `FileCollectionDependency` implement this interface.
+In Gradle 9.0, these types will no longer implement `SelfResolvingDependency`.
+Instead, they will both directly implement `Dependency`.
+
+As such, the following methods of `ProjectDependency` and `FileCollectionDependency` will no longer be available:
+
+- `resolve`
+- `resolve(boolean)`
+- `getBuildDependencies`
+
+Consider the following scripts that showcase the deprecated interface and its replacement:
+
+=====
+[.multi-language-sample]
+======
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(files("bar.txt"))
+    implementation(project(":foo"))
+}
+
+tasks.register("resolve") {
+    val files = configurations["runtimeClasspath"].files
+    doLast {
+        // Deprecated
+        configurations["implementation"].dependencies.withType<FileCollectionDependency>() {
+            resolve()
+            resolve(true)
+        }
+        configurations["implementation"].dependencies.withType<ProjectDependency>() {
+            resolve()
+            resolve(true)
+        }
+
+        // Resolve a Configuration instead
+        assert(files.map { it.name } == listOf("bar.txt", "foo.jar"))
+    }
+}
+----
+======
+[.multi-language-sample]
+======
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(files("bar.txt"))
+    implementation(project(":foo"))
+}
+
+task resolve {
+    def files = configurations.runtimeClasspath.files
+    doLast {
+        // Deprecated
+        configurations.implementation.dependencies.withType(FileCollectionDependency) {
+            resolve()
+            resolve(true)
+        }
+        configurations.implementation.dependencies.withType(ProjectDependency) {
+            resolve()
+            resolve(true)
+        }
+
+        // Resolve a Configuration instead
+        assert files*.name == ["bar.txt", "foo.jar"]
+    }
+}
+----
+======
+=====
+
 [[deprecated_artifact_identifier]]
 ==== Deprecated `ArtifactIdentifier`
 The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.

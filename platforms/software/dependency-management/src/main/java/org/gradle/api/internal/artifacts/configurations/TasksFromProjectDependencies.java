@@ -17,12 +17,14 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -32,10 +34,15 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
     private final String taskName;
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
-    public TasksFromProjectDependencies(String taskName, Supplier<DependencySet> dependencies, TaskDependencyFactory taskDependencyFactory) {
+    public TasksFromProjectDependencies(
+        String taskName,
+        Supplier<Set<ProjectDependency>> projectDependencies,
+        TaskDependencyFactory taskDependencyFactory,
+        ProjectStateRegistry projectStateRegistry
+    ) {
         this.taskName = taskName;
         this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(
-            context -> resolveProjectDependencies(context, dependencies.get().withType(ProjectDependency.class))
+            context -> resolveProjectDependencies(context, projectDependencies.get(), projectStateRegistry)
         );
     }
 
@@ -44,11 +51,13 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         taskDependencyDelegate.visitDependencies(context);
     }
 
-    void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {
+    void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies, ProjectStateRegistry projectStateRegistry) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            ProjectInternal dependencyProject = (ProjectInternal) projectDependency.getDependencyProject();
-            dependencyProject.getOwner().ensureTasksDiscovered();
-            Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
+            Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+            ProjectState projectState = projectStateRegistry.stateFor(identityPath);
+            projectState.ensureTasksDiscovered();
+
+            Task nextTask = projectState.getMutableModel().getTasks().findByName(taskName);
             if (nextTask != null && context.getTask() != nextTask) {
                 context.add(nextTask);
             }
