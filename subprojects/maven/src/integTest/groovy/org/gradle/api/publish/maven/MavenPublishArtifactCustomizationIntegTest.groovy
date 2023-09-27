@@ -193,8 +193,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
-            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.jar")}")
+        failure.assertHasCause("""
+Cannot publish module metadata because an artifact from the 'java' component has been removed. The available artifacts had these problems:
+- customFile.jar:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) customFile.jar
+        """.trim())
     }
 
     /**
@@ -217,9 +220,12 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
-            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile.txt")}\n"
-            + "- extension differs from component artifact: (artifact) jar != (best match) csv")
+        failure.assertHasCause("""
+Cannot publish module metadata because an artifact from the 'java' component has been removed. The available artifacts had these problems:
+- customFile.txt:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) customFile.txt
+\t- extension differs: (expected) jar != (actual) csv
+        """.trim())
     }
 
     /**
@@ -242,9 +248,47 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         fails 'publish'
 
         then:
-        failure.assertHasCause("Cannot publish module metadata because an artifact from the 'java' component has been removed. The best match had these problems:\n"
-            + "- file differs from component artifact: (artifact) ${testDirectory.file("build/libs/projectText-1.0.jar")} != (best match) ${testDirectory.file("customFile-foobar.jar")}\n"
-            + "- classifier differs from component artifact: (artifact)  != (best match) foobar")
+        failure.assertHasCause("""
+Cannot publish module metadata because an artifact from the 'java' component has been removed. The available artifacts had these problems:
+- customFile-foobar.jar:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) customFile-foobar.jar
+\t- classifier differs: (expected)  != (actual) foobar
+        """.trim())
+    }
+
+    /**
+     * Cannot publish module metadata for component when artifacts are modified.
+     * @see org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker#checkThatArtifactIsPublishedUnmodified
+     */
+    def "fails when publishing module metadata for component with multiple modified artifacts"() {
+        given:
+        createBuildScripts("""
+            publications {
+                mavenCustom(MavenPublication) {
+                    from components.java
+                    // 'd' goes first because it only has a file difference
+                    // 'a'-'c' have extension differences, and are sorted alphabetically
+                    artifacts = ["b3.txt", "c4.txt", "a2.txt", "d1.jar"]
+                }
+            }
+
+""")
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause("""
+Cannot publish module metadata because an artifact from the 'java' component has been removed. The available artifacts had these problems:
+- d1.jar:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) d1.jar
+- a2.txt:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) a2.txt
+\t- extension differs: (expected) jar != (actual) txt
+- b3.txt:
+\t- file differs: (expected) build/libs/projectText-1.0.jar != (actual) b3.txt
+\t- extension differs: (expected) jar != (actual) txt
+... (1 more artifact(s) not shown)
+        """.trim())
     }
 
     def "can configure custom artifacts when creating"() {
