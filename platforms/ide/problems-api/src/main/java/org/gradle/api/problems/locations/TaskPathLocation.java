@@ -18,6 +18,11 @@ package org.gradle.api.problems.locations;
 
 import org.gradle.util.Path;
 
+/**
+ * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
+ *
+ * @since 8.5
+ */
 public class TaskPathLocation implements ProblemLocation {
 
     private final Path identityPath;
