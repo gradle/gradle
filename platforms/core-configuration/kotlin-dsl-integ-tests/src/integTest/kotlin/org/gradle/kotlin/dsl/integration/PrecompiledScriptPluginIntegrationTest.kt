@@ -14,6 +14,8 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
@@ -30,9 +32,11 @@ import java.io.File
 class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "ktlint plugin issue in embedded mode"
+    )
     fun `generated code follows kotlin-dsl coding conventions`() {
-
-        assumeNonEmbeddedGradleExecuter() // ktlint plugin issue in embedded mode
 
         withBuildScript(
             """
@@ -799,8 +803,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
     fun getPrecompiledPluginsLink(): String = DocumentationRegistry().getDocumentationRecommendationFor("information", "custom_plugins", "sec:precompiled_plugins")
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `should compile correctly with Kotlin explicit api mode`() {
-        assumeNonEmbeddedGradleExecuter()
         withBuildScript(
             """
             plugins {
@@ -1109,8 +1113,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Issue("https://github.com/gradle/gradle/issues/24788")
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `fail with a reasonable message when kotlin-dsl plugin compiler arguments have been tempered with`() {
-        assumeNonEmbeddedGradleExecuter()
 
         withKotlinDslPlugin().appendText(
             """
