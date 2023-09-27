@@ -20,10 +20,8 @@ import org.apache.commons.io.IOUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
-import org.junit.Rule
 import spock.lang.Shared
 
 import java.nio.charset.StandardCharsets
@@ -37,8 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final THIRD_PARTY_LIB_COUNT = 149
-
-    @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
     @Shared String baseVersion = GradleVersion.current().baseVersion.version
 
