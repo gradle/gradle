@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
@@ -31,11 +32,12 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
-import org.gradle.api.internal.artifacts.ResolverFactory;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesOnlyVisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -90,7 +92,8 @@ import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
     private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element.getSelector() instanceof ProjectComponentSelector;
-    private final ResolverFactory resolverFactory;
+    private final ComponentResolversFactory componentResolversFactory;
+    private final DependencyGraphResolver dependencyGraphResolver;
     private final RepositoriesSupplier repositoriesSupplier;
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ResolutionResultsStoreFactory storeFactory;
@@ -114,7 +117,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final ResolvedVariantCache resolvedVariantCache;
 
     public DefaultConfigurationResolver(
-        ResolverFactory resolverFactory,
+        ComponentResolversFactory componentResolversFactory,
+        DependencyGraphResolver dependencyGraphResolver,
         RepositoriesSupplier repositoriesSupplier,
         GlobalDependencyResolutionRules metadataHandler,
         ResolutionResultsStoreFactory storeFactory,
@@ -136,7 +140,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         SelectedVariantSerializer selectedVariantSerializer,
         ResolvedVariantCache resolvedVariantCache
     ) {
-        this.resolverFactory = resolverFactory;
+        this.componentResolversFactory = componentResolversFactory;
+        this.dependencyGraphResolver = dependencyGraphResolver;
         this.repositoriesSupplier = repositoriesSupplier;
         this.metadataHandler = metadataHandler;
         this.storeFactory = storeFactory;
@@ -168,19 +173,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(buildProjectDependencies, resolutionStrategy.getSortOrder());
 
-        ResolverFactory.Resolver resolver = resolverFactory.create(resolveContext, ImmutableList.of(), consumerSchema, metadataHandler);
+        ComponentResolvers resolvers = componentResolversFactory.create(resolveContext, ImmutableList.of(), consumerSchema);
 
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(
             artifactsVisitor,
             artifactTypeRegistry,
             calculatedValueContainerFactory,
-            resolver.getArtifactResolver(),
+            resolvers.getArtifactResolver(),
             resolvedVariantCache
         );
 
-        resolver.resolveGraph(IS_LOCAL_EDGE, false, ImmutableList.of(
-            failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor
-        ));
+        ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
+        dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, IS_LOCAL_EDGE, false, visitors);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
@@ -233,18 +237,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.confirmUnlockedConfigurationResolved(resolveContext.getName());
         }
 
-        ResolverFactory.Resolver resolver = resolverFactory.create(resolveContext, getRepositories(), consumerSchema, metadataHandler);
+        ComponentResolvers resolvers = componentResolversFactory.create(resolveContext, getRepositories(), consumerSchema);
 
         List<DependencyArtifactsVisitor> artifactVisitors = ImmutableList.of(oldModelVisitor, fileDependencyVisitor, artifactsBuilder);
         graphVisitors.add(new ResolvedArtifactsGraphVisitor(
             new CompositeDependencyArtifactsVisitor(artifactVisitors),
             artifactTypeRegistry,
             calculatedValueContainerFactory,
-            resolver.getArtifactResolver(),
+            resolvers.getArtifactResolver(),
             resolvedVariantCache
         ));
 
-        resolver.resolveGraph(Specs.satisfyAll(), true, graphVisitors.build());
+        dependencyGraphResolver.resolveGraph(resolveContext, resolvers, consumerSchema, metadataHandler, Specs.satisfyAll(), true, graphVisitors.build());
 
         VisitedArtifactsResults artifactsResults = artifactsBuilder.complete();
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
