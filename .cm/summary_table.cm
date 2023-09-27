@@ -166,9 +166,6 @@ platforms:
     name: 'ide'
     subprojects:
       - 'platforms/ide/'
-      - 'subprojects/ide/'
-      - 'subprojects/tooling-api/'
-      - 'subprojects/tooling-api-builders/'
   - jvm:
     name: 'jvm'
     subprojects:

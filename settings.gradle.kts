@@ -66,12 +66,8 @@ unassigned {
     subproject("resources-s3")
     subproject("resources-sftp")
     subproject("plugins")
-    subproject("ide")
-    subproject("ide-native")
     subproject("maven")
-    subproject("tooling-api")
     subproject("build-events")
-    subproject("tooling-api-builders")
     subproject("signing")
     subproject("reporting")
     subproject("diagnostics")
@@ -97,8 +93,6 @@ unassigned {
     subproject("security")
     subproject("normalization-java")
     subproject("build-operations")
-    subproject("problems")
-    subproject("problems-api")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
@@ -152,7 +146,12 @@ platform("core-execution") {
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
+    subproject("ide")
+    subproject("ide-native")
     subproject("ide-plugins")
+    subproject("problems")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
 }
 
 // Software Platform

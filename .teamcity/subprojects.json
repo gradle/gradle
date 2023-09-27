@@ -351,14 +351,14 @@
   },
   {
     "name": "ide",
-    "path": "subprojects/ide",
+    "path": "platforms/ide/ide",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "ide-native",
-    "path": "subprojects/ide-native",
+    "path": "platforms/ide/ide-native",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -708,14 +708,7 @@
   },
   {
     "name": "problems",
-    "path": "subprojects/problems",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "problems-api",
-    "path": "subprojects/problems-api",
+    "path": "platforms/ide/problems",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -876,14 +869,14 @@
   },
   {
     "name": "tooling-api",
-    "path": "subprojects/tooling-api",
+    "path": "platforms/ide/tooling-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "tooling-api-builders",
-    "path": "subprojects/tooling-api-builders",
+    "path": "platforms/ide/tooling-api-builders",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
