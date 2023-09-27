@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -41,7 +42,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def filter = Mock(Spec)
     def selector = Mock(ArtifactVariantSelector)
     def artifactTypeRegistry = Mock(ArtifactTypeRegistry)
-    def set = new LocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory())
+    def set = new DefaultLocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory(), ImmutableAttributes.EMPTY, false)
 
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
@@ -129,7 +130,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         _ * visitor.prepareForVisit(_) >> FileCollectionStructureVisitor.VisitType.Visit
         _ * filter.isSatisfiedBy(_) >> true
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _) >> { ResolvedVariantSet variants, f -> variants.variants.first() }
+        2 * selector.select(_, _, _, _) >> { ResolvedVariantSet variants, r, a, f -> variants.variants.first() }
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
 
@@ -171,7 +172,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * artifactTypeRegistry.mapAttributesFor(f1) >> attrs1
         1 * artifactTypeRegistry.mapAttributesFor(f2) >> attrs2
         1 * files.files >> ([f1, f2] as Set)
-        2 * selector.select(_, _) >> { ResolvedVariantSet variants, f -> variants.variants.first() }
+        2 * selector.select(_, _, _, _) >> { ResolvedVariantSet variants, r, a, f -> variants.variants.first() }
         2 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
         1 * artifactVisitor.visitArtifact(_, attrs1, [], { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, List<? extends Capability> capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
