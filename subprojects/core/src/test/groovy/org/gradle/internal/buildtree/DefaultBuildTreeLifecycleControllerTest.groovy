@@ -30,7 +30,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def workController = Mock(BuildTreeWorkController)
     def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory())
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(), startParameter, buildModelParameters)
     def reportableFailure = new RuntimeException()
 
     def setup() {

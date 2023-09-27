@@ -135,6 +135,38 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
     }
 
+    def "can skip tasks execution during model building"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+
+            tasks.register("dummyTask")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(SomeToolingModel, "help")
+
+        then:
+        notExecuted("help")
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then:
+        executed(":dummyTask")
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+        }
+    }
+
     def "can ignore problems and cache custom model"() {
         given:
         settingsFile << """

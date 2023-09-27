@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.buildtree;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
@@ -38,19 +39,24 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
     private final StateTransitionController<State> state;
+    private final StartParameter startParameter;
+    private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
         BuildTreeWorkController workController,
         BuildTreeModelCreator modelCreator,
         BuildTreeFinishExecutor finishExecutor,
-        StateTransitionControllerFactory controllerFactory
+        StateTransitionControllerFactory controllerFactory,
+        StartParameter startParameter, BuildModelParameters buildModelParameters
     ) {
         this.buildLifecycleController = buildLifecycleController;
         this.workController = workController;
         this.modelCreator = modelCreator;
         this.finishExecutor = finishExecutor;
         this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
+        this.startParameter = startParameter;
+        this.buildModelParameters = buildModelParameters;
     }
 
     @Override
@@ -72,7 +78,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
-            if (runTasks) {
+            if (runTasks && isEligibleToRunTasks()) {
                 ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null, true);
                 if (!result.getFailures().isEmpty()) {
                     return result.asFailure();
@@ -89,6 +95,14 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
+    }
+
+    private Boolean isEligibleToRunTasks() {
+        boolean isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
+        boolean isHelpTaskOnly = startParameter.getTaskRequests().size() == 1 &&
+            startParameter.getTaskRequests().get(0).getArgs().contains("help");
+
+        return !isIsolatedProjectsEnabled || !isHelpTaskOnly;
     }
 
     private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
