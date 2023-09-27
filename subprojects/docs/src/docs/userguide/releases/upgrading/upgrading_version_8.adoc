@@ -46,9 +46,9 @@ The `java-base` plugin now assumes a maximum of one `link:{javadocPath}/org/grad
 The plugin's `java` extension block will now apply source and target compatibility versions and consistent resolution settings to every such component.
 Previously, the plugin would only apply these settings to component named `java`.
 
-As there is no public API for creating components of this type, we do not expect this change to affect many builds.
+*As there is no public API for creating components of this type, we do not expect this change to affect many builds.*
 
-Additionally, the `groovy-base` plugin will now be responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
+Additionally, the `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
 
 If you are using this task *without applying this plugin*, you will have to manually set compatibility versions on these tasks.
 
