@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Location information types, which could be added to a reported problem.
+ */
 @NonNullApi
 package org.gradle.api.problems.locations;
 
