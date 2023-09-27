@@ -188,7 +188,8 @@ val abstractTaskRelevantFields = listOf(
     "actions",
     "enabled",
     "timeout",
-    "onlyIfSpec"
+    "onlyIfSpec",
+    "logger",
 )
 
 
