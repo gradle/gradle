@@ -24,13 +24,13 @@ class DebugOptionsTest {
 
     @Test
     void testDebugOptions() {
-        assert debugOptions.debugLevel == null
+        assert debugOptions.debugLevel.getOrNull() == null
     }
 
     @Test
     void testDefine() {
-        debugOptions.debugLevel = null
+        debugOptions.debugLevel.set(null)
         debugOptions.define(debugLevel: "extreme")
-        assert debugOptions.debugLevel == "extreme"
+        assert debugOptions.debugLevel.getOrNull() == "extreme"
     }
 }

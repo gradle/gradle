@@ -104,7 +104,7 @@ public abstract class CompileOptions extends AbstractOptions {
         this.release = objectFactory.property(Integer.class);
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
         this.forkOptions = objectFactory.newInstance(ForkOptions.class);
-        this.debugOptions = new DebugOptions();
+        this.debugOptions = objectFactory.newInstance(DebugOptions.class);
     }
 
     /**

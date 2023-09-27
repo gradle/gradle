@@ -16,19 +16,17 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
  * is set to {@code true}.
  */
-public class DebugOptions extends AbstractOptions {
+public abstract class DebugOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
-
-    private String debugLevel;
 
     /**
      * Tells which debugging information is to be generated. The value is a comma-separated
@@ -45,17 +43,8 @@ public class DebugOptions extends AbstractOptions {
      *
      * By default, only source and line debugging information will be generated.
      */
-    @Nullable
     @Optional
     @Input
-    public String getDebugLevel() {
-        return debugLevel;
-    }
-
-    /**
-     * Sets which debug information is to be generated.
-     */
-    public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
-    }
+    @UpgradedProperty
+    public abstract Property<String> getDebugLevel();
 }

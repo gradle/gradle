@@ -265,7 +265,6 @@ Method <org.gradle.api.tasks.compile.CompileOptions.isIncremental()> does not ha
 Method <org.gradle.api.tasks.compile.CompileOptions.isListFiles()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isVerbose()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
 Method <org.gradle.api.tasks.compile.CompileOptions.isWarnings()> does not have raw return type assignable to org.gradle.api.provider.Property in (CompileOptions.java:0)
-Method <org.gradle.api.tasks.compile.DebugOptions.getDebugLevel()> does not have raw return type assignable to org.gradle.api.provider.Property in (DebugOptions.java:0)
 Method <org.gradle.api.tasks.compile.ForkOptions.getExecutable()> does not have raw return type assignable to org.gradle.api.provider.Property in (ForkOptions.java:0)
 Method <org.gradle.api.tasks.compile.ForkOptions.getJavaHome()> does not have raw return type assignable to org.gradle.api.provider.Property in (ForkOptions.java:0)
 Method <org.gradle.api.tasks.compile.ForkOptions.getTempDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (ForkOptions.java:0)

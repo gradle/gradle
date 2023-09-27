@@ -160,7 +160,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == defaultOptions
 
         when:
-        spec.compileOptions.debugOptions.debugLevel = "source,vars"
+        spec.compileOptions.debugOptions.debugLevel.set("source,vars")
 
         then:
         builder.build() == ["-g:source,vars"] + defaultOptions.findAll { it != "-g" }
