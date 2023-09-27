@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
@@ -24,9 +25,11 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.inject.Inject;
 import java.util.Comparator;
@@ -39,14 +42,18 @@ import java.util.Set;
 public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     private final ProviderFactory providerFactory;
     private final ProjectInternal project;
+    private final InstanceGenerator instanceGenerator;
     private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
     @Inject
     public DefaultJvmLanguageUtilities(
             ProviderFactory providerFactory,
-            ProjectInternal project) {
+            InstanceGenerator instanceGenerator,
+            ProjectInternal project
+        ) {
         this.providerFactory = providerFactory;
         this.project = project;
+        this.instanceGenerator = instanceGenerator;
         configurationToCompileTasks = new HashMap<>(5);
     }
 
@@ -85,5 +92,15 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
                 return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
             }
         }).max(Comparator.naturalOrder()).get();
+    }
+
+    @Override
+    public void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration) {
+        DefaultJvmLanguageSourceDirectoryBuilder builder = instanceGenerator.newInstance(DefaultJvmLanguageSourceDirectoryBuilder.class,
+            name,
+            project,
+            sourceSet);
+        configuration.execute(builder);
+        builder.build();
     }
 }
