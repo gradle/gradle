@@ -40,17 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Changes to `JavaBasePlugin` conventions
+==== Changes to Groovy task conventions
 
-The `java-base` plugin now assumes a maximum of one `link:{javadocPath}/org/gradle/api/component/Component.html[Component]` with the *internal* type `JvmSoftwareComponentInternal` will ever be created.
-The plugin's `java` extension block will now apply source and target compatibility versions and consistent resolution settings to every such component.
-Previously, the plugin would only apply these settings to component named `java`.
-
-*As there is no public API for creating components of this type, we do not expect this change to affect many builds.*
-
-Additionally, the `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
+The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
 
 If you are using this task *without applying this plugin*, you will have to manually set compatibility versions on these tasks.
+We recommend applying the `groovy-base` plugin whenever working with Groovy language tasks.
 
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
