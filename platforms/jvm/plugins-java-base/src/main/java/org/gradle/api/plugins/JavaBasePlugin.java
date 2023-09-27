@@ -80,8 +80,7 @@ import java.util.function.Supplier;
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  *
  * This plugin is automatically applied to most projects that build any JVM language source.  It creates a {@link JavaPluginExtension}
- * extension named {@code java} that is used to configure all {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
- * components in the project.
+ * extension named {@code java} that is used to configure all jvm-related components in the project.
  *
  * It is responsible for configuring the conventions of any {@link SourceSet}s that are present and used by
  * (for example) the Java, Groovy, or Kotlin plugins.

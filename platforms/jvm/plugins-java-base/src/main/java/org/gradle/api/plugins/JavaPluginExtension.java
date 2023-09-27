@@ -72,7 +72,7 @@ public interface JavaPluginExtension {
     void setTargetCompatibility(JavaVersion value);
 
     /**
-     * Registers a feature on the {@code java} component.
+     * Registers a feature.
      * <p>
      * The new feature will have a default capability corresponding to the
      * "group", "name" + feature name and version of this project. For example,
@@ -95,9 +95,6 @@ public interface JavaPluginExtension {
      *
      * The {@link FeatureSpec#capability(String, String, String)} method can be
      * used to refine the capabilities of this feature.
-     *
-     * This method should not be called if there are multiple JVM {@link org.gradle.api.component.Component}s
-     * being managed by this extension.
      *
      * @param name the name of the feature
      * @param configureAction the configuration for the feature
