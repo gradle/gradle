@@ -83,6 +83,28 @@ Like the Gradle Build Tool, its Wrapper is licensed under the Apache Software Li
 The JAR file is now self-attributing and you don't need to consider whether you need to add a separate `LICENSE` file whenever you place that JAR file in your codebases.
 
 
+<a name="kotlin-dsl"></a>
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing experience in supported IDEs compared to the traditional Groovy DSL — auto-completion, smart content assist, quick access to documentation, navigation to source, and context-aware refactoring.
+
+#### Version catalog API in precompiled scripts
+
+The `versionCatalogs` extension accessor is now available in Kotlin DSL precompiled scripts.
+It provides with a [type unsafe API](userguide/platforms.html#sub:type-unsafe-access-to-catalog) to access version catalogs that may be available on the projects where the precompiled script will be applied.
+
+```kotlin
+// buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts
+versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCore ->
+    dependencies {
+        testImplementation(assertjCore)
+    }
+}
+```
+
+Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
