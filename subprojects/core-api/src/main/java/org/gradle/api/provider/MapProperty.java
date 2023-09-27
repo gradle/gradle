@@ -16,12 +16,12 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Represents a property whose type is a {@link Map} of keys of type {@link K} and values of type {@link V}. Retains iteration order.
@@ -37,7 +37,7 @@ import java.util.function.Predicate;
  * @since 5.1
  */
 @SupportsKotlinAssignmentOverloading
-public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue {
+public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, MapConfigurer<K, V> {
 
     /**
      * Sets the value of this property to an empty map, and replaces any existing value.
@@ -112,42 +112,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     MapProperty<K, V> value(Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
-     * Adds a map entry to the property value.
-     *
-     * @param key the key
-     * @param value the value
-     */
-    void put(K key, V value);
-
-    /**
-     * Adds a map entry to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param key the key
-     * @param providerOfValue the provider of the value
-     */
-    void put(K key, Provider<? extends V> providerOfValue);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * @param entries a {@link Map} containing the entries to add
-     */
-    void putAll(Map<? extends K, ? extends V> entries);
-
-    /**
-     * Adds all entries from another {@link Map} to the property value.
-     *
-     * <p>The given provider will be queried when the value of this property is queried.
-     * This property will have no value when the given provider has no value.
-     *
-     * @param provider the provider of the entries
-     */
-    void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
-
-    /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
      * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
@@ -191,10 +155,18 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     void finalizeValue();
 
     /**
-     * Prunes this property so undefined entries are ignored.
+     * Returns the configurer for this property's explicit value.
+     *
+     * @since 8.5
      */
-    MapProperty<K, V> prune();
+    @Incubating
+    MapConfigurer<K, V> getExplicitValue();
 
-    MapProperty<K, V> exclude(Predicate<K> keyFilter, Predicate<V> valueFilter);
-    MapProperty<K, V> exclude(Predicate<K> keyFilter);
+    /**
+     * Returns the configurer for this property's convention value.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    MapConfigurer<K, V> getConventionValue();
 }

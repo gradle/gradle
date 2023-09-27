@@ -21,13 +21,11 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -384,51 +382,6 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
-        }
-    }
-
-    //TODO-RC remove
-    public static class CollectionSupplierCollector<T, C extends Collection<T>> implements ProvidedCollector<T> {
-
-        private final CollectionSupplier<T, C> collectionSupplier;
-        private final Transformer<Iterable<T>, Iterable<T>> transformer;
-
-        public CollectionSupplierCollector(CollectionSupplier<T, C> supplier, Transformer<Iterable<T>, Iterable<T>> transformer) {
-            this.collectionSupplier = supplier;
-            this.transformer = transformer;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<? extends Iterable<? extends T>> calculated = collectionSupplier.calculateValue(consumer);
-            return collectEntriesFromValue(collector, dest, calculated);
-        }
-
-        @Override
-        public int size() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            ExecutionTimeValue<? extends T> calculated = Cast.uncheckedNonnullCast(collectionSupplier.calculateExecutionTimeValue());
-            visitValue(visitor, calculated);
-        }
-
-        @Override
-        public boolean isProvidedBy(Provider<?> provider) {
-            // TODO-RC implement correctly
-            return false;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return collectionSupplier.getProducer();
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return collectionSupplier.calculatePresence(consumer);
         }
     }
 

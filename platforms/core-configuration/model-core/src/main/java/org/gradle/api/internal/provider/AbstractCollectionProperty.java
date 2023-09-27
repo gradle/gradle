@@ -19,12 +19,12 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -65,43 +65,21 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    //TODO-RC remove
     @Override
-    public void modifyValue(Transformer<Iterable<T>, Iterable<T>> newExplicit) {
-        CollectionSupplier<T, C> supplier = getSupplier();
-        setSupplier(new CollectingSupplier(new Collectors.CollectionSupplierCollector<>(supplier, newExplicit)));
+    public CollectionPropertyConfigurer<T> getConventionValue() {
+        assertCanMutate();
+        return new ConventionConfigurer();
     }
 
     @Override
-    public void addAllToConvention(Iterable<? extends T> elements) {
-
+    public CollectionPropertyConfigurer<T> getExplicitValue() {
+        assertCanMutate();
+        return new ExplicitValueConfigurer();
     }
 
     @Override
-    public void addAllToConvention(Provider<? extends Iterable<? extends T>> provider) {
-
-    }
-
-    @Override
-    public HasMultipleValues<T> excludeFromConvention(Predicate<T> filter) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public HasMultipleValues<T> prune() {
-        setSupplier(getSupplier().pruned());
-        return this;
-    }
-
-    @Override
-    public HasMultipleValues<T> exclude(Predicate<T> filter) {
+    public void exclude(Predicate<T> filter) {
         setSupplier(getSupplier().keep(filter.negate()));
-        return this;
-    }
-
-    @Override
-    public HasMultipleValues<T> emptyConvention() {
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
@@ -140,6 +118,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private void addCollector(Collector<T> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
+    }
+
+    private void addConventionCollector(Collector<T> collector) {
+        assertCanMutate();
+        setConvention(getConventionSupplier().plus(collector));
     }
 
     @Nullable
@@ -367,7 +350,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> pruned() {
-            throw new UnsupportedOperationException();
+            return null;
         }
 
         @Override
@@ -443,7 +426,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> pruned() {
-            return new CollectingSupplier(value, true);
+            return pruning ? this : new CollectingSupplier(value, true);
         }
 
         @Override
@@ -539,6 +522,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return resultValue.withSideEffect(sideEffectBuilder.build());
         }
     }
+
     public static class PlusCollector<T> implements Collector<T> {
         private final Collector<T> left;
         private final Collector<T> right;
@@ -591,5 +575,106 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
         }
+    }
+    //TODO-RC consider combining these two implementations if their only difference is the target CollectingSupplier
+    private class ConventionConfigurer implements CollectionPropertyConfigurer<T> {
+
+        private boolean pruned;
+
+        private void prune() {
+            if (!pruned) {
+                pruned = true;
+                setConvention(getConventionSupplier().pruned());
+            }
+        }
+
+        @Override
+        public void add(T element) {
+            prune();
+            addConventionCollector(new SingleElement<>(element));
+        }
+
+        @Override
+        public void add(Provider<? extends T> provider) {
+            prune();
+            addConventionCollector(new ElementFromProvider<>(Providers.internal(provider)));
+        }
+
+        @Override
+        @SafeVarargs
+        @SuppressWarnings("varargs")
+        public final void addAll(T... elements) {
+            prune();
+            addConventionCollector(new ElementsFromArray<>(elements));
+        }
+
+        @Override
+        public void addAll(Iterable<? extends T> elements) {
+            prune();
+            addConventionCollector(new ElementsFromCollection<>(elements));
+        }
+
+        @Override
+        public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+            prune();
+            addConventionCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        }
+
+        @Override
+        public void exclude(Predicate<T> filter) {
+            prune();
+            setConvention(getConventionSupplier().keep(filter.negate()));
+        }
+    }
+
+    private class ExplicitValueConfigurer implements CollectionPropertyConfigurer<T> {
+
+        private boolean pruned = false;
+
+        @Override
+        public void add(T element) {
+            prune();
+            AbstractCollectionProperty.this.add(element);
+        }
+
+        private void prune() {
+            if (!pruned) {
+                pruned = true;
+                setSupplier(getSupplier().pruned());
+            }
+        }
+
+        @Override
+        public void add(Provider<? extends T> provider) {
+            prune();
+            AbstractCollectionProperty.this.add(provider);
+        }
+
+        @Override
+        @SafeVarargs
+        @SuppressWarnings("varargs")
+        public final void addAll(T... elements) {
+            prune();
+            AbstractCollectionProperty.this.addAll(elements);
+        }
+
+        @Override
+        public void addAll(Iterable<? extends T> elements) {
+            prune();
+            AbstractCollectionProperty.this.addAll(elements);
+        }
+
+        @Override
+        public void addAll(Provider<? extends Iterable<? extends T>> provider) {
+            prune();
+            AbstractCollectionProperty.this.addAll(provider);
+        }
+
+        @Override
+        public void exclude(Predicate<T> filter) {
+            prune();
+            AbstractCollectionProperty.this.exclude(filter);
+        }
+
     }
 }

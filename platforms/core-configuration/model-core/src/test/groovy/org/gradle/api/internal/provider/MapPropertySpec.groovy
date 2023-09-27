@@ -1195,54 +1195,6 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-
-    def "pruning a property ensures existing undefined providers are gone"() {
-        given:
-        property.put('m1', 'foo')
-        property.set(Providers.notDefined())
-        property.prune()
-        and:
-        property.put('k1', 'v1')
-        property.put('k2', Providers.of('v2'))
-        property.putAll(['k3': 'v3'])
-        property.putAll(Providers.of(['k4': 'v4']))
-
-        expect:
-        assertValueIs(['k1': 'v1', 'k2': 'v2', 'k3': 'v3', 'k4': 'v4'])
-    }
-
-    def "pruning a property ensures future undefined providers are ignored"() {
-        given:
-        property.set(Providers.notDefined())
-        property.prune()
-        and:
-        property.put('k1', 'v1')
-        property.put('m1', Providers.notDefined())
-        property.put('k2', Providers.of('v2'))
-        property.putAll(['k3': 'v3'])
-        property.putAll(Providers.of(['k4': 'v4']))
-
-        expect:
-        assertValueIs(['k1': 'v1', 'k2': 'v2', 'k3': 'v3', 'k4': 'v4'])
-    }
-
-    def "may make further changes for a map originally frozen due to containing notDefined after pruning"() {
-        given:
-        property.put('k1', 'v1')
-        property.put('k2', 'v2')
-        property.put('k2', "v2b")
-        property.put('k3', "v3")
-        property.put('k2', Providers.notDefined())
-        property.put('k2', "v2c")
-        property.put('k0', "v0")
-        property.prune()
-        property.put('k1', "v1b")
-        property.put('k4', 'v4')
-
-        expect:
-        assertValueIs(['k1': 'v1b', 'k2': 'v2b', 'k3': 'v3', 'k4': 'v4'])
-    }
-
     def "may exclude entries based on key"() {
         given:
         property.put('k0', "1")
@@ -1267,6 +1219,36 @@ The value of this property is derived from: <source>""")
 
         expect:
         assertValueIs(['k1': '2', 'k3': '4'])
+    }
+
+    def "may configure convention incrementally"() {
+        given:
+        property.conventionValue.put('k0', '1')
+        property.conventionValue.put('k1', '2')
+        property.conventionValue.put('k2', Providers.notDefined())
+        property.conventionValue.put('k3', '4')
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k3': '4'])
+    }
+
+    def "may replace convention values"() {
+        given:
+        property.conventionValue.put('k0', '1')
+        property.conventionValue.put('k1', '2')
+        property.conventionValue.put('k2', '3')
+        property.conventionValue.put('k1', '4')
+        expect:
+        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
+    }
+
+    def "may exclude convention component values"() {
+        given:
+        property.conventionValue.put('k0', '1')
+        property.conventionValue.put('k1', '2')
+        property.conventionValue.put('k2', '3')
+        property.conventionValue.exclude { it == 'k1' }
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
     }
 
     private ProviderInternal<String> brokenValueSupplier() {
