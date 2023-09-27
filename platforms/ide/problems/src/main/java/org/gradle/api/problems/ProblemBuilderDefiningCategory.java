@@ -28,25 +28,20 @@ public interface ProblemBuilderDefiningCategory {
 
     /**
      * Declares the problem category.
-     * The category string is a ":" separated string that starts either with a specific problem category or with "gradle-plugin"
-     * and the plugin id where the problem is raised followed by the specific category.
-     * <pre>{@code
-     *  structure:
-     *  <category>:<detailed-info>:<detailed-info>:...
-     *  gradle-plugin:<plugin-id>:<category>:<detailed-info>:<detailed-info>:...
-     * }</pre>
      *
-     * <p>examples of valid category strings:
-     * <pre>{@code
-     * deprecation
-     * gradle-plugin:deprecation
-     * gradle-plugin:deprecation:<detailed-info>
-     * gradle-plugin:deprecation:<detailed-info>:<detailed-info>:...
-     * }</pre>
-     *
+     * It offers a hierarchical categorization with arbitrary details.
+     * Clients must declare a main category string. Freeform with the following conventions and limitations.
+     * Subcategories can be optionally specified with arbitrary details. The same conventions and limitations apply.
+     * When a problem is created (with BuildableProblemBuilder.build()) the category can be obtained with {@link Problem}.
+     * The `ProblemCategory` then represents a local category with some namespace, distinguishing built-in and third-party categories.
+     * Example:
+     * {@code category("validation", "missing-input") }
+
      * @param category the type name
-     * @param details the type details (these will be appended to the category string and separated by ":")
+     * @param details the type details
      * @return the builder for the next required property
+
+     * @see ProblemCategory
      */
     ProblemBuilder category(String category, String... details);
 }

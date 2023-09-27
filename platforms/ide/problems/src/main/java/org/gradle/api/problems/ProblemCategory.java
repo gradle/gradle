@@ -24,6 +24,22 @@ import java.util.List;
 /**
  * Interface for utility class that provide a category for a problem.
  *
+ * The category string is a ":" separated string that starts either with a specific problem category or with "gradle-plugin"
+ * and the plugin id where the problem is raised followed by the specific category.
+ * <pre>{@code
+ *  structure:
+ *  <category>:<detailed-info>:<detailed-info>:...
+ *  gradle-plugin:<plugin-id>:<category>:<detailed-info>:<detailed-info>:...
+ * }</pre>
+ *
+ * <p>examples of valid category strings:
+ * <pre>{@code
+ * deprecation
+ * gradle-plugin:deprecation
+ * gradle-plugin:deprecation:<detailed-info>
+ * gradle-plugin:deprecation:<detailed-info>:<detailed-info>:...
+ * }</pre>
+ *
  * @since 8.5
  */
 @Incubating
