@@ -155,10 +155,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
-        val projectPlugins = selectProjectPlugins()
-        if (projectPlugins.isNotEmpty()) {
+        val projectScriptPlugins = selectProjectScriptPlugins()
+        if (projectScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsFor(projectPlugins)
+                generateTypeSafeAccessorsFor(projectScriptPlugins)
             }
         }
     }
@@ -171,8 +171,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
-        resolvePluginGraphOf(projectPlugins)
+    fun IO.generateTypeSafeAccessorsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
+        resolvePluginGraphOf(projectScriptPlugins)
             .groupBy(
                 { it.appliedPlugins },
                 { it.scriptPlugin }
@@ -190,9 +190,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun resolvePluginGraphOf(projectPlugins: List<PrecompiledScriptPlugin>): Sequence<ScriptPluginPlugins> {
+    fun resolvePluginGraphOf(projectScriptPlugins: List<PrecompiledScriptPlugin>): Sequence<ScriptPluginPlugins> {
 
-        val scriptPluginsById = scriptPluginPluginsFor(projectPlugins).associateBy {
+        val scriptPluginsById = scriptPluginPluginsFor(projectScriptPlugins).associateBy {
             it.scriptPlugin.id
         }
 
@@ -210,10 +210,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         scriptPluginsById[scriptPlugin.id]?.appliedPlugins ?: emptyList()
 
     private
-    fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence {
+    fun scriptPluginPluginsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
         val loader = createPluginsClassLoader()
         try {
-            for (plugin in projectPlugins) {
+            for (plugin in projectScriptPlugins) {
                 loader.scriptPluginPluginsFor(plugin)?.let {
                     yield(it)
                 }
@@ -301,7 +301,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         plugin.compiledScriptTypeName.replace('.', '/') + ".class"
 
     private
-    fun selectProjectPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
+    fun selectProjectScriptPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =
@@ -362,6 +362,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
                     gradle.defaultProject = rootProject
+                    rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
                         applyPlugins(plugins)
                         serviceOf<ProjectSchemaProvider>().schemaFor(this)
