@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":plugins"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":language-jvm"))

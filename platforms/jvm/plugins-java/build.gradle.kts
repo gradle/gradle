@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Contains a basic JVM plugin used to compile, test, and assemble Java source; often applied by other JVM plugins (though named java-base, jvm-base would be a more proper name); and the Java plugin itself."
+description = "Contains the Java plugin, and its supporting classes.  This plugin is used as the basis for building a Java library or application by more specific plugins, and is sometimes applied by other JVM language projects."
 
 dependencies {
     implementation(project(":base-services"))
@@ -12,7 +12,6 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
-    implementation(project(":language-groovy"))
     implementation(project(":language-java"))
     implementation(project(":language-jvm"))
     implementation(project(":logging"))
@@ -21,6 +20,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-suite-base"))
     implementation(project(":publish"))
     implementation(project(":reporting"))
@@ -34,7 +34,16 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
+
     testImplementation(testFixtures(project(":core")))
+
+    integTestImplementation(testFixtures(project(":enterprise-operations")))
+    integTestImplementation(testFixtures(project(":language-java")))
+    integTestImplementation(testFixtures(project(":language-jvm")))
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":workers")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
@@ -42,5 +51,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

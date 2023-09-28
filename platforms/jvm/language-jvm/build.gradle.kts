@@ -30,6 +30,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(testFixtures(project(":model-core")))
     integTestImplementation(testFixtures(project(":resources-http")))
 
     testFixturesImplementation(libs.commonsLang)
