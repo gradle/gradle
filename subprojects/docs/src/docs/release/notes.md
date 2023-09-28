@@ -79,7 +79,7 @@ No configuration changes are required to enable this feature.
 Gradle provides a flexible dependency management engine that allows build engineers and plugin authors to distinguish between the needs of consumers and producers.
 [Configuration](javadoc/org/gradle/api/artifacts/Configuration.html)s involved in dependency management can have three different distinct _roles_ detailed in [Resolvable and consumable configurations](userguide/declaring_dependencies.html#sec:resolvable-consumable-configs).
 
-The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html) now defines three concrete `Configuration` types:
+The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html) now exposes three concrete `Configuration` roles:
 - **Consumable** - Models the outgoing variants of a project component.
 - **Resolvable** - Acts as the root of a dependency graph.
 - **Dependency Scope** - Collects dependencies, constraints, and exclude rules to be used by _Consumable_ and _Resolvable_ configurations.
