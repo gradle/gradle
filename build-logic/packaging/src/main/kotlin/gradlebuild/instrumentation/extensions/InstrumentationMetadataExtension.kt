@@ -56,6 +56,6 @@ abstract class InstrumentationMetadataExtension(private val configurations: Conf
     private
     fun Configuration.toProjectsOnlyView() = incoming.artifactView {
         componentFilter { id -> id is ProjectComponentIdentifier }
-        lenient(true)
+        lenient(false)
     }.files
 }

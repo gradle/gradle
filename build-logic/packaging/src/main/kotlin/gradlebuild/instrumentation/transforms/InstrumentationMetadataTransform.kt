@@ -62,39 +62,25 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         }
         val instrumentedClassesFile = File(outputDir, INSTRUMENTED_CLASSES_FILE)
         val upgradedPropertiesFile = File(outputDir, UPGRADED_PROPERTIES_FILE)
-        val oldInstrumentedClassesFile: File? = when {
-            instrumentedClassesFile.exists() -> instrumentedClassesFile
-            else -> null
-        }
-        val oldUpgradedPropertiesFile: File? = when {
-            upgradedPropertiesFile.exists() -> upgradedPropertiesFile
-            else -> null
-        }
 
         // Find changes
         val (newSuperTypes, newInstrumentedClassesFile, newUpgradedPropertiesFile) = findChanges(
             oldSuperTypes,
-            oldInstrumentedClassesFile,
-            oldUpgradedPropertiesFile
+            instrumentedClassesFile,
+            upgradedPropertiesFile
         )
 
         // Print output
         superTypesFile.outputStream().use { newSuperTypes.store(it, null) }
-        when (newInstrumentedClassesFile) {
-            null -> instrumentedClassesFile.writeText("")
-            else -> newInstrumentedClassesFile.copyTo(instrumentedClassesFile, overwrite = true)
-        }
-        when (newUpgradedPropertiesFile) {
-            null -> upgradedPropertiesFile.writeText("[]")
-            else -> newUpgradedPropertiesFile.copyTo(upgradedPropertiesFile, overwrite = true)
-        }
+        newInstrumentedClassesFile.copyTo(instrumentedClassesFile, defaultValue = "")
+        newUpgradedPropertiesFile.copyTo(upgradedPropertiesFile, defaultValue = "[]")
     }
 
     private
-    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File?, oldUpgradedPropertiesFile: File?): Triple<Properties, File?, File?> {
+    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File, oldUpgradedPropertiesFile: File): Triple<Properties, File?, File?> {
         val superTypes = Properties().apply { putAll(oldSuperTypes) }
-        var instrumentedClassesFile = oldInstrumentedClassesFile
-        var upgradedPropertiesFile = oldUpgradedPropertiesFile
+        var instrumentedClassesFile: File? = oldInstrumentedClassesFile
+        var upgradedPropertiesFile: File? = oldUpgradedPropertiesFile
         inputChanges.getFileChanges(classesDir)
             .filter { change -> change.fileType == FileType.FILE }
             .forEach { change ->
@@ -127,6 +113,16 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         return when (change.changeType) {
             ADDED, MODIFIED -> change.file
             REMOVED -> null
+        }
+    }
+
+    private
+    fun File?.copyTo(other: File, defaultValue: String) {
+        when {
+            // Write default value if this doesn't exist
+            this == null || !this.exists() -> other.writeText(defaultValue)
+            // Copy to other, but don't allow overwriting self
+            this != other -> this.copyTo(other, overwrite = true)
         }
     }
 }
