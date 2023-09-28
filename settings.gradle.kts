@@ -177,7 +177,6 @@ platform("jvm") {
     subproject("plugins-java")
     subproject("plugins-java-base")
     subproject("plugins-jvm-test-suite")
-    subproject("plugins-jvm-test-suite-base")
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")

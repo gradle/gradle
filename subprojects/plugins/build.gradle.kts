@@ -34,7 +34,6 @@ dependencies {
     }
     implementation(project(":toolchains-jvm"))
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
