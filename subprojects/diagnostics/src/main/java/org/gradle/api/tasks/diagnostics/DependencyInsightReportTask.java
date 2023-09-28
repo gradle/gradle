@@ -164,13 +164,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             ProviderFactory providerFactory = getProject().getProviders();
             ResolutionResultProvider<VisitedGraphResults> graphResultsProvider =
                 ((ResolvableDependenciesInternal) configuration.getIncoming()).getGraphResultsProvider();
-            errorHandler.addErrorSource(providerFactory.provider(() -> {
-                Throwable failure = graphResultsProvider.getValue().getAdditionalResolutionFailure();
-                if (failure != null) {
-                    return Collections.singletonList(failure);
-                }
-                return Collections.emptyList();
-            }));
+            errorHandler.addErrorSource(providerFactory.provider(() ->
+                graphResultsProvider.getValue().getResolutionFailure()
+                    .map(Collections::singletonList)
+                    .orElse(Collections.emptyList()))
+            );
             rootComponentProperty.set(providerFactory.provider(() -> {
                 // We do not use the public resolution result API to avoid throwing exceptions that we visit above
                 return graphResultsProvider.getValue().getResolutionResult().getRootSource().get();

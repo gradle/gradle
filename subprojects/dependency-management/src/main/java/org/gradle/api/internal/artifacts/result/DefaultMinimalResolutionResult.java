@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.function.Supplier;
 
@@ -27,11 +27,11 @@ import java.util.function.Supplier;
 public class DefaultMinimalResolutionResult implements MinimalResolutionResult {
 
     private final Supplier<ResolvedComponentResult> rootSource;
-    private final AttributeContainer requestedAttributes;
+    private final ImmutableAttributes requestedAttributes;
 
     public DefaultMinimalResolutionResult(
         Supplier<ResolvedComponentResult> rootSource,
-        AttributeContainer requestedAttributes
+        ImmutableAttributes requestedAttributes
     ) {
         this.rootSource = rootSource;
         this.requestedAttributes = requestedAttributes;
@@ -43,7 +43,7 @@ public class DefaultMinimalResolutionResult implements MinimalResolutionResult {
     }
 
     @Override
-    public AttributeContainer getRequestedAttributes() {
+    public ImmutableAttributes getRequestedAttributes() {
         return requestedAttributes;
     }
 }

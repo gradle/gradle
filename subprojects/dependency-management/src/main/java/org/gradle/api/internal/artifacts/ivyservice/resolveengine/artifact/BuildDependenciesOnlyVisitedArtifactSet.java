@@ -54,7 +54,7 @@ public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactS
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            graphResults.visitResolutionFailures(context::visitFailure);
+            graphResults.visitFailures(context::visitFailure);
             context.add(selectedArtifacts);
         }
 

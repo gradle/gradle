@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results
 
-import org.gradle.api.Describable
+
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.Describables
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -32,40 +31,18 @@ import java.util.function.Supplier
  */
 class DefaultVisitedGraphResultsTest extends Specification {
 
-    Describable name = Describables.of("Configuration", "conf")
     MinimalResolutionResult resolutionResult = new DefaultMinimalResolutionResult(Mock(Supplier), ImmutableAttributes.EMPTY)
 
     def "hasResolutionFailure returns true if there is a failure"() {
         given:
-        def results1 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), null)
-        def results2 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(Mock(UnresolvedDependency)), null)
-        def results3 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), Mock(ResolveException))
+        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), null)
+        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(Mock(UnresolvedDependency)), null)
+        def results3 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), Mock(ResolveException))
 
         expect:
-        !results1.hasResolutionFailure()
-        results2.hasResolutionFailure()
-        results3.hasResolutionFailure()
-    }
-
-    def "provides resolution failure aggregating all failures"() {
-        given:
-        def throwable = Mock(Throwable)
-        def resolveEx = Mock(ResolveException)
-
-        def unresolved = Mock(UnresolvedDependency) {
-            getProblem() >> throwable
-        }
-
-        def results1 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), null)
-        def results2 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(unresolved), null)
-        def results3 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), resolveEx)
-        def results4 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(unresolved), resolveEx)
-
-        expect:
-        results1.resolutionFailure == null
-        results2.resolutionFailure.causes == [throwable]
-        results3.resolutionFailure.causes == [resolveEx]
-        results4.resolutionFailure.causes == [throwable, resolveEx]
+        !results1.hasAnyFailure()
+        results2.hasAnyFailure()
+        results3.hasAnyFailure()
     }
 
     def "visits all resolution failures"() {
@@ -77,10 +54,10 @@ class DefaultVisitedGraphResultsTest extends Specification {
             getProblem() >> throwable
         }
 
-        def results1 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), null)
-        def results2 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(unresolved), null)
-        def results3 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.emptySet(), resolveEx)
-        def results4 = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(unresolved), resolveEx)
+        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), null)
+        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved), null)
+        def results3 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), resolveEx)
+        def results4 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved), resolveEx)
 
         expect:
         visitFailures(results1) == []
@@ -93,17 +70,17 @@ class DefaultVisitedGraphResultsTest extends Specification {
         given:
         def resolveEx = Mock(ResolveException)
         def unresolved = Mock(UnresolvedDependency)
-        def results = new DefaultVisitedGraphResults(name, resolutionResult, Collections.singleton(unresolved), resolveEx)
+        def results = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved), resolveEx)
 
         expect:
         results.resolutionResult == resolutionResult
         results.unresolvedDependencies == ([unresolved] as Set)
-        results.additionalResolutionFailure == resolveEx
+        results.resolutionFailure.get() == resolveEx
     }
 
     private List<Throwable> visitFailures(VisitedGraphResults results) {
         List<Throwable> result = []
-        results.visitResolutionFailures { result.add(it) }
+        results.visitFailures { result.add(it) }
         return result
     }
 }

@@ -45,7 +45,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -725,7 +724,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 markParentsObserved(requestedState);
                 markReferencedProjectConfigurationsObserved(requestedState, results);
 
-                if (newState.getCachedResolverResults().getVisitedGraph().getAdditionalResolutionFailure() == null) {
+                // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
+                //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
+                if (!newState.getCachedResolverResults().getVisitedGraph().getResolutionFailure().isPresent()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
 
                     // Use the current state, which may have changed if the listener queried the result
@@ -743,10 +744,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
 
             private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
-                ResolveException resolutionFailure = results.getVisitedGraph().getAdditionalResolutionFailure();
-                if (resolutionFailure != null) {
-                    context.failed(resolutionFailure);
-                }
+                results.getVisitedGraph().getResolutionFailure().ifPresent(context::failed);
                 // When dependency resolution has failed, we don't want the build operation listeners to fail as well
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
@@ -2022,7 +2020,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         boolean hasError() {
-            return cachedResolverResults.getVisitedGraph().hasResolutionFailure();
+            return cachedResolverResults.getVisitedGraph().hasAnyFailure();
         }
 
         @Override
@@ -2216,12 +2214,9 @@ since users cannot create non-legacy configurations and there is no current publ
 
             private MinimalResolutionResult getDelegate() {
                 VisitedGraphResults graph = getGraphResultsProvider().getValue();
-
-                ResolveException failure = graph.getAdditionalResolutionFailure();
-                if (failure != null) {
-                    throw failure;
-                }
-
+                graph.getResolutionFailure().ifPresent(ex -> {
+                    throw ex;
+                });
                 return graph.getResolutionResult();
             }
 
@@ -2231,7 +2226,7 @@ since users cannot create non-legacy configurations and there is no current publ
             }
 
             @Override
-            public AttributeContainer getRequestedAttributes() {
+            public ImmutableAttributes getRequestedAttributes() {
                 return getDelegate().getRequestedAttributes();
             }
 

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
-import org.gradle.api.Describable
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
@@ -382,7 +381,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def failure = new ResolveException("bad", new RuntimeException())
 
         and:
-        _ * resolver.resolveGraph(_) >> new ErrorHandlingConfigurationResolver.BrokenResolverResults(configuration.asDescribable(), failure)
+        _ * resolver.resolveGraph(_) >> new ErrorHandlingConfigurationResolver.BrokenResolverResults(failure)
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
@@ -487,7 +486,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     private void expectResolved(Set<File> files) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(Mock(Describable), resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
@@ -509,7 +508,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
     private void expectResolved(ResolveException failure) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(Mock(Describable), resolutionResult, [] as Set, failure)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
 
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
@@ -1117,7 +1116,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
             collectFiles(_) >> { return it[0] }
         }
 
-        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(config.asDescribable(), resolutionResult, [] as Set, null)
+        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
         resolver.resolveArtifacts(config, _ as ResolverResults) >> { ResolveContext conf, ResolverResults res ->
@@ -1844,19 +1843,19 @@ All Artifacts:
 
     private ResolverResults buildDependenciesResolved(ConfigurationInternal conf) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(conf.asDescribable(), resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), visitedArtifacts())
     }
 
     private ResolverResults graphResolved(ConfigurationInternal conf) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(conf.asDescribable(), resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
     }
 
     private ResolverResults artifactsResolved(ConfigurationInternal conf) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(conf.asDescribable(), resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
         DefaultResolverResults.artifactsResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), Mock(ResolvedConfiguration), visitedArtifacts())
     }
 

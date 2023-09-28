@@ -166,7 +166,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         resolver.resolve(resolveContext, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry, projectDependencyResolver, false);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolveContext.asDescribable(), resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
 
         ArtifactVariantSelector artifactVariantSelector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
         VisitedArtifactSet artifacts = new BuildDependenciesOnlyVisitedArtifactSet(graphResults, artifactsVisitor.complete(), artifactVariantSelector);
@@ -228,24 +228,24 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
-        // TODO: Failures from dependency locking should be included in the additionalFailuresBuilder.
+        // TODO: Failures from dependency locking should be included in the nonFatalFailuresBuilder.
         Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
-        ImmutableSet.Builder<Throwable> additionalFailuresBuilder = ImmutableSet.builder();
+        ImmutableSet.Builder<Throwable> nonFatalFailuresBuilder = ImmutableSet.builder();
         if (lockingVisitor != null) {
             lockingFailures = lockingVisitor.collectLockingFailures();
         }
         if (versionConflictVisitor != null) {
             for (Throwable failure : versionConflictVisitor.collectConflictFailures()) {
-                additionalFailuresBuilder.add(failure);
+                nonFatalFailuresBuilder.add(failure);
             }
         }
 
-        Set<Throwable> additionalFailures = additionalFailuresBuilder.build();
+        Set<Throwable> nonFatalFailures = nonFatalFailuresBuilder.build();
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
 
         MinimalResolutionResult resolutionResult = newModelBuilder.complete(lockingFailures);
-        ResolveException additionalFailure = exceptionContextualizer.mapFailures(additionalFailures, resolveContext.getDisplayName(), "dependencies");
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolveContext.asDescribable(), resolutionResult, resolutionFailures, additionalFailure);
+        ResolveException failure = exceptionContextualizer.mapFailures(nonFatalFailures, resolveContext.getDisplayName(), "dependencies");
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure);
 
         ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, legacyGraphResults, artifactsResults, fileDependencyResults, oldTransientModelBuilder);
         ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
@@ -253,7 +253,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolverResults results = DefaultResolverResults.graphResolved(graphResults, localComponentsVisitor, visitedArtifactSet, artifactResolveState);
 
         // Only write dependency locks if resolution completed without failure.
-        if (lockingVisitor != null && !graphResults.hasResolutionFailure()) {
+        if (lockingVisitor != null && !graphResults.hasAnyFailure()) {
             lockingVisitor.writeLocks();
         }
 

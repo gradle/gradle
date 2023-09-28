@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -37,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -67,7 +66,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             return delegate.resolveBuildDependencies(resolveContext);
         } catch (Exception e) {
-            return new BrokenResolverResults(resolveContext.asDescribable(), exceptionMapper.contextualize(e, resolveContext));
+            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
         }
     }
 
@@ -76,7 +75,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             return delegate.resolveGraph(resolveContext);
         } catch (Exception e) {
-            return new BrokenResolverResults(resolveContext.asDescribable(), exceptionMapper.contextualize(e, resolveContext));
+            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
         }
     }
 
@@ -86,7 +85,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             artifactResults = delegate.resolveArtifacts(resolveContext, graphResults);
         } catch (Exception e) {
-            return new BrokenResolverResults(resolveContext.asDescribable(), exceptionMapper.contextualize(e, resolveContext));
+            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
         }
 
         // Handle non-fatal failures in old model (ResolvedConfiguration) with `ErrorHandling` wrappers.
@@ -275,11 +274,9 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     @VisibleForTesting
     public static class BrokenResolverResults implements ResolverResults {
 
-        private final Describable resolveContextDisplayName;
         private final ResolveException failure;
 
-        public BrokenResolverResults(Describable resolveContextDisplayName, ResolveException failure) {
-            this.resolveContextDisplayName = resolveContextDisplayName;
+        public BrokenResolverResults(ResolveException failure) {
             this.failure = failure;
         }
 
@@ -291,7 +288,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public VisitedGraphResults getVisitedGraph() {
             return new DefaultVisitedGraphResults(
-                resolveContextDisplayName,
                 new BrokenMinimalResolutionResult(failure),
                 Collections.emptySet(),
                 failure
@@ -330,7 +326,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public AttributeContainer getRequestedAttributes() {
+        public ImmutableAttributes getRequestedAttributes() {
             throw failure;
         }
     }

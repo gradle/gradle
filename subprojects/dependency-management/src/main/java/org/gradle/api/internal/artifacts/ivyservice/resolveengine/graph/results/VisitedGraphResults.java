@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -32,38 +32,28 @@ import java.util.function.Consumer;
 public interface VisitedGraphResults {
 
     /**
-     * Returns true if any resolution failures occurred while building these results.
+     * Returns true if any failures occurred while building these results.
      */
-    boolean hasResolutionFailure();
-
-    /**
-     * Returns an optional exception describing all resolution failures that occurred while building these results.
-     * This failure encapsulates all failures provided by {@link #getUnresolvedDependencies()} and
-     * {@link #getAdditionalResolutionFailure()}.
-     *
-     * @return null if {@link #hasResolutionFailure()} is false.
-     */
-    @Nullable
-    ResolveException getResolutionFailure();
+    boolean hasAnyFailure();
 
     /**
      * Visits all failures that occurred while resolving the graph.
+     *
+     * <p>No failures are visited if {@link #hasAnyFailure()} is false</p>
      */
-    void visitResolutionFailures(Consumer<Throwable> visitor);
+    void visitFailures(Consumer<Throwable> visitor);
 
     /**
-     * Returns all resolution failures.
+     * Returns all failures to resolve a dependency.
+     * These failures are also accessible via the resolution result.
      */
     Set<UnresolvedDependency> getUnresolvedDependencies();
 
     /**
-     * Returns an optional failure describing all failures encountered during
-     * resolution that are _not_ captured in the resolution result. Since the
-     * resolution result provides access to unresolved dependencies, this failure
-     * captures anything not provided by {@link #getUnresolvedDependencies()}.
+     * Returns an optional failure describing an error that occurred during resolution.
+     * This failure does not encompass unresolved dependencies and is _not_ captured in the resolution result.
      */
-    @Nullable
-    ResolveException getAdditionalResolutionFailure();
+    Optional<ResolveException> getResolutionFailure();
 
     /**
      * Returns the root of the dependency graph.

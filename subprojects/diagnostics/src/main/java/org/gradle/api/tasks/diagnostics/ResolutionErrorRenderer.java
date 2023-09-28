@@ -42,13 +42,13 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
 class ResolutionErrorRenderer {
     private final Spec<DependencyResult> dependencySpec;
     private final List<Action<StyledTextOutput>> errorActions = new ArrayList<>(1);
-    private final List<Provider<List<Throwable>>> errorSources = new ArrayList<>(1);
+    private final List<Provider<List<? extends Throwable>>> errorSources = new ArrayList<>(1);
 
     public ResolutionErrorRenderer(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
     }
 
-    public void addErrorSource(Provider<List<Throwable>> errorSource) {
+    public void addErrorSource(Provider<List<? extends Throwable>> errorSource) {
         errorSources.add(errorSource);
     }
 

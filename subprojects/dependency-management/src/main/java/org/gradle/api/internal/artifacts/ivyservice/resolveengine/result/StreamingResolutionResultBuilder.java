@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGrap
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
@@ -67,7 +67,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final Set<Long> visitedComponents = new HashSet<>();
     private final AttributeDesugaring desugaring;
 
-    private AttributeContainer rootAttributes;
+    private ImmutableAttributes rootAttributes;
     private boolean mayHaveVirtualPlatforms;
 
     public StreamingResolutionResultBuilder(

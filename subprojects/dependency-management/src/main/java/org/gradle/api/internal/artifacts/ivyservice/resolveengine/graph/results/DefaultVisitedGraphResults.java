@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -32,47 +30,32 @@ import java.util.function.Consumer;
  */
 public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
-    private final Describable resolveContextDisplayName;
     private final MinimalResolutionResult resolutionResult;
     private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final ResolveException additionalFailure;
+    private final ResolveException resolutionFailure;
 
     public DefaultVisitedGraphResults(
-        Describable resolveContextDisplayName,
         MinimalResolutionResult resolutionResult,
         Set<UnresolvedDependency> unresolvedDependencies,
-        @Nullable ResolveException additionalFailure
+        @Nullable ResolveException resolutionFailure
     ) {
-        this.resolveContextDisplayName = resolveContextDisplayName;
         this.resolutionResult = resolutionResult;
         this.unresolvedDependencies = unresolvedDependencies;
-        this.additionalFailure = additionalFailure;
+        this.resolutionFailure = resolutionFailure;
     }
 
     @Override
-    public boolean hasResolutionFailure() {
-        return !unresolvedDependencies.isEmpty() || additionalFailure != null;
-    }
-
-    @Nullable
-    @Override
-    public ResolveException getResolutionFailure() {
-        if (!hasResolutionFailure()) {
-            return null;
-        }
-
-        List<Throwable> failures = new ArrayList<>();
-        visitResolutionFailures(failures::add);
-        return new ResolveException(resolveContextDisplayName.getDisplayName(), failures);
+    public boolean hasAnyFailure() {
+        return !unresolvedDependencies.isEmpty() || resolutionFailure != null;
     }
 
     @Override
-    public void visitResolutionFailures(Consumer<Throwable> visitor) {
+    public void visitFailures(Consumer<Throwable> visitor) {
         for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
             visitor.accept(unresolvedDependency.getProblem());
         }
-        if (additionalFailure != null) {
-            visitor.accept(additionalFailure);
+        if (resolutionFailure != null) {
+            visitor.accept(resolutionFailure);
         }
     }
 
@@ -86,9 +69,8 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
         return unresolvedDependencies;
     }
 
-    @Nullable
     @Override
-    public ResolveException getAdditionalResolutionFailure() {
-        return additionalFailure;
+    public Optional<ResolveException> getResolutionFailure() {
+        return Optional.ofNullable(resolutionFailure);
     }
 }

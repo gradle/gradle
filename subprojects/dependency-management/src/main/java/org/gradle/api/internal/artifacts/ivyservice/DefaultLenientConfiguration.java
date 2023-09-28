@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -71,7 +72,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
 
@@ -105,7 +105,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         ArtifactVariantSelector artifactVariantSelector
     ) {
         this.resolveContext = resolveContext;
-        this.implicitAttributes = resolveContext.getAttributes().asImmutable();
+        this.implicitAttributes = graphResults.getResolutionResult().getRequestedAttributes();
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
@@ -142,19 +142,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return new SelectedArtifactSet() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                graphResults.visitResolutionFailures(context::visitFailure);
+                graphResults.visitFailures(context::visitFailure);
                 context.add(artifactResults.getArtifacts());
             }
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-                AtomicBoolean hasFailure = new AtomicBoolean(false);
-                graphResults.visitResolutionFailures(failure -> {
-                    hasFailure.set(true);
-                    visitor.visitFailure(failure);
-                });
-                if (hasFailure.get() && !continueOnSelectionFailure) {
-                    return;
+                if (graphResults.hasAnyFailure()) {
+                    graphResults.visitFailures(visitor::visitFailure);
+                    if (!continueOnSelectionFailure) {
+                        return;
+                    }
                 }
                 // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
                 // It would be better to instead to memoize the results on the first visit so that this is not required
@@ -251,7 +249,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                     throw dependencyVerificationException;
                 } else {
                     try {
-                        dependencyVerificationOverride.artifactsAccessed(resolveContext.getDisplayName());
+                        dependencyVerificationOverride.artifactsAccessed(getDisplayName().toString());
                     } catch (DependencyVerificationException e) {
                         dependencyVerificationException = e;
                         throw e;
@@ -317,8 +315,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
-    public ResolveContext getResolveContext() {
-        return resolveContext;
+    public Describable getDisplayName() {
+        return resolveContext.asDescribable();
     }
 
     @Override
