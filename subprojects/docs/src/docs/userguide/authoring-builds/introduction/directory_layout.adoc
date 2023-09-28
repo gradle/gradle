@@ -17,7 +17,7 @@
 
 Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>.
 
-image::author-gradle-1.png[]
+image::author-gradle-2.png[]
 
 [[dir:gradle_user_home]]
 == Gradle User Home directory
