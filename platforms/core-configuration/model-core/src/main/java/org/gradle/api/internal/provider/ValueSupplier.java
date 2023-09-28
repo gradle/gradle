@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -56,6 +57,8 @@ public interface ValueSupplier {
         }
 
         void visitProducerTasks(Action<? super Task> visitor);
+
+        void visitProducerExtras(Action<? super ValueProducer.ValueProducerExtra> visitor);
 
         default void visitContentProducerTasks(Action<? super Task> visitor) {
             visitProducerTasks(visitor);
@@ -100,6 +103,52 @@ public interface ValueSupplier {
         static ValueProducer taskState(Task task) {
             return new TaskProducer(task, false);
         }
+
+        static ValueProducer project(Path project) {
+            return new ProjectProducer(project);
+        }
+
+        interface ValueProducerExtra {
+            class TaskExtra implements ValueProducerExtra {
+                private final Task task;
+
+                public TaskExtra(Task task) {
+                    this.task = task;
+                }
+
+                public Task getTask() {
+                    return task;
+                }
+            }
+
+            class ProjectExtra implements ValueProducerExtra {
+                private final Path project;
+
+                public ProjectExtra(Path project) {
+                    this.project = project;
+                }
+
+                public Path getProject() {
+                    return project;
+                }
+            }
+        }
+    }
+
+    class ExternalValueProducer implements ValueProducer {
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return true;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+        }
     }
 
     class TaskProducer implements ValueProducer {
@@ -117,10 +166,37 @@ public interface ValueSupplier {
         }
 
         @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+            visitor.execute(new ValueProducerExtra.TaskExtra(task));
+        }
+
+        @Override
         public void visitContentProducerTasks(Action<? super Task> visitor) {
             if (content) {
                 visitor.execute(task);
             }
+        }
+    }
+
+    class ProjectProducer implements ValueProducer {
+        private final Path project;
+
+        public ProjectProducer(Path project) {
+            this.project = project;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+            visitor.execute(new ValueProducerExtra.ProjectExtra(project));
         }
     }
 
@@ -143,6 +219,12 @@ public interface ValueSupplier {
             left.visitProducerTasks(visitor);
             right.visitProducerTasks(visitor);
         }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+            left.visitProducerExtras(visitor);
+            right.visitProducerExtras(visitor);
+        }
     }
 
     class UnknownProducer implements ValueProducer {
@@ -154,11 +236,19 @@ public interface ValueSupplier {
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
+        }
     }
 
     class NoProducer implements ValueProducer {
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+
+        @Override
+        public void visitProducerExtras(Action<? super ValueProducerExtra> visitor) {
         }
     }
 
