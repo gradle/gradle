@@ -69,6 +69,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
+import org.gradle.api.shareddata.ProjectSharedDataRegistry
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -721,6 +722,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getDependencyFactory(): DependencyFactory {
             onAccess()
             return delegate.dependencyFactory
+        }
+
+        override fun getSharedData(): ProjectSharedDataRegistry {
+            onAccess()
+            return delegate.sharedData
         }
 
         override fun buildscript(configureClosure: Closure<*>) {
