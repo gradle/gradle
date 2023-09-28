@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[writing_build_scripts]]
-= Build Scripts Basics
+= Writing Build Scripts
 
 In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
 

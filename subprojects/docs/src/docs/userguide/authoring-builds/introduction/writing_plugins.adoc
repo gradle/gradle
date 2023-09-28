@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[plugins]]
-= Plugins Basics
+= Writing Plugins
 
 Many Gradle features, like the ability to compile Java code, are added by _plugins_.
 

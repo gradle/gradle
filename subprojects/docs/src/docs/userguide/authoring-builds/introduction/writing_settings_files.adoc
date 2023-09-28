@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[writing_setting_scripts]]
-= Settings Scripts Basics
+[[writing_setting_files]]
+= Writing Settings Files
 
 The settings file is the entry point of every Gradle project.
 

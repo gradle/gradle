@@ -1,0 +1,65 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr2_build_lifecycle]]
+= Part 2: The Build Lifecycle
+
+Learn the basics of Gradle tasks by running one and looking at its output.
+
+****
+**In this section you will:**
+
+- See available tasks
+- Run a task and inspect the results
+- Understand tasks
+- Explore task dependencies
+****
+
+[[part2_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+
+== Step 1. Understanding the Build Lifecycle
+
+A Gradle build has three distinct phases:
+
+Initialization  :: Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a Project instance for each of these projects.
+
+Configuration  :: During this phase the project objects are configured. The build scripts of all projects which are part of the build are executed. Gradle 1.4 introduced an incubating opt-in feature called configuration on demand. In this mode, Gradle configures only relevant projects (see Section 57.1.1.1, “Configuration on demand”).
+
+Execution  :: Gradle determines the subset of the tasks, created and configured during the configuration phase, to be executed. The subset is determined by the task name arguments passed to the gradle command and the current directory. Gradle then executes each of the selected tasks.
+
+== Step 2.
+
+[source, settings.gradle]
+----
+println 'This is executed during the initialization phase.'
+----
+
+[source, build.gradle]
+----
+println 'This is executed during the configuration phase.'
+
+task configured {
+println 'This is also executed during the configuration phase.'
+}
+
+task test << {
+println 'This is executed during the execution phase.'
+}
+----
+
+[.text-right]
+**Next Step:** <<partr3_settings_file#partr3_settings_file,Settings File>> >>

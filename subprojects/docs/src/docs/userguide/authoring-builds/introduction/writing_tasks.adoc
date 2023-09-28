@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[tutorial_using_tasks]]
-= Tasks Basics
+= Writing Tasks
 
 The work that Gradle can do on a project is defined by one or more _tasks_.
 
@@ -26,38 +26,9 @@ You run a Gradle build using the `gradle` command or by invoking the Gradle Wrap
 
 As part of the build process, Gradle finds all the tasks in your project coded in plugins or build scripts.
 
-[[sec:hello_world]]
-== Hello world
+== Listing available tasks
 
-Let's take a look at a simple "Hello World" task in a build script:
-
-====
-include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
-====
-
-You can execute the build script with `./gradlew -q hello`:
-
-====
-----
-$ ./gradlew -q hello
-include::{snippetsPath}/tutorial/hello/tests/hello.out[]
-----
-====
-
-[TIP]
-====
-The `-q` option suppresses Gradle's log messages, so only the tasks' output is shown.
-====
-
-In the example, the build script defines a single task called `hello`, and adds an action.
-
-When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
-The action is simply a block containing some code to execute: `println("Hello world!")`.
-
-== Available tasks
-
-Even if your build script is empty, Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
+Gradle provides several default tasks for a project, which are listed by running `./gradlew tasks`:
 
 [source]
 ----
@@ -76,7 +47,9 @@ buildEnvironment - Displays all buildscript dependencies declared in root projec
 ...
 ----
 
-Once we apply a plugin to our project, such as the `application` plugin, the default tasks available include:
+Tasks either come from build scripts or plugins.
+
+Once we apply a plugin to our project, such as the `application` plugin, additional tasks are available, including:
 
 [source]
 ----
@@ -106,16 +79,155 @@ compileJava - Compiles main Java source.
 
 This is because the `application` plugin code contains additional tasks now available in your project.
 
-== Task types
+== Task classification
 
-Two types of tasks can be executed:
+Two classes of tasks can be executed:
 
 1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
 2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
 
-== Built-in tasks
 
-Gradle provides many built-in tasks with common and popular functionality, such as copying or deleting files.
+[[sec:hello_world]]
+== Hello world
+
+Let's take a look at a simple "Hello World" task in a build script:
+
+====
+include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+====
+
+In the example, the build script registers a single task called `hello`, and adds an action.
+
+Now, when the Gradle tasks are listed, the `hello` task is available:
+
+[source]
+----
+$ ./gradlew app:tasks --all
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+compileTestJava - Compiles test Java source.
+hello
+processResources - Processes main resources.
+processTestResources - Processes test resources.
+startScripts - Creates OS specific scripts to run the project as a JVM application.
+----
+
+You can execute the task in the build script with `./gradlew -q hello`:
+
+====
+----
+$ ./gradlew -q hello
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+----
+====
+
+[TIP]
+====
+The `-q` option suppresses Gradle's log messages, showing only the tasks' output.
+====
+
+When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
+The action is simply a block containing some code to execute: `println("Hello world!")`.
+
+== Task group and description
+
+The `hello` task from the previous section can be further detailed with a `description` and assigned to a `group`.
+
+[source]
+----
+tasks.register("hello") {
+    group = "Custom"
+    description = "A lovely greeting task."
+    doLast {
+        println("Hello world!")
+    }
+}
+----
+
+Once the task is assigned to a `group`, it will be listed by `./gradlew tasks`:
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+Custom tasks
+------------------
+hello - A lovely greeting task.
+----
+
+== Task types
+Gradle tasks are a subclass of link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`].
+
+When creating a custom task class, you extend link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`]:
+
+[source, build.gradle.kts]
+----
+abstract class HelloTask : DefaultTask() {
+    @TaskAction
+    fun hello() {
+        println("hello from HelloTask")
+    }
+}
+
+tasks.register<HelloTask>("hello") {
+    group = "Custom tasks"
+    description = "A lovely greeting task."
+}
+----
+
+Executing our new `hello` task yields the following:
+
+[source]
+----
+$ ./gradlew hello
+
+> Task :app:hello
+hello from HelloTask
+----
+
+In the build script, the `HelloTask` class is created by subclassing `DefaultTask`.
+
+The `hello` task is then registered with the *type* `HelloTask`.
+
+== View task types
+To view information about a task, including its type, use the `help --task <task-name>` command:
+
+[source]
+----
+$ ./gradlew help --task hello
+
+> Task :help
+Detailed task information for hello
+
+Path
+:app:hello
+
+Type
+HelloTask (Build_gradle$HelloTask)
+
+Options
+--rerun     Causes the task to be re-run even if up-to-date.
+
+Description
+A lovely greeting task.
+
+Group
+Custom tasks
+----
+
+== Built-in task types
+Gradle provides many built-in tasks types with common and popular functionality, such as copying or deleting files.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
 
@@ -127,6 +239,8 @@ tasks.register("copyTask",Copy) {
     include("*.war")
 }
 ----
+
+There are many task types, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, `Delete`, and link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[much more].
 
 [[sec:task_dependencies]]
 == Task dependencies
@@ -208,21 +322,4 @@ They add an action to the beginning or the end of the task's actions list.
 When the task executes, the actions in the action list are executed in order.
 
 [[sec:using_methods]]
-
 [[sec:default_tasks]]
-== Default tasks
-
-Gradle allows you to define one or more default tasks that are executed if no other tasks are specified:
-
-====
-include::sample[dir="snippets/tutorial/defaultTasks/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/defaultTasks/groovy", files="build.gradle[]"]
-
-----
-$ gradle -q
-include::{snippetsPath}/tutorial/defaultTasks/tests/defaultTasks.out[]
-----
-====
-
-This is equivalent to running `gradle clean run`.
-If a subproject does not specify default tasks, the default tasks of the parent project are used (if defined).
