@@ -152,7 +152,6 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/distributions-publishing/'
       - 'subprojects/jvm-services/'
       - 'subprojects/language-groovy/'
       - 'subprojects/language-java/'

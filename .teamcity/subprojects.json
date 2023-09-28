@@ -218,7 +218,7 @@
   },
   {
     "name": "distributions-jvm",
-    "path": "subprojects/distributions-jvm",
+    "path": "platforms/jvm/distributions-jvm",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -232,7 +232,7 @@
   },
   {
     "name": "distributions-publishing",
-    "path": "platforms/jvm/distributions-publishing",
+    "path": "platforms/software/distributions-publishing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
