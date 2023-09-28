@@ -106,8 +106,6 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
         'getDependenciesResolverFactory()' | 'consumable'      | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
         'getDependenciesResolverFactory()' | 'dependencyScope' | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]
-        'getResolvedState()'               | 'consumable'      | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
-        'getResolvedState()'               | 'dependencyScope' | "getResolvedState()"               || [ProperMethodUsage.RESOLVABLE]
         'getSyntheticDependencies()'       | 'consumable'      | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
         'getSyntheticDependencies()'       | 'dependencyScope' | "getSyntheticDependencies()"       || [ProperMethodUsage.RESOLVABLE]
         'resetResolutionState()'           | 'consumable'      | "resetResolutionState()"           || [ProperMethodUsage.RESOLVABLE]

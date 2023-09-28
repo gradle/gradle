@@ -36,8 +36,7 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
-        GRAPH_RESOLVED,
-        ARTIFACTS_RESOLVED
+        GRAPH_RESOLVED
     }
 
     @Override

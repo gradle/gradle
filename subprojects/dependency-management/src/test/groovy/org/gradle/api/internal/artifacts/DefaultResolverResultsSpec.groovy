@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts
 
 
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
@@ -29,7 +28,6 @@ class DefaultResolverResultsSpec extends Specification {
     private graphResults = Mock(VisitedGraphResults)
     private projectConfigurationResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactsSet = Mock(VisitedArtifactSet)
-    private artifactResolveState = Mock(ArtifactResolveState)
 
     def "provides build dependencies results"() {
         when:
@@ -43,16 +41,7 @@ class DefaultResolverResultsSpec extends Specification {
 
     def "provides resolve results"() {
         when:
-        def results = DefaultResolverResults.graphResolved(graphResults, projectConfigurationResult, visitedArtifactsSet, artifactResolveState)
-
-        then:
-        results.visitedGraph == graphResults
-        results.resolvedLocalComponents == projectConfigurationResult
-        results.visitedArtifacts == visitedArtifactsSet
-        results.artifactResolveState == artifactResolveState
-
-        when:
-        results = DefaultResolverResults.artifactsResolved(graphResults, projectConfigurationResult, resolvedConfiguration, visitedArtifactsSet)
+        def results = DefaultResolverResults.graphResolved(graphResults, projectConfigurationResult, resolvedConfiguration, visitedArtifactsSet)
 
         then:
         results.visitedGraph == graphResults

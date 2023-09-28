@@ -273,38 +273,18 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolveException failure = exceptionContextualizer.mapFailures(nonFatalFailures, resolveContext.getDisplayName(), "dependencies");
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure);
 
-        ArtifactResolveState artifactResolveState = new ArtifactResolveState(graphResults, legacyGraphResults, artifactsResults, fileDependencyResults, oldTransientModelBuilder);
-        ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
-        VisitedArtifactSet visitedArtifactSet = new BuildDependenciesOnlyVisitedArtifactSet(graphResults, artifactsResults, selector);
-        ResolverResults results = DefaultResolverResults.graphResolved(graphResults, localComponentsVisitor, visitedArtifactSet, artifactResolveState);
-
         // Only write dependency locks if resolution completed without failure.
         if (lockingVisitor != null && !graphResults.hasAnyFailure()) {
             lockingVisitor.writeLocks();
         }
 
-        return results;
-    }
-
-    @Override
-    public List<ResolutionAwareRepository> getRepositories() {
-        return Cast.uncheckedCast(repositoriesSupplier.get());
-    }
-
-    @Override
-    public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) {
-        ArtifactResolveState resolveState = graphResults.getArtifactResolveState();
-        VisitedArtifactsResults artifactResults = resolveState.artifactsResults;
-        TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = resolveState.transientConfigurationResultsBuilder;
-
-        TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, resolveState.legacyGraphResults);
-
+        TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         ArtifactVariantSelector selector = variantSelectorFactory.create(resolveContext.getDependenciesResolverFactory());
-        DefaultLenientConfiguration result = new DefaultLenientConfiguration(
+        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             resolveContext,
-            resolveState.graphResults,
-            artifactResults,
-            resolveState.fileDependencyResults,
+            graphResults,
+            artifactsResults,
+            fileDependencyResults,
             transientConfigurationResultsFactory,
             buildOperationExecutor,
             dependencyVerificationOverride,
@@ -312,6 +292,16 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             selector
         );
 
-        return DefaultResolverResults.artifactsResolved(graphResults.getVisitedGraph(), graphResults.getResolvedLocalComponents(), new DefaultResolvedConfiguration(result), result);
+        return DefaultResolverResults.graphResolved(
+            graphResults,
+            localComponentsVisitor,
+            new DefaultResolvedConfiguration(lenientConfiguration),
+            lenientConfiguration
+        );
+    }
+
+    @Override
+    public List<ResolutionAwareRepository> getRepositories() {
+        return Cast.uncheckedCast(repositoriesSupplier.get());
     }
 }
