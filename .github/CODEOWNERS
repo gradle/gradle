@@ -19,7 +19,6 @@ subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/                   @gradle/bt-configuration
-subprojects/base-services-groovy/               @gradle/bt-configuration
 subprojects/instrumentation-agent/              @gradle/bt-configuration
 subprojects/internal-instrumentation-api/       @gradle/bt-configuration
 subprojects/internal-instrumentation-processor/ @gradle/bt-configuration

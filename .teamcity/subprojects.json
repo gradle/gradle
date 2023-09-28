@@ -43,7 +43,7 @@
   },
   {
     "name": "base-services-groovy",
-    "path": "subprojects/base-services-groovy",
+    "path": "platforms/core-configuration/base-services-groovy",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

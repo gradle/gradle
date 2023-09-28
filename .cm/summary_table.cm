@@ -128,8 +128,7 @@ platforms:
     name: 'core_configuration'
     subprojects:
       - 'platforms/core-configuration/'
-      - 'subprojects/base-services-groovy/'
-      - 'subprojects/instrumentation-agent'
+      - 'subprojects/instrumentation-agent/'
       - 'subprojects/internal-instrumentation-api/'
       - 'subprojects/internal-instrumentation-processor/'
   - core_execution:
