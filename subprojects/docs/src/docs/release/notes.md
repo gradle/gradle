@@ -140,6 +140,10 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 
 The embedded Kotlin has been updated from 1.9.0 to [Kotlin 1.9.10](https://github.com/JetBrains/kotlin/releases/tag/v1.9.10).
 
+#### Simple property assignment in Kotlin DSL
+
+The simple property assignment with the `=` operator has been [promoted to stable](#assign-stable).
+
 <a name="doc-link-source"></a>
 #### Links to GitHub sources in Kotlin DSL Reference
 
