@@ -39,10 +39,13 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
+    String agpVersion
+    String kgpVersion
+
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
@@ -60,7 +63,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            runner.addBuildMutator {is -> new PluginRemoveMutator(is)}
+            configureRunnerSpecificallyForNowInAndroid()
         }
         applyEnterprisePlugin()
 
@@ -100,7 +103,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            runner.addBuildMutator {is -> new PluginRemoveMutator(is)}
+            configureRunnerSpecificallyForNowInAndroid()
         }
         applyEnterprisePlugin()
 
@@ -137,6 +140,23 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    private void configureRunnerSpecificallyForNowInAndroid() {
+        runner.gradleOpts.addAll([
+            "--add-opens",
+            "java.base/java.util=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.net=ALL-UNNAMED"
+        ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
+        runner.addBuildMutator { is -> new PluginRemoveMutator(is) }
+        runner.addBuildMutator {is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
+    }
+
     private class TestFinalizerMutator implements BuildMutator {
         private final InvocationSettings invocation
 
@@ -161,6 +181,26 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         }
     }
 
+    private static class AgpAndKgpVersionMutator extends AbstractFileChangeMutator {
+
+        private final def agpVersion
+        private final def kgpVersion
+
+        protected AgpAndKgpVersionMutator(InvocationSettings invocationSettings, String agpVersion, String kgpVersion) {
+            super(new File(new File(invocationSettings.projectDir, "gradle"), "libs.versions.toml"))
+            this.agpVersion = agpVersion
+            this.kgpVersion = kgpVersion
+        }
+
+        @Override
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+            replace(text, "androidGradlePlugin = \"8.1.1\"", "androidGradlePlugin = \"$agpVersion\"")
+            replace(text, "kotlin = \"1.9.0\"", "kotlin = \"$kgpVersion\"")
+            replace(text, "androidxComposeCompiler = \"1.5.0\"", "androidxComposeCompiler = \"1.5.3\"") // TODO: no good, hardcoding
+            replace(text, "ksp = \"1.9.0-1.0.13\"", "ksp = \"1.9.10-1.0.13\"") // TODO: no good, hardcoding
+        }
+    }
+
     // TODO: temporary workaround for https://github.com/gradle/gradle/issues/26462
     private static class PluginRemoveMutator extends AbstractFileChangeMutator {
         protected PluginRemoveMutator(InvocationSettings invocationSettings) {
@@ -169,10 +209,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         @Override
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
-            def searchString = "id(\"com.google.android.gms.oss-licenses-plugin\")"
-            def start = text.indexOf(searchString)
-            text.delete(start, start + searchString.length())
-            println "text = $text"
+            replace(text, "id(\"com.google.android.gms.oss-licenses-plugin\")", "")
         }
+    }
+
+    private static void replace(StringBuilder text, String target, String replacement) {
+        def searchString = target
+        def start = text.indexOf(searchString)
+        text.delete(start, start + searchString.length())
+        text.insert(start, replacement)
     }
 }
