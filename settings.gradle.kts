@@ -47,7 +47,6 @@ unassigned {
 unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
-    subproject("distributions-publishing")
     subproject("distributions-native")
     subproject("distributions-full")
 }
@@ -158,6 +157,7 @@ platform("ide") {
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("distributions-publishing")
     subproject("testing-base")
 }
 

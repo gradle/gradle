@@ -232,7 +232,7 @@
   },
   {
     "name": "distributions-publishing",
-    "path": "subprojects/distributions-publishing",
+    "path": "platforms/software/distributions-publishing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
