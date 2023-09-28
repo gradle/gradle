@@ -67,9 +67,10 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
         @Override
         public ValueProducer getProducer() {
             @Nullable Provider<T> providerOrNull = findProviderInStorage();
+            ProjectProducer projectProducer = new ProjectProducer(sourceProjectIdentityPath);
             return providerOrNull != null
-                ? Providers.internal(providerOrNull).getProducer()
-                : super.getProducer();
+                ? new PlusProducer(projectProducer, Providers.internal(providerOrNull).getProducer())
+                : projectProducer;
         }
 
         @Override
