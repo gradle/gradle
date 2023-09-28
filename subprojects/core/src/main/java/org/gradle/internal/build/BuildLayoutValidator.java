@@ -28,7 +28,6 @@ import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
@@ -56,18 +55,17 @@ public class BuildLayoutValidator {
      * Returns the {@link BuildLocations} for the build when the given {@code startParameter} represents
      * a valid build definition.
      */
-    @Nullable
-    public BuildLocations validate(StartParameterInternal startParameter) {
+    public void validate(StartParameterInternal startParameter) {
         BuildLocations buildLocations = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         if (!buildLocations.isBuildDefinitionMissing()) {
             // All good
-            return buildLocations;
+            return;
         }
 
         for (BuiltInCommand command : builtInCommands) {
             if (command.commandLineMatches(startParameter.getTaskNames())) {
                 // Allow missing settings and build scripts when running a built-in command
-                return null;
+                return;
             }
         }
 
