@@ -121,8 +121,12 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         }
     }
 
-    private sealed interface MetadataFileChange
-    private object MetadataNotChanged: MetadataFileChange
-    private object MetadataRemoved : MetadataFileChange
-    private data class MetadataModified(val newFile: File): MetadataFileChange
+    private
+    sealed interface MetadataFileChange
+    private
+    object MetadataNotChanged : MetadataFileChange
+    private
+    object MetadataRemoved : MetadataFileChange
+    private
+    data class MetadataModified(val newFile: File) : MetadataFileChange
 }

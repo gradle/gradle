@@ -150,7 +150,7 @@ class InstrumentationMetadataPluginTest {
     fun File.assertContentContains(text: String) {
         val fullContent = this.readText()
         assert(fullContent.contains(text)) {
-            "Expected ${this.name} content to contain text: '$text', but it didn't. Full content:\n${fullContent}"
+            "Expected ${this.name} content to contain text: '$text', but it didn't. Full content:\n$fullContent"
         }
     }
 
