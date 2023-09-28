@@ -16,6 +16,8 @@
 
 package org.gradle.util
 
+
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEquals
@@ -267,6 +269,46 @@ class PathTest extends Specification {
 
         expect:
         path.takeFirstSegments(42) === path
+    }
+
+    def "segments"(pathString) {
+        given:
+        def path = path(pathString)
+
+        expect:
+        path.segments() == segments
+
+        where:
+        pathString    | segments
+        ':foo:bar'    | ["foo", "bar"]
+        'foo:bar'     | ["foo", "bar"]
+        'foo:bar:zzz' | ["foo", "bar", "zzz"]
+    }
+
+    def "validatePath fails"(path) {
+        when:
+        Path.validatePath(path)
+
+        then:
+        thrown(InvalidUserDataException)
+
+        where:
+        path | _
+        ""   | _
+        null | _
+    }
+
+    def "validatePath succeeds"(path) {
+        when:
+        Path.validatePath(path)
+
+        then:
+        true
+
+        where:
+        path       | _
+        "path"     | _
+        ":path:p2" | _
     }
 
     def paths(List<String> paths) {
