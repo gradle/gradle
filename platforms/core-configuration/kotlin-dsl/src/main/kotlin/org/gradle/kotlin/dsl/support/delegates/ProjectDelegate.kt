@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
-import org.gradle.api.project.IsolatedProject
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PathValidation
@@ -49,9 +48,11 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
+import org.gradle.api.shareddata.ProjectSharedDataRegistry
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
@@ -290,6 +291,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getDependencyFactory(): DependencyFactory =
         delegate.dependencyFactory
+
+    override fun getSharedData(): ProjectSharedDataRegistry =
+        delegate.sharedData
 
     override fun getResources(): ResourceHandler =
         delegate.resources
