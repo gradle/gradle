@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":process-services"))
+    implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":toolchains-jvm"))
     implementation(project(":workers"))

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":file-collections"))
     implementation(project(":dependency-management"))
+    implementation(project(":language-jvm"))
     implementation(project(":platform-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
@@ -29,7 +30,6 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":toolchains-jvm"))
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -60,7 +60,6 @@ dependencies {
     testFixturesImplementation(project(":plugins-java"))
     testFixturesImplementation(project(":testing-base"))
     testFixturesImplementation(project(":plugins-jvm-test-suite"))
-    testFixturesImplementation(project(":plugins-jvm-test-suite-base"))
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)

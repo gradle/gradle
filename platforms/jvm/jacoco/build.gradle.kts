@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":language-jvm"))
     implementation(project(":platform-base"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
@@ -21,7 +22,6 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":file-collections"))
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

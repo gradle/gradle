@@ -39,7 +39,6 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":plugins-jvm-test-suite-base"))
     implementation(project(":scala"))
     implementation(project(":testing-base"))
     implementation(project(":tooling-api"))
