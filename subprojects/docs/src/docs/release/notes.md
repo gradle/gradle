@@ -91,7 +91,7 @@ Previously, the only way to specify a `Configuration`'s role would be by mutatin
 Now, new factory methods allow the container to create `Configuration`s explicitly requesting one of these roles.
 
 Plugin authors can ensure that their `Configuration`s are used only for their intended purpose since `Configuration`s created using these factory methods cannot be mutated.
-Since the allowed usage of `Configuration`s created with these factory methods cannot be mutated, aa configuration with one role can never perform the functions of another.
+A configuration with one role can never perform the functions of another.
 
 Gradle core plugins will migrate their configurations to use role-locked configurations in Gradle 9.0.
 Furthermore, in future versions of Gradle, the ability to mutate roles or create `Configuration`s without the factory methods will become increasingly restricted.
