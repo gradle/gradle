@@ -16,8 +16,10 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 
@@ -36,4 +38,13 @@ public interface JvmLanguageUtilities {
      * @param compileTask the compile task which serves as reference for inference
      */
     <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask);
+
+    /**
+     * Registers a new source directory for a source set, assuming that it will be compiled by
+     * a language or compiler for the JVM (aka, it produces .class files).
+     * @param sourceSet the source set for which to add a directory
+     * @param name the name of the directory
+     * @param configuration the configuration of the source directory
+     */
+    void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration);
 }

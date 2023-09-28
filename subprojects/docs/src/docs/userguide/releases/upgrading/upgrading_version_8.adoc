@@ -47,7 +47,7 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 ==== XML parsing now requires recent parsers
 
 Gradle 8.4 now configures XML parsers with security features enabled.
-If your build logic has dependencies on old XML parsers that don't support secure parsing your build may now fail.
+If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
 
