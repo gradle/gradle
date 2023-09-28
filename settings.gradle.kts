@@ -54,7 +54,6 @@ unassigned {
 
 // Gradle implementation projects
 unassigned {
-    subproject("api-metadata")
     subproject("base-services-groovy")
     subproject("jvm-services")
     subproject("core")
@@ -79,15 +78,12 @@ unassigned {
     subproject("tooling-native")
     subproject("plugin-use")
     subproject("plugin-development")
-    subproject("model-core")
-    subproject("model-groovy")
     subproject("testing-native")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
     subproject("version-control")
-    subproject("file-collections")
     subproject("build-profile")
     subproject("security")
     subproject("normalization-java")
@@ -119,13 +115,17 @@ platform("core-runtime") {
 
 // Core Configuration Platform
 platform("core-configuration") {
+    subproject("api-metadata")
     subproject("configuration-cache")
+    subproject("file-collections")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")
     subproject("kotlin-dsl-tooling-models")
     subproject("kotlin-dsl-plugins")
     subproject("kotlin-dsl-integ-tests")
+    subproject("model-core")
+    subproject("model-groovy")
 }
 
 // Core Execution Platform
