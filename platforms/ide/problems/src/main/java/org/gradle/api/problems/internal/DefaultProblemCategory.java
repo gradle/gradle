@@ -90,4 +90,23 @@ public class DefaultProblemCategory implements ProblemCategory {
     public List<String> getSubCateogies() {
         return category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultProblemCategory)) {
+            return false;
+        }
+
+        DefaultProblemCategory that = (DefaultProblemCategory) o;
+
+        return category.equals(that.category);
+    }
+
+    @Override
+    public int hashCode() {
+        return category.hashCode();
+    }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
@@ -52,9 +53,9 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final String MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR + MISSING_NORMALIZATION_ANNOTATION).toString();
-    public static boolean onlyAffectsCacheableWork(String type) {
-        return MISSING_NORMALIZATION_CATEGORY.equals(type);
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR + MISSING_NORMALIZATION_ANNOTATION);
+    public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
+        return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
     }
 
     @Override

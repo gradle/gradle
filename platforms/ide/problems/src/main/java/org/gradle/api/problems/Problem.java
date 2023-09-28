@@ -36,7 +36,7 @@ public interface Problem {
      *
      * @since 8.5
      */
-    String getProblemCategory();
+    ProblemCategory getProblemCategory();
 
     /**
      * The label of the problem.

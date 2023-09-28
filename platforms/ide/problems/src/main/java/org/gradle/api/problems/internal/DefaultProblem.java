@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
 
@@ -102,8 +103,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getProblemCategory() {
-        return problemCategory;
+    public ProblemCategory getProblemCategory() {
+        return new DefaultProblemCategory(problemCategory);
     }
 
     @Override
