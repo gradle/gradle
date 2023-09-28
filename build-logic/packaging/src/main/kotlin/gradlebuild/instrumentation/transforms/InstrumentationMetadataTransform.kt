@@ -64,23 +64,19 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
         val upgradedPropertiesFile = File(outputDir, UPGRADED_PROPERTIES_FILE)
 
         // Find changes
-        val (newSuperTypes, newInstrumentedClassesFile, newUpgradedPropertiesFile) = findChanges(
-            oldSuperTypes,
-            instrumentedClassesFile,
-            upgradedPropertiesFile
-        )
+        val (newSuperTypes, instrumentedClassesFileChange, upgradedPropertiesFileChange) = findChanges(oldSuperTypes)
 
         // Print output
         superTypesFile.outputStream().use { newSuperTypes.store(it, null) }
-        newInstrumentedClassesFile.copyTo(instrumentedClassesFile, defaultValue = "")
-        newUpgradedPropertiesFile.copyTo(upgradedPropertiesFile, defaultValue = "[]")
+        instrumentedClassesFileChange.writeChange(instrumentedClassesFile)
+        upgradedPropertiesFileChange.writeChange(upgradedPropertiesFile)
     }
 
     private
-    fun findChanges(oldSuperTypes: Properties, oldInstrumentedClassesFile: File, oldUpgradedPropertiesFile: File): Triple<Properties, File?, File?> {
+    fun findChanges(oldSuperTypes: Properties): Triple<Properties, MetadataFileChange, MetadataFileChange> {
         val superTypes = Properties().apply { putAll(oldSuperTypes) }
-        var instrumentedClassesFile: File? = oldInstrumentedClassesFile
-        var upgradedPropertiesFile: File? = oldUpgradedPropertiesFile
+        var instrumentedClassesFile: MetadataFileChange = MetadataNotChanged
+        var upgradedPropertiesFile: MetadataFileChange = MetadataNotChanged
         inputChanges.getFileChanges(classesDir)
             .filter { change -> change.fileType == FileType.FILE }
             .forEach { change ->
@@ -109,20 +105,24 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
     }
 
     private
-    fun handleInstrumentedMetadataFileChange(change: FileChange): File? {
+    fun handleInstrumentedMetadataFileChange(change: FileChange): MetadataFileChange {
         return when (change.changeType) {
-            ADDED, MODIFIED -> change.file
-            REMOVED -> null
+            ADDED, MODIFIED -> MetadataModified(change.file)
+            REMOVED -> MetadataRemoved
         }
     }
 
     private
-    fun File?.copyTo(other: File, defaultValue: String) {
-        when {
-            // Write default value if this doesn't exist
-            this == null || !this.exists() -> other.writeText(defaultValue)
-            // Copy to other, but don't allow overwriting self
-            this != other -> this.copyTo(other, overwrite = true)
+    fun MetadataFileChange.writeChange(output: File) {
+        when (this) {
+            is MetadataNotChanged -> Unit
+            is MetadataRemoved -> output.delete()
+            is MetadataModified -> this.newFile.copyTo(output, overwrite = true)
         }
     }
+
+    private sealed interface MetadataFileChange
+    private object MetadataNotChanged: MetadataFileChange
+    private object MetadataRemoved : MetadataFileChange
+    private data class MetadataModified(val newFile: File): MetadataFileChange
 }
