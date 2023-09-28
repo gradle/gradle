@@ -58,13 +58,12 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
     fun `version catalogs from outer builds are not available as accessors`() {
         withKotlinBuildSrc()
         withSimpleVersionCatalog()
-        val scriptBody = "println(libs)"
-        withFile("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts", scriptBody)
+        withFile("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts", "println(libs)")
         withFile(
             "buildSrc/src/main/kotlin/plugin-with-plugins.gradle.kts",
             """
             plugins { id("base") }
-            $scriptBody
+            println(libs)
             """
         )
         withBuildScript(
