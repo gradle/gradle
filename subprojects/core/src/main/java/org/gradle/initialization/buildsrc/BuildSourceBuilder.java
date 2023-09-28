@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.cache.FileLockManager;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -30,25 +29,19 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-
-import static org.gradle.api.internal.initialization.FileLocking.withExclusiveFileLockFor;
-
 @ServiceScope(Scopes.Build.class)
 public class BuildSourceBuilder {
     private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
 
     private final BuildState currentBuild;
-    private final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
 
-    public BuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    public BuildSourceBuilder(BuildState currentBuild, BuildOperationExecutor buildOperationExecutor, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         this.currentBuild = currentBuild;
-        this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
         this.buildRegistry = buildRegistry;
@@ -88,12 +81,7 @@ public class BuildSourceBuilder {
 
     private ClassPath buildBuildSrc(StandAloneNestedBuild buildSrcBuild) {
         return buildSrcBuild.run(buildController ->
-            withExclusiveFileLockFor(
-                fileLockManager,
-                new File(buildSrcBuild.getBuildRootDir(), ".gradle/noVersion/buildSrc"),
-                "buildSrc build lock",
-                () -> new BuildSrcUpdateFactory(buildSrcBuildListenerFactory).create(buildController)
-            )
+            new BuildSrcUpdateFactory(buildSrcBuildListenerFactory).create(buildController)
         );
     }
 }
