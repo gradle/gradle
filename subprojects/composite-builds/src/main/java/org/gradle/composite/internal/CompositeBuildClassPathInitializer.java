@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
@@ -32,20 +31,17 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final BuildState currentBuild;
 
-    public CompositeBuildClassPathInitializer(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
+    public CompositeBuildClassPathInitializer(
+        BuildTreeWorkGraphController buildTreeWorkGraphController,
+        BuildState currentBuild
+    ) {
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.currentBuild = currentBuild;
     }
 
     @Override
     public void initialize(Configuration classpath) {
-        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
-        Set<? extends Task> dependencies = getDependenciesForInternalUse(classpath.getBuildDependencies(), null);
-        for (Task task : dependencies) {
-            BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
-            assert targetBuild != currentBuild;
-            tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
-        }
+        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = taskIdentifiersForBuildDependenciesOf(classpath);
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
                 graph
@@ -55,5 +51,19 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
                 return null;
             });
         }
+    }
+
+    private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
+        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
+        for (Task task : getDependenciesForInternalUse(classpath)) {
+            BuildState targetBuild = owningBuildOf(task);
+            assert targetBuild != currentBuild;
+            tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
+        }
+        return tasksToBuild;
+    }
+
+    private static BuildState owningBuildOf(Task task) {
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner();
     }
 }
