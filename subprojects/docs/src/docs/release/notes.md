@@ -87,6 +87,7 @@ The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationConta
 Dependencies cannot be declared on configurations created with the `consumable` and `resolvable` factory methods.
 
 Previously, the only way to specify a `Configuration`'s role would be by mutating the `canBeConsumed`, `canBeResolved`, and `canBeDeclared` properties.
+
 Now, new factory methods allow the container to create `Configuration`s explicitly requesting one of these roles.
 
 Using these factory methods, plugin authors can ensure that their `Configuration`s are used only for their intended purposes.
