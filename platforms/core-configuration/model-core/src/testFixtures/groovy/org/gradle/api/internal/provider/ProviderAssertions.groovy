@@ -23,6 +23,7 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert !producer.known
         producer.visitProducerTasks { assert false }
+        producer.visitProducerExtras { assert false }
         producer.visitContentProducerTasks { assert false }
     }
 
@@ -30,6 +31,7 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert producer.known
         producer.visitProducerTasks { assert false }
+        producer.visitProducerExtras { assert false }
         producer.visitContentProducerTasks { assert false }
     }
 
@@ -39,7 +41,10 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert producer.known
         def tasks = []
+        def taskExtras = []
         producer.visitProducerTasks { tasks.add(it) }
+        producer.visitProducerExtras { if (it instanceof ValueSupplier.ValueProducer.ValueProducerExtra.TaskExtra) { tasks.add(it.task) } }
+        assert taskExtras == expected
         assert tasks == expected
         tasks.clear()
         producer.visitContentProducerTasks { tasks.add(it) }
