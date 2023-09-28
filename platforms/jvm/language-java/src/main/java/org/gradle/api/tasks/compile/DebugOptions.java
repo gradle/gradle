@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -25,8 +26,14 @@ import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
  * is set to {@code true}.
  */
-public abstract class DebugOptions extends AbstractOptions {
+public class DebugOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
+
+    private final Property<String> debugLevel;
+
+    public DebugOptions(ObjectFactory objectFactory) {
+        this.debugLevel = objectFactory.property(String.class);
+    }
 
     /**
      * Tells which debugging information is to be generated. The value is a comma-separated
@@ -46,5 +53,7 @@ public abstract class DebugOptions extends AbstractOptions {
     @Optional
     @Input
     @UpgradedProperty
-    public abstract Property<String> getDebugLevel();
+    public Property<String> getDebugLevel() {
+        return debugLevel;
+    }
 }
