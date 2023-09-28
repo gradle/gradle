@@ -96,6 +96,32 @@ class InstrumentationMetadataPluginTest {
         upgradedProperties.assertDoesNotExist()
     }
 
+    @Test
+    fun `should not fail if metadata is not changed`() {
+        // Given
+        val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
+
+        // When
+        assertSucceeds()
+
+        // Then, assert content from both project's metadata is in final metadata
+        upgradedProperties.assertContentContains("org.gradle.api.Task")
+        upgradedProperties.assertContentContains("org.gradle.api.plugins.quality.Checkstyle")
+
+        // Given, change only some classes but not metadata
+        File(projectRoot, "core/src/main/java/org/gradle/api/TaskAction.java").writeText("""
+            package org.gradle.api;
+            public interface TaskAction {}
+        """)
+
+        // When
+        assertSucceeds()
+
+        // Then, assert content from both project's metadata is still in final metadata
+        upgradedProperties.assertContentContains("org.gradle.api.Task")
+        upgradedProperties.assertContentContains("org.gradle.api.plugins.quality.Checkstyle")
+    }
+
     private
     fun File.assertDoesNotExist() {
         assert(!this.exists()) {
@@ -117,6 +143,14 @@ class InstrumentationMetadataPluginTest {
     fun File.assertHasContentEqualTo(content: String) {
         assert(this.readText() == content) {
             "Expected ${this.name} content:\nExpected:\n'$content',\nActual:\n'${this.readText()}'"
+        }
+    }
+
+    private
+    fun File.assertContentContains(text: String) {
+        val fullContent = this.readText()
+        assert(fullContent.contains(text)) {
+            "Expected ${this.name} content to contain text: '$text', but it didn't. Full content:\n${fullContent}"
         }
     }
 
@@ -156,9 +190,15 @@ class InstrumentationMetadataPluginTest {
                 doLast {
                     // Simulate annotation processor output
                     file("build/classes/java/main/org/gradle/internal/instrumentation").mkdirs()
-                    file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
+                    def instrumentedClassesFile = file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt")
+                    if (!instrumentedClassesFile.exists()) {
+                        instrumentedClassesFile << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
+                    }
                     file("build/classes/java/main/META-INF/upgrades").mkdirs()
-                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"containingType":"org.gradle.api.Task","propertyName":"enabled"},{"containingType":"org.gradle.api.Task","propertyName":"dependencies"}]'
+                    def upgradedPropertiesFile = file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json")
+                    if (!upgradedPropertiesFile.exists()) {
+                        upgradedPropertiesFile << '[{"containingType":"org.gradle.api.Task","propertyName":"enabled"},{"containingType":"org.gradle.api.Task","propertyName":"dependencies"}]'
+                    }
                 }
             }
         """)
@@ -190,7 +230,10 @@ class InstrumentationMetadataPluginTest {
                 doLast {
                     // Simulate annotation processor output
                     file("build/classes/java/main/META-INF/upgrades").mkdirs()
-                    file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json") << '[{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"maxErrors"},{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"minErrors"}]'
+                    def upgradedPropertiesFile = file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json")
+                    if (!upgradedPropertiesFile.exists()) {
+                        upgradedPropertiesFile << '[{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"maxErrors"},{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"minErrors"}]'
+                    }
                 }
             }
         """)
