@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -41,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
@@ -61,7 +63,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,8 +79,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     };
 
     private final ResolveContext resolveContext;
-    private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final ResolveException extraFailure;
+    private final VisitedGraphResults graphResults;
     private final VisitedArtifactsResults artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
@@ -93,11 +93,20 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private SelectedArtifactResults artifactsForThisConfiguration;
     private DependencyVerificationException dependencyVerificationException;
 
-    public DefaultLenientConfiguration(ResolveContext resolveContext, Set<UnresolvedDependency> unresolvedDependencies, @Nullable ResolveException extraFailure, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService, ArtifactVariantSelector artifactVariantSelector) {
+    public DefaultLenientConfiguration(
+        ResolveContext resolveContext,
+        VisitedGraphResults graphResults,
+        VisitedArtifactsResults artifactResults,
+        VisitedFileDependencyResults fileDependencyResults,
+        TransientConfigurationResultsLoader transientConfigurationResultsLoader,
+        BuildOperationExecutor buildOperationExecutor,
+        DependencyVerificationOverride dependencyVerificationOverride,
+        WorkerLeaseService workerLeaseService,
+        ArtifactVariantSelector artifactVariantSelector
+    ) {
         this.resolveContext = resolveContext;
         this.implicitAttributes = resolveContext.getAttributes().asImmutable();
-        this.unresolvedDependencies = unresolvedDependencies;
-        this.extraFailure = extraFailure;
+        this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
@@ -133,27 +142,17 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         return new SelectedArtifactSet() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                    context.visitFailure(unresolvedDependency.getProblem());
-                }
-                if (extraFailure != null) {
-                    context.visitFailure(extraFailure);
-                }
+                graphResults.visitFailures(context::visitFailure);
                 context.add(artifactResults.getArtifacts());
             }
 
             @Override
             public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-                if (!unresolvedDependencies.isEmpty()) {
-                    for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                        visitor.visitFailure(unresolvedDependency.getProblem());
+                if (graphResults.hasAnyFailure()) {
+                    graphResults.visitFailures(visitor::visitFailure);
+                    if (!continueOnSelectionFailure) {
+                        return;
                     }
-                }
-                if (extraFailure != null) {
-                    visitor.visitFailure(extraFailure);
-                }
-                if ((!unresolvedDependencies.isEmpty() || extraFailure != null) && !continueOnSelectionFailure) {
-                    return;
                 }
                 // This may be called from an unmanaged thread, so temporarily enlist the current thread as a worker if it is not already so that it can visit the results
                 // It would be better to instead to memoize the results on the first visit so that this is not required
@@ -162,27 +161,13 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         };
     }
 
-    private ResolveException getFailure() {
-        List<Throwable> failures = new ArrayList<>();
-        for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-            failures.add(unresolvedDependency.getProblem());
-        }
-        return new ResolveException(resolveContext.getDisplayName(), failures);
-    }
-
-    public boolean hasError() {
-        return unresolvedDependencies.size() > 0;
+    public VisitedGraphResults getGraphResults() {
+        return graphResults;
     }
 
     @Override
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-        return unresolvedDependencies;
-    }
-
-    public void rethrowFailure() throws ResolveException {
-        if (hasError()) {
-            throw getFailure();
-        }
+        return graphResults.getUnresolvedDependencies();
     }
 
     private TransientConfigurationResults loadTransientGraphResults(SelectedArtifactResults artifactResults) {
@@ -264,7 +249,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                     throw dependencyVerificationException;
                 } else {
                     try {
-                        dependencyVerificationOverride.artifactsAccessed(resolveContext.getDisplayName());
+                        dependencyVerificationOverride.artifactsAccessed(getDisplayName().toString());
                     } catch (DependencyVerificationException e) {
                         dependencyVerificationException = e;
                         throw e;
@@ -330,8 +315,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
     }
 
-    public ResolveContext getResolveContext() {
-        return resolveContext;
+    public Describable getDisplayName() {
+        return resolveContext.asDescribable();
     }
 
     @Override

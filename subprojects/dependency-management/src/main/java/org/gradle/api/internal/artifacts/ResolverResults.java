@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
 import javax.annotation.Nullable;
 
@@ -37,24 +35,22 @@ import javax.annotation.Nullable;
 public interface ResolverResults {
 
     /**
-     * Returns true if there was a failure attached to this result.
-     */
-    boolean hasError();
-
-    /**
-     * Returns the old model, slowly being replaced by the new model represented by {@link ResolutionResult}. Requires artifacts to be resolved.
+     * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
+     * Using this model directly should be avoided.
+     * This method should only be used to implement existing public API methods.
      */
     ResolvedConfiguration getResolvedConfiguration();
+
+    /**
+     * Return the model representing the resolved graph. This model provides access
+     * to the root component as well as any failure that occurred while resolving the graph.
+     */
+    VisitedGraphResults getVisitedGraph();
 
     /**
      * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution.
      */
     VisitedArtifactSet getVisitedArtifacts();
-
-    /**
-     * Returns the dependency graph resolve result.
-     */
-    MinimalResolutionResult getMinimalResolutionResult();
 
     /**
      * Returns details of the local components in the resolved dependency graph.
@@ -66,10 +62,4 @@ public interface ResolverResults {
      */
     @Nullable
     ArtifactResolveState getArtifactResolveState();
-
-    /**
-     * Returns an attached failure, if any.
-     */
-    @Nullable
-    ResolveException getFailure();
 }

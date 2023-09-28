@@ -78,6 +78,6 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        return new DefaultMinimalResolutionResult(() -> root, requestAttributes, null);
+        return new DefaultMinimalResolutionResult(() -> root, requestAttributes);
     }
 }

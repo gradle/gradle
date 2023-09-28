@@ -38,6 +38,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
@@ -101,15 +103,16 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         Module module = resolveContext.getModule();
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes());
+        MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE, null);
+        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, EmptyResults.INSTANCE, null);
     }
 
     @Override
     public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
         if (!resolveContext.hasDependencies() && graphResults.getVisitedArtifacts() == EmptyResults.INSTANCE) {
-            return DefaultResolverResults.artifactsResolved(graphResults.getMinimalResolutionResult(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
+            return DefaultResolverResults.artifactsResolved(graphResults.getVisitedGraph(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
             assert graphResults.getArtifactResolveState() != null;
             return delegate.resolveArtifacts(resolveContext, graphResults);

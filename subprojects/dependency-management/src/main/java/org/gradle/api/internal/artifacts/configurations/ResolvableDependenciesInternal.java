@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 
 public interface ResolvableDependenciesInternal extends ResolvableDependencies  {
-    ResolutionResultInternal getLenientResolutionResult();
+    ResolutionResultProvider<VisitedGraphResults> getGraphResultsProvider();
 }

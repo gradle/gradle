@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -32,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGrap
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
@@ -42,7 +41,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -69,7 +67,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final Set<Long> visitedComponents = new HashSet<>();
     private final AttributeDesugaring desugaring;
 
-    private AttributeContainer rootAttributes;
+    private ImmutableAttributes rootAttributes;
     private boolean mayHaveVirtualPlatforms;
 
     public StreamingResolutionResultBuilder(
@@ -90,10 +88,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         this.desugaring = desugaring;
     }
 
-    public MinimalResolutionResult complete(@Nullable ResolveException extraFailure, Set<UnresolvedDependency> dependencyLockingFailures) {
+    public MinimalResolutionResult complete(Set<UnresolvedDependency> dependencyLockingFailures) {
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache, componentSelectorSerializer, dependencyResultSerializer, componentResultSerializer, dependencyLockingFailures);
-        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes, extraFailure);
+        return new DefaultMinimalResolutionResult(rootSource::create, rootAttributes);
     }
 
     @Override

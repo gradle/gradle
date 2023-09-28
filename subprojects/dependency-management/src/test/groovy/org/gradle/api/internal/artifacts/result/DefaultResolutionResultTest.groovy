@@ -151,7 +151,7 @@ class DefaultResolutionResultTest extends Specification {
     }
 
     private static ResolutionResult newResolutionResult(root) {
-        new DefaultResolutionResult(new DefaultMinimalResolutionResult(() -> root, ImmutableAttributes.EMPTY, null))
+        new DefaultResolutionResult(new DefaultMinimalResolutionResult(() -> root, ImmutableAttributes.EMPTY))
     }
 
 }

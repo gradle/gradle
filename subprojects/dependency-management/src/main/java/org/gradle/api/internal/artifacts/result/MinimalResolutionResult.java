@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 /**
@@ -36,11 +34,5 @@ public interface MinimalResolutionResult {
     /**
      * The request attributes used to initially build the dependency graph.
      */
-    AttributeContainer getRequestedAttributes();
-
-    /**
-     * An optional non-fatal failure emitted during graph resolution.
-     */
-    @Nullable
-    ResolveException getExtraFailure();
+    ImmutableAttributes getRequestedAttributes();
 }
