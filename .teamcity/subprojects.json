@@ -477,7 +477,7 @@
   },
   {
     "name": "jvm-services",
-    "path": "subprojects/jvm-services",
+    "path": "platforms/jvm/jvm-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -610,7 +610,7 @@
   },
   {
     "name": "normalization-java",
-    "path": "subprojects/normalization-java",
+    "path": "platforms/jvm/normalization-java",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -638,7 +638,7 @@
   },
   {
     "name": "platform-jvm",
-    "path": "subprojects/platform-jvm",
+    "path": "platforms/jvm/platform-jvm",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
