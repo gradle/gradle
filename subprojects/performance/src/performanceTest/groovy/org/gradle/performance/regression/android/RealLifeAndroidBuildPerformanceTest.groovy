@@ -32,6 +32,8 @@ import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Issue
 
+import java.util.regex.Matcher
+
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
@@ -194,10 +196,18 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         @Override
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
-            replace(text, "androidGradlePlugin = \"8.1.1\"", "androidGradlePlugin = \"$agpVersion\"")
-            replace(text, "kotlin = \"1.9.0\"", "kotlin = \"$kgpVersion\"")
-            replace(text, "androidxComposeCompiler = \"1.5.0\"", "androidxComposeCompiler = \"1.5.3\"") // TODO: no good, hardcoding
-            replace(text, "ksp = \"1.9.0-1.0.13\"", "ksp = \"1.9.10-1.0.13\"") // TODO: no good, hardcoding
+            replaceVersion(text, "androidGradlePlugin", "$agpVersion")
+            replaceVersion(text, "kotlin", "$kgpVersion")
+            replaceVersion(text, "androidxComposeCompiler", "1.5.3")
+            replaceVersion(text, "ksp", "1.9.10-1.0.13")
+        }
+
+        private static void replaceVersion(StringBuilder text, String target, String version) {
+            Matcher matcher = text =~ /(${target}.*)\n/
+            if (matcher.find()) {
+                def result = matcher.toMatchResult()
+                text.replace(result.start(0), result.end(0), "${target} = \"${version}\"\n")
+            }
         }
     }
 
@@ -209,14 +219,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         @Override
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
-            replace(text, "id(\"com.google.android.gms.oss-licenses-plugin\")", "")
+            def searchString = "id(\"com.google.android.gms.oss-licenses-plugin\")"
+            def start = text.indexOf(searchString)
+            text.delete(start, start + searchString.length())
         }
-    }
-
-    private static void replace(StringBuilder text, String target, String replacement) {
-        def searchString = target
-        def start = text.indexOf(searchString)
-        text.delete(start, start + searchString.length())
-        text.insert(start, replacement)
     }
 }
