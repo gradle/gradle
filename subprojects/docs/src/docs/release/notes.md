@@ -76,20 +76,22 @@ No configuration changes are required to enable this feature.
 <a name="configuration-role"></a>
 ### Easier to create role-focused Configurations
 
-The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html) now exposes factory methods to create [Configuration](javadoc/org/gradle/api/artifacts/Configuration.html)s that are only [intended for a single purpose](userguide/declaring_dependencies.html#sec:resolvable-consumable-configs).
-Previously, the only way to specify a `Configuration` role would be by mutating the `canBeConsumed`, `canBeResolved`, and `canBeDeclared` properties.
-Now, the new factory methods can create `Configuration`s with an immutable role specified upon creation.
+Gradle provides a flexible dependency management engine that allows build engineers and plugin authors to distinguish between the needs of consumers and producers.
+[Configuration](javadoc/org/gradle/api/artifacts/Configuration.html)s involved in dependency management can have three different distinct _roles_.
+See [Resolvable and consumable configurations](https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs) for details.
 
-These factory methods are primarily targeted towards plugin authors.
-Using these factory methods, plugin authors can ensure that the Configurations are used for their intended purpose, as the role of `Configuration`s created with these factory methods cannot be mutated.
-
-The `ConfigurationContainer` defines three concrete `Configuration` types:
+The [ConfigurationContainer](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html) now defines three concrete `Configuration` types:
 - **Consumable** - Models the outgoing variants of a project component.
 - **Resolvable** - Acts as the root of a dependency graph.
 - **Dependency Scope** - Collects dependencies, constraints, and exclude rules to be used by _Consumable_ and _Resolvable_ configurations.
 
 Dependencies cannot be declared on configurations created with the `consumable` and `resolvable` factory methods.
-A configuration with one role cannot perform the functions of another.
+
+Previously, the only way to specify a `Configuration`'s role would be by mutating the `canBeConsumed`, `canBeResolved`, and `canBeDeclared` properties.
+Now, new factory methods allow the container to create `Configuration`s explicitly requesting one of these roles.
+
+Using these factory methods, plugin authors can ensure that their `Configuration`s are used only for their intended purposes.
+Since the allowed usage of `Configuration`s created with these factory methods cannot be mutated, aa configuration with one role can never perform the functions of another.
 
 Gradle core plugins will migrate their configurations to use role-locked configurations in Gradle 9.0.
 Furthermore, in future versions of Gradle, the ability to mutate roles or create `Configuration`s without the factory methods will become increasingly restricted.
