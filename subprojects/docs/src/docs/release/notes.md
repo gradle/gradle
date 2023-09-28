@@ -91,7 +91,7 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 #### Version catalog API in precompiled scripts
 
 The `versionCatalogs` extension accessor is now available in Kotlin DSL precompiled scripts.
-It provides with a [type unsafe API](userguide/platforms.html#sub:type-unsafe-access-to-catalog) to access version catalogs that may be available on the projects where the precompiled script will be applied.
+It provides a [type unsafe API](userguide/platforms.html#sub:type-unsafe-access-to-catalog) for accessing version catalogs available on the projects where the precompiled script will be applied.
 
 ```kotlin
 // buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts
