@@ -36,20 +36,14 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
-    private final List<ScriptClassPathInitializer> initializers;
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
 
     public DefaultScriptClassPathResolver(
-        List<ScriptClassPathInitializer> initializers,
         NamedObjectInstantiator instantiator,
         CachedClasspathTransformer classpathTransformer
     ) {
-        this.initializers = initializers;
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
     }
@@ -73,13 +67,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public ClassPath resolveClassPath(@Nullable Configuration classpathConfiguration) {
-        if (classpathConfiguration == null) {
-            return ClassPath.EMPTY;
-        }
-        for (ScriptClassPathInitializer initializer : initializers) {
-            initializer.initialize(classpathConfiguration);
-        }
+    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
         return classpathTransformer.transform(
             resolveToClasspathWithoutGradleApi(classpathConfiguration),
             CachedClasspathTransformer.StandardTransform.BuildLogic

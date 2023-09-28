@@ -40,7 +40,7 @@ class DefaultScriptHandlerTest extends Specification {
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
-    def classpathResolver = Mock(ScriptClassPathResolver)
+    def classpathResolver = Mock(BuildLogicBuilder)
     def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
 
     def "adds classpath configuration when configuration container is queried"() {
@@ -77,7 +77,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         0 * configuration._
-        1 * classpathResolver.resolveClassPath(null) >> ClassPath.EMPTY
+        0 * classpathResolver.resolveClassPath(_)
 
         and:
         classpath == ClassPath.EMPTY

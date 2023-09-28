@@ -19,16 +19,13 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.InternalBuildAdapter;
-import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -40,17 +37,15 @@ import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesFo
 @ServiceScope(Scopes.Build.class)
 public class BuildSrcBuildListenerFactory {
     private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
-    private final NamedObjectInstantiator instantiator;
-    private final CachedClasspathTransformer classpathTransformer;
+    private ScriptClassPathResolver resolver;
 
-    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
+    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, ScriptClassPathResolver resolver) {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
-        this.instantiator = instantiator;
-        this.classpathTransformer = classpathTransformer;
+        this.resolver = resolver;
     }
 
     Listener create() {
-        return new Listener(buildSrcRootProjectConfiguration, instantiator, classpathTransformer);
+        return new Listener(buildSrcRootProjectConfiguration, resolver);
     }
 
     /**
@@ -63,9 +58,9 @@ public class BuildSrcBuildListenerFactory {
         private final Action<ProjectInternal> rootProjectConfiguration;
         private final ScriptClassPathResolver resolver;
 
-        private Listener(Action<ProjectInternal> rootProjectConfiguration, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
+        private Listener(Action<ProjectInternal> rootProjectConfiguration, ScriptClassPathResolver resolver) {
             this.rootProjectConfiguration = rootProjectConfiguration;
-            this.resolver = new DefaultScriptClassPathResolver(Collections.emptyList(), instantiator, classpathTransformer);
+            this.resolver = resolver;
         }
 
         @Override

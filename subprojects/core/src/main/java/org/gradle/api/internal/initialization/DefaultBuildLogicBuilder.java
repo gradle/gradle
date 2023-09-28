@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.composite.internal;
+
+package org.gradle.api.internal.initialization;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.classpath.ClassPath;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
-public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
-    private final BuildTreeWorkGraphController buildTreeWorkGraphController;
+public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     private final BuildState currentBuild;
+    private final BuildTreeWorkGraphController buildTreeWorkGraphController;
+    private final ScriptClassPathResolver scriptClassPathResolver;
 
-    public CompositeBuildClassPathInitializer(
+    public DefaultBuildLogicBuilder(
+        BuildState currentBuild,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
-        BuildState currentBuild
+        ScriptClassPathResolver scriptClassPathResolver
     ) {
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.currentBuild = currentBuild;
+        this.scriptClassPathResolver = scriptClassPathResolver;
     }
 
     @Override
-    public void initialize(Configuration classpath) {
+    public void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
+        scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
+    }
+
+    @Override
+    public ClassPath resolveClassPath(Configuration classpathConfiguration) {
+        initialize(classpathConfiguration);
+        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+    }
+
+    private void initialize(Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = taskIdentifiersForBuildDependenciesOf(classpath);
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {

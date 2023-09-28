@@ -40,7 +40,13 @@ public class BuildSourceBuilder {
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
 
-    public BuildSourceBuilder(BuildState currentBuild, BuildOperationExecutor buildOperationExecutor, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    public BuildSourceBuilder(
+        BuildState currentBuild,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildSrcBuildListenerFactory buildSrcBuildListenerFactory,
+        BuildStateRegistry buildRegistry,
+        PublicBuildPath publicBuildPath
+    ) {
         this.currentBuild = currentBuild;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
