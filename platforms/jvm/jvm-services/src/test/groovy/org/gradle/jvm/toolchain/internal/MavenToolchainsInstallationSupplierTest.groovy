@@ -228,7 +228,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
 
         when:
         def directories = supplier.get()
-        
+
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([
@@ -262,7 +262,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
             new File("\${env.JAVA_UNKNOWN}").absolutePath
         ])
         directories*.source == ["Maven Toolchains"]
-        
+
         where:
         useProperty << [true, false]
     }

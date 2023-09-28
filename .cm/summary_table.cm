@@ -167,12 +167,6 @@ platforms:
     name: 'jvm'
     subprojects:
       - 'platforms/jvm/'
-      - 'subprojects/jvm-services/'
-      - 'subprojects/language-groovy/'
-      - 'subprojects/language-java/'
-      - 'subprojects/language-jvm/'
-      - 'subprojects/normalization-java/'
-      - 'subprojects/platform-jvm/'
       - 'subprojects/plugins/'
   - kotlin_dsl:
     name: 'kotlin_dsl'
