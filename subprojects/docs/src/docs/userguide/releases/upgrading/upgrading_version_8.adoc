@@ -42,10 +42,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Changes to Groovy task conventions
 
-The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on any `GroovyCompile` tasks.
+The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
 
-If you are using this task *without applying this plugin*, you will have to manually set compatibility versions on these tasks.
-We recommend applying the `groovy-base` plugin whenever working with Groovy language tasks.
+If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
