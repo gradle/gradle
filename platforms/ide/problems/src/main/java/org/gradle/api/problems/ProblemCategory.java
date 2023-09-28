@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Interface for utility class that provide a category for a problem.
+ * A category is a component of a {@link Problem} that helps group related problems together.
  *
  * The category string is a ":" separated string that starts either with a specific problem category or with "gradle-plugin"
  * and the plugin id where the problem is raised followed by the specific category.

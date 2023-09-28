@@ -24,7 +24,7 @@ import java.util.List;
 import static java.lang.String.join;
 
 /**
- * Represents a category of problems.
+ * Default implementation for {@link ProblemCategory}
  */
 public class DefaultProblemCategory implements ProblemCategory {
 
