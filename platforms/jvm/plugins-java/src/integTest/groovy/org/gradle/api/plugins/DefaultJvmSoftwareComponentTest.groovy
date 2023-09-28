@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.component.internal
+package org.gradle.api.plugins
 
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.tasks.JvmConstants
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.SourceSet
+import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-
 /**
  * Tests {@link DefaultJvmSoftwareComponent}.
  *
