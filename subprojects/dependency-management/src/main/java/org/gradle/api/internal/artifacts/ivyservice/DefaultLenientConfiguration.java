@@ -105,7 +105,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
         ArtifactVariantSelector artifactVariantSelector
     ) {
         this.resolveContext = resolveContext;
-        this.implicitAttributes = graphResults.getResolutionResult().getRequestedAttributes();
+        this.implicitAttributes = resolveContext.getAttributes().asImmutable();
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
