@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.internal.kotlin")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 dependencies {

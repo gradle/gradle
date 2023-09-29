@@ -16,8 +16,9 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Test
 
 
@@ -33,7 +34,7 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     val experimentalFeatureToWarnAbout = "-XXLanguage:+FunctionReferenceWithDefaultValueAsOtherType"
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `experimental compiler warnings are not shown for known experimental features`() {
         withBuildScriptForKotlinCompile()
         withKotlinSourceFile()
@@ -45,7 +46,7 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `experimental compiler warnings are not shown for known experimental features with allWarningsAsErrors`() {
         withBuildScriptForKotlinCompile("allWarningsAsErrors.set(true)")
         withKotlinSourceFile()
@@ -58,7 +59,7 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
 
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `compileKotlin task output is retained when known experimental feature warnings are silenced`() {
         withBuildScriptForKotlinCompile(
             "",
@@ -82,7 +83,7 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `compiler warning for an explicitly enabled experimental feature is shown`() {
         withBuildScriptForKotlinCompile("freeCompilerArgs.add(\"$experimentalFeatureToWarnAbout\")")
         withKotlinSourceFile()
@@ -95,7 +96,7 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/25483")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `compiler warning for an explicitly enabled experimental feature is shown with allWarningsAsErrors`() {
         withBuildScriptForKotlinCompile(
             """
@@ -116,8 +117,6 @@ class KotlinCompilerWarningsTest : AbstractKotlinIntegrationTest() {
     fun withBuildScriptForKotlinCompile(compilerOptions: String = "", kotlinTaskConfig: String = "") {
         var compileKotlinTaskConfiguration = ""
         if (compilerOptions.isNotEmpty() || kotlinTaskConfig.isNotEmpty()) {
-            // TODO: why does KotlinCompile task only become visible in forkingIntegTest?
-            assumeNonEmbeddedGradleExecuter()
             compileKotlinTaskConfiguration = """
                 tasks.withType<KotlinCompile>().configureEach {
                     $kotlinTaskConfig

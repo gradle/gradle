@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":plugins"))
     implementation(project(":plugins-java"))
-    implementation(project(":plugins-jvm-test-suite-base"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":testing-base"))
 
     implementation(libs.groovy)

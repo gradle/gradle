@@ -17,8 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -31,9 +29,7 @@ public interface VisitedArtifactSet {
      * Not every query is available on the value returned from this method. Details are progressively refined during resolution and more queries become available.
      *
      * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
-     * @param requestedAttributes Select only those artifacts that match the provided attributes.
-     * @param componentSpec Select only those artifacts source from components matching the given spec.
-     * @param allowNoMatchingVariant When true, ignore those components which have no matching variants. When false, fail when any component has no matching variant.
+     * @param spec Parameters controlling the artifact selection process
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants);
+    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec);
 }

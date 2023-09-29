@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":language-groovy"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
@@ -33,7 +34,6 @@ dependencies {
     }
     implementation(project(":toolchains-jvm"))
     implementation(project(":plugins-jvm-test-suite"))
-    implementation(project(":plugins-jvm-test-suite-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -66,6 +66,8 @@ dependencies {
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":model-core")))
+    integTestImplementation(testFixtures(project(":plugins-java")))
+    integTestImplementation(testFixtures(project(":plugins-java-base")))
     integTestImplementation(testFixtures(project(":resources-http")))
 
     testRuntimeOnly(project(":distributions-core")) {

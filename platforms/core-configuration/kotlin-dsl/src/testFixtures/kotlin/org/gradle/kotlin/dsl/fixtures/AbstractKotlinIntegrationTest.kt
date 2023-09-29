@@ -16,16 +16,12 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.zipTo
-import org.junit.Assume.assumeFalse
-import org.junit.Assume.assumeTrue
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -43,12 +39,15 @@ import java.util.Properties
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
-    open val injectLocalKotlinDslPluginsRepositories = true
+    open val injectLocalTestRepositories = true
+
+    protected
+    open val forceLocallyBuiltKotlinDslPlugins = true
 
     @Before
     fun injectLocallyBuiltKotlinDslPluginsRepositories() {
-        if (!injectLocalKotlinDslPluginsRepositories) return
-        doInjectLocallyBuiltKotlinDslPluginsRepositories()
+        if (injectLocalTestRepositories) doInjectLocallyBuiltKotlinDslPluginsRepositories()
+        if (forceLocallyBuiltKotlinDslPlugins) doForceLocallyBuiltKotlinDslPlugins()
     }
 
     protected
@@ -63,17 +62,36 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                         $testRepositories
                         gradlePluginPortal()
                     }
-                    resolutionStrategy {
-                        eachPlugin {
-                            $futurePluginRules
-                        }
-                    }
                 }
             }
             """
         )
         executer.beforeExecute {
             usingInitScript(setupScript)
+        }
+    }
+
+    protected
+    fun doForceLocallyBuiltKotlinDslPlugins() {
+        file(".integTest/force-local-plugins.init.gradle").apply {
+            parentFile.mkdirs()
+            writeText(
+                """
+                beforeSettings { settings ->
+                    settings.pluginManagement {
+                        resolutionStrategy {
+                            eachPlugin {
+                                $futurePluginRules
+                            }
+                        }
+                    }
+                }
+                """
+            )
+        }.let { setupScript ->
+            executer.beforeExecute {
+                usingInitScript(setupScript)
+            }
         }
     }
 
@@ -313,29 +331,4 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
         inDirectory(rootDir).withArguments(*arguments)
-
-    protected
-    fun assumeJavaLessThan9() {
-        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
-    }
-
-    protected
-    fun assumeJavaLessThan11() {
-        assumeTrue("Test disabled under JDK 11 and higher", JavaVersion.current() < JavaVersion.VERSION_11)
-    }
-
-    protected
-    fun assumeJavaLessThan17() {
-        assumeTrue("Test disabled under JDK 17 and higher", JavaVersion.current() < JavaVersion.VERSION_17)
-    }
-
-    protected
-    fun assumeJava11OrHigher() {
-        assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
-    }
-
-    protected
-    fun assumeNonEmbeddedGradleExecuter() {
-        assumeFalse(GradleContextualExecuter.isEmbedded())
-    }
 }

@@ -95,7 +95,10 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static PropertyEntry toPropertyEntry(List<CallInterceptionRequest> requests) {
         CallInterceptionRequest request = requests.get(0);
-        String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
+        PropertyUpgradeRequestExtra upgradeExtra = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get();
+        String propertyName = upgradeExtra.getPropertyName();
+        String methodName = upgradeExtra.getInterceptedPropertyAccessorName();
+        String methodDescriptor = upgradeExtra.getInterceptedPropertyAccessorDescriptor();
         String containingType = request.getInterceptedCallable().getOwner().getType().getClassName();
         List<UpgradedMethod> upgradedMethods = requests.stream()
             .map(CallInterceptionRequest::getInterceptedCallable)
@@ -108,18 +111,22 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             })
             .sorted(Comparator.comparing((UpgradedMethod o) -> o.name).thenComparing(o -> o.descriptor))
             .collect(Collectors.toList());
-        return new PropertyEntry(containingType, propertyName, upgradedMethods);
+        return new PropertyEntry(containingType, propertyName, methodName, methodDescriptor, upgradedMethods);
     }
 
     @JsonPropertyOrder(alphabetic = true)
     static class PropertyEntry {
         private final String propertyName;
+        private final String methodName;
+        private final String methodDescriptor;
         private final String containingType;
         private final List<UpgradedMethod> upgradedMethods;
 
-        public PropertyEntry(String containingType, String propertyName, List<UpgradedMethod> upgradedMethods) {
+        public PropertyEntry(String containingType, String propertyName, String methodName, String methodDescriptor, List<UpgradedMethod> upgradedMethods) {
             this.containingType = containingType;
             this.propertyName = propertyName;
+            this.methodName = methodName;
+            this.methodDescriptor = methodDescriptor;
             this.upgradedMethods = upgradedMethods;
         }
 
@@ -129,6 +136,14 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
         public String getPropertyName() {
             return propertyName;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public String getMethodDescriptor() {
+            return methodDescriptor;
         }
 
         public List<UpgradedMethod> getUpgradedMethods() {

@@ -32,6 +32,9 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
  * interface in order to add the proper getter methods? What about the concrete feature class which implements
  * that new interface? Does it extend the default implementation class? Is there a way we can avoid
  * Java inheritance?</p>
+ *
+ * Even though the single implementation of this interface also implements {@link org.gradle.api.component.AdhocComponentWithVariants},
+ * we do not want to extend that interface here, as it is slated for removal.
  */
 public interface JvmSoftwareComponentInternal extends SoftwareComponent {
 
@@ -60,4 +63,13 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      */
     JvmFeatureInternal getMainFeature();
 
+    /**
+     * Ensures the runtime classpath of all features in this component resolve consistently with each other.
+     */
+    void useRuntimeClasspathConsistency();
+
+    /**
+     * Ensures the compile classpath of all features in this component resolve consistently with each other.
+     */
+    void useCompileClasspathConsistency();
 }

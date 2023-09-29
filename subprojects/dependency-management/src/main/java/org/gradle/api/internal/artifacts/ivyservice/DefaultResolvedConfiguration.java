@@ -21,11 +21,14 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultResolvedConfiguration implements ResolvedConfiguration {
@@ -37,12 +40,20 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public boolean hasError() {
-        return configuration.hasError();
+        return configuration.getGraphResults().hasAnyFailure();
     }
 
     @Override
     public void rethrowFailure() throws ResolveException {
-        configuration.rethrowFailure();
+        VisitedGraphResults graphResults = configuration.getGraphResults();
+
+        if (!graphResults.hasAnyFailure()) {
+            return;
+        }
+
+        List<Throwable> failures = new ArrayList<>();
+        graphResults.visitFailures(failures::add);
+        throw new ResolveException(configuration.getDisplayName().toString(), failures);
     }
 
     @Override
@@ -63,7 +74,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
         if (!failures.isEmpty()) {
             throw new DefaultLenientConfiguration.ArtifactResolveException(
                 "files",
-                configuration.getResolveContext().getDisplayName(),
+                configuration.getDisplayName().toString(),
                 failures
             );
         }

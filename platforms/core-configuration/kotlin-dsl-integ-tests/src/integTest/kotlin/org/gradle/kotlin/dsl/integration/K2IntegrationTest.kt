@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Test
 
 
@@ -29,9 +31,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
     val kotlinVersion = KotlinGradlePluginVersions().latestStableOrRC
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can try k2 with included build for build logic using kotlin-jvm plugin`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("build-logic")
         withBuildScriptIn("build-logic", """
@@ -57,9 +58,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can try k2 with included build for build logic using kotlin-dsl plugin`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         // This test doesn't use a .gradle.kts precompiled script because K2 doesn't support scripts yet
 

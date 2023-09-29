@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -75,12 +74,15 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, ArtifactVariantSelector variantSelector, boolean selectFromAllVariants) {
-        if (!componentFilter.isSatisfiedBy(componentId)) {
+    public ResolvedArtifactSet select(
+        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionSpec spec
+    ) {
+        if (!spec.getComponentFilter().isSatisfiedBy(componentId)) {
             return ResolvedArtifactSet.EMPTY;
         } else {
 
-            if (selectFromAllVariants && !artifacts.isEmpty()) {
+            if (spec.getSelectFromAllVariants() && !artifacts.isEmpty()) {
                 // Variants with overridden artifacts cannot be reselected since
                 // we do not know the "true" attributes of the requested artifact.
                 return ResolvedArtifactSet.EMPTY;
@@ -88,11 +90,12 @@ public class VariantResolvingArtifactSet implements ArtifactSet, ArtifactVariant
 
             ResolvedVariantSet variants;
             try {
-                variants = getVariants(selectFromAllVariants);
+                variants = getVariants(spec.getSelectFromAllVariants());
             } catch (Exception e) {
                 return new BrokenResolvedArtifactSet(e);
             }
-            return variantSelector.select(variants, this);
+
+            return variantSelector.select(variants, spec.getRequestAttributes(), spec.getAllowNoMatchingVariants(), this);
         }
     }
 

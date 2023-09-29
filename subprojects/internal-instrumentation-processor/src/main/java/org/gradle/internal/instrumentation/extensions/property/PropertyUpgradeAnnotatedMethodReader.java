@@ -70,6 +70,7 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANC
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
@@ -110,6 +111,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         if (projectName == null) {
             // We validate project name here because we want to fail only if there is an @UpgradedProperty annotation used in the project
             return Collections.singletonList(new InvalidRequest("Project name is not specified or is empty. Use -A" + PROJECT_NAME_OPTIONS + "=<projectName> compiler option to set the project name."));
+        } else if (!method.getParameters().isEmpty() || !method.getSimpleName().toString().startsWith("get")) {
+            return Collections.singletonList(new InvalidRequest(String.format("Method '%s.%s' annotated with @UpgradedProperty should be a simple getter: name should start with 'get' and method should not have any parameters.", method.getEnclosingElement(), method)));
         }
 
         try {
@@ -202,7 +205,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
-        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), upgradedPropertyType));
+        String methodDescriptor = extractMethodDescriptor(method);
+        extras.add(new PropertyUpgradeRequestExtra(propertyName, isFluentSetter, implementationClass, method.getSimpleName().toString(), methodDescriptor, upgradedPropertyType));
         return extras;
     }
 

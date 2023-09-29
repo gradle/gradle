@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":language-jvm"))
     implementation(project(":plugins"))
-    implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":platform-jvm"))
     implementation(project(":workers"))
     implementation(project(":files"))

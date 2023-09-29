@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.specs.Specs
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ import static org.junit.Assert.fail
 class ErrorHandlingConfigurationResolverTest extends Specification {
     private delegate = Mock(ConfigurationResolver)
     private resolvedConfiguration = Mock(ResolvedConfiguration)
-    private resolutionResult = Mock(MinimalResolutionResult)
+    private visitedGraphResults = Mock(VisitedGraphResults)
     private projectConfigResult = Mock(ResolvedLocalComponentsResult)
     private visitedArtifactSet = Mock(VisitedArtifactSet)
     private context = Mock(ConfigurationInternal)
@@ -172,7 +172,7 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveArtifacts(context, _) >> DefaultResolverResults.artifactsResolved(resolutionResult, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
+        delegate.resolveArtifacts(context, _) >> DefaultResolverResults.artifactsResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
 
         when:
         def results = resolver.resolveArtifacts(context, graphResults)

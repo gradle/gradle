@@ -19,8 +19,8 @@ dependencies {
     pluginsRuntimeOnly(project(":jacoco"))
     pluginsRuntimeOnly(project(":plugins-groovy"))
     pluginsRuntimeOnly(project(":plugins-java"))
+    pluginsRuntimeOnly(project(":plugins-java-base"))
     pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
-    pluginsRuntimeOnly(project(":plugins-jvm-test-suite-base"))
     pluginsRuntimeOnly(project(":scala"))
     pluginsRuntimeOnly(project(":war"))
 

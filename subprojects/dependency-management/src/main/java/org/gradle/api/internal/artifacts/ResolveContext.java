@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -32,6 +33,8 @@ import java.util.List;
 public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
+
+    Describable asDescribable();
 
     String getDisplayName();
 

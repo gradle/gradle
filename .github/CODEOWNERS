@@ -3,7 +3,7 @@
 ## CODEOWNERS style rules:
 ## 1. Prefer team ownership over individual user ownership.
 ## 2. GBT-related team should be listed first.
-## 3. Try to keep paths alphabetically sorted.
+## 3. Try to keep paths alphabetically sorted within visual groups.
 ## 4. List individual owners last.
 ##
 
@@ -18,15 +18,10 @@ subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-b
 subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
-subprojects/api-metadata/                       @gradle/bt-configuration
-subprojects/base-services-groovy/               @gradle/bt-configuration
-subprojects/configuration-cache/                @gradle/bt-configuration
-subprojects/file-collections/                   @gradle/bt-configuration
+platforms/core-configuration/                   @gradle/bt-configuration
 subprojects/instrumentation-agent/              @gradle/bt-configuration
 subprojects/internal-instrumentation-api/       @gradle/bt-configuration
 subprojects/internal-instrumentation-processor/ @gradle/bt-configuration
-subprojects/model-core/                         @gradle/bt-configuration
-subprojects/model-groovy/                       @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
@@ -101,9 +96,9 @@ subprojects/internal-testing/               @gradle/bt-developer-productivity
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience
-subprojects/ide/                  @gradle/bt-ide-experience
-subprojects/tooling-api/          @gradle/bt-ide-experience
-subprojects/tooling-api-builders/ @gradle/bt-ide-experience
+# Eventually be moved to the core platform.
+# Currently heavily developed by the bt-ide-experience team.
+platforms/ide/problems            @gradle/bt-ide-experience
 
 # Release coordination
 subprojects/core-platform/              @gradle/bt-support

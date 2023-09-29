@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
@@ -35,10 +34,11 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
- * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
+ * A plugin for adding Antlr support to {@link org.gradle.api.plugins.JavaPlugin java projects}.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
  */
+@SuppressWarnings("JavadocReference")
 public abstract class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
