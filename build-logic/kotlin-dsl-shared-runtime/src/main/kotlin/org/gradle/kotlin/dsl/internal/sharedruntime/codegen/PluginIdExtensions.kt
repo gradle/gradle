@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
 
 
-internal
 fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
     file.bufferedWriter().use {
         it.apply {
