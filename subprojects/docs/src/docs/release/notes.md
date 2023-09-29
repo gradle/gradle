@@ -1,13 +1,16 @@
 
 The Gradle team is excited to announce Gradle @version@.
 
-This is the second patch release for Gradle 7.6.
+This is the third patch release for Gradle 7.6.
 
-This release addresses two security vulnerabilities:
-* [Dependency cache path traversal](https://github.com/gradle/gradle/security/advisories/GHSA-2h6c-rv6q-494v)
-* [Path traversal vulnerabilities in handling of Tar archives](https://github.com/gradle/gradle/security/advisories/GHSA-84mw-qh6q-v842)
+It fixes the following issues:
 
-It also fixes the following issues:
+* TODO
+
+Issues fixed in the second patch release:
+
+* Security vulnerability: [Dependency cache path traversal](https://github.com/gradle/gradle/security/advisories/GHSA-2h6c-rv6q-494v)
+* Security vulnerability: [Path traversal vulnerabilities in handling of Tar archives](https://github.com/gradle/gradle/security/advisories/GHSA-84mw-qh6q-v842)
 * [#23201](https://github.com/gradle/gradle/issues/23201) Backport dependency upgrades to 7.x
 * [#23202](https://github.com/gradle/gradle/issues/23202) Backport Scala incremental compilation fixes
 * [#23325](https://github.com/gradle/gradle/issues/23325) Backport JSoup update to resolve CVE-2022-36033
