@@ -86,4 +86,7 @@ include("performance-testing")
 include("profiling")
 include("publishing")
 
+// Components used both at build time and GBT runtime, shipped in the distribution
+include("kotlin-dsl-shared-runtime")
+
 rootProject.name = "build-logic"
