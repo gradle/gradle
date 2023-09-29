@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,12 @@
 
 @file:JvmName("ApiExtensionsGenerator")
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.internal.classloader.ClassLoaderUtils
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiFunction
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiFunctionParameter
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiType
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeProvider
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeUsage
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ParameterNamesSupplier
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.Variance
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.apiTypeProviderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.isStarProjectionTypeUsage
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.singletonListOfStarProjectionTypeUsage
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.starProjectionTypeUsage
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
-import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
 
 
@@ -51,7 +38,6 @@ import java.io.File
  *
  * @return the list of generated source files
  */
-internal
 fun generateKotlinDslApiExtensionsSourceTo(
     outputDirectory: File,
     packageName: String,
@@ -102,11 +88,11 @@ fun Sequence<KotlinExtensionFunction>.groupedByTarget(): Map<ApiType, List<Kotli
 
 private
 fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<KotlinExtensionFunction>): Unit =
-    outputFile.bufferedWriter().useToRun {
-        write(fileHeaderFor(packageName))
-        write("\n")
+    outputFile.bufferedWriter().use { writer ->
+        writer.write(fileHeaderFor(packageName))
+        writer.write("\n")
         extensions.forEach {
-            write("\n${it.toKotlinString()}")
+            writer.write("\n${it.toKotlinString()}")
         }
     }
 
