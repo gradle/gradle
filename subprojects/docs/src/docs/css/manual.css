@@ -500,7 +500,8 @@ table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-si
     word-wrap: anywhere;
     background: var(--admonition-background);
     padding: 1rem 1rem 0rem;
-    width: 100%
+    width: 100%;
+    border-radius: 4px;
 }
 
 .admonitionblock td.icon {
