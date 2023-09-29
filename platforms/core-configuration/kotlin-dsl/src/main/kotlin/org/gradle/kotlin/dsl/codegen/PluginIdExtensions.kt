@@ -17,14 +17,11 @@
 package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
-import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
-import java.io.IOException
-import java.util.Properties
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
 
 
 internal
@@ -85,33 +82,3 @@ fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
             // One plugin extension for the simple id, e.g., "application"
             PluginExtension(simpleId, id, implementationClass)
         }
-
-
-internal
-data class PluginEntry(val pluginId: String, val implementationClass: String)
-
-
-internal
-fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
-    JarFile(jar, false).use { jarFile ->
-        jarFile.entries().asSequence().filter {
-            isGradlePluginPropertiesFile(it)
-        }.map { pluginEntry ->
-            val pluginProperties = jarFile.getInputStream(pluginEntry).use { Properties().apply { load(it) } }
-            val id = pluginEntry.name.substringAfterLast("/").substringBeforeLast(".properties")
-            val implementationClass = pluginProperties.getProperty("implementation-class")
-            PluginEntry(id, implementationClass)
-        }.toList()
-    }
-} catch (cause: IOException) {
-    throw IllegalArgumentException(
-        "Failed to extract plugin metadata from '" + jar.path + "'",
-        cause
-    )
-}
-
-
-private
-fun isGradlePluginPropertiesFile(entry: JarEntry) = entry.run {
-    isFile && name.run { startsWith("META-INF/gradle-plugins/") && endsWith(".properties") }
-}

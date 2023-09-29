@@ -33,7 +33,7 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.isStarProjectionTypeUsage
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.singletonListOfStarProjectionTypeUsage
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.starProjectionTypeUsage
-import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
 

@@ -7,7 +7,7 @@ description = "Provides Kotlin DSL code that is shared between build-logic and r
 group = "org.gradle.kotlin-dsl-shared-runtime"
 
 dependencies {
-    api(platform("gradlebuild:build-platform"))
+    compileOnly(platform("gradlebuild:build-platform"))
     compileOnly(gradleApi())
     compileOnly("org.ow2.asm:asm-tree")
     compileOnly("com.google.code.findbugs:jsr305")
