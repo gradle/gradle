@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.internal.sharedruntime.support
 
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
@@ -24,11 +24,6 @@ import java.util.Properties
 import java.util.jar.JarFile
 
 
-internal
-const val gradleApiMetadataModuleName = "gradle-api-metadata"
-
-
-internal
 data class GradleApiMetadata(
     val includes: List<String>,
     val excludes: List<String>,
@@ -38,7 +33,6 @@ data class GradleApiMetadata(
 }
 
 
-internal
 fun gradleApiMetadataFrom(gradleApiMetadataJar: File, gradleApiJars: Collection<File>): GradleApiMetadata =
     apiDeclarationFrom(gradleApiMetadataJar).let { (includes, excludes) ->
         GradleApiMetadata(includes, excludes, parameterNamesSupplierFor(parameterNamesFrom(gradleApiJars)))
