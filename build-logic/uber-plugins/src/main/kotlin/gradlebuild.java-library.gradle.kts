@@ -33,3 +33,9 @@ plugins {
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
 }
+
+dependencies {
+    if (project.name != "base-annotations") {
+        compileOnly(project(":base-annotations"))
+    }
+}
