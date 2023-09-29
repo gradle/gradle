@@ -101,7 +101,6 @@ object GrammarToTree {
         ast.expectKind(propertyDeclaration)
 
         collectingFailure(ast.findChild(modifiers)?.let { ast.unsupportedBecause(it, ValModifierNotSupported) })
-        collectingFailure(ast.findChild(modifiers)?.let { ast.unsupportedBecause(it, ValModifierNotSupported) })
         collectingFailure(ast.findChild(varKeyword)?.let { ast.unsupportedBecause(it, LocalVarNotSupported) })
         collectingFailure(ast.findChild(receiverType)?.let { ast.unsupportedBecause(it, ExtensionProperty) })
         collectingFailure(ast.findChild(multiVariableDeclaration)?.let { ast.unsupportedBecause(it, MultiVariable) })
