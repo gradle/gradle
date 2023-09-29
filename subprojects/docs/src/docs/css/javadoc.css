@@ -38,6 +38,9 @@
 /*
  * Javadoc style sheet
  */
+.ui-menu {
+    background-color: white;
+}
 
 /*
  * Styles for individual HTML elements.
