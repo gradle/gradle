@@ -60,7 +60,7 @@ public class DefaultBuildFeatures implements BuildFeatures {
         return new DefaultBuildFeature(isRequested, isActive);
     }
 
-    private static ProviderInternal<Boolean> getRequestedProvider(Option.Value<Boolean> configurationCacheOption) {
-        return Providers.ofNullable(configurationCacheOption.isExplicit() ? configurationCacheOption.get() : null);
+    private static ProviderInternal<Boolean> getRequestedProvider(Option.Value<Boolean> optionValue) {
+        return Providers.ofNullable(optionValue.isExplicit() ? optionValue.get() : null);
     }
 }
