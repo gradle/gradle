@@ -54,7 +54,7 @@ sealed interface ObjectOrigin {
         override fun toString(): String = receiverObject.toString()
     }
 
-    data class FromFunctionInvocation(
+    data class NewObjectFromFunctionInvocation(
         override val function: SchemaFunction,
         override val receiverObject: ObjectOrigin?,
         val parameterBindings: ParameterValueBinding,
@@ -81,17 +81,23 @@ sealed interface ObjectOrigin {
     }
     
     data class ConfigureReceiver(
-        val receiver: ObjectOrigin,
-        val property: DataProperty,
-        override val originElement: FunctionCall
-    ) : ObjectOrigin {
-        override fun toString(): String = "$receiver${'.'}${property.name}"
+        override val receiverObject: ObjectOrigin,
+        override val function: SchemaFunction,
+        override val originElement: FunctionCall,
+        val accessor: ConfigureAccessor,
+    ) : FunctionInvocationOrigin {
+        override fun toString(): String {
+            val accessorString = when (accessor) {
+                is ConfigureAccessor.Property -> accessor.dataProperty.name 
+            }
+            return "$receiverObject.$accessorString}"
+        }
     }
 
     data class PropertyReference(
         val receiver: ObjectOrigin,
         val property: DataProperty,
-        override val originElement: PropertyAccess
+        override val originElement: LanguageTreeElement
     ) : ObjectOrigin {
         override fun toString(): String = "$receiver${'.'}${property.name}"
     }

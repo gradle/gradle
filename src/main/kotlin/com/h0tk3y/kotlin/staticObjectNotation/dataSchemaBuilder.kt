@@ -72,7 +72,7 @@ fun createDataType(
 private fun constructors(kClass: KClass<*>, preIndex: PreIndex): List<DataConstructorSignature> =
     kClass.constructors.map { constructor ->
         val params = constructor.parameters
-        val dataParams = params.mapIndexedNotNull { index, param ->
+        val dataParams = params.map { param ->
             dataParameter(constructor, param, kClass, FunctionSemantics.Pure(typeToRef(kClass)), preIndex)
         }
         DataConstructorSignature(dataParams)
@@ -126,11 +126,15 @@ private fun dataMemberFunction(
     val fnParams = function.parameters
 
     val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, returnTypeClassifier, inType, preIndex)
+    val maybeConfigureType = if (semanticsFromSignature is FunctionSemantics.AccessAndConfigure) {
+        // TODO: be careful with non-class types?
+        inType.memberProperties.find { it.name == function.name }?.returnType?.classifier as? KClass<*>
+    } else null
 
     val params = fnParams
         .filterIndexed { index, it ->
             it != function.instanceParameter && run {
-                index != fnParams.lastIndex || !isConfigureLambda(it, returnTypeClassifier)
+                index != fnParams.lastIndex || !isConfigureLambda(it, maybeConfigureType ?: returnTypeClassifier)
             }        
         }
         .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
@@ -165,7 +169,7 @@ private fun inferFunctionSemanticsFromSignature(
             
             val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
             check(annotation != null)
-            val propertyName = if (annotation.propertyName.isEmpty()) function.name else annotation.propertyName
+            val propertyName = annotation.propertyName.ifEmpty { function.name }
             val kProperty = inType.memberProperties.find { it.name == propertyName }
             check(kProperty != null)
             val propertyTypeClassifier = kProperty.returnType.classifier as KClass<*>
@@ -177,7 +181,12 @@ private fun inferFunctionSemanticsFromSignature(
             }
 
             check(hasConfigureLambda)
-            FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(typeToRef(inType), property))
+            val returnType = when (function.returnType) {
+                typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
+                kProperty.returnType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
+                else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
+            }
+            FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(typeToRef(inType), property), returnType)
         }
 
         else -> FunctionSemantics.Pure(returnDataType)
@@ -238,15 +247,15 @@ private fun configureLambdaTypeFor(returnTypeClassifier: KClass<*>) =
 
 private fun checkInScope(
     type: KType,
-    typesScope: PreIndex
+    typeScope: PreIndex
 ) {
-    if (type.classifier?.isInScope(typesScope) != true) {
-        error("type ${type} used in a function is not in schema scope")
+    if (type.classifier?.isInScope(typeScope) != true) {
+        error("type $type used in a function is not in schema scope")
     }
 }
 
-fun KClassifier.isInScope(typesScope: PreIndex) =
-    isBuiltInType || this is KClass<*> && typesScope.hasType(this)
+fun KClassifier.isInScope(typeScope: PreIndex) =
+    isBuiltInType || this is KClass<*> && typeScope.hasType(this)
 
 val KClassifier.isBuiltInType: Boolean
     get() = when (this) {

@@ -182,7 +182,7 @@ class DataObjectResolverImpl : DataObjectResolver {
             is ObjectOrigin.ConfigureReceiver -> true
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
-            is ObjectOrigin.FromFunctionInvocation -> {
+            is ObjectOrigin.NewObjectFromFunctionInvocation -> {
                 val semantics = objectOrigin.function.semantics
                 when (semantics) {
                     is FunctionSemantics.Builder -> error("should be impossible?")
@@ -422,7 +422,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): FunctionInvocationOrigin? {
+    ): FunctionInvocationOrigin {
         val newFunctionCallId = nextFunctionCallId()
         val valueBinding = function.binding.toValueBinding(argResolutions)
         val semantics = function.schemaFunction.semantics
@@ -435,14 +435,15 @@ class DataObjectResolverImpl : DataObjectResolver {
                 valueBinding,
                 newFunctionCallId
             )
+            
+            is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
+                FunctionSemantics.AccessAndConfigure.ReturnType.UNIT -> 
+                    newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
+                FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
+                    configureReceiverObject(semantics, function, functionCall)
+            }
 
-            else -> ObjectOrigin.FromFunctionInvocation(
-                function.schemaFunction,
-                function.receiver,
-                valueBinding,
-                functionCall,
-                newFunctionCallId
-            )
+            else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
         }
 
         if (semantics is FunctionSemantics.AddAndConfigure) {
@@ -466,13 +467,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         if (maybeLambda != null) {
             if (semantics is FunctionSemantics.ConfigureSemantics) {
                 val configureReceiver = when (semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> when (val accessor = semantics.accessor) {
-                        is ConfigureAccessor.Property -> {
-                            require(function.receiver != null)
-                            ObjectOrigin.ConfigureReceiver(function.receiver, accessor.dataProperty, functionCall)
-                        }
-                    }
-
+                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(semantics, function, functionCall)
                     is FunctionSemantics.AddAndConfigure -> result
                 }
                 // TODO: avoid deep recursion?
@@ -485,6 +480,30 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
         return result
     }
+
+    private fun configureReceiverObject(
+        semantics: FunctionSemantics.AccessAndConfigure,
+        function: FunctionResolutionAndBinding,
+        functionCall: FunctionCall
+    ) = when (val accessor = semantics.accessor) {
+        is ConfigureAccessor.Property -> {
+            require(function.receiver != null)
+            ObjectOrigin.ConfigureReceiver(function.receiver, function.schemaFunction, functionCall, accessor)
+        }
+    }
+
+    private fun newObjectInvocationResult(
+        function: FunctionResolutionAndBinding,
+        valueBinding: ParameterValueBinding,
+        functionCall: FunctionCall,
+        newFunctionCallId: Long
+    ) = ObjectOrigin.NewObjectFromFunctionInvocation(
+        function.schemaFunction,
+        function.receiver,
+        valueBinding,
+        functionCall,
+        newFunctionCallId
+    )
 
     fun AnalysisContextView.findDataConstructor(
         functionCall: FunctionCall,
@@ -664,6 +683,7 @@ fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = 
     is DataType.ConstantType<*> -> valueType == isAssignableTo
     is DataType.DataClass<*> -> valueType is DataType.DataClass<*> && valueType.kClass.isSubclassOf(isAssignableTo.kClass)
     DataType.NullType -> false // TODO: proper null type support
+    DataType.UnitType -> valueType == DataType.UnitType
 }
 
 private fun AnalysisScopeView.resolveLocalValueAsObjectSource(name: String): ObjectOrigin.FromLocalValue? {
@@ -710,11 +730,11 @@ private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinTo
 private fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.ConstantOrigin -> objectOrigin.constant.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
-    is ObjectOrigin.FromFunctionInvocation -> resolveRef(objectOrigin.function.returnValueType)
+    is ObjectOrigin.NewObjectFromFunctionInvocation -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
     is ObjectOrigin.FromLocalValue -> getDataType(objectOrigin.assigned)
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType
-    is ObjectOrigin.ConfigureReceiver -> resolveRef(objectOrigin.property.type)
+    is ObjectOrigin.ConfigureReceiver -> resolveRef(objectOrigin.accessor.objectType)
     is ObjectOrigin.BuilderReturnedReceiver -> getDataType(objectOrigin.receiverObject)
 }

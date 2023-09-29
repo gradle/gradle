@@ -1,6 +1,7 @@
-package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
+package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
 
 fun demoSchema(): AnalysisSchema {
@@ -21,7 +22,7 @@ fun demoSchema(): AnalysisSchema {
                 topLevelScopeRef, "plugins", 
                 parameters = emptyList(), 
                 semantics = FunctionSemantics.AccessAndConfigure(
-                    ConfigureAccessor.Property(topLevelScopeRef, topLevelScopePlugins)
+                    ConfigureAccessor.Property(topLevelScopeRef, topLevelScopePlugins), UNIT
                 )
             )
         ),

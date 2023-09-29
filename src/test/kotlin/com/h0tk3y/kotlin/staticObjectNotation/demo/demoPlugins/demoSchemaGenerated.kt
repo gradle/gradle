@@ -1,4 +1,4 @@
-package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
+package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 

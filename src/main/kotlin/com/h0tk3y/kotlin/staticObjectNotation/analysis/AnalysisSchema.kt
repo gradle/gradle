@@ -19,6 +19,8 @@ sealed interface DataType {
     
     // TODO: implement nulls?
     data object NullType : DataType
+    
+    data object UnitType : DataType
 
     // TODO: `Any` type? 
     // TODO: Support subtyping of some sort in the schema rather than via reflection?
@@ -121,9 +123,19 @@ sealed interface FunctionSemantics {
             get() = objectType
     }
 
-    class AccessAndConfigure(val accessor: ConfigureAccessor) : ConfigureSemantics {
+    class AccessAndConfigure(
+        val accessor: ConfigureAccessor,
+        val returnType: ReturnType
+    ) : ConfigureSemantics {
+        enum class ReturnType {
+            UNIT, CONFIGURED_OBJECT
+        }
+        
         override val returnValueType: DataTypeRef
-            get() = accessor.objectType
+            get() = when (returnType) {
+                ReturnType.UNIT -> DataType.UnitType.ref
+                ReturnType.CONFIGURED_OBJECT -> accessor.objectType
+            }
     }
 
     class AddAndConfigure(private val objectType: DataTypeRef) : NewObjectFunctionSemantics, ConfigureSemantics {

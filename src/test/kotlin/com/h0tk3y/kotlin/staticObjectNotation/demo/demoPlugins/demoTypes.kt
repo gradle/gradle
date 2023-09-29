@@ -1,4 +1,4 @@
-package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
+package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
@@ -8,8 +8,9 @@ class TopLevelScope {
     val plugins = PluginsBlock()
 
     @Configuring
-    fun plugins(configure: PluginsBlock.() -> Unit): PluginsBlock =
-        plugins.apply(configure)
+    fun plugins(configure: PluginsBlock.() -> Unit) {
+        configure(plugins)
+    }
 }
 
 class PluginsBlock {

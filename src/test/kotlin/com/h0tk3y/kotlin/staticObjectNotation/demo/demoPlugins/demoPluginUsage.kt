@@ -1,7 +1,8 @@
-package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
+package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 fun main() {
-    val result = TopLevelScope().run {
+    val topLevelScope = TopLevelScope()
+    topLevelScope.run {
         plugins {
             val kotlinVersion = "1.9.20"
             id("org.jetbrains.kotlin.jvm").version(kotlinVersion)
@@ -10,4 +11,5 @@ fun main() {
         }
 
     }
+    println(topLevelScope.plugins)
 }
