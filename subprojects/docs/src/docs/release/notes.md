@@ -176,6 +176,17 @@ Previous versions of the schema had minor issues that prevented strict XML valid
 Trusted and ignored keys in `verification-metadata.xml` are now case-insensitive.
 By default, they are written in upper-case to match the ASCII-armored format of `verification-keyring.keys`.
 
+<a name="build-init"></a>
+### Build Init improvements
+
+#### Build Init utilizing version Catalogs
+Version catalogs are the recommended way to centrally define dependency modules, plugins and their versions.
+The [build init plugin](userguide/build_init_plugin.html) now generates projects utilizing version catalogs in the conventional location `gradle/libs.versions.toml`.
+This was done to encourage version catalog usage since it became a stable feature in Gradle 8.0.
+
+Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-dependencies) and the [TOML file format](userguide/platforms.html#sub::toml-dependencies-format) for information on the topic.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

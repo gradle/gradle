@@ -48,8 +48,8 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
-    public void generate(InitSettings settings) {
-        scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "build", settings.isUseIncubatingAPIs())
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildContentGenerationContext, "build", settings.isUseIncubatingAPIs())
             .fileComment("This is a general purpose Gradle build.\n"
                 + documentationRegistry.getSampleForMessage())
             .create(settings.getTarget())

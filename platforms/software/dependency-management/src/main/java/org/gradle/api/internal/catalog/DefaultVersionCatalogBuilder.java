@@ -102,12 +102,12 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
-    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
+    public final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
+    public final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
     /**
      * names that are forbidden in generated accessors because we can't override getClass()
      */
-    private final static Set<String> RESERVED_JAVA_NAMES = ImmutableSet.of("class");
+    public final static Set<String> RESERVED_JAVA_NAMES = ImmutableSet.of("class");
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;

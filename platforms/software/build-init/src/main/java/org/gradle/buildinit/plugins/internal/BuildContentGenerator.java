@@ -20,5 +20,5 @@ public interface BuildContentGenerator {
     /**
      * Generates content for the given build.
      */
-    void generate(InitSettings settings);
+    void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext);
 }
