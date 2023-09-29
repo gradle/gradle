@@ -16,18 +16,29 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
@@ -38,6 +49,7 @@ import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 
 /**
@@ -226,6 +238,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
 
+
     @Inject
     public JavaPlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
@@ -242,25 +255,73 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
 
-        // Create the 'java' component.
-        DefaultJvmSoftwareComponent component = objectFactory.newInstance(
-            DefaultJvmSoftwareComponent.class,
-            JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
-        );
-        project.getComponents().add(component);
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        DefaultJvmSoftwareComponent javaComponent = createJavaComponent(project, javaExtension, projectInternal);
 
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(component.getMainFeature().getRuntimeElementsConfiguration());
-        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
+        defaultConfiguration.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration());
+        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
 
         configureTestTaskOrdering(project.getTasks());
-        configureDiagnostics(project, component);
+        configureDiagnostics(project, javaComponent);
         configureBuild(project);
+    }
+
+    private static DefaultJvmSoftwareComponent createJavaComponent(Project project, JavaPluginExtension javaExtension, ProjectInternal projectInternal) {
+        // Create the 'java' component - create sourceset first
+        SourceSet sourceSet = createSourceSet(SourceSet.MAIN_SOURCE_SET_NAME, javaExtension.getSourceSets());
+
+        // Supply the sourceSet to the feature
+        JvmFeatureInternal feature = new DefaultJvmFeature(
+            JvmConstants.JAVA_FEATURE_NAME, sourceSet, Collections.emptyList(),
+            (ProjectInternal) project, false, false);
+
+        // And supply main feature to the component
+        DefaultJvmSoftwareComponent component = project.getObjects().newInstance(
+            DefaultJvmSoftwareComponent.class,
+            JvmConstants.JAVA_COMPONENT_NAME,
+            project,
+            feature
+        );
+        project.getComponents().add(component);
+
+        // Then configure publishing on it
+        configurePublishing(project.getPlugins(), project.getExtensions(), sourceSet);
+
+        return component;
+    }
+
+    private static SourceSet createSourceSet(String name, SourceSetContainer sourceSets) {
+        if (sourceSets.findByName(name) != null) {
+            throw new GradleException("Cannot create multiple source sets with name '" + name +"'.");
+        }
+
+        return sourceSets.create(name);
+    }
+
+
+    // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
+    // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
+    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, SourceSet sourceSet) {
+        plugins.withType(PublishingPlugin.class, plugin -> {
+            PublishingExtension publishing = extensions.getByType(PublishingExtension.class);
+
+            // Set up the default configurations used when mapping to resolved versions
+            publishing.getPublications().withType(IvyPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+            });
+            publishing.getPublications().withType(MavenPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((PublicationInternal<?>) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+            });
+        });
     }
 
     private static void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
