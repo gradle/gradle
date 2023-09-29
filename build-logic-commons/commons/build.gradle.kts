@@ -12,3 +12,7 @@ java {
         vendor = JvmVendorSpec.ADOPTIUM
     }
 }
+
+dependencies {
+    api(platform(project(":build-platform")))
+}

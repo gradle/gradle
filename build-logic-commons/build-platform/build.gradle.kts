@@ -5,6 +5,8 @@ plugins {
     `java-platform`
 }
 
+group = "gradlebuild"
+
 description = "Provides a platform that constrains versions of external dependencies used by Gradle"
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
@@ -13,7 +15,7 @@ val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
-val asmVersion = "9.4"
+val asmVersion = "9.5"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
@@ -74,6 +76,7 @@ dependencies {
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
+        api("org.ow2.asm:asm-tree:$asmVersion")
         api("xerces:xercesImpl:2.12.1") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }

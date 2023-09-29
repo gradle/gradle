@@ -16,6 +16,8 @@ java {
 dependencies {
     compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.15")
 
+    api(platform(project(":build-platform")))
+
     implementation(project(":commons"))
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.1.2")
     // This Kotlin version should only be updated when updating the above kotlin-dsl version

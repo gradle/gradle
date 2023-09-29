@@ -1,3 +1,5 @@
+import gradle.kotlin.dsl.accessors._764e4841fc7b717dfccd8b59d8555508.api
+
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -25,7 +27,7 @@ plugins {
 java.configureJavaToolChain()
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())

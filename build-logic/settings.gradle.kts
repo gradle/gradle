@@ -49,9 +49,6 @@ dependencyResolutionManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-// Platform: defines shared dependency versions
-include("build-platform")
-
 // Utilities for updating the build itself which are not part of the usual build process
 include("build-update-utils")
 
