@@ -43,6 +43,7 @@ import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
@@ -89,7 +90,6 @@ import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
 import org.gradle.configuration.CompileOperationFactory;
@@ -498,7 +498,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         CachingServiceLocator cachingServiceLocator,
         BuildStateRegistry buildRegistry,
         PublicBuildPath publicBuildPath,
-        ScriptClassPathResolver scriptClassPathResolver
+        ScriptClassPathResolver scriptClassPathResolver,
+        BuildLogicBuildQueue buildQueue
     ) {
         return new BuildSourceBuilder(
             currentBuild,
@@ -509,15 +510,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     cachingServiceLocator),
                 scriptClassPathResolver),
             buildRegistry,
-            publicBuildPath);
+            publicBuildPath,
+            buildQueue);
     }
 
     protected BuildLogicBuilder createBuildLogicBuilder(
         BuildState currentBuild,
-        BuildTreeWorkGraphController buildTreeWorkGraphController,
-        ScriptClassPathResolver scriptClassPathResolver
+        ScriptClassPathResolver scriptClassPathResolver,
+        BuildLogicBuildQueue buildQueue
     ) {
-        return new DefaultBuildLogicBuilder(currentBuild, buildTreeWorkGraphController, scriptClassPathResolver);
+        return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {

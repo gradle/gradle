@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -39,19 +40,22 @@ public class BuildSourceBuilder {
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
+    private final BuildLogicBuildQueue buildQueue;
 
     public BuildSourceBuilder(
         BuildState currentBuild,
         BuildOperationExecutor buildOperationExecutor,
         BuildSrcBuildListenerFactory buildSrcBuildListenerFactory,
         BuildStateRegistry buildRegistry,
-        PublicBuildPath publicBuildPath
+        PublicBuildPath publicBuildPath,
+        BuildLogicBuildQueue buildQueue
     ) {
         this.currentBuild = currentBuild;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
         this.buildRegistry = buildRegistry;
         this.publicBuildPath = publicBuildPath;
+        this.buildQueue = buildQueue;
     }
 
     public ClassPath buildAndGetClassPath(GradleInternal gradle) {
@@ -86,7 +90,7 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(StandAloneNestedBuild buildSrcBuild) {
-        return buildSrcBuild.run(buildController ->
+        return buildQueue.buildBuildSrc(buildSrcBuild, buildController ->
             new BuildSrcUpdateFactory(buildSrcBuildListenerFactory).create(buildController)
         );
     }

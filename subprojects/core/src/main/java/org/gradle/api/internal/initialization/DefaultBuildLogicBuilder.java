@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
@@ -33,17 +32,17 @@ import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesFo
 
 public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     private final BuildState currentBuild;
-    private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ScriptClassPathResolver scriptClassPathResolver;
+    private final BuildLogicBuildQueue buildQueue;
 
     public DefaultBuildLogicBuilder(
         BuildState currentBuild,
-        BuildTreeWorkGraphController buildTreeWorkGraphController,
-        ScriptClassPathResolver scriptClassPathResolver
+        ScriptClassPathResolver scriptClassPathResolver,
+        BuildLogicBuildQueue buildQueue
     ) {
-        this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.currentBuild = currentBuild;
         this.scriptClassPathResolver = scriptClassPathResolver;
+        this.buildQueue = buildQueue;
     }
 
     @Override
@@ -53,21 +52,11 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration) {
-        initialize(classpathConfiguration);
-        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
-    }
-
-    private void initialize(Configuration classpath) {
-        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = taskIdentifiersForBuildDependenciesOf(classpath);
-        if (!tasksToBuild.isEmpty()) {
-            buildTreeWorkGraphController.withNewWorkGraph(graph -> {
-                graph
-                    .scheduleWork(builder -> builder.scheduleTasks(tasksToBuild))
-                    .runWork()
-                    .rethrow();
-                return null;
-            });
-        }
+        return buildQueue.build(
+            currentBuild,
+            taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
+            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration)
+        );
     }
 
     private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {

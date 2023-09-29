@@ -51,10 +51,6 @@ public class BuildLayoutValidator {
         this.builtInCommands = builtInCommands;
     }
 
-    /**
-     * Returns the {@link BuildLocations} for the build when the given {@code startParameter} represents
-     * a valid build definition.
-     */
     public void validate(StartParameterInternal startParameter) {
         BuildLocations buildLocations = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         if (!buildLocations.isBuildDefinitionMissing()) {

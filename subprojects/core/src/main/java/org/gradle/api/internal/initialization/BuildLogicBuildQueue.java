@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.internal.classpath.ClassPath;
+import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
-public interface BuildLogicBuilder {
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-    void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildLogicBuildQueue {
 
-    ClassPath resolveClassPath(Configuration classpathConfiguration);
+    <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock);
+
+    <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock);
 }
+

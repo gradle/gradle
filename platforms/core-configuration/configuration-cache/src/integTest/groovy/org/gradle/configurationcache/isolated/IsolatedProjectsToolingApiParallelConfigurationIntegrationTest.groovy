@@ -173,6 +173,8 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
     /**
      * Test two projects (:a and :b) depending on plugins from the same two included builds (:plugin-1 and :plugin-2)
      * which in turn depend on a plugin from another included build (:plugin-0).
+     *
+     * In addition, projects :a and :b also depend on the :plugins build for the model building plugin.
      **/
     def "projects are configured in parallel when projects use plugins from included builds and project scoped model is queried concurrently"() {
         given:
