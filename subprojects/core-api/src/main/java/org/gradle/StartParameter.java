@@ -990,6 +990,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * it may be disabled due to the presence of configuration cache problems. It is also currently not used during an IDE import/sync.
      *
      * @since 7.6
+     * @deprecated Use {@link org.gradle.api.configuration.BuildFeatures#getConfigurationCache() Configuration Cache build feature} instead.
      */
     @Incubating
     @Deprecated
