@@ -5,6 +5,7 @@ plugins {
     id("java-library")
     kotlin("jvm")
     id("gradlebuild.reproducible-archives")
+    id("gradlebuild.repositories")
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
     id("gradlebuild.test-retry")
