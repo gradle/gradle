@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.codegen
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeBuiltinPluginIdExtensionsTo
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeGradleApiKotlinDslExtensionsTo
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinCompilerWarning
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.kotlin.dsl.support.compileToDirectory

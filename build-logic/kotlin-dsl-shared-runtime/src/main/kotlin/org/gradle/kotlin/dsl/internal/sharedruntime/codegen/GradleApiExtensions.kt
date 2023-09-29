@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.gradleApiMetadataFrom
 
 import java.io.File
 
 
-internal
 fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>, gradleApiMetadataJar: File): List<File> {
 
     val gradleApiJars = gradleApiJarsFrom(gradleJars)
