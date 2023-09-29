@@ -26,6 +26,7 @@ import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_METADATA_EXTENSION
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
+import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinExtensionsForGradleApi
 import gradlebuild.packaging.GradleDistributionSpecs
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
@@ -170,8 +171,30 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(upgradedPropertiesMergeTask)
 }
 
+val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
+    classpath.from(runtimeClasspath)
+    destinationDirectory = layout.buildDirectory.dir("generated-resources/kotlin-dsl-extensions")
+}
+
+val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
+    manifestFile = generatedPropertiesFileFor("gradle-kotlin-dsl-extensions-classpath")
+}
+
+val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
+    archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
+    manifest.attributes(
+        mapOf(
+            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+        )
+    )
+    archiveBaseName = "gradle-kotlin-dsl-extensions"
+    from(gradleApiKotlinExtensions)
+    from(gradleApiKotlinExtensionsClasspathManifest)
+}
+
 // A standard Java runtime variant for embedded integration testing
-consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar)
+consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar, gradleApiKotlinExtensionsJar)
 // To make all source code of a distribution accessible transitively
 consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
@@ -308,7 +331,7 @@ fun docsResolver(defaultDependency: String) =
         }
     }
 
-fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, artifact: Any) =
+fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, vararg artifacts: Any) =
     configurations.create("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -320,7 +343,7 @@ fun consumableVariant(name: String, elements: String, bundling: String, extends:
         isCanBeConsumed = true
         isVisible = false
         extends.forEach { extendsFrom(it) }
-        outgoing.artifact(artifact)
+        artifacts.forEach { outgoing.artifact(it) }
     }
 
 fun consumableSourcesVariant(name: String, extends: List<Configuration>) =

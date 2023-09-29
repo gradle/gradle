@@ -55,6 +55,11 @@ abstract class InstrumentationMetadataExtension(private val configurations: Conf
 
     private
     fun Configuration.toProjectsOnlyView() = incoming.artifactView {
-        componentFilter { id -> id is ProjectComponentIdentifier }
+        componentFilter { id -> id is ProjectComponentIdentifier && id.isNotBuildLogic }
     }.files
+
+    // TODO Figure out how to do this properly and remove this hack!
+    private
+    val ProjectComponentIdentifier.isNotBuildLogic: Boolean
+        get() = !buildTreePath.contains("build-logic")
 }
