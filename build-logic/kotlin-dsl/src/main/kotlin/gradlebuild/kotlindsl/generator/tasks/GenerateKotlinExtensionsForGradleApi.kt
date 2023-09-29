@@ -17,17 +17,13 @@
 package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.io.File
-import javax.inject.Inject
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateGradleApiExtensionsSources
 
 
 @CacheableTask
@@ -44,45 +40,7 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
 
         val gradleJars = classpath.files.filter { it.name.startsWith("gradle-") && !it.name.startsWith("gradle-kotlin-dsl-") }
         val apiMetadataJar = gradleJars.single { it.name.startsWith("gradle-api-metadata") }
-
-        val tempJar: File = tempFileProvider.newTemporaryFile("gradle-kotlin-dsl-extensions.jar")
-
-        // Generation code is to be moved to `build-logic`, hack access to it from the wrapper for prototyping purpose
-        val generatorClass = Class.forName("org.gradle.kotlin.dsl.codegen.ApiExtensionsJarGenerator")
-        val constructor = generatorClass.getConstructor(TemporaryFileProvider::class.java, Collection::class.java, File::class.java, Function0::class.java)
-        constructor.isAccessible = true
-        val generator = constructor.newInstance(tempFileProvider, gradleJars, apiMetadataJar, {})
-        val generate = generatorClass.getMethod("generate", File::class.java)
-        generate.isAccessible = true
-        generate.invoke(generator, tempJar)
-
-        fs.copy {
-            from(archives.zipTree(tempJar))
-            into(destinationDirectory)
-        }
-
-        // TODO REMOVE - This patches the sources for the binary compatibility check until generation code is moved to `build-logic`
-        destinationDirectory.get().asFile.walkTopDown().filter { it.extension == "kt" }.forEach { sourceFile ->
-            sourceFile.writeText(buildString {
-                sourceFile.readLines().forEach { line ->
-                    appendLine(line)
-                    if (line == " */") {
-                        appendLine("@org.gradle.api.Generated")
-                    }
-                }
-            })
-        }
+        val outputDir = destinationDirectory.get().asFile
+        generateGradleApiExtensionsSources(outputDir, gradleJars, apiMetadataJar)
     }
-
-    @get:Inject
-    protected
-    abstract val tempFileProvider: TemporaryFileProvider
-
-    @get:Inject
-    protected
-    abstract val archives: ArchiveOperations
-
-    @get:Inject
-    protected
-    abstract val fs: FileOperations
 }
