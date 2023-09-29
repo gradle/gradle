@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,6 +44,7 @@ public class FinalizerGroup extends HasFinalizers {
     @Nullable
     private ElementSuccessors successors;
     private boolean finalizedNodeHasStarted;
+    private boolean hasBeenScheduled;
 
     public FinalizerGroup(TaskNode node, NodeGroup delegate) {
         this.ordinal = delegate.asOrdinal();
@@ -159,6 +161,12 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     public void scheduleMembers(SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {
+        if (hasBeenScheduled) {
+            return;
+        } else {
+            hasBeenScheduled = true;
+        }
+
         Set<Node> finalizedNodesToBlockOn = findFinalizedNodesThatDoNotIntroduceACycle(reachableGroups);
         WaitForNodesToComplete waitForFinalizers = new WaitForNodesToComplete(finalizedNodesToBlockOn);
 
@@ -176,6 +184,10 @@ public class FinalizerGroup extends HasFinalizers {
         // There are some finalized nodes that are also members
         // For each member, determine which finalized nodes to wait for
         ImmutableMap.Builder<Node, MemberSuccessors> blockingNodesBuilder = ImmutableMap.builder();
+
+        // Calculate the set of dependencies of finalized nodes that are also members of this group
+        Set<Node> dependenciesThatAreMembers = getDependenciesThatAreMembers(blockedFinalizedMembers);
+
         for (Node member : members) {
             if (isFinalizerNode(member) || memberCanStartAtAnyTime(member)) {
                 // Short-circuit for these, they are handled separately
@@ -190,22 +202,15 @@ public class FinalizerGroup extends HasFinalizers {
                     blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
                 }
             } else {
-                // Determine whether this member is a dependency of a finalized node, in which case treat it as if it were a finalized member
-                boolean requiredByBlockedFinalizedMember = false;
-                for (Node finalizedMember : blockedFinalizedMembers) {
-                    if (dependsOn(finalizedMember, member)) {
-                        requiredByBlockedFinalizedMember = true;
-                        break;
-                    }
-                }
-                if (requiredByBlockedFinalizedMember) {
+                if (dependenciesThatAreMembers.contains(member)) {
+                    // This member is a dependency of a finalized member. Treat is as if it were a finalized member.
                     blockingNodesBuilder.put(member, waitForFinalizers);
-                    continue;
+                } else {
+                    // Wait for the finalized nodes that don't introduce a cycle
+                    Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
+                    blockOn.addAll(blockedFinalizedMembers);
+                    blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
                 }
-                // Wait for the finalized nodes that don't introduce a cycle
-                Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
-                blockOn.addAll(blockedFinalizedMembers);
-                blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
             }
         }
         ImmutableMap<Node, MemberSuccessors> blockingNodes = blockingNodesBuilder.build();
@@ -260,21 +265,26 @@ public class FinalizerGroup extends HasFinalizers {
         return successors.getNodesThatBlock(node);
     }
 
-    private boolean dependsOn(Node fromNode, Node toNode) {
-        Set<Node> seen = new HashSet<>();
-        List<Node> queue = new ArrayList<>();
-        Iterables.addAll(queue, fromNode.getHardSuccessors());
-        while (!queue.isEmpty()) {
-            Node node = queue.remove(0);
-            if (node == toNode) {
-                return true;
+    private Set<Node> getDependenciesThatAreMembers(Set<Node> blockedFinalizedMembers) {
+        Set<Node> dependenciesThatAreMembers = new HashSet<>(members.size());
+        Set<Node> seen = new HashSet<>(1024);
+
+        ArrayDeque<Node> queue = new ArrayDeque<>(1024);
+        for (Node fromNode : blockedFinalizedMembers) {
+            queue.add(fromNode);
+            while (!queue.isEmpty()) {
+                Node toNode = queue.removeFirst();
+                if (members.contains(toNode) && !blockedFinalizedMembers.contains(toNode)) {
+                    dependenciesThatAreMembers.add(toNode);
+                }
+                toNode.visitHardSuccessors(node -> {
+                    if (seen.add(node)) {
+                        queue.add(node);
+                    }
+                });
             }
-            if (!seen.add(node)) {
-                continue;
-            }
-            Iterables.addAll(queue, node.getHardSuccessors());
         }
-        return false;
+        return dependenciesThatAreMembers;
     }
 
     private boolean hasACycle(Node finalized, SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {

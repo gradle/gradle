@@ -457,7 +457,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         orderingRule << ['dependsOn', 'mustRunAfter', 'shouldRunAfter']
     }
 
-    def "finalizer groups that finalize each other form a cycle"() {
+    def "finalizer groups that finalize each other do not form a cycle"() {
         given:
         TaskInternal finalizerA = createTask("finalizerA")
         TaskInternal finalizerB = createTask("finalizerB")

@@ -47,11 +47,8 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
         } catch (IOException e) {
             throw new UnsupportedOperationException("Unable to read system memory from " + MEMINFO_FILE_PATH, e);
         }
-        OsMemoryStatusSnapshot memInfo = getOsSnapshotFromMemInfo(meminfoOutputLines);
-        if (memInfo.getFreePhysicalMemory() < 0 || memInfo.getTotalPhysicalMemory() < 0) {
-            throw new UnsupportedOperationException("Unable to read system memory from " + MEMINFO_FILE_PATH);
-        }
-        return memInfo;
+
+        return getOsSnapshotFromMemInfo(meminfoOutputLines);
     }
 
 
@@ -78,6 +75,10 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
             } else if (line.startsWith("MemTotal")) {
                 meminfo.setTotal(parseMeminfoBytes(line));
             }
+        }
+
+        if (meminfo.getAvailable() < 0 || meminfo.getTotal() < 0) {
+            throw new UnsupportedOperationException("Unable to read system memory from " + MEMINFO_FILE_PATH);
         }
 
         return new OsMemoryStatusSnapshot(meminfo.getTotal(), meminfo.getAvailable());
