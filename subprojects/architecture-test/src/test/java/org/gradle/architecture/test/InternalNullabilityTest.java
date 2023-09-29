@@ -25,7 +25,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith;
 import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_in_kotlin;
-import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradleInternalApiPackages;
 import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
 
@@ -43,7 +42,7 @@ public class InternalNullabilityTest {
      * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in {@code :base-services}.
      */
     @ArchTest
-    public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
+    public static final ArchRule internal_classes_are_annotated_with_non_null_api = classes()
         .that(are(inGradleInternalApiPackages())).and(classes_not_written_in_kotlin).and(not_synthetic_classes)
-        .should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class)));
+        .should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class));
 }
