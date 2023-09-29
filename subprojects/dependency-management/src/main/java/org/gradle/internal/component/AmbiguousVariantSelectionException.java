@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,18 @@
 
 package org.gradle.internal.component;
 
-@SuppressWarnings("deprecation")
-public class AmbiguousArtifactVariantsException extends org.gradle.internal.component.AmbiguousVariantSelectionException {
-    public AmbiguousArtifactVariantsException(String message) {
+/**
+ * This type is {@code deprecated} and will be removed in Gradle 9.0.
+ *
+ * This is temporarily available for migration only.  Please use {@link AmbiguousArtifactVariantsException} instead.
+ */
+@Deprecated
+public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
+    public AmbiguousVariantSelectionException(String message) {
         super(message);
+    }
+
+    public AmbiguousVariantSelectionException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
