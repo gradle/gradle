@@ -39,6 +39,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -364,7 +365,7 @@ public abstract class IdeaPlugin extends IdePlugin {
 
     private void configureIdeaModuleForJava(final Project project) {
         JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
-        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
+        JvmTestSuite defaultTestSuite = JvmTestSuitePluginHelper.getDefaultTestSuite(project);
 
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
             // Dependencies

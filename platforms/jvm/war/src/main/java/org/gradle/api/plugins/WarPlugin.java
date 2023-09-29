@@ -32,6 +32,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
@@ -136,7 +137,7 @@ public abstract class WarPlugin implements Plugin<Project> {
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
         mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
 
-        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
+        JvmTestSuite defaultTestSuite = JvmTestSuitePluginHelper.getDefaultTestSuite(project);
         configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);
     }
 

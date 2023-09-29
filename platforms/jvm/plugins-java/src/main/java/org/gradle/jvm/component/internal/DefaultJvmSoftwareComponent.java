@@ -34,9 +34,9 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -227,7 +227,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
          */
         TestingExtension testing = project.getExtensions().findByType(TestingExtension.class);
         if (null != testing && JvmConstants.JAVA_COMPONENT_NAME.equals(getName())) {
-            final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JavaPluginHelper.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
+            final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
                 final SourceSet testSourceSet = suite.getSources();
                 ConfigurationContainer configurations = project.getConfigurations();
 

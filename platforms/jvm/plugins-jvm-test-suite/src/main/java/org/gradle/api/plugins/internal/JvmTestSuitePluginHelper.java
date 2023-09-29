@@ -17,41 +17,24 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
 /**
- * Utility class intended for use only when the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} is applied.
+ * Utility class intended for use only when the {@link org.gradle.api.plugins.JvmTestSuitePlugin JvmTestSuitePlugin} is applied.
  *
- * This class exists to avoid adding these methods to the {@code org.gradle.api.plugins.JavaPlugin JavaPlugin} itself,
+ * This class exists to avoid adding these methods to the plugin itself,
  * and thus avoids adding these methods to the public API.
  */
-@SuppressWarnings("JavadocReference")
-public class JavaPluginHelper {
+@NonNullApi
+public class JvmTestSuitePluginHelper {
     public static final String DEFAULT_TEST_SUITE_NAME = "test";
 
-    private JavaPluginHelper() {
+    private JvmTestSuitePluginHelper() {
         // Private to prevent instantiation.
-    }
-
-    /**
-     * Gets the main Java component. This method assumes the Java plugin is applied.
-     *
-     * @throws GradleException If the {@code java} component does not exist.
-     */
-    public static JvmSoftwareComponentInternal getJavaComponent(Project project) {
-        SoftwareComponent component = project.getComponents().findByName(JvmConstants.JAVA_COMPONENT_NAME);
-
-        if (!(component instanceof JvmSoftwareComponentInternal)) {
-            throw new GradleException("The Java plugin must be applied to access the java component.");
-        }
-
-        return (JvmSoftwareComponentInternal) component;
     }
 
     /**
