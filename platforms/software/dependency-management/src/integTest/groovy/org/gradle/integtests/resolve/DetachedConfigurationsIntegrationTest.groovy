@@ -163,9 +163,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'detachedConfiguration1' has been selected by the following variants:
-    - :test:unspecified variant detachedConfiguration1
-Depending on the resolved configuration has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
+        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'detachedConfiguration1' has been consumed as a variant, resulting in a circular dependency graph. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
 
         run "checkDependencies"
     }

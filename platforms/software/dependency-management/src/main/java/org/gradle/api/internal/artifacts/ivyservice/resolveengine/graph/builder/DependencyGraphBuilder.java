@@ -395,13 +395,13 @@ public class DependencyGraphBuilder {
         List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
         if (!incomingRootEdges.isEmpty()) {
             String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
-            String joinedSourceNodes = incomingRootEdges.stream().map(edge -> edge.getFrom().getNameWithVariant()).collect(Collectors.joining("\n    - "));
             DeprecationLogger.deprecate(
                 String.format(
-                    "The resolved configuration '%s' has been selected by the following variants:\n    - %s\nDepending on the resolved configuration",
-                    rootNodeName, joinedSourceNodes
+                    "The resolved configuration '%s' has been consumed as a variant, resulting in a circular dependency graph. " +
+                    "Depending on the resolved configuration in this manner",
+                    rootNodeName
                 ))
-                .withAdvice("Be sure to mark non-consumable Configurations as canBeConsumed=false, or use role-based Configuration factory methods to ensure Configurations cannot be both resolved and consumed.")
+                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")
                 .nagUser();

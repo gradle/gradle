@@ -61,8 +61,9 @@ These members will be removed in Gradle 9.0:
 ==== Deprecated depending on resolved configuration
 
 In some cases, it is possible to construct a dependency graph where the configuration being resolved can also be selected by a dependency in the graph.
-This can only occur when a Configuration is marked as both consumable and resolvable.
-In Gradle 9.0, this will no longer be allowed and will result in an error.
+This can only occur when a configuration is marked as both consumable and resolvable.
+To avoid this, either mark all resolvable configurations as `canBeConsumed=false` or use the `resolvable(String)` configuration factory method.
+In Gradle 9.0, constructing circular graphs in this manner will no longer be allowed and will result in an error.
 
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
