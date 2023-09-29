@@ -32,7 +32,7 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
         "org.gradle.kotlin.dsl",
         "GradleApiKotlinDslExtensions",
         gradleApiJars,
-        gradleJars - gradleApiJars,
+        gradleJars - gradleApiJars.toSet(),
         gradleApiMetadata.spec,
         gradleApiMetadata.parameterNamesSupplier
     )

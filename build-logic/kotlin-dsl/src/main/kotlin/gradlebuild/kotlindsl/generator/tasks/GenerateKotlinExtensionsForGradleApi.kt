@@ -23,7 +23,10 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateGradleApiExtensionsSources
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeBuiltinPluginIdExtensionsTo
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeGradleApiKotlinDslExtensionsTo
+import java.io.File
 
 
 @CacheableTask
@@ -36,11 +39,23 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
     abstract val destinationDirectory: DirectoryProperty
 
     @TaskAction
-    fun action() {
+    fun action() =
+        destinationDirectory.get().asFile.let { outputDir ->
+            GradleApiJars(classpath.files).run {
+                writeBuiltinPluginIdExtensionsTo(builtInPluginIdExtFileIn(outputDir), javaJars)
+                writeGradleApiKotlinDslExtensionsTo(outputDir, javaJars, apiMetadataJar)
+            }
+        }
 
-        val gradleJars = classpath.files.filter { it.name.startsWith("gradle-") && !it.name.startsWith("gradle-kotlin-dsl-") }
-        val apiMetadataJar = gradleJars.single { it.name.startsWith("gradle-api-metadata") }
-        val outputDir = destinationDirectory.get().asFile
-        generateGradleApiExtensionsSources(outputDir, gradleJars, apiMetadataJar)
+    private
+    class GradleApiJars(distroJars: Set<File>) {
+        val javaJars = distroJars.filter { it.name.startsWith("gradle-") && !it.name.startsWith("gradle-kotlin-dsl-") }
+        val apiMetadataJar = javaJars.single { it.name.startsWith("gradle-api-metadata") }
     }
+
+    private
+    fun builtInPluginIdExtFileIn(outputDir: File): File =
+        outputDir.resolve("$kotlinDslPackagePath/BuiltinPluginIdExtensions.kt").apply {
+            parentFile.mkdirs()
+        }
 }

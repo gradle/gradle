@@ -24,6 +24,7 @@ import java.util.Properties
 import java.util.jar.JarFile
 
 
+internal
 data class GradleApiMetadata(
     val includes: List<String>,
     val excludes: List<String>,
@@ -33,6 +34,7 @@ data class GradleApiMetadata(
 }
 
 
+internal
 fun gradleApiMetadataFrom(gradleApiMetadataJar: File, gradleApiJars: Collection<File>): GradleApiMetadata =
     apiDeclarationFrom(gradleApiMetadataJar).let { (includes, excludes) ->
         GradleApiMetadata(includes, excludes, parameterNamesSupplierFor(parameterNamesFrom(gradleApiJars)))
