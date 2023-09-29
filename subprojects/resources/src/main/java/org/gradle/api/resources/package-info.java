@@ -15,7 +15,7 @@
  */
 
 /**
- * Package {@code org.gradle.api.resources}.
+ * Interfaces and API for the 'Resources' concept.
  */
 @org.gradle.api.NonNullApi
 package org.gradle.api.resources;
