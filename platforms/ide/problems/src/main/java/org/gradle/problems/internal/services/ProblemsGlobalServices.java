@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal;
+package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.problems.transformers.TaskPathLocationTransformer;
+import org.gradle.problems.internal.transformers.TaskPathLocationTransformer;
 
 public class ProblemsGlobalServices {
 

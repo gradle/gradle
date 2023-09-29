@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.transformers;
+package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemTransformer;

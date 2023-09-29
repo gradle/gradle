@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.locations;
 
+import org.gradle.api.Incubating;
 import org.gradle.util.Path;
 
 /**
@@ -23,6 +24,7 @@ import org.gradle.util.Path;
  *
  * @since 8.5
  */
+@Incubating
 public class TaskPathLocation implements ProblemLocation {
 
     private final Path identityPath;

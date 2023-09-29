@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal;
+package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.Problems;
@@ -23,8 +23,8 @@ import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.ProblemLocationAnalyzer;
-import org.gradle.problems.transformers.PluginIdLocationTransformer;
-import org.gradle.problems.transformers.StackLocationTransformer;
+import org.gradle.problems.internal.transformers.PluginIdLocationTransformer;
+import org.gradle.problems.internal.transformers.StackLocationTransformer;
 
 import java.util.List;
 

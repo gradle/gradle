@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.locations;
-
-import org.gradle.api.Incubating;
-
 /**
- * Represents a location information of a problem.
- *
- * @since 8.5
+ * Package for internal, top-level classes used by the Problems API.
  */
-@Incubating
-public interface ProblemLocation {
+@NonNullApi
+package org.gradle.problems.internal;
 
-    /**
-     * Returns an identifier of the location type.
-     * <p>
-     * As locations will be serialized into a JSON format,
-     * this identifier is used to distinguish between different location types.
-     *
-     * @since 8.5
-     */
-    String getType();
-}
+import org.gradle.api.NonNullApi;

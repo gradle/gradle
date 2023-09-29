@@ -16,26 +16,28 @@
 
 package org.gradle.api.problems;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
 
 /**
  * Describes a transformation that can be applied to a problem.
- *
+ * <p>
  * These transformers could be added to the {@link Problems} service to transform problems before they are reported.
+ *
+ * @since 8.5
  */
 @FunctionalInterface
-@NonNullApi
+@Incubating
 public interface ProblemTransformer {
 
     /**
-     * Transforms the given problem.
-     * The returned problem will be reported instead of the original problem.
-     *
+     * Transforms the given problem. The returned problem will be reported instead of the original problem.
      * <p>
      * Transformations do not need to create a new problem, they can also modify the given problem.
      *
      * @param problem the problem to transform
      * @return the transformed problem
+     *
+     * @since 8.5
      */
     Problem transform(Problem problem);
 

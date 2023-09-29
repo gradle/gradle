@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Internal services for the Problems API, used by the dependency injection framework.
+ */
 @NonNullApi
-package org.gradle.problems.transformers;
+package org.gradle.problems.internal.services;
 
 import org.gradle.api.NonNullApi;

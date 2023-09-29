@@ -23,6 +23,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -68,6 +69,7 @@ public class OperationListener implements BuildOperationListener {
      * @return the operation if it is running and of the given type, null otherwise
      * @param <T> the expected type of the operation
      */
+    @Nullable
     public <T> T getOp(OperationIdentifier id, Class<T> targetClass) {
         Object op = runningOps.get(id);
         return targetClass.isInstance(op) ? targetClass.cast(op) : null;
