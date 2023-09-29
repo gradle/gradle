@@ -38,9 +38,9 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  * Always include the current JVM platform loader for which no JAR file can be held open.
  */
 class ClassBytesRepository(
+    platformClassLoader: ClassLoader,
     private val classPathFiles: List<File>,
     classPathDependencies: List<File> = emptyList(),
-    platformClassLoader: ClassLoader
 ) : Closeable {
 
     private

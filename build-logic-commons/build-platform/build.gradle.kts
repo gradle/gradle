@@ -49,6 +49,7 @@ dependencies {
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
             because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")
         }
+        api("com.google.code.findbugs:jsr305:3.0.2")
         api("commons-io:commons-io:2.8.0")
         api("commons-lang:commons-lang:2.6")
         api("io.mockk:mockk:1.12.4")

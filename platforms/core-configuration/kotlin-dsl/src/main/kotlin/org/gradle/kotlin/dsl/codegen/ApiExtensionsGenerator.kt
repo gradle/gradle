@@ -20,7 +20,19 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.internal.classloader.ClassLoaderUtils
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiFunction
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiFunctionParameter
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiType
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeProvider
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeUsage
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ParameterNamesSupplier
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.Variance
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.apiTypeProviderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.isStarProjectionTypeUsage
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.singletonListOfStarProjectionTypeUsage
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.starProjectionTypeUsage
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
@@ -50,7 +62,12 @@ fun generateKotlinDslApiExtensionsSourceTo(
     parameterNamesSupplier: ParameterNamesSupplier
 ): List<File> =
 
-    apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplier).use { api ->
+    apiTypeProviderFor(
+        ClassLoaderUtils.getPlatformClassLoader(),
+        classPath,
+        classPathDependencies,
+        parameterNamesSupplier
+    ).use { api ->
 
         val extensionsPerTarget =
             kotlinDslApiExtensionsDeclarationsFor(api, apiSpec).groupedByTarget()

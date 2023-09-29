@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
-import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ParameterNamesSupplier
 import java.io.File
 import java.util.Properties
 import java.util.jar.JarFile

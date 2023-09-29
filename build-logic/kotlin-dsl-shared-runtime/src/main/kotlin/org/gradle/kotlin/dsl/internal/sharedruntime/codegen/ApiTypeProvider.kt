@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,58 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 import org.gradle.api.Incubating
-
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
-import org.gradle.internal.classloader.ClassLoaderUtils
-
-import org.gradle.kotlin.dsl.accessors.contains
-import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
-
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.unsafeLazy
-
-import org.jetbrains.org.objectweb.asm.AnnotationVisitor
-import org.jetbrains.org.objectweb.asm.Attribute
-import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_CODE
-import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_FRAMES
-import org.jetbrains.org.objectweb.asm.FieldVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes.ACC_ABSTRACT
-import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
-import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
-import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
-import org.jetbrains.org.objectweb.asm.Opcodes.ACC_VARARGS
-import org.jetbrains.org.objectweb.asm.Type
-import org.jetbrains.org.objectweb.asm.TypePath
-import org.jetbrains.org.objectweb.asm.signature.SignatureReader
-import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
-import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
-import org.jetbrains.org.objectweb.asm.tree.ClassNode
-import org.jetbrains.org.objectweb.asm.tree.MethodNode
-
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.primitiveTypeStrings
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.unsafeLazy
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.Attribute
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassReader.SKIP_CODE
+import org.objectweb.asm.ClassReader.SKIP_FRAMES
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_STATIC
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.objectweb.asm.Opcodes.ACC_VARARGS
+import org.objectweb.asm.Type
+import org.objectweb.asm.TypePath
+import org.objectweb.asm.signature.SignatureReader
+import org.objectweb.asm.signature.SignatureVisitor
+import org.objectweb.asm.tree.AnnotationNode
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.MethodNode
 import java.io.Closeable
 import java.io.File
-
 import java.util.ArrayDeque
-
 import javax.annotation.Nullable
 
 
-internal
 fun apiTypeProviderFor(
+    platformClassLoader: ClassLoader,
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
-    parameterNamesSupplier: ParameterNamesSupplier = { null }
+    parameterNamesSupplier: ParameterNamesSupplier = { null },
 ): ApiTypeProvider =
 
     ApiTypeProvider(
         ClassBytesRepository(
+            platformClassLoader,
             classPath,
             classPathDependencies,
-            ClassLoaderUtils.getPlatformClassLoader()
         ),
         parameterNamesSupplier
     )
@@ -75,7 +66,6 @@ private
 typealias ApiTypeSupplier = () -> ApiType
 
 
-internal
 typealias ParameterNamesSupplier = (String) -> List<String>?
 
 
@@ -96,7 +86,6 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
  * - does not support nested Java arrays as method parameters
  * - does not support generics with multiple bounds
  */
-internal
 class ApiTypeProvider internal constructor(
     private val repository: ClassBytesRepository,
     parameterNamesSupplier: ParameterNamesSupplier
@@ -163,7 +152,6 @@ class ApiTypeProvider internal constructor(
 }
 
 
-internal
 class ApiType internal constructor(
     val sourceName: String,
     private val delegateSupplier: () -> ClassNode,
@@ -260,7 +248,6 @@ class ApiType internal constructor(
 }
 
 
-internal
 class ApiFunction internal constructor(
     val owner: ApiType,
     private val delegate: MethodNode,
@@ -302,8 +289,7 @@ class ApiFunction internal constructor(
 }
 
 
-internal
-data class ApiTypeUsage internal constructor(
+data class ApiTypeUsage constructor(
     val sourceName: String,
     val isNullable: Boolean = false,
     val type: ApiType? = null,
@@ -319,7 +305,6 @@ data class ApiTypeUsage internal constructor(
 }
 
 
-internal
 enum class Variance {
 
     /**
@@ -344,7 +329,6 @@ enum class Variance {
 }
 
 
-internal
 data class ApiFunctionParameter internal constructor(
     val index: Int,
     val isVarargs: Boolean,
@@ -380,16 +364,13 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
     }
 
 
-internal
 val ApiTypeUsage.isStarProjectionTypeUsage
     get() = this === starProjectionTypeUsage
 
 
-internal
 val starProjectionTypeUsage = ApiTypeUsage("*")
 
 
-internal
 val singletonListOfStarProjectionTypeUsage = listOf(starProjectionTypeUsage)
 
 
@@ -577,7 +558,6 @@ fun binaryNameOfInternalName(internalName: String): String =
     Type.getObjectType(internalName).className
 
 
-internal
 fun sourceNameOfBinaryName(binaryName: String): String =
     when (binaryName) {
         "void" -> "Unit"
@@ -643,3 +623,8 @@ inline val Int.isVarargs: Boolean
 private
 inline val Int.isSynthetic: Boolean
     get() = ACC_SYNTHETIC in this
+
+
+private
+operator fun Int.contains(flag: Int) =
+    and(flag) == flag

@@ -301,8 +301,8 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
     val classBytesRepository = ClassBytesRepository(
-        classPathFiles = classPath.asFiles,
-        platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+        ClassLoaderUtils.getPlatformClassLoader(),
+        classPath.asFiles
     )
 
     private
@@ -507,7 +507,7 @@ class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisito
 }
 
 
-internal
+private
 operator fun Int.contains(flag: Int) =
     and(flag) == flag
 

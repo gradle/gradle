@@ -115,8 +115,8 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         unzipTo(cpDir, jar2)
 
         ClassBytesRepository(
-            classPathFiles = listOf(jar1, cpDir),
-            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+            classPathFiles = listOf(jar1, cpDir)
         ).use { repository ->
             assertThat(
                 repository.classBytesFor(canonicalNameOf<Groovydoc.Link>()),
@@ -129,8 +129,8 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         }
 
         ClassBytesRepository(
-            classPathFiles = listOf(jar1, cpDir),
-            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+            classPathFiles = listOf(jar1, cpDir)
         ).use { repository ->
             assertThat(
                 repository.allSourceNames,
@@ -152,8 +152,8 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         val jars = EffectiveClassPath(javaClass.classLoader).asFiles.filter { it.name.startsWith("gradle-core-api-") }
 
         ClassBytesRepository(
-            classPathFiles = jars,
-            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+            classPathFiles = jars
         ).use { repository ->
             repository.allSourceNames.apply {
                 assertTrue(none { it == "package-info" })
@@ -173,8 +173,8 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         )
 
         ClassBytesRepository(
-            classPathFiles = entries,
-            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader()
+            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+            classPathFiles = entries
         ).use { repository ->
             assertThat(
                 repository.allSourceNames,

@@ -22,6 +22,7 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.primitiveTypeStrings
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -39,16 +40,16 @@ import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.newFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.newOptionalValueParameterOf
-import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
-import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
-import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.newPropertyOf
 import org.gradle.kotlin.dsl.support.bytecode.newTypeParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.newValueParameterOf
 import org.gradle.kotlin.dsl.support.bytecode.nullable
+import org.gradle.kotlin.dsl.support.bytecode.providerConvertibleOfStar
 import org.gradle.kotlin.dsl.support.bytecode.providerOfStar
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
+import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
