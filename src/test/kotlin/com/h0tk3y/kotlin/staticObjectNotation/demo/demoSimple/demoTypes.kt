@@ -1,7 +1,7 @@
 package com.example
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Adding
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Builder
+import com.h0tk3y.kotlin.staticObjectNotation.Adding
+import com.h0tk3y.kotlin.staticObjectNotation.Builder
 
 class Abc {
     var a: Int = 0
@@ -18,7 +18,8 @@ class Abc {
 }
 
 class C(var x: Int = 0) {
-    @Builder fun d(newD: D): C {
+    @Builder
+    fun d(newD: D): C {
         this.d = newD
         return this
     }

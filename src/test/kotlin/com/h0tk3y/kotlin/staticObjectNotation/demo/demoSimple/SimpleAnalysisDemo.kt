@@ -1,9 +1,8 @@
-package demo.demoSimple
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoSimple
 
 import com.example.*
-import com.example.demoSchema
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 
 val schema = schemaFromTypes(
     topLevelReceiver = Abc::class,

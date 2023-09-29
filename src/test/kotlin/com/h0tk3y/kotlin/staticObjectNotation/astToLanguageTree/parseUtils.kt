@@ -1,6 +1,5 @@
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.ElementResult
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.LanguageTreeResult
+package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+
 import org.intellij.lang.annotations.Language
 
 internal fun parse(@Language("kts") code: String): List<ElementResult<*>> {

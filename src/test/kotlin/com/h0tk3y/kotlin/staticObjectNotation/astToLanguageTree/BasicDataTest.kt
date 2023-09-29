@@ -1,4 +1,5 @@
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.Element
+package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll

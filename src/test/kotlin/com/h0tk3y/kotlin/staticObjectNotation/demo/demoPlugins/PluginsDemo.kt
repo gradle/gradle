@@ -1,8 +1,8 @@
-package demo.demoPlugins
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.printResolutionResults
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.resolve
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.schemaFromTypes
+import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 
 fun main() {
     val schema = schemaFromTypes(

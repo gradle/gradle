@@ -1,3 +1,5 @@
+package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisContext
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataObjectResolverImpl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason

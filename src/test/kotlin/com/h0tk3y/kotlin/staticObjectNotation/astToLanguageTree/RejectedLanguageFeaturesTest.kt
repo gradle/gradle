@@ -1,3 +1,5 @@
+package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
+
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
 import org.intellij.lang.annotations.Language

@@ -1,8 +1,8 @@
-package demo.demoPlugins
+package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Adding
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Builder
-import com.h0tk3y.kotlin.staticObjectNotation.schemaBuilder.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.Adding
+import com.h0tk3y.kotlin.staticObjectNotation.Builder
+import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 
 class TopLevelScope {
     val plugins = PluginsBlock()
