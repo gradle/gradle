@@ -453,6 +453,14 @@ Specifies the JDK installation directory to use for the client VM.
 +
 This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
+`GRADLE_LIBS_REPO_OVERRIDE`::
+Overrides for the default Gradle library repository.
++
+Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
++
+Useful override to specify an internally hosted repository in case your company uses a firewall/proxy.
+
+
 The following examples demonstrate how to use environment variables.
 
 *Example 1:* Reading environment variables at configuration time:
