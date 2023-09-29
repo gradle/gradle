@@ -22,10 +22,11 @@ import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature
-import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+
 /**
  * Tests {@link DefaultJvmSoftwareComponent}.
  *
@@ -60,7 +61,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
 
         then:
         component.mainFeature instanceof DefaultJvmFeature
@@ -104,7 +105,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName('processFeatureResources') == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature"))
 
         then:
         component.mainFeature instanceof DefaultJvmFeature
@@ -130,9 +131,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature1")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature2")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature1"))
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature2"))
 
         then:
         ext.sourceSets.getByName('main')
@@ -140,24 +141,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         ext.sourceSets.getByName('feature2')
     }
 
-    def "cannot create multiple component instances with the same source set name"() {
-        given:
-        project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-
-        when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1", "feature")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2", "feature")
-
-        then:
-        def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Cannot create multiple instances of DefaultJvmSoftwareComponent with source set name 'feature'."
-    }
-
     def "can configure javadoc jar variant"() {
         when:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         // Verify the JavaBasePlugin does not create the below tested objects so we can
         // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
@@ -166,7 +152,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("javadoc") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
         component.withJavadocJar()
 
         then:
@@ -186,7 +172,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
     def "can configure sources jar variant"() {
         when:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         // Verify the JavaBasePlugin does not create the below tested objects so we can
         // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
@@ -195,7 +180,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("sources") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
         component.withSourcesJar()
 
         then:
@@ -216,9 +201,13 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         when:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
 
         then:
         component.usages*.name == ["apiElements", "runtimeElements"]
+    }
+
+    private JvmFeatureInternal createFeature(String name, String sourceSetName = name) {
+        return new DefaultJvmFeature(name, project.getExtensions().getByType(JavaPluginExtension).getSourceSets().create(sourceSetName), Collections.emptyList(), project, false, false)
     }
 }
