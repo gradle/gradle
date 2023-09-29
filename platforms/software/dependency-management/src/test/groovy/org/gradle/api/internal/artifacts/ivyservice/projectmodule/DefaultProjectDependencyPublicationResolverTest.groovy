@@ -158,9 +158,12 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
     def "detects circular components graphs"() {
         given:
-        def comp1 = Stub(TestComponent)
+        def comp1 = Stub(TestComponent) {
+            getName() >> "foo"
+        }
         def comp2 = Stub(TestComponent) {
             getVariants() >> [comp1]
+            getName() >> "bar"
         }
         comp1.getVariants() >> [comp2]
 
@@ -172,7 +175,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Circular dependency detected while resolving component coordinates."
+        e.message == "Circular dependency detected while resolving component coordinates. Found the following components: foo, bar"
     }
 
     def "detects multiple components with the same coordinates"() {
@@ -194,7 +197,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Multiple child components may not share the same coordinates."
+        e.message == "Multiple child components may not share the same coordinates: pub-group:pub-name:pub-version"
     }
 
     def "detects variants with the same name"() {

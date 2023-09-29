@@ -445,27 +445,24 @@ public class MavenComponentParser {
 
     /**
      * This is used to de-duplicate dependencies based on relevant contents.
-     * In particular, version and scope are ignored.
+     * In particular, version, scope, and optional are ignored.
      */
     private static class MavenDependencyKey {
         private final String group;
         private final String name;
         private final String type;
         private final String classifier;
-        private final boolean optional;
 
         private MavenDependencyKey(
             String group,
             String name,
             @Nullable String type,
-            @Nullable String classifier,
-            boolean optional
+            @Nullable String classifier
         ) {
             this.group = group;
             this.name = name;
             this.type = type;
             this.classifier = classifier;
-            this.optional = optional;
         }
 
         static MavenDependencyKey of(MavenDependency dep) {
@@ -473,8 +470,7 @@ public class MavenComponentParser {
                 dep.getGroupId(),
                 dep.getArtifactId(),
                 dep.getType(),
-                dep.getClassifier(),
-                dep.isOptional()
+                dep.getClassifier()
             );
         }
 
@@ -490,13 +486,12 @@ public class MavenComponentParser {
             return Objects.equals(group, that.group) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(type, that.type) &&
-                Objects.equals(classifier, that.classifier) &&
-                optional == that.optional;
+                Objects.equals(classifier, that.classifier);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(group, name, type, classifier, optional);
+            return Objects.hash(group, name, type, classifier);
         }
     }
 }

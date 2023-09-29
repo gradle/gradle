@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.internal.mapping
 
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.component.SoftwareComponentVariant

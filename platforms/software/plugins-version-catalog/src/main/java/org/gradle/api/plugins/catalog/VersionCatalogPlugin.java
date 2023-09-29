@@ -78,7 +78,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
         AdhocComponentWithVariants versionCatalog = softwareComponentFactory.adhoc("versionCatalog");
         project.getComponents().add(versionCatalog);
-        versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true, null));
+        versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
     private Configuration createDependenciesConfiguration(ProjectInternal project) {

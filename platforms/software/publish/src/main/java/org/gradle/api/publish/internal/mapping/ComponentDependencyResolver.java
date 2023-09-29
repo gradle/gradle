@@ -47,7 +47,7 @@ public interface ComponentDependencyResolver {
     ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency);
 
     /**
-     * Determines the published coordinates for a dependency constraint to component-level precision.
+     * Determines the published coordinates for an external dependency constraint to component-level precision.
      *
      * @return null if the external dependency constraint could not be resolved.
      */
@@ -55,7 +55,7 @@ public interface ComponentDependencyResolver {
     ResolvedCoordinates resolveComponentCoordinates(DependencyConstraint dependency);
 
     /**
-     * Determines the published coordinates for a dependency constraint to component-level precision.
+     * Determines the published coordinates for a project dependency constraint to component-level precision.
      *
      * @throws RuntimeException If the project cannot be resolved.
      */

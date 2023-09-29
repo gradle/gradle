@@ -44,6 +44,10 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
     private final boolean optional;
     private final Configuration resolutionConfiguration;
 
+    public JavaConfigurationVariantMapping(String scope, boolean optional) {
+        this(scope, optional, null);
+    }
+
     public JavaConfigurationVariantMapping(String scope, boolean optional, @Nullable Configuration resolutionConfiguration) {
         this.scope = scope;
         this.optional = optional;

@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * A service that will resolve a project identity path into publication coordinates. If the target variant
@@ -69,7 +70,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
     @Override
     public <T> T resolveComponent(Class<T> coordsType, Path identityPath) {
-        return withResolver(coordsType, identityPath,
+        return withCoordinateResolver(coordsType, identityPath,
             VariantCoordinateResolver::getComponentCoordinates
         );
     }
@@ -77,7 +78,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     @Nullable
     @Override
     public <T> T resolveVariant(Class<T> coordsType, Path identityPath, String variantName) {
-        return withResolver(coordsType, identityPath, resolver ->
+        return withCoordinateResolver(coordsType, identityPath, resolver ->
             resolver.getVariantCoordinates(variantName)
         );
     }
@@ -85,7 +86,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     /**
      * Execute the action with a resolver for the given project.
      */
-    private <T> T withResolver(Class<T> coordsType, Path identityPath, Function<VariantCoordinateResolver<T>, T> action) {
+    private <T> T withCoordinateResolver(Class<T> coordsType, Path identityPath, Function<VariantCoordinateResolver<T>, T> action) {
         ProjectState projectState = projects.stateFor(identityPath);
 
         // Ensure target project is configured
@@ -93,18 +94,18 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         return projectState.fromMutableState(project -> {
             VariantCoordinateResolver<T> resolver = resolverCache.computeIfAbsent(identityPath, coordsType, key ->
-                createResolver(identityPath, coordsType, project)
+                createCoordinateResolver(identityPath, coordsType, project)
             );
             return action.apply(resolver);
         });
     }
 
     // It would be nice to get rid of the project parameter
-    private <T> VariantCoordinateResolver<T> createResolver(Path identityPath, Class<T> coordsType, ProjectInternal project) {
+    private <T> VariantCoordinateResolver<T> createCoordinateResolver(Path identityPath, Class<T> coordsType, ProjectInternal project) {
         Map<ProjectComponentPublication, T> publications = getPublications(identityPath, coordsType);
 
         if (publications.isEmpty()) {
-            return VariantCoordinateResolver.of(getImplicitCoordinates(coordsType, project));
+            return VariantCoordinateResolver.fixed(getImplicitCoordinates(coordsType, project));
         }
 
         // For all published components, find those that are not children of other components.
@@ -130,7 +131,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         }
 
         // See if all entry points have the same identifier
-        return VariantCoordinateResolver.of(getCommonCoordinates(project, coordsType, topLevel));
+        return VariantCoordinateResolver.fixed(getCommonCoordinates(project, coordsType, topLevel));
     }
 
     /**
@@ -246,7 +247,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         /**
          * Create a resolver that always returns the given coordinates
          */
-        static <T> VariantCoordinateResolver<T> of(T coordinates) {
+        static <T> VariantCoordinateResolver<T> fixed(T coordinates) {
             return new FixedVariantCoordinateResolver<>(coordinates);
         }
 
@@ -281,7 +282,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         private MultiCoordinateVariantResolver(SoftwareComponent root, Path identityPath, Map<SoftwareComponent, T> componentCoordinates) {
             this.root = root;
             this.componentCoordinates = componentCoordinates;
-            this.variantCoordinatesMap = Lazy.locking().of(() -> variantNameToCoordinates(root, componentCoordinates, identityPath));
+            this.variantCoordinatesMap = Lazy.locking().of(() -> mapVariantNamesToCoordinates(root, componentCoordinates, identityPath));
         }
 
         public T getComponentCoordinates() {
@@ -293,7 +294,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             return variantCoordinatesMap.get().get(resolvedVariant);
         }
 
-        private static <T>  Map<String, T> variantNameToCoordinates(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
+        private static <T>  Map<String, T> mapVariantNamesToCoordinates(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
             Map<String, T> result = new HashMap<>();
             ComponentWalker.walkComponent(root, componentsMap, (variant, coordinates) -> {
                 if (result.put(variant.getName(), coordinates) != null) {
@@ -320,7 +321,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
          * Visit every variant of a composite component
          */
         public static <T> void walkComponent(SoftwareComponent component, Map<SoftwareComponent, T> componentsMap, ComponentVisitor<T> visitor) {
-            walkComponent(component, componentsMap, new HashSet<>(), new HashSet<>(), visitor);
+            walkComponent(component, componentsMap, new LinkedHashSet<>(), new HashSet<>(), visitor);
         }
 
         private static <T> void walkComponent(
@@ -331,12 +332,15 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             ComponentVisitor<T> visitor
         ) {
             if (!componentsSeen.add(component)) {
-                throw new InvalidUserDataException("Circular dependency detected while resolving component coordinates.");
+                String allComponents = componentsSeen.stream()
+                    .map(SoftwareComponent::getName)
+                    .collect(Collectors.joining(", "));
+                throw new InvalidUserDataException("Circular dependency detected while resolving component coordinates. Found the following components: " + allComponents);
             }
 
             T coordinates = componentCoordinates.get(component);
             if (!coordinatesSeen.add(coordinates)) {
-                throw new InvalidUserDataException("Multiple child components may not share the same coordinates.");
+                throw new InvalidUserDataException("Multiple child components may not share the same coordinates: " + coordinates);
             }
 
             // First visit the local variants
