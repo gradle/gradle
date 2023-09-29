@@ -68,6 +68,7 @@ However, support for running Gradle with Java 21 is expected in future versions.
 ### Faster Java compilation on Windows
 
 Gradle 8.3 [made Java compilation faster](/8.3/release-notes.html#faster-java-compilation), by keeping compiler daemons alive between builds.
+Gradle's internal performance tests show up to a 30% build time improvement for builds that are dominated by compiling Java sources.
 Until now, this optimization was only supported on Linux and macOS.
 
 With this release, persistent Java compiler daemons are also supported on Windows.
