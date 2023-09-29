@@ -31,6 +31,7 @@ sealed interface ErrorReason {
     data class UnresolvedReference(val reference: Expr) : ErrorReason
     data class AmbiguousFunctions(val functions: List<FunctionResolutionAndBinding>) : ErrorReason
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
+    data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
 
     data object UnusedConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
@@ -252,16 +253,29 @@ class DataObjectResolverImpl : DataObjectResolver {
         if (lhsResolution == null) {
             errorCollector(ResolutionError(assignment.lhs, ErrorReason.UnresolvedAssignmentLhs))
         } else {
+            var hasErrors = false
             if (lhsResolution.property.isReadOnly) {
                 errorCollector(ResolutionError(assignment.rhs, ErrorReason.ReadOnlyPropertyAssignment))
+                hasErrors = true
+            }
+            val rhsResolution = doResolveExpression(assignment.rhs)
+            if (rhsResolution == null) {
+                errorCollector(ResolutionError(assignment.rhs, ErrorReason.UnresolvedAssignmentRhs))
             } else {
-                val rhsResolution = doResolveExpression(assignment.rhs)
-                if (rhsResolution == null) {
-                    errorCollector(ResolutionError(assignment.rhs, ErrorReason.UnresolvedAssignmentRhs))
-                } else {
-                    if (getDataType(rhsResolution) == DataType.UnitType) {
-                        errorCollector(ResolutionError(assignment, ErrorReason.UnitAssignment))
-                    }
+                val rhsType = getDataType(rhsResolution)
+                val lhsExpectedType = resolveRef(lhsResolution.property.type)
+                if (rhsType == DataType.UnitType) {
+                    errorCollector(ResolutionError(assignment, ErrorReason.UnitAssignment))
+                    hasErrors = true
+                }
+                if (!checkIsAssignable(rhsType, lhsExpectedType)) {
+                    errorCollector(
+                        ResolutionError(assignment, ErrorReason.AssignmentTypeMismatch(lhsExpectedType, rhsType))
+                    )
+                    hasErrors = true
+                }
+
+                if (!hasErrors) {
                     recordAssignment(lhsResolution, rhsResolution)
                 }
             }
