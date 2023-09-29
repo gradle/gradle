@@ -17,4 +17,5 @@
 /**
  * This package contains the leaf exclude type implementations.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;

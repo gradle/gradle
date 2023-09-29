@@ -17,4 +17,5 @@
 /**
  * GnuPG CLI signing support.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.plugins.signing.signatory.internal.gnupg;

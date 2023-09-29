@@ -17,4 +17,5 @@
 /**
  * This package contains different accessory factories for excludes.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
