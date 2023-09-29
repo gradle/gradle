@@ -39,10 +39,10 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
@@ -406,6 +406,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
                 nonPrimitiveKotlinType()?.also { all.add(it) }
                 buffer = StringBuilder()
             }
+
             in " ,>" -> {
                 nonPrimitiveKotlinType()?.also {
                     all.add(it)
@@ -413,6 +414,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
                 }
                 buffer = StringBuilder()
             }
+
             else -> buffer.append(char)
         }
     }
@@ -451,6 +453,7 @@ class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
             "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
                 visibility = Flags.VISIBILITY[classData.flags]
             }
+
             else -> null
         }
 }

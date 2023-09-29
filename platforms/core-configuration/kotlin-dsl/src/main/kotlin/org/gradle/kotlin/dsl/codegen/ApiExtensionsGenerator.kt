@@ -20,6 +20,7 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 
-internal
 val fileHeader: String
     get() = fileHeaderFor(kotlinDslPackageName)
 
 
-internal
 fun fileHeaderFor(packageName: String) =
     """$licenseHeader
 
@@ -45,15 +43,12 @@ package $packageName
 """
 
 
-internal
 const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
 
 
-internal
 const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
 
 
-internal
 const val licenseHeader = """/*
  * Copyright 2018 the original author or authors.
  *

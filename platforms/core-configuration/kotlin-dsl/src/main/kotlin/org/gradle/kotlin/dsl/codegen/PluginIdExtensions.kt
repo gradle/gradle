@@ -16,14 +16,12 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
-
 import java.io.File
 import java.io.IOException
-import java.lang.IllegalArgumentException
-
 import java.util.Properties
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
