@@ -28,6 +28,8 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.DefaultVariantArtifactResolver;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.function.LongFunction;
@@ -38,21 +40,22 @@ import java.util.function.LongFunction;
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private int nextId;
     private final Long2ObjectMap<ArtifactsForNode> artifactsByNodeId = new Long2ObjectOpenHashMap<>();
-    private final VariantArtifactResolver variantResolver;
     private final DependencyArtifactsVisitor artifactResults;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final VariantArtifactResolver variantResolver;
 
     public ResolvedArtifactsGraphVisitor(
         DependencyArtifactsVisitor artifactsBuilder,
-        VariantArtifactResolver variantResolver,
         ArtifactTypeRegistry artifactTypeRegistry,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ArtifactResolver artifactResolver,
+        ResolvedVariantCache resolvedVariantCache
     ) {
         this.artifactResults = artifactsBuilder;
-        this.variantResolver = variantResolver;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.variantResolver = new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache);
     }
 
     @Override

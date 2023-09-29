@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
@@ -92,9 +91,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyGraphBuilderTest extends Specification {
-    def resolveContext = Mock(ResolveContext) {
-        getResolutionStrategy() >> Stub(ResolutionStrategyInternal)
-    }
+    def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState)
     def conflictResolver = Mock(ModuleConflictResolver)
     def idResolver = Mock(DependencyToComponentIdResolver)
     def metaDataResolver = Mock(ComponentMetaDataResolver)
@@ -138,18 +135,15 @@ class DependencyGraphBuilderTest extends Specification {
     def setup() {
         def rootComponentState = new DefaultLocalComponentGraphResolveState(0, root, desugaring, new ComponentIdGenerator(), false)
 
-        _ * resolveContext.name >> 'root'
-        _ * resolveContext.toRootComponent() >> Stub(RootComponentMetadataBuilder.RootComponentState) {
-            getRootComponent() >> rootComponentState
-            getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
-        }
+        _ * rootComponent.getRootComponent() >> rootComponentState
+        _ * rootComponent.getRootVariant() >> rootComponentState.getConfiguration('root').asVariant()
 
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), desugaring, versionSelectorScheme, versionComparator.asVersionComparator(), new ComponentIdGenerator(), new VersionParser(), variantSelector)
     }
 
     private TestGraphVisitor resolve(DependencyGraphBuilder builder = this.builder) {
         def graphVisitor = new TestGraphVisitor()
-        builder.resolve(resolveContext, graphVisitor, false)
+        builder.resolve(rootComponent, Mock(ResolutionStrategyInternal), [], graphVisitor)
         return graphVisitor
     }
 

@@ -42,12 +42,12 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -109,7 +109,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         Comparator<Version> versionComparator,
         VersionParser versionParser,
         ModuleConflictResolver<ComponentState> conflictResolver,
-        int graphSize,
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
         ResolutionConflictTracker conflictTracker,
@@ -127,16 +126,18 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.modules = new LinkedHashMap<>(graphSize);
-        this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
-        this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
-        this.queue = new ArrayDeque<>(graphSize);
         this.conflictResolution = conflictResolution;
         this.conflictTracker = conflictTracker;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         this.variantSelector = variantSelector;
+
+        int graphSize = estimateGraphSize(root);
+        this.modules = new LinkedHashMap<>(graphSize);
+        this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
+        this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
+        this.queue = new ArrayDeque<>(graphSize);
 
         LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
         ComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
@@ -340,4 +341,17 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         }
     }
 
+    /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    private static int estimateGraphSize(RootComponentMetadataBuilder.RootComponentState rootComponentState) {
+        int numDependencies = rootComponentState.getRootVariant().getMetadata().getDependencies().size();
+
+        // TODO #24641: Why are the numbers and operations here the way they are?
+        //  Are they up-to-date? We should be able to test if these values are still optimal.
+        int estimate = (int) (512 * Math.log(numDependencies));
+        return Math.max(10, estimate);
+    }
 }
