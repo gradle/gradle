@@ -1,15 +1,18 @@
 package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.printResolutionResults
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.resolve
 import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
+import org.junit.jupiter.api.Test
+import kotlin.test.assertTrue
+
+val schema = schemaFromTypes(
+    topLevelReceiver = TopLevelScope::class,
+    types = listOf(TopLevelScope::class, PluginsBlock::class, PluginDefinition::class)
+)
 
 fun main() {
-    val schema = schemaFromTypes(
-        topLevelReceiver = TopLevelScope::class,
-        types = listOf(TopLevelScope::class, PluginsBlock::class, PluginDefinition::class)
-    )
-
     printResolutionResults(
         schema.resolve(
             """
@@ -25,4 +28,12 @@ fun main() {
             """.trimIndent()
         )
     )
+}
+
+class Tests {
+    @Test
+    fun `unit assigned to val is reported as an error`() {
+        val result = schema.resolve("val x = plugins { }")
+        assertTrue { result.errors.single().errorReason == ErrorReason.UnitAssignment }
+    }
 }

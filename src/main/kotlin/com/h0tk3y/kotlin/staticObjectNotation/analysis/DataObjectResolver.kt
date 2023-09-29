@@ -36,6 +36,7 @@ sealed interface ErrorReason {
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?
+    data object UnitAssignment : ErrorReason
     data object ReadOnlyPropertyAssignment : ErrorReason
     data object DanglingPureExpression : ErrorReason
 }
@@ -238,6 +239,9 @@ class DataObjectResolverImpl : DataObjectResolver {
         if (rhs == null) {
             errorCollector(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
         } else {
+            if (getDataType(rhs) == DataType.UnitType) {
+                errorCollector(ResolutionError(localValue, ErrorReason.UnitAssignment))
+            }
             currentScopes.last().declareLocal(localValue, rhs, errorCollector)
         }
     }
@@ -255,6 +259,9 @@ class DataObjectResolverImpl : DataObjectResolver {
                 if (rhsResolution == null) {
                     errorCollector(ResolutionError(assignment.rhs, ErrorReason.UnresolvedAssignmentRhs))
                 } else {
+                    if (getDataType(rhsResolution) == DataType.UnitType) {
+                        errorCollector(ResolutionError(assignment, ErrorReason.UnitAssignment))
+                    }
                     recordAssignment(lhsResolution, rhsResolution)
                 }
             }
