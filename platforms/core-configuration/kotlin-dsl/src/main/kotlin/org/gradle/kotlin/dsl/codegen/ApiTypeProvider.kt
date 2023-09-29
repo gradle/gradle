@@ -24,7 +24,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
 
-import org.gradle.kotlin.dsl.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor

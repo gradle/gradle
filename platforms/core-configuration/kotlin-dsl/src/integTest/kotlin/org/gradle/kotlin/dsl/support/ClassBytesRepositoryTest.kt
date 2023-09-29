@@ -25,6 +25,9 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.classFilePathCandidatesFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.kotlinSourceNameOf
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
