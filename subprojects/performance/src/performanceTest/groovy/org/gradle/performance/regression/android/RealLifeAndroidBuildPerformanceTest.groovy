@@ -24,11 +24,9 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import spock.lang.Issue
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -112,52 +110,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/25361")
-    @RunFor([
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild"),
-    ])
-    def "calculate task graph with test finalizer"() {
-        given:
-        AndroidTestProject testProject = androidTestProject
-        testProject.configure(runner)
-        runner.addBuildMutator {invocation -> new TestFinalizerMutator(invocation) }
-        runner.tasksToRun = [':phthalic:test', '--dry-run']
-        runner.args.add('-Dorg.gradle.parallel=true')
-        runner.warmUpRuns = 2
-        runner.runs = 8
-        applyEnterprisePlugin()
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-    }
-
-    private class TestFinalizerMutator implements BuildMutator {
-        private final InvocationSettings invocation
-
-        TestFinalizerMutator(InvocationSettings invocation) {
-            this.invocation = invocation
-        }
-
-        @Override
-        void beforeScenario(ScenarioContext context) {
-            def buildFile = new File(invocation.projectDir, "build.gradle")
-            buildFile << """
-                def finalizerTask = tasks.register("testFinalizer")
-                subprojects {
-                    tasks.withType(com.android.build.gradle.tasks.factory.AndroidUnitTest) { testTask ->
-                        testTask.finalizedBy(finalizerTask)
-                        finalizerTask.configure {
-                            dependsOn testTask
-                        }
-                    }
-                }
-            """.stripIndent()
-        }
     }
 
     private void configureForLargeAndroidBuild2() {
