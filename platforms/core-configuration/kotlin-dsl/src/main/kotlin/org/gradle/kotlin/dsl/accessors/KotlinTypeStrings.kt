@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.reflect.TypeOf
-import org.gradle.kotlin.dsl.internal.sharedruntime.support.primitiveTypeStrings
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveTypeStrings
 
 
 internal
@@ -33,7 +33,3 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
             toString().let { primitiveTypeStrings[it] ?: it }
     }
 }
-
-
-internal
-val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()

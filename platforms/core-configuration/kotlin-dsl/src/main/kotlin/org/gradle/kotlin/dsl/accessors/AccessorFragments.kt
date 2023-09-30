@@ -22,7 +22,7 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
-import org.gradle.kotlin.dsl.internal.sharedruntime.support.primitiveTypeStrings
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveTypeStrings
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST

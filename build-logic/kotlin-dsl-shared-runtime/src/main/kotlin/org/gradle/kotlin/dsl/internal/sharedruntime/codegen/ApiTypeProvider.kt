@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.internal.sharedruntime.support.primitiveTypeStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.unsafeLazy
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.Attribute

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.sharedruntime.support
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 
 val primitiveTypeStrings =
@@ -38,3 +38,6 @@ val primitiveTypeStrings =
         "java.lang.Double" to "Double",
         "double" to "Double"
     )
+
+
+val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()
