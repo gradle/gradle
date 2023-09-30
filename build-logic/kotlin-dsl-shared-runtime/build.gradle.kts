@@ -8,6 +8,7 @@ group = "org.gradle.kotlin-dsl-shared-runtime"
 
 dependencies {
     compileOnly(platform("gradlebuild:build-platform"))
+    compileOnly(kotlin("stdlib"))
     compileOnly("org.ow2.asm:asm-tree")
     compileOnly("com.google.code.findbugs:jsr305")
 }
