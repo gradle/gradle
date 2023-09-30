@@ -43,7 +43,7 @@ import java.util.jar.Attributes
 plugins {
     groovy
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
-    id("gradlebuild.module-identity")
+    id("gradlebuild.module-jar")
     id("gradlebuild.dependency-modules")
 }
 
@@ -51,10 +51,8 @@ extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks
 
 removeTeamcityTempProperty()
 addDependencies()
-configureClasspathManifestGeneration()
 configureCompile()
 configureSourcesVariant()
-configureJarTasks()
 configureTests()
 
 tasks.registerCITestDistributionLifecycleTasks()
@@ -118,16 +116,6 @@ fun configureCompileTask(options: CompileOptions) {
     options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
 }
 
-fun configureClasspathManifestGeneration() {
-    val runtimeClasspath by configurations
-    val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
-        this.runtimeClasspath.from(runtimeClasspath)
-        this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
-        this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
-    }
-    sourceSets.main.get().output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
-}
-
 fun addDependencies() {
     dependencies {
         testCompileOnly(libs.junit)
@@ -173,14 +161,6 @@ fun addCompileAllTask() {
             (it is JavaCompile || it is GroovyCompile)
         }
         dependsOn(compileTasks)
-    }
-}
-
-fun configureJarTasks() {
-    tasks.withType<Jar>().configureEach {
-        archiveBaseName = moduleIdentity.baseName
-        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
-        manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
     }
 }
 
