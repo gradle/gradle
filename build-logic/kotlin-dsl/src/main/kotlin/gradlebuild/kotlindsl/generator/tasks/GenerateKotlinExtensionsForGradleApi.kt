@@ -17,15 +17,19 @@
 package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeBuiltinPluginIdExtensionsTo
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeGradleApiKotlinDslExtensionsTo
+import org.objectweb.asm.Type
 import java.io.File
 
 
@@ -42,8 +46,18 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
     fun action() =
         destinationDirectory.get().asFile.let { outputDir ->
             GradleApiJars(classpath.files).run {
-                writeBuiltinPluginIdExtensionsTo(builtInPluginIdExtFileIn(outputDir), javaJars)
-                writeGradleApiKotlinDslExtensionsTo(outputDir, javaJars, apiMetadataJar)
+                writeBuiltinPluginIdExtensionsTo(
+                    builtInPluginIdExtFileIn(outputDir),
+                    javaJars
+                )
+                writeGradleApiKotlinDslExtensionsTo(
+                    ASM_LEVEL,
+                    ClassLoaderUtils.getPlatformClassLoader(),
+                    Type.getDescriptor(Incubating::class.java),
+                    outputDir,
+                    javaJars,
+                    apiMetadataJar
+                )
             }
         }
 

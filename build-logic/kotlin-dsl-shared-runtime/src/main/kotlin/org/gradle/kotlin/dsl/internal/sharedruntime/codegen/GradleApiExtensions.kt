@@ -21,13 +21,23 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.support.gradleApiMetadataFro
 import java.io.File
 
 
-fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Collection<File>, gradleApiMetadataJar: File): List<File> {
+fun writeGradleApiKotlinDslExtensionsTo(
+    asmLevel: Int,
+    platformClassLoader: ClassLoader,
+    incubatingAnnotationTypeDescriptor: String,
+    outputDirectory: File,
+    gradleJars: Collection<File>,
+    gradleApiMetadataJar: File,
+): List<File> {
 
     val gradleApiJars = gradleApiJarsFrom(gradleJars)
 
     val gradleApiMetadata = gradleApiMetadataFrom(gradleApiMetadataJar, gradleApiJars)
 
     return generateKotlinDslApiExtensionsSourceTo(
+        asmLevel,
+        platformClassLoader,
+        incubatingAnnotationTypeDescriptor,
         outputDirectory,
         "org.gradle.kotlin.dsl",
         "GradleApiKotlinDslExtensions",

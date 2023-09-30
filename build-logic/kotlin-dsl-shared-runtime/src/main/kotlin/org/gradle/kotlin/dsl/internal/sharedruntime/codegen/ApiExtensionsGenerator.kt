@@ -20,7 +20,6 @@ package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.pattern.PatternMatcher
-import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import java.io.File
 
@@ -28,6 +27,7 @@ import java.io.File
 /**
  * Generate source file with Kotlin extensions enhancing the given api for the Gradle Kotlin DSL.
  *
+ * @param asmLevel ASM level
  * @param outputDirectory the directory where the generated sources will be written
  * @param packageName the name of the package where the generated members will be added
  * @param sourceFilesBaseName the base name for generated source files
@@ -39,17 +39,22 @@ import java.io.File
  * @return the list of generated source files
  */
 fun generateKotlinDslApiExtensionsSourceTo(
+    asmLevel: Int,
+    platformClassLoader: ClassLoader,
+    incubatingAnnotationTypeDescriptor: String,
     outputDirectory: File,
     packageName: String,
     sourceFilesBaseName: String,
     classPath: List<File>,
     classPathDependencies: List<File>,
     apiSpec: PatternMatcher,
-    parameterNamesSupplier: ParameterNamesSupplier
+    parameterNamesSupplier: ParameterNamesSupplier,
 ): List<File> =
 
     apiTypeProviderFor(
-        ClassLoaderUtils.getPlatformClassLoader(),
+        asmLevel,
+        platformClassLoader,
+        incubatingAnnotationTypeDescriptor,
         classPath,
         classPathDependencies,
         parameterNamesSupplier

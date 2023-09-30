@@ -21,7 +21,10 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import org.gradle.api.Incubating
 import org.gradle.api.internal.file.pattern.PatternMatcher
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
@@ -35,6 +38,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import java.util.Properties
@@ -294,6 +298,9 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     fun ApiKotlinExtensionsGeneration.assertGeneratedExtensions(vararg expectedExtensions: String) {
 
         generatedSourceFiles = generateKotlinDslApiExtensionsSourceTo(
+            ASM_LEVEL,
+            ClassLoaderUtils.getPlatformClassLoader(),
+            Type.getDescriptor(Incubating::class.java),
             file("src").also { it.mkdirs() },
             "org.gradle.kotlin.dsl",
             "SourceBaseName",
