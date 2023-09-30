@@ -4,8 +4,6 @@ plugins {
 
 description = "Provides Kotlin DSL code that is shared between build-logic and runtime"
 
-group = "org.gradle.kotlin-dsl-shared-runtime"
-
 dependencies {
     compileOnly(platform("gradlebuild:build-platform"))
     compileOnly(kotlin("stdlib"))

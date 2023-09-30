@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     kotlin("jvm")
+    id("gradlebuild.module-identity")
     id("gradlebuild.reproducible-archives")
     id("gradlebuild.repositories")
     id("gradlebuild.code-quality")
