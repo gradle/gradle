@@ -42,6 +42,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.objectweb.asm.Type
+import java.io.File
 
 
 class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
@@ -58,12 +59,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             )
         )
 
-        apiTypeProviderFor(
-            ASM_LEVEL,
-            ClassLoaderUtils.getPlatformClassLoader(),
-            Type.getDescriptor(Incubating::class.java),
-            jars
-        ).use { api ->
+        apiTypeProviderFor(jars).use { api ->
 
             assertThat(api.typeOrNull<Test>(), nullValue())
 
@@ -118,12 +114,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
         val jars = listOf(withClassJar("some.jar", ContentFilterable::class.java))
 
-        apiTypeProviderFor(
-            ASM_LEVEL,
-            ClassLoaderUtils.getPlatformClassLoader(),
-            Type.getDescriptor(Incubating::class.java),
-            jars
-        ).use { api ->
+        apiTypeProviderFor(jars).use { api ->
 
             api.type<ContentFilterable>().functions.single { it.name == "expand" && it.parameters.size == 1 }.apply {
                 assertTrue(typeParameters.isEmpty())
@@ -141,12 +132,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
     fun `includes function overrides that change signature, excludes overrides that don't`() {
         val jars = listOf(withClassJar("some.jar", AbstractCopyTask::class.java, CopySpecSource::class.java))
 
-        apiTypeProviderFor(
-            ASM_LEVEL,
-            ClassLoaderUtils.getPlatformClassLoader(),
-            Type.getDescriptor(Incubating::class.java),
-            jars
-        ).use { api ->
+        apiTypeProviderFor(jars).use { api ->
             val type = api.type<AbstractCopyTask>()
 
             assertThat(type.functions.filter { it.name == "filter" }.size, equalTo(4))
@@ -163,12 +149,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
 
         val jars = listOf(withClassJar("some.jar", GenericsVariance::class.java))
 
-        apiTypeProviderFor(
-            ASM_LEVEL,
-            ClassLoaderUtils.getPlatformClassLoader(),
-            Type.getDescriptor(Incubating::class.java),
-            jars
-        ).use { api ->
+        apiTypeProviderFor(jars).use { api ->
             api.type<GenericsVariance>().functions.forEach { function ->
                 when (function.name) {
                     "invariant" -> function.parameters.single().assertSingleTypeArgumentWithVariance(Variance.INVARIANT)
@@ -193,12 +174,7 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             )
         )
 
-        apiTypeProviderFor(
-            ASM_LEVEL,
-            ClassLoaderUtils.getPlatformClassLoader(),
-            Type.getDescriptor(Incubating::class.java),
-            jars
-        ).use { api ->
+        apiTypeProviderFor(jars).use { api ->
 
             assertTrue(api.type<Action<*>>().isSAM)
             assertTrue(api.type<NamedDomainObjectFactory<*>>().isSAM)
@@ -216,6 +192,15 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
             assertTrue(api.type<Spec<*>>().isSAM)
         }
     }
+
+    private
+    fun apiTypeProviderFor(classPath: List<File>) =
+        apiTypeProviderFor(
+            ASM_LEVEL,
+            ClassLoaderUtils.getPlatformClassLoader(),
+            Type.getDescriptor(Incubating::class.java),
+            classPath
+        )
 
     private
     inline fun <reified T> ApiTypeProvider.type() =
