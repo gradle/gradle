@@ -176,6 +176,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         toolingApiJar.assertIsFile()
         assert toolingApiJar.length() < 500 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
+        // Kotlin DSL
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-extensions-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-shared-runtime-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-tooling-models-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-provider-plugins-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-kotlin-dsl-tooling-builders-${baseVersion}.jar"))
+
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-version-control-${baseVersion}.jar"))
