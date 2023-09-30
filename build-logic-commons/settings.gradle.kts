@@ -24,6 +24,9 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
 
+// Shared basics for all
+include("basics")
+
 // Platform: defines shared dependency versions
 include("build-platform")
 

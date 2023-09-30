@@ -1,10 +1,21 @@
 plugins {
-    id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+    `kotlin-dsl`
 }
 
 description = "Provides plugins for configuring miscellaneous things (repositories, reproducibility, minify)"
 
+group = "gradlebuild"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
+}
+
 dependencies {
+    api(platform(project(":build-platform")))
+
     implementation("com.google.guava:guava") {
         because("Used by class analysis")
     }

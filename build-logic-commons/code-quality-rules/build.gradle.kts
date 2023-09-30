@@ -1,6 +1,3 @@
-import groovy.lang.GroovySystem
-import org.gradle.util.internal.VersionNumber
-
 /*
  * Copyright 2022 the original author or authors.
  *

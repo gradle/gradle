@@ -17,7 +17,7 @@
 package gradlebuild.basics
 
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
-import gradlebuild.toLowerCase
+import gradlebuild.basics.toLowerCase
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory

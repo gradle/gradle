@@ -6,8 +6,8 @@ plugins {
 description = "Provides a plugin to generate Gradle's DSL reference, User Manual and Javadocs"
 
 dependencies {
-    implementation(project(":basics"))
     implementation(project(":module-identity"))
+    implementation("gradlebuild:basics")
     implementation(project(":build-update-utils"))
 
     implementation("com.github.javaparser:javaparser-core")
