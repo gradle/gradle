@@ -6,8 +6,9 @@ description = "Provides plugins to configure conventions used by Kotlin, Java an
 
 dependencies {
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":dependency-modules"))
-    implementation(project(":module-identity"))
 
     implementation("org.eclipse.jgit:org.eclipse.jgit")
     implementation("org.jsoup:jsoup")

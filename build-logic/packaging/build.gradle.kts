@@ -6,12 +6,12 @@ description = "Provides a plugin for building Gradle distributions"
 
 dependencies {
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
 
     implementation(project(":documentation")) {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
         because("API metadata generation is part of the DSL guide")
     }
-    implementation(project(":module-identity"))
     implementation(project(":jvm"))
     implementation(project(":kotlin-dsl"))
 

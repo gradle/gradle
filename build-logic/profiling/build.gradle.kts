@@ -8,8 +8,9 @@ dependencies {
     implementation("com.gradle:gradle-enterprise-gradle-plugin")
 
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":documentation"))
-    implementation(project(":module-identity"))
 
     implementation("me.champeau.jmh:jmh-gradle-plugin")
 }

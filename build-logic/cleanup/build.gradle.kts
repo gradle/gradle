@@ -6,6 +6,6 @@ plugins {
 description = "Provides a plugin that cleans up after executing tests"
 
 dependencies {
-    implementation(project(":module-identity"))
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
 }

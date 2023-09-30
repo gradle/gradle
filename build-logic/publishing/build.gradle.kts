@@ -6,7 +6,8 @@ description = "Provides a plugin for publishing some of Gradle's subprojects to 
 
 dependencies {
     implementation("gradlebuild:basics")
-    implementation(project(":module-identity"))
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":integration-testing"))
 
     implementation("com.gradle.publish:plugin-publish-plugin")

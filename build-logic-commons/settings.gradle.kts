@@ -30,6 +30,9 @@ include("basics")
 // Platform: defines shared dependency versions
 include("build-platform")
 
+// Compute the identity/version we are building and related details (like current git commit)
+include("module-identity")
+
 include("commons")
 include("code-quality-rules")
 include("gradle-plugin")

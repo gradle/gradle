@@ -6,8 +6,9 @@ plugins {
 description = "Provides a plugin for generating and defining performance test projects"
 
 dependencies {
-    implementation(project(":module-identity"))
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":integration-testing"))
     implementation(project(":cleanup"))
     implementation(project(":build-update-utils"))

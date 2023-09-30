@@ -55,9 +55,6 @@ include("build-update-utils")
 // Collection of plugins for the root build to configure lifecycle, reporting and IDE integration
 include("root-build")
 
-// Compute the identity/version we are building and related details (like current git commit)
-include("module-identity")
-
 // Shared information about external modules
 include("dependency-modules")
 
