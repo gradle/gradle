@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
+package gradlebuild.kotlindsl.generator.codegen
 
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec

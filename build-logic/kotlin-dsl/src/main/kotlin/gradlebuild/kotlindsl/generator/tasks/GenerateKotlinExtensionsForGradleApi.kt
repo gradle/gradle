@@ -16,6 +16,8 @@
 
 package gradlebuild.kotlindsl.generator.tasks
 
+import gradlebuild.kotlindsl.generator.codegen.writeBuiltinPluginIdExtensionsTo
+import gradlebuild.kotlindsl.generator.codegen.writeGradleApiKotlinDslExtensionsTo
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
@@ -27,8 +29,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeBuiltinPluginIdExtensionsTo
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.writeGradleApiKotlinDslExtensionsTo
 import org.objectweb.asm.Type
 import java.io.File
 

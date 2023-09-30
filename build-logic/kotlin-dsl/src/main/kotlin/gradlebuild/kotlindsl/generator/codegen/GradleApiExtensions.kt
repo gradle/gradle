@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
+package gradlebuild.kotlindsl.generator.codegen
 
-import org.gradle.kotlin.dsl.internal.sharedruntime.support.gradleApiMetadataFrom
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
 
 import java.io.File
 
 
+internal
 fun writeGradleApiKotlinDslExtensionsTo(
     asmLevel: Int,
     platformClassLoader: ClassLoader,

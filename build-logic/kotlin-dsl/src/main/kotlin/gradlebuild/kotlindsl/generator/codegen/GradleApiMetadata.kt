@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.internal.sharedruntime.support
+package gradlebuild.kotlindsl.generator.codegen
 
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
