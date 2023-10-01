@@ -290,7 +290,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         is This -> currentScopes.last().receiver
     }
 
-    fun <T> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
+    fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
         ObjectOrigin.ConstantOrigin(DataValue.Constant(literalExpr.type, literalExpr, literalExpr.value))
 
     fun AnalysisContext.doResolvePropertyAccessToAssignableReference(propertyAccess: PropertyAccess): PropertyReferenceResolution? {
@@ -748,7 +748,7 @@ private fun AccessChain.afterPrefix(prefix: AccessChain): AccessChain {
 
 private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())
 
-private fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
+fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (objectOrigin) {
     is ObjectOrigin.ConstantOrigin -> objectOrigin.constant.type
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
     is ObjectOrigin.NewObjectFromFunctionInvocation -> resolveRef(objectOrigin.function.returnValueType)

@@ -31,7 +31,7 @@ data class FunctionCall(val receiver: Expr?, val name: String, val args: List<Fu
 data class Assignment(val lhs: PropertyAccess, val rhs: Expr, override val originAst: Ast) : DataStatement
 data class LocalValue(val name: String, val rhs: Expr, override val originAst: Ast) : DataStatement
 
-sealed interface Literal<T> : Expr {
+sealed interface Literal<T : Any> : Expr {
     val value: T
     val type: DataType.ConstantType<T>
 

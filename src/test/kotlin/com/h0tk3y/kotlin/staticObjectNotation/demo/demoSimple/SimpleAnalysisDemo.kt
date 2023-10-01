@@ -2,6 +2,8 @@ package com.example.com.h0tk3y.kotlin.staticObjectNotation.demo.demoSimple
 
 import com.example.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
+import com.h0tk3y.kotlin.staticObjectNotation.demo.printResolutionResults
+import com.h0tk3y.kotlin.staticObjectNotation.demo.resolve
 import com.h0tk3y.kotlin.staticObjectNotation.schemaFromTypes
 
 val schema = schemaFromTypes(

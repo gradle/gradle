@@ -4,6 +4,8 @@ import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.Unknown
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
+import com.h0tk3y.kotlin.staticObjectNotation.demo.int
+import com.h0tk3y.kotlin.staticObjectNotation.demo.string
 
 val cRef = DataTypeRef.Name(FqName.parse("com.example.C"))
 val abcRef = DataTypeRef.Name(FqName.parse("com.example.Abc"))

@@ -11,7 +11,7 @@ sealed interface DataValue {
     val type: DataType
     val originElement: LanguageTreeElement
 
-    data class Constant<JvmType>(
+    data class Constant<JvmType : Any>(
         override val type: DataType.ConstantType<JvmType>,
         override val originElement: LanguageTreeElement,
         val value: JvmType,

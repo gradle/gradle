@@ -26,10 +26,10 @@ class PluginDefinition(val id: String) {
     var apply: Boolean = false
 
     @Builder
-    fun version(value: String): PluginDefinition =
+    infix fun version(value: String): PluginDefinition =
         apply { version = value }
 
     @Builder
-    fun apply(value: Boolean): PluginDefinition =
+    infix fun apply(value: Boolean): PluginDefinition =
         apply { apply = value }
 }

@@ -3,6 +3,9 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics.StoreValueInProperty
+import com.h0tk3y.kotlin.staticObjectNotation.demo.boolean
+import com.h0tk3y.kotlin.staticObjectNotation.demo.string
+import com.h0tk3y.kotlin.staticObjectNotation.demo.typeRef
 
 fun demoSchema(): AnalysisSchema {
     val topLevelScopeRef = typeRef<TopLevelScope>()

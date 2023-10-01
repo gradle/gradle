@@ -1,6 +1,8 @@
-package com.h0tk3y.kotlin.staticObjectNotation.analysis
+package com.h0tk3y.kotlin.staticObjectNotation.demo
 
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -41,6 +43,23 @@ fun printResolutionResults(
     println("Assignments:\n" + result.assignments.entries.joinToString("\n") { (k, v) -> "$k := $v" })
     println()
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
+}
+ 
+fun printResolvedAssignments(result: ResolutionResult) {
+    val values = assignmentResults(result)
+    println("\n===\nAssignment results")
+    values.forEach { (lhs, rhs) ->
+        println("$lhs = $rhs")
+    }
+}
+
+fun assignmentResults(result: ResolutionResult): Map<PropertyReferenceResolution, ObjectOrigin> {
+    val assignments = AssignmentResolver()
+    for ((lhs, rhs) in result.assignments) {
+        assignments.addAssignment(lhs, rhs)
+    }
+    val values = assignments.getAssignedObjects()
+    return values
 }
 
 inline fun <reified T> typeRef(): DataTypeRef.Name {
