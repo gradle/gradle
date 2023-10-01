@@ -25,15 +25,8 @@ kotlin {
     }
 }
 
-dependencies {
-    testImplementation("org.junit.vintage:junit-vintage-engine")
-}
-
 tasks {
     named("codeQuality") {
         dependsOn("ktlintCheck")
-    }
-    withType<Test>().configureEach {
-        useJUnitPlatform()
     }
 }
