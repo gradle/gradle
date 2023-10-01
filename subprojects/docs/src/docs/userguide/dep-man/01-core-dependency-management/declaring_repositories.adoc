@@ -504,8 +504,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 
 The `dependencyResolutionManagement` repositories block accepts the same notations as in a project. This includes Maven or Ivy repositories, with or without credentials, etc.
 
-By default, repositories declared by a project will *override* whatever is declared in settings.
-This means that repositories declared in a project `build.gradle(.kts)` file *override* those declared in the `settings.gradle(.kts)` file:
+By default, repositories declared by a project in `build.gradle(.kts)` will *override* whatever is declared in `settings.gradle(.kts)`:
 
 .Preferring project repositories
 ====
@@ -522,17 +521,17 @@ There are three modes for dependency resolution management:
 |`PREFER_PROJECT`
 |Any repository declared on a project will cause the project to use the repositories declared by the project, ignoring those declared in settings.
 |Yes
-|Useful when teams need to use many different plugins not shared among subprojects.
+|Useful when teams need to use different repositories not common among subprojects.
 
 |`PREFER_SETTINGS`
 |Any repository declared directly in a project, either directly or via a plugin, will be ignored.
 |No
-|Useful for enforcing large teams to use the same plugin versions.
+|Useful for enforcing large teams to use approved repositories only, but will not fail the build when a project or plugin declares a repository.
 
 |`FAIL_ON_PROJECT_REPOS`
 |Any repository declared directly in a project, either directly or via a plugin, will trigger a build error.
 |No
-|Useful for enforcing large teams to use approved and secure plugins only.
+|Useful for enforcing large teams to use approved repositories only.
 |===
 
 You can change the behavior to prefer the repositories in the `settings.gradle(.kts)` file by using `repositoriesMode`:
@@ -545,7 +544,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 
 [[sub:fail_build_on_project_repositories]]
 
-If, for some reason, a project or a plugin declares a repository in a project, Gradle will warn you.
+Gradle will warn you if a project or a plugin declares a repository in a project.
 
 You can force Gradle to _fail the build_ if you want to enforce that *only* settings repositories are used:
 
