@@ -109,6 +109,7 @@ class ApiTypeProvider internal constructor(
         }?.invoke()
     }
 
+    internal
     fun allTypes(): Sequence<ApiType> = open {
         repository.allClassesBytesBySourceName().map { (sourceName, classBytes) ->
             apiTypesBySourceName.computeIfAbsent(sourceName) {
@@ -166,9 +167,11 @@ class ApiType internal constructor(
     val isPublic: Boolean
         get() = delegate.access.isPublic
 
+    internal
     val isDeprecated: Boolean
         get() = delegate.visibleAnnotations.has<java.lang.Deprecated>()
 
+    internal
     val isIncubating: Boolean
         get() = delegate.visibleAnnotations.has(incubatingAnnotationTypeDescriptor)
 
@@ -256,22 +259,26 @@ class ApiType internal constructor(
 class ApiFunction internal constructor(
     private val asmLevel: Int,
     private val incubatingAnnotationTypeDescriptor: String,
-    val owner: ApiType,
+    internal val owner: ApiType,
     private val delegate: MethodNode,
     private val context: ApiTypeProvider.Context
 ) {
     val name: String =
         delegate.name
 
+    internal
     val isPublic: Boolean =
         delegate.access.isPublic
 
+    internal
     val isDeprecated: Boolean
         get() = owner.isDeprecated || delegate.visibleAnnotations.has<java.lang.Deprecated>()
 
+    internal
     val isIncubating: Boolean
         get() = owner.isIncubating || delegate.visibleAnnotations.has(incubatingAnnotationTypeDescriptor)
 
+    internal
     val isStatic: Boolean =
         delegate.access.isStatic
 
@@ -296,9 +303,9 @@ class ApiFunction internal constructor(
 }
 
 
-data class ApiTypeUsage constructor(
+data class ApiTypeUsage internal constructor(
     val sourceName: String,
-    val isNullable: Boolean = false,
+    internal val isNullable: Boolean = false,
     val type: ApiType? = null,
     val variance: Variance = Variance.INVARIANT,
     val typeArguments: List<ApiTypeUsage> = emptyList(),
@@ -307,6 +314,7 @@ data class ApiTypeUsage constructor(
     /**
      * Type usage is raw if type has no type parameters or if usage has no type arguments.
      */
+    internal
     val isRaw: Boolean
         get() = type?.typeParameters?.isEmpty() != false || typeArguments.isEmpty()
 }
@@ -337,12 +345,13 @@ enum class Variance {
 
 
 data class ApiFunctionParameter internal constructor(
-    val index: Int,
-    val isVarargs: Boolean,
+    internal val index: Int,
+    internal val isVarargs: Boolean,
     private val nameSupplier: () -> String?,
     val type: ApiTypeUsage
 ) {
 
+    internal
     val name: String? by unsafeLazy {
         nameSupplier()
     }
@@ -371,13 +380,16 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
     }
 
 
+internal
 val ApiTypeUsage.isStarProjectionTypeUsage
     get() = this === starProjectionTypeUsage
 
 
+internal
 val starProjectionTypeUsage = ApiTypeUsage("*")
 
 
+internal
 val singletonListOfStarProjectionTypeUsage = listOf(starProjectionTypeUsage)
 
 
