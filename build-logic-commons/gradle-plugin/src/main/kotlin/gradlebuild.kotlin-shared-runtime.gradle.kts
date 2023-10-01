@@ -24,9 +24,3 @@ kotlin {
         jvmTarget.set(JvmTarget.JVM_1_8)
     }
 }
-
-tasks {
-    named("codeQuality") {
-        dependsOn("ktlintCheck")
-    }
-}
