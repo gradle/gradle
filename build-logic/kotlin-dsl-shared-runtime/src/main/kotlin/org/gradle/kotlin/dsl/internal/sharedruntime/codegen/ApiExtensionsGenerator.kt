@@ -376,7 +376,7 @@ fun Boolean.toKotlinNullabilityString(): String =
 private
 fun ApiTypeUsage.toTypeParameterString(): String =
     "$sourceName${
-        bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
+    bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
     }${typeArguments.toTypeParametersString(type)}${isNullable.toKotlinNullabilityString()}"
 
 
