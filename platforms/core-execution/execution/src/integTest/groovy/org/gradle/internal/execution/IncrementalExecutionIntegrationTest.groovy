@@ -279,7 +279,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.type("test.problem")
+                        it.category("test.problem")
                             .label("Validation problem")
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
@@ -593,7 +593,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         .label("Validation error")
                         .documentedAt(Documentation.userManual("id", "section"))
                         .noLocation()
-                        .type("test.problem")
+                        .category("test.problem")
                         .details("Test")
                         .severity(Severity.ERROR)
                 }

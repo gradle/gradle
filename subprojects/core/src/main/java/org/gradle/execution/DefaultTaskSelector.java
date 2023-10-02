@@ -102,7 +102,7 @@ public class DefaultTaskSelector implements TaskSelector {
             .label(message)
             .undocumented()
             .location(Objects.requireNonNull(context.getOriginalPath().getName()), -1)
-            .type("task_selection")
+            .category("task_selection")
             .severity(Severity.ERROR)
             .withException(new TaskSelectionException(message)) // this instead of cause
         );

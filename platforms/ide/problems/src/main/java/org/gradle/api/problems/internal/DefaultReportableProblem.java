@@ -39,7 +39,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable Throwable cause,
-        String problemType,
+        String problemCategory,
         Map<String, String> additionalMetadata,
         @Nullable InternalProblems problemService
     ) {
@@ -51,7 +51,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
             description,
             solutions,
             cause,
-            problemType,
+            problemCategory,
             additionalMetadata
         );
         this.problemService = problemService;

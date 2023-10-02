@@ -30,11 +30,13 @@ import java.util.Map;
 @Incubating
 public interface Problem {
     /**
-     * Returns the problem type.
+     * Returns the problem category.
      *
-     * @return the problem type
+     * @return the problem category
+     *
+     * @since 8.5
      */
-    String getProblemType();
+    ProblemCategory getProblemCategory();
 
     /**
      * The label of the problem.
