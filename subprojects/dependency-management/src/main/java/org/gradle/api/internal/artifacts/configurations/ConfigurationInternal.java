@@ -40,6 +40,7 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
 
         // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
         // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
+        @Deprecated
         ARTIFACTS_RESOLVED
     }
 
