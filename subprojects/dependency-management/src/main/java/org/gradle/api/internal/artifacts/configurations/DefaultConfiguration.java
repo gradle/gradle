@@ -1831,15 +1831,16 @@ since users cannot create non-legacy configurations and there is no current publ
     /**
      * Determine if this is a configuration that is permitted to change its usage, to support important 3rd party
      * plugins such as Kotlin that do this.
-     * <p>
-     * This method is temporary, so the duplication of the configuration names defined in
-     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * <p>This method is temporary and all usage-changing exceptions should be removed once Kotlin 1.9.20 is released.
+     * The duplication of the configuration names defined in {@link JvmConstants}, which are not available to be
+     * referenced directly from here, is unfortunate, but not a showstopper.</p>
      *
      * @return {@code true} if this is a configuration that is permitted to change its usage; {@code false} otherwise
      */
     @SuppressWarnings("JavadocReference")
     private boolean isPermittedConfigurationForUsageChange(String usage, boolean current) {
-        return name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+        return (name.equals("apiElements") || name.equals("runtimeElements")) && usage.equals("consumable") && !current;
     }
 
     /**
