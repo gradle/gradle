@@ -44,22 +44,24 @@ fun printResolutionResults(
     println()
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
 }
- 
-fun printResolvedAssignments(result: ResolutionResult) {
-    val values = assignmentResults(result)
-    println("\n===\nAssignment results")
-    values.forEach { (lhs, rhs) ->
-        println("$lhs = $rhs")
-    }
-}
 
-fun assignmentResults(result: ResolutionResult): Map<PropertyReferenceResolution, ObjectOrigin> {
+fun printResolvedAssignments(result: ResolutionResult) {
     val assignments = AssignmentResolver()
     for ((lhs, rhs) in result.assignments) {
-        assignments.addAssignment(lhs, rhs)
+        val assigned = assignments.addAssignment(lhs, rhs)
+        if (assigned is AssignmentResolver.AssignmentResolutionProgress.UnresolvedReceiver) {
+            println("$lhs =/= $rhs : Assignment used an unassigned receiver ${assigned.accessOrigin}")
+        }
     }
-    val values = assignments.getAssignedObjects()
-    return values
+    val values = assignments.getAssignmentResults()
+    println("\n===\nAssignment results")
+    values.forEach { (lhs, rhs) ->
+        val rhsString = when (rhs) {
+            is AssignmentResolver.AssignmentResolutionResult.Assigned -> ":= ${rhs.objectOrigin}"
+            is AssignmentResolver.AssignmentResolutionResult.Unassigned -> "!:= ${rhs.objectOrigin}"
+        }
+        println("$lhs $rhsString")
+    }
 }
 
 inline fun <reified T> typeRef(): DataTypeRef.Name {

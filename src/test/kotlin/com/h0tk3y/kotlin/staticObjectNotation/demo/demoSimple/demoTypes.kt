@@ -6,6 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.Builder
 class Abc {
     var a: Int = 0
     fun b(): Int = 1
+    var str: String = ""
     @Adding
     fun c(x: Int, configure: C.() -> Unit = { }) =
         C().apply {

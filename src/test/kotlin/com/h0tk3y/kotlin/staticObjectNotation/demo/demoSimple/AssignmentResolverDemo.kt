@@ -19,9 +19,12 @@ object AssignmentResolverDemo {
             c1.d = myD
             
             c(2) {
-                x = a
-                this.d = myD
+                val cRef = c1
+                x = cRef.x
+                this.d = cRef.d
             }
+            
+            str = c1.d.id
             """.trimIndent()
         )
         printResolutionResults(resolution)
