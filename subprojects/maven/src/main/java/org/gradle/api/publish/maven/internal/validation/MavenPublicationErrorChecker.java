@@ -17,15 +17,26 @@
 package org.gradle.api.publish.maven.internal.validation;
 
 import com.google.common.base.Strings;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * Static util class containing publication checks specific to Maven publications.
  */
+@NonNullApi
 public abstract class MavenPublicationErrorChecker extends PublicationErrorChecker {
     /**
      * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
@@ -38,19 +49,92 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
      * <p>
      * Should only be called after publication is populated from the component.
      *
+     * @param buildDir absolute directory that is the base of the build
+     * @param componentName name of the component
      * @param source original artifact
      * @param mainArtifacts set of published artifacts to verify
      * @throws PublishException if the artifacts are modified
      */
-    public static void checkThatArtifactIsPublishedUnmodified(PublishArtifact source, DefaultMavenArtifactSet mainArtifacts) {
+    public static void checkThatArtifactIsPublishedUnmodified(
+        Path buildDir, String componentName,
+        PublishArtifact source, DefaultMavenArtifactSet mainArtifacts
+    ) {
+        // Note: this just verifies that no component artifact has been removed. Additional artifacts are allowed.
+        Map<MavenArtifact, Set<ArtifactDifference>> differences = new HashMap<>();
         for (MavenArtifact mavenArtifact : mainArtifacts) {
-            if (source.getFile().equals(mavenArtifact.getFile())
-                && source.getExtension().equals(mavenArtifact.getExtension())
-                && Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+            EnumSet<ArtifactDifference> differenceSet = EnumSet.noneOf(ArtifactDifference.class);
+            if (!source.getFile().equals(mavenArtifact.getFile())) {
+                differenceSet.add(ArtifactDifference.FILE);
+            }
+            // Necessary as the classifier can be converted from an empty string to null
+            if (!Strings.nullToEmpty(source.getClassifier()).equals(Strings.nullToEmpty(mavenArtifact.getClassifier()))) {
+                differenceSet.add(ArtifactDifference.CLASSIFIER);
+            }
+            if (!source.getExtension().equals(mavenArtifact.getExtension())) {
+                differenceSet.add(ArtifactDifference.EXTENSION);
+            }
+            // If it's all equal, we found a matching artifact that is being published
+            if (differenceSet.isEmpty()) {
                 return;
             }
+            differences.put(mavenArtifact, differenceSet);
         }
+        throw new PublishException("Cannot publish module metadata because an artifact from the '" + componentName +
+            "' component has been removed. The available artifacts had these problems:\n" + formatDifferences(buildDir, source, differences));
+    }
 
-        throw new PublishException("Cannot publish module metadata where component artifacts are modified.");
+    private static final Comparator<Set<ArtifactDifference>> DIFFERENCE_SET_COMPARATOR =
+        // Put the artifacts with the least differences first, since they're more likely to be useful
+        Comparator.<Set<ArtifactDifference>>comparingInt(Set::size)
+            // Prefer FILE differences over CLASSIFIER differences over EXTENSION differences,
+            // since different classifiers/extensions are unlikely to be right
+            .thenComparing(set -> set.contains(ArtifactDifference.FILE))
+            .thenComparing(set -> set.contains(ArtifactDifference.CLASSIFIER))
+            .thenComparing(set -> set.contains(ArtifactDifference.EXTENSION));
+
+    private static final Comparator<Map.Entry<MavenArtifact, Set<ArtifactDifference>>> DIFFERENCE_ENTRY_COMPARATOR =
+        Map.Entry.<MavenArtifact, Set<ArtifactDifference>>comparingByValue(DIFFERENCE_SET_COMPARATOR)
+            // Last ditch effort to make the order deterministic
+            .thenComparing(entry -> entry.getKey().getFile().toPath());
+
+    private static String formatDifferences(Path buildDir, PublishArtifact source, Map<MavenArtifact, Set<ArtifactDifference>> differencesByArtifact) {
+        Stream<String> differencesFormatted = differencesByArtifact.entrySet().stream()
+            .sorted(DIFFERENCE_ENTRY_COMPARATOR)
+            .limit(3).map(entry -> {
+                MavenArtifact artifact = entry.getKey();
+                Set<ArtifactDifference> differenceSet = entry.getValue();
+                Path artifactPath = buildDir.relativize(artifact.getFile().toPath());
+                return "- " + artifactPath + ":\n" + formatDifferenceSet(buildDir, source, artifact, differenceSet);
+            });
+        Stream<String> warningForNonPrintedArtifacts = differencesByArtifact.size() > 3
+            ? Stream.of("... (" + (differencesByArtifact.size() - 3) + " more artifact(s) not shown)")
+            : Stream.empty();
+        return Stream.concat(differencesFormatted, warningForNonPrintedArtifacts)
+            .collect(Collectors.joining("\n", "", "\n"));
+    }
+
+    private static String formatDifferenceSet(Path buildDir, PublishArtifact expected, MavenArtifact actual, Set<ArtifactDifference> differenceSet) {
+        return differenceSet.stream().map(diff -> {
+            switch (diff) {
+                case FILE: {
+                    Path expectedFile = buildDir.relativize(expected.getFile().toPath());
+                    Path actualFile = buildDir.relativize(actual.getFile().toPath());
+                    return "\t- file differs: (expected) " + expectedFile + " != (actual) " + actualFile;
+                }
+                case CLASSIFIER:
+                    return "\t- classifier differs: (expected) " + expected.getClassifier() + " != (actual) " + actual.getClassifier();
+                case EXTENSION:
+                    return "\t- extension differs: (expected) " + expected.getExtension() + " != (actual) " + actual.getExtension();
+                default:
+                    throw new IllegalArgumentException("Unknown difference: " + diff);
+            }
+        }).collect(Collectors.joining("\n"));
+    }
+
+    @NonNullApi
+    private enum ArtifactDifference {
+        FILE,
+        CLASSIFIER,
+        EXTENSION,
     }
 }

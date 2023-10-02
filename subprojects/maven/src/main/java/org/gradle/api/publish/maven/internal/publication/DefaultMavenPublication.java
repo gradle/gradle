@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -81,6 +82,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private final String name;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final File buildDir;
 
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final MavenPomInternal pom;
@@ -111,12 +113,14 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         VersionMappingStrategyInternal versionMappingStrategy,
         TaskDependencyFactory taskDependencyFactory,
-        ProviderFactory providerFactory
+        ProviderFactory providerFactory,
+        Project project
     ) {
         this.name = name;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.versionMappingStrategy = versionMappingStrategy;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.buildDir = project.getRootProject().getLayout().getProjectDirectory().getAsFile();
 
         MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
 
@@ -502,7 +506,12 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     @Override
     public PublishedFile getPublishedFile(final PublishArtifact source) {
         populateFromComponent();
-        MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(source, mainArtifacts);
+        if (getComponent().isPresent()) {
+            MavenPublicationErrorChecker.checkThatArtifactIsPublishedUnmodified(
+                buildDir.toPath().toAbsolutePath(), getComponent().get().getName(),
+                source, mainArtifacts
+            );
+        }
         final String publishedUrl = getPublishedUrl(source);
         final String publishedName = isPublishWithOriginalFileName ? source.getFile().getName() : publishedUrl;
         return new PublishedFile() {
