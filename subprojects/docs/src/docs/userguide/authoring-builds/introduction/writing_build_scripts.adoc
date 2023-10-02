@@ -316,7 +316,7 @@ tasks.create<Zip>("zip-reports") {
 }
 ----
 
-TIP: `register`, which enables <<task_configuration_avoidance.adoc,task configuration avoidance>>, is preferred over `create`.
+TIP: `register`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create`.
 
 You can acquire a reference to a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
