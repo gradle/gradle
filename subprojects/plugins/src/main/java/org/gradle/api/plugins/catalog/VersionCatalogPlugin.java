@@ -60,14 +60,22 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
+        Configuration exported = project.getConfigurations().migratingUnlocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
+            cnf.setVisible(false);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
                 attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
             });
         });
+
+        project.getPlugins().withType(BasePlugin.class, plugin -> {
+            project.getTasks().named(BasePlugin.ASSEMBLE_TASK_NAME).configure(assemble -> {
+                assemble.dependsOn(exported.getArtifacts());
+            });
+        });
+
         AdhocComponentWithVariants versionCatalog = softwareComponentFactory.adhoc("versionCatalog");
         project.getComponents().add(versionCatalog);
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));

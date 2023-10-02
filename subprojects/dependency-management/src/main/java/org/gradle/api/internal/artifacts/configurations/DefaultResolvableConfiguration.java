@@ -101,6 +101,8 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             ConfigurationRoles.RESOLVABLE,
             true
         );
+
+        setVisible(false);
     }
 
 }

@@ -50,6 +50,29 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
+    def "configurations are signed when executing assemble task"() {
+        given:
+        buildFile << """
+            configurations {
+                meta
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives, configurations.meta
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+            ${getJavadocAndSourceJarsScript("meta")}
+        """
+
+        when:
+        run "assemble"
+
+        then:
+        executedAndNotSkipped ":signArchives", ":signMeta"
+    }
+
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"
