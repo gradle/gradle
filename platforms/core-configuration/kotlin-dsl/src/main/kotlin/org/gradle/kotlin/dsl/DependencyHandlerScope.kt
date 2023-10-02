@@ -165,7 +165,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency? =
+    operator fun NamedDomainObjectProvider<out Configuration>.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
 
     /**
@@ -189,7 +189,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    inline operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+    inline operator fun NamedDomainObjectProvider<out Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
 
     /**
@@ -230,7 +230,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<Configuration>.invoke(
+    operator fun NamedDomainObjectProvider<out Configuration>.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -283,7 +283,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    inline operator fun NamedDomainObjectProvider<Configuration>.invoke(
+    inline operator fun NamedDomainObjectProvider<out Configuration>.invoke(
         group: String,
         name: String,
         version: String? = null,
@@ -317,7 +317,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+    inline operator fun <T : ModuleDependency> NamedDomainObjectProvider<out Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
 
     /**
@@ -343,7 +343,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+    operator fun <T : Any> NamedDomainObjectProvider<out Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProvider(name, dependency, dependencyConfiguration)
 
     /**
@@ -366,7 +366,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>) =
+    operator fun <T : Any> NamedDomainObjectProvider<out Configuration>.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
     /**
@@ -392,7 +392,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+    operator fun <T : Any> NamedDomainObjectProvider<out Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
         addProviderConvertible(name, dependency, dependencyConfiguration)
 
     /**
@@ -415,7 +415,7 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun <T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>) =
+    operator fun <T : Any> NamedDomainObjectProvider<out Configuration>.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
 
     /**
