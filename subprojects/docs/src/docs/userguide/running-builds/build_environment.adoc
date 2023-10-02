@@ -37,7 +37,17 @@ When configuring Gradle behavior, you can use these methods, listed in order of 
 |3
 |<<#sec:gradle_configuration_properties, Gradle properties>>
 |`org.gradle.caching=true`
-|Typically stored in a `gradle.properties` file in a project directory or in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+|Stored in a `gradle.properties` file in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+
+|3.1
+|<<#sec:gradle_configuration_properties, Gradle properties>>
+|`org.gradle.caching=true`
+|Stored in a `gradle.properties` file in a project directory, then its parent project’s directory up to the project’s root directory.
+
+|3.2
+|<<#sec:gradle_configuration_properties, Gradle properties>>
+|`org.gradle.caching=true`
+|Stored in a `gradle.properties` file in the <<sec:gradle_environment_variables,GRADLE_HOME>>.
 
 |4
 |<<#sec:gradle_environment_variables, Environment variables>>
@@ -452,6 +462,14 @@ Defaults to `USER_HOME/.gradle` if not set.
 Specifies the JDK installation directory to use for the client VM.
 +
 This VM is also used for the daemon unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
+
+`GRADLE_LIBS_REPO_OVERRIDE`::
+Overrides for the default Gradle library repository.
++
+Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
++
+Useful override to specify an internally hosted repository in case your company uses a firewall/proxy.
+
 
 The following examples demonstrate how to use environment variables.
 
