@@ -605,6 +605,7 @@ class DefaultMavenPublicationTest extends Specification {
             it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
             it.add(DefaultDependencyCoordinateResolverFactory)
+            it.add(Project, TestUtil.createRootProject(testDirectoryProvider.testDirectory))
         }.get(ObjectFactory)
 
         def versionMappingStrategy = Mock(VersionMappingStrategyInternal) {

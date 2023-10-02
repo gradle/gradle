@@ -75,7 +75,7 @@ Network file systems like Samba and NFS are not supported.
 ====
 
 File system watching is not compatible with symlinks.
-If your project files include symlinks, symlinked files do not benefit from file system-watching optimizations.
+If your project files include symlinks, you must disable `vfs.watch` by setting `org.gradle.vfs.watch=false` in `gradle.properties`.
 
 ====
 
