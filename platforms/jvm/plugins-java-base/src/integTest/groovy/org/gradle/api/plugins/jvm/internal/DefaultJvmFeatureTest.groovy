@@ -19,9 +19,30 @@ package org.gradle.api.plugins.jvm.internal
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
+    def "can create multiple features in a project"() {
+        given:
+        project.plugins.apply(JavaBasePlugin)
+        def ext = project.getExtensions().getByType(JavaPluginExtension)
+
+        SourceSet one = ext.getSourceSets().create("one")
+        SourceSet two = ext.getSourceSets().create("two")
+
+        when:
+        new DefaultJvmFeature("feature1", one, Collections.emptyList(), project, false, false)
+        new DefaultJvmFeature("feature2", two, Collections.emptyList(), project, false, false)
+
+        then:
+        // TODO: There's no way to get the feature by name, so we'll check that some associated tasks and configurations are created
+        project.tasks.getByName(one.getJarTaskName())
+        project.tasks.getByName(two.getJarTaskName())
+        project.configurations.getByName('oneImplementation')
+        project.configurations.getByName('twoImplementation')
+    }
+
     // TODO: This test definitely isn't appropriate for Component any more, so I've moved it here.
     // Should features create the sourcesets they are going to use?  If they are being passed in
     // like this, this is just testing the SourceSets container, not the feature.
