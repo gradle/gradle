@@ -25,7 +25,7 @@ Using plugins is also the **primary mechanism for organizing build logic**.
 
 Plugins are essentially a set of all useful tasks, such as compiling tasks, setting domain objects, setting up source files, etc.
 
-Applying a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
+*Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
 
 == Plugin distribution
 
@@ -33,7 +33,7 @@ Plugins are distributed in three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Custom plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
+3. **Local plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
 [[sec:types_of_plugins]]
 == Types of plugins

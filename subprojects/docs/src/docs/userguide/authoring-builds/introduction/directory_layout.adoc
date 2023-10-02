@@ -22,7 +22,7 @@ image::author-gradle-2.png[]
 [[dir:gradle_user_home]]
 == Gradle User Home directory
 
-The Gradle User Home (`<home directory of the current user>/.gradle` by default) stores global configuration properties and initialization scripts, caches, and log files.
+The Gradle User Home (`~/.gradle` or `C:\Users\username\.gradle` by default) stores global configuration properties and initialization scripts, caches, and log files.
 
 It can be set with the environment variable `GRADLE_USER_HOME`.
 

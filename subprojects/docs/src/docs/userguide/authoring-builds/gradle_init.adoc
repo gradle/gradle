@@ -17,9 +17,12 @@
 
 For users that are starting a new project, Gradle comes with a built-in task called `init` that initializes a Gradle project.
 
-This ensures that you have the minimum set of requirements for Gradle to work when developing a new app, plugin, or library.
+This ensures that you have the minimum configuration for Gradle to work when developing a new app, plugin, or library.
 
 The `init` task uses the built-in `wrapper` task to create a Gradle wrapper script, `gradlew` and `gradle.bat`.
+
+NOTE: This will set the version of Gradle to the version used when executing the `init` task.
+
 Then, based on a set of user inputs, the task creates default Gradle files and directories.
 
 == The init task
@@ -59,13 +62,13 @@ Generate build using new APIs and behavior (some features may change in the next
 There are 4 types of project:
 
 1. *Basic* - a basic project with one settings file and one build file.
-2. *Application* - a C++, Groovy, Java, Kotlin, Scala or Swift project with an `app` folder.
+2. *Application* - a executable C++, Groovy, Java, Kotlin, Scala or Swift project with an `app` folder.
 3. *Library* - a library such as an API with a `lib` folder.
-4. *Gradle Plugin* - a Gradle plugin with a `plugin` folder.
+4. *Gradle Plugin* - a Gradle plugin (which can be published and used by others as a dependency) with a `plugin` folder.
 
 You will be asked if your scripts are written in Groovy or Kotlin.
 Kotlin is the recommended default.
-Your choice determines which DSL you will use to configure Gradle and this can be changed at any time.
+Your choice determines which DSL you will use to configure Gradle.
 
 Depending on your selection, you may be asked if you want to `Generate multiple subprojects for application?`
 

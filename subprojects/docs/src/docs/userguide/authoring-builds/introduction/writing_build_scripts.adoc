@@ -15,7 +15,7 @@
 [[writing_build_scripts]]
 = Writing Build Scripts
 
-In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
+In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file if it exists.
 
 image::author-gradle-1.png[]
 
@@ -37,7 +37,7 @@ Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific l
 
 A build script configures a _project_ and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
 
-As the build script executes, it configures this `Project`.
+As the build script executes, it configures `Project`.
 
 The build script is either a `\*.gradle` file if written in Groovy or a `*.gradle.kts` file when written in Kotlin.
 
@@ -231,7 +231,9 @@ tasks.named('test') {
 
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configuration.
 
-Plugins can be applied using the `PluginAware.apply(java.util.Map)` method, or by using the `PluginDependenciesSpec` plugins script block:
+Plugins can be applied using the `PluginAware.apply(java.util.Map)` method or by using the `PluginDependenciesSpec` plugins script block.
+
+The plugins block is preferred:
 
 [source]
 ----
@@ -282,11 +284,15 @@ application {
 }
 ----
 
-=== Create or update tasks
+=== Register and configure tasks
 
 Tasks performs some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
-You add OR DEFININING? tasks to a project using the `TaskContainer.register(java.lang.String)` method:
+While tasks are typically defined in plugins, you may need to register or configure tasks in build scripts.
+
+*Registering* a task adds the task to your project.
+
+You can register tasks in a project using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register(java.lang.String)`] method:
 
 [source]
 ----
@@ -298,7 +304,21 @@ tasks.register<Zip>("zip-reports") {
 }
 ----
 
-You can locate existing tasks (to update the configuration, or modfiy...) using the `TaskCollection.named(java.lang.String)` method:
+You may have seen usage of the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.create(java.lang.String)`] method *which should be avoided*:
+
+[source]
+----
+tasks.create<Zip>("zip-reports") {
+    from 'Reports/'
+    include '*'
+    archiveName 'Reports.zip'
+    destinationDir(file('/dir'))
+}
+----
+
+TIP: `register`, which enables <<task_configuration_avoidance.adoc,task configuration avoidance>>, is preferred over `create`.
+
+You can acquire a reference to a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
 [source]
 ----
@@ -307,7 +327,16 @@ tasks.named<Test>("test") {
 }
 ----
 
-While tasks can be added in build scripts, best practice is to define tasks via plugins, tasks can be added to build scripts directly.
+The example below configures the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] task to automatically generate HTML documentation from Java code:
+
+[source]
+----
+tasks.named("javadoc").configure {
+    exclude 'app/Internal*.java'
+    exclude 'app/internal/*'
+    exclude 'app/internal/*'
+}
+----
 
 == Build scripting
 

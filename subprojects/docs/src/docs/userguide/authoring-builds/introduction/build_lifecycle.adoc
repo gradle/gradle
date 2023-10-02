@@ -111,8 +111,12 @@ During settings file evaluation, Gradle:
 - Defines which included builds participate in a composite build.
 - Defines which projects participate in a multi-project build.
 
+=== Create Project Object
+
 Gradle creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] for every project in the build.
+
 By default, each `Project` has a name equal to the name of its top level directory.
+
 Every project except the root project has a parent project.
 Any project may have child projects.
 
