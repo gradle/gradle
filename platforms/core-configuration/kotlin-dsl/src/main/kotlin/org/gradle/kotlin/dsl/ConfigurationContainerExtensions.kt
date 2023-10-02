@@ -29,6 +29,8 @@ import org.gradle.api.artifacts.ConsumableConfiguration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
+import kotlin.reflect.KProperty
+import org.gradle.api.InvalidUserDataException
 
 
 /**
@@ -84,4 +86,115 @@ private constructor(
 
     override fun dependencyScope(name: String, action: Action<in DependencyScopeConfiguration>): NamedDomainObjectProvider<DependencyScopeConfiguration> =
         delegate.dependencyScope(name, action)
+}
+
+
+/**
+ * Registers a [ResolvableConfiguration] via [resolvable].
+ *
+ * @return A provider which creates a new resolvable configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@get:Incubating
+val ConfigurationContainer.resolvable: ConfigurationProvider<ResolvableConfiguration>
+    get() = ConfigurationProvider { name -> resolvable(name) }
+
+
+/**
+ * Registers a [ResolvableConfiguration] via [resolvable] and then
+ * configures it with the provided action.
+ *
+ * @param action The action to apply to the configuration.
+ *
+ * @return A provider which creates a new resolvable configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@Incubating
+fun ConfigurationContainer.resolvable(action: Action<in ResolvableConfiguration>): ConfigurationProvider<ResolvableConfiguration> =
+    ConfigurationProvider { name -> resolvable(name, action) }
+
+
+/**
+ * Registers a [ConsumableConfiguration] via [consumable].
+ *
+ * @return A provider which creates a new consumable configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@get:Incubating
+val ConfigurationContainer.consumable: ConfigurationProvider<ConsumableConfiguration>
+    get() = ConfigurationProvider { name -> consumable(name) }
+
+
+/**
+ * Registers a [ConsumableConfiguration] via [consumable] and then
+ * configures it with the provided action.
+ *
+ * @param action The action to apply to the configuration.
+ *
+ * @return A provider which creates a new consumable configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@Incubating
+fun ConfigurationContainer.consumable(action: Action<in ConsumableConfiguration>): ConfigurationProvider<ConsumableConfiguration> =
+    ConfigurationProvider { name -> consumable(name, action) }
+
+
+/**
+ * Registers a [DependencyScopeConfiguration] via [dependencyScope].
+ *
+ * @return A provider which creates a new dependency scope configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@get:Incubating
+val ConfigurationContainer.dependencyScope: ConfigurationProvider<DependencyScopeConfiguration>
+    get() = ConfigurationProvider { name -> dependencyScope(name) }
+
+
+/**
+ * Registers a [DependencyScopeConfiguration] via [dependencyScope] and then
+ * configures it with the provided action.
+ *
+ * @param action The action to apply to the configuration.
+ *
+ * @return A provider which creates a new dependency scope configuration.
+ *
+ * @throws InvalidUserDataException If a configuration with the given name already exists in this container.
+ *
+ * @since 8.5
+ */
+@Incubating
+fun ConfigurationContainer.dependencyScope(action: Action<in DependencyScopeConfiguration>): ConfigurationProvider<DependencyScopeConfiguration> =
+    ConfigurationProvider { name -> dependencyScope(name, action) }
+
+
+/**
+ * Provides access to the [NamedDomainObjectProvider] for the element of the given
+ * property name from the configuration container via a delegated property.
+ *
+ * @since 8.5
+ */
+@Incubating
+class ConfigurationProvider<C : Configuration> internal constructor(private val createProvider: (String) -> NamedDomainObjectProvider<C>) {
+    /**
+     * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+     */
+    operator fun provideDelegate(
+        thisRef: Any?,
+        property: KProperty<*>
+    ): ExistingDomainObjectDelegate<NamedDomainObjectProvider<C>> = ExistingDomainObjectDelegate.of(createProvider(property.name))
 }
