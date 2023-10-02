@@ -53,6 +53,7 @@ public class LocationAwareException extends ContextAwareException implements Fai
      *
      * @return The location description. May return null.
      */
+    @Nullable
     public String getLocation() {
         if (sourceDisplayName == null) {
             return null;
@@ -78,6 +79,7 @@ public class LocationAwareException extends ContextAwareException implements Fai
      *
      * @return the message. May return null.
      */
+    @Nullable
     @Override
     public String getMessage() {
         String location = getLocation();

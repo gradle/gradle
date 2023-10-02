@@ -109,7 +109,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion }
         assumeNotNull(newerJvm)
 
-        val installationPaths = listOf(currentJvm!!, newerJvm!!)
+        val installationPaths = listOf(currentJvm, newerJvm!!)
             .joinToString(",") { it.javaHome.absolutePath }
 
         val utils = withClassJar("utils.jar", JavaClassUtil::class.java)

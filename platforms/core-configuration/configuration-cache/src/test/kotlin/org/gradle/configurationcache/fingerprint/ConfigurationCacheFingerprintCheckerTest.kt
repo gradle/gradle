@@ -334,22 +334,22 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeLong(value: Long): Unit =
             undefined()
 
-        override fun writeString(value: CharSequence?): Unit =
+        override fun writeString(value: CharSequence): Unit =
             undefined()
 
-        override fun writeBytes(bytes: ByteArray?): Unit =
+        override fun writeBytes(bytes: ByteArray): Unit =
             undefined()
 
-        override fun writeBytes(bytes: ByteArray?, offset: Int, count: Int): Unit =
+        override fun writeBytes(bytes: ByteArray, offset: Int, count: Int): Unit =
             undefined()
 
         override fun writeByte(value: Byte): Unit =
             undefined()
 
-        override fun writeBinary(bytes: ByteArray?): Unit =
+        override fun writeBinary(bytes: ByteArray): Unit =
             undefined()
 
-        override fun writeBinary(bytes: ByteArray?, offset: Int, count: Int): Unit =
+        override fun writeBinary(bytes: ByteArray, offset: Int, count: Int): Unit =
             undefined()
 
         override fun writeSmallLong(value: Long): Unit =
@@ -437,10 +437,10 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun readInt(): Int =
             undefined()
 
-        override fun readNullableSmallInt(): Int? =
+        override fun readNullableSmallInt(): Int =
             undefined()
 
-        override fun readNullableString(): String? =
+        override fun readNullableString(): String =
             undefined()
 
         override fun readByte(): Byte =
@@ -467,13 +467,13 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun readBoolean(): Boolean =
             undefined()
 
-        override fun readBytes(buffer: ByteArray?): Unit =
+        override fun readBytes(buffer: ByteArray): Unit =
             undefined()
 
-        override fun readBytes(buffer: ByteArray?, offset: Int, count: Int): Unit =
+        override fun readBytes(buffer: ByteArray, offset: Int, count: Int): Unit =
             undefined()
 
-        override fun <T : Any?> decodeChunked(decodeAction: Decoder.DecodeAction<Decoder, T>): T =
+        override fun <T : Any> decodeChunked(decodeAction: Decoder.DecodeAction<Decoder, T>): T =
             undefined()
 
         override fun skipChunked() =

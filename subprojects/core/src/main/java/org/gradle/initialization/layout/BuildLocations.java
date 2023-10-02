@@ -29,7 +29,7 @@ public class BuildLocations extends SettingsLocation {
 
     // Note: `null` for `settingsFile` means explicitly no settings
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLocations(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
+    public BuildLocations(File rootDirectory, File settingsDir, @Nullable File settingsFile, @Nullable ScriptFileResolver scriptFileResolver) {
         super(settingsDir, settingsFile);
         this.rootDirectory = rootDirectory;
         this.scriptFileResolver = scriptFileResolver;
