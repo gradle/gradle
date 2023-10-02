@@ -256,7 +256,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
 
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        DefaultJvmSoftwareComponent javaComponent = createJavaComponent(project, javaExtension, projectInternal);
+        DefaultJvmSoftwareComponent javaComponent = createJavaComponent(project, javaExtension);
         configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
         // Set the 'java' component as the project's default.
@@ -272,7 +272,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureBuild(project);
     }
 
-    private static DefaultJvmSoftwareComponent createJavaComponent(Project project, JavaPluginExtension javaExtension, ProjectInternal projectInternal) {
+    private static DefaultJvmSoftwareComponent createJavaComponent(Project project, JavaPluginExtension javaExtension) {
         // Create the 'java' component - create sourceset first
         SourceSet sourceSet = createSourceSet(SourceSet.MAIN_SOURCE_SET_NAME, javaExtension.getSourceSets());
 
@@ -300,7 +300,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         return sourceSets.create(name);
     }
-
 
     // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
     // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
