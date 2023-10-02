@@ -83,7 +83,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .details("Test")
                     .severity(Severity.ERROR)
             }
@@ -114,7 +114,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error #1")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -124,7 +124,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error #2")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -146,7 +146,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation warning")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -184,7 +184,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation error")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.ERROR)
                     .details("Test")
             }
@@ -194,7 +194,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
                     .label("Validation warning")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }

@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public enum ValidationActions implements ValidationAction {
@@ -160,7 +161,7 @@ public enum ValidationActions implements ValidationAction {
                 .label("specifies " + lowerKind + " '" + input + "' which doesn't exist")
                 .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase()))
                 .noLocation()
-                .type(INPUT_FILE_DOES_NOT_EXIST)
+                .category(VALIDATION, INPUT_FILE_DOES_NOT_EXIST)
                 .severity(Severity.ERROR)
                 .details("An input file was expected to be present but it doesn't exist")
                 .solution("Make sure the " + lowerKind + " exists before the task is called")
@@ -178,7 +179,7 @@ public enum ValidationActions implements ValidationAction {
                 .label(lowerKind + " '" + input + "' is not a " + lowerKind)
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
                 .noLocation()
-                .type(UNEXPECTED_INPUT_FILE_TYPE)
+                .category(VALIDATION, UNEXPECTED_INPUT_FILE_TYPE)
                 .severity(Severity.ERROR)
                 .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
                 .solution("Use a " + lowerKind + " as an input")
@@ -195,7 +196,7 @@ public enum ValidationActions implements ValidationAction {
                 .label("is not writable because " + cause)
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .noLocation()
-                .type(CANNOT_WRITE_OUTPUT)
+                .category(VALIDATION, CANNOT_WRITE_OUTPUT)
                 .severity(Severity.ERROR)
                 .details("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the '" + propertyName + "' is configured to a directory")
@@ -209,7 +210,7 @@ public enum ValidationActions implements ValidationAction {
                 .label("is not writable because '" + directory + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .noLocation()
-                .type(CANNOT_WRITE_OUTPUT)
+                .category(VALIDATION, CANNOT_WRITE_OUTPUT)
                 .severity(Severity.ERROR)
                 .details("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
                 .solution("Make sure that the root of the file tree '" + propertyName + "' is configured to a directory")
@@ -223,7 +224,7 @@ public enum ValidationActions implements ValidationAction {
                 .label("is not writable because '" + file + "' is not a file")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .noLocation()
-                .type(CANNOT_WRITE_OUTPUT)
+                .category(VALIDATION, CANNOT_WRITE_OUTPUT)
                 .details("Cannot write a file to a location pointing at a directory")
                 .severity(Severity.ERROR)
                 .solution("Configure '" + propertyName + "' to point to a file, not a directory")
@@ -238,7 +239,7 @@ public enum ValidationActions implements ValidationAction {
                 .label("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase()))
                 .noLocation()
-                .type(CANNOT_WRITE_OUTPUT)
+                .category(VALIDATION, CANNOT_WRITE_OUTPUT)
                 .severity(Severity.ERROR)
                 .details("Cannot create parent directories that are existing as file")
                 .solution("Configure '" + propertyName + "' to point to the correct location")
@@ -265,7 +266,7 @@ public enum ValidationActions implements ValidationAction {
                     .label("points to '" + location + "' which is managed by Gradle")
                     .documentedAt(userManual("validation_problems", CANNOT_WRITE_TO_RESERVED_LOCATION.toLowerCase()))
                     .noLocation()
-                    .type(CANNOT_WRITE_TO_RESERVED_LOCATION)
+                    .category(VALIDATION, CANNOT_WRITE_TO_RESERVED_LOCATION)
                     .severity(Severity.ERROR)
                     .details("Trying to write an output to a read-only location which is for Gradle internal use only")
                     .solution("Select a different output location")
@@ -299,7 +300,7 @@ public enum ValidationActions implements ValidationAction {
                     .label("has unsupported value '" + value + "'")
                     .documentedAt(userManual("validation_problems", UNSUPPORTED_NOTATION.toLowerCase()))
                     .noLocation()
-                    .type(UNSUPPORTED_NOTATION)
+                    .category(VALIDATION, UNSUPPORTED_NOTATION)
                     .severity(Severity.ERROR)
                     .details("Type '" + typeOf(value) + "' cannot be converted to a " + targetType);
                 if (candidates.isEmpty()) {

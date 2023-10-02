@@ -144,7 +144,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -174,7 +174,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }
@@ -201,7 +201,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .label("type is broken")
                     .documentedAt(userManual("id", "section"))
                     .noLocation()
-                    .type(TEST_PROBLEM)
+                    .category(TEST_PROBLEM)
                     .severity(Severity.WARNING)
                     .details("Test")
             }

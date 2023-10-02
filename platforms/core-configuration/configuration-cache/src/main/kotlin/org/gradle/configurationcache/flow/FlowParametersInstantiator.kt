@@ -80,7 +80,7 @@ class FlowParametersInstantiator(
                                             .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                             .undocumented()
                                             .noLocation()
-                                            .type("validation_type")
+                                            .category("validation_type")
                                             .severity(Severity.ERROR)
                                     })
                             }
