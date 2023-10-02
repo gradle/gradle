@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.serialize;
 
+import javax.annotation.Nullable;
 import java.io.EOFException;
 
 public interface Serializer<T> {
@@ -29,5 +30,5 @@ public interface Serializer<T> {
     /**
      * Writes the given object to the given stream. The implementation must not perform any buffering.
      */
-    void write(Encoder encoder, T value) throws Exception;
+    void write(Encoder encoder, @Nullable T value) throws Exception;
 }

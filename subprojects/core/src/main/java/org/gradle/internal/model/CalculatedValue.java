@@ -18,6 +18,7 @@ package org.gradle.internal.model;
 
 import org.gradle.internal.Try;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +40,7 @@ public interface CalculatedValue<T> {
      *
      * <p>Rethrows any exception that happened while calculating the value</p>
      */
+    @Nullable
     T getOrNull();
 
     /**

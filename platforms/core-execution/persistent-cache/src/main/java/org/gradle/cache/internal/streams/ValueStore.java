@@ -19,13 +19,15 @@ package org.gradle.cache.internal.streams;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
+import javax.annotation.Nullable;
+
 public interface ValueStore<T> {
     /**
      * Writes the given value and returns an address for the written block.
      * The current thread performs the encoding. The implementation may perform some buffering and this may not necessarily be
      * flushed to the filesystem on completion of this method.
      */
-    BlockAddress write(T value);
+    BlockAddress write(@Nullable T value);
 
     /**
      * Reads the contents of the given block.
@@ -38,6 +40,7 @@ public interface ValueStore<T> {
     }
 
     interface Reader<T> {
+        @Nullable
         T read(Decoder decoder) throws Exception;
     }
 }

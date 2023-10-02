@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,6 +80,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         }
     }
 
+    @Nonnull
     @Override
     public ArtifactTypeContainer create() {
         if (artifactTypeDefinitions == null) {

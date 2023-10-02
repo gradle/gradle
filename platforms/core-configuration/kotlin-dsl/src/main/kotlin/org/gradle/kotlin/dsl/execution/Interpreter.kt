@@ -308,7 +308,7 @@ class Interpreter(val host: Host) {
         startCompilerOperationFor(scriptSource, programId.templateId).use {
 
             val sourceText =
-                scriptSource.resource!!.text
+                scriptSource.resource.text
 
             val programSource =
                 ProgramSource(scriptPath, sourceText)

@@ -177,7 +177,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.hashCode()
         }
 
-        override fun getProperty(propertyName: String): Any {
+        override fun getProperty(propertyName: String): Any? {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
             val result = thisBean.tryGetProperty(propertyName)
@@ -193,7 +193,7 @@ class ProblemReportingCrossProjectModelAccess(
             throw thisBean.getMissingProperty(propertyName)
         }
 
-        override fun invokeMethod(name: String, args: Any): Any {
+        override fun invokeMethod(name: String, args: Any): Any? {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val varargs: Array<Any?> = args.uncheckedCast()
             val thisBean = BeanDynamicObject(this).withNotImplementsMissing()

@@ -118,7 +118,7 @@ class InstrumentedInputAccessListener(
         undeclaredInputBroadcast.fileOpened(file, consumer)
     }
 
-    override fun fileObserved(file: File, consumer: String?) {
+    override fun fileObserved(file: File, consumer: String) {
         undeclaredInputBroadcast.fileObserved(file, consumer)
     }
 

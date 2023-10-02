@@ -16,6 +16,7 @@
 
 package org.gradle.util.internal;
 
+import javax.annotation.Nullable;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public interface EncryptionAlgorithm {
      * @param key the key to use
      * @return a new encryption/decryption session
      */
-    Session newSession(SecretKey key);
+    Session newSession(@Nullable SecretKey key);
 
     interface IVLoader {
         void load(byte[] toLoad) throws IOException;
@@ -55,7 +56,7 @@ public interface EncryptionAlgorithm {
     }
 
     class EncryptionException extends RuntimeException {
-        public EncryptionException(String message, Throwable cause) {
+        public EncryptionException(String message, @Nullable Throwable cause) {
             super(message, cause);
         }
         public EncryptionException(Throwable cause) {

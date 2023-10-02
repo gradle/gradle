@@ -18,6 +18,8 @@ package org.gradle.internal.metaobject;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 
+import javax.annotation.Nullable;
+
 /**
  * An object that can be worked with in a dynamic fashion.
  *
@@ -49,7 +51,7 @@ public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**
      * Don't use this method. Use the overload {@link #trySetProperty(String, Object)} instead.
      */
-    void setProperty(String name, Object value) throws MissingPropertyException;
+    void setProperty(String name, @Nullable Object value) throws MissingPropertyException;
 
     /**
      * Don't use this method. Use the overload {@link MethodAccess#tryInvokeMethod(String, Object...)} instead.

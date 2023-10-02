@@ -33,7 +33,8 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * @param path the path of the task to find in the task graph
      * @return the task with the given path if it is present in the task graph, null otherwise
      */
-    @Nullable Task findTask(String path);
+    @Nullable
+    Task findTask(@Nullable String path);
 
     /**
      * Attaches the work that this graph will run. Fires events and no further tasks should be added.

@@ -32,13 +32,9 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
-
 import org.gradle.groovy.scripts.ScriptSource
-
 import org.gradle.internal.service.ServiceRegistry
-
-import org.gradle.kotlin.dsl.invoke
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.util.internal.ConfigureUtil.configureByMap
 import java.io.File
 
@@ -53,7 +49,7 @@ class KotlinScriptHost<out T : Any> internal constructor(
 ) {
 
     internal
-    val fileName = scriptSource.fileName!!
+    val fileName = scriptSource.fileName
 
     internal
     val fileOperations: FileOperations by unsafeLazy {

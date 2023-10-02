@@ -22,7 +22,7 @@ public class StringInternalOption implements InternalOption<String> {
     private final String systemPropertyName;
     private final String defaultValue;
 
-    public StringInternalOption(String systemPropertyName, String defaultValue) {
+    public StringInternalOption(String systemPropertyName, @Nullable String defaultValue) {
         this.systemPropertyName = systemPropertyName;
         this.defaultValue = defaultValue;
     }

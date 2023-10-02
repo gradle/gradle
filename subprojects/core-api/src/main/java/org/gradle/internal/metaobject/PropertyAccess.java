@@ -16,6 +16,7 @@
 
 package org.gradle.internal.metaobject;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -27,19 +28,19 @@ public interface PropertyAccess {
      *
      * <p>Note that not every property is known. Some properties require an attempt to get or set their value before they are discovered.</p>
      */
-    boolean hasProperty(String name);
+    boolean hasProperty(@Nullable String name);
 
     /**
      * Gets the value of the given property, if present.
      */
-    DynamicInvokeResult tryGetProperty(String name);
+    DynamicInvokeResult tryGetProperty(@Nullable String name);
 
     /**
      * Sets the value of the given property, if present.
      *
      * @return true if the property was found
      */
-    DynamicInvokeResult trySetProperty(String name, Object value);
+    DynamicInvokeResult trySetProperty(@Nullable String name, @Nullable Object value);
 
     /**
      * Returns the properties known for this object.

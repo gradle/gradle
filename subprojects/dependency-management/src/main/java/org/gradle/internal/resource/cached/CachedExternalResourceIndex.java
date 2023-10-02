@@ -40,7 +40,7 @@ public interface CachedExternalResourceIndex<K> {
      * @param metaData Information about this resource at its source
      * @see #storeMissing(Object)
      */
-    void store(K key, File artifactFile, @Nullable ExternalResourceMetaData metaData);
+    void store(K key, @Nullable File artifactFile, @Nullable ExternalResourceMetaData metaData);
 
     /**
      * Record that the artifact with the given key was missing.

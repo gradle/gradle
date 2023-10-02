@@ -147,7 +147,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         // TODO - use an immutable registry implementation
         val artifactTypeRegistry = decodePreservingSharedIdentity {
             val registry = DefaultArtifactTypeRegistry(instantiator, attributesFactory, CollectionCallbackActionDecorator.NOOP, EmptyVariantTransformRegistry)
-            val mappings = registry.create()!!
+            val mappings = registry.create()
             readCollection {
                 val name = readString()
                 val attributes = readNonNull<AttributeContainer>()

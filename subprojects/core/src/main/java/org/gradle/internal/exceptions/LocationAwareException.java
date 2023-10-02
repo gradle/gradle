@@ -19,6 +19,8 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.annotation.Nullable;
+
 /**
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
  */
@@ -27,11 +29,11 @@ public class LocationAwareException extends ContextAwareException implements Fai
     private final String sourceDisplayName;
     private final Integer lineNumber;
 
-    public LocationAwareException(Throwable cause, ScriptSource source, Integer lineNumber) {
+    public LocationAwareException(Throwable cause, @Nullable ScriptSource source, @Nullable Integer lineNumber) {
         this(cause, source != null ? source.getDisplayName() : null, lineNumber);
     }
 
-    public LocationAwareException(Throwable cause, String sourceDisplayName, Integer lineNumber) {
+    public LocationAwareException(Throwable cause, @Nullable String sourceDisplayName, @Nullable Integer lineNumber) {
         super(cause);
         this.sourceDisplayName = sourceDisplayName;
         this.lineNumber = lineNumber;

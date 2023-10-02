@@ -19,8 +19,10 @@ package org.gradle.internal.metaobject;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+@SuppressWarnings({"FieldNamingConvention", "NewMethodNamingConvention"})
 @NotThreadSafe
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
@@ -39,6 +41,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return _delegate.toString();
     }
 
+    @Nullable
     public Object _original_owner() {
         return _original_owner;
     }

@@ -195,14 +195,14 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     // region overridden by delegation
 
-    override fun populate(plan: FinalizedExecutionPlan?) {
+    override fun populate(plan: FinalizedExecutionPlan) {
         delegate.populate(plan)
     }
 
-    override fun execute(plan: FinalizedExecutionPlan?): ExecutionResult<Void>? =
+    override fun execute(plan: FinalizedExecutionPlan): ExecutionResult<Void> =
         delegate.execute(plan)
 
-    override fun visitScheduledNodes(visitor: Consumer<MutableList<Node>>?) =
+    override fun visitScheduledNodes(visitor: Consumer<MutableList<Node>>) =
         delegate.visitScheduledNodes(visitor)
 
     override fun size(): Int = delegate.size()
