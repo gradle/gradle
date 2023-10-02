@@ -1,5 +1,3 @@
-import gradle.kotlin.dsl.accessors._764e4841fc7b717dfccd8b59d8555508.api
-
 /*
  * Copyright 2020 the original author or authors.
  *
