@@ -293,9 +293,7 @@ class PathTest extends Specification {
         thrown(InvalidUserDataException)
 
         where:
-        path | _
-        ""   | _
-        null | _
+        path << ["", null]
     }
 
     def "validatePath succeeds"(path) {
@@ -306,9 +304,7 @@ class PathTest extends Specification {
         true
 
         where:
-        path       | _
-        "path"     | _
-        ":path:p2" | _
+        path << ["path", ":path:p2"]
     }
 
     def paths(List<String> paths) {
