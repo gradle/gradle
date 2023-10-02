@@ -17,12 +17,9 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-
-import javax.annotation.Nullable;
 
 /**
  * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
@@ -38,6 +35,8 @@ public interface ResolverResults {
      * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
      * Using this model directly should be avoided.
      * This method should only be used to implement existing public API methods.
+     *
+     * @throws IllegalStateException if only build dependencies have been resolved.
      */
     ResolvedConfiguration getResolvedConfiguration();
 
@@ -56,10 +55,4 @@ public interface ResolverResults {
      * Returns details of the local components in the resolved dependency graph.
      */
     ResolvedLocalComponentsResult getResolvedLocalComponents();
-
-    /**
-     * Returns intermediate state saved between dependency graph resolution and artifact resolution.
-     */
-    @Nullable
-    ArtifactResolveState getArtifactResolveState();
 }

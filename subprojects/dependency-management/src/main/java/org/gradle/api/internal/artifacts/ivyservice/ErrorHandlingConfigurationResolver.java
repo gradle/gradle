@@ -72,30 +72,21 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
+        ResolverResults results;
         try {
-            return delegate.resolveGraph(resolveContext);
-        } catch (Exception e) {
-            return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
-        }
-    }
-
-    @Override
-    public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
-        ResolverResults artifactResults;
-        try {
-            artifactResults = delegate.resolveArtifacts(resolveContext, graphResults);
+            results = delegate.resolveGraph(resolveContext);
         } catch (Exception e) {
             return new BrokenResolverResults(exceptionMapper.contextualize(e, resolveContext));
         }
 
         // Handle non-fatal failures in old model (ResolvedConfiguration) with `ErrorHandling` wrappers.
         // The new model (ResolutionResult) handles non-fatal failure without needing wrappers.
-        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(artifactResults.getResolvedConfiguration(), resolveContext, exceptionMapper);
-        return DefaultResolverResults.artifactsResolved(
-            graphResults.getVisitedGraph(),
-            graphResults.getResolvedLocalComponents(),
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), resolveContext, exceptionMapper);
+        return DefaultResolverResults.graphResolved(
+            results.getVisitedGraph(),
+            results.getResolvedLocalComponents(),
             wrappedConfiguration,
-            artifactResults.getVisitedArtifacts()
+            results.getVisitedArtifacts()
         );
     }
 
@@ -301,11 +292,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
 
         @Override
         public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-            throw failure;
-        }
-
-        @Override
-        public ArtifactResolveState getArtifactResolveState() {
             throw failure;
         }
     }
