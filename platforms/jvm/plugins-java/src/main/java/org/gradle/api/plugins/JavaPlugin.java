@@ -257,6 +257,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         DefaultJvmSoftwareComponent javaComponent = createJavaComponent(project, javaExtension, projectInternal);
+        configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -288,9 +289,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
             feature
         );
         project.getComponents().add(component);
-
-        // Then configure publishing on it
-        configurePublishing(project.getPlugins(), project.getExtensions(), sourceSet);
 
         return component;
     }
