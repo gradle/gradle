@@ -19,5 +19,5 @@ package org.gradle.internal.classpath.intercept;
 /**
  * A marker interface that indicates that a class or a factory is used for upgrading property.
  */
-public interface UsedForUpgradedPropertyInterception {
+public interface UpgradePropertyInterceptor {
 }

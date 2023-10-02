@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.classpath.intercept.UpgradePropertyInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -55,6 +56,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.getGroovyCallDecorator;
@@ -106,6 +108,11 @@ public class Instrumented {
 
     @NonNullApi
     public static class CallInterceptorRegistry {
+
+        /**
+         * Marks if property upgrades are enabled if they exist, TRUE by default
+         */
+        private static final String PROPERTY_UPGRADES_ENABLED = "org.gradle.internal.property.upgrades.enabled";
         private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
@@ -115,11 +122,19 @@ public class Instrumented {
                 throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
             }
 
-            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
+            Predicate<Class<?>> interceptorTypePredicate = getInterceptorTypePredicate();
+            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader, interceptorTypePredicate);
             GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
             currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
+            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader, interceptorTypePredicate);
             currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+        }
+
+        private static Predicate<Class<?>> getInterceptorTypePredicate() {
+            if (System.getProperty(PROPERTY_UPGRADES_ENABLED, "true").trim().equals("false")) {
+                return type -> !UpgradePropertyInterceptor.class.isAssignableFrom(type);
+            }
+            return type -> true;
         }
 
         public static CallSiteDecorator getGroovyCallDecorator() {
@@ -142,7 +157,7 @@ public class Instrumented {
     }
 
     /**
-     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     * This API follows the requirements in {@link GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
      * @deprecated This should not be called from the sources.
      */
     @SuppressWarnings("unused")

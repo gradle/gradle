@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,7 +38,7 @@ import java.util.stream.Stream;
 @NonNullApi
 public interface JvmBytecodeInterceptorSet {
 
-    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader());
+    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader(), type -> true);
 
     Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
 
@@ -50,19 +51,19 @@ public interface JvmBytecodeInterceptorSet {
 
         private final Lazy<List<JvmBytecodeCallInterceptor.Factory>> factories;
 
-        public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader) {
-            this(classLoader, "org.gradle");
+        public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader, Predicate<Class<?>> interceptorTypePredicate) {
+            this.factories = Lazy.locking().of(() -> loadFactories(classLoader, interceptorTypePredicate));
         }
 
         @VisibleForTesting
         public ClassLoaderSourceJvmBytecodeInterceptorSet(ClassLoader classLoader, String forPackage) {
-            this.factories = Lazy.locking().of(() -> loadFactories(classLoader, forPackage));
+            this(classLoader, type -> type.getPackage().getName().startsWith(forPackage));
         }
 
-        private static List<JvmBytecodeCallInterceptor.Factory> loadFactories(ClassLoader classLoader, String forPackage) {
+        private static List<JvmBytecodeCallInterceptor.Factory> loadFactories(ClassLoader classLoader, Predicate<Class<?>> interceptorTypePredicate) {
             ImmutableList.Builder<JvmBytecodeCallInterceptor.Factory> factories = ImmutableList.builder();
             for (JvmBytecodeCallInterceptor.Factory factory : ServiceLoader.load(JvmBytecodeCallInterceptor.Factory.class, classLoader)) {
-                if (factory.getClass().getPackage().getName().startsWith(forPackage)) {
+                if (interceptorTypePredicate.test(factory.getInterceptorType())) {
                     factories.add(factory);
                 }
             }
@@ -98,4 +99,3 @@ public interface JvmBytecodeInterceptorSet {
         }
     }
 }
-

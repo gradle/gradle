@@ -37,5 +37,9 @@ public interface JvmBytecodeCallInterceptor {
     @NonNullApi
     interface Factory {
         JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata);
+        default Class<?> getInterceptorType() {
+            // TODO: Implement this
+            throw new UnsupportedOperationException();
+        }
     }
 }
