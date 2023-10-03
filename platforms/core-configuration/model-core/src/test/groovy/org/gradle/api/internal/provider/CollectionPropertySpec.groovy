@@ -1116,4 +1116,13 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs toImmutable(["2", "4"])
     }
+
+    def "can exclude provided values from convention"() {
+        given:
+        property.conventionValue.addAll(Providers.of(["1", "2", "3", "4"]))
+        property.conventionValue.excludeAll(Providers.of(["1", "3", "5"]))
+
+        expect:
+        assertValueIs toImmutable(["2", "4"])
+    }
 }
