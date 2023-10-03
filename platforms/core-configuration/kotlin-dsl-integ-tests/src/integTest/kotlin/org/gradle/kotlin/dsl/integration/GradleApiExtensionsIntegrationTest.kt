@@ -31,7 +31,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.util.jar.JarFile
@@ -203,19 +202,13 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Ignore("To be moved to build-logic and adjusted") // TODO FIX BEFORE MERGE!
     fun `generated jar contains Gradle API extensions sources and byte code and is reproducible`() {
-
-        val guh = newDir("guh")
 
         withBuildScript("")
 
-        executer.withGradleUserHomeDir(guh)
-        executer.requireIsolatedDaemons()
-
         build("help")
 
-        val generatedJar = generatedExtensionsJarFromGradleUserHome(guh)
+        val generatedJar = generatedExtensionsJarFromGradleInstallation(buildContext.gradleHomeDir!!)
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
             .use { it.entries().toList().map { entry -> entry.name } }
@@ -268,13 +261,8 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     private
-    fun generatedExtensionsJarFromGradleUserHome(guh: File): File =
-        Regex("^\\d.*").let { startsWithDigit ->
-            guh.resolve("caches")
-                .listFiles { f -> f.isDirectory && f.name.matches(startsWithDigit) }
-                .single()
-                .resolve("generated-gradle-jars")
-                .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }
-                .single()
-        }
+    fun generatedExtensionsJarFromGradleInstallation(gradleHomeDir: File): File =
+        gradleHomeDir.resolve("lib")
+            .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }!!
+            .single()
 }
