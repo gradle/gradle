@@ -18,11 +18,12 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import org.gradle.api.Action;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.MinusCollector;
+import org.gradle.api.internal.provider.Collectors.PlusCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
@@ -80,6 +81,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void exclude(Predicate<T> filter) {
         setSupplier(getSupplier().keep(filter.negate()));
+    }
+
+    @Override
+    public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
+        setSupplier(getSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
     }
 
     @Override
@@ -280,6 +286,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public CollectionSupplier<T, C> minus(Collector<T> collector) {
+            // No value - something = no value
+            return this;
+        }
+
+        @Override
         public CollectionSupplier<T, C> keep(Predicate<T> filter) {
             return this;
         }
@@ -316,6 +328,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
             return new CollectingSupplier(collector, pruning);
+        }
+
+        @Override
+        public CollectionSupplier<T, C> minus(Collector<T> collector) {
+            // empty - something = empty
+            return this;
         }
 
         @Override
@@ -369,6 +387,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public CollectionSupplier<T, C> minus(Collector<T> collector) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public CollectionSupplier<T, C> keep(Predicate<T> filter) {
             // fixed values do not allow further filtering
             throw new UnsupportedOperationException();
@@ -417,6 +440,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             return new CollectingSupplier(new PlusCollector<>(value, collector, pruning), pruning);
+        }
+
+        @Override
+        public CollectionSupplier<T, C> minus(Collector<T> collector) {
+            return new CollectingSupplier(new MinusCollector<>(value, collector, pruning, collectionFactory), pruning);
         }
 
         @Override
@@ -523,59 +551,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    public static class PlusCollector<T> implements Collector<T> {
-        private final Collector<T> left;
-        private final Collector<T> right;
-        private final boolean pruning;
 
-        public PlusCollector(Collector<T> left, Collector<T> right, boolean pruning) {
-            this.left = left;
-            this.right = right;
-            this.pruning = pruning;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return
-                pruning ?
-                    (left.calculatePresence(consumer) || right.calculatePresence(consumer))
-                    :
-                    (left.calculatePresence(consumer) && right.calculatePresence(consumer));
-
-        }
-
-        @Override
-        public int size() {
-            return left.size() + right.size();
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing() && !pruning) {
-                return leftValue;
-            }
-            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
-                return rightValue;
-            }
-
-            return Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            left.calculateExecutionTimeValue(visitor);
-            right.calculateExecutionTimeValue(visitor);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return left.getProducer().plus(right.getProducer());
-        }
-    }
     //TODO-RC consider combining these two implementations if their only difference is the target CollectingSupplier
     private class ConventionConfigurer implements CollectionPropertyConfigurer<T> {
 
@@ -624,6 +600,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public void exclude(Predicate<T> filter) {
             prune();
             setConvention(getConventionSupplier().keep(filter.negate()));
+        }
+
+        @Override
+        public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
+            prune();
+            setConvention(getConventionSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
     }
 
@@ -676,5 +658,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             AbstractCollectionProperty.this.exclude(filter);
         }
 
+        @Override
+        public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
+            prune();
+            AbstractCollectionProperty.this.excludeAll(provider);
+        }
     }
 }

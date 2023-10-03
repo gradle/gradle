@@ -76,4 +76,6 @@ public interface CollectionPropertyConfigurer<T> {
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
     void exclude(Predicate<T> filter);
+
+    void excludeAll(Provider<? extends Iterable<? extends T>> provider);
 }

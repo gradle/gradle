@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -28,6 +29,7 @@ import javax.annotation.Nullable;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -429,6 +431,117 @@ public class Collectors {
             upstream.calculateExecutionTimeValue(it -> baseValue[0] = it);
             //TODO-RC need to filter the execution time value
             visitor.execute(baseValue[0]);
+        }
+    }
+
+    public static class PlusCollector<T> implements Collector<T> {
+        private final Collector<T> left;
+        private final Collector<T> right;
+        private final boolean pruning;
+
+        public PlusCollector(Collector<T> left, Collector<T> right, boolean pruning) {
+            this.left = left;
+            this.right = right;
+            this.pruning = pruning;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return
+                pruning ?
+                    (left.calculatePresence(consumer) || right.calculatePresence(consumer))
+                    :
+                    (left.calculatePresence(consumer) && right.calculatePresence(consumer));
+
+        }
+
+        @Override
+        public int size() {
+            return left.size() + right.size();
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing() && !pruning) {
+                return leftValue;
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+                return rightValue;
+            }
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
+        }
+    }
+
+    public static class MinusCollector<T> implements Collector<T> {
+        private final Collector<T> left;
+        private final Collector<T> right;
+        private final boolean pruning;
+        private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
+
+        public MinusCollector(Collector<T> left, Collector<T> right, boolean pruning, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
+            this.left = left;
+            this.right = right;
+            this.pruning = pruning;
+            this.collectionFactory = collectionFactory;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return
+                left.calculatePresence(consumer);
+        }
+
+        @Override
+        public int size() {
+            return left.size();
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            ImmutableCollection.Builder<T> leftBuilder = collectionFactory.get();
+            Value<Void> leftValue = left.collectEntries(consumer, collector, leftBuilder);
+            if (leftValue.isMissing() && !pruning) {
+                return leftValue;
+            }
+            ImmutableCollection.Builder<T> rightBuilder = collectionFactory.get();
+            Value<Void> rightValue = right.collectEntries(consumer, collector, rightBuilder);
+            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+                //TODO-RC this is not right
+                return rightValue;
+            }
+
+            Stream<T> baseElements = leftBuilder.build().stream();
+            ImmutableCollection<T> rightCollection = rightBuilder.build();
+            baseElements.filter(Predicates.not(rightCollection::contains)).forEach(dest::add);
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue));
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            //TODO-RC what is the correct way of implemeting this?
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
         }
     }
 }
