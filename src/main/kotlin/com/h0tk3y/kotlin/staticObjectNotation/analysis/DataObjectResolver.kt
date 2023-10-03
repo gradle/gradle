@@ -477,10 +477,15 @@ class DataObjectResolverImpl : DataObjectResolver {
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
                 ?: error("builder functions must have a single parameter")
-            val property = parameter.semantics as? ParameterSemantics.StoreValueInProperty
-                ?: error("builder functions must assign their parameters to properties")
-            val value = valueBinding.bindingMap.getValue(parameter)
-            recordAssignment(PropertyReferenceResolution(receiver, property.dataProperty), value)
+            parameter.semantics as? ParameterSemantics.StoreValueInProperty
+                ?: error("a builder function must assign its parameter to a property")
+        }
+        function.binding.binding.forEach { (param, arg) ->
+            val paramSemantics = param.semantics
+            if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
+                val property = paramSemantics.dataProperty
+                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg))
+            }
         }
 
         // we have chosen the function and got its invocation result, now we go to the "configure" lambda if it's there
