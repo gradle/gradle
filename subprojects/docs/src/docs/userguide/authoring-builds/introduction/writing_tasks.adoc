@@ -166,6 +166,7 @@ Custom tasks
 hello - A lovely greeting task.
 ----
 
+[[sec:build_scripts_are_code]]
 == Task types
 Gradle tasks are a subclass of link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`].
 
@@ -321,5 +322,7 @@ The calls `doFirst` and `doLast` can be executed multiple times.
 They add an action to the beginning or the end of the task's actions list.
 When the task executes, the actions in the action list are executed in order.
 
+[[sec:using_ant_tasks_tutorial]]
 [[sec:using_methods]]
 [[sec:default_tasks]]
+[[sec:build_script_external_dependencies]]
