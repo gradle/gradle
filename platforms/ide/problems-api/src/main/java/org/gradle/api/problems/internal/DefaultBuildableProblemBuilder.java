@@ -84,13 +84,13 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningType location(String path, @Nullable Integer line, @Nullable Integer column) {
+    public ProblemBuilderDefiningCategory location(String path, @Nullable Integer line, @Nullable Integer column) {
         this.locations.add(new FileLocation(path, line, column, 0));
         return this;
     }
 
     @Override
-    public ProblemBuilderDefiningType pluginLocation(String pluginId) {
+    public ProblemBuilderDefiningCategory pluginLocation(String pluginId) {
         this.locations.add(new PluginIdLocation(pluginId));
         return this;
     }

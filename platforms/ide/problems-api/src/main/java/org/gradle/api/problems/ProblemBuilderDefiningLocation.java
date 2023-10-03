@@ -54,7 +54,7 @@ public interface ProblemBuilderDefiningLocation {
      * @return the builder for the next required property
      * @since 8.5
      */
-    ProblemBuilderDefiningType pluginLocation(String pluginId);
+    ProblemBuilderDefiningCategory pluginLocation(String pluginId);
 
     /*
      * Declares that this problem has no associated location data.
