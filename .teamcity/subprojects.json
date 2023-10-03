@@ -8,7 +8,7 @@
   },
   {
     "name": "api-metadata",
-    "path": "subprojects/api-metadata",
+    "path": "platforms/core-configuration/api-metadata",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -43,7 +43,7 @@
   },
   {
     "name": "base-services-groovy",
-    "path": "subprojects/base-services-groovy",
+    "path": "platforms/core-configuration/base-services-groovy",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -141,7 +141,7 @@
   },
   {
     "name": "configuration-cache",
-    "path": "subprojects/configuration-cache",
+    "path": "platforms/core-configuration/configuration-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -232,7 +232,7 @@
   },
   {
     "name": "distributions-publishing",
-    "path": "subprojects/distributions-publishing",
+    "path": "platforms/software/distributions-publishing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -309,7 +309,7 @@
   },
   {
     "name": "file-collections",
-    "path": "subprojects/file-collections",
+    "path": "platforms/core-configuration/file-collections",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -477,7 +477,7 @@
   },
   {
     "name": "jvm-services",
-    "path": "subprojects/jvm-services",
+    "path": "platforms/jvm/jvm-services",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -589,14 +589,14 @@
   },
   {
     "name": "model-core",
-    "path": "subprojects/model-core",
+    "path": "platforms/core-configuration/model-core",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "model-groovy",
-    "path": "subprojects/model-groovy",
+    "path": "platforms/core-configuration/model-groovy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -610,7 +610,7 @@
   },
   {
     "name": "normalization-java",
-    "path": "subprojects/normalization-java",
+    "path": "platforms/jvm/normalization-java",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -638,7 +638,7 @@
   },
   {
     "name": "platform-jvm",
-    "path": "subprojects/platform-jvm",
+    "path": "platforms/jvm/platform-jvm",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -682,6 +682,13 @@
     "name": "plugins-java",
     "path": "platforms/jvm/plugins-java",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-java-base",
+    "path": "platforms/jvm/plugins-java-base",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

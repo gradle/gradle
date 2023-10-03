@@ -45,7 +45,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,12 +77,13 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolutionResultInternal;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -724,7 +724,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 markParentsObserved(requestedState);
                 markReferencedProjectConfigurationsObserved(requestedState, results);
 
-                if (!newState.hasError()) {
+                // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
+                //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
+                if (!newState.getCachedResolverResults().getVisitedGraph().getResolutionFailure().isPresent()) {
                     dependencyResolutionListeners.getSource().afterResolve(incoming);
 
                     // Use the current state, which may have changed if the listener queried the result
@@ -742,15 +744,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
 
             private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
-                Throwable failure = results.getFailure();
-                if (failure != null) {
-                    context.failed(failure);
-                }
+                results.getVisitedGraph().getResolutionFailure().ifPresent(context::failed);
                 // When dependency resolution has failed, we don't want the build operation listeners to fail as well
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                ResolutionResult resolutionResult = new DefaultResolutionResult(results.getMinimalResolutionResult());
+                ResolutionResult resolutionResult = new DefaultResolutionResult(results.getVisitedGraph().getResolutionResult());
                 context.setResult(ResolveConfigurationResolutionBuildOperationResult.create(resolutionResult, attributesFactory));
             }
 
@@ -1107,6 +1106,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public String getUploadTaskName() {
         return Configurations.uploadTaskName(getName());
+    }
+
+    @Override
+    public Describable asDescribable() {
+        return displayName;
     }
 
     @Override
@@ -1631,12 +1635,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionResult getTaskDependencyValue() {
-            return new DefaultResolutionResult(getResultsForBuildDependencies().getMinimalResolutionResult());
+            return new DefaultResolutionResult(getResultsForBuildDependencies().getVisitedGraph().getResolutionResult());
         }
 
         @Override
         public ResolutionResult getValue() {
-            return new DefaultResolutionResult(getResultsForArtifacts().getMinimalResolutionResult());
+            return new DefaultResolutionResult(getResultsForArtifacts().getVisitedGraph().getResolutionResult());
         }
     }
 
@@ -1682,12 +1686,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public SelectedArtifactSet getTaskDependencyValue() {
-            return resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
+            return resultProvider.getTaskDependencyValue().select(dependencySpec, artifactSpec);
         }
 
         @Override
         public SelectedArtifactSet getValue() {
-            return resultProvider.getValue().select(dependencySpec, viewAttributes.asImmutable(), componentSpec, allowNoMatchingVariants, selectFromAllVariants);
+            ArtifactSelectionSpec artifactSpec = new ArtifactSelectionSpec(viewAttributes.asImmutable(), componentSpec, selectFromAllVariants, allowNoMatchingVariants);
+            return resultProvider.getValue().select(dependencySpec, artifactSpec);
         }
     }
 
@@ -2014,7 +2020,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         boolean hasError() {
-            return cachedResolverResults.hasError();
+            return cachedResolverResults.getVisitedGraph().hasAnyFailure();
         }
 
         @Override
@@ -2113,7 +2119,7 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public ResolutionResult getResolutionResult() {
             assertIsResolvable();
-            return new DefaultResolutionResult(new LazyMinimalResolutionResult(false));
+            return new DefaultResolutionResult(new ConfigurationResolvingMinimalResolutionResult());
         }
 
         @Override
@@ -2149,8 +2155,19 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         @Override
-        public ResolutionResultInternal getLenientResolutionResult() {
-            return new DefaultResolutionResult(new LazyMinimalResolutionResult(true));
+        public ResolutionResultProvider<VisitedGraphResults> getGraphResultsProvider() {
+            assertIsResolvable();
+            return new ResolutionResultProvider<VisitedGraphResults>() {
+                @Override
+                public VisitedGraphResults getTaskDependencyValue() {
+                    return resolveGraphForBuildDependenciesIfRequired().getVisitedGraph();
+                }
+
+                @Override
+                public VisitedGraphResults getValue() {
+                    return resolveToStateOrLater(ARTIFACTS_RESOLVED).getCachedResolverResults().getVisitedGraph();
+                }
+            };
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
@@ -2193,63 +2210,35 @@ since users cannot create non-legacy configurations and there is no current publ
         /**
          * A minimal resolution result that lazily resolves the configuration.
          */
-        private class LazyMinimalResolutionResult implements MinimalResolutionResult {
+        private class ConfigurationResolvingMinimalResolutionResult implements MinimalResolutionResult {
 
-            private final boolean lenient;
-            private volatile MinimalResolutionResult delegate;
-
-            /**
-             * @param lenient If true, extra failures will not be thrown during resolution.
-             */
-            public LazyMinimalResolutionResult(boolean lenient) {
-                this.lenient = lenient;
-            }
-
-            private void resolve() {
-                if (delegate == null) {
-                    synchronized (this) {
-                        if (delegate == null) {
-                            ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
-                            delegate = currentState.getCachedResolverResults().getMinimalResolutionResult();
-                            ResolveException extraFailure = delegate.getExtraFailure();
-                            if (extraFailure != null && !lenient) {
-                                throw extraFailure;
-                            }
-                        }
-                    }
-                }
+            private MinimalResolutionResult getDelegate() {
+                VisitedGraphResults graph = getGraphResultsProvider().getValue();
+                graph.getResolutionFailure().ifPresent(ex -> {
+                    throw ex;
+                });
+                return graph.getResolutionResult();
             }
 
             @Override
             public Supplier<ResolvedComponentResult> getRootSource() {
-                resolve();
-                return delegate.getRootSource();
+                return getDelegate().getRootSource();
             }
 
             @Override
-            public AttributeContainer getRequestedAttributes() {
-                resolve();
-                return delegate.getRequestedAttributes();
-            }
-
-            @Nullable
-            @Override
-            public ResolveException getExtraFailure() {
-                resolve();
-                return delegate.getExtraFailure();
+            public ImmutableAttributes getRequestedAttributes() {
+                return getDelegate().getRequestedAttributes();
             }
 
             @Override
             public int hashCode() {
-                resolve();
-                return delegate.hashCode();
+                return getDelegate().hashCode();
             }
 
             @Override
             public boolean equals(Object obj) {
-                if (obj instanceof LazyMinimalResolutionResult) {
-                    resolve();
-                    return delegate.equals(((LazyMinimalResolutionResult) obj).delegate);
+                if (obj instanceof ConfigurationResolvingMinimalResolutionResult) {
+                    return getDelegate().equals(((ConfigurationResolvingMinimalResolutionResult) obj).getDelegate());
                 }
                 return false;
             }

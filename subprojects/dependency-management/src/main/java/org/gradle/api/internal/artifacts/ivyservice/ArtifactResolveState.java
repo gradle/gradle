@@ -16,29 +16,33 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
-
-import java.util.Set;
 
 /**
  * Intermediate state saved between graph resolution and artifact resolution.
  */
 public class ArtifactResolveState {
-    final ResolvedGraphResults graphResults;
+    final VisitedGraphResults graphResults;
+    final ResolvedGraphResults legacyGraphResults;
     final VisitedArtifactsResults artifactsResults;
     final VisitedFileDependencyResults fileDependencyResults;
-    final Set<UnresolvedDependency> failures;
     final TransientConfigurationResultsBuilder transientConfigurationResultsBuilder;
 
-    ArtifactResolveState(ResolvedGraphResults graphResults, VisitedArtifactsResults artifactsResults, VisitedFileDependencyResults fileDependencyResults, Set<UnresolvedDependency> failures, TransientConfigurationResultsBuilder transientConfigurationResultsBuilder) {
+    ArtifactResolveState(
+        VisitedGraphResults graphResults,
+        ResolvedGraphResults legacyGraphResults,
+        VisitedArtifactsResults artifactsResults,
+        VisitedFileDependencyResults fileDependencyResults,
+        TransientConfigurationResultsBuilder transientConfigurationResultsBuilder
+    ) {
         this.graphResults = graphResults;
+        this.legacyGraphResults = legacyGraphResults;
         this.artifactsResults = artifactsResults;
         this.fileDependencyResults = fileDependencyResults;
-        this.failures = failures;
         this.transientConfigurationResultsBuilder = transientConfigurationResultsBuilder;
     }
 }

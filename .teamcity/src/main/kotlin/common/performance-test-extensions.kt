@@ -88,7 +88,7 @@ fun BuildType.cleanUpGitUntrackedFilesAndDirectories() {
         script {
             name = "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES"
             executionMode = BuildStep.ExecutionMode.RUN_ONLY_ON_FAILURE
-            scriptContent = "git clean -fdx -e \"test-splits/\""
+            scriptContent = "git clean -fdx -e test-splits/ -e .gradle/workspace-id.txt -e \"*.psoutput\""
             skipConditionally()
             onlyRunOnPreTestedCommitBuildBranch()
         }

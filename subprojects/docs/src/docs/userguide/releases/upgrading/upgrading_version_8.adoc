@@ -35,6 +35,18 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.5]]
+== Upgrading from 8.4 and earlier
+
+=== Potential breaking changes
+
+==== Changes to Groovy task conventions
+
+The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
+
+If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
+
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 
@@ -47,7 +59,7 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 ==== XML parsing now requires recent parsers
 
 Gradle 8.4 now configures XML parsers with security features enabled.
-If your build logic has dependencies on old XML parsers that don't support secure parsing your build may now fail.
+If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
 

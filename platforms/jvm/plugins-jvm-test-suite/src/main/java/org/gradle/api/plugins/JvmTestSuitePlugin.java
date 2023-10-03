@@ -40,6 +40,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.HashMap;
@@ -67,8 +68,8 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply("org.gradle.test-suite-base");
-        project.getPluginManager().apply("org.gradle.java-base");
+        project.getPluginManager().apply(TestSuiteBasePlugin.class);
+        project.getPluginManager().apply(JavaBasePlugin.class);
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.SelectionFailureHandler;
@@ -43,7 +42,7 @@ public class DefaultVariantSelectorFactory implements VariantSelectorFactory {
     }
 
     @Override
-    public ArtifactVariantSelector create(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
-        return new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, dependenciesResolverFactory, failureProcessor);
+    public ArtifactVariantSelector create(TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory) {
+        return new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor);
     }
 }

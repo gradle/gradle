@@ -31,11 +31,11 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultMinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -60,14 +60,14 @@ public class DefaultResolutionResultBuilder implements ResolvedComponentVisitor 
     private ImmutableList<ResolvedVariantResult> allVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
-    public static MinimalResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, AttributeContainer attributes) {
+    public static MinimalResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ImmutableAttributes attributes) {
         DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
         builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
         builder.visitComponentDetails(componentIdentifier, id);
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
         ResolvedComponentResult root = builder.getRoot(0L);
-        return new DefaultMinimalResolutionResult(() -> root, attributes, null);
+        return new DefaultMinimalResolutionResult(() -> root, attributes);
     }
 
     public ResolvedComponentResult getRoot(long rootId) {

@@ -47,17 +47,12 @@ unassigned {
 unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
-    subproject("distributions-publishing")
     subproject("distributions-native")
     subproject("distributions-full")
 }
 
 // Gradle implementation projects
 unassigned {
-    subproject("configuration-cache")
-    subproject("api-metadata")
-    subproject("base-services-groovy")
-    subproject("jvm-services")
     subproject("core")
     subproject("dependency-management")
     subproject("resources")
@@ -75,23 +70,18 @@ unassigned {
     subproject("ivy")
     subproject("platform-base")
     subproject("platform-native")
-    subproject("platform-jvm")
     subproject("language-native")
     subproject("tooling-native")
     subproject("plugin-use")
     subproject("plugin-development")
-    subproject("model-core")
-    subproject("model-groovy")
     subproject("testing-native")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
     subproject("version-control")
-    subproject("file-collections")
     subproject("build-profile")
     subproject("security")
-    subproject("normalization-java")
     subproject("build-operations")
     subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
@@ -120,12 +110,18 @@ platform("core-runtime") {
 
 // Core Configuration Platform
 platform("core-configuration") {
+    subproject("api-metadata")
+    subproject("base-services-groovy")
+    subproject("configuration-cache")
+    subproject("file-collections")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")
     subproject("kotlin-dsl-tooling-models")
     subproject("kotlin-dsl-plugins")
     subproject("kotlin-dsl-integ-tests")
+    subproject("model-core")
+    subproject("model-groovy")
 }
 
 // Core Execution Platform
@@ -159,6 +155,7 @@ platform("ide") {
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("distributions-publishing")
     subproject("testing-base")
 }
 
@@ -168,16 +165,19 @@ platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
     subproject("toolchains-jvm")
     subproject("java-compiler-plugin")
     subproject("java-platform")
+    subproject("normalization-java")
+    subproject("platform-jvm")
     subproject("plugins-groovy")
     subproject("plugins-java")
+    subproject("plugins-java-base")
     subproject("plugins-jvm-test-suite")
-    subproject("plugins-jvm-test-suite-base")
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")

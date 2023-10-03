@@ -36,6 +36,12 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
         this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
     }
 
+    public MessageRewriter getMessageRewriter() {
+        return delegate instanceof MessageRewritingBuildOperationAwareLogger
+            ? ((MessageRewritingBuildOperationAwareLogger) delegate).getMessageRewriter()
+            : null;
+    }
+
     @Override
     public void setMessageRewriter(MessageRewriter messageRewriter) {
         delegate = new MessageRewritingBuildOperationAwareLogger(delegate, messageRewriter);

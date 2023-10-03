@@ -69,7 +69,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = variantSelectorFactory.create(typeAttributes("classes"), true, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("classes"), false, factory)
         result == variant1Artifacts
     }
 
@@ -93,7 +93,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
-        def result = variantSelectorFactory.create(typeAttributes("classes"), true, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("classes"), false, factory)
         visit(result)
 
         then:
@@ -125,10 +125,10 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
         attributeMatcher.matches(transformedVariants, _, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        def selector = variantSelectorFactory.create(requested, true, dependenciesResolverFactory)
+        def selector = variantSelectorFactory.create(dependenciesResolverFactory)
 
         when:
-        def result = selector.select(set, factory)
+        def result = selector.select(set, requested, false, factory)
         visit(result)
 
         then:
@@ -146,7 +146,7 @@ Found the following transforms:
           - Transform '' producing attributes: artifactType 'dll'""")
     }
 
-    def "returns empty variant when no variants match and ignore no matching enabled"() {
+    def "returns no matching variant artifact set when no variants match and ignore no matching enabled"() {
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
@@ -164,7 +164,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
-        def result = variantSelectorFactory.create(typeAttributes("dll"), true, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("dll"), true, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -189,7 +189,7 @@ Found the following transforms:
         matchingCache.findTransformedVariants(_, _) >> []
 
         when:
-        def result = variantSelectorFactory.create(typeAttributes("dll"), false, dependenciesResolverFactory).select(set, factory)
+        def result = variantSelectorFactory.create(dependenciesResolverFactory).select(set, typeAttributes("dll"), false, factory)
         visit(result)
 
         then:

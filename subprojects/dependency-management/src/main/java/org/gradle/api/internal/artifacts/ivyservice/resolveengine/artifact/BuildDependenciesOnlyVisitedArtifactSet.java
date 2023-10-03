@@ -17,56 +17,44 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 
-import java.util.Set;
-
 public class BuildDependenciesOnlyVisitedArtifactSet implements VisitedArtifactSet {
-    private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final VisitedGraphResults graphResults;
     private final VisitedArtifactsResults artifactsResults;
-    private final VariantSelectorFactory variantSelectorFactory;
-    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
+    ArtifactVariantSelector artifactVariantSelector;
 
     public BuildDependenciesOnlyVisitedArtifactSet(
-        Set<UnresolvedDependency> unresolvedDependencies,
+        VisitedGraphResults graphResults,
         VisitedArtifactsResults artifactsResults,
-        VariantSelectorFactory variantSelectorFactory,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
+        ArtifactVariantSelector artifactVariantSelector
     ) {
-        this.unresolvedDependencies = unresolvedDependencies;
+        this.graphResults = graphResults;
         this.artifactsResults = artifactsResults;
-        this.variantSelectorFactory = variantSelectorFactory;
-        this.dependenciesResolverFactory = dependenciesResolverFactory;
+        this.artifactVariantSelector = artifactVariantSelector;
     }
 
     @Override
-    public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
-        ArtifactVariantSelector variantSelector = variantSelectorFactory.create(requestedAttributes, allowNoMatchingVariant, dependenciesResolverFactory);
-        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(componentSpec, variantSelector, selectFromAllVariants).getArtifacts();
-        return new BuildDependenciesOnlySelectedArtifactSet(unresolvedDependencies, selectedArtifacts);
+    public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, ArtifactSelectionSpec spec) {
+        ResolvedArtifactSet selectedArtifacts = artifactsResults.select(artifactVariantSelector, spec).getArtifacts();
+        return new BuildDependenciesOnlySelectedArtifactSet(graphResults, selectedArtifacts);
     }
 
     private static class BuildDependenciesOnlySelectedArtifactSet implements SelectedArtifactSet {
-        private final Set<UnresolvedDependency> unresolvedDependencies;
+        private final VisitedGraphResults graphResults;
         private final ResolvedArtifactSet selectedArtifacts;
 
-        BuildDependenciesOnlySelectedArtifactSet(Set<UnresolvedDependency> unresolvedDependencies, ResolvedArtifactSet selectedArtifacts) {
-            this.unresolvedDependencies = unresolvedDependencies;
+        BuildDependenciesOnlySelectedArtifactSet(VisitedGraphResults graphResults, ResolvedArtifactSet selectedArtifacts) {
+            this.graphResults = graphResults;
             this.selectedArtifacts = selectedArtifacts;
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
-                context.visitFailure(unresolvedDependency.getProblem());
-            }
+            graphResults.visitFailures(context::visitFailure);
             context.add(selectedArtifacts);
         }
 
