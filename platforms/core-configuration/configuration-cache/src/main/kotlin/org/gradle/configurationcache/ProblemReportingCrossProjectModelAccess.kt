@@ -69,7 +69,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
-import org.gradle.api.shareddata.ProjectSharedDataRegistry
+import org.gradle.api.shareddata.ProjectSharedData
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -724,7 +724,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.dependencyFactory
         }
 
-        override fun getSharedData(): ProjectSharedDataRegistry {
+        override fun getSharedData(): ProjectSharedData {
             onAccess()
             return delegate.sharedData
         }

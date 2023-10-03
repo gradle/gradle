@@ -84,7 +84,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.shareddata.DefaultProjectSharedDataRegistry;
+import org.gradle.internal.shareddata.DefaultProjectSharedData;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
@@ -120,7 +120,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);
             }
-            registration.add(DefaultProjectSharedDataRegistry.class);
+            registration.add(DefaultProjectSharedData.class);
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
     }
