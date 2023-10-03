@@ -25,8 +25,16 @@ class DefaultImportsReaderTest extends Specification {
     public Resources resources = new Resources()
     DefaultImportsReader reader = new DefaultImportsReader()
 
-    public void testReadImportPackagesFromResource() {
+    def "default import packages contain org.gradle.api"() {
         expect:
         reader.importPackages.contains('org.gradle.api')
+    }
+
+    def "fq default imports do not contain package private types"() {
+        expect:
+        null == reader.simpleNameToFullClassNamesMapping
+            .collectMany { it.value }
+            .find { it == "org.gradle.plugin.devel.plugins.MavenPluginPublishPlugin" }
+
     }
 }

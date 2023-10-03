@@ -123,7 +123,7 @@ class ComponentResultSerializerTest extends Specification {
     private ResolvedComponentResult deserialize(byte[] serialized) {
         def builder = new DefaultResolutionResultBuilder()
         serializer.readInto(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
-        return builder.complete(0).root
+        return builder.getRoot(0)
     }
 
     private Capability capability(String name) {

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
@@ -48,11 +47,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -134,15 +133,33 @@ public class DependencyGraphBuilder {
         this.variantSelector = variantSelector;
     }
 
-    public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
-        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
-
-        int graphSize = resolveContext.getEstimatedGraphSize();
-        ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-
-        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? resolveContext.getSyntheticDependencies() : Collections.emptyList();
-
-        ResolveState resolveState = new ResolveState(idGenerator, rootComponent, idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, attributeDesugaring, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker, variantSelector);
+    public void resolve(
+        RootComponentMetadataBuilder.RootComponentState rootComponent,
+        ResolutionStrategyInternal resolutionStrategy,
+        List<? extends DependencyMetadata> syntheticDependencies,
+        final DependencyGraphVisitor modelVisitor
+    ) {
+        ResolveState resolveState = new ResolveState(
+            idGenerator,
+            rootComponent,
+            idResolver,
+            metaDataResolver,
+            edgeFilter,
+            attributesSchema,
+            moduleExclusions,
+            componentSelectorConverter,
+            attributesFactory,
+            attributeDesugaring,
+            dependencySubstitutionApplicator,
+            versionSelectorScheme,
+            versionComparator,
+            versionParser,
+            moduleConflictHandler.getResolver(),
+            resolutionStrategy.getConflictResolution(),
+            syntheticDependencies,
+            conflictTracker,
+            variantSelector
+        );
 
         traverseGraph(resolveState);
 

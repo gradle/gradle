@@ -29,7 +29,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import java.io.FileReader
 
 
@@ -54,7 +53,7 @@ abstract class UpgradedPropertiesMergeTask : DefaultTask() {
     fun mergeUpgradedProperties() {
         val mergedUpgradedProperties = mergeProperties()
         if (mergedUpgradedProperties.isEmpty) {
-            upgradedProperties.asFile.get().toEmptyFile()
+            upgradedProperties.asFile.get().delete()
         } else {
             upgradedProperties.asFile.get().writer().use { Gson().toJson(mergedUpgradedProperties, it) }
         }
@@ -70,11 +69,5 @@ abstract class UpgradedPropertiesMergeTask : DefaultTask() {
             .map { JsonParser.parseReader(FileReader(it)).asJsonArray }
             .forEach { merged.addAll(it) }
         return merged
-    }
-
-    private
-    fun File.toEmptyFile() {
-        this.delete()
-        this.createNewFile()
     }
 }

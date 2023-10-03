@@ -366,6 +366,17 @@ class IntegTestPreconditions {
         }
     }
 
+    static class Jdk17FromMultipleVendors implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getAvailableJvmMetadatas().stream()
+                .filter(metadata -> JavaVersion.VERSION_17 == metadata.languageVersion)
+                .map {metadata -> metadata.vendor.rawVendor }
+                .distinct()
+                .count() >= 2
+        }
+    }
+
     static class DifferentJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {

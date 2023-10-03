@@ -42,9 +42,7 @@ import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.process.ExecOperations
 import spock.lang.Issue
 
@@ -345,14 +343,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.VALUE_NOT_SET,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION,
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    ])
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -486,9 +476,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -536,9 +523,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         })
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -631,13 +615,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
-        ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY,
-        ValidationProblemId.CONFLICTING_ANNOTATIONS,
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT,
-        ValidationProblemId.MISSING_ANNOTATION
-    ])
     def "transform action is validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -706,9 +683,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         )
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
     def "transform action type cannot use @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -744,9 +718,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [CacheableTask, UntrackedTask]
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
-    )
     def "transform action type cannot use annotation @#ann.simpleName"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -987,9 +958,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("No service of type class ${File.name} available.")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
     def "task implementation cannot use cacheable transform annotation"() {
         expectReindentedValidationMessage()
         buildFile << """
@@ -1009,9 +977,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }))
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
     def "task @Nested bean cannot use cacheable annotations"() {
         expectReindentedValidationMessage()
         buildFile << """

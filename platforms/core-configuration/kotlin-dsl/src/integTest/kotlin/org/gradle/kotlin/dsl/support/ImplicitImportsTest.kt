@@ -28,7 +28,7 @@ class ImplicitImportsTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can use kotlin-dsl implicit imports`() {
+    fun `can use kotlin dsl implicit imports`() {
 
         withBuildScript(
             """

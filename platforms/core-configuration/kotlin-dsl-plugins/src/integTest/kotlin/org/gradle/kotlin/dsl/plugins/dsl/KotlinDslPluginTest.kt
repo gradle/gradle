@@ -1,10 +1,12 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -12,7 +14,7 @@ import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class KotlinDslPluginTest : AbstractPluginTest() {
+class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `warns on unexpected kotlin-dsl plugin version`() {
@@ -29,10 +31,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             """
         )
 
-        val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
         build("help").apply {
             assertOutputContains(
-                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$appliedKotlinDslPluginsVersion' has been applied to root project 'forty-two'."
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$futureKotlinDslPluginVersion' has been applied to root project 'forty-two'."
             )
         }
     }
@@ -61,9 +62,11 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution"
+    )
     fun `gradle kotlin dsl api is available for test implementation`() {
-
-        assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
 
         withBuildScript(
             """
@@ -126,8 +129,11 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "requires a full distribution to run tests with test kit"
+    )
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
-        assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
         withBuildScript(
             """

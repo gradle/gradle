@@ -36,9 +36,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -76,7 +75,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
@@ -92,9 +90,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -198,6 +197,8 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
+    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
+
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
@@ -207,8 +208,7 @@ public class DefaultTransform implements Transform {
                         .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
-                        .type(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY.name())
-                        .group(ProblemGroup.GENERIC_ID)
+                        .category(VALIDATION, CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -289,6 +289,9 @@ public class DefaultTransform implements Transform {
         isolatedParameters.finalizeIfNotAlready();
     }
 
+
+    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
+
     private static void fingerprintParameters(
         Problems problems,
         InputFingerprinter inputFingerprinter,
@@ -312,10 +315,13 @@ public class DefaultTransform implements Transform {
                     boolean optional
                 ) {
                     try {
+                        // TODO Unify this with AbstractValidatingProperty.validate();
+                        //   we are doing a slightly different version of the same code here,
+                        //   see https://github.com/gradle/gradle/issues/10846
                         Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                         if (preparedValue == null && !optional) {
-                            reportValueNotSet(propertyName, validationContext);
+                            reportValueNotSet(propertyName, validationContext, true);
                         }
                         visitor.visitInputProperty(propertyName, () -> preparedValue);
                     } catch (Throwable e) {
@@ -361,10 +367,9 @@ public class DefaultTransform implements Transform {
                         problem
                             .forProperty(propertyName)
                             .label("declares an output")
-                            .documentedAt(userManual("validation_problems", "artifact_transform_should_not_declare_output"))
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
                             .noLocation()
-                            .type(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.name())
-                            .group(ProblemGroup.TYPE_VALIDATION_ID)
+                            .category(VALIDATION, ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
@@ -384,7 +389,7 @@ public class DefaultTransform implements Transform {
                     .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                     .sorted()
                     .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
+                    .collect(toImmutableList())
             );
         }
 

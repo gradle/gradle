@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
 [[config_cache]]
@@ -602,9 +616,9 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     build/analytics.json
 ----
 
-* Before Gradle 8.3, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
+* Before Gradle 8.4, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
 However, their changes would not invalidate the configuration cache afterward.
-Starting with Gradle 8.3, such undeclared configuration inputs are correctly tracked.
+Starting with Gradle 8.4, such undeclared configuration inputs are correctly tracked.
 +
 To temporarily revert to the earlier behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
 

@@ -60,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: build-receipt.properties
-          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+          path: platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}

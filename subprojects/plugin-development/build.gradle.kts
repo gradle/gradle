@@ -21,6 +21,10 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java"))
+    implementation(project(":plugins-java-base"))
+    implementation(project(":language-java"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))
     implementation(project(":messaging"))
@@ -28,6 +32,7 @@ dependencies {
     implementation(project(":model-groovy"))
     implementation(project(":resources"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":language-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

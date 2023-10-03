@@ -19,46 +19,43 @@ package org.gradle.api.internal.artifacts.result;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 @SuppressWarnings("rawtypes")
-public class DefaultResolutionResult implements ResolutionResultInternal {
+public class DefaultResolutionResult implements ResolutionResult {
 
-    private final Factory<ResolvedComponentResult> rootSource;
-    private final AttributeContainer requestedAttributes;
+    private final MinimalResolutionResult minimal;
 
-    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource, AttributeContainer requestedAttributes) {
-        assert rootSource != null;
-        this.rootSource = rootSource;
-        this.requestedAttributes = requestedAttributes;
+    public DefaultResolutionResult(MinimalResolutionResult minimal) {
+        this.minimal = minimal;
     }
 
     @Override
     public ResolvedComponentResult getRoot() {
-        return rootSource.create();
+        return minimal.getRootSource().get();
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(this::getRoot);
+        return new DefaultProvider<>(() -> minimal.getRootSource().get());
     }
 
     @Override
-    public Provider<Throwable> getNonFatalFailure() {
-        return Providers.notDefined();
+    public AttributeContainer getRequestedAttributes() {
+        return minimal.getRequestedAttributes();
     }
 
     @Override
@@ -96,8 +93,19 @@ public class DefaultResolutionResult implements ResolutionResultInternal {
     }
 
     @Override
-    public AttributeContainer getRequestedAttributes() {
-        return requestedAttributes;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultResolutionResult that = (DefaultResolutionResult) o;
+        return Objects.equals(minimal, that.minimal);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(minimal);
+    }
 }

@@ -20,14 +20,17 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.internal.jvm.Jvm
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
 
-class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
+class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `scripts are compiled using the build jvm target`() {
@@ -66,9 +69,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Requires(UnitTestPreconditions.Jdk11OrLater::class)
     fun `can use a different jvmTarget to compile precompiled scripts`() {
-
-        assumeJava11OrHigher()
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 

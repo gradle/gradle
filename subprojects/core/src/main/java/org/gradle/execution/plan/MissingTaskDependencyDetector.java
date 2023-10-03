@@ -23,10 +23,8 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.File;
@@ -39,6 +37,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
@@ -167,14 +166,15 @@ public class MissingTaskDependencyDetector {
         });
     }
 
+    private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
+
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.typeIsIrrelevantInErrorMessage()
                 .label("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
-                .documentedAt(userManual("validation_problems", "implicit_dependency"))
+                .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase()))
                 .noLocation()
-                .type(ValidationProblemId.IMPLICIT_DEPENDENCY.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .category(VALIDATION, IMPLICIT_DEPENDENCY)
                 .severity(Severity.ERROR)
                 .details(String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",

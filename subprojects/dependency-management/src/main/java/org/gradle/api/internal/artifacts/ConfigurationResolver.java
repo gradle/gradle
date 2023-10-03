@@ -33,12 +33,6 @@ public interface ConfigurationResolver {
     ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException;
 
     /**
-     * Calculates the artifacts to include in the result for the given resolve context. All failures are packaged in the result.
-     * Must be called using the same result instance that was returned by {@link #resolveGraph(ResolveContext)}.
-     */
-    ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException;
-
-    /**
      * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.
      */
     List<ResolutionAwareRepository> getRepositories();

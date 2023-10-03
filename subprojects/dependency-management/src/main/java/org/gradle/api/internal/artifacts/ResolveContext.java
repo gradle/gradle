@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -32,6 +33,8 @@ import java.util.List;
 public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
+
+    Describable asDescribable();
 
     String getDisplayName();
 
@@ -69,11 +72,4 @@ public interface ResolveContext extends DependencyMetaDataProvider {
      * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
-
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
-    int getEstimatedGraphSize();
 }

@@ -40,8 +40,8 @@ class DefaultScriptHandlerTest extends Specification {
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> baseClassLoader
     }
-    def classpathResolver = Mock(ScriptClassPathResolver)
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
+    def buildLogicBuilder = Mock(BuildLogicBuilder)
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, buildLogicBuilder)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:
@@ -52,7 +52,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -66,7 +66,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -77,7 +77,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         0 * configuration._
-        1 * classpathResolver.resolveClassPath(null) >> ClassPath.EMPTY
+        0 * buildLogicBuilder.resolveClassPath(_)
 
         and:
         classpath == ClassPath.EMPTY
@@ -97,8 +97,8 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
-        1 * classpathResolver.resolveClassPath(configuration) >> classpath
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.resolveClassPath(configuration) >> classpath
     }
 
     def "script classpath queries runtime classpath"() {
@@ -133,7 +133,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
-        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
+        1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
         1 * dependencyHandler.add('config', 'dep')
     }
 }

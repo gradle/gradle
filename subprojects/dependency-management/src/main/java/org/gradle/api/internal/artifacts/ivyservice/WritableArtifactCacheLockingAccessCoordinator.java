@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.IndexedCache;
-import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -36,6 +35,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.TimestampSuppliers;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -66,7 +66,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
     private CacheCleanupStrategy createCacheCleanupStrategy(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         return DefaultCacheCleanupStrategy.from(
             createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations),
-            cacheConfigurations.getCleanupFrequency()
+            cacheConfigurations.getCleanupFrequency()::get
         );
     }
 
