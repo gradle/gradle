@@ -39,7 +39,7 @@ public class RequestValidationUtils {
 
     private static void validateRequestAreForTheSameInterception(String className, Collection<? extends RequestExtra.HasInterceptionType> requests, Consumer<? super HasFailures.FailureInfo> onFailure) {
         if (requests.stream().map(RequestExtra.HasInterceptionType::getInterceptionType).distinct().count() > 1) {
-            onFailure.accept(new HasFailures.FailureInfo(null,"Generated class '" + className + "' does instrumentation and bytecode upgrades at the same time. This is not supported!"));
+            onFailure.accept(new HasFailures.FailureInfo(null, "Generated class '" + className + "' does instrumentation and bytecode upgrades at the same time. This is not supported!"));
         }
     }
 }

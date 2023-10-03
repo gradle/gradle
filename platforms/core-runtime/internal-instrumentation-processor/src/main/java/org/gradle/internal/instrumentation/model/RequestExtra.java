@@ -32,8 +32,7 @@ public interface RequestExtra {
 
     enum InterceptionType {
         CONFIGURATION_CACHE_INSTRUMENTATION,
-        BYTECODE_UPGRADE(ClassName.get(BytecodeUpgradeInterceptor.class))
-        ;
+        BYTECODE_UPGRADE(ClassName.get(BytecodeUpgradeInterceptor.class));
 
         /**
          * Marks capabilities of interception class.
