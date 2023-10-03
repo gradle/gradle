@@ -83,7 +83,6 @@ unassigned {
     subproject("build-profile")
     subproject("security")
     subproject("build-operations")
-    subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
 
@@ -97,6 +96,9 @@ platform("core-runtime") {
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("instrumentation-agent")
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
     subproject("launcher")
     subproject("logging")
     subproject("logging-api")
@@ -195,8 +197,6 @@ platform("enterprise") {
 
 // Internal utility and verification projects
 unassigned {
-    subproject("internal-instrumentation-api")
-    subproject("internal-instrumentation-processor")
     subproject("docs")
     subproject("docs-asciidoctor-extensions-base")
     subproject("docs-asciidoctor-extensions")
