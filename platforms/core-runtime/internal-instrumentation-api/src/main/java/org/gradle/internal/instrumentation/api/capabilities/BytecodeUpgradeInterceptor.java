@@ -17,7 +17,7 @@
 package org.gradle.internal.instrumentation.api.capabilities;
 
 /**
- * A marker interface that indicates that a class or a factory is used for upgrading property.
+ * A marker interface that indicates that a class is used for bytecode upgrades.
  */
 public interface BytecodeUpgradeInterceptor {
 }

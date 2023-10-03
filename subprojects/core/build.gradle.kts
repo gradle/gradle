@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -239,4 +240,8 @@ testFilesCleanup.reportOnly = true
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {
     systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}
+
+tasks.named<JavaCompile>("compileTestInterceptorsJava") {
+    options.compilerArgs.add("-Aorg.gradle.annotation.processing.instrumented.project=${project.name}-test-interceptors")
 }

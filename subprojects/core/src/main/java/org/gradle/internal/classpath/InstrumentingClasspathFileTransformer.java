@@ -27,6 +27,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource;
+import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
@@ -125,6 +126,9 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         hasher.putInt(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
         gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
         gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
+        if (CallInterceptorRegistry.isBytecodeUpgradeDisabled()) {
+            hasher.putString(CallInterceptorRegistry.PROPERTY_UPGRADES_DISABLED + "=true");
+        }
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();

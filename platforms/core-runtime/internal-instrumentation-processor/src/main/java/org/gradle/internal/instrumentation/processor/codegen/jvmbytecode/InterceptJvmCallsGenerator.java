@@ -89,13 +89,14 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
-        TypeSpec factoryClass = generateFactoryClass(className, capabilities);
+        TypeSpec factoryClass = generateFactoryClass(className);
 
         return builder ->
             builder.addMethod(constructor)
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
+                .addSuperinterfaces(capabilities)
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
@@ -107,7 +108,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addType(factoryClass);
     }
 
-    private static TypeSpec generateFactoryClass(String className, Set<TypeName> capabilities) {
+    private static TypeSpec generateFactoryClass(String className) {
         MethodSpec createMethod = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
@@ -125,7 +126,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addSuperinterfaces(capabilities.stream().sorted().collect(Collectors.toList()))
             .addMethod(createMethod)
             .addMethod(interceptorTypeMethod)
             .build();

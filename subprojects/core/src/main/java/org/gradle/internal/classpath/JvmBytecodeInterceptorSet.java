@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeUpgradeInterceptor;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.MethodVisitor;
@@ -38,7 +39,11 @@ import java.util.stream.Stream;
 @NonNullApi
 public interface JvmBytecodeInterceptorSet {
 
-    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader(), type -> true);
+    /**
+     * Default set of interceptors, but without any bytecode interceptor, since we want to be able to filter them.
+     */
+
+    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader(), type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type));
 
     Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
 

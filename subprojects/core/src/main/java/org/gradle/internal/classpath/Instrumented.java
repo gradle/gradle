@@ -112,7 +112,7 @@ public class Instrumented {
         /**
          * Marks if property upgrades are enabled if they exist, TRUE by default
          */
-        private static final String PROPERTY_UPGRADES_ENABLED = "org.gradle.internal.property.upgrades.enabled";
+        public static final String PROPERTY_UPGRADES_DISABLED = "org.gradle.internal.disable.property.upgrades";
         private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
@@ -122,19 +122,8 @@ public class Instrumented {
                 throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
             }
 
-            Predicate<Class<?>> interceptorTypePredicate = getInterceptorTypePredicate();
-            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader, interceptorTypePredicate);
-            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-            currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader, interceptorTypePredicate);
-            currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
-        }
-
-        private static Predicate<Class<?>> getInterceptorTypePredicate() {
-            if (System.getProperty(PROPERTY_UPGRADES_ENABLED, "true").trim().equals("false")) {
-                return type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type);
-            }
-            return type -> true;
+            currentGroovyCallDecorator = CallInterceptorLoader.loadGroovyCallInterceptors(classLoader);
+            currentJvmBytecodeInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(classLoader);
         }
 
         public static CallSiteDecorator getGroovyCallDecorator() {
@@ -143,6 +132,31 @@ public class Instrumented {
 
         public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
             return currentJvmBytecodeInterceptors;
+        }
+
+        public static boolean isBytecodeUpgradeDisabled() {
+            return System.getProperty(PROPERTY_UPGRADES_DISABLED, "false").trim().equals("true");
+        }
+    }
+
+    @NonNullApi
+    public static class CallInterceptorLoader {
+        public static CallInterceptorsSet loadGroovyCallInterceptors(ClassLoader classLoader) {
+            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader, getInterceptorTypePredicate());
+            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
+            return new CallInterceptorsSet(callInterceptors);
+        }
+
+        public static JvmBytecodeInterceptorSet loadJvmBytecodeInterceptors(ClassLoader classLoader) {
+            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader, getInterceptorTypePredicate());
+            return JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+        }
+
+        private static Predicate<Class<?>> getInterceptorTypePredicate() {
+            if (CallInterceptorRegistry.isBytecodeUpgradeDisabled()) {
+                return type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type);
+            }
+            return type -> true;
         }
     }
 

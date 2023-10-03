@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.classpath;
 
-import spock.lang.Specification
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 
-class CallInterceptorRegistryTest extends Specification {
-
+public abstract class PropertyUpgradedClass {
+    @UpgradedProperty
+    public abstract Property<String> getTestFilterInterceptors();
 }
