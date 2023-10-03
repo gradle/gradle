@@ -10,7 +10,9 @@ class AssignmentResolver {
     private val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
 
     sealed interface AssignmentAdditionResult {
-        data object AssignmentAdded : AssignmentAdditionResult
+        data class AssignmentAdded(
+            val resolvedLhs: PropertyReferenceResolution
+        ) : AssignmentAdditionResult
 
         data class UnresolvedValueUsedInLhs(
             val value: ObjectOrigin
@@ -40,7 +42,7 @@ class AssignmentResolver {
                             else -> ResolutionNode.PrimitiveValue(rhs)
                         }
                         assignmentByNode[lhsNode] = rhsNode
-                        AssignmentAdditionResult.AssignmentAdded
+                        AssignmentAdditionResult.AssignmentAdded(lhsNode.propertyReferenceResolution)
                     }
 
                     // TODO: lazy semantics for properties

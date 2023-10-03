@@ -58,7 +58,7 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
         when (element) {
             is AssignmentTraceElement.UnassignedValueUsed -> {
                 val locationString = when (val result = element.assignmentAdditionResult) {
-                    AssignmentAdded -> error("unexpected")
+                    is AssignmentAdded -> error("unexpected")
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> "lhs: ${result.value}"
                     is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> "rhs: ${result.value}"
                 }

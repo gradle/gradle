@@ -13,10 +13,9 @@ class AssignmentTracer(
         val assignmentResolver = assignmentResolverFactory()
         val elementResults = buildList {
             resolutionResult.assignments.forEach { (lhs, rhs) ->
-                val additionResult = assignmentResolver.addAssignment(lhs, rhs)
                 add(
-                    when (additionResult) {
-                        AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(lhs, rhs)
+                    when (val additionResult = assignmentResolver.addAssignment(lhs, rhs)) {
+                        is AssignmentAdded -> AssignmentTraceElement.RecordedAssignment(additionResult.resolvedLhs, rhs)
                         is UnresolvedValueUsedInLhs -> UnassignedValueUsed(additionResult, lhs, rhs)
                         is UnresolvedValueUsedInRhs -> UnassignedValueUsed(additionResult, lhs, rhs)
                     }
