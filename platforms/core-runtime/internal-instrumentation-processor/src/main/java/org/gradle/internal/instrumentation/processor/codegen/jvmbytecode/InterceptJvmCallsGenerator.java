@@ -22,6 +22,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
@@ -101,7 +102,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static TypeSpec generateFactoryClass(String className) {
-        MethodSpec method = MethodSpec.methodBuilder("create")
+        MethodSpec createMethod = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
             .addParameter(MethodVisitor.class, "methodVisitor")
@@ -109,10 +110,17 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addStatement("return new $L($N, $N)", className, "methodVisitor", "metadata")
             .addAnnotation(Override.class)
             .build();
+        MethodSpec interceptorTypeMethod = MethodSpec.methodBuilder("getInterceptorType")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(JvmBytecodeCallInterceptor.class)))
+            .addStatement("return $L.class", className)
+            .addAnnotation(Override.class)
+            .build();
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addMethod(method)
+            .addMethod(createMethod)
+            .addMethod(interceptorTypeMethod)
             .build();
     }
 
