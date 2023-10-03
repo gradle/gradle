@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.docs.GradleUserManualPlugin
@@ -33,8 +34,6 @@ import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
 
@@ -186,19 +185,7 @@ plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin::class) 
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
-    // TODO factor this out of here
-    compilerOptions {
-        allWarningsAsErrors = true
-        apiVersion = KotlinVersion.KOTLIN_1_8
-        languageVersion = KotlinVersion.KOTLIN_1_8
-        jvmTarget = JvmTarget.JVM_1_8
-        freeCompilerArgs.addAll(
-            "-Xjsr305=strict",
-            "-java-parameters",
-            "-Xsam-conversions=class",
-            "-Xskip-metadata-version-check",
-        )
-    }
+    configureKotlinCompilerForGradleBuild()
     multiPlatformEnabled = false
     moduleName = "gradle-kotlin-dsl-extensions"
     source(gradleApiKotlinExtensions)
