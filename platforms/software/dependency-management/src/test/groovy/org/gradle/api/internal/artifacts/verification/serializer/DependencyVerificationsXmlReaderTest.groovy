@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.verification.serializer
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
 
@@ -206,18 +207,24 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         verifier.configuration.ignoredKeys == [key("ABCDEF"), key("012345", "nope")] as Set
     }
 
-    def "can parse keyring format"() {
+    def "can parse #expectedResult keyring format"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
-      <keyring-format>text</keyring-format>
+      $formatLine
    </configuration>
 </verification-metadata>
 """
         then:
-        verifier.configuration.keyRingFormat == "text"
+        verifier.configuration.keyringFormat == expectedResult
+
+        where:
+        formatLine                              | expectedResult
+        "<keyring-format>text</keyring-format>" | DependencyVerificationConfiguration.KeyringFormat.TEXT
+        "<keyring-format>gpg</keyring-format>"  | DependencyVerificationConfiguration.KeyringFormat.GPG
+        ""                                      | null
     }
 
     def "reasonable error message when invalid invalid keyring format given"() {
@@ -233,7 +240,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         then:
         DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
-        e.cause.message == "Invalid key ring format: The key ring format should be either 'text' or 'gpg', which determine how keys are stored. Please choose a valid format or leave it unset to generate both."
+        e.cause.message == "Invalid keyring format: The keyring format should be either 'text' or 'gpg', which determines how keys are stored. Please choose a valid format or leave it unset to generate both."
     }
 
     def "can parse trusted keys"() {

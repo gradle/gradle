@@ -225,7 +225,7 @@ on two lines -->
 
     def "can declare keyring format"() {
         when:
-        builder.setKeyRingFormat("text")
+        builder.setKeyringFormat("text")
         serialize()
 
         then:

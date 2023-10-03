@@ -376,10 +376,10 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
+      <keyring-format>gpg</keyring-format>
       <key-servers>
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
-      <keyring-format>gpg</keyring-format>
       <trusted-keys>
          <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
          <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>
@@ -435,10 +435,10 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
+      <keyring-format>text</keyring-format>
       <key-servers>
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
-      <keyring-format>text</keyring-format>
       <trusted-keys>
          <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
          <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>

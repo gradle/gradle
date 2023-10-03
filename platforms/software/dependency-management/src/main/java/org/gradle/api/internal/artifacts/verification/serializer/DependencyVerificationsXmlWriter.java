@@ -43,12 +43,12 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ENABLED;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -60,13 +60,13 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 
 public class DependencyVerificationsXmlWriter {
     private static final String SPACES = "   ";
@@ -107,21 +107,21 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(CONFIG);
         writeVerifyMetadata(configuration);
         writeSignatureCheck(configuration);
+        writeKeyRingFormat(configuration);
         writeKeyServers(configuration);
         writeTrustedArtifacts(configuration);
         writIgnoredKeys(configuration);
         writeGloballyTrustedKeys(configuration);
-        writeKeyRingFormat(configuration);
         writer.endElement();
     }
 
     private void writeKeyRingFormat(DependencyVerificationConfiguration configuration) throws IOException {
-        String keyRingFormat = configuration.getKeyRingFormat();
-        if (keyRingFormat == "") {
+        DependencyVerificationConfiguration.KeyringFormat keyRingFormat = configuration.getKeyringFormat();
+        if (keyRingFormat == null) {
             return;
         }
         writer.startElement(KEYRING_FORMAT);
-        writer.write(String.valueOf(keyRingFormat));
+        writer.write(String.valueOf(keyRingFormat).toLowerCase());
         writer.endElement();
     }
 

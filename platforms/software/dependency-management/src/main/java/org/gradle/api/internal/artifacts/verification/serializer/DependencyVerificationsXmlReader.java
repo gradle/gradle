@@ -55,6 +55,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -73,7 +74,6 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFY_SIGNATURES;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;;
 
 public class DependencyVerificationsXmlReader {
     public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
@@ -296,7 +296,7 @@ public class DependencyVerificationsXmlReader {
             } else if (inVerifySignatures) {
                 builder.setVerifySignatures(readBoolean(ch, start, length));
             } else if (inKeyRingFormat) {
-                builder.setKeyRingFormat(new String(ch, start, length));
+                builder.setKeyringFormat(new String(ch, start, length));
             }
         }
 

@@ -67,6 +67,7 @@ import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -102,8 +103,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final Set<String> SECURE_CHECKSUMS = ImmutableSet.of(SHA256, SHA512, PGP);
     private static final String PGP_VERIFICATION_FAILED = "PGP verification failed";
     private static final String KEY_NOT_DOWNLOADED = "Key couldn't be downloaded from any key server";
-    private static final String TEXT_KEYRING_FORMAT = "text";
-    private static final String GPG_KEYRING_FORMAT = "gpg";
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
@@ -254,7 +253,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .flatMap(md -> md.getArtifactVerifications().stream())
             .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
             .forEach(keysToExport::add);
-        exportKeyRingCollection(signatureVerificationService.getPublicKeyService(), keys, keysToExport);
+
+        exportKeyRingCollection(
+            signatureVerificationService.getPublicKeyService(),
+            keys,
+            keysToExport,
+            verifier.getConfiguration().getKeyringFormat()
+        );
     }
 
     private void maybeReadExistingFile() {
@@ -498,7 +503,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         cnf.getIncoming().artifactView(MODULE_COMPONENT_FILES).getFiles().getFiles();
     }
 
-    private void exportKeyRingCollection(PublicKeyService publicKeyService, BuildTreeDefinedKeys keyrings, Set<String> publicKeys) throws IOException {
+    private void exportKeyRingCollection(
+        PublicKeyService publicKeyService,
+        BuildTreeDefinedKeys keyrings,
+        Set<String> publicKeys,
+        @Nullable DependencyVerificationConfiguration.KeyringFormat keyringFormat
+    ) throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(keyrings);
         PGPPublicKeyRingListBuilder builder = new PGPPublicKeyRingListBuilder();
         for (String publicKey : publicKeys) {
@@ -518,17 +528,18 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         File asciiArmoredFile = keyrings.getAsciiKeyringsFile();
         File keyringFile = keyrings.getBinaryKeyringsFile();
 
-        String keyRingFormat = verificationsBuilder.getKeyRingFormat();
-        if (keyRingFormat.equals(TEXT_KEYRING_FORMAT)) {
-            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
-            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), asciiArmoredFile);
-        } else if (keyRingFormat.equals(GPG_KEYRING_FORMAT)) {
-            writeBinaryKeyringFile(keyringFile, allKeyRings);
-            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
-        } else {
+        if (keyringFormat == null) {
             writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
             writeBinaryKeyringFile(keyringFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
+        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.TEXT)) {
+            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
+            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), asciiArmoredFile);
+        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.GPG)) {
+            writeBinaryKeyringFile(keyringFile, allKeyRings);
+            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
+        } else {
+            throw new IllegalArgumentException("Unknown keyring format " + keyringFormat);
         }
     }
 

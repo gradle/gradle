@@ -245,7 +245,7 @@ class DependencyVerificationFixture {
         }
 
         void keyRingFormat(String keyRingFormat) {
-            builder.setKeyRingFormat(keyRingFormat);
+            builder.setKeyringFormat(keyRingFormat);
         }
 
         void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false, String reason = null) {

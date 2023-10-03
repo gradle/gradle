@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+@NonNullApi
 public class DependencyVerificationConfiguration {
     private final boolean verifyMetadata;
     private final boolean verifySignatures;
@@ -37,16 +39,18 @@ public class DependencyVerificationConfiguration {
     private final List<URI> keyServers;
     private final Set<IgnoredKey> ignoredKeys;
     private final List<TrustedKey> trustedKeys;
-    private final String keyRingFormat;
+    private final KeyringFormat keyringFormat;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata,
-                                               boolean verifySignatures,
-                                               List<TrustedArtifact> trustedArtifacts,
-                                               boolean useKeyServers,
-                                               List<URI> keyServers,
-                                               Set<IgnoredKey> ignoredKeys,
-                                               List<TrustedKey> trustedKeys,
-                                               String keyRingFormat) {
+    public DependencyVerificationConfiguration(
+        boolean verifyMetadata,
+        boolean verifySignatures,
+        List<TrustedArtifact> trustedArtifacts,
+        boolean useKeyServers,
+        List<URI> keyServers,
+        Set<IgnoredKey> ignoredKeys,
+        List<TrustedKey> trustedKeys,
+        @Nullable KeyringFormat keyringFormat
+    ) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
@@ -54,11 +58,12 @@ public class DependencyVerificationConfiguration {
         this.keyServers = keyServers;
         this.ignoredKeys = ignoredKeys;
         this.trustedKeys = trustedKeys;
-        this.keyRingFormat = keyRingFormat;
+        this.keyringFormat = keyringFormat;
     }
 
-    public String getKeyRingFormat() {
-        return keyRingFormat;
+    @Nullable
+    public KeyringFormat getKeyringFormat() {
+        return keyringFormat;
     }
 
     public boolean isVerifySignatures() {
@@ -106,18 +111,22 @@ public class DependencyVerificationConfiguration {
             this.reason = reason;
         }
 
+        @Nullable
         public String getGroup() {
             return group;
         }
 
+        @Nullable
         public String getName() {
             return name;
         }
 
+        @Nullable
         public String getVersion() {
             return version;
         }
 
+        @Nullable
         public String getFileName() {
             return fileName;
         }
@@ -126,6 +135,7 @@ public class DependencyVerificationConfiguration {
             return regex;
         }
 
+        @Nullable
         public String getReason() {
             return reason;
         }
@@ -249,7 +259,7 @@ public class DependencyVerificationConfiguration {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) {
                 return true;
             }
@@ -283,7 +293,13 @@ public class DependencyVerificationConfiguration {
 
     }
 
-    private static int compareNullableStrings(String first, String second) {
+    @NonNullApi
+    public enum KeyringFormat {
+        TEXT,
+        GPG
+    }
+
+    private static int compareNullableStrings(@Nullable String first, @Nullable String second) {
         if (first == null) {
             if (second == null) {
                 return 0;

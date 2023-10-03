@@ -56,21 +56,25 @@ public class DependencyVerifierBuilder {
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
     private final List<String> topLevelComments = Lists.newArrayList();
-    private String keyRingFormat = "";
+    private DependencyVerificationConfiguration.KeyringFormat keyringFormat = null;
 
-    public void setKeyRingFormat(String newKeyRingFormat) {
-        validateKeyRingFormat(newKeyRingFormat);
-        this.keyRingFormat = newKeyRingFormat;
+    public void setKeyringFormat(String newKeyringFormat) {
+        this.keyringFormat = parseKeyringFormat(newKeyringFormat);
     }
-    
-    private void validateKeyRingFormat(String keyRingFormat) {
-        if (!(keyRingFormat.equals("text") || keyRingFormat.equals("gpg"))) {
-            throw new DependencyVerificationException("Invalid key ring format: The key ring format should be either 'text' or 'gpg', which determine how keys are stored. Please choose a valid format or leave it unset to generate both.");
+
+    private DependencyVerificationConfiguration.KeyringFormat parseKeyringFormat(String keyringFormat) {
+        if (keyringFormat == null) {
+            return null;
+        }
+        try {
+            return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new DependencyVerificationException("Invalid keyring format: The keyring format should be either 'text' or 'gpg', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
         }
     }
 
-    public String getKeyRingFormat() {
-        return keyRingFormat;
+    public DependencyVerificationConfiguration.KeyringFormat getKeyringFormat() {
+        return keyringFormat;
     }
 
     public void addTopLevelComment(String comment) {
@@ -157,7 +161,7 @@ public class DependencyVerifierBuilder {
         byComponent.entrySet().stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
             .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys), keyRingFormat), topLevelComments);
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys), keyringFormat), topLevelComments);
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
