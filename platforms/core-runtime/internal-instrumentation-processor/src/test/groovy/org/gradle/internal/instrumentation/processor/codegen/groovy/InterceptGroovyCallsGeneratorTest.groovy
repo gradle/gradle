@@ -20,6 +20,7 @@ import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
 
 class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
 
@@ -55,5 +56,44 @@ class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "should fail if we use the same class for instrumentation as is for property upgrades"() {
+        given:
+        def instrumentation = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import java.io.File;
+
+            @SpecificGroovyCallInterceptors(generatedClassName = "${GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES}_TestProject")
+            public class TaskInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                public static String intercept_getIncremental(@Receiver Task thisFile, String otherParam) {
+                    return "";
+                }
+            }
+        """
+        def propertyUpgrade = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<String> getIncremental();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(instrumentation, propertyUpgrade)
+
+        then:
+        assertThat(compilation).failed()
+        assertThat(compilation).hadErrorContaining("Generated class 'GetIncrementalCallInterceptor' does instrumentation and bytecode upgrades at the same time. This is not supported!")
     }
 }

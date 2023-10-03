@@ -35,6 +35,7 @@ import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.model.RequestExtra.InterceptionType;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
@@ -52,6 +53,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -59,6 +61,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.RequestValidationUtils.*;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
@@ -80,13 +83,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     ) {
         Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
 
-        // All requests have the same interception type
-        CallInterceptionRequest firstRequest = requestsClassGroup.iterator().next();
-        Set<TypeName> capabilities = firstRequest.getRequestExtras()
-            .getByType(RequestExtra.InterceptJvmCalls.class)
-            .orElseThrow(IllegalStateException::new)
-            .getInterceptionType()
-            .getCapabilities();
+        InterceptionType interceptionType = getAndValidateInterceptionType(className, requestsClassGroup, RequestExtra.InterceptJvmCalls.class, onFailure);
+        Set<TypeName> capabilities = interceptionType.getCapabilities();
 
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(

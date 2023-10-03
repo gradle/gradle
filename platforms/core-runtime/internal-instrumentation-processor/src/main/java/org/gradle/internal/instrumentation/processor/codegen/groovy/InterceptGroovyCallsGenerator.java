@@ -53,6 +53,7 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.callableKindForJavadoc;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptedCallableLink;
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
+import static org.gradle.internal.instrumentation.processor.codegen.RequestValidationUtils.getAndValidateInterceptionType;
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
@@ -69,34 +70,34 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super HasFailures.FailureInfo> onFailure
     ) {
-        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
+        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup, onFailure);
 
         return builder -> builder
             .addModifiers(Modifier.PUBLIC)
             .addTypes(interceptorTypeSpecs);
     }
 
-    private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests) {
+    private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests, Consumer<? super HasFailures.FailureInfo> onFailure) {
         List<TypeSpec> result = new ArrayList<>(interceptionRequests.size() / 2);
 
         CallInterceptorSpecs callInterceptorSpecs = GroovyClassGeneratorUtils.groupRequests(interceptionRequests);
         callInterceptorSpecs.getNamedRequests().stream()
-            .map(InterceptGroovyCallsGenerator::generateNamedCallableInterceptorClass)
+            .map(spec -> generateNamedCallableInterceptorClass(spec, onFailure))
             .collect(Collectors.toCollection(() -> result));
 
         callInterceptorSpecs.getConstructorRequests().stream()
-            .map(InterceptGroovyCallsGenerator::generateConstructorInterceptorClass)
+            .map(spec -> generateConstructorInterceptorClass(spec, onFailure))
             .collect(Collectors.toCollection(() -> result));
 
         return result;
     }
 
-    private static TypeSpec generateNamedCallableInterceptorClass(NamedCallableInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
+    private static TypeSpec generateNamedCallableInterceptorClass(NamedCallableInterceptorSpec spec, Consumer<? super HasFailures.FailureInfo> onFailure) {
+        return generateInterceptorClass(spec.getClassName(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests(), onFailure).build();
     }
 
-    private static TypeSpec generateConstructorInterceptorClass(ConstructorInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
+    private static TypeSpec generateConstructorInterceptorClass(ConstructorInterceptorSpec spec, Consumer<? super HasFailures.FailureInfo> onFailure) {
+        return generateInterceptorClass(spec.getClassName(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests(), onFailure).build();
     }
 
     private static SignatureTree signatureTreeFromRequests(Collection<CallInterceptionRequest> requests) {
@@ -105,13 +106,9 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result;
     }
 
-    private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests) {
-        // All requests have the same the interception type
-        Set<TypeName> capabilities = requests.get(0).getRequestExtras()
-            .getByType(RequestExtra.InterceptGroovyCalls.class)
-            .orElseThrow(IllegalStateException::new)
-            .getInterceptionType()
-            .getCapabilities();
+    private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests, Consumer<? super HasFailures.FailureInfo> onFailure) {
+        RequestExtra.InterceptionType interceptionType = getAndValidateInterceptionType(className, requests, RequestExtra.InterceptGroovyCalls.class, onFailure);
+        Set<TypeName> capabilities = interceptionType.getCapabilities();
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterfaces(capabilities.stream().sorted().collect(Collectors.toList()))

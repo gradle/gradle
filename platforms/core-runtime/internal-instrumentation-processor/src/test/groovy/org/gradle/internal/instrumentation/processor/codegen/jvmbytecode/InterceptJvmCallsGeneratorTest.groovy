@@ -20,6 +20,7 @@ import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
+import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
 
 class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
 
@@ -218,5 +219,46 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
+    }
+
+    def "should fail if we use the same class for instrumentation as is for property upgrades"() {
+        given:
+        def instrumentation = source """
+            package org.gradle.test;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.CallableKind.*;
+            import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
+            import org.gradle.internal.classpath.declarations.*;
+            import org.gradle.api.*;
+
+            @SpecificJvmCallInterceptors(generatedClassName = "${JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES}_TestProject")
+            public class FileInterceptorsDeclaration {
+                @InterceptCalls
+                @InstanceMethod
+                @InterceptInherited
+                public static String intercept_getDescription(@Receiver Rule thisRule) {
+                    return "";
+                }
+            }
+        """
+        def propertyUpgrade = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
+            import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+
+            public abstract class Task {
+                @UpgradedProperty
+                public abstract Property<Boolean> getIncremental();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(instrumentation, propertyUpgrade)
+
+        then:
+        assertThat(compilation).failed()
+        assertThat(compilation).hadErrorContaining("${JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES}_TestProject' does instrumentation and bytecode upgrades at the same time. This is not supported!")
     }
 }

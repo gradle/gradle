@@ -50,7 +50,11 @@ public interface RequestExtra {
         }
     }
 
-    class InterceptJvmCalls implements RequestExtra {
+    interface HasInterceptionType {
+        InterceptionType getInterceptionType();
+    }
+
+    class InterceptJvmCalls implements RequestExtra, HasInterceptionType {
         private final String implementationClassName;
 
         private final InterceptionType interceptionType;
@@ -73,7 +77,7 @@ public interface RequestExtra {
         }
     }
 
-    class InterceptGroovyCalls implements RequestExtra {
+    class InterceptGroovyCalls implements RequestExtra, HasInterceptionType {
         private final String implementationClassName;
 
         private final InterceptionType interceptionType;
