@@ -89,8 +89,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningLocation pluginLocation(String pluginId) {
-        ProblemBuilderDefiningLocation newDelegate = ((ProblemBuilderDefiningLocation) delegate).pluginLocation(pluginId);
+    public ProblemBuilderDefiningCategory pluginLocation(String pluginId) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).pluginLocation(pluginId);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }

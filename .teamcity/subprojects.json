@@ -379,7 +379,7 @@
   },
   {
     "name": "instrumentation-agent",
-    "path": "subprojects/instrumentation-agent",
+    "path": "platforms/core-runtime/instrumentation-agent",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -414,14 +414,14 @@
   },
   {
     "name": "internal-instrumentation-api",
-    "path": "subprojects/internal-instrumentation-api",
+    "path": "platforms/core-runtime/internal-instrumentation-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "internal-instrumentation-processor",
-    "path": "subprojects/internal-instrumentation-processor",
+    "path": "platforms/core-runtime/internal-instrumentation-processor",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
