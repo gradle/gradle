@@ -24,13 +24,13 @@ class ConfigurationCacheAllowedStartParametersIntegrationTest extends AbstractCo
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun "tasks", "-P$kotlinDslCidProp= 24"
+        configurationCacheRun "tasks", "-P$kotlinDslCidProp=24"
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "tasks", "-P$kotlinDslCidProp= 42"
+        configurationCacheRun "tasks", "-P$kotlinDslCidProp=42"
 
         then:
         configurationCache.assertStateLoaded()

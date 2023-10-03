@@ -60,7 +60,7 @@ class ConfigurationCacheStartParameter(
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
-            .filter { !Workarounds.isIgnoredStartParameterProperty(it.key) }
+            .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel
         get() = modelParameters.configurationCacheLogLevel
