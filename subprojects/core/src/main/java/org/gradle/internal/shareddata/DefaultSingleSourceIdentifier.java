@@ -17,21 +17,17 @@
 package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.shareddata.ProjectSharedDataRegistry;
+import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.util.Path;
 
 import java.util.Objects;
 
 @NonNullApi
-public class DefaultSharedDataSingleSourceIdentifier implements ProjectSharedDataRegistry.SingleSourceIdentifier {
-    private final String identityPath;
+public class DefaultSingleSourceIdentifier implements ProjectSharedData.SingleSourceIdentifier {
+    private final Path identityPath;
 
-    public DefaultSharedDataSingleSourceIdentifier(String identityPath) {
+    public DefaultSingleSourceIdentifier(Path identityPath) {
         this.identityPath = identityPath;
-    }
-
-    public final String getIdentityPath() {
-        return identityPath;
     }
 
     @Override
@@ -39,20 +35,20 @@ public class DefaultSharedDataSingleSourceIdentifier implements ProjectSharedDat
         if (this == object) {
             return true;
         }
-        if (!(object instanceof DefaultSharedDataSingleSourceIdentifier)) {
+        if (!(object instanceof DefaultSingleSourceIdentifier)) {
             return false;
         }
-        DefaultSharedDataSingleSourceIdentifier that = (DefaultSharedDataSingleSourceIdentifier) object;
-        return Objects.equals(getIdentityPath(), that.getIdentityPath());
+        DefaultSingleSourceIdentifier that = (DefaultSingleSourceIdentifier) object;
+        return Objects.equals(getSourceProjectIdentitiyPath(), that.getSourceProjectIdentitiyPath());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getIdentityPath());
+        return Objects.hash(getSourceProjectIdentitiyPath());
     }
 
     @Override
     public Path getSourceProjectIdentitiyPath() {
-        return Path.path(identityPath);
+        return identityPath;
     }
 }

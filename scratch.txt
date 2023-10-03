@@ -1,0 +1,44 @@
+// project :a
+
+sharedData {
+    register(
+        Foo::class,
+        provider {
+            Foo(fooExtension.data) // will carry the project producer
+        } // store in configuration cache, as these only depend on the configuration of the project
+    )
+    register(
+        MyTaskOutcome::class,
+        tasks.withType<MyTask>().named("doWork").map(MyTask::outcome)
+    )
+}
+
+// project :b
+
+myTask {
+    // input
+    fooInput = sharedData.query(projects.b, Foo::class)
+}
+
+// project :c // uses data at configuration time
+
+if (sharedData.query(projects.a, Foo::class).get() != null) { // "suspending call" (need to get the result from :a)
+    task.register("reportFoo", ReportFoo::class)
+}
+
+// This can probably work with `evaluationDependsOn`
+
+// project :d
+
+val dependencyData: MapProvider<ProjectComponentIdentifier, Foo> =
+    sharedData.queryFromProjectResolutionResults(configurations.compileClasspath, Foo::class)
+
+myOtherTask {
+    dependencyDataInput = dependencyData
+}
+
+// project :e
+
+myOtherTask {
+    otherProjectOutcome = sharedData.query(projects.a, MyTaskOutcome::class)
+}

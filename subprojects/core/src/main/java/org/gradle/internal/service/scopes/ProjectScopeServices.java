@@ -92,7 +92,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.shareddata.DefaultProjectSharedDataRegistry;
+import org.gradle.internal.shareddata.DefaultProjectSharedData;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
@@ -147,7 +147,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
-        registration.add(DefaultProjectSharedDataRegistry.class);
+        registration.add(DefaultProjectSharedData.class);
         dependencyManagementServices.addDslServices(registration, project);
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);

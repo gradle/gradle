@@ -18,19 +18,24 @@ package org.gradle.api.shareddata;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Map;
 
 @NonNullApi
-public interface ProjectSharedDataRegistry {
-    <T> void registerSharedDataProducer(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
+public interface ProjectSharedData {
+    <T> void register(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
 
-    <T> Provider<? extends T> obtainSharedData(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
+    <T> Provider<T> obtain(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier);
 
-    <T> Provider<? extends T> obtainSharedData(Class<T> dataType, SingleSourceIdentifier dataSourceIdentifier);
+    <T> Provider<T> obtain(Class<T> dataType, SingleSourceIdentifier dataSourceIdentifier);
+    <T> Provider<Map<String, ? extends T>> obtain(Class<T> dataType, String dataIdentifier, MultipleSourcesIdentifier dataSourceIdentifier);
 
     // TODO: these should conveniently wrap heterogeneous project identifiers, to be used as `sharedData.obtainSharedData(..., sharedData.fromProject(id))`
     SingleSourceIdentifier fromProject(Project project);
@@ -38,5 +43,15 @@ public interface ProjectSharedDataRegistry {
 
     interface SingleSourceIdentifier {
         Path getSourceProjectIdentitiyPath();
+    }
+
+    MultipleSourcesIdentifier fromProjects(Collection<Project> projects);
+
+    // TODO API shape issue? giving the project instance to the user code is prone to violations of isolation (which we catch, but still)
+    MultipleSourcesIdentifier fromAllProjects(Spec<? super Project> filterProjects);
+    MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
+
+    interface MultipleSourcesIdentifier {
+        Collection<Path> getSourceProjectIdentityPaths();
     }
 }
