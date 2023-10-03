@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,15 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface ScriptClassPathInitializer {
-    void initialize(Configuration classpath);
+@ServiceScope(Scopes.Build.class)
+public interface BuildLogicBuilder {
+
+    void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
+
+    ClassPath resolveClassPath(Configuration classpathConfiguration);
 }
