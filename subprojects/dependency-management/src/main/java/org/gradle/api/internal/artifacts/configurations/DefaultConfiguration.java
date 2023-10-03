@@ -62,7 +62,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
-import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
@@ -164,7 +163,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * noted in {@link #isSpecialCaseOfChangingUsage(String, boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
  */
 @SuppressWarnings("rawtypes")
-public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
+public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, ResettableConfiguration {
     private final ConfigurationResolver resolver;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
@@ -636,11 +635,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 observedState = requestedState;
             }
         }
-    }
-
-    @VisibleForTesting
-    protected InternalState getObservedState() {
-        return observedState;
     }
 
     private void markParentsObserved(InternalState requestedState) {
@@ -1281,12 +1275,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
         }
 
-        // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
-        // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
-        // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule.
-        for (ExcludeRule excludeRule : getAllExcludeRules()) {
-            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getGroup(), excludeRule.getModule()));
-        }
+        copiedConfiguration.excludeRules.addAll(getAllExcludeRules());
 
         DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
@@ -1451,35 +1440,49 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private void preventIllegalParentMutation(MutationType type) {
-        // TODO Deprecate and eventually prevent these mutations in parent when already resolved
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
-            return;
-        }
-
         InternalState resolvedState = currentResolveState.get().getState();
-        if (resolvedState == GRAPH_RESOLVED) {
+        if (resolvedState == GRAPH_RESOLVED && type != MutationType.DEPENDENCY_ATTRIBUTES) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
+        } else if (resolvedState != UNRESOLVED) {
+            DeprecationLogger.deprecate(String.format("Changing %s of parent of %s after it has been resolved", type, getDisplayName()))
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "mutating_dependencies_after_resolve")
+                .nagUser();
         }
     }
 
     private void preventIllegalMutation(MutationType type) {
-        // TODO: Deprecate and eventually prevent these mutations when already resolved
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
-            assertIsDeclarable();
-            return;
-        }
-
         InternalState resolvedState = currentResolveState.get().getState();
-        if (resolvedState == GRAPH_RESOLVED) {
+        if (resolvedState == GRAPH_RESOLVED && type != MutationType.DEPENDENCY_ATTRIBUTES) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));
-        } else if (observedState == GRAPH_RESOLVED) {
+        } else if (resolvedState != UNRESOLVED) {
+            // Since beforeResolve runs _after_ build dependencies are resolved, we need to give it
+            // special privileges to mutate the configuration. This can lead to incorrect build dependencies
+            // if beforeResolve adds a project dependency. We will likely need to deprecate this special access
+            // or deprecate beforeResolve altogether.
+            if (!insideBeforeResolve) {
+                DeprecationLogger.deprecate(String.format("Changing the %s of dependency %s after it has been resolved", type, getDisplayName()))
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "mutating_dependencies_after_resolve")
+                    .nagUser();
+            }
+        }
+
+        if (observedState == GRAPH_RESOLVED && type != MutationType.DEPENDENCY_ATTRIBUTES) {
             // The configuration has been used in a resolution, and it is an error for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
                 String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
                 throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
+            }
+        } else if (observedState != UNRESOLVED) {
+            if (type != MutationType.STRATEGY) {
+                DeprecationLogger.deprecate(String.format("Changing the %s of dependency %s after it has been included in dependency resolution", type, getDisplayName()))
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "mutating_dependencies_after_resolve")
+                    .nagUser();
             }
         }
 

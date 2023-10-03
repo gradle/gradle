@@ -1121,12 +1121,14 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def config = conf("conf")
         config.extendsFrom parent
         resolveConfig(config)
+        config.resolve() // Marks parent as resolved
 
         when:
-        config.resolve()
+        parent.getDependencies().add(Mock(Dependency))
 
         then:
-        parent.observedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
+        def e = thrown(InvalidUserDataException)
+        e.getMessage() == "Cannot change dependencies of dependency configuration ':parent:parent' after it has been included in dependency resolution."
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {

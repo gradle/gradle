@@ -120,6 +120,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
         validateNotVariantAware();
         validateNoTargetConfiguration();
+        validateMutation();
         artifacts.add(artifact);
         return this;
     }
@@ -131,12 +132,10 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
-        validateNotVariantAware();
-        validateNoTargetConfiguration();
         DefaultDependencyArtifact artifact = createDependencyArtifactWithDefaults();
         configureAction.execute(artifact);
         artifact.validate();
-        artifacts.add(artifact);
+        addArtifact(artifact);
         return artifact;
     }
 
@@ -254,11 +253,13 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public void endorseStrictVersions() {
+        validateMutation();
         this.endorsing = true;
     }
 
     @Override
     public void doNotEndorseStrictVersions() {
+        validateMutation();
         this.endorsing = false;
     }
 
@@ -291,7 +292,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.attributes = attributes;
     }
 
-    @SuppressWarnings("unchecked")
     public void addMutationValidator(Action<? super ModuleDependency> action) {
         this.onMutate = onMutate.add(action);
     }
@@ -300,7 +300,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         onMutate.execute(this);
     }
 
-    protected void validateMutation(Object currentValue, Object newValue) {
+    protected void validateMutation(@Nullable Object currentValue,@Nullable Object newValue) {
         if (!Objects.equal(currentValue, newValue)) {
             validateMutation();
         }

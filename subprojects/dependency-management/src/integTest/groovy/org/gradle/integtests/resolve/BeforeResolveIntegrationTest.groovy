@@ -179,7 +179,7 @@ task copyFiles(type:Copy) {
                 testImplementation('org.test:module2:1.0')
             }
 
-            configurations.all { configuration -> 
+            configurations.all { configuration ->
                 if (configuration.canBeResolved) {
                     configuration.incoming.beforeResolve { resolvableDependencies ->
                         resolvableDependencies.dependencies.each { dependency ->
@@ -251,6 +251,8 @@ task resolveDependencies {
 """
 
         expect: "that resolving conf a, then b, then a again, succeeds"
+        executer.expectDocumentedDeprecationWarning("Changing the dependency attributes of dependency configuration ':shared' after it has been included in dependency resolution has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_dependencies_after_resolve")
+        executer.expectDocumentedDeprecationWarning("Changing dependency attributes of parent of configuration ':a' after it has been resolved has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_dependencies_after_resolve")
         succeeds 'resolveDependencies'
     }
 

@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ExcludeRule;
 
+import javax.annotation.Nullable;
+
 public class DefaultExcludeRule implements ExcludeRule {
     private String group;
     private String module;
@@ -24,7 +26,7 @@ public class DefaultExcludeRule implements ExcludeRule {
     public DefaultExcludeRule(){
     }
 
-    public DefaultExcludeRule(String group, String module) {
+    public DefaultExcludeRule(@Nullable String group, @Nullable String module) {
         this.group = group;
         this.module = module;
     }
@@ -34,17 +36,9 @@ public class DefaultExcludeRule implements ExcludeRule {
         return group;
     }
 
-    public void setGroup(String groupValue) {
-        this.group = groupValue;
-    }
-
     @Override
     public String getModule() {
         return module;
-    }
-
-    public void setModule(String moduleValue) {
-        this.module = moduleValue;
     }
 
     @Override
