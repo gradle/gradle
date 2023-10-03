@@ -21,6 +21,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
@@ -79,11 +80,19 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     ) {
         Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
 
+        // All requests have the same interception type
+        CallInterceptionRequest firstRequest = requestsClassGroup.iterator().next();
+        Set<TypeName> capabilities = firstRequest.getRequestExtras()
+            .getByType(RequestExtra.InterceptJvmCalls.class)
+            .orElseThrow(IllegalStateException::new)
+            .getInterceptionType()
+            .getCapabilities();
+
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
-        TypeSpec factoryClass = generateFactoryClass(className);
+        TypeSpec factoryClass = generateFactoryClass(className, capabilities);
 
         return builder ->
             builder.addMethod(constructor)
@@ -101,7 +110,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addType(factoryClass);
     }
 
-    private static TypeSpec generateFactoryClass(String className) {
+    private static TypeSpec generateFactoryClass(String className, Set<TypeName> capabilities) {
         MethodSpec createMethod = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
@@ -119,6 +128,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
+            .addSuperinterfaces(capabilities.stream().sorted().collect(Collectors.toList()))
             .addMethod(createMethod)
             .addMethod(interceptorTypeMethod)
             .build();

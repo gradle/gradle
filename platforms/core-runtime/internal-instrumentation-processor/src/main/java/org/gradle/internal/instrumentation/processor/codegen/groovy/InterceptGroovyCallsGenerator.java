@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -105,8 +106,15 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     }
 
     private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, List<CallInterceptionRequest> requests) {
+        // All requests have the same the interception type
+        Set<TypeName> capabilities = requests.get(0).getRequestExtras()
+            .getByType(RequestExtra.InterceptGroovyCalls.class)
+            .orElseThrow(IllegalStateException::new)
+            .getInterceptionType()
+            .getCapabilities();
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
             .superclass(CALL_INTERCEPTOR_CLASS)
+            .addSuperinterfaces(capabilities.stream().sorted().collect(Collectors.toList()))
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);

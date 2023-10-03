@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.intercept;
+package org.gradle.internal.instrumentation.api.capabilities;
 
 /**
  * A marker interface that indicates that a class or a factory is used for upgrading property.
  */
-public interface UpgradePropertyInterceptor {
+public interface BytecodeUpgradeInterceptor {
 }

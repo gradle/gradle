@@ -92,7 +92,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
-        def generatedClass = source """
+        def generatedJavaInterceptor = source """
             package $GENERATED_CLASSES_PACKAGE_NAME;
             public class InterceptorDeclaration_PropertyUpgradesJvmBytecode_TestProject extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
                 @Override
@@ -110,6 +110,15 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                     }
                     return false;
                 }
+
+                public static class Factory implements JvmBytecodeCallInterceptor.Factory, BytecodeUpgradeInterceptor {
+                }
+            }
+        """
+        def generatedGroovyInterceptor = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            public class InterceptorDeclaration_PropertyUpgradesGroovyInterceptors_TestProject {
+                public static class IsIncrementalCallInterceptor extends CallInterceptor implements BytecodeUpgradeInterceptor, SignatureAwareCallInterceptor, PropertyAwareCallInterceptor {
             }
         """
         def adapterClass = source """
@@ -129,8 +138,11 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-            .generatedSourceFile(fqName(generatedClass))
-            .containsElementsIn(generatedClass)
+            .generatedSourceFile(fqName(generatedJavaInterceptor))
+            .containsElementsIn(generatedJavaInterceptor)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedGroovyInterceptor))
+            .containsElementsIn(generatedGroovyInterceptor)
         assertThat(compilation)
             .generatedSourceFile(fqName(adapterClass))
             .hasSourceEquivalentTo(adapterClass)

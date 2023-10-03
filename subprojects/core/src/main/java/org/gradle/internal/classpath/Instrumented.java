@@ -33,7 +33,7 @@ import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
-import org.gradle.internal.classpath.intercept.UpgradePropertyInterceptor;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeUpgradeInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -132,7 +132,7 @@ public class Instrumented {
 
         private static Predicate<Class<?>> getInterceptorTypePredicate() {
             if (System.getProperty(PROPERTY_UPGRADES_ENABLED, "true").trim().equals("false")) {
-                return type -> !UpgradePropertyInterceptor.class.isAssignableFrom(type);
+                return type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type);
             }
             return type -> true;
         }

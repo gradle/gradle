@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +37,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
         String className,
         Collection<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super HasFailures.FailureInfo> onFailure
+        Consumer<? super FailureInfo> onFailure
     );
 
     @Override
@@ -45,7 +46,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
             .filter(it -> classNameForRequest(it) != null)
             .collect(Collectors.groupingBy(this::classNameForRequest, LinkedHashMap::new, Collectors.toList()));
 
-        List<HasFailures.FailureInfo> failuresInfo = new ArrayList<>();
+        List<FailureInfo> failuresInfo = new ArrayList<>();
         Set<CallInterceptionRequest> processedRequests = new LinkedHashSet<>(interceptionRequests.size());
         Map<String, Consumer<TypeSpec.Builder>> classContentByName = new LinkedHashMap<>();
 
