@@ -791,7 +791,7 @@ Full details on using these options are documented in the <<gradle_wrapper.adoc#
 [[sec:continuous_build]]
 == Continuous build
 
-Continuous Build allows you to automatically re-execute the requested tasks when task inputs change.
+Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
 For example, you can continuously run the `test` task and all dependent tasks by running:

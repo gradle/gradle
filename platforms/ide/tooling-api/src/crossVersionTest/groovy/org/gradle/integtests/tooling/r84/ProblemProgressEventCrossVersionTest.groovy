@@ -27,8 +27,8 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
-@ToolingApiVersion(">=8.4")
-@TargetGradleVersion(">=8.4")
+@ToolingApiVersion(">=8.5")
+@TargetGradleVersion(">=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     class MyProgressListener implements ProgressListener {
@@ -77,6 +77,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[1].severity == Severity.ERROR.name()
         problems[1].where.path == 'ba'
         problems[1].where.line == -1
-        problems[1].problemType == 'task_selection'
+        problems[1].problemCategory == 'task_selection'
     }
 }

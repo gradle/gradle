@@ -23,7 +23,7 @@ import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderDefiningType;
+import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 
@@ -34,7 +34,7 @@ class DelegatingProblemBuilder implements
     ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
-    ProblemBuilderDefiningType,
+    ProblemBuilderDefiningCategory,
     BuildableProblemBuilder {
 
     private final Object delegate;
@@ -71,8 +71,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningType location(String path, Integer line) {
-        ProblemBuilderDefiningType newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line);
+    public ProblemBuilderDefiningCategory location(String path, Integer line) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -80,8 +80,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningType location(String path, Integer line, Integer column) {
-        ProblemBuilderDefiningType newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line, column);
+    public ProblemBuilderDefiningCategory location(String path, Integer line, Integer column) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line, column);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -98,8 +98,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningType noLocation() {
-        ProblemBuilderDefiningType newDelegate = ((ProblemBuilderDefiningLocation) delegate).noLocation();
+    public ProblemBuilderDefiningCategory noLocation() {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).noLocation();
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
@@ -107,8 +107,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilder type(String problemType) {
-        ProblemBuilder newDelegate = ((ProblemBuilderDefiningType) delegate).type(problemType);
+    public ProblemBuilder category(String category, String... details){
+        ProblemBuilder newDelegate = ((ProblemBuilderDefiningCategory) delegate).category(category, details);
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }

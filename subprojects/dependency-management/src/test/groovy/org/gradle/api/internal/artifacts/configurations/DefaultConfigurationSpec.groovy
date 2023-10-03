@@ -46,14 +46,12 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
@@ -502,8 +500,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
         _ * resolver.getRepositories() >> []
 
-        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
-        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(visitedGraphResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
+        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, Stub(ResolvedConfiguration), visitedArtifactSet)
     }
 
     private void expectResolved(ResolveException failure) {
@@ -521,8 +518,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * resolvedConfiguration.getLenientConfiguration() >> Stub(LenientConfiguration)
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
-        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
-        _ * resolver.resolveArtifacts(_, _) >> DefaultResolverResults.artifactsResolved(visitedGraphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
+        _ * resolver.resolveGraph(_) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
     }
 
     def "artifacts have correct build dependencies"() {
@@ -1116,12 +1112,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
             collectFiles(_) >> { return it[0] }
         }
 
-        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-
-        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(visitedGraphResults, localComponentsResult, visitedArtifactSet, Mock(ArtifactResolveState))
-        resolver.resolveArtifacts(config, _ as ResolverResults) >> { ResolveContext conf, ResolverResults res ->
-            DefaultResolverResults.artifactsResolved(res.visitedGraph, res.resolvedLocalComponents, resolvedConfiguration, visitedArtifactSet)
-        }
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, localComponentsResult, resolvedConfiguration, visitedArtifactSet)
     }
 
     def "resolving configuration marks parent configuration as observed"() {
@@ -1134,7 +1126,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.resolve()
 
         then:
-        parent.observedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        parent.observedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1152,7 +1144,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         _ * listenerBroadcaster.getSource() >> listener
         1 * listener.beforeResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
         1 * listener.afterResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
     }
 
@@ -1166,7 +1158,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
@@ -1185,7 +1177,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
@@ -1202,7 +1194,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
@@ -1214,11 +1206,10 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveArtifacts(config, _) >> artifactsResolved(config)
         0 * resolver._
     }
 
@@ -1232,7 +1223,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
@@ -1243,12 +1234,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
-        1 * resolver.resolveArtifacts(config, _) >> artifactsResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
     }
@@ -1263,12 +1253,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.getResolutionResult().root
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
         1 * resolver.resolveGraph(config) >> graphResolved(config)
-        1 * resolver.resolveArtifacts(config, _) >> artifactsResolved(config)
         1 * resolver.getRepositories() >> []
         0 * resolver._
 
@@ -1276,7 +1265,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.getBuildDependencies()
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         and:
@@ -1296,7 +1285,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         def previousResolvedConfiguration = config.resolvedConfiguration
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         when:
@@ -1307,7 +1296,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         then:
         0 * resolver._
         nextResolutionResult.root // forces lazy resolution
-        config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
+        config.internalState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1328,11 +1317,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         config.incoming.resolutionResult
 
         when:
-        def copy = config.copy()
+        def copy = config.copy() as DefaultConfiguration
 
         then:
         1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        copy.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        copy.internalState == ConfigurationInternal.InternalState.UNRESOLVED
         copy.state == UNRESOLVED
     }
 
@@ -1850,15 +1839,8 @@ All Artifacts:
     private ResolverResults graphResolved(ConfigurationInternal conf) {
         def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), visitedArtifacts(), Mock(ArtifactResolveState))
+        DefaultResolverResults.graphResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), Mock(ResolvedConfiguration), visitedArtifacts())
     }
-
-    private ResolverResults artifactsResolved(ConfigurationInternal conf) {
-        def resolutionResult = new DefaultMinimalResolutionResult(() -> Stub(ResolvedComponentResult), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
-        DefaultResolverResults.artifactsResolved(visitedGraphResults, Stub(ResolvedLocalComponentsResult), Mock(ResolvedConfiguration), visitedArtifacts())
-    }
-
 
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
         def config = conf()

@@ -19,6 +19,8 @@ package org.gradle.internal.reflect;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -29,6 +31,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.SEPARATOR;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
 
@@ -49,13 +53,14 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static boolean onlyAffectsCacheableWork(String type) {
-        return MISSING_NORMALIZATION_ANNOTATION.equals(type);
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR + MISSING_NORMALIZATION_ANNOTATION);
+    public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
+        return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
     }
 
     @Override
     protected void recordProblem(ReportableProblem problem) {
-        if (onlyAffectsCacheableWork(problem.getProblemType()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getProblemCategory()) && !reportCacheabilityProblems) { // TODO (donat) is is already fixed on master
             return;
         }
         problems.add(problem);

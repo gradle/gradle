@@ -68,15 +68,6 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         1 * delegate.resolveGraph(context) >> delegateResults
     }
 
-    void "delegates to backing service to resolve artifacts"() {
-        when:
-        ResolverResults graphResults = Mock()
-        resolver.resolveArtifacts(context, graphResults)
-
-        then:
-        1 * delegate.resolveArtifacts(context, _) >> delegateResults
-    }
-
     void "wraps build dependency resolve failures"() {
         given:
         def failure = new RuntimeException()
@@ -113,28 +104,8 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
             .when { results.resolvedConfiguration.getResolvedArtifacts(); }
     }
 
-    void "wraps artifact resolve failures"() {
-        given:
-        ResolverResults graphResults = Mock()
-        def failure = new RuntimeException()
-        delegate.resolveArtifacts(context, graphResults) >> { throw failure }
-
-        when:
-        def results = resolver.resolveArtifacts(context, graphResults)
-
-        then:
-        results.resolvedConfiguration.hasError()
-
-        failsWith(failure)
-            .when { results.resolvedConfiguration.rethrowFailure(); }
-            .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
-            .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
-            .when { results.resolvedConfiguration.getResolvedArtifacts(); }
-    }
-
     void "wraps exceptions thrown by resolved configuration"() {
         given:
-        ResolverResults graphResults = Mock()
         def failure = new RuntimeException()
 
         resolvedConfiguration.rethrowFailure() >> { throw failure }
@@ -144,10 +115,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
         resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
-        delegate.resolveArtifacts(context, graphResults) >> delegateResults
+        delegate.resolveGraph(context) >> delegateResults
 
         when:
-        def results = resolver.resolveArtifacts(context, graphResults)
+        def results = resolver.resolveGraph(context)
 
         then:
         def result = results.resolvedConfiguration
@@ -162,7 +133,6 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
 
     void "wraps exceptions thrown by resolved lenient configuration"() {
         given:
-        ResolverResults graphResults = Mock()
         def failure = new RuntimeException()
         def lenientConfiguration = Stub(LenientConfiguration)
 
@@ -172,10 +142,10 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         lenientConfiguration.getArtifacts(_) >> { throw failure }
         lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
 
-        delegate.resolveArtifacts(context, _) >> DefaultResolverResults.artifactsResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
+        delegate.resolveGraph(context) >> DefaultResolverResults.graphResolved(visitedGraphResults, projectConfigResult, resolvedConfiguration, visitedArtifactSet)
 
         when:
-        def results = resolver.resolveArtifacts(context, graphResults)
+        def results = resolver.resolveGraph(context)
 
         then:
         def result = results.resolvedConfiguration.lenientConfiguration

@@ -1156,7 +1156,6 @@ Class <org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher$
 Class <org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ValidatingMavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator$MavenPomSpec> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPomFileGenerator.java:0)
 Class <org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPomFileGenerator.java:0)
-Class <org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MavenPublicationErrorChecker.java:0)
 Class <org.gradle.api.reporting.components.internal.AbstractBinaryRenderer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractBinaryRenderer.java:0)
 Class <org.gradle.api.reporting.components.internal.BinaryRenderer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BinaryRenderer.java:0)
 Class <org.gradle.api.reporting.components.internal.ComponentRenderer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ComponentRenderer.java:0)

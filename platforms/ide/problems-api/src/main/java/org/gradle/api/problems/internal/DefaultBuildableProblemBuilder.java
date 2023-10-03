@@ -22,10 +22,10 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderDefiningType;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
@@ -49,10 +49,10 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningLabel,
-    ProblemBuilderDefiningType {
+    ProblemBuilderDefiningCategory {
 
     private String label;
-    private String problemType;
+    private String problemCategory;
     private final InternalProblems problemsService;
     private Severity severity;
     private Set<ProblemLocation> locations = new LinkedHashSet<>();
@@ -79,7 +79,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public ProblemBuilderDefiningType location(String path, @Nullable Integer line) {
+    public ProblemBuilderDefiningCategory location(String path, @Nullable Integer line) {
         location(path, line, null);
         return this;
     }
@@ -96,7 +96,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningType noLocation() {
+    public ProblemBuilderDefiningCategory noLocation() {
         return this;
     }
 
@@ -116,8 +116,9 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public ProblemBuilder type(String problemType) {
-        this.problemType = problemType;
+    @Override
+    public ProblemBuilder category(String category, String... details){
+        this.problemCategory = DefaultProblemCategory.category(category, details).toString();
         return this;
     }
 
@@ -158,7 +159,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             description,
             solution,
             exception == null ? new Exception() : exception,
-            problemType,
+            problemCategory,
             additionalMetadata,
             problemsService);
     }

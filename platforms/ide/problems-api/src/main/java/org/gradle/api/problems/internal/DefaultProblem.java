@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.Severity;
 
@@ -38,7 +39,7 @@ public class DefaultProblem implements Problem {
     private String description;
     private List<String> solutions;
     private Throwable cause;
-    private String problemType;
+    private String problemCategory;
     private Map<String, String> additionalMetadata;
 
     public DefaultProblem(
@@ -49,7 +50,7 @@ public class DefaultProblem implements Problem {
         @Nullable String description,
         @Nullable List<String> solutions,
         @Nullable Throwable cause,
-        String problemType,
+        String problemCategory,
         Map<String, String> additionalMetadata
     ) {
         this.label = label;
@@ -59,7 +60,7 @@ public class DefaultProblem implements Problem {
         this.description = description;
         this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
         this.cause = cause;
-        this.problemType = problemType;
+        this.problemCategory = problemCategory;
         this.additionalMetadata = additionalMetadata;
     }
 
@@ -103,8 +104,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public String getProblemType() {
-        return problemType;
+    public ProblemCategory getProblemCategory() {
+        return new DefaultProblemCategory(problemCategory);
     }
 
     @Override
@@ -128,7 +129,7 @@ public class DefaultProblem implements Problem {
         return equals(label, that.label) &&
             severity == that.severity &&
             equals(where, that.where) &&
-            equals(problemType, that.problemType) &&
+            equals(problemCategory, that.problemCategory) &&
             equals(documentationLink, that.documentationLink) &&
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&

@@ -19,7 +19,6 @@ package org.gradle.vcs.internal.services;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -162,7 +161,7 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
         }
 
         @Override
-        public void create(ResolveContext context, Collection<ComponentResolvers> resolvers) {
+        public void create(Collection<ComponentResolvers> resolvers) {
             if (vcsResolver.hasRules()) {
                 resolvers.add(vcsDependencyResolver);
             }
