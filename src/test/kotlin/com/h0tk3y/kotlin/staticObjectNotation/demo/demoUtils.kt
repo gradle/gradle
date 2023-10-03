@@ -2,7 +2,12 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTrace
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -45,23 +50,30 @@ fun printResolutionResults(
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
 }
 
+fun assignmentTrace(result: ResolutionResult) = 
+    AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
+
+fun printAssignmentTrace(trace: AssignmentTrace) {
+    trace.elements.forEach { element ->
+        when (element) {
+            is AssignmentTraceElement.UnassignedValueUsed -> {
+                val locationString = when (val result = element.assignmentAdditionResult) {
+                    AssignmentAdded -> error("unexpected")
+                    is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInLhs -> "lhs: ${result.value}"
+                    is AssignmentResolver.AssignmentAdditionResult.UnresolvedValueUsedInRhs -> "rhs: ${result.value}"
+                }
+                println("${element.lhs} !:= ${element.rhs} -- unassigned property in $locationString")
+            }
+            is AssignmentTraceElement.RecordedAssignment -> {
+                val assigned = trace.resolvedAssignments.getValue(element.lhs) as Assigned
+                println("${element.lhs} := ${element.rhs} => ${assigned.objectOrigin}")
+            }
+        }
+    }    
+}
+
 fun printResolvedAssignments(result: ResolutionResult) {
-    val assignments = AssignmentResolver()
-    for ((lhs, rhs) in result.assignments) {
-        val assigned = assignments.addAssignment(lhs, rhs)
-        if (assigned is AssignmentResolver.AssignmentResolutionProgress.UnresolvedReceiver) {
-            println("$lhs =/= $rhs : Assignment used an unassigned receiver ${assigned.accessOrigin}")
-        }
-    }
-    val values = assignments.getAssignmentResults()
-    println("\n===\nAssignment results")
-    values.forEach { (lhs, rhs) ->
-        val rhsString = when (rhs) {
-            is AssignmentResolver.AssignmentResolutionResult.Assigned -> ":= ${rhs.objectOrigin}"
-            is AssignmentResolver.AssignmentResolutionResult.Unassigned -> "!:= ${rhs.objectOrigin}"
-        }
-        println("$lhs $rhsString")
-    }
+    printAssignmentTrace(assignmentTrace(result))
 }
 
 inline fun <reified T> typeRef(): DataTypeRef.Name {

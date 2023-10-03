@@ -3,36 +3,51 @@ package com.h0tk3y.kotlin.staticObjectNotation.objectGraph
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyReferenceResolution
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionProgress.Ok
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.ExpressionResolutionProgress.Ok
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.ExpressionResolutionProgress.UnresolvedReceiver
 
 class AssignmentResolver {
-    private val assignmentByNode = mutableMapOf<ResolutionNode.UnassignedProperty, ResolutionNode>()
+    private val assignmentByNode = mutableMapOf<ResolutionNode.Property, ResolutionNode>()
 
-    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin): AssignmentResolutionProgress {
-        val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)
-        if (lhsOwner is AssignmentResolutionProgress.UnresolvedReceiver) {
-            return lhsOwner
-        }
-        lhsOwner as Ok
-        val lhsPropertyWithResolvedReceiver = PropertyReferenceResolution(lhsOwner.objectOrigin, lhsProperty.property)
-        val lhsNode = ResolutionNode.UnassignedProperty(lhsPropertyWithResolvedReceiver)
+    sealed interface AssignmentAdditionResult {
+        data object AssignmentAdded : AssignmentAdditionResult
 
-        val rhsNode: ResolutionNode = when (val rhsResult = resolveToObjectOrPropertyReference(rhsOrigin)) {
-            is Ok -> {
-                when (val rhs = rhsResult.objectOrigin) {
-                    is ObjectOrigin.PropertyReference ->
-                        ResolutionNode.UnassignedProperty(PropertyReferenceResolution(rhs.receiver, rhs.property))
+        data class UnresolvedValueUsedInLhs(
+            val value: ObjectOrigin
+        ) : AssignmentAdditionResult
 
-                    else -> ResolutionNode.PrimitiveValue(rhs)
-                }
+        data class UnresolvedValueUsedInRhs(
+            val value: ObjectOrigin
+        ) : AssignmentAdditionResult
+    }
+
+    fun addAssignment(lhsProperty: PropertyReferenceResolution, rhsOrigin: ObjectOrigin): AssignmentAdditionResult =
+        when (val lhsOwner = resolveToObjectOrPropertyReference(lhsProperty.receiverObject)) {
+            is UnresolvedReceiver -> {
+                AssignmentAdditionResult.UnresolvedValueUsedInLhs(lhsOwner.accessOrigin)
             }
 
-            else -> return rhsResult
-        }
+            is Ok -> {
+                val lhsPropertyWithResolvedReceiver = PropertyReferenceResolution(lhsOwner.objectOrigin, lhsProperty.property)
+                val lhsNode = ResolutionNode.Property(lhsPropertyWithResolvedReceiver)
 
-        assignmentByNode[lhsNode] = rhsNode
-        return Ok(rhsNode.toOrigin(rhsOrigin))
-    }
+                when (val rhsResult = resolveToObjectOrPropertyReference(rhsOrigin)) {
+                    is Ok -> {
+                        val rhsNode: ResolutionNode = when (val rhs = rhsResult.objectOrigin) {
+                            is ObjectOrigin.PropertyReference ->
+                                ResolutionNode.Property(PropertyReferenceResolution(rhs.receiver, rhs.property))
+
+                            else -> ResolutionNode.PrimitiveValue(rhs)
+                        }
+                        assignmentByNode[lhsNode] = rhsNode
+                        AssignmentAdditionResult.AssignmentAdded
+                    }
+
+                    // TODO: lazy semantics for properties
+                    is UnresolvedReceiver -> AssignmentAdditionResult.UnresolvedValueUsedInRhs(rhsResult.accessOrigin)
+                }
+            }
+        }
 
     sealed interface AssignmentResolutionResult {
         data class Assigned(val objectOrigin: ObjectOrigin) : AssignmentResolutionResult
@@ -60,37 +75,41 @@ class AssignmentResolver {
                 put(lhs.propertyReferenceResolution, run {
                     when (val result = get(lhs)) {
                         is ResolutionNode.PrimitiveValue -> AssignmentResolutionResult.Assigned(result.objectOrigin)
-                        is ResolutionNode.UnassignedProperty -> AssignmentResolutionResult.Unassigned(result.propertyReferenceResolution)
+                        is ResolutionNode.Property -> AssignmentResolutionResult.Unassigned(result.propertyReferenceResolution)
                     }
                 })
             }
         }
     }
 
-    sealed interface AssignmentResolutionProgress {
-        data class Ok(val objectOrigin: ObjectOrigin) : AssignmentResolutionProgress
-        data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : AssignmentResolutionProgress
+    sealed interface ExpressionResolutionProgress {
+        data class Ok(val objectOrigin: ObjectOrigin) : ExpressionResolutionProgress
+        data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : ExpressionResolutionProgress
     }
 
-    private fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): AssignmentResolutionProgress =
+    private fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
-        is ObjectOrigin.ConfigureReceiver -> resolveToObjectOrPropertyReference(resolveConfigureReceiver(objectOrigin))
+            is ObjectOrigin.ConfigureReceiver -> resolveToObjectOrPropertyReference(
+                resolveConfigureReceiver(objectOrigin)
+            )
             is ObjectOrigin.FromLocalValue -> resolveToObjectOrPropertyReference(objectOrigin.assigned)
             is ObjectOrigin.BuilderReturnedReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiverObject)
 
             is ObjectOrigin.PropertyReference -> {
                 val receiver = objectOrigin.receiver
                 when (val receiverResolutionResult = resolveToObjectOrPropertyReference(receiver)) {
-                    is AssignmentResolutionProgress.UnresolvedReceiver -> receiverResolutionResult
+                    is UnresolvedReceiver -> receiverResolutionResult
                     is Ok -> {
                         val receiverOrigin = receiverResolutionResult.objectOrigin
-                        ResolutionNode.UnassignedProperty(PropertyReferenceResolution(receiverOrigin, objectOrigin.property))
+                        val refNode =
+                            ResolutionNode.Property(PropertyReferenceResolution(receiverOrigin, objectOrigin.property))
 
-                        Ok(
-                            ObjectOrigin.PropertyReference(
-                                receiverOrigin, objectOrigin.property, objectOrigin.originElement
-                            )
-                        )
+                        val receiverAssigned = assignmentByNode[refNode]
+                        if (receiverAssigned != null) {
+                            Ok(receiverAssigned.toOrigin(objectOrigin))
+                        } else {
+                            UnresolvedReceiver(objectOrigin)
+                        }
                     }
                 }
             }
@@ -101,10 +120,8 @@ class AssignmentResolver {
                     Ok(objectOrigin)
                 } else {
                     when (val receiverResolutionResult = resolveToObjectOrPropertyReference(receiver)) {
-                        is AssignmentResolutionProgress.UnresolvedReceiver -> receiverResolutionResult
-                        is Ok -> {
-                            Ok(objectOrigin.copy(receiverObject = receiverResolutionResult.objectOrigin))
-                        }
+                        is UnresolvedReceiver -> receiverResolutionResult
+                        is Ok -> Ok(objectOrigin.copy(receiverObject = receiverResolutionResult.objectOrigin))
                     }
                 }
             }
@@ -127,12 +144,12 @@ class AssignmentResolver {
     )
 
     sealed interface ResolutionNode {
-        data class UnassignedProperty(val propertyReferenceResolution: PropertyReferenceResolution) : ResolutionNode
+        data class Property(val propertyReferenceResolution: PropertyReferenceResolution) : ResolutionNode
         data class PrimitiveValue(val objectOrigin: ObjectOrigin) : ResolutionNode
 
         fun toOrigin(usage: ObjectOrigin) = when (this) {
             is PrimitiveValue -> objectOrigin
-            is UnassignedProperty -> ObjectOrigin.PropertyReference(
+            is Property -> ObjectOrigin.PropertyReference(
                 propertyReferenceResolution.receiverObject,
                 propertyReferenceResolution.property,
                 usage.originElement
