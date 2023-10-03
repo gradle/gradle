@@ -81,6 +81,9 @@ public interface CollectionPropertyConfigurer<T> {
 
     void exclude(Provider<T> provider);
 
+    @SuppressWarnings("unchecked")
+    void excludeAll(T... elements);
+
     void excludeAll(Iterable<? extends T> elements);
 
     void excludeAll(Provider<? extends Iterable<? extends T>> provider);

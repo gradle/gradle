@@ -89,6 +89,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final void excludeAll(T... elements) {
+        setSupplier(getSupplier().minus(new ElementsFromArray<>(elements)));
+    }
+
+    @Override
     public void excludeAll(Iterable<? extends T> elements) {
         setSupplier(getSupplier().minus(new ElementsFromCollection<>(elements)));
     }
@@ -630,6 +637,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        @SafeVarargs
+        @SuppressWarnings("varargs")
+        public final void excludeAll(T... elements) {
+            prune();
+            setConvention(getConventionSupplier().minus(new ElementsFromArray<>(elements)));
+        }
+
+        @Override
         public void exclude(Provider<T> provider) {
             prune();
             setConvention(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
@@ -711,6 +726,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public void excludeAll(Iterable<? extends T> elements) {
+            prune();
+            AbstractCollectionProperty.this.excludeAll(elements);
+        }
+
+        @Override
+        @SafeVarargs
+        @SuppressWarnings("varargs")
+        public final void excludeAll(T... elements) {
             prune();
             AbstractCollectionProperty.this.excludeAll(elements);
         }
