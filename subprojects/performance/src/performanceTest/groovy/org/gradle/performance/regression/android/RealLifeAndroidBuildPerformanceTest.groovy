@@ -155,7 +155,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             "--add-opens",
             "java.base/java.net=ALL-UNNAMED"
         ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
-        runner.addBuildMutator { is -> new PluginRemoveMutator(is) }
         runner.addBuildMutator {is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
     }
 
@@ -208,20 +207,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
                 def result = matcher.toMatchResult()
                 text.replace(result.start(0), result.end(0), "${target} = \"${version}\"\n")
             }
-        }
-    }
-
-    // TODO: temporary workaround for https://github.com/gradle/gradle/issues/26462
-    private static class PluginRemoveMutator extends AbstractFileChangeMutator {
-        protected PluginRemoveMutator(InvocationSettings invocationSettings) {
-            super(new File(new File(invocationSettings.projectDir, "app"), "build.gradle.kts"))
-        }
-
-        @Override
-        protected void applyChangeTo(BuildContext context, StringBuilder text) {
-            def searchString = "id(\"com.google.android.gms.oss-licenses-plugin\")"
-            def start = text.indexOf(searchString)
-            text.delete(start, start + searchString.length())
         }
     }
 }
