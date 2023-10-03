@@ -33,8 +33,10 @@ include("build-platform")
 // Compute the identity/version we are building and related details (like current git commit)
 include("module-identity")
 
-include("commons")
+// Code quality rules common to :build-logic and the root build
 include("code-quality-rules")
+
+// Plugins to build :build-logic plugins
 include("gradle-plugin")
 
 rootProject.name = "build-logic-commons"

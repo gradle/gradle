@@ -19,7 +19,6 @@ dependencies {
     api(platform(project(":build-platform")))
 
     implementation(project(":basics"))
-    implementation(project(":commons"))
     implementation(project(":module-identity"))
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:4.1.2")
