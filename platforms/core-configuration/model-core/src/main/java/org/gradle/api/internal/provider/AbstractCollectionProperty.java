@@ -99,6 +99,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public void exclude(T element) {
+        setSupplier(getSupplier().minus(new SingleElement<>(element)));
+    }
+
+    @Override
     public void add(final T element) {
         Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
         addCollector(new SingleElement<>(element));
@@ -629,6 +634,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             prune();
             setConvention(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
         }
+
+        @Override
+        public void exclude(T element) {
+            prune();
+            setConvention(getConventionSupplier().minus(new SingleElement<>(element)));
+        }
     }
 
     private class ExplicitValueConfigurer implements CollectionPropertyConfigurer<T> {
@@ -684,6 +695,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public void exclude(Provider<T> provider) {
             prune();
             AbstractCollectionProperty.this.exclude(provider);
+        }
+
+        @Override
+        public void exclude(T element) {
+            prune();
+            AbstractCollectionProperty.this.exclude(element);
         }
 
         @Override
