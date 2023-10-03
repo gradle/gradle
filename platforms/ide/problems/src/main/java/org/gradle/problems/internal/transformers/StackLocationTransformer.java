@@ -41,10 +41,6 @@ public class StackLocationTransformer implements ProblemTransformer {
             List<StackTraceElement> stackTraceElements = Arrays.asList(throwable.getStackTrace());
             Location location = problemLocationAnalyzer.locationForUsage(stackTraceElements, true);
 
-            if (location != null) {
-                System.out.println(location);
-                //problem.getWhere().add(location);
-            }
         }
 
         return problem;
