@@ -79,5 +79,7 @@ public interface CollectionPropertyConfigurer<T> {
 
     void exclude(Provider<T> provider);
 
+    void excludeAll(Iterable<? extends T> elements);
+
     void excludeAll(Provider<? extends Iterable<? extends T>> provider);
 }
