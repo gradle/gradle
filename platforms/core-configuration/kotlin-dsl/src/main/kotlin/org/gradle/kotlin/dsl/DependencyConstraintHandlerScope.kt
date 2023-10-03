@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate
 
@@ -73,7 +74,19 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<out Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
+        constraints.add(name, dependencyConstraintNotation)
+
+    /**
+     * Adds a dependency constraint to the given [DependencyScopeConfiguration].
+     *
+     * @param dependencyConstraintNotation notation for the dependency constraint to be added.
+     * @return The dependency constraint.
+     * @see [DependencyConstraintHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation)
 
     /**
@@ -86,7 +99,20 @@ private constructor(
      * @since 8.3
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<out Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
+        constraints.add(name, dependencyConstraintNotation, configuration)
+
+    /**
+     * Adds a dependency constraint to the given [DependencyScopeConfiguration].
+     *
+     * @param dependencyConstraintNotation notation for the dependency constraint to be added.
+     * @param configuration expression to use to configure the dependency constraint.
+     * @return The dependency constraint.
+     * @see [DependencyConstraintHandler.add]
+     * @since 8.5
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation, configuration)
 
     /**
