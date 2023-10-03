@@ -23,7 +23,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 class AbstractKotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    protected static void assertModelMatchesBuildSpec(KotlinDslScriptsModel model, BuildSpec spec) {
+    protected void assertModelMatchesBuildSpec(KotlinDslScriptsModel model, BuildSpec spec) {
 
         model.scriptModels.values().each { script ->
             assertContainsGradleKotlinDslJars(script.classPath)

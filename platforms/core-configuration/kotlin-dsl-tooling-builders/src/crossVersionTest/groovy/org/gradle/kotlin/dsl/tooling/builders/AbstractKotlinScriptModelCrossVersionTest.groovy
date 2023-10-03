@@ -132,13 +132,21 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return files.collect { it.name }.toSet() as String[]
     }
 
-    protected static void assertContainsGradleKotlinDslJars(List<File> classPath) {
+    protected void assertContainsGradleKotlinDslJars(List<File> classPath) {
         def version = "[0-9.]+(-.+?)?"
+        String gradleApiMatcherPattern
+        if (targetVersion.baseVersion < GradleVersion.version("8.5")) {
+            // Before 8.5 the script classpath contains the Gradle API generated jar
+            gradleApiMatcherPattern = "gradle-api-$version\\.jar"
+        } else {
+            // Starting with 8.5 the script classpath contains Gradle distribution modules
+            gradleApiMatcherPattern = "gradle-core-api-$version\\.jar"
+        }
         assertThat(
             classPath.collect { it.name } as List<String>,
             hasItems(
+                matching(gradleApiMatcherPattern),
                 matching("gradle-kotlin-dsl-$version\\.jar"),
-                matching("gradle-api-$version\\.jar"),
                 matching("gradle-kotlin-dsl-extensions-$version\\.jar")
             )
         )
