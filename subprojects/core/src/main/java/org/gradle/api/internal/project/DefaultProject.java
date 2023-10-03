@@ -78,7 +78,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.shareddata.ProjectSharedDataRegistry;
+import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -1066,7 +1066,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     @Inject
-    public abstract ProjectSharedDataRegistry getSharedData();
+    public abstract ProjectSharedData getSharedData();
 
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {

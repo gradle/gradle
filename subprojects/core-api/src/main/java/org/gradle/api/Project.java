@@ -45,7 +45,7 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.shareddata.ProjectSharedDataRegistry;
+import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
@@ -1585,7 +1585,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     DependencyFactory getDependencyFactory();
 
     @Incubating
-    ProjectSharedDataRegistry getSharedData();
+    ProjectSharedData getSharedData();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build

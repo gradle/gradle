@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.shareddata.ProjectSharedDataRegistry;
+import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -37,7 +37,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
     }
 
     @Override
-    public <T> Provider<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedDataRegistry.SingleSourceIdentifier dataSourceIdentifier) {
+    public <T> Provider<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier) {
         Path sourceProjectIdentitiyPath = dataSourceIdentifier.getSourceProjectIdentitiyPath();
         return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, dataType, dataIdentifier);
     }
@@ -47,6 +47,8 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
         storage = new SharedDataStorage();
     }
 
+    // TODO: does it make sense to record project dependencies based on the providers used in tasks?
+    //       We definitely need to record dependencies for data consumed at configuration time.
     @NonNullApi
     private class ProjectSharedDataProvider<T> extends AbstractMinimalProvider<T> {
 
@@ -87,7 +89,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
             return dataType;
         }
 
-        // TODO: cache the result?
+        // TODO: cache the result? once we get a present provider in the storage, it should not change anymore
         @Nullable
         private Provider<T> findProviderInStorage() {
             return storage.get(sourceProjectIdentityPath, dataType, dataIdentifier);
