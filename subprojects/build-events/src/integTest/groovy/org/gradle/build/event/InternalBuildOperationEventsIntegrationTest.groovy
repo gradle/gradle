@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpec {
     def "init script can inject listener via use internal API to subscribe to build operation events"() {
-        def initScript = file("init.gradle")
+        def initScript = initScriptFile
         loggingListener(initScript)
         initScript << """
             def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
@@ -71,7 +71,7 @@ class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "init script listener receives events from buildSrc and main build"() {
-        def initScript = file("init.gradle")
+        def initScript = initScriptFile
         loggingListener(initScript)
         initScript << """
             if (gradle.parent == null) {
