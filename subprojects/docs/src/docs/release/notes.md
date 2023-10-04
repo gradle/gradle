@@ -54,13 +54,13 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 <a name="ear-plugin"></a>
 ### Ear Plugin
 
-It is now possible to generate valid deployment descriptors for Java EE 8, Jakarta EE 9 and Jakarta EE 10
-by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+The Ear plugin, which generates Java EE Enterprise Archive (EAR) files, now supports valid deployment descriptors for Java EE 8, Jakarta EE 9, and Jakarta EE 10.
+You can specify the corresponding version in the `deploymentDescriptor` instead of having to use a [custom descriptor file](userguide/ear_plugin.html#sec:using_custom_app_xml):
 
 ```kotlin
 tasks.ear {
     deploymentDescriptor {  // custom entries for application.xml:
-        version = "10"
+        version = "10" // Now supporting version 8, 9, and 10
     }
 }
 ```
@@ -68,19 +68,20 @@ tasks.ear {
 <a name="wrapper-improvements"></a>
 ### Wrapper Improvements
 
-The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](userguide/gradle_wrapper.html) (in short just “Wrapper”).
+The recommended way to execute any Gradle build is with the help of the [Gradle Wrapper](userguide/gradle_wrapper.html) (in short, “Wrapper”).
 The Wrapper invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 #### Smaller Wrapper JAR
 
-The Wrapper JAR file size was reduced from ~65K down to ~45K by eliminating dead code.
+The Wrapper JAR file size was reduced from ~65K down to ~45K by eliminating unused code.
 
 #### Wrapper JAR LICENSE File
 
 The Wrapper JAR now contains a `META-INF/LICENSE` file.
-This alleviates any doubts about the licensing of the Wrapper JAR file.
-Like the Gradle Build Tool, its Wrapper is licensed under the Apache Software License 2.0.
-The JAR file is now self-attributing and you don't need to consider whether you need to add a separate `LICENSE` file whenever you place that JAR file in your codebases.
+
+This was done to alleviate any doubts regarding licensing of the Wrapper JAR file.
+The Wrapper and the Gradle Build Tool are licensed under the [Apache Software License 2.0](https://github.com/gradle/gradle/blob/master/LICENSE).
+The JAR file is now self-attributing so that you don't need to add a separate `LICENSE` file in your codebase.
 
 
 <a name="kotlin-dsl"></a>
@@ -91,7 +92,8 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 #### Version catalog API in precompiled scripts
 
 The `versionCatalogs` extension accessor is now available in Kotlin DSL precompiled scripts.
-It provides a [type unsafe API](userguide/platforms.html#sub:type-unsafe-access-to-catalog) for accessing version catalogs available on the projects where the precompiled script will be applied.
+
+It provides a [type unsafe API](userguide/platforms.html#sub:type-unsafe-access-to-catalog) for accessing version catalogs available on the projects where the precompiled script will be applied:
 
 ```kotlin
 // buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts
