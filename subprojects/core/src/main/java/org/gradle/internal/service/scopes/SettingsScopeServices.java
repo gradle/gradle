@@ -60,8 +60,8 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected BuildLayout createBuildLayout(FileFactory fileFactory) {
-        return new DefaultBuildLayout(settings, fileFactory);
+    protected BuildLayout createBuildLayout(FileFactory fileFactory, org.gradle.initialization.layout.BuildLayout buildLocations) {
+        return new DefaultBuildLayout(buildLocations, fileFactory);
     }
 
     protected FileResolver createFileResolver(FileLookup fileLookup) {
