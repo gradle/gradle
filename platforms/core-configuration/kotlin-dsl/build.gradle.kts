@@ -67,6 +67,12 @@ dependencies {
     implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
+    implementation(libs.futureKotlin("build-tools-api"))
+
+    runtimeOnly(libs.futureKotlin("build-tools-impl")) {
+        isTransitive = false
+    }
+
     implementation(libs.kotlinCompilerEmbeddable)
     api(libs.futureKotlin("script-runtime"))
 
