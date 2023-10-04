@@ -91,7 +91,7 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 #### Faster first use
 
 With an empty [Gradle User Home](userguide/directory_layout.html#dir:gradle_user_home), before compiling the first `.gradle.kts` script, Gradle generates the Gradle API Kotlin DSL Extensions JAR.
-This happens on every developer machine or CI agent, most often with a cold [Gradle daemon](userguide/gradle_daemon.html).
+This happens on every developer machine or CI agent, often with a cold [Gradle daemon](userguide/gradle_daemon.html).
 This is quite a resource intensive process which accounts for around 4 seconds on beefy machines ; much more on slower machines.
 
 Starting with this release, the Kotlin extensions for the Gradle API are now shipped as part of the Gradle distribution.
