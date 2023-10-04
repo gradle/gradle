@@ -21,22 +21,32 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
 
-    def "can access the project dir and build dir"() {
-        buildFile """
+    def "can access the project layout dirs"() {
+        def rootDir = testDirectory
+        def projectDir = rootDir.createDir("main")
+        def buildDir1 = projectDir.createDir("build")
+        def buildDir2 = projectDir.createDir("output")
+
+        groovyFile(rootDir.file("settings.gradle"), """
+            include("main")
+""")
+        groovyFile(projectDir.file("build.gradle"), """
             println "project dir: " + layout.projectDirectory.asFile
+            println "root dir: " + layout.rootDirectory.asFile
             def b = layout.buildDirectory
             println "build dir: " + b.get()
             buildDir = "output"
             println "build dir 2: " + b.get()
-"""
+""")
 
         when:
         run()
 
         then:
-        outputContains("project dir: " + testDirectory)
-        outputContains("build dir: " + testDirectory.file("build"))
-        outputContains("build dir 2: " + testDirectory.file("output"))
+        outputContains("project dir: " + projectDir)
+        outputContains("root dir: " + rootDir)
+        outputContains("build dir: " + buildDir1)
+        outputContains("build dir 2: " + buildDir2)
     }
 
     def "can apply convention to build dir"() {
@@ -94,57 +104,52 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task build dir: " + testDirectory.file("output"))
     }
 
-    def "can define and resolve calculated directory relative to project and build directory"() {
-        buildFile """
+    def "can define and resolve calculated locations relative to project, build and root directory"() {
+        def rootDir = testDirectory
+        def projectDir = rootDir.createDir("main")
+
+        groovyFile(rootDir.file("settings.gradle"), """
+            include("main")
+""")
+        groovyFile(projectDir.file("build.gradle"), """
             def childDirName = "child"
             def srcDir = layout.projectDir.dir("src").dir(providers.provider { childDirName })
             def outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
+            def rootDocDir = layout.rootDirectory.dir("docs").dir(providers.provider { childDirName })
+
+            println "docs dir 1: " + rootDocDir.get()
             println "src dir 1: " + srcDir.get()
             println "output dir 1: " + outputDir.get()
             buildDir = "output/some-dir"
             childDirName = "other-child"
+            println "docs dir 2: " + rootDocDir.get()
             println "src dir 2: " + srcDir.get()
             println "output dir 2: " + outputDir.get()
-"""
+""")
 
         when:
         run()
 
         then:
-        outputContains("src dir 1: " + testDirectory.file("src/child"))
-        outputContains("output dir 1: " + testDirectory.file("build/child"))
-        outputContains("src dir 2: " + testDirectory.file("src/other-child"))
-        outputContains("output dir 2: " + testDirectory.file("output/some-dir/other-child"))
+        outputContains("docs dir 1: " + testDirectory.file("docs/child"))
+        outputContains("src dir 1: " + testDirectory.file("main/src/child"))
+        outputContains("output dir 1: " + testDirectory.file("main/build/child"))
+        outputContains("docs dir 2: " + testDirectory.file("docs/other-child"))
+        outputContains("src dir 2: " + testDirectory.file("main/src/other-child"))
+        outputContains("output dir 2: " + testDirectory.file("main/output/some-dir/other-child"))
     }
 
-    def "can define and resolve calculated file relative to project and build directory"() {
-        buildFile """
-            def childDirName = "child"
-            def srcFile = layout.projectDir.dir("src").file(providers.provider { childDirName })
-            def outputFile = layout.buildDirectory.file(providers.provider { childDirName })
-            println "src file 1: " + srcFile.get()
-            println "output file 1: " + outputFile.get()
-            buildDir = "output/some-dir"
-            childDirName = "other-child"
-            println "src file 2: " + srcFile.get()
-            println "output file 2: " + outputFile.get()
-"""
+    def "can use file() method to resolve locations created relative to the project layout dirs"() {
+        def rootDir = testDirectory
+        def projectDir = rootDir.createDir("sub")
 
-        when:
-        run()
-
-        then:
-        outputContains("src file 1: " + testDirectory.file("src/child"))
-        outputContains("output file 1: " + testDirectory.file("build/child"))
-        outputContains("src file 2: " + testDirectory.file("src/other-child"))
-        outputContains("output file 2: " + testDirectory.file("output/some-dir/other-child"))
-    }
-
-    def "can use file() method to resolve locations created relative to the project dir and build dir"() {
-        buildFile << """
+        groovyFile(rootDir.file("settings.gradle"), """
+            include("sub")
+""")
+        groovyFile(projectDir.file("build.gradle"), """
             def location = $expression
             println "location: " + file(location)
-"""
+""")
 
         when:
         run()
@@ -153,15 +158,17 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("location: " + testDirectory.file(resolvesTo))
 
         where:
-        expression                                                             | resolvesTo
-        "layout.projectDirectory.dir('src/main/java')"                         | "src/main/java"
-        "layout.projectDirectory.dir(providers.provider { 'src/main/java' })"  | "src/main/java"
-        "layout.projectDirectory.file('src/main/java')"                        | "src/main/java"
-        "layout.projectDirectory.file(providers.provider { 'src/main/java' })" | "src/main/java"
-        "layout.buildDirectory.dir('classes/main')"                            | "build/classes/main"
-        "layout.buildDirectory.dir(providers.provider { 'classes/main' })"     | "build/classes/main"
-        "layout.buildDirectory.file('classes/main')"                           | "build/classes/main"
-        "layout.buildDirectory.file(providers.provider { 'classes/main' })"    | "build/classes/main"
+        expression                                                              | resolvesTo
+        "layout.projectDirectory.dir('src/main/java')"                          | "sub/src/main/java"
+        "layout.projectDirectory.dir(providers.provider { 'src/main/java' })"   | "sub/src/main/java"
+        "layout.projectDirectory.file('src/main/java')"                         | "sub/src/main/java"
+        "layout.projectDirectory.file(providers.provider { 'src/main/java' })"  | "sub/src/main/java"
+        "layout.rootDirectory.file(providers.provider { 'docs' })"              | "docs"
+        "layout.rootDirectory.file(providers.provider { 'docs/readme.md' })"    | "docs/readme.md"
+        "layout.buildDirectory.dir('classes/main')"                             | "sub/build/classes/main"
+        "layout.buildDirectory.dir(providers.provider { 'classes/main' })"      | "sub/build/classes/main"
+        "layout.buildDirectory.file('classes/main')"                            | "sub/build/classes/main"
+        "layout.buildDirectory.file(providers.provider { 'classes/main' })"     | "sub/build/classes/main"
     }
 
     def "can construct file collection containing locations created relative to the project dir and build dir"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scopes;
@@ -37,6 +38,14 @@ public interface ProjectLayout {
      * Returns the project directory.
      */
     Directory getProjectDirectory();
+
+    /**
+     * Returns the root build directory.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    Directory getRootDirectory();
 
     /**
      * Returns the build directory for the project.
