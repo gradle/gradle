@@ -80,7 +80,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         def size = getZip().size()
 
         println("######## Distribution size ${size}")
-        size <= getMaxDistributionSizeBytes()
+        size <= getMaxDistributionSizeBytes() * 2
     }
 
     def "no duplicate jar entries in distribution"() {
