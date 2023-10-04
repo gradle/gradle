@@ -278,7 +278,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         // Supply the sourceSet to the feature
         JvmFeatureInternal feature = new DefaultJvmFeature(
-            JvmConstants.JAVA_FEATURE_NAME, sourceSet, Collections.emptyList(),
+            JvmConstants.MAIN_FEATURE_NAME, sourceSet, Collections.emptyList(),
             (ProjectInternal) project, false, false);
 
         // Build the main jar when running `assemble`.
@@ -288,7 +288,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // And supply main feature to the component
         DefaultJvmSoftwareComponent component = project.getObjects().newInstance(
             DefaultJvmSoftwareComponent.class,
-            JvmConstants.JAVA_COMPONENT_NAME,
+            JvmConstants.MAIN_COMPONENT_NAME,
             project,
             feature
         );
