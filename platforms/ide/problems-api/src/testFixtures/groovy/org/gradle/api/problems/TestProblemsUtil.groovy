@@ -50,6 +50,6 @@ abstract class TestProblemsUtil {
      * @return the problems instance
      */
     public static Problems createTestProblems() {
-        return new DefaultProblems(new NoOpBuildOperationProgressEventEmitter(), [])
+       return new DefaultProblems(new NoOpBuildOperationProgressEventEmitter())
     }
 }

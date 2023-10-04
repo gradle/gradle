@@ -25,12 +25,17 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Collections;
 import java.util.List;
 
 @ServiceScope(Scope.Global.class)
 public class DefaultProblems implements InternalProblems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
     private final List<ProblemTransformer> transformers;
+
+    public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        this(buildOperationProgressEventEmitter, Collections.emptyList());
+    }
 
     public DefaultProblems(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
