@@ -17,7 +17,10 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableCollection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
@@ -36,30 +39,56 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
 
     @Override
     public void add(K key, V value, Map<K, V> dest) {
-        Preconditions.checkNotNull(
-            key,
-            "Cannot get the value of a property of type %s with key type %s as the source contains a null key.",
-            Map.class.getName(), keyType.getName());
+        K sanitizedKey = sanitizeKey(key);
+        V sanitizedValue = sanitizeValue(key, value);
+        dest.put(sanitizedKey, sanitizedValue);
+    }
+
+    @Override
+    public ValueCollector<K> asKeyCollector() {
+        return new ValueCollector<K>() {
+            @Override
+            public void add(@Nullable K key, ImmutableCollection.Builder<K> dest) {
+                dest.add(sanitizeKey(key));
+            }
+
+            @Override
+            public void addAll(Iterable<? extends K> keys, ImmutableCollection.Builder<K> dest) {
+                for (K key : keys) {
+                    add(key, dest);
+                }
+            }
+        };
+    }
+
+    @Nonnull
+    private V sanitizeValue(K key, V value) {
         Preconditions.checkNotNull(
             value,
             "Cannot get the value of a property of type %s with value type %s as the source contains a null value for key \"%s\".",
             Map.class.getName(), valueType.getName(), key);
-
-        K sanitizedKey = keySanitizer.sanitize(key);
-        if (!keyType.isInstance(sanitizedKey)) {
-            throw new IllegalArgumentException(String.format(
-                "Cannot get the value of a property of type %s with key type %s as the source contains a key of type %s.",
-                Map.class.getName(), keyType.getName(), key.getClass().getName()));
-        }
-
         V sanitizedValue = valueSanitizer.sanitize(value);
         if (!valueType.isInstance(sanitizedValue)) {
             throw new IllegalArgumentException(String.format(
                 "Cannot get the value of a property of type %s with value type %s as the source contains a value of type %s.",
                 Map.class.getName(), valueType.getName(), value.getClass().getName()));
         }
+        return sanitizedValue;
+    }
 
-        dest.put(sanitizedKey, sanitizedValue);
+    @Nonnull
+    private K sanitizeKey(@Nullable K key) {
+        Preconditions.checkNotNull(
+            key,
+            "Cannot get the value of a property of type %s with key type %s as the source contains a null key.",
+            Map.class.getName(), keyType.getName());
+        K sanitizedKey = keySanitizer.sanitize(key);
+        if (!keyType.isInstance(sanitizedKey)) {
+            throw new IllegalArgumentException(String.format(
+                "Cannot get the value of a property of type %s with key type %s as the source contains a key of type %s.",
+                Map.class.getName(), keyType.getName(), key.getClass().getName()));
+        }
+        return sanitizedKey;
     }
 
     @Override

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 
@@ -268,6 +270,124 @@ public class MapCollectors {
         @Override
         public ValueProducer getProducer() {
             return upstream.getProducer();
+        }
+    }
+
+    public static class PlusCollector<K, V> implements MapCollector<K, V> {
+        private final MapCollector<K, V> left;
+        private final MapCollector<K, V> right;
+        private final boolean pruning;
+
+        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right, boolean pruning) {
+            this.left = left;
+            this.right = right;
+            this.pruning = pruning;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return pruning ?
+                left.calculatePresence(consumer) || right.calculatePresence(consumer) :
+                left.calculatePresence(consumer) && right.calculatePresence(consumer);
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing() && !pruning) {
+                return leftValue;
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+                return rightValue;
+            }
+
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> leftResult = left.collectKeys(consumer, collector, dest);
+            if (leftResult.isMissing() && !pruning) {
+                return leftResult;
+            }
+            Value<Void> rightResult = right.collectKeys(consumer, collector, dest);
+            return rightResult.isMissing() ? leftResult : rightResult;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
+        }
+    }
+
+    public static class MinusCollector<K, V> implements MapCollector<K, V> {
+        private final MapCollector<K, V> upstream;
+        private final Collector<K> exclusions;
+        private final boolean pruning;
+
+        public MinusCollector(MapCollector<K, V> upstream, Collector<K> exclusions, boolean pruning) {
+            this.upstream = upstream;
+            this.exclusions = exclusions;
+            this.pruning = pruning;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return pruning ?
+                upstream.calculatePresence(consumer) || exclusions.calculatePresence(consumer) :
+                upstream.calculatePresence(consumer) && exclusions.calculatePresence(consumer);
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Map<K, V> upstreamEntries = new LinkedHashMap<>();
+            Value<Void> upstreamValue = upstream.collectEntries(consumer, collector, upstreamEntries);
+            if (upstreamValue.isMissing()) {
+                return upstreamValue;
+            }
+            ImmutableSet.Builder<K> keysToExcludeBuilder = ImmutableSet.builder();
+            Value<Void> exclusionValue = exclusions.collectEntries(consumer, collector.asKeyCollector(), keysToExcludeBuilder);
+            if (exclusionValue.isMissing() && (!pruning || upstreamValue.isMissing())) {
+                return upstreamValue;
+            }
+            ImmutableSet<K> keysToExclude = keysToExcludeBuilder.build();
+            Map<K, V> filtered = Maps.filterKeys(upstreamEntries, Predicates.not(keysToExclude::contains));
+            dest.putAll(filtered);
+            //TODO-RC what to do about side effects?
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(upstreamValue))
+                .withSideEffect(SideEffect.fixedFrom(exclusionValue));
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> leftResult = upstream.collectKeys(consumer, collector, dest);
+            if (leftResult.isMissing() && !pruning) {
+                return leftResult;
+            }
+            //TODO-RC finish this properly
+            Value<Void> rightResult = exclusions.collectEntries(consumer, collector, dest);
+            return rightResult.isMissing() ? leftResult : rightResult;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            upstream.calculateExecutionTimeValue(visitor);
+            //TODO-RC what do about E-T values?
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return upstream.getProducer().plus(exclusions.getProducer());
         }
     }
 }

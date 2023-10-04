@@ -18,10 +18,11 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
+import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
+import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
 import org.gradle.api.provider.MapConfigurer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -29,6 +30,7 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,6 +196,23 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public void exclude(Predicate<K> keyFilter) {
         setSupplier(getSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
+    }
+
+    @Override
+    @SafeVarargs
+    @SuppressWarnings({"unchecked", "varargs"})
+    public final void excludeAll(K... key) {
+        setSupplier(getSupplier().minus(new Collectors.ElementsFromArray(key)));
+    }
+
+    @Override
+    public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
+        setSupplier(getSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
+    }
+
+    @Override
+    public void exclude(K key) {
+        setSupplier(getSupplier().minus(new Collectors.SingleElement<>(key)));
     }
 
     @Override
@@ -368,6 +387,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public MapSupplier<K, V> minus(Collector<K> keyCollector) {
+            // nothing - something = nothing
+            return this;
+        }
+
+        @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
             return ExecutionTimeValue.missing();
         }
@@ -417,6 +442,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public MapSupplier<K, V> minus(Collector<K> keyCollector) {
+            // empty - something = empty
+            return this;
+        }
+
+        @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(ImmutableMap.of());
         }
@@ -453,6 +484,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public MapSupplier<K, V> minus(Collector<K> keyCollector) {
             throw new UnsupportedOperationException();
         }
 
@@ -529,6 +565,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             return new CollectingSupplier(new PlusCollector<>(this.collector, collector, pruning), pruning);
+        }
+
+        @Override
+        public MapSupplier<K, V> minus(Collector<K> keyCollector) {
+            return new CollectingSupplier(new MapCollectors.MinusCollector<>(this.collector, keyCollector, pruning), pruning);
         }
 
         @Override
@@ -626,61 +667,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class PlusCollector<K, V> implements MapCollector<K, V> {
-        private final MapCollector<K, V> left;
-        private final MapCollector<K, V> right;
-        private final boolean pruning;
 
-        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right, boolean pruning) {
-            this.left = left;
-            this.right = right;
-            this.pruning = pruning;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return pruning ?
-                left.calculatePresence(consumer) || right.calculatePresence(consumer) :
-                left.calculatePresence(consumer) && right.calculatePresence(consumer);
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing() && !pruning) {
-                return leftValue;
-            }
-            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
-                return rightValue;
-            }
-
-            return Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-        }
-
-        @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            Value<Void> leftResult = left.collectKeys(consumer, collector, dest);
-            if (leftResult.isMissing() && !pruning) {
-                return leftResult;
-            }
-            Value<Void> rightResult = right.collectKeys(consumer, collector, dest);
-            return rightResult.isMissing() ? leftResult : rightResult;
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            left.calculateExecutionTimeValue(visitor);
-            right.calculateExecutionTimeValue(visitor);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return left.getProducer().plus(right.getProducer());
-        }
-    }
 
     //TODO-RC consider combining these two implementations so they just delegate to diff collectors
     class ConventionConfigurer implements MapConfigurer<K, V> {
@@ -729,6 +716,25 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             prune();
             setConvention(getConventionSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
         }
+
+        @Override
+        public void exclude(K key) {
+            prune();
+            setConvention(getConventionSupplier().minus(new SingleElement<>(key)));
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void excludeAll(K... key) {
+            prune();
+            setConvention(getConventionSupplier().minus(new ElementsFromArray<>(key)));
+        }
+
+        @Override
+        public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
+            prune();
+            setConvention(getConventionSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
+        }
     }
 
     /**
@@ -771,12 +777,33 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+            prune();
             DefaultMapProperty.this.exclude(keyFilter, valueFilter);
         }
 
         @Override
         public void exclude(Predicate<K> keyFilter) {
+            prune();
             DefaultMapProperty.this.exclude(keyFilter);
+        }
+
+        @Override
+        public void exclude(K key) {
+            prune();
+            DefaultMapProperty.this.exclude(key);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void excludeAll(K... key) {
+            prune();
+            DefaultMapProperty.this.excludeAll(key);
+        }
+
+        @Override
+        public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
+            prune();
+            DefaultMapProperty.this.excludeAll(provider);
         }
     }
 }

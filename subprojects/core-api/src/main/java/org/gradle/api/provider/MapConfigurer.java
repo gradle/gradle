@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -69,4 +70,10 @@ public interface MapConfigurer<K, V> {
     void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter);
 
     void exclude(Predicate<K> keyFilter);
+
+    void exclude(K key);
+
+    void excludeAll(K... key);
+
+    void excludeAll(Provider<? extends Collection<? extends K>> provider);
 }
