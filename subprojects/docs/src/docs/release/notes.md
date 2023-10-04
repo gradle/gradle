@@ -94,7 +94,7 @@ With an empty [Gradle User Home](userguide/directory_layout.html#dir:gradle_user
 This happens on every developer machine or CI agent, most often with a cold [Gradle daemon](userguide/gradle_daemon.html).
 This is quite a resource intensive process which accounts for around 4 seconds on beefy machines ; much more on slower machines.
 
-Starting with this release, the Kotlin extensions for the Gradle API are now shipped at part of the Gradle distribution.
+Starting with this release, the Kotlin extensions for the Gradle API are now shipped as part of the Gradle distribution.
 The consequence is that first-use of a Gradle version for compiling `.gradle.kts` scripts is faster.
 This is especially noticeable on ephemeral CI agents or Gradle plugins cross-version tests.
 
