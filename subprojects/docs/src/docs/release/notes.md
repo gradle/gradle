@@ -90,7 +90,7 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an enhanced editing ex
 
 #### Faster first use
 
-With an empty [Gradle User Home](userguide/directory_layout.html#dir:gradle_user_home), before compiling the first `.gradle.kts` script, Gradle generates the Gradle API Kotlin DSL Extensions JAR.
+Gradle generates a Gradle API Kotlin DSL Extensions JAR before compiling the first `.gradle.kts` script when the [Gradle User Home](userguide/directory_layout.html#dir:gradle_user_home) is empty.
 This happens on every developer machine or CI agent, often with a cold [Gradle daemon](userguide/gradle_daemon.html).
 This resource-intensive process takes around 4 seconds on powerful machines and is much longer on slower machines.
 
