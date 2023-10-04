@@ -238,7 +238,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
 
-
     @Inject
     public JavaPlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
