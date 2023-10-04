@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeUpgradeInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -55,8 +56,12 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.ALL_UPGRADES;
+import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.WITHOUT_BYTECODE_UPGRADES;
 import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.getGroovyCallDecorator;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
@@ -106,6 +111,13 @@ public class Instrumented {
 
     @NonNullApi
     public static class CallInterceptorRegistry {
+
+        /**
+         * Marks if property upgrades should be disabled if they exist
+         */
+        public static final String DISABLE_PROPERTY_UPGRADES_ENV = "DISABLE_PROPERTY_UPGRADES";
+        public static final Predicate<Class<?>> WITHOUT_BYTECODE_UPGRADES = type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type);
+        public static final Predicate<Class<?>> ALL_UPGRADES = type -> true;
         private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
         private static volatile CallSiteDecorator currentGroovyCallDecorator = new CallInterceptorsSet(GroovyCallInterceptorsProvider.DEFAULT);
         private static volatile JvmBytecodeInterceptorSet currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT;
@@ -115,11 +127,9 @@ public class Instrumented {
                 throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
             }
 
-            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
-            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-            currentGroovyCallDecorator = new CallInterceptorsSet(callInterceptors);
-            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader);
-            currentJvmBytecodeInterceptors = JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+            boolean shouldDisableBytecodeUpgrades = isBytecodeUpgradeDisabled();
+            currentGroovyCallDecorator = CallInterceptorLoader.loadGroovyCallInterceptors(classLoader, shouldDisableBytecodeUpgrades);
+            currentJvmBytecodeInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(classLoader, shouldDisableBytecodeUpgrades);
         }
 
         public static CallSiteDecorator getGroovyCallDecorator() {
@@ -128,6 +138,30 @@ public class Instrumented {
 
         public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors() {
             return currentJvmBytecodeInterceptors;
+        }
+
+        public static boolean isBytecodeUpgradeDisabled() {
+            return firstNonNull(System.getenv(DISABLE_PROPERTY_UPGRADES_ENV), "false").trim().equals("true");
+        }
+    }
+
+    @NonNullApi
+    public static class CallInterceptorLoader {
+        public static CallInterceptorsSet loadGroovyCallInterceptors(ClassLoader classLoader, boolean shouldDisablePropertyUpgrades) {
+            Predicate<Class<?>> interceptorPredicate = getInterceptorTypePredicate(shouldDisablePropertyUpgrades);
+            GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader, interceptorPredicate);
+            GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
+            return new CallInterceptorsSet(callInterceptors);
+        }
+
+        public static JvmBytecodeInterceptorSet loadJvmBytecodeInterceptors(ClassLoader classLoader, boolean shouldDisableBytecodeUpgrades) {
+            Predicate<Class<?>> insterceptorPredicate = getInterceptorTypePredicate(shouldDisableBytecodeUpgrades);
+            ClassLoaderSourceJvmBytecodeInterceptorSet classLoaderJvmBytecodeInterceptors = new ClassLoaderSourceJvmBytecodeInterceptorSet(classLoader, insterceptorPredicate);
+            return JvmBytecodeInterceptorSet.DEFAULT.plus(classLoaderJvmBytecodeInterceptors);
+        }
+
+        private static Predicate<Class<?>> getInterceptorTypePredicate(boolean shouldDisablePropertyUpgrades) {
+            return shouldDisablePropertyUpgrades ? WITHOUT_BYTECODE_UPGRADES : ALL_UPGRADES;
         }
     }
 
@@ -142,7 +176,8 @@ public class Instrumented {
     }
 
     /**
-     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     * This API follows the requirements in {@link GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     *
      * @deprecated This should not be called from the sources.
      */
     @SuppressWarnings("unused")

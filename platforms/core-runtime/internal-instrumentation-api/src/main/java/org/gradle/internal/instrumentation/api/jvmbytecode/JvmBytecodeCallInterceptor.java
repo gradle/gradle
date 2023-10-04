@@ -37,5 +37,6 @@ public interface JvmBytecodeCallInterceptor {
     @NonNullApi
     interface Factory {
         JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata);
+        Class<? extends JvmBytecodeCallInterceptor> getInterceptorType();
     }
 }

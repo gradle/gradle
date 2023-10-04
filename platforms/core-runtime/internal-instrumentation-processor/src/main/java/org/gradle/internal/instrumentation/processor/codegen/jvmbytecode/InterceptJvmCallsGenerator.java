@@ -21,7 +21,9 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
@@ -33,6 +35,7 @@ import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.model.RequestExtra.InterceptionType;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
@@ -57,6 +60,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.RequestValidationUtils.*;
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
@@ -78,6 +82,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     ) {
         Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
 
+        InterceptionType interceptionType = getAndValidateInterceptionType(className, requestsClassGroup, RequestExtra.InterceptJvmCalls.class, onFailure);
+        Set<TypeName> capabilities = interceptionType.getCapabilities();
+
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
@@ -89,6 +96,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
+                .addSuperinterfaces(capabilities)
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
@@ -101,7 +109,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static TypeSpec generateFactoryClass(String className) {
-        MethodSpec method = MethodSpec.methodBuilder("create")
+        MethodSpec createMethod = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
             .addParameter(MethodVisitor.class, "methodVisitor")
@@ -109,10 +117,17 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addStatement("return new $L($N, $N)", className, "methodVisitor", "metadata")
             .addAnnotation(Override.class)
             .build();
+        MethodSpec interceptorTypeMethod = MethodSpec.methodBuilder("getInterceptorType")
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(JvmBytecodeCallInterceptor.class)))
+            .addStatement("return $L.class", className)
+            .addAnnotation(Override.class)
+            .build();
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addMethod(method)
+            .addMethod(createMethod)
+            .addMethod(interceptorTypeMethod)
             .build();
     }
 

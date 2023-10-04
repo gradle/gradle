@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,19 +47,19 @@ public interface GroovyCallInterceptorsProvider {
 
         private final Lazy<List<CallInterceptor>> interceptors;
 
-        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
-            this(classLoader, "");
+        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, Predicate<Class<?>> interceptorTypePredicate) {
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, interceptorTypePredicate));
         }
 
         @VisibleForTesting
         public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, String forPackage) {
-            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
+            this(classLoader, type -> type.getPackage().getName().startsWith(forPackage));
         }
 
-        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
+        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, Predicate<Class<?>> interceptorTypePredicate) {
             ImmutableList.Builder<CallInterceptor> interceptors = ImmutableList.builder();
             for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
-                if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
+                if (interceptorTypePredicate.test(interceptor.getClass())) {
                     interceptors.add(interceptor);
                 }
             }

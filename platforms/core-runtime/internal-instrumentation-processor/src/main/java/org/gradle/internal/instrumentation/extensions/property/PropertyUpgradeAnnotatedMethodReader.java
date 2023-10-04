@@ -69,6 +69,7 @@ import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
+import static org.gradle.internal.instrumentation.model.RequestExtra.InterceptionType.BYTECODE_UPGRADE;
 import static org.gradle.internal.instrumentation.processor.AbstractInstrumentationProcessor.PROJECT_NAME_OPTIONS;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
@@ -162,9 +163,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type originalType) {
-        // TODO: Class name should be read from an annotation
         String interceptorsClassName = getGroovyInterceptorsClassName();
-        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName));
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, BYTECODE_UPGRADE));
         List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("receiver", extractType(method.getEnclosingElement().asType()), RECEIVER));
         return new CallInterceptionRequestImpl(
             extractCallableInfo(GROOVY_PROPERTY_GETTER, method, originalType, propertyName, parameters),
@@ -201,8 +201,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String interceptorsClassName = getJavaInterceptorsClassName();
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
-        // TODO: Class name should be read from an annotation
-        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName));
+        extras.add(new RequestExtra.InterceptJvmCalls(interceptorsClassName, BYTECODE_UPGRADE));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
         UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
         String methodDescriptor = extractMethodDescriptor(method);

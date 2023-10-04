@@ -16,30 +16,86 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeUpgradeInterceptor;
+
 import javax.lang.model.element.ExecutableElement;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.gradle.internal.instrumentation.model.RequestExtra.InterceptionType.CONFIGURATION_CACHE_INSTRUMENTATION;
 
 public interface RequestExtra {
-    class InterceptJvmCalls implements RequestExtra {
-        private final String implementationClassName;
 
-        public String getImplementationClassName() {
-            return implementationClassName;
+    enum InterceptionType {
+        CONFIGURATION_CACHE_INSTRUMENTATION,
+        BYTECODE_UPGRADE(ClassName.get(BytecodeUpgradeInterceptor.class));
+
+        /**
+         * Marks capabilities of interception class.
+         * This adds a marker interface to the generated class, that can be used to filter interceptor.
+         */
+        private final Set<TypeName> capabilities;
+
+        InterceptionType(TypeName... capabilities) {
+            this.capabilities = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(capabilities)));
         }
 
-        public InterceptJvmCalls(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public Set<TypeName> getCapabilities() {
+            return capabilities;
         }
     }
 
-    class InterceptGroovyCalls implements RequestExtra {
+    interface HasInterceptionType {
+        InterceptionType getInterceptionType();
+    }
+
+    class InterceptJvmCalls implements RequestExtra, HasInterceptionType {
         private final String implementationClassName;
+
+        private final InterceptionType interceptionType;
+
+        public InterceptJvmCalls(String implementationClassName) {
+            this(implementationClassName, CONFIGURATION_CACHE_INSTRUMENTATION);
+        }
+
+        public InterceptJvmCalls(String implementationClassName, InterceptionType interceptionType) {
+            this.implementationClassName = implementationClassName;
+            this.interceptionType = interceptionType;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
+        public InterceptionType getInterceptionType() {
+            return interceptionType;
+        }
+    }
+
+    class InterceptGroovyCalls implements RequestExtra, HasInterceptionType {
+        private final String implementationClassName;
+
+        private final InterceptionType interceptionType;
+
         public InterceptGroovyCalls(String implementationClassName) {
+            this(implementationClassName, CONFIGURATION_CACHE_INSTRUMENTATION);
+        }
+
+        public InterceptGroovyCalls(String implementationClassName, InterceptionType interceptionType) {
             this.implementationClassName = implementationClassName;
+            this.interceptionType = interceptionType;
+        }
+
+        public String getImplementationClassName() {
+            return implementationClassName;
+        }
+
+        public InterceptionType getInterceptionType() {
+            return interceptionType;
         }
     }
 
