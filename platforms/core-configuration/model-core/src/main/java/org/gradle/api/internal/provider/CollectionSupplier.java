@@ -30,5 +30,5 @@ interface CollectionSupplier<T, C extends Collection<? extends T>> extends Value
 
     CollectionSupplier<T, C> pruned();
 
-    CollectionSupplier<T,C> minus(Collector<T> collector);
+    CollectionSupplier<T, C> minus(Collector<T> collector);
 }

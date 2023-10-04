@@ -1241,12 +1241,62 @@ The value of this property is derived from: <source>""")
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
     }
 
-    def "may exclude convention component values"() {
+    def "may exclude convention component values using a predicate"() {
         given:
         property.conventionValue.put('k0', '1')
         property.conventionValue.put('k1', '2')
         property.conventionValue.put('k2', '3')
         property.conventionValue.exclude { it == 'k1' }
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
+    }
+
+    def "may exclude multiple provided component values"() {
+        given:
+        property.explicitValue.put('k0', '1')
+        property.explicitValue.put('k1', '2')
+        property.explicitValue.put('k2', '3')
+        property.explicitValue.put('k3', '4')
+        property.explicitValue.excludeAll(Providers.of(['k1', 'k5']))
+        property.explicitValue.excludeAll(Providers.of(['k5', 'k3', 'k7']))
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
+    }
+
+    def "may exclude multiple component values"() {
+        given:
+        property.explicitValue.put('k0', '1')
+        property.explicitValue.put('k1', '2')
+        property.explicitValue.put('k2', '3')
+        property.explicitValue.put('k3', '4')
+        property.explicitValue.excludeAll('k1', 'k5')
+        property.explicitValue.excludeAll('k5', 'k3', 'k7')
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
+    }
+
+    def "may exclude multiple convention component values"() {
+        given:
+        property.conventionValue.put('k0', '1')
+        property.conventionValue.put('k1', '2')
+        property.conventionValue.put('k2', '3')
+        property.conventionValue.put('k3', '4')
+        property.conventionValue.excludeAll('k1', 'k5')
+        property.conventionValue.excludeAll('k5', 'k3', 'k7')
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
+    }
+
+
+    def "may exclude single convention component values"() {
+        given:
+        property.conventionValue.put('k0', '1')
+        property.conventionValue.put('k1', '2')
+        property.conventionValue.put('k2', '3')
+        property.conventionValue.put('k3', '4')
+        property.conventionValue.exclude('k1')
+        property.conventionValue.exclude('k5')
+        property.conventionValue.exclude('k3')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }

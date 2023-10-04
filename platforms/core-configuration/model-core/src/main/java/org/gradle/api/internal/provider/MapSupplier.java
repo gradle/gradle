@@ -32,4 +32,6 @@ interface MapSupplier<K, V> extends ValueSupplier {
     ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
 
     MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter);
+
+    MapSupplier<K, V> minus(Collector<K> keyCollector);
 }
