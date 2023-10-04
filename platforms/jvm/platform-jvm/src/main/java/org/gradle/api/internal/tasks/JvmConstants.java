@@ -200,12 +200,12 @@ public final class JvmConstants {
     /**
      * The name of the component added by the Java plugin.
      */
-    public static final String JAVA_COMPONENT_NAME = "java";
+    public static final String MAIN_COMPONENT_NAME = "java";
 
     /**
      * The name of the main feature added to the java component by the Java plugin.
      */
-    public static final String JAVA_FEATURE_NAME = "main";
+    public static final String MAIN_FEATURE_NAME = "main";
 
     /**
      * Task group name for documentation-related tasks.
