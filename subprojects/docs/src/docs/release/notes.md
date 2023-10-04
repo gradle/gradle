@@ -104,7 +104,6 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 }
 ```
 
-
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
 
