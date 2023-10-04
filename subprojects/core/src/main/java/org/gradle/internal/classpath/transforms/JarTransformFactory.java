@@ -26,7 +26,7 @@ import java.io.File;
  */
 public interface JarTransformFactory {
     /**
-     * Modifies JAR content hash according to the algorithm implemented by this policy.
+     * Updates jar/directory content hash to account for the transform produced by this factory.
      *
      * @param hasher the hasher to modify
      */
