@@ -94,7 +94,7 @@ Gradle generates a Gradle API Kotlin DSL Extensions JAR before compiling the fir
 This happens on every developer machine or CI agent, often with a cold [Gradle daemon](userguide/gradle_daemon.html).
 This resource-intensive process takes around 4 seconds on powerful machines and is much longer on slower machines.
 
-Starting with this release, the Kotlin extensions for the Gradle API are now shipped as part of the Gradle distribution.
+The Kotlin extensions for the Gradle API now ship as part of the Gradle distribution.
 Consequently, the first use of a Gradle version for compiling `.gradle.kts` scripts is much faster.
 This is especially noticeable on ephemeral CI agents or Gradle plugins cross-version tests.
 
