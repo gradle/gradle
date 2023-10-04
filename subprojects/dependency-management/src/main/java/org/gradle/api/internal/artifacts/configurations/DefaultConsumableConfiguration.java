@@ -101,6 +101,8 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             ConfigurationRoles.CONSUMABLE,
             true
         );
+
+        setVisible(false);
     }
 
 }
