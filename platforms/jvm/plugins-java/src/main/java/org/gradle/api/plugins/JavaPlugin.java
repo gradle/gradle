@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -279,6 +280,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.JAVA_FEATURE_NAME, sourceSet, Collections.emptyList(),
             (ProjectInternal) project, false, false);
+
+        // Build the main jar when running `assemble`.
+        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
+        publicationSet.addCandidate(feature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         // And supply main feature to the component
         DefaultJvmSoftwareComponent component = project.getObjects().newInstance(

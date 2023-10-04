@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
@@ -69,8 +68,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.configurations = ((ProjectInternal) project).getConfigurations();
         this.testSuite = configureBuiltInTest(project);
 
-        DefaultArtifactPublicationSet artifactPublicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        configureFeature(mainFeature, project.getProviders(), ((ProjectInternal) project).getServices().get(JvmPluginServices.class), artifactPublicationSet);
+        configureFeature(mainFeature, project.getProviders(), ((ProjectInternal) project).getServices().get(JvmPluginServices.class));
     }
 
     private ConsumableConfiguration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, JvmFeatureInternal feature, JvmPluginServices jvmPluginServices) {
@@ -130,13 +128,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     // for now, this just isolates what is done to configure the main feature
     private void configureFeature(JvmFeatureInternal feature,
                                   ProviderFactory providerFactory,
-                                  JvmPluginServices jvmPluginServices,
-                                  DefaultArtifactPublicationSet artifactPublicationSet) {
+                                  JvmPluginServices jvmPluginServices) {
         // TODO: Should all features also have this variant? Why just the main feature?
         createSourceElements(configurations, providerFactory, feature, jvmPluginServices);
-
-        // Build the main jar when running `assemble`.
-        artifactPublicationSet.addCandidate(feature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         // Register the consumable configurations as providing variants for consumption.
         addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false));
