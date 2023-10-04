@@ -26,14 +26,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 
 @ServiceScope(Scopes.UserHome.class)
-public class JarTransformFactoryForAgent implements JarTransformFactory {
+public class ClasspathElementTransformFactoryForAgent implements ClasspathElementTransformFactory {
 
     private static final int AGENT_INSTRUMENTATION_VERSION = 3;
 
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
 
-    public JarTransformFactoryForAgent(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
+    public ClasspathElementTransformFactoryForAgent(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
     }
@@ -44,12 +44,12 @@ public class JarTransformFactoryForAgent implements JarTransformFactory {
     }
 
     @Override
-    public JarTransform createTransformer(File file, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
-        return new JarTransformForAgent(file, classpathBuilder, classpathWalker, typeRegistry, classTransform);
+    public ClasspathElementTransform createTransformer(File file, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
+        return new ClasspathElementTransformForAgent(file, classpathBuilder, classpathWalker, typeRegistry, classTransform);
     }
 
     @Override
     public String toString() {
-        return "Policy(agent)";
+        return "TransformFactory(agent)";
     }
 }

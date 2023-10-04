@@ -32,8 +32,8 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
  * <p>
  * This transformation filters out not yet supported versioned directories of the multi-release JARs.
  */
-public class MultiReleaseJarTransformForLegacy extends BaseJarTransform {
-    public MultiReleaseJarTransformForLegacy(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, ClassTransform transform) {
+class MultiReleaseClasspathElementTransformForLegacy extends BaseClasspathElementTransform {
+    MultiReleaseClasspathElementTransformForLegacy(File source, ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker, InstrumentingTypeRegistry typeRegistry, ClassTransform transform) {
         super(source, classpathBuilder, classpathWalker, typeRegistry, transform);
     }
 

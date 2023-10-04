@@ -34,13 +34,9 @@ public class MrJarUtils {
     public static boolean isInUnsupportedMrJarVersionedDirectory(ClasspathEntryVisitor.Entry entry) {
         OptionalInt version = JarUtil.getVersionedDirectoryMajorVersion(entry.getName());
         if (version.isPresent()) {
-            return !isSupportedVersion(version.getAsInt());
+            return !AsmConstants.isSupportedVersion(version.getAsInt());
         }
         // The entry is not in the versioned directory at all.
         return false;
-    }
-
-    public static boolean isSupportedVersion(int javaMajorVersion) {
-        return javaMajorVersion <= AsmConstants.MAX_SUPPORTED_JAVA_VERSION;
     }
 }

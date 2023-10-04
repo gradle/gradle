@@ -63,7 +63,7 @@ class LambdaSerializationTransformer extends ClassVisitor {
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
 
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
-    private static final String RETURN_STRING = Type.getMethodDescriptor(CommonTypes.STRING_TYPE);
+    private static final String RETURN_STRING = getMethodDescriptor(CommonTypes.STRING_TYPE);
     private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
     private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
 

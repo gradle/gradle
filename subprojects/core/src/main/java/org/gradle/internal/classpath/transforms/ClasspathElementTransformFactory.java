@@ -22,9 +22,9 @@ import org.gradle.internal.hash.Hasher;
 import java.io.File;
 
 /**
- * Jar transform factory. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
+ * Classpath element transform factory. There are some differences when instrumenting classes to be loaded by the instrumenting agent, this interface encapsulates them.
  */
-public interface JarTransformFactory {
+public interface ClasspathElementTransformFactory {
     /**
      * Updates jar/directory content hash to account for the transform produced by this factory.
      *
@@ -33,12 +33,12 @@ public interface JarTransformFactory {
     void applyConfigurationTo(Hasher hasher);
 
     /**
-     * Returns the transformation to be applied to the given file/directory.
+     * Returns the transformation to be applied to the given jar/directory.
      *
-     * @param file the file/directory to transform
+     * @param file the jar/directory to transform
      * @param classTransform the transform that will be applied to every class
      * @param typeRegistry the registry of type hierarchies
      * @return the transformation that will transform the file upon request.
      */
-    JarTransform createTransformer(File file, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry);
+    ClasspathElementTransform createTransformer(File file, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry);
 }

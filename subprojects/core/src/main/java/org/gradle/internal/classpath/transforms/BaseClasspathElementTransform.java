@@ -37,9 +37,9 @@ import java.io.IOException;
 /**
  * Base class for the transformations. Note that the order in which entries are visited is not defined.
  */
-public class BaseJarTransform implements JarTransform {
+class BaseClasspathElementTransform implements ClasspathElementTransform {
 
-    private static final Logger LOGGER = Logging.getLogger(BaseJarTransform.class);
+    private static final Logger LOGGER = Logging.getLogger(BaseClasspathElementTransform.class);
 
     protected final File source;
     private final InstrumentingTypeRegistry typeRegistry;
@@ -47,7 +47,7 @@ public class BaseJarTransform implements JarTransform {
     private final ClasspathWalker classpathWalker;
     private final ClassTransform transform;
 
-    public BaseJarTransform(
+    BaseClasspathElementTransform(
         File source,
         ClasspathBuilder classpathBuilder,
         ClasspathWalker classpathWalker,

@@ -19,11 +19,11 @@ package org.gradle.internal.classpath.transforms;
 import java.io.File;
 
 /**
- * A "pending" transformation of the original file/directory.
+ * A "pending" transformation of the original jar/directory.
  */
-public interface JarTransform {
+public interface ClasspathElementTransform {
     /**
-     * Transform the file/directory into destination. The destination should be a JAR file name.
+     * Transform the jar/directory into destination. The destination should be a JAR file name.
      *
      * @param destination the destination file
      */

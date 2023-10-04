@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.Hasher;
@@ -37,12 +36,12 @@ import java.io.File;
 import java.io.IOException;
 
 @ServiceScope(Scopes.UserHome.class)
-public class JarTransformFactoryForLegacy implements JarTransformFactory {
+public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {
 
     private final ClasspathBuilder classpathBuilder;
     private final ClasspathWalker classpathWalker;
 
-    public JarTransformFactoryForLegacy(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
+    public ClasspathElementTransformFactoryForLegacy(ClasspathBuilder classpathBuilder, ClasspathWalker classpathWalker) {
         this.classpathBuilder = classpathBuilder;
         this.classpathWalker = classpathWalker;
     }
@@ -53,7 +52,7 @@ public class JarTransformFactoryForLegacy implements JarTransformFactory {
     }
 
     @Override
-    public JarTransform createTransformer(File source, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
+    public ClasspathElementTransform createTransformer(File source, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
         Boolean isMultiReleaseJar = null;
 
         if (source.isFile()) {
@@ -65,7 +64,7 @@ public class JarTransformFactoryForLegacy implements JarTransformFactory {
                         // TODO(mlopatkin) Manifest of the signed JAR contains signature information and must be the first entry in the JAR.
                         //  Looking into the manifest here should be more effective.
                         // This policy doesn't transform signed JARs so no further checks are necessary.
-                        return new SkipJarTransform(source);
+                        return new SkipClasspathElementTransform(source);
                     }
                     if (isMultiReleaseJar == null && JarUtil.isManifestName(entryName)) {
                         isMultiReleaseJar = JarUtil.isMultiReleaseJarManifest(JarUtil.readManifest(entry.getContent()));
@@ -78,9 +77,9 @@ public class JarTransformFactoryForLegacy implements JarTransformFactory {
             }
         }
         if (isMultiReleaseJar != null && isMultiReleaseJar) {
-            return new MultiReleaseJarTransformForLegacy(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
+            return new MultiReleaseClasspathElementTransformForLegacy(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
         }
-        return new BaseJarTransform(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
+        return new BaseClasspathElementTransform(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
     }
 
     private boolean isJarSignatureFile(String entryName) {
@@ -89,19 +88,19 @@ public class JarTransformFactoryForLegacy implements JarTransformFactory {
 
     @Override
     public String toString() {
-        return "Policy(legacy)";
+        return "TransformFactory(legacy)";
     }
 
     /**
      * A no-op transformation that copies the original file verbatim. Can be used if the original cannot be instrumented under policy.
      */
-    private static class SkipJarTransform implements JarTransform {
+    private static class SkipClasspathElementTransform implements ClasspathElementTransform {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentingClasspathFileTransformer.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(SkipClasspathElementTransform.class);
 
         private final File source;
 
-        public SkipJarTransform(File source) {
+        public SkipClasspathElementTransform(File source) {
             this.source = source;
         }
 
