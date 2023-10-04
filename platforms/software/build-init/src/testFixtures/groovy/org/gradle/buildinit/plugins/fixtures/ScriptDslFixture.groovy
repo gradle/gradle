@@ -17,7 +17,7 @@ package org.gradle.buildinit.plugins.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
-import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper
+import org.gradle.api.plugins.JvmTestSuitePlugin
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -118,7 +118,7 @@ class ScriptDslFixture {
     }
 
     void assertHasTestSuite(String expectedTestSuite) {
-        if (expectedTestSuite == JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME) {
+        if (expectedTestSuite == JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME) {
             switch (scriptDsl) {
                 case KOTLIN:
                     assert getBuildFile().text.contains("val test by getting(JvmTestSuite::class)")

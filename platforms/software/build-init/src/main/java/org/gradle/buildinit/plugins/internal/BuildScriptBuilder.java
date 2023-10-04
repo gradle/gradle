@@ -26,7 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -1259,7 +1259,7 @@ public class BuildScriptBuilder {
             this.name = name;
             targets = new TargetsBlock(builder);
 
-            isDefaultTestSuite = JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME.equals(name);
+            isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
             if (!isDefaultTestSuite) {

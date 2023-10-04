@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4ToolchainParameters;
@@ -93,7 +93,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
         );
 
-        if (name.equals(JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME)) {
+        if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
@@ -136,7 +136,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private void addDefaultTestTarget() {
         final String target;
-        if (getName().equals(JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME)) {
+        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             target = JvmConstants.TEST_TASK_NAME;
         } else {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name

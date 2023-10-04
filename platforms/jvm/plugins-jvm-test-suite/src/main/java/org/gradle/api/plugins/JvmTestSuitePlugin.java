@@ -31,7 +31,6 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.JvmTestSuitePluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
@@ -61,6 +60,7 @@ import java.util.Map;
  */
 @Incubating
 public abstract class JvmTestSuitePlugin implements Plugin<Project> {
+    public static final String DEFAULT_TEST_SUITE_NAME = "test";
     private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
 
     private final Map<String, TestSuite> testTypesInUse = new HashMap<>(2); // Assume limited initial amount of test types/project, just unit and integration
@@ -83,14 +83,15 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
-                return JvmTestSuitePluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
+
+                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getOutput().getClassesDirs();
             });
             test.getConventionMapping().map("classpath", () -> {
                 DeprecationLogger.deprecate("Relying on the convention for Test.classpath in custom Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
-                return JvmTestSuitePluginHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
+                return ((JvmTestSuite) testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)).getSources().getRuntimeClasspath();
             });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
@@ -109,7 +110,7 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private String getDefaultTestType(JvmTestSuite testSuite) {
-        return JvmTestSuitePluginHelper.DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
+        return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
     private void configureTestDataElementsVariants(ProjectInternal project) {
