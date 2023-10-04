@@ -24,28 +24,29 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.inject.Inject;
 
 public class DefaultBuildFeatures implements BuildFeatures {
 
-    private final BuildFeature configurationCache;
-    private final BuildFeature isolatedProjects;
+    private final Lazy<BuildFeature> configurationCache;
+    private final Lazy<BuildFeature> isolatedProjects;
 
     @Inject
     public DefaultBuildFeatures(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        this.configurationCache = createConfigurationCache(startParameter, buildModelParameters);
-        this.isolatedProjects = createIsolatedProjects(startParameter, buildModelParameters);
+        this.configurationCache = Lazy.atomic().of(() -> createConfigurationCache(startParameter, buildModelParameters));
+        this.isolatedProjects = Lazy.atomic().of(() -> createIsolatedProjects(startParameter, buildModelParameters));
     }
 
     @Override
     public BuildFeature getConfigurationCache() {
-        return configurationCache;
+        return configurationCache.get();
     }
 
     @Override
     public BuildFeature getIsolatedProjects() {
-        return isolatedProjects;
+        return isolatedProjects.get();
     }
 
     private static BuildFeature createConfigurationCache(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
