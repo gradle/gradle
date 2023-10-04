@@ -104,7 +104,7 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 }
 ```
 
-This was done to ensure that version catalogs are accessible during the configuration phase of a multi-module project, avoiding cumbersome workarounds.
+This was done to ensure that version catalogs are accessible via API in situations where generated accessors are not.
 
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
