@@ -49,7 +49,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where.isEmpty()
         deserialized[0].documentationLink == null
     }
 

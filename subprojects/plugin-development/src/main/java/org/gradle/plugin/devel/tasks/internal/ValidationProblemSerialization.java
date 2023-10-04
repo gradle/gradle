@@ -204,7 +204,7 @@ public class ValidationProblemSerialization {
                 return;
             }
 
-            out.beginArray();
+            out.beginObject();
             out.name("type").value(value.getType());
             out.name("path").value(value.getPath());
             out.name("line").value(value.getLine());
