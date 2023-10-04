@@ -95,7 +95,7 @@ This happens on every developer machine or CI agent, often with a cold [Gradle d
 This resource-intensive process takes around 4 seconds on powerful machines and is much longer on slower machines.
 
 Starting with this release, the Kotlin extensions for the Gradle API are now shipped as part of the Gradle distribution.
-The consequence is that first-use of a Gradle version for compiling `.gradle.kts` scripts is faster.
+Consequently, the first use of a Gradle version for compiling `.gradle.kts` scripts is much faster.
 This is especially noticeable on ephemeral CI agents or Gradle plugins cross-version tests.
 
 <img alt="First use of a single project build, running the help task"
