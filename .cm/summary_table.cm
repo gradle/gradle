@@ -79,7 +79,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'
