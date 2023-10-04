@@ -32,7 +32,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
 
     static final NOW_IN_ANDROID = new IncrementalAndroidTestProject(
         templateName: 'nowInAndroidBuild',
-        pathToChange: 'core/model/src/main/java/com/google/samples/apps/nowinandroid/core/model/data/Topic.kt',
+        pathToChange: 'core/model/src/main/kotlin/com/google/samples/apps/nowinandroid/core/model/data/Topic.kt',
         taskToRunForChange: ':core:model:assemble'
     )
 
