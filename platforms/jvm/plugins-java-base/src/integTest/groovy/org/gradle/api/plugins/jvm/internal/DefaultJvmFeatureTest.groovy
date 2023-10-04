@@ -16,12 +16,12 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+// There aren't many tests for this class yet, but there will likely be more as we continue defining and refactoring the component/feature/target model
 class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
     def "can create multiple features in a project"() {
         given:
@@ -41,22 +41,5 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         project.tasks.getByName(two.getJarTaskName())
         project.configurations.getByName('oneImplementation')
         project.configurations.getByName('twoImplementation')
-    }
-
-    // TODO: This test definitely isn't appropriate for Component any more, so I've moved it here.
-    // Should features create the sourcesets they are going to use?  If they are being passed in
-    // like this, this is just testing the SourceSets container, not the feature.
-    def "cannot create multiple feature instances with the same source set"() {
-        given:
-        project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension)
-
-        when:
-        new DefaultJvmFeature("feature1", ext.getSourceSets().create("feature"), Collections.emptyList(), project, false, false)
-        new DefaultJvmFeature("feature2", ext.getSourceSets().create("feature"), Collections.emptyList(), project, false, false)
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Cannot add a SourceSet with name 'feature' as a SourceSet with that name already exists."
     }
 }

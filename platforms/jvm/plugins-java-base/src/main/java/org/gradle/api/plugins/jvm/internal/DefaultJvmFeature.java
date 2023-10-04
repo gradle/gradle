@@ -111,6 +111,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
     public DefaultJvmFeature(
         String name,
+        // Should features just create the sourcesets they are going to use?  How can we ensure the same sourceset isn't used
+        // by multiple features (and that the same feature isn't used by multiple components)?
         SourceSet sourceSet,
         List<Capability> capabilities,
         ProjectInternal project,
