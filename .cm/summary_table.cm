@@ -71,7 +71,7 @@ teams:
       - 'wolfs'
   configuration:
     members:
-      - 'alllex'
+      - 'alllex-DISABLED'
   dev_prod:
     members:
       - 'blindpirate'
