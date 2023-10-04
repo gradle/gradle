@@ -1,3 +1,108 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyConstraintHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyConstraintHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1,int,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.artifacts.ModuleDependency,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.Provider)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.Provider,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.ProviderConvertible,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }
