@@ -397,19 +397,17 @@ include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[t
 [[sec:script_plugins]]
 == Script plugins
 
-Script plugins are automatically resolved and can be applied from a script on the local filesystem or remotely.
-
-Applying a script plugin:
+Script plugins are automatically resolved and can be applied from a script on the local filesystem or remotely:
 
 ====
 include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
 include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
 ====
 
-NOTE: Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL.
+Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL.
 Multiple script plugins (of either form) can be applied to a given target.
 
-Applying a script plugin with a class defined in the same build script:
+Here is an example applying a script plugin with a class defined in the same build script:
 
 [[sec:binary_plugin_example]]
 [source, build.gradle.kts]
@@ -423,4 +421,6 @@ class MyPlugin : Plugin<Project> {
 apply<MyPlugin>()
 ----
 
+[[sec:binary_plugins]]
+[[sec:plugin_markers]]
 [[sec:finding_community_plugins]]
