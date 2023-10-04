@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.transforms;
 
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.ClassData;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.hash.Hasher;
 import org.objectweb.asm.ClassVisitor;
 
 import java.io.IOException;
 
-public class CompositeTransformer implements CachedClasspathTransformer.Transform {
-    private final CachedClasspathTransformer.Transform first;
-    private final CachedClasspathTransformer.Transform second;
+public class CompositeClassTransform implements ClassTransform {
+    private final ClassTransform first;
+    private final ClassTransform second;
 
-    public CompositeTransformer(CachedClasspathTransformer.Transform first, CachedClasspathTransformer.Transform second) {
+    public CompositeClassTransform(ClassTransform first, ClassTransform second) {
         this.first = first;
         this.second = second;
     }

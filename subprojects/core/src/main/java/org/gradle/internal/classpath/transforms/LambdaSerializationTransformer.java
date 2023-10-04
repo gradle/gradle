@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.transforms;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
@@ -39,9 +39,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.internal.classpath.CommonTypes.NO_EXCEPTIONS;
-import static org.gradle.internal.classpath.CommonTypes.OBJECT_TYPE;
-import static org.gradle.internal.classpath.CommonTypes.STRING_TYPE;
+import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
+import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
+import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;

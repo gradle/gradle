@@ -30,6 +30,7 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -133,7 +134,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
-        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new CachedClasspathTransformer.Transform() {
+        return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
             @Override
             public void applyConfigurationTo(Hasher hasher) {
                 hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.classpath.transforms;
 
-import org.gradle.api.NonNullApi;
-import org.objectweb.asm.Type;
+import org.gradle.api.file.RelativePath;
+import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.ClassData;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.hash.Hasher;
+import org.objectweb.asm.ClassVisitor;
 
-import static org.objectweb.asm.Type.getType;
+import java.io.IOException;
 
 /**
- * A collection of common types and method descriptors used when instrumenting bytecode.
+ * Transform that modifies a class
  */
-@NonNullApi
-final class CommonTypes {
-    public static final Type OBJECT_TYPE = getType(Object.class);
-    public static final Type STRING_TYPE = getType(String.class);
-    public static final String[] NO_EXCEPTIONS = new String[0];
+public interface ClassTransform {
+    void applyConfigurationTo(Hasher hasher);
 
-    private CommonTypes() {
-    }
+    Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException;
 }
