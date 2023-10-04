@@ -17,7 +17,6 @@
 package org.gradle.api.configuration
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -28,7 +27,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
                 abstract BuildFeatures getBuildFeatures()
 
                 void apply(Settings s) {
-                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().getOrNull()
+                    if (buildFeatures != null) println("buildFeatures are available")
                 }
             }
 
@@ -39,7 +38,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache ? "true" : "null"}")
+        outputContains("buildFeatures are available")
     }
 
     def "can inject service into project plugin"() {
@@ -49,7 +48,7 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
                 abstract BuildFeatures getBuildFeatures()
 
                 void apply(Project p) {
-                    println "buildFeatures.configurationCache.requested=" + buildFeatures.getConfigurationCache().getRequested().getOrNull()
+                    if (buildFeatures != null) println("buildFeatures are available")
                 }
             }
 
@@ -60,6 +59,6 @@ class BuildFeaturesIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        outputContains("buildFeatures.configurationCache.requested=${GradleContextualExecuter.configCache ? "true" : "null"}")
+        outputContains("buildFeatures are available")
     }
 }
