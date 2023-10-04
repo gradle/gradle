@@ -593,7 +593,7 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 
 [NOTE]
 ====
-This command will generate *both* the binary version and the ASCII armored file.
+By default, this command will generate *both* the binary version and the ASCII armored file.
 You should only pick one for your project.
 
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
@@ -615,6 +615,25 @@ You can also ask Gradle to export all trusted keys without updating the verifica
 ====
 This command will not report verification errors, only export keys.
 ====
+
+You can also configure which file type would be generated when keys are exported by Gradle by adding the `keyring-format` setting.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <keyring-format>text</keyring-format>
+   </configuration>
+</verification-metadata>
+----
+
+Available options for keyring format are `text` and `gpg`.
+Without this setting, Gradle will generate both formats.
 
 [[sec:bootstrapping-signature-verification]]
 === Bootstrapping and signature verification
