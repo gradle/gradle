@@ -11,6 +11,13 @@ The Kotlin version embedded in Gradle has been [updated to Kotlin 1.9.10](#kotli
 The simple property assignment with the `=` operator has been [promoted to stable](#assign-stable).
 In addition, the reference documentation for the Kotlin DSL now provides [links back to sources](#doc-link-source) hosted on GitHub.
 
+In addition, this release addresses two security vulnerabilities:
+
+* [Incorrect permission assignment for symlinked files used in copy or archiving operations](https://github.com/gradle/gradle/security/advisories/GHSA-43r3-pqhv-f7h9)
+* [Possible local text file exfiltration by XML External entity injection](https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8)
+
+Check their details to learn about workarounds if you are not able to upgrade to this version.
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
