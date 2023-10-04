@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-
 class ConfigurationCacheBuildFeatureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "build feature indicates requested and active status"() {
