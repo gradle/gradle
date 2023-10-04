@@ -18,26 +18,24 @@ package org.gradle.internal.classpath
 
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver
 import spock.lang.Specification
-import spock.util.environment.RestoreSystemProperties
 
-import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry
 import static org.gradle.internal.classpath.Instrumented.CallInterceptorLoader
 
 class CallInterceptorLoaderTest extends Specification {
 
-    @RestoreSystemProperties
     def "should filter upgraded properties interceptors"() {
-        def jvmInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(CallInterceptorLoaderTest.classLoader)
-        def groovyInterceptors = CallInterceptorLoader.loadGroovyCallInterceptors(CallInterceptorLoaderTest.classLoader)
+        def shouldDisableBytecodeUpgrades = false
+        def jvmInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(CallInterceptorLoaderTest.classLoader, shouldDisableBytecodeUpgrades)
+        def groovyInterceptors = CallInterceptorLoader.loadGroovyCallInterceptors(CallInterceptorLoaderTest.classLoader, shouldDisableBytecodeUpgrades)
 
         expect:
         getJvmInterceptorsNames(jvmInterceptors).contains("org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode_CoreTestInterceptors")
         ((CallInterceptorResolver) groovyInterceptors).isAwareOfCallSiteName("getTestFilterInterceptors")
 
         when:
-        System.setProperty(CallInterceptorRegistry.PROPERTY_UPGRADES_DISABLED, "true")
-        jvmInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(CallInterceptorLoaderTest.classLoader)
-        groovyInterceptors = CallInterceptorLoader.loadGroovyCallInterceptors(CallInterceptorLoaderTest.classLoader)
+        shouldDisableBytecodeUpgrades = true
+        jvmInterceptors = CallInterceptorLoader.loadJvmBytecodeInterceptors(CallInterceptorLoaderTest.classLoader, shouldDisableBytecodeUpgrades)
+        groovyInterceptors = CallInterceptorLoader.loadGroovyCallInterceptors(CallInterceptorLoaderTest.classLoader, shouldDisableBytecodeUpgrades)
 
         then:
         !getJvmInterceptorsNames(jvmInterceptors).contains("org.gradle.internal.classpath.generated.InterceptorDeclaration_PropertyUpgradesJvmBytecode_CoreTestInterceptors")

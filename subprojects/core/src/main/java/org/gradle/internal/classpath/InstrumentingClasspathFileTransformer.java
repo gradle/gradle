@@ -127,7 +127,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
         gradleCoreInstrumentingTypeRegistry.getInstrumentedTypesHash().ifPresent(hasher::putHash);
         gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().ifPresent(hasher::putHash);
         if (CallInterceptorRegistry.isBytecodeUpgradeDisabled()) {
-            hasher.putString(CallInterceptorRegistry.PROPERTY_UPGRADES_DISABLED + "=true");
+            hasher.putString(CallInterceptorRegistry.DISABLE_PROPERTY_UPGRADES_ENV + "=true");
         }
         policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);

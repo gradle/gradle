@@ -19,7 +19,6 @@ package org.gradle.internal.classpath;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.instrumentation.api.capabilities.BytecodeUpgradeInterceptor;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 import org.objectweb.asm.MethodVisitor;
@@ -32,6 +31,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry.WITHOUT_BYTECODE_UPGRADES;
+
 /**
  * Provides a set of implementation classes for call interception in JVM bytecode, specified by the full class name as in {@link Class#getName()}.
  * The referenced classes should implement {@link org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor}.
@@ -40,10 +41,10 @@ import java.util.stream.Stream;
 public interface JvmBytecodeInterceptorSet {
 
     /**
-     * Default set of interceptors, but without any bytecode interceptor, since we want to be able to filter them.
+     * Default set of interceptors, but without any bytecode upgrade interceptors, since bytecode upgrades are applied conditionally
      */
 
-    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader(), type -> !BytecodeUpgradeInterceptor.class.isAssignableFrom(type));
+    JvmBytecodeInterceptorSet DEFAULT = new ClassLoaderSourceJvmBytecodeInterceptorSet(JvmBytecodeInterceptorSet.class.getClassLoader(), WITHOUT_BYTECODE_UPGRADES);
 
     Collection<JvmBytecodeCallInterceptor> getInterceptors(MethodVisitor methodVisitor, ClassData classData);
 
