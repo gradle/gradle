@@ -18,25 +18,25 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.BuildLayout;
 import org.gradle.api.file.Directory;
-import org.gradle.api.initialization.Settings;
+import org.gradle.initialization.layout.BuildLocations;
 
 
 public class DefaultBuildLayout implements BuildLayout {
     protected final FileFactory fileFactory;
-    private final Settings settings;
+    private final BuildLocations buildLocations;
 
-    public DefaultBuildLayout(Settings settings, FileFactory fileFactory) {
+    public DefaultBuildLayout(BuildLocations buildLocations, FileFactory fileFactory) {
         this.fileFactory = fileFactory;
-        this.settings = settings;
+        this.buildLocations = buildLocations;
     }
 
     @Override
     public Directory getSettingsDirectory() {
-        return fileFactory.dir(settings.getSettingsDir());
+        return fileFactory.dir(buildLocations.getSettingsDir());
     }
 
     @Override
     public Directory getRootDirectory() {
-        return fileFactory.dir(settings.getRootDir());
+        return fileFactory.dir(buildLocations.getRootDirectory());
     }
 }
