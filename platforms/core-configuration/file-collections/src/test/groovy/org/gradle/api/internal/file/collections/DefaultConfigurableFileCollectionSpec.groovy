@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
@@ -304,6 +305,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         files as List == [file1, file2]
+    }
+
+
+    def "further modifications to appended collection"() {
+        given:
+        def fileA = new File("a.txt")
+        def fileB = new File("b.txt")
+        def fileC = new File("c.txt")
+
+        def a = containing(fileA) as ConfigurableFileCollection
+        collection.from = containing(fileB)
+        when:
+        a.from(collection)
+        collection.from = a
+        a.from(containing(fileC))
+
+        def filesA = a.files
+        def filesB = collection.files
+
+        then:
+        filesA as List == [fileA, fileB, fileC]
+        filesB as List == [fileA, fileB]
     }
 
     def "can append contents to collection using plus operator"() {

@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
@@ -455,7 +456,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         private void addItem(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object path, ImmutableList<Object> oldItems) {
             // Unpack to deal with DSL syntax: collection += someFiles
             if (path instanceof FileCollectionInternal) {
-                path = ((FileCollectionInternal) path).replace(owner, () -> {
+                FileCollectionInternal newPath = ((FileCollectionInternal) path).replace(owner, () -> {
                     // Should use FileCollectionFactory here, and it can take care of simplifying the tree. For example, ths returned collection does not need to be mutable
                     if (oldItems.size() == 1 && oldItems.get(0) instanceof FileCollectionInternal) {
                         return (FileCollectionInternal) oldItems.get(0);
@@ -464,6 +465,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                     oldFiles.from(oldItems);
                     return oldFiles;
                 });
+                if (newPath != path) {
+                    DeprecationLogger.deprecateBehaviour("A ConfigurableFileCollection is used as its own from argument, potentially indirectly.")
+                        .willBecomeAnErrorInGradle9()
+                        .undocumented()
+                        .nagUser();
+
+                    path = newPath;
+                }
             }
             items.add(path);
         }
