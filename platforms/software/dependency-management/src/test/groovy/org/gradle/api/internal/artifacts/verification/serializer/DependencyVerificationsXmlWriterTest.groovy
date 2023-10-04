@@ -24,12 +24,20 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentArtifa
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.internal.TextUtil
+import org.xml.sax.SAXException
 import spock.lang.Specification
+
+import javax.xml.XMLConstants
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.Schema
+import javax.xml.validation.SchemaFactory
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private String rawContents
     private String contents
+
+    private Map<String, Schema> schemas = loadSchemas()
 
     def "can write an empty file"() {
         when:
@@ -49,6 +57,9 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
         and:
         hasNamespaceDeclaration()
+
+        and:
+        validateAgainstSchemasSince("1.3")
 
         where:
         verifyMetadata | verifySignatures
@@ -79,10 +90,9 @@ on two lines -->
 """
         and:
         hasNamespaceDeclaration()
-    }
 
-    private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd"')
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare key servers"() {
@@ -105,6 +115,8 @@ on two lines -->
    <components/>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
 
@@ -138,6 +150,8 @@ on two lines -->
    <components/>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare ignored keys"() {
@@ -160,6 +174,8 @@ on two lines -->
    <components/>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare trusted keys"() {
@@ -190,6 +206,8 @@ on two lines -->
    <components/>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare ignored keys for specific artifact"() {
@@ -221,6 +239,8 @@ on two lines -->
    </components>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare keyring format"() {
@@ -239,6 +259,8 @@ on two lines -->
    <components/>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "entries are sorted"() {
@@ -280,6 +302,8 @@ on two lines -->
    </components>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     def "can declare checksums for secondary artifacts"() {
@@ -313,6 +337,8 @@ on two lines -->
    </components>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     void "can declare origin of a checksum"() {
@@ -345,6 +371,8 @@ on two lines -->
    </components>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
     void "can declare more than one checksum of the same kind"() {
@@ -374,9 +402,15 @@ on two lines -->
    </components>
 </verification-metadata>
 """
+        and:
+        validateAgainstSchemasSince("1.3")
     }
 
-    void addIgnoredKeyForArtifact(String id, String fileName, String key, String reason = null) {
+    private boolean hasNamespaceDeclaration() {
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd"')
+    }
+
+    private void addIgnoredKeyForArtifact(String id, String fileName, String key, String reason = null) {
         def (group, name, version) = id.split(":")
         builder.addIgnoredKey(
             new ModuleComponentFileArtifactIdentifier(
@@ -390,7 +424,7 @@ on two lines -->
         )
     }
 
-    void declareChecksum(String id, String algorithm, String checksum, String origin = null) {
+    private void declareChecksum(String id, String algorithm, String checksum, String origin = null) {
         def (group, name, version) = id.split(":")
         declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum, origin)
     }
@@ -419,5 +453,44 @@ on two lines -->
         DependencyVerificationsXmlWriter.serialize(builder.build(), out)
         rawContents = TextUtil.normaliseLineSeparators(out.toString("utf-8"))
         contents = rawContents.replaceAll("<verification-metadata .+>", "<verification-metadata>")
+    }
+
+    private Map<String, Schema> loadSchemas() {
+        // NOTE: it would be nice to load all schemas from the classpath, but 1.0, 1.1 and 1.2 are invalid
+        def versions = ["1.3"]
+        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+        def result = versions.collectEntries { version ->
+            def schemaResource = DependencyVerificationsXmlWriter.getResourceAsStream("/org/gradle/schema/dependency-verification-${version}.xsd")
+            def schema
+            try {
+                schema = factory.newSchema(new StreamSource(schemaResource))
+            } catch (Throwable exception) {
+                throw new RuntimeException("Could not load schema for version ${version}", exception)
+            }
+            [version, schema]
+        }
+        assert result.size() > 0: "No schemas found"
+        result
+    }
+
+    private void validateAgainstSchemasSince(String version) {
+        validAgainstSchemas(schemas.keySet().findAll { it >= version })
+    }
+
+    private void validAgainstSchemas(Collection<String> versions) {
+        def invalid = []
+        versions.each {
+            def schema = schemas[it]
+            def validator = schema.newValidator()
+            def source = new StreamSource(new StringReader(rawContents))
+            try {
+                validator.validate(source)
+            } catch (SAXException e) {
+                invalid.add(it)
+                println("Exception validating against schema $it: $e")
+            }
+        }
+        assert invalid.isEmpty(): "Invalid against schemas: $invalid"
     }
 }
