@@ -64,7 +64,7 @@ private constructor(
             ConfigurationContainerScope(container)
     }
 
-    override fun detachedConfiguration(vararg dependencies: Dependency?): Configuration =
+    override fun detachedConfiguration(vararg dependencies: Dependency): Configuration =
         delegate.detachedConfiguration(*dependencies)
 
     override fun resolvable(name: String): NamedDomainObjectProvider<ResolvableConfiguration> =

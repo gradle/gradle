@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.ResolveContext;
-
 import java.util.Collection;
 
 public interface ResolverProviderFactory {
     /**
      * Create any applicable resolvers and add to the given collection.
      */
-    void create(ResolveContext context, Collection<ComponentResolvers> resolvers);
+    void create(Collection<ComponentResolvers> resolvers);
 }

@@ -196,7 +196,7 @@ public class ArtifactSetToFileCollectionFactory {
             if (failures.isEmpty()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, type, getDisplayName(), failures));
+                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getDisplayName(), failures));
             }
         }
     }

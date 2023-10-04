@@ -210,6 +210,8 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Sets the output file to write the properties to.
      *
+     * @deprecated Use {@link #getDestinationFile()} instead.
+     *
      * @since 4.0
      */
     @Deprecated
@@ -220,6 +222,8 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the output file to write the properties to.
+     *
+     * @deprecated Use {@link #getDestinationFile()} instead.
      */
     @Deprecated
     public void setOutputFile(Object outputFile) {

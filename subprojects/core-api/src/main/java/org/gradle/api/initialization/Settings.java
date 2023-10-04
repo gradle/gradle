@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.invocation.Gradle;
@@ -195,6 +196,14 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return This settings object. Never returns null.
      */
     Settings getSettings();
+
+    /**
+     * Provides access to important locations for a Gradle build.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    BuildLayout getLayout();
 
     /**
      * Returns the build script handler for settings. You can use this handler to query details about the build

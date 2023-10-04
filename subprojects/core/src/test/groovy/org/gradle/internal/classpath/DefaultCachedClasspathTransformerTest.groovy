@@ -86,6 +86,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     }
     def gradleCoreInstrumenting = Stub(GradleCoreInstrumentingTypeRegistry) {
         getInstrumentedTypesHash() >> Optional.empty()
+        getUpgradedPropertiesHash() >> Optional.empty()
     }
     def classpathFingerprinter = Stub(ClasspathFingerprinter) {
         fingerprint(_, _) >> { FileSystemSnapshot snapshot, FileCollectionFingerprint previous ->

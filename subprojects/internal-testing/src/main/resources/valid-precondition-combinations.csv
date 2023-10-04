@@ -4,6 +4,8 @@
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
 
+IntegTestPreconditions$Jdk17FromMultipleVendors
+
 UnitTestPreconditions$CanInstallExecutable
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotMacOs
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotWindows

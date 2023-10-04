@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
 import org.gradle.api.problems.DocLink
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
@@ -39,8 +38,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .noLocation()
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
         }
 
         when:
@@ -50,8 +48,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where == null
         deserialized[0].documentationLink == null
     }
@@ -62,8 +59,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .location("location", 1, 1)
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
         }
 
         when:
@@ -73,8 +69,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where.path == "location"
         deserialized[0].where.line == 1
         deserialized[0].where.column == 1
@@ -87,8 +82,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .documentedAt(new TestDocLink())
                 .location("location", 1, 1)
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
         }
 
         when:
@@ -98,8 +92,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where.path == "location"
         deserialized[0].where.line == 1
         deserialized[0].where.column == 1
@@ -130,8 +123,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .noLocation()
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
                 .withException(new RuntimeException("cause"))
         }
 
@@ -142,8 +134,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].exception.message == "cause"
@@ -155,8 +146,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .noLocation()
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
                 .severity(severity)
         }
 
@@ -167,8 +157,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
@@ -183,8 +172,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .noLocation()
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
                 .solution("solution 0")
                 .solution("solution 1")
         }
@@ -196,8 +184,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
@@ -210,8 +197,7 @@ class ValidationProblemSerializationTest extends Specification {
             it.label("label")
                 .undocumented()
                 .noLocation()
-                .type("type")
-                .group(ProblemGroup.GENERIC_ID)
+                .category("type")
                 .additionalData("key 1", "value 1")
                 .additionalData("key 2", "value 2")
         }
@@ -223,8 +209,7 @@ class ValidationProblemSerializationTest extends Specification {
         then:
         deserialized.size() == 1
         deserialized[0].label == "label"
-        deserialized[0].problemType == "type"
-        deserialized[0].problemGroup.id == ProblemGroup.GENERIC_ID
+        deserialized[0].problemCategory.toString() == "type"
         deserialized[0].where == null
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"

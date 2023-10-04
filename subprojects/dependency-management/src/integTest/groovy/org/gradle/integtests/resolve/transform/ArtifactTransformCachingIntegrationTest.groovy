@@ -23,9 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -187,9 +185,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION
-    )
     def "task cannot write into transform directory"() {
         def forbiddenPath = ".transforms/not-allowed.txt"
 
@@ -1009,7 +1004,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 include 'lib'
             """
             file("project-artifact.jar").text = "project artifact"
-            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() <<"""
+            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() << """
                 project(':lib-project:producer') {
                     artifacts {
                         compile rootProject.file("project-artifact.jar")

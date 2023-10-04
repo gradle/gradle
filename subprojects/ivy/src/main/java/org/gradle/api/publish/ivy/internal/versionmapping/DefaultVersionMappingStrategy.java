@@ -24,7 +24,6 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -47,7 +46,6 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final ConfigurationContainer configurations;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ProjectDependencyPublicationResolver projectResolver;
     private final List<Action<? super VariantVersionMappingStrategy>> mappingsForAllVariants = Lists.newArrayListWithExpectedSize(2);
     private final Map<ImmutableAttributes, String> defaultConfigurations = Maps.newHashMap();
     private final Multimap<ImmutableAttributes, Action<? super VariantVersionMappingStrategy>> attributeBasedMappings = ArrayListMultimap.create();
@@ -57,14 +55,12 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         ObjectFactory objectFactory,
         ConfigurationContainer configurations,
         AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
-        ProjectDependencyPublicationResolver projectResolver
+        ImmutableAttributesFactory attributesFactory
     ) {
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.projectResolver = projectResolver;
     }
 
     @Override
@@ -113,7 +109,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     }
 
     private DefaultVariantVersionMappingStrategy createDefaultMappingStrategy(ImmutableAttributes variantAttributes) {
-        DefaultVariantVersionMappingStrategy strategy = new DefaultVariantVersionMappingStrategy(configurations, projectResolver);
+        DefaultVariantVersionMappingStrategy strategy = new DefaultVariantVersionMappingStrategy(configurations);
         if (!defaultConfigurations.isEmpty()) {
             // First need to populate the default variant version mapping strategy with the default values
             // provided by plugins
@@ -121,7 +117,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             Set<ImmutableAttributes> candidates = defaultConfigurations.keySet();
             List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
             for (ImmutableAttributes match : matches) {
-                strategy.setTargetConfiguration(configurations.getByName(defaultConfigurations.get(match)));
+                strategy.setDefaultResolutionConfiguration(configurations.getByName(defaultConfigurations.get(match)));
             }
         }
         return strategy;

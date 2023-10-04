@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.plugins.embedded
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.gradle.api.logging.Logger
 
@@ -32,7 +32,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class EmbeddedKotlinPluginTest : AbstractPluginTest() {
+class EmbeddedKotlinPluginTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `applies the kotlin plugin`() {

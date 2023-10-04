@@ -61,7 +61,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultComponentResolversFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentDetailsSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
@@ -89,7 +91,7 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
+import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -109,10 +111,10 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -204,6 +206,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
             registration.add(ResolutionStrategyFactory.class);
+            registration.add(DefaultComponentResolversFactory.class);
+            registration.add(ConsumerProvidedVariantFinder.class);
+            registration.add(DefaultVariantSelectorFactory.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -496,64 +501,55 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationResolver createDependencyResolver(
-            ArtifactDependencyResolver artifactDependencyResolver,
+            ComponentResolversFactory componentResolversFactory,
+            DependencyGraphResolver dependencyGraphResolver,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
             ComponentIdentifierFactory componentIdentifierFactory,
             ResolutionResultsStoreFactory resolutionResultsStoreFactory,
             StartParameter startParameter,
             AttributesSchemaInternal attributesSchema,
-            VariantTransformRegistry variantTransforms,
+            VariantSelectorFactory variantSelectorFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            ImmutableAttributesFactory attributesFactory,
             BuildOperationExecutor buildOperationExecutor,
             ArtifactTypeRegistry artifactTypeRegistry,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
             ComponentSelectorConverter componentSelectorConverter,
             AttributeContainerSerializer attributeContainerSerializer,
             BuildState currentBuild,
-            TransformedVariantFactory transformedVariantFactory,
             DependencyVerificationOverride dependencyVerificationOverride,
-            ProjectDependencyResolver projectDependencyResolver,
             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
             AttributeDesugaring attributeDesugaring,
             WorkerLeaseService workerLeaseService,
             ResolveExceptionContextualizer resolveExceptionContextualizer,
             ComponentDetailsSerializer componentDetailsSerializer,
             SelectedVariantSerializer selectedVariantSerializer,
-            SelectionFailureHandler selectionFailureHandler
+            ResolvedVariantCache resolvedVariantCache
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                artifactDependencyResolver,
+                componentResolversFactory,
+                dependencyGraphResolver,
                 repositoriesSupplier,
                 metadataHandler,
                 resolutionResultsStoreFactory,
                 startParameter.isBuildProjectDependencies(),
                 attributesSchema,
-                new DefaultVariantSelectorFactory(
-                    new ConsumerProvidedVariantFinder(
-                        variantTransforms,
-                        attributesSchema,
-                        attributesFactory
-                    ),
-                    attributesSchema,
-                    attributesFactory,
-                    transformedVariantFactory,
-                    selectionFailureHandler
-                ),
+                variantSelectorFactory,
                 moduleIdentifierFactory,
                 buildOperationExecutor,
                 artifactTypeRegistry,
+                calculatedValueContainerFactory,
                 componentSelectorConverter,
                 attributeContainerSerializer,
                 currentBuild.getBuildIdentifier(),
                 attributeDesugaring,
                 dependencyVerificationOverride,
-                projectDependencyResolver,
                 componentSelectionDescriptorFactory,
                 workerLeaseService,
                 resolveExceptionContextualizer,
                 componentDetailsSerializer,
-                selectedVariantSerializer
+                selectedVariantSerializer,
+                resolvedVariantCache
             );
 
             return new ErrorHandlingConfigurationResolver(

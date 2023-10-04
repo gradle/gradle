@@ -25,6 +25,7 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 
 import java.nio.file.Files
+import java.util.regex.Pattern
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -95,12 +96,13 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
             void afterBuild(BuildContext context, Throwable error) {
                 if (context.iteration > 1) {
                     def tag = action == storing
-                        ? "Calculating task graph as no configuration cache is available"
+                        ? "Calculating task graph as no (cached configuration|configuration cache) is available"
                         : "Reusing configuration cache"
                     File buildLog = new File(invocationSettings.projectDir, "profile.log")
 
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
-                        lines.anyMatch { line -> line.contains(tag) }
+                        def pattern = Pattern.compile(tag)
+                        lines.anyMatch { line -> pattern.matcher(line).find() }
                     }
                     if (!found) {
                         assertTrue("Configuration cache log '$tag' not found in '$buildLog'\n\n$buildLog.text", found)

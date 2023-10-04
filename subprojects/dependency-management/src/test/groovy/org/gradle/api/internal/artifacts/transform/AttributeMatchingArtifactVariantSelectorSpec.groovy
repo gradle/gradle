@@ -64,10 +64,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
         def variants = [variant]
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
 
         when:
-        def result = selector.select(variantSetOf(variants), factory)
+        def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
 
         then:
         result == resolvedArtifactSet
@@ -79,10 +79,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     def 'multiple match on variant results in ambiguous exception'() {
         given:
         def variantSet = variantSetOf([variant, otherVariant])
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
 
         when:
-        def result = selector.select(variantSet, factory)
+        def result = selector.select(variantSet, requestedAttributes, false, factory)
 
         then:
         result instanceof BrokenResolvedArtifactSet
@@ -100,10 +100,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
 
         when:
-        def result = selector.select(variantSetOf(variants), factory)
+        def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
 
         then:
         result == transformed
@@ -119,10 +119,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant, otherVariant, yetAnotherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
 
         when:
-        def result = selector.select(variantSetOf(variants), factory)
+        def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
 
         then:
         result == transformed
@@ -140,10 +140,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         given:
         def variants = [variant, otherVariant]
         def transformedVariants = transformedVariants(variants)
-        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory, failureProcessor)
+        def selector = new AttributeMatchingArtifactVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, dependenciesResolverFactory, failureProcessor)
 
         when:
-        def result = selector.select(variantSetOf(variants), factory)
+        def result = selector.select(variantSetOf(variants), requestedAttributes, false, factory)
 
         then:
         result instanceof BrokenResolvedArtifactSet

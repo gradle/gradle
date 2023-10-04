@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -38,7 +40,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     private
     val kotlinVersion: String
 
-) : AbstractPluginTest() {
+) : AbstractKotlinIntegrationTest() {
 
     companion object {
 
@@ -48,10 +50,12 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "newer Kotlin version always leaks on the classpath when running embedded"
+    )
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
-
-        assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
 
         KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 

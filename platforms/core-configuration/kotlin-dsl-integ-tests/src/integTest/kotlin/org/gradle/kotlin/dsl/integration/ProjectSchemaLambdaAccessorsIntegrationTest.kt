@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Test
@@ -23,7 +24,7 @@ import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
+class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `accessors to __untyped__ groovy closures extensions are typed Any`() {
 

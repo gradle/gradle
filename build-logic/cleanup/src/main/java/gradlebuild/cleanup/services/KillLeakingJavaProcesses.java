@@ -30,11 +30,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.regex.Pattern.quote;
 
 /**
  * NOTICE: this class is invoked via java command line, so we must NOT DEPEND ON ANY 3RD-PARTY LIBRARIES except JDK 11.
@@ -42,42 +44,92 @@ import java.util.stream.Stream;
  * Usage: java build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java
  */
 public class KillLeakingJavaProcesses {
+    enum ExecutionMode {
+        /**
+         * Run at the beginning of each build. Kill potentially leaked processes in previous builds.
+         * Only kill local Gradle processes (classpath in checkout directory).
+         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
+         */
+        KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS,
+        /**
+         * Run at the end of each build. Kill potentially leaked processes in the current build.
+         * Only kill local Gradle processes (classpath in checkout directory).
+         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
+         * Because the step is not guaranteed to run (e.g. build timeout), we need `KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS` mode.
+         */
+        KILL_PROCESSES_STARTED_BY_GRADLE,
+        /**
+         * Run when we want to retry the build. Kill all Gradle processes, regardless of they're global or local.
+         */
+        KILL_ALL_GRADLE_PROCESSES
+    }
+
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final String MY_PID = String.valueOf(ProcessHandle.current().pid());
+    private static final String JAVA_EXECUTABLE_PATTERN_STR = "java(?:\\.exe)?";
+    private static final String GRADLE_MAIN_CLASS_PATTERN_STR = "(org\\.gradle\\.[a-zA-Z]+)";
+    private static final String PLAY_SERVER_PATTERN_STR = "(play\\.core\\.server\\.NettyServer)";
+    private static final String JAVA_PROCESS_STACK_TRACES_MONITOR_PATTERN_STR = "(JavaProcessStackTracesMonitor\\.java)";
+    private static ExecutionMode executionMode;
+
+    static String generateAllGradleProcessPattern() {
+        return "(?i)[/\\\\]" + JAVA_EXECUTABLE_PATTERN_STR + ".+("
+            + GRADLE_MAIN_CLASS_PATTERN_STR + "|"
+            + PLAY_SERVER_PATTERN_STR + "|"
+            + JAVA_PROCESS_STACK_TRACES_MONITOR_PATTERN_STR
+            + ").*";
+    }
 
     static String generateLeakingProcessKillPattern(String rootProjectDir) {
-        String javaExecutable = "java(?:\\.exe)?";
-        String kotlinCompilerDaemonPattern = "(?:" + Pattern.quote("-Dkotlin.environment.keepalive org.jetbrains.kotlin.daemon.KotlinCompileDaemon") + ")";
-        String quotedRootProjectDir = Pattern.quote(rootProjectDir);
-        String mainClassPattern = "(org\\.gradle\\.|[a-zA-Z]+)";
-        String playServerPattern = "(play\\.core\\.server\\.NettyServer)";
-        String javaProcessStackTracesMonitorPattern = "(JavaProcessStackTracesMonitor\\.java)";
-        String classPathPattern1 = "(?:-cp.+" + "(" + quotedRootProjectDir + "|build\\\\tmp\\\\performance-test-files)" + ".+?" + mainClassPattern + ")";
-        String classPathPattern2 = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + Pattern.quote("\\build\\") + ".+?" + mainClassPattern + ")";
-        String classPathPattern3 = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + playServerPattern + ")";
-        return "(?i)[/\\\\]" + "(" + javaExecutable + ".+?" + "(?:" +
-            classPathPattern1 + "|" +
-            classPathPattern2 + "|" +
-            classPathPattern3 + "|" +
-            kotlinCompilerDaemonPattern + "|" +
-            javaProcessStackTracesMonitorPattern +
-            ").+)";
+        String kotlinCompilerDaemonPattern = "(?:" + quote("-Dkotlin.environment.keepalive") + ".+org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
+        String quotedRootProjectDir = quote(rootProjectDir);
+        String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
+        String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
+        String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";
+        return "(?i)[/\\\\]" + "(" + JAVA_EXECUTABLE_PATTERN_STR + ".+?" + "(?:"
+            + perfTestClasspathPattern + "|"
+            + buildDirClasspathPattern + "|"
+            + playServerPattern + "|"
+            + kotlinCompilerDaemonPattern + "|"
+            + JAVA_PROCESS_STACK_TRACES_MONITOR_PATTERN_STR + ").+)";
     }
 
     public static void main(String[] args) {
+        initExecutionMode(args);
+
         File rootProjectDir = new File(System.getProperty("user.dir"));
 
-        cleanPsOutputFilesFromPreviousRun(rootProjectDir, args);
+        cleanPsOutputAndThreaddumpFilesFromPreviousRun(rootProjectDir);
 
         List<String> psOutput = ps(rootProjectDir);
 
         writePsOutputToFile(rootProjectDir, psOutput);
 
-        forEachLeakingJavaProcess(psOutput, rootProjectDir, pid -> {
-            System.out.println("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID " + pid);
-            pkill(pid);
-        });
+        if (executionMode == ExecutionMode.KILL_ALL_GRADLE_PROCESSES) {
+            Pattern commandLineArgsPattern = Pattern.compile(generateAllGradleProcessPattern());
+            forEachJavaProcess(psOutput, commandLineArgsPattern, (pid, line) -> {
+                System.out.println("Killing Gradle process with PID " + pid + ": " + line);
+                pkill(pid);
+            });
+        } else {
+            forEachLeakingJavaProcess(rootProjectDir, (pid, line) -> {
+                System.out.println("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID " + pid + ": " + line);
+                pkill(pid);
+            });
+        }
+    }
+
+    private static void initExecutionMode(String[] args) {
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Requires 1 param: " + Stream.of(ExecutionMode.values()).map(ExecutionMode::toString).collect(Collectors.joining("/")));
+        }
+        executionMode = ExecutionMode.valueOf(args[0]);
+        if (executionMode == ExecutionMode.KILL_PROCESSES_STARTED_BY_GRADLE && !Boolean.parseBoolean(System.getenv("GRADLE_RUNNER_FINISHED"))) {
+            // https://github.com/gradle/gradle-private/issues/3991
+            System.out.println("Gradle runner not finished correctly (the build may be canceled). Fall back to KILL_ALL_GRADLE_PROCESSES.");
+            executionMode = ExecutionMode.KILL_ALL_GRADLE_PROCESSES;
+        }
     }
 
     private static void writePsOutputToFile(File rootProjectDir, List<String> psOutput) {
@@ -91,9 +143,9 @@ public class KillLeakingJavaProcesses {
         }
     }
 
-    private static void cleanPsOutputFilesFromPreviousRun(File rootProjectDir, String[] args) {
-        if (args.length > 0 && "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS".equals(args[0])) {
-            File[] psOutputs = rootProjectDir.listFiles((__, name) -> name.endsWith(".psoutput"));
+    private static void cleanPsOutputAndThreaddumpFilesFromPreviousRun(File rootProjectDir) {
+        if (executionMode == ExecutionMode.KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS) {
+            File[] psOutputs = rootProjectDir.listFiles((__, name) -> name.endsWith(".psoutput") || name.endsWith(".threaddump"));
             if (psOutputs != null) {
                 Stream.of(psOutputs).forEach(File::delete);
             }
@@ -107,12 +159,12 @@ public class KillLeakingJavaProcesses {
         }
     }
 
-    static void forEachLeakingJavaProcess(File rootProjectDir, Consumer<String> action) {
-        forEachLeakingJavaProcess(ps(rootProjectDir), rootProjectDir, action);
+    static void forEachLeakingJavaProcess(File rootProjectDir, BiConsumer<String, String> action) {
+        Pattern commandLineArgsPattern = Pattern.compile(generateLeakingProcessKillPattern(rootProjectDir.getPath()));
+        forEachJavaProcess(ps(rootProjectDir), commandLineArgsPattern, action);
     }
 
-    private static void forEachLeakingJavaProcess(List<String> psOutput, File rootProjectDir, Consumer<String> action) {
-        Pattern commandLineArgsPattern = Pattern.compile(generateLeakingProcessKillPattern(rootProjectDir.getPath()));
+    private static void forEachJavaProcess(List<String> psOutput, Pattern commandLineArgsPattern, BiConsumer<String, String> action) {
         Pattern pidPattern = isWindows() ? WINDOWS_PID_PATTERN : UNIX_PID_PATTERN;
 
         psOutput.forEach(line -> {
@@ -121,7 +173,7 @@ public class KillLeakingJavaProcesses {
             if (commandLineArgsMatcher.find() && pidMatcher.find()) {
                 String pid = pidMatcher.group(1);
                 if (!MY_PID.equals(pid)) {
-                    action.accept(pid);
+                    action.accept(pid, line);
                 }
             }
         });
@@ -164,11 +216,7 @@ public class KillLeakingJavaProcesses {
 
         @Override
         public String toString() {
-            return "ExecResult{" +
-                "code=" + code +
-                "\n stdout='" + stdout + '\'' +
-                "\n stderr='" + stderr + '\'' +
-                '}';
+            return "ExecResult{" + "code=" + code + "\n stdout='" + stdout + '\'' + "\n stderr='" + stderr + '\'' + '}';
         }
 
         ExecResult assertZeroExit() {

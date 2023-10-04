@@ -19,7 +19,7 @@ package org.gradle.internal.buildtree;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.problems.buildtree.ProblemReporter;
@@ -33,13 +33,13 @@ import java.util.function.Consumer;
 public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final BuildLayout buildLayout;
+    private final BuildLocations buildLocations;
     private final List<? extends ProblemReporter> reporters;
 
-    public ProblemReportingBuildActionRunner(BuildActionRunner delegate, ExceptionAnalyser exceptionAnalyser, BuildLayout buildLayout, List<? extends ProblemReporter> reporters) {
+    public ProblemReportingBuildActionRunner(BuildActionRunner delegate, ExceptionAnalyser exceptionAnalyser, BuildLocations buildLocations, List<? extends ProblemReporter> reporters) {
         this.delegate = delegate;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.buildLayout = buildLayout;
+        this.buildLocations = buildLocations;
         this.reporters = ImmutableList.sortedCopyOf(Comparator.comparing(ProblemReporter::getId), reporters);
     }
 
@@ -75,7 +75,7 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     }
 
     private File defaultRootBuildDirOf() {
-        return new File(buildLayout.getRootDirectory(), "build");
+        return new File(buildLocations.getRootDirectory(), "build");
     }
 
     private static class RootProjectBuildDirCollectingListener extends InternalBuildAdapter {

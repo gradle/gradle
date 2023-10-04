@@ -54,8 +54,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
-    private final ImmutableAttributes requested;
-    private final boolean ignoreWhenNoMatches;
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
     private final SelectionFailureHandler failureProcessor;
 
@@ -64,8 +62,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        ImmutableAttributes requested,
-        boolean ignoreWhenNoMatches,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         SelectionFailureHandler failureProcessor
     ) {
@@ -73,45 +69,24 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.requested = requested;
-        this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.dependenciesResolverFactory = dependenciesResolverFactory;
         this.failureProcessor = failureProcessor;
     }
 
     @Override
-    public String toString() {
-        return "Variant selector for " + requested;
-    }
-
-    @Override
-    public ImmutableAttributes getRequestedAttributes() {
-        return requested;
-    }
-
-    @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer, ResolvedArtifactTransformer resolvedArtifactTransformer) {
-        return selectAndWrapFailures(producer, ignoreWhenNoMatches, resolvedArtifactTransformer);
-    }
-
-    @Override
-    public ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, ResolvedArtifactTransformer resolvedArtifactTransformer) {
-        return selectAndWrapFailures(candidates, true, resolvedArtifactTransformer);
-    }
-
-    private ResolvedArtifactSet selectAndWrapFailures(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+    public ResolvedArtifactSet select(ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer) {
         try {
-            return doSelect(producer, ignoreWhenNoMatches, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging());
+            return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
         } catch (ArtifactVariantSelectionException t) {
-            return failureProcessor.unknownSelectionFailure(schema, t);
+            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, t);
         } catch (Exception t) {
-            return failureProcessor.unknownSelectionFailure(schema, producer, t);
+            return failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, t);
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean ignoreWhenNoMatches, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder) {
+    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
-        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
+        ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
 
         List<? extends ResolvedVariant> matches = matcher.matches(variants, componentRequested, explanationBuilder);
@@ -124,7 +99,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
             Set<ResolvedVariant> discarded = Cast.uncheckedCast(newExpBuilder.discarded);
             AttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
-            throw failureProcessor.ambiguousVariantSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded, describer);
+            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded, describer);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -141,14 +116,14 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
         }
 
-        if (ignoreWhenNoMatches) {
+        if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingVariantsSelectionFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw failureProcessor.noMatchingArtifactVariantFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     /**
@@ -156,7 +131,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
      * If that does not produce a single result, then a subset of the results of attribute matching is returned, where the candidates which have
      * incompatible attributes values with the <strong>last</strong> candidate are included.
      */
-    private List<TransformedVariant> tryDisambiguate(
+    private static List<TransformedVariant> tryDisambiguate(
         AttributeMatcher matcher,
         List<TransformedVariant> candidates,
         ImmutableAttributes componentRequested,

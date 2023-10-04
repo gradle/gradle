@@ -26,9 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
-import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -36,7 +39,6 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
-    def transforms = Stub(VariantSelectorFactory)
     def transientConfigurationResults = Mock(TransientConfigurationResults)
     def resultsLoader = Mock(TransientConfigurationResultsLoader)
     def artifactsResults = Stub(VisitedArtifactsResults)
@@ -119,7 +121,8 @@ class DefaultLenientConfigurationTest extends Specification {
     }
 
     private DefaultLenientConfiguration newConfiguration() {
-        new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
+        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
+        new DefaultLenientConfiguration(configuration, visitedGraphResults, artifactsResults, fileDependencyResults, resultsLoader, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService(), Mock(ArtifactVariantSelector))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {

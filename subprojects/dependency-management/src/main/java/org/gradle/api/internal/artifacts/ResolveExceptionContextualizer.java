@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
@@ -45,33 +46,43 @@ public class ResolveExceptionContextualizer {
         this.documentationRegistry = documentationRegistry;
     }
 
+    @Nullable
+    public ResolveException mapFailures(Collection<Throwable> failures, String contextDisplayName, String type) {
+        if (failures.isEmpty()) {
+            return null;
+        }
+
+        if (failures.size() > 1) {
+            return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, failures);
+        }
+
+        Throwable failure = failures.iterator().next();
+        return mapFailure(failure, type, contextDisplayName);
+    }
+
     public ResolveException contextualize(Throwable e, ResolveContext resolveContext) {
-        if (e instanceof ResolveException) {
-            return contextualize((ResolveException) e, resolveContext.getName());
-        }
-
-        ResolveException result = maybeContextualize(resolveContext.getDisplayName(), Collections.singletonList(e), resolveContext.getDomainObjectContext(), documentationRegistry);
-        if (result == null) {
-            return new ResolveException(resolveContext.getDisplayName(), e);
-        }
-        return result;
+        return mapFailure(e, "dependencies", resolveContext.getDisplayName());
     }
 
-    public ResolveException contextualize(ResolveException e, String resolveContextName) {
-        ResolveException result = maybeContextualize(resolveContextName, e.getCauses(), domainObjectContext, documentationRegistry);
-        if (result == null) {
-            return e;
-        }
-        return result;
-    }
+    private ResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {
+        Collection<? extends Throwable> causes = failure instanceof ResolveException
+            ? ((ResolveException) failure).getCauses()
+            : Collections.singleton(failure);
 
-    @Nullable
-    public ResolveException maybeContextualize(Collection<? extends Throwable> causes, ResolveContext resolveContext) {
-        return maybeContextualize(resolveContext.getDisplayName(), causes, resolveContext.getDomainObjectContext(), documentationRegistry);
+        ResolveException detected = detectRepositoryOverride(contextDisplayName, causes);
+        if (detected != null) {
+            return detected;
+        }
+
+        if (failure instanceof ResolveException) {
+            return (ResolveException) failure;
+        }
+
+        return new DefaultLenientConfiguration.ArtifactResolveException(type, contextDisplayName, Collections.singleton(failure));
     }
 
     @Nullable
-    private static ResolveException maybeContextualize(String contextName, Collection<? extends Throwable> causes, DomainObjectContext domainObjectContext, DocumentationRegistry documentationRegistry) {
+    private ResolveException detectRepositoryOverride(String contextDisplayName, Collection<? extends Throwable> causes) {
         try {
             boolean ignoresSettingsRepositories = false;
             if (domainObjectContext instanceof ProjectInternal) {
@@ -83,7 +94,7 @@ public class ResolveExceptionContextualizer {
             boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
 
             if (ignoresSettingsRepositories && hasModuleNotFound) {
-                return new ResolveExceptionWithHints(contextName, causes,
+                return new ResolveExceptionWithHints(contextDisplayName, causes,
                     "The project declares repositories, effectively ignoring the repositories you have declared in the settings.\n" +
                         "You can figure out how project repositories are declared by configuring your build to fail on project repositories.\n" +
                         documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories")
@@ -92,7 +103,8 @@ public class ResolveExceptionContextualizer {
 
             return null;
         } catch (Throwable e) {
-            return new ResolveException(contextName, ImmutableList.<Throwable>builder().addAll(causes).add(e).build());
+            // To catch `The settings are not yet available for` error
+            return new ResolveException(contextDisplayName, ImmutableList.<Throwable>builder().addAll(causes).add(e).build());
         }
     }
 

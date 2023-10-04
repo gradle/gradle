@@ -16,13 +16,13 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 
 import org.junit.Before
 
 
-open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
+open class AbstractPrecompiledScriptPluginTest : AbstractKotlinIntegrationTest() {
 
     @Before
     fun setupPluginTest() {
