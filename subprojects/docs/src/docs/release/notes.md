@@ -3,9 +3,15 @@ The Gradle team is excited to announce Gradle @version@.
 
 This is the third patch release for Gradle 7.6.
 
-It fixes the following issues:
+This release addresses two security vulnerabilities:
 
-* TODO
+* [Incorrect permission assignment for symlinked files used in copy or archiving operations](https://github.com/gradle/gradle/security/advisories/GHSA-43r3-pqhv-f7h9)
+* [Possible local text file exfiltration by XML External entity injection](https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8)
+
+It also fixes the following issues:
+
+* [#25781](https://github.com/gradle/gradle/issues/25781) Backport finalized task performance fix to 7.6.x
+* [#25802](https://github.com/gradle/gradle/issues/25802) Backport cgroups fix to 7.6.x
 
 Issues fixed in the second patch release:
 
