@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
@@ -39,12 +40,13 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
-import org.gradle.kotlin.dsl.support.ClassBytesRepository
-import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackageName
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
@@ -299,7 +301,10 @@ internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
     private
-    val classBytesRepository = ClassBytesRepository(classPath)
+    val classBytesRepository = ClassBytesRepository(
+        ClassLoaderUtils.getPlatformClassLoader(),
+        classPath.asFiles
+    )
 
     private
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
@@ -406,6 +411,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
                 nonPrimitiveKotlinType()?.also { all.add(it) }
                 buffer = StringBuilder()
             }
+
             in " ,>" -> {
                 nonPrimitiveKotlinType()?.also {
                     all.add(it)
@@ -413,6 +419,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
                 }
                 buffer = StringBuilder()
             }
+
             else -> buffer.append(char)
         }
     }
@@ -451,6 +458,7 @@ class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
             "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
                 visibility = Flags.VISIBILITY[classData.flags]
             }
+
             else -> null
         }
 }
@@ -500,7 +508,7 @@ class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisito
 }
 
 
-internal
+private
 operator fun Int.contains(flag: Int) =
     and(flag) == flag
 

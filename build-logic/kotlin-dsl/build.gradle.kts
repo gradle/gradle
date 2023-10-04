@@ -5,9 +5,11 @@ plugins {
 description = "Provides plugins to configure Kotlin DSL and patch the Kotlin compiler for use in Kotlin subprojects"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+
     implementation(project(":dependency-modules"))
     implementation(project(":jvm"))
+    implementation(project(":kotlin-dsl-shared-runtime"))
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")
     implementation(kotlin("gradle-plugin"))

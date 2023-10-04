@@ -5,6 +5,7 @@ plugins {
 description = "Provides a plugin to generate samples using internal build init APIs"
 
 dependencies {
+    implementation("gradlebuild:basics")
     implementation("org.gradle.guides:gradle-guides-plugin")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm") {
         because("This is a transitive dependency of 'gradle-guides-plugin' not declared there")
