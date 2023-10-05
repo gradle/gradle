@@ -278,7 +278,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         // Supply the sourceSet to the feature
         JvmFeatureInternal feature = new DefaultJvmFeature(
-            JvmConstants.MAIN_FEATURE_NAME, sourceSet, Collections.emptyList(),
+            JvmConstants.JAVA_MAIN_FEATURE_NAME, sourceSet, Collections.emptyList(),
             (ProjectInternal) project, false, false);
         // Create a source directories variant for the feature
         feature.withSourceElements();
@@ -290,7 +290,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // And supply main feature to the component
         DefaultJvmSoftwareComponent component = project.getObjects().newInstance(
             DefaultJvmSoftwareComponent.class,
-            JvmConstants.MAIN_COMPONENT_NAME,
+            JvmConstants.JAVA_MAIN_COMPONENT_NAME,
             project,
             feature
         );
