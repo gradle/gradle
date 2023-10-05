@@ -39,7 +39,13 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.BuildObjectFactory;
+import org.gradle.api.model.BuildSessionObjectFactory;
+import org.gradle.api.model.BuildTreeObjectFactory;
+import org.gradle.api.model.GradleObjectFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ProjectObjectFactory;
+import org.gradle.api.model.UserHomeObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -55,7 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultObjectFactory implements ObjectFactory {
+public class DefaultObjectFactory implements ObjectFactory, UserHomeObjectFactory, BuildObjectFactory, BuildTreeObjectFactory, BuildSessionObjectFactory, GradleObjectFactory, ProjectObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;

@@ -31,7 +31,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
 
     def "task is going to be implicitly added to the problem"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -46,8 +46,8 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
-                    }.report();
+                        .category("type")
+                    }.report()
                 }
             }
 
@@ -93,7 +93,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                             .label("label")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                     ).report();
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {

@@ -264,7 +264,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                         it.label("label")
                         .undocumented()
                         .pluginLocation("org.example.pluginid")
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }

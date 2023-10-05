@@ -75,8 +75,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].severity == Severity.WARNING.name()
         problems[1].label.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
         problems[1].severity == Severity.ERROR.name()
-        problems[1].where.path == 'ba'
-        problems[1].where.line == -1
+        problems[1].where[0].path == 'ba'
+        problems[1].where[0].line == -1
         problems[1].problemCategory == 'task_selection'
     }
 }
