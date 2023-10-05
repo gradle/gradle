@@ -19,10 +19,10 @@ package org.gradle.internal.classpath.declarations;
 import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
@@ -49,7 +49,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        if (!Instrumented.INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(messageName)) {
+        if (!CallInterceptorResolver.INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
@@ -70,7 +70,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        CallInterceptor interceptor = Instrumented.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        CallInterceptor interceptor = CallInterceptorResolver.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi
             class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
