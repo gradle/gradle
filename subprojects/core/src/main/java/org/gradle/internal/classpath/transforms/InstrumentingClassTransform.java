@@ -25,8 +25,8 @@ import org.gradle.internal.classpath.CallInterceptionClosureInstrumentingClassVi
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.classpath.Instrumented.CallInterceptorRegistry;
 import org.gradle.internal.classpath.JvmBytecodeInterceptorSet;
+import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;

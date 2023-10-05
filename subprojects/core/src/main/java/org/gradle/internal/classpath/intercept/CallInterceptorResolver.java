@@ -20,10 +20,36 @@ import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
+
 @NonNullApi
 public interface CallInterceptorResolver {
+    CallInterceptorResolver INTERCEPTOR_RESOLVER = new CallInterceptorResolverImpl();
+
     @Nullable
     CallInterceptor resolveCallInterceptor(InterceptScope scope);
 
     boolean isAwareOfCallSiteName(String name);
+
+    @NonNullApi
+    final class CallInterceptorResolverImpl implements CallInterceptorResolver {
+        @Nullable
+        @Override
+        public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
+            }
+            return null;
+        }
+
+        @Override
+        public boolean isAwareOfCallSiteName(String name) {
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
+            if (currentDecorator instanceof CallInterceptorResolver) {
+                return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
+            }
+            return false;
+        }
+    }
 }
