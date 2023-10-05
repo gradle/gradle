@@ -113,19 +113,14 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     boolean usageCanBeMutated();
 
     /**
-     * Configures if a configuration can be consumed, and if a warning should be emitted if it is not already consumable.
+     * Update a configuration's allowed and disallowed usage to match the given role
+     *
+     * This method does <strong>NOT</strong> warn.  This method does <strong>NOT</strong> modify deprecation status.  It
+     * is only meant to be called by the container.
+     *
+     * @param role the role specifying the usage the conf should possess
      */
-    void setCanBeConsumed(boolean allowed, boolean warn);
-
-    /**
-     * Configures if a configuration can be resolved, and if a warning should be emitted if it is not already resolvable.
-     */
-    void setCanBeResolved(boolean allowed, boolean warn);
-
-    /**
-     * Configures if a configuration can have dependencies declared against it, and if a warning should be emitted if it is not already declarable against.
-     */
-    void setCanBeDeclared(boolean allowed, boolean warn);
+     void setAllowedUsageFromRole(ConfigurationRole role);
 
     /**
      * Test if the given configuration can either be declared against or extends another

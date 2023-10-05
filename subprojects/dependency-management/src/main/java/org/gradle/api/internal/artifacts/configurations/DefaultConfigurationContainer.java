@@ -442,7 +442,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             }
 
             if (conf.usageCanBeMutated()) {
-                setAllowedUsageFromRole(conf, expectedUsage);
+                conf.setAllowedUsageFromRole(expectedUsage);
             } else {
                 List<String> resolutions = Lists.newArrayList(basicNameAdvice);
                 if (hasSourceSetContext) {
@@ -450,27 +450,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 }
                 throw new UnmodifiableConfigurationException(confName, resolutions);
             }
-        }
-    }
-
-    /**
-     * Update a configuration's allowed and disallowed usage to match the given role
-     *
-     * This method does <strong>NOT</strong> warn.  This method does <strong>NOT</strong> modify deprecation status.  It
-     * is only meant to be called by the container.
-     *
-     * @param conf the configuration to update (should be {@code usageCanBeMutated() == true})
-     * @param role the role specifying the usage the conf should possess
-     */
-    private void setAllowedUsageFromRole(ConfigurationInternal conf, ConfigurationRole role) {
-        if (conf.isCanBeConsumed() != role.isConsumable()) {
-            conf.setCanBeConsumed(role.isConsumable(), false);
-        }
-        if (conf.isCanBeResolved() != role.isResolvable()) {
-            conf.setCanBeResolved(role.isResolvable(), false);
-        }
-        if (conf.isCanBeDeclared() != role.isDeclarable()) {
-            conf.setCanBeDeclared(role.isDeclarable(), false);
         }
     }
 
