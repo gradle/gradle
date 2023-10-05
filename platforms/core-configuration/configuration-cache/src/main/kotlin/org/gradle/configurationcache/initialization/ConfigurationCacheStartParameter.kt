@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.Factory
@@ -59,6 +60,7 @@ class ConfigurationCacheStartParameter(
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
+            .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel
         get() = modelParameters.configurationCacheLogLevel
