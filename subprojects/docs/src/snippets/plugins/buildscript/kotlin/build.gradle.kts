@@ -8,5 +8,7 @@ buildscript {
     }
 }
 
-apply(plugin = "com.jfrog.bintray")
+plugins {
+    id("com.jfrog.bintray")
+}
 // end::buildscript_block[]

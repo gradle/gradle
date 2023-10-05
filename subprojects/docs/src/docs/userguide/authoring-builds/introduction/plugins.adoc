@@ -63,7 +63,7 @@ Then, as the code becomes more valuable, it's migrated to a binary plugin that c
 
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
-The example below is the most straightforward plugin, a "hellow world" *script plugin*:
+The example below is the most straightforward plugin, a "hello world" *script plugin*:
 
 [source, kotlin]
 ----
