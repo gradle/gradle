@@ -25,9 +25,6 @@ import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType
-import org.gradle.workers.internal.KeepAliveMode
-
-import static org.gradle.api.internal.tasks.compile.DaemonJavaCompiler.KEEP_DAEMON_ALIVE_PROPERTY
 
 class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
     @Override
@@ -45,41 +42,6 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
     @Override
     TestJvmComponent getComponent() {
         return new TestJavaComponent()
-    }
-
-    def "compiler daemon reuse can be disabled"() {
-        // TODO: Remove this test once the system property is removed
-        withSingleProjectSources()
-        buildFile << """
-            tasks.compileMain2Java {
-                dependsOn("compileJava")
-            }
-        """
-
-        when:
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.SESSION.name()}")
-        succeeds("compileAll")
-
-        then:
-        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
-
-        and:
-        assertOneCompilerDaemonIsRunning()
-
-        when:
-        executer.withWorkerDaemonsExpirationDisabled()
-        args("-D${KEEP_DAEMON_ALIVE_PROPERTY}=${KeepAliveMode.SESSION.name()}")
-        succeeds("clean", "compileAll")
-
-        then:
-        executedAndNotSkipped "${compileTaskPath('main')}", "${compileTaskPath('main2')}"
-
-        and:
-        assertOneCompilerDaemonIsRunning()
-
-        def firstCompilerIdentity = old(runningCompilerDaemons[0])
-        def secondCompilerIdentity = runningCompilerDaemons[0]
-        firstCompilerIdentity != secondCompilerIdentity
     }
 
     @Requires(UnitTestPreconditions.Windows)
