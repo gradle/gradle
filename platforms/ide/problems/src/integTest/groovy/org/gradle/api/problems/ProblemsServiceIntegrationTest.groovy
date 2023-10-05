@@ -30,7 +30,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with mandatory fields"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -41,12 +41,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
-                        it.label("label")
+                    problems.createProblem{ it
+                        .label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
-                        }.report();
+                        .category("type")
+                        }.report()
                 }
             }
             """
@@ -57,12 +57,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         this.collectedProblems[0]["label"] == "label"
-        this.collectedProblems[0]["problemType"] == "type"
+        this.collectedProblems[0]["problemCategory"]["category"] == "type"
     }
 
     def "can emit a problem with user-manual documentation"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -73,13 +73,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
-                        it.label("label")
+                    problems.createProblem { it
+                        .label("label")
                         .documentedAt(
                             Documentation.userManual("test-id", "test-section")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -99,7 +99,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with upgrade-guide documentation"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -110,13 +110,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .documentedAt(
                             Documentation.upgradeGuide(8, "test-section")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -136,7 +136,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with dsl-reference documentation"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -147,13 +147,13 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .documentedAt(
                             Documentation.dslReference(Problem.class, "label")
                         )
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -171,7 +171,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with partially specified location"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -182,11 +182,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1)
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -206,7 +206,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with fully specified location"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -217,11 +217,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1, 1)
-                        .type("type")
+                        .category("type")
                         }.report()
                 }
             }
@@ -241,7 +241,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with a severity"(Severity severity) {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -252,11 +252,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .solution("solution")
                         .severity(Severity.${severity.name()})
                         }.report()
@@ -277,7 +277,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with a solution"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -288,11 +288,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .solution("solution")
                         }.report()
                 }
@@ -311,7 +311,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with exception cause"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -322,11 +322,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .withException(new RuntimeException("test"))
                         }.report()
                 }
@@ -344,7 +344,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with additional data"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -355,11 +355,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .noLocation()
-                        .type("type")
+                        .category("type")
                         .additionalData("key", "value")
                         }.report()
                 }
@@ -378,20 +378,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can throw a problem with a wrapper exception"() {
         given:
-        buildFile << """
+        buildFile """
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
 
                 @TaskAction
                 void run() {
-                    RuntimeException exception = new RuntimeException("test")
+                    def exception = new RuntimeException("test")
                     problems.throwing {
                         spec -> spec
                             .label("label")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                             .withException(exception)
                     }
                 }
@@ -408,20 +408,19 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can rethrow a problem with a wrapper exception"() {
         given:
-        buildFile << """
+        buildFile """
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
 
                 @TaskAction
                 void run() {
-                    RuntimeException exception = new RuntimeException("test")
-                    problems.rethrowing(exception) {
-                        spec -> spec
-                            .label("label")
-                            .undocumented()
-                            .noLocation()
-                            .type("type")
+                    def exception = new RuntimeException("test")
+                    problems.rethrowing(exception) { it
+                        .label("label")
+                        .undocumented()
+                        .noLocation()
+                        .category("type")
                     }
                 }
             }
@@ -437,7 +436,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can rethrow a problem with a wrapper exception"() {
         given:
-        buildFile << """
+        buildFile """
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
@@ -445,20 +444,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 void run() {
                     try {
-                        RuntimeException exception = new RuntimeException("test")
+                        def exception = new RuntimeException("test")
                         problems.throwing { spec -> spec
                             .label("inner")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                             .withException(exception)
                         }
-                    } catch (Exception ex) {
+                    } catch (RuntimeException ex) {
                         problems.rethrowing(ex) { spec -> spec
                             .label("outer")
                             .undocumented()
                             .noLocation()
-                            .type("type")
+                            .category("type")
                         }
                     }
                 }

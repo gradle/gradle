@@ -16,7 +16,10 @@
 
 package org.gradle.internal.buildtree
 
+import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.DefaultTaskExecutionRequest
+import org.gradle.internal.RunDefaultTasksExecutionRequest
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.util.TestUtil
@@ -30,7 +33,9 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def workController = Mock(BuildTreeWorkController)
     def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory())
+    def startParameter = Mock(StartParameter)
+    def buildModelParameters = Mock(BuildModelParameters)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(), startParameter, buildModelParameters)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -80,8 +85,10 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * finishExecutor.finishBuildTree([]) >> reportableFailure
     }
 
-    def "runs action after running tasks when task execution is requested"() {
+    def "runs action after running tasks when task execution is requested and isolated projects disabled"() {
         def action = Mock(BuildTreeModelAction)
+        buildModelParameters.isIsolatedProjects() >> false
+        startParameter.getTaskRequests() >> [new DefaultTaskExecutionRequest(["tasks"])]
 
         when:
         def result = controller.fromBuildModel(true, action)
@@ -99,9 +106,37 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * finishExecutor.finishBuildTree([]) >> null
     }
 
+    def "doesn't running tasks before action if #tasks execution is requested and isolated projects enabled"() {
+        def action = Mock(BuildTreeModelAction)
+        buildModelParameters.isIsolatedProjects() >> true
+        startParameter.getTaskRequests() >> requests
+
+        when:
+        def result = controller.fromBuildModel(true, action)
+
+        then:
+        result == "result"
+
+        and:
+        0 * workController.scheduleAndRunRequestedTasks(null, true)
+
+        and:
+        1 * modelCreator.fromBuildModel(action) >> "result"
+
+        and:
+        1 * finishExecutor.finishBuildTree([]) >> null
+
+        where:
+        tasks           | requests
+        "`help` task"   | [new DefaultTaskExecutionRequest(["help"])]
+        "default tasks" | [new RunDefaultTasksExecutionRequest()]
+    }
+
     def "does not run action if task execution fails"() {
         def action = Mock(BuildTreeModelAction)
         def failure = new RuntimeException()
+        buildModelParameters.isIsolatedProjects() >> false
+        startParameter.getTaskRequests() >> [new DefaultTaskExecutionRequest(["tasks"])]
 
         when:
         controller.fromBuildModel(true, action)

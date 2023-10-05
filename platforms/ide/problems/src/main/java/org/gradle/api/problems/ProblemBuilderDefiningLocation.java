@@ -32,7 +32,7 @@ public interface ProblemBuilderDefiningLocation {
      * @param line the line number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningType location(String path, Integer line);
+    ProblemBuilderDefiningCategory location(String path, Integer line);
 
     /**
      * Declares that this problem is in a file at a particular line.
@@ -42,12 +42,12 @@ public interface ProblemBuilderDefiningLocation {
      * @param column the column number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningType location(String path, Integer line, Integer column);
+    ProblemBuilderDefiningCategory location(String path, Integer line, Integer column);
 
     /**
      * Declares that this problem has no associated location data.
      *
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningType noLocation();
+    ProblemBuilderDefiningCategory noLocation();
 }

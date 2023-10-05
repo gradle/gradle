@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.reflect.TypeOf
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveTypeStrings
 
 
 internal
@@ -32,31 +33,3 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
             toString().let { primitiveTypeStrings[it] ?: it }
     }
 }
-
-
-internal
-val primitiveTypeStrings =
-    mapOf(
-        "java.lang.Object" to "Any",
-        "java.lang.String" to "String",
-        "java.lang.Character" to "Char",
-        "char" to "Char",
-        "java.lang.Boolean" to "Boolean",
-        "boolean" to "Boolean",
-        "java.lang.Byte" to "Byte",
-        "byte" to "Byte",
-        "java.lang.Short" to "Short",
-        "short" to "Short",
-        "java.lang.Integer" to "Int",
-        "int" to "Int",
-        "java.lang.Long" to "Long",
-        "long" to "Long",
-        "java.lang.Float" to "Float",
-        "float" to "Float",
-        "java.lang.Double" to "Double",
-        "double" to "Double"
-    )
-
-
-internal
-val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()

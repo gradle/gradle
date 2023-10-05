@@ -101,7 +101,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         when:
         def results = dependencyResolver.resolveGraph(resolveContext)
-        results = dependencyResolver.resolveArtifacts(resolveContext, results)
 
         then:
         def resolvedConfig = results.resolvedConfiguration
@@ -201,22 +200,6 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         then:
         1 * delegate.resolveGraph(resolveContext) >> delegateResults
-        results == delegateResults
-    }
-
-    def "delegates to backing service to resolve artifacts when there are one or more dependencies"() {
-        given:
-        def graphResults = Mock(ResolverResults) {
-            getArtifactResolveState() >> Mock(ArtifactResolveState)
-        }
-        ResolverResults delegateResults = Mock()
-        resolveContext.hasDependencies() >> true
-
-        when:
-        def results = dependencyResolver.resolveArtifacts(resolveContext, graphResults)
-
-        then:
-        1 * delegate.resolveArtifacts(resolveContext, graphResults) >> delegateResults
         results == delegateResults
     }
 }

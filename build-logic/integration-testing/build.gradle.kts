@@ -5,10 +5,11 @@ plugins {
 description = "Provides plugins to create and configure integration, cross-version and distribution tests"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":cleanup"))
     implementation(project(":dependency-modules"))
-    implementation(project(":module-identity"))
 
     testImplementation("junit:junit")
 }
