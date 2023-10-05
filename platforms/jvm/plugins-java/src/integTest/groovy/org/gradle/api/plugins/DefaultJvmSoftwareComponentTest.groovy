@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices
 import org.gradle.api.tasks.SourceSet
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -60,7 +61,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("main"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
 
         then:
         component.mainFeature instanceof DefaultJvmFeature
@@ -103,7 +104,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName('processFeatureResources') == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature"))
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("feature"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
 
         then:
         component.mainFeature instanceof DefaultJvmFeature
@@ -128,9 +129,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature1"))
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("feature2"))
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("main"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("feature1"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("feature2"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
 
         then:
         ext.sourceSets.getByName('main')
@@ -149,7 +150,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("javadoc") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("main"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
         component.withJavadocJar()
 
         then:
@@ -177,7 +178,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("sources") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("main"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
         component.withSourcesJar()
 
         then:
@@ -198,7 +199,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         when:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", project, createFeature("main"))
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", createFeature("main"), project.getObjects(), project.getProviders(), project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getServices().get(JvmPluginServices))
 
         then:
         component.usages*.name == ["apiElements", "runtimeElements"]

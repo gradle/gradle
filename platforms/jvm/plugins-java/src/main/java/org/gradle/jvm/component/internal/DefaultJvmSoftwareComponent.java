@@ -17,14 +17,13 @@
 package org.gradle.jvm.component.internal;
 
 import org.gradle.api.NamedDomainObjectProvider;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
@@ -34,6 +33,7 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.annotation.Nullable;
@@ -46,9 +46,6 @@ import javax.inject.Inject;
  * This includes the source set's resolvable configurations and dependency scopes, as well as any associated tasks.
  */
 public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
-
-    private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
-
     private final RoleBasedConfigurationContainerInternal configurations;
 
     private final JvmFeatureInternal mainFeature;
@@ -57,16 +54,21 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
-        Project project,
-        JvmFeatureInternal mainFeature
+        JvmFeatureInternal mainFeature,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory,
+        RoleBasedConfigurationContainerInternal configurations,
+        TaskContainer tasks,
+        ExtensionContainer extensions,
+        JvmPluginServices jvmPluginServices
     ) {
-        super(componentName, project.getObjects());
+        super(componentName, objectFactory);
 
         this.mainFeature = mainFeature;
-        this.configurations = ((ProjectInternal) project).getConfigurations();
-        this.testSuite = configureBuiltInTest(project);
+        this.configurations = configurations;
+        this.testSuite = configureBuiltInTest(configurations, tasks, extensions, objectFactory);
 
-        configureFeature(mainFeature, project.getProviders(), ((ProjectInternal) project).getServices().get(JvmPluginServices.class));
+        configureFeature(mainFeature, providerFactory, jvmPluginServices);
     }
 
     // TODO: The component itself should not be concerned with configuring the sources and javadoc jars
@@ -130,16 +132,18 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         }
     }
 
-    private JvmTestSuite configureBuiltInTest(Project project) {
+    private JvmTestSuite configureBuiltInTest(RoleBasedConfigurationContainerInternal configurations,
+                                              TaskContainer tasks,
+                                              ExtensionContainer extensions,
+                                              ObjectFactory objectFactory) {
         /*
          * At some point we may want to create a test suite per component, but for now we only want to create one for the `java`
          * component, in case multiple DefaultJvmSoftwareComponents are created.
          */
-        TestingExtension testing = project.getExtensions().findByType(TestingExtension.class);
+        TestingExtension testing = extensions.findByType(TestingExtension.class);
         if (null != testing && JvmConstants.JAVA_MAIN_COMPONENT_NAME.equals(getName())) {
             final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JavaPluginHelper.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
                 final SourceSet testSourceSet = suite.getSources();
-                ConfigurationContainer configurations = project.getConfigurations();
 
                 Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
                 Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
@@ -153,8 +157,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
                 final SourceSet mainSourceSet = getMainFeature().getSourceSet();
                 final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
                 final FileCollection testSourceSetOutput = testSourceSet.getOutput();
-                testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
-                testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
+                testSourceSet.setCompileClasspath(objectFactory.fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
+                testSourceSet.setRuntimeClasspath(objectFactory.fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
 
                 testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
                 testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
@@ -163,7 +167,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
             // Force the realization of this test suite, targets and task
             JvmTestSuite suite = testSuite.get();
 
-            project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
+            tasks.named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
 
             return suite;
         } else {
