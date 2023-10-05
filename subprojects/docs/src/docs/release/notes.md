@@ -151,8 +151,9 @@ See [authoring maintainable builds](userguide/authoring_maintainable_builds.html
 ### Dependency verification improvements
 
 When Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII armored versions of the keys.
-With this release you can change this behavior and choose only one format.
-In order to do so, you can edit `verification-metadata.xml` by adding the `keyring-format` setting.
+
+You can now change this behavior to choose only one format.
+To do so, edit `verification-metadata.xml` by adding the `keyring-format` setting:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -167,7 +168,8 @@ In order to do so, you can edit `verification-metadata.xml` by adding the `keyri
 </verification-metadata>
 ```
 
-We've also updated the XML validation schema for `verification-metadata.xml` to be more concise.
+We've also updated the XML validation schema for `verification-metadata.xml`.
+Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
