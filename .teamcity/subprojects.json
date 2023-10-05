@@ -700,13 +700,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "plugins-jvm-test-suite-base",
-    "path": "platforms/jvm/plugins-jvm-test-suite-base",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "precondition-tester",
     "path": "subprojects/precondition-tester",
     "unitTests": true,

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestSuite;
@@ -28,12 +29,10 @@ import org.gradle.testing.base.TestingExtension;
 /**
  * Utility class intended for use only when the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} is applied.
  *
- * This class exists to avoid adding these methods to the {@code org.gradle.api.plugins.JavaPlugin JavaPlugin} itself,
+ * This class exists to avoid adding these methods to the plugin itself,
  * and thus avoids adding these methods to the public API.
  */
-@SuppressWarnings("JavadocReference")
 public class JavaPluginHelper {
-    public static final String DEFAULT_TEST_SUITE_NAME = "test";
 
     private JavaPluginHelper() {
         // Private to prevent instantiation.
@@ -67,7 +66,7 @@ public class JavaPluginHelper {
             throw new GradleException(message);
         }
 
-        TestSuite defaultTestSuite = testing.getSuites().findByName(DEFAULT_TEST_SUITE_NAME);
+        TestSuite defaultTestSuite = testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
         if (!(defaultTestSuite instanceof JvmTestSuite)) {
             throw new GradleException(message);
         }

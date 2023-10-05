@@ -97,8 +97,6 @@
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>
-    <suppress checks="JavadocPackage"
-              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>
 
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
