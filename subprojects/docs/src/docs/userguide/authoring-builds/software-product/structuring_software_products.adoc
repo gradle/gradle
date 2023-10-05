@@ -190,7 +190,7 @@ The project is of no specific type and does not offer any useful content.
 If we add more files to the `domain-model/release` folder now, for example Java source files, Gradle won't know what to do with these files and will just ignore them.
 We need to assign a type to the project to make Gradle aware of the purpose of such files.
 
-In Gradle, you assign a type to a project by <<writing_plugins.adoc#plugins,applying a plugin>>.
+In Gradle, you assign a type to a project by <<plugins.adoc#plugins,applying a plugin>>.
 The simplest thing you can do is to apply one of Gradle's core plugins, like `base` or `java-library`.
 
 However, usually you have additional configuration to do in the context of the product you are building.
@@ -292,7 +292,7 @@ Consult <<composite_builds.adoc#defining_composite_builds,the section on definin
 2. _Declare dependencies between (projects of) components._
 This is done similarly to <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies to binary components>> by using GA (_group_ and _artifact_) coordinates in the `dependencies { }` block of a `build.gradle(.kts)` file:
 `implementation("com.example.platform:product-platform")`.
-Or, if the included component provides a plugin, you <<writing_plugins.adoc#sec:plugins_block,apply the plugin by ID>> similar to how you would apply a plugin from the plugin portal:
+Or, if the included component provides a plugin, you <<plugins.adoc#sec:plugins_block,apply the plugin by ID>> similar to how you would apply a plugin from the plugin portal:
 `plugins { id("com.example.java-library") }`
 
 As another example, consider the setup of our `server-application` component:

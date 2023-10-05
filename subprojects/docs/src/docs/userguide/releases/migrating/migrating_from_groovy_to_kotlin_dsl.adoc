@@ -32,7 +32,7 @@ image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 Please also read the <<kotlin_dsl.adoc#kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
-This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<writing_plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
+This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
 --
 
 
@@ -174,8 +174,8 @@ On top of that, apply the following conventions for better IDE support:
 
 Just like with the Groovy DSL, there are two ways to apply Gradle plugins:
 
-- <<writing_plugins.adoc#sec:plugins_block,declaratively, using the `plugins {}` block>>,
-- <<writing_plugins.adoc#sec:old_plugin_application,imperatively, using the legacy `apply(..)` functions>>.
+- <<plugins.adoc#sec:plugins_block,declaratively, using the `plugins {}` block>>,
+- <<plugins.adoc#sec:old_plugin_application,imperatively, using the legacy `apply(..)` functions>>.
 
 Here's an example using the declarative `plugins {}` block:
 
@@ -204,7 +204,7 @@ include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",file
 
 The declarative nature of the `plugins {}` block enables the Kotlin DSL to provide type-safe accessors to the extensions, configurations and other features contributed by the applied plugins, which makes it easy for IDEs to discover the details of the plugins' models and makes them easy to configure.
 
-See the <<writing_plugins.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
+See the <<plugins.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
 --
 
 
@@ -488,7 +488,7 @@ There are two key best practices that make it easier to work within the static c
  * Using the `plugins {}` block
  * Putting local build logic in the build's _buildSrc_ directory
 
-The <<writing_plugins.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
+The <<plugins.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
 
 Utilizing the <<organizing_gradle_projects.adoc#sec:build_sources,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
 

@@ -56,7 +56,7 @@ Generates a Gradle build.
 `wrapper` — link:{groovyDslPath}/org.gradle.api.tasks.wrapper.Wrapper.html[Wrapper]::
 Generates Gradle wrapper files.
 
-Gradle plugins usually need to be _applied_ to a project before they can be used (see <<writing_plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
 
 The Build Init plugin also uses the `wrapper` task to <<gradle_wrapper.adoc#sec:adding_wrapper,generate the Gradle Wrapper files>> for the build.
 

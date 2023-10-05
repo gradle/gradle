@@ -157,7 +157,7 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 ====
 
-To use the repository in another build, you have to add it to <<writing_plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
+To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.
 
 == Publish your plugin to the Plugin Portal
 

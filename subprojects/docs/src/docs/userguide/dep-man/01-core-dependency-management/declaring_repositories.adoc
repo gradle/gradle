@@ -378,7 +378,7 @@ See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepository
 
 [NOTE]
 ====
-If you leverage exclusive content filtering in the <<writing_plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
+If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
 In that case, the build configuration will fail.
 
 Your options are either to declare all repositories in settings or to use non-exclusive content filtering.
@@ -485,7 +485,7 @@ By default Gradle will use the http://plugins.gradle.org[Gradle plugin portal] t
 However, for different reasons, there are plugins available in other, public or not, repositories.
 When a build requires one of these plugins, additional repositories need to be specified so that Gradle knows where to search.
 
-As the way to declare the repositories and what they are expected to contain depends on the way the plugin is applied, it is best to refer to <<writing_plugins.adoc#sec:custom_plugin_repositories, Custom Plugin Repositories>>.
+As the way to declare the repositories and what they are expected to contain depends on the way the plugin is applied, it is best to refer to <<plugins.adoc#sec:custom_plugin_repositories, Custom Plugin Repositories>>.
 
 [[sub:centralized-repository-declaration]]
 == Centralizing repositories declaration

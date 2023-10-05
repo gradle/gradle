@@ -141,7 +141,7 @@ It is very convenient to use `buildSrc` for that purpose as long as the code doe
 
 The directory `buildSrc` is treated as an <<composite_builds.adoc#composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
 For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
-`buildSrc` should be preferred over <<writing_plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
+`buildSrc` should be preferred over <<plugins.adoc#sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
 
 `buildSrc` uses the same <<java_plugin.adoc#javalayout,source code conventions>> applicable to Java and Groovy projects.
 It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.

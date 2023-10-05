@@ -86,7 +86,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 === Locking buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
-In order to lock the <<writing_plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
+In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
 
 .Locking buildscript classpath configuration
 ====
@@ -130,7 +130,7 @@ That second option, with proper selection of configurations, can be the only opt
 
 Lock state will be preserved in a file located at the root of the project or subproject directory.
 Each file is named `gradle.lockfile`.
-The one exception to this rule is for the lock file for the <<writing_plugins.adoc#sec:applying_plugins_buildscript,buildscript itself>>.
+The one exception to this rule is for the lock file for the <<plugins.adoc#sec:applying_plugins_buildscript,buildscript itself>>.
 In that case the file will be named `buildscript-gradle.lockfile`.
 
 The lockfile will have the following content:

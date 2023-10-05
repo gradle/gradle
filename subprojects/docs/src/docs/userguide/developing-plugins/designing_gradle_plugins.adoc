@@ -27,11 +27,11 @@ This section assumes you have:
 
 === Reusable logic should be written as binary plugin
 
-The Gradle User Manual differentiates two types of plugins: <<writing_plugins.adoc#sec:types_of_plugins,script plugins and binary plugins>>.
+The Gradle User Manual differentiates two types of plugins: <<plugins.adoc#sec:types_of_plugins,script plugins and binary plugins>>.
 Script plugins are basically just plain old Gradle build scripts with a different name.
 While script plugins have their place for organizing build logic in a Gradle project, it’s hard to keep them well-maintained, they are hard to test and you can’t define new reusable types in them.
 
-<<writing_plugins.adoc#sec:binary_plugins,Binary plugins>> should be used whenever logic needs to be reused or shared across independent projects.
+<<plugins.adoc#sec:binary_plugins,Binary plugins>> should be used whenever logic needs to be reused or shared across independent projects.
 They allow for properly structuring code into classes and packages, are cachable, can follow a versioning scheme to enable smooth upgrade procedures and are easily testable.
 
 === Consider the impact on performance
