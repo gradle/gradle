@@ -82,6 +82,7 @@
          <trusted-key id="0a123c1ed3f13a6a0140e166c71fb765cd9de313" group="org.apache.ant"/>
          <trusted-key id="0cb5871fb7bf3b351614bbf6ca85ffe638d4407a" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0e18eae07b7774eac5db3f2113bb90ce8eafbe37" group="com.microsoft.playwright"/>
+         <trusted-key id="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86" group="com.gradle"/>
          <trusted-key id="120d6f34e627ed3a772ebbfe55c7e5e701832382" group="org.yaml" name="snakeyaml"/>
          <trusted-key id="160a7a9cf46221a56b06ad64461a804f2609fd89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079fe63e31c938f10f0df21d1d0a3c384" group="com.google.inject" name="guice" version="4.2.3"/>
@@ -322,9 +323,6 @@
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="ff986d345395d4ad1dc48137bb6fd5ad91d01857" group="org.seleniumhq.selenium"/>
-         <trusted-key id="0ef2cac6b3577539b7ab5bcc91aa2c186c4d7a86">
-            <trusting group="com.gradle"/>
-         </trusted-key>
       </trusted-keys>
    </configuration>
    <components>
@@ -639,6 +637,11 @@
       <component group="com.googlecode.juniversalchardet" name="juniversalchardet" version="1.0.3">
          <artifact name="juniversalchardet-1.0.3.jar">
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
+         </artifact>
+      </component>
+      <component group="com.gradle" name="gradle-enterprise-gradle-plugin" version="3.15.1">
+         <artifact name="gradle-enterprise-gradle-plugin-3.15.1.jar">
+            <pgp value="7b79add11f8a779fe90fd3d0893a028475557671"/>
          </artifact>
       </component>
       <component group="com.gradleup" name="gr8-plugin" version="0.9">
