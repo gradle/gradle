@@ -147,7 +147,6 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
     onlyModified = false
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
-    annotationExcludes.add("@org.gradle.api.Generated")
     richReport({
         it.includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
         it.excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
