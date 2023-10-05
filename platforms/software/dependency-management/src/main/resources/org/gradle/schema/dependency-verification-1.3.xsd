@@ -84,8 +84,8 @@
             <xs:element name="keyring-format" minOccurs="0">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
-                        <xs:enumeration value="text"/>
-                        <xs:enumeration value="gpg"/>
+                        <xs:enumeration value="armored"/>
+                        <xs:enumeration value="binary"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>

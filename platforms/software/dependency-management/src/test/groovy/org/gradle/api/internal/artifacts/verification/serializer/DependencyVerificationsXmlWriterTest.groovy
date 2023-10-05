@@ -245,7 +245,7 @@ on two lines -->
 
     def "can declare keyring format"() {
         when:
-        builder.setKeyringFormat("text")
+        builder.setKeyringFormat("armored")
         serialize()
 
         then:
@@ -254,7 +254,7 @@ on two lines -->
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-      <keyring-format>text</keyring-format>
+      <keyring-format>armored</keyring-format>
    </configuration>
    <components/>
 </verification-metadata>

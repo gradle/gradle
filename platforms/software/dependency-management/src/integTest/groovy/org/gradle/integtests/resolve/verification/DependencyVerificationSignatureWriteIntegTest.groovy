@@ -347,7 +347,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         def pkId = Fingerprint.of(keyring.publicKey)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
-            keyRingFormat("gpg")
+            keyRingFormat("binary")
         }
 
         given:
@@ -376,7 +376,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
-      <keyring-format>gpg</keyring-format>
+      <keyring-format>binary</keyring-format>
       <key-servers>
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
@@ -406,7 +406,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         def pkId = Fingerprint.of(keyring.publicKey)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
-            keyRingFormat("text")
+            keyRingFormat("armored")
         }
 
         given:
@@ -435,7 +435,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
-      <keyring-format>text</keyring-format>
+      <keyring-format>armored</keyring-format>
       <key-servers>
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>

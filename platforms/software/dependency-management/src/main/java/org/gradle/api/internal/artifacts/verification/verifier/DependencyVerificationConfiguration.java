@@ -295,8 +295,8 @@ public class DependencyVerificationConfiguration {
 
     @NonNullApi
     public enum KeyringFormat {
-        TEXT,
-        GPG
+        ARMORED,
+        BINARY
     }
 
     private static int compareNullableStrings(@Nullable String first, @Nullable String second) {

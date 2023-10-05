@@ -532,10 +532,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
             writeBinaryKeyringFile(keyringFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
-        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.TEXT)) {
+        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.ARMORED)) {
             writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), asciiArmoredFile);
-        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.GPG)) {
+        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.BINARY)) {
             writeBinaryKeyringFile(keyringFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
         } else {

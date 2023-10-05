@@ -627,12 +627,12 @@ You can also configure which file type would be generated when keys are exported
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
-      <keyring-format>text</keyring-format>
+      <keyring-format>armored</keyring-format>
    </configuration>
 </verification-metadata>
 ----
 
-Available options for keyring format are `text` and `gpg`.
+Available options for keyring format are `armored` and `binary`.
 Without this setting, Gradle will generate both formats.
 
 [[sec:bootstrapping-signature-verification]]

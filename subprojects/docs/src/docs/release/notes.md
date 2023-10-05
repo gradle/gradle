@@ -163,7 +163,7 @@ To do so, edit `verification-metadata.xml` by adding the `keyring-format` settin
     <configuration>
         <verify-metadata>true</verify-metadata>
         <verify-signatures>true</verify-signatures>
-        <keyring-format>text</keyring-format> <!-- or gpg -->
+        <keyring-format>armored</keyring-format> <!-- or binary -->
     </configuration>
 </verification-metadata>
 ```

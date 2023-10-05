@@ -69,7 +69,7 @@ public class DependencyVerifierBuilder {
         try {
             return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new DependencyVerificationException("Invalid keyring format: The keyring format should be either 'text' or 'gpg', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
+            throw new DependencyVerificationException("Invalid keyring format: " + keyringFormat + ". The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
         }
     }
 

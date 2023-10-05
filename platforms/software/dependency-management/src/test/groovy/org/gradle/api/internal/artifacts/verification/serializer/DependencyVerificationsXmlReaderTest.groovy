@@ -221,10 +221,10 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         verifier.configuration.keyringFormat == expectedResult
 
         where:
-        formatLine                              | expectedResult
-        "<keyring-format>text</keyring-format>" | DependencyVerificationConfiguration.KeyringFormat.TEXT
-        "<keyring-format>gpg</keyring-format>"  | DependencyVerificationConfiguration.KeyringFormat.GPG
-        ""                                      | null
+        formatLine                                 | expectedResult
+        "<keyring-format>armored</keyring-format>" | DependencyVerificationConfiguration.KeyringFormat.ARMORED
+        "<keyring-format>binary</keyring-format>"  | DependencyVerificationConfiguration.KeyringFormat.BINARY
+        ""                                         | null
     }
 
     def "reasonable error message when invalid invalid keyring format given"() {
@@ -240,7 +240,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         then:
         DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
-        e.cause.message == "Invalid keyring format: The keyring format should be either 'text' or 'gpg', which determines how keys are stored. Please choose a valid format or leave it unset to generate both."
+        e.cause.message == "Invalid keyring format: invalid_format. The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both."
     }
 
     def "can parse trusted keys"() {
