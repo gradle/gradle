@@ -280,6 +280,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.MAIN_FEATURE_NAME, sourceSet, Collections.emptyList(),
             (ProjectInternal) project, false, false);
+        // Create a source directories variant for the feature
+        feature.withSourceElements();
 
         // Build the main jar when running `assemble`.
         DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
