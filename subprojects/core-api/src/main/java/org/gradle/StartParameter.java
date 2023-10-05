@@ -180,7 +180,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * <p>Note that this directory is managed by Gradle, and it assumes full ownership of its contents.
      * Plugins and build logic should not store or modify any files or directories within this cache directory.
-     * 
+     *
      * @return project's cache dir, or null if the default location is to be used.
      */
     @Nullable
@@ -990,8 +990,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * it may be disabled due to the presence of configuration cache problems. It is also currently not used during an IDE import/sync.
      *
      * @since 7.6
+     * @deprecated Use {@link org.gradle.api.configuration.BuildFeatures#getConfigurationCache() Configuration Cache build feature} instead.
      */
     @Incubating
+    @Deprecated
     public boolean isConfigurationCacheRequested() {
         return false;
     }
