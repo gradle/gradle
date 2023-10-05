@@ -2,12 +2,9 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver
+import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.*
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTrace
-import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTraceElement
 
 val int = DataType.IntDataType.ref
 val string = DataType.StringDataType.ref
@@ -79,4 +76,60 @@ fun printResolvedAssignments(result: ResolutionResult) {
 inline fun <reified T> typeRef(): DataTypeRef.Name {
     val parts = T::class.qualifiedName!!.split(".")
     return DataTypeRef.Name(FqName(parts.dropLast(1).joinToString("."), parts.last()))
+}
+
+fun printReflection(objectReflection: ObjectReflection): String {
+    val visitedIdentity = mutableSetOf<Long>()
+    
+    fun StringBuilder.recurse(current: ObjectReflection, depth: Int) {
+        fun indent() = "    ".repeat(depth)
+        fun nextIndent() = "    ".repeat(depth + 1)
+        when (current) {
+            is ObjectReflection.ConstantValue -> append(current.value)
+            is ObjectReflection.DataObjectReflection -> {
+                append(current.type.toString() + "#" + current.identity + " ")
+                if (visitedIdentity.add(current.identity)) {
+                    append("{\n")
+                    current.properties.forEach {
+                        append(nextIndent() + it.key.name + " = ")
+                        recurse(it.value, depth + 1)
+                        append("\n")
+                    }
+                    current.addedObjects.forEach {
+                        append("${nextIndent()}+ ")
+                        recurse(it, depth + 1)
+                        append("\n")
+                    }
+                    append("${indent()}}")
+                } else {
+                    append("{ ... }")
+                }
+            }
+
+            is ObjectReflection.External -> append("(external ${current.externalObjectProviderKey.type}})")
+            ObjectReflection.Null -> append("null")
+            is ObjectReflection.PureFunctionInvocation -> {
+                append(current.objectOrigin.function.simpleName)
+                append("#" + current.objectOrigin.invocationId)
+                if (visitedIdentity.add(current.objectOrigin.invocationId)) {
+                    append("(")
+                    if (current.parameterResolution.isNotEmpty()) {
+                        append("\n")
+                        for (param in current.parameterResolution) {
+                            append("${nextIndent()}${param.key.name}")
+                            append(" = ")
+                            recurse(param.value, depth + 1)
+                            append("\n")
+                        }
+                        append(indent())
+                    }
+                    append(")")
+                } else {
+                    append("(...)")
+                }
+            }
+        }
+    }
+
+    return buildString { recurse(objectReflection, 0) }
 }

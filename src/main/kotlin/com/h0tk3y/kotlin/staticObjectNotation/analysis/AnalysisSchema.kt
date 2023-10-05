@@ -12,10 +12,18 @@ data class AnalysisSchema(
 
 sealed interface DataType {
     interface ConstantType<JvmType> : DataType
-    data object IntDataType : ConstantType<Int>
-    data object LongDataType : ConstantType<Long>
-    data object StringDataType : ConstantType<String>
-    data object BooleanDataType : ConstantType<Boolean>
+    data object IntDataType : ConstantType<Int> {
+        override fun toString(): String = "Int"
+    }
+    data object LongDataType : ConstantType<Long> {
+        override fun toString(): String = "Long"
+    }
+    data object StringDataType : ConstantType<String> {
+        override fun toString(): String = "String"
+    }
+    data object BooleanDataType : ConstantType<Boolean> {
+        override fun toString(): String = "Boolean"
+    }
     
     // TODO: implement nulls?
     data object NullType : DataType

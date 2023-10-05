@@ -13,7 +13,7 @@ import kotlin.contracts.contract
 import kotlin.reflect.full.isSubclassOf
 
 data class ResolutionResult(
-    val exprResolution: Map<Expr, ObjectOrigin>,
+    val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
     val assignments: Map<PropertyReferenceResolution, ObjectOrigin>,
     val additions: List<DataAddition>,
     val errors: List<ResolutionError>
@@ -90,6 +90,13 @@ interface AnalysisContextView : TypeRefContext {
     val assignments: Map<PropertyReferenceResolution, ObjectOrigin>
 }
 
+class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
+        is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName)
+        is DataTypeRef.Type -> dataTypeRef.type
+    }
+}
+
 class AnalysisContext(
     override val schema: AnalysisSchema,
     override val imports: Map<String, FqName>,
@@ -99,7 +106,7 @@ class AnalysisContext(
     // TODO: thread safety?
     private val mutableScopes = mutableListOf<AnalysisScope>()
     private val mutableAssignments = mutableMapOf<PropertyReferenceResolution, ObjectOrigin>()
-    private val nextFunctionCallId = AtomicLong(0)
+    private val nextFunctionCallId = AtomicLong(1)
     private val mutableAdditions = mutableListOf<DataAddition>()
 
     override val currentScopes: List<AnalysisScope>
@@ -109,11 +116,10 @@ class AnalysisContext(
         get() = mutableAssignments
 
     val additions: List<DataAddition> get() = mutableAdditions
+    
+    val typeRefContext = SchemaTypeRefContext(schema)
 
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
-        is DataTypeRef.Name -> schema.dataClassesByFqName.getValue(dataTypeRef.fqName)
-        is DataTypeRef.Type -> dataTypeRef.type
-    }
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
 
     fun enterScope(newScope: AnalysisScope) {
         mutableScopes.add(newScope)
@@ -154,7 +160,7 @@ class DataObjectResolverImpl : DataObjectResolver {
             withScope(topLevelScope) {
                 analyzeCodeInProgramOrder(topLevelBlock.statements)
             }
-            return ResolutionResult(emptyMap(), assignments, additions, errors)
+            return ResolutionResult(topLevelReceiver, assignments, additions, errors)
         }
     }
 

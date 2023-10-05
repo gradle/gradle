@@ -23,12 +23,13 @@ class AssignmentTracer(
             }
         }
         val assignments = assignmentResolver.getAssignmentResults()
-        return AssignmentTrace(elementResults, assignments)
+        return AssignmentTrace(elementResults, assignmentResolver, assignments)
     }
 }
 
 class AssignmentTrace(
     val elements: List<AssignmentTraceElement>,
+    val resolver: AssignmentResolver,
     val resolvedAssignments: Map<PropertyReferenceResolution, AssignmentResolver.AssignmentResolutionResult>
 )
 

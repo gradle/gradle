@@ -53,7 +53,7 @@ class AssignmentResolver {
 
     sealed interface AssignmentResolutionResult {
         data class Assigned(val objectOrigin: ObjectOrigin) : AssignmentResolutionResult
-        data class Unassigned(val objectOrigin: PropertyReferenceResolution) : AssignmentResolutionResult
+        data class Unassigned(val property: PropertyReferenceResolution) : AssignmentResolutionResult
     }
 
     fun getAssignmentResults(): Map<PropertyReferenceResolution, AssignmentResolutionResult> {
@@ -89,7 +89,7 @@ class AssignmentResolver {
         data class UnresolvedReceiver(val accessOrigin: ObjectOrigin) : ExpressionResolutionProgress
     }
 
-    private fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
+    fun resolveToObjectOrPropertyReference(objectOrigin: ObjectOrigin): ExpressionResolutionProgress =
         when (objectOrigin) {
             is ObjectOrigin.ConfigureReceiver -> resolveToObjectOrPropertyReference(
                 resolveConfigureReceiver(objectOrigin)
