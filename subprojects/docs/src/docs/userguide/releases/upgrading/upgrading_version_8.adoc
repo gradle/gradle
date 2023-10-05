@@ -1173,20 +1173,20 @@ dependencies {
 ----
 dependencies {
     // If using JUnit Jupiter
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit Vintage
-    testCompileOnly("junit:junit:4.13.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testCompileOnly 'junit:junit:4.13.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit 4
-    testImplementation("junit:junit:4.13.2")
+    testImplementation 'junit:junit:4.13.2'
 
     // If using JUnit 3
-    testCompileOnly("junit:junit:3.8.2")
-    testRuntimeOnly("junit:junit:4.13.2")
+    testCompileOnly 'junit:junit:3.8.2'
+    testRuntimeOnly 'junit:junit:4.13.2'
 }
 ----
 ======
