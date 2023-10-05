@@ -256,11 +256,11 @@ A good solution for solving this problem is the link:https://github.com/etiennes
 [[sec:dont_anticipate_configuration_creation]]
 == Don't anticipate configuration creation
 
-Gradle will create certain configurations using a "check if needed" strategy.
-That means it will only create those configurations if the **do not** already exist.
+Gradle will create certain configurations, such as `default` or `archives`, using a "check if needed" strategy.
+That means it will only create these configurations if they **do not** already exist.
 
-You should **not** create these configurations yourself.
-Names such as `default` or `archives` should be considered implicitly "reserved".
+You should **not** ever create these configurations yourself.
+Names such as these, and the names of configurations associated with source sets, should be considered implicitly "reserved".
 The exact list of reserved names depends on which plugins are applied and how your build is configured.
 
 This situation will be announced with the following deprecation warnings:
