@@ -20,8 +20,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConsumableConfiguration;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -71,29 +69,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         configureFeature(mainFeature, project.getProviders(), ((ProjectInternal) project).getServices().get(JvmPluginServices.class));
     }
 
-    private ConsumableConfiguration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, JvmFeatureInternal feature, JvmPluginServices jvmPluginServices) {
-
-        // TODO: Why are we using this non-standard name? For the `java` component, this
-        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
-        // Can we change this name without breaking compatibility? Is the variant name part
-        // of the component's API?
-        String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
-
-        ConsumableConfiguration variant = configurations.consumable(variantName).get();
-        variant.setDescription("List of source directories contained in the Main SourceSet.");
-        variant.setVisible(false);
-        variant.extendsFrom(mainFeature.getImplementationConfiguration());
-
-        jvmPluginServices.configureAsSources(variant);
-
-        variant.getOutgoing().artifacts(
-            feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
-            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
-        );
-
-        return variant;
-    }
-
     // TODO: The component itself should not be concerned with configuring the sources and javadoc jars
     // of its features. It should lazily react to the variants of the feature being added and configure
     // itself to in turn advertise those variants. However, this requires a more complete variant API,
@@ -129,9 +104,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     private void configureFeature(JvmFeatureInternal feature,
                                   ProviderFactory providerFactory,
                                   JvmPluginServices jvmPluginServices) {
-        // TODO: Should all features also have this variant? Why just the main feature?
-        createSourceElements(configurations, providerFactory, feature, jvmPluginServices);
-
         // Register the consumable configurations as providing variants for consumption.
         addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false));
         addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false));

@@ -50,7 +50,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.configurations.findByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME) == null
         project.configurations.findByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME) == null
         project.configurations.findByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME) == null
-        project.configurations.findByName('mainSourceElements') == null
         project.configurations.findByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME) == null
         project.configurations.findByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME) == null
         project.configurations.findByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME) == null
@@ -70,7 +69,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         component.mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
         component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
         component.mainFeature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
-        project.configurations.getByName('mainSourceElements')
         component.mainFeature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
         component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
         component.mainFeature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
@@ -114,7 +112,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         component.mainFeature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
         component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
         component.mainFeature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
-        project.configurations.getByName('featureSourceElements')
         component.mainFeature.implementationConfiguration == project.configurations.getByName('featureImplementation')
         component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
         component.mainFeature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
