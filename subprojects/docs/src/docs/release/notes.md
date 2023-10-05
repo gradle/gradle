@@ -33,6 +33,9 @@ We would like to thank the following community members for their contributions t
 [Shi Chen](https://github.com/CsCherrYY),
 [Tony Robalik](https://github.com/autonomousapps)
 
+## Correction
+In the initial release notes for Gradle 8.3, it was mentioned in the [Reduced memory consumption](#reduced-memory-consumption) section that the lowest memory usage during synchronization would be achievable with an update to Android Studio Hedgehog. However, this information proved to be incorrect. However, it is Android Studio Iguana that incorporates the most recent updates, enabling a significant reduction in memory consumption.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
