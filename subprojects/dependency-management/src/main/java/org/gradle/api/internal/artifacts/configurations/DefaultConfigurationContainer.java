@@ -406,50 +406,52 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
      */
     private void validateExistingUsageIsConsistent(String confName, ConfigurationRole expectedUsage) {
         ConfigurationInternal conf = getByName(confName);
-        if (!expectedUsage.isUsageConsistentWithRole(conf)) {
-            String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
-            String expectedUsageDesc = UsageDescriber.describeRole(expectedUsage);
+        if (expectedUsage.isUsageConsistentWithRole(conf)) {
+            return;
+        }
 
-            boolean hasContext = getMaybeCreateContext().isPresent();
-            boolean hasSourceSetContext = hasContext && getMaybeCreateContext().get().contains("sourceSet");
+        String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
+        String expectedUsageDesc = UsageDescriber.describeRole(expectedUsage);
 
-            String msgDiscovery;
-            if (hasContext) {
-                msgDiscovery = String.format("When creating configurations during %s, Gradle found that configuration %s already exists with permitted usage(s):\n" +
-                    "%s\n", getMaybeCreateContext().get(), confName, currentUsageDesc);
-            } else {
-                msgDiscovery = String.format("Configuration %s already exists with permitted usage(s):\n" +
-                    "%s\n", confName, currentUsageDesc);
-            }
+        boolean hasContext = getMaybeCreateContext().isPresent();
+        boolean hasSourceSetContext = hasContext && getMaybeCreateContext().get().contains("sourceSet");
 
-            String msgExpectation = String.format("Yet Gradle expected to create it with the usage(s):\n" +
-                "%s\n" +
-                "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, confName);
-            String basicNameAdvice = String.format("Do not create a configuration with the name %s.", confName);
-            String sourceSetAdvice = "Create sourceSets prior to creating or accessing the configurations associated with them.";
+        String msgDiscovery;
+        if (hasContext) {
+            msgDiscovery = String.format("When creating configurations during %s, Gradle found that configuration %s already exists with permitted usage(s):\n" +
+                "%s\n", getMaybeCreateContext().get(), confName, currentUsageDesc);
+        } else {
+            msgDiscovery = String.format("Configuration %s already exists with permitted usage(s):\n" +
+                "%s\n", confName, currentUsageDesc);
+        }
 
-            DeprecationMessageBuilder<?> builder = DeprecationLogger.deprecate(msgDiscovery + msgExpectation);
+        String msgExpectation = String.format("Yet Gradle expected to create it with the usage(s):\n" +
+            "%s\n" +
+            "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, confName);
+        String basicNameAdvice = String.format("Do not create a configuration with the name %s.", confName);
+        String sourceSetAdvice = "Create sourceSets prior to creating or accessing the configurations associated with them.";
+
+        DeprecationMessageBuilder<?> builder = DeprecationLogger.deprecate(msgDiscovery + msgExpectation);
+        if (hasSourceSetContext) {
+            builder.withAdvice(sourceSetAdvice)
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
+                .nagUser();
+        } else {
+            builder.withAdvice(basicNameAdvice)
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("authoring_maintainable_build_scripts", "sec:dont_anticipate_configuration_creation")
+                .nagUser();
+        }
+
+        if (conf.usageCanBeMutated()) {
+            conf.setAllowedUsageFromRole(expectedUsage);
+        } else {
+            List<String> resolutions = Lists.newArrayList(basicNameAdvice);
             if (hasSourceSetContext) {
-                builder.withAdvice(sourceSetAdvice)
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
-                    .nagUser();
-            } else {
-                builder.withAdvice(basicNameAdvice)
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("authoring_maintainable_build_scripts", "sec:dont_anticipate_configuration_creation")
-                    .nagUser();
+                resolutions.add(sourceSetAdvice);
             }
-
-            if (conf.usageCanBeMutated()) {
-                conf.setAllowedUsageFromRole(expectedUsage);
-            } else {
-                List<String> resolutions = Lists.newArrayList(basicNameAdvice);
-                if (hasSourceSetContext) {
-                    resolutions.add(sourceSetAdvice);
-                }
-                throw new UnmodifiableConfigurationException(confName, resolutions);
-            }
+            throw new UnmodifiableConfigurationException(confName, resolutions);
         }
     }
 
