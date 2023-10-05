@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+configurations {
+    myCodeCompileClasspath
+}
+
+sourceSets {
+    myCode
+}

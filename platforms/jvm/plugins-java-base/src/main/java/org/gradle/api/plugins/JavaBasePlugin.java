@@ -266,6 +266,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, RoleBasedConfigurationContainerInternal configurations) {
+        configurations.recordMaybeCreateContext("sourceSet " + sourceSet.getName() + " setup");
+
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
@@ -307,6 +309,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
+
+        configurations.recordMaybeCreateContext(null);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {

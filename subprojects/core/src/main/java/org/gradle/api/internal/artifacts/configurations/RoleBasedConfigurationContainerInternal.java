@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
  * All methods in this interface produce <strong>unlocked</strong> configurations, meaning they
@@ -102,21 +105,31 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     @Deprecated
     Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
+
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new resolvable configuration with the given name.
+     *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
     Configuration maybeCreateResolvableUnlocked(String name);
 
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new consumable configuration with the given name.
+     *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
     Configuration maybeCreateConsumableUnlocked(String name);
 
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new dependency scope configuration with the given name.
+     *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
     Configuration maybeCreateDependencyScopeUnlocked(String name);
 
@@ -126,6 +139,10 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      *
      * <p>If {@code warnOnDuplicate} is false, the normal deprecation warning will not be emitted. Setting this to false
      * should be avoided except in edge cases where it may emit deprecation warnings affecting large third-party plugins.</p>
+     *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created and emit an additional deprecation warning when doing this
+     * <strong>IFF</strong> {@code warnOnDuplicate} is set to {@code true}.
      */
     Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate);
 
@@ -133,6 +150,9 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new configuration with the given name.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
+     *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created and emit an additional deprecation warning.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
@@ -142,10 +162,17 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new resolvable + dependency scope configuration with the given name.
      *
+     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
+     * would be set if the configuration needed to be created and emit an additional deprecation warning.
+     *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
     Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
+
+    Optional<String> getMaybeCreateContext();
+
+    void recordMaybeCreateContext(@Nullable String contextDescription);
 }

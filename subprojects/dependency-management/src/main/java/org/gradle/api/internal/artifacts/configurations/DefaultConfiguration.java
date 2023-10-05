@@ -1700,6 +1700,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
+    public boolean usageCanBeMutated() {
+        return usageCanBeMutated;
+    }
+
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
@@ -1850,10 +1854,17 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
+        setCanBeConsumed(allowed, true);
+    }
+
+    @Override
+    public void setCanBeConsumed(boolean allowed, boolean warn) {
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            maybeWarnOnChangingUsage("consumable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("consumable", allowed);
+            }
         } else if (canBeConsumed && allowed) {
             maybeWarnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
@@ -1866,10 +1877,17 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeResolved(boolean allowed) {
+        setCanBeResolved(allowed, true);
+    }
+
+    @Override
+    public void setCanBeResolved(boolean allowed, boolean warn) {
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            maybeWarnOnChangingUsage("resolvable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("resolvable", allowed);
+            }
         } else if (canBeResolved && allowed) {
             maybeWarnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
@@ -1882,10 +1900,17 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
+        setCanBeDeclared(allowed, true);
+    }
+
+    @Override
+    public void setCanBeDeclared(boolean allowed, boolean warn) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            maybeWarnOnChangingUsage("declarable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("declarable", allowed);
+            }
         } else if (canBeDeclaredAgainst && allowed) {
             maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
         }

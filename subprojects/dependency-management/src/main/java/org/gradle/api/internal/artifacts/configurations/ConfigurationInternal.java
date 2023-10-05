@@ -106,6 +106,28 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     ConfigurationRole getRoleAtCreation();
 
     /**
+     * Indicates if the allowed usages of this configuration (consumable, resolvable, declarable) can be changes.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    boolean usageCanBeMutated();
+
+    /**
+     * Configures if a configuration can be consumed, and if a warning should be emitted if it is not already consumable.
+     */
+    void setCanBeConsumed(boolean allowed, boolean warn);
+
+    /**
+     * Configures if a configuration can be resolved, and if a warning should be emitted if it is not already resolvable.
+     */
+    void setCanBeResolved(boolean allowed, boolean warn);
+
+    /**
+     * Configures if a configuration can have dependencies declared against it, and if a warning should be emitted if it is not already declarable against.
+     */
+    void setCanBeDeclared(boolean allowed, boolean warn);
+
+    /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.
      * This method should probably be made {@code private} when upgrading to Java 9.

@@ -252,3 +252,45 @@ resides in the user's home directory or be injected to the build using command l
 
 If you store sensitive credentials in user home's `gradle.properties`, consider encrypting them. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords.
 A good solution for solving this problem is the link:https://github.com/etiennestuder/gradle-credentials-plugin[Gradle Credentials plugin].
+
+[[sec:dont_anticipate_configuration_creation]]
+== Don't anticipate configuration creation
+
+Gradle will create certain configurations using a "check if needed" strategy.
+That means it will only create those configurations if the **do not** already exist.
+
+You should **not** create these configurations yourself.
+Names such as `default` or `archives` should be considered implicitly "reserved".
+The exact list of reserved names depends on which plugins are applied and how your build is configured.
+
+This situation will be announced with the following deprecation warnings:
+
+```
+Configuration customCompileClasspath already exists with permitted usage(s):
+	Consumable - this configuration can be selected by another project as a dependency
+	Resolvable - this configuration can be resolved by this project to a set of files
+	Declarable - this configuration can have dependencies added to it
+Yet Gradle expected to create it with the usage(s):
+	Resolvable - this configuration can be resolved by this project to a set of files
+```
+
+Gradle will then attempt to mutate the allowed usage to match the expected usage and will emit a second warning:
+
+```
+Gradle will mutate the usage of this configuration to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This is scheduled to be removed in Gradle 9.0. Create sourceSets prior to creating or accessing the configurations associated with them.
+```
+
+Some configurations may have their usage locked against mutation.
+In this case your build will fail and this warning will be immediately followed by an exception with the message:
+
+```
+Gradle cannot mutate the usage of configuration 'customCompileClasspath' because it is locked.
+```
+
+If you encounter this error you must either:
+
+1. Change the name of your configuration to avoid the conflict.
+1. If changing the name is not possible, ensure the allowed usage (consumable, resolvable, declarable against) for your configuration is aligned with Gradle's expectations.
+
+As a best practice, you should not "anticipate" configuration creation - let Gradle create the configuration first and then adjust it.
+Or, if possible, use non-conflicting names for your custom configurations by renaming them when you see this warning.

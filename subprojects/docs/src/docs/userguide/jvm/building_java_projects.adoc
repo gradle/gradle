@@ -122,6 +122,42 @@ You'll learn more about source sets and the features they provide in:
  * <<#sec:custom_java_source_set_paths,Customizing file and directory locations>>
  * <<java_testing.adoc#sec:configuring_java_integration_tests,Configuring Java integration tests>>
 
+[[sec:implicit_sourceset_configurations]]
+=== Source set configurations
+
+When a source set is created, it also creates a number of configurations as described above.
+Build logic should **not** attempt to create or access these configurations until they are first created by the source set.
+
+When creating a source set, if one of these automatically created configurations already exists, Gradle will emit a deprecation warning.
+If the existing configuration's role is different than the role that the source set would have assigned, its role will be mutated to the correct value and another deprecation warning will be emitted.
+
+The build below demonstrates this unwanted behavior.
+
+.Configurations created prior to their associated source sets
+====
+include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
+====
+
+In this case, the following deprecation warning is emitted:
+
+```
+When creating configurations during sourceSet custom setup, Gradle found that configuration customCompileClasspath already exists with permitted usage(s):
+	Consumable - this configuration can be selected by another project as a dependency
+	Resolvable - this configuration can be resolved by this project to a set of files
+	Declarable - this configuration can have dependencies added to it
+Yet Gradle expected to create it with the usage(s):
+	Resolvable - this configuration can be resolved by this project to a set of files
+```
+
+Following two simple best practices will avoid this problem:
+
+1. Don't create configurations with names that will be used by source sets, such as names ending in `Api`, `Implementation`, `ApiElements`, `CompileOnly`, `CompileOnlyApi`, `RuntimeOnly`, `RuntimeClasspath` or `RuntimeElements`.
+(This list is not exhaustive.)
+1. Create any custom source sets prior to any custom configurations.
+
+For more information see <<authoring_maintainable_build_scripts.adoc#sec:dont_anticipate_configuration_creation, Don't anticipate configuration creation>>.
+
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
 
