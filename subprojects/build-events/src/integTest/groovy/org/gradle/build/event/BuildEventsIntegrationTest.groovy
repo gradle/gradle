@@ -207,7 +207,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "listener registered from init script can receive task completion events from buildSrc and main build"() {
-        def initScript = file("init.gradle")
+        def initScript = initScriptFile
         loggingListener(initScript)
         initScript << """
             if (gradle.parent == null) {

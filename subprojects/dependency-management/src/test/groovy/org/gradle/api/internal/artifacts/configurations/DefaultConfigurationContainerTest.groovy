@@ -368,6 +368,16 @@ class DefaultConfigurationContainerTest extends Specification {
         "resolvableDependencyScopeUnlocked(String, Action)" | { resolvableDependencyScopeUnlocked("foo", it) }
     }
 
+    def "role locked configurations default to non-visible"() {
+        expect:
+        !configurationContainer.consumable("a").get().visible
+        !configurationContainer.consumable("b", {}).get().visible
+        !configurationContainer.resolvable("c").get().visible
+        !configurationContainer.resolvable("d", {}).get().visible
+        !configurationContainer.dependencyScope("e").get().visible
+        !configurationContainer.dependencyScope("f", {}).get().visible
+    }
+
     // withType when used with a class that is not a super-class of the container does not work with registered elements
     @NotYetImplemented
     def "can find all configurations even when they're registered"() {

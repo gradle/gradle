@@ -106,17 +106,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         MinimalResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes().asImmutable());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
-        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, EmptyResults.INSTANCE, null);
-    }
-
-    @Override
-    public ResolverResults resolveArtifacts(ResolveContext resolveContext, ResolverResults graphResults) throws ResolveException {
-        if (!resolveContext.hasDependencies() && graphResults.getVisitedArtifacts() == EmptyResults.INSTANCE) {
-            return DefaultResolverResults.artifactsResolved(graphResults.getVisitedGraph(), graphResults.getResolvedLocalComponents(), new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
-        } else {
-            assert graphResults.getArtifactResolveState() != null;
-            return delegate.resolveArtifacts(resolveContext, graphResults);
-        }
+        return DefaultResolverResults.graphResolved(graphResults, emptyProjectResult, new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {

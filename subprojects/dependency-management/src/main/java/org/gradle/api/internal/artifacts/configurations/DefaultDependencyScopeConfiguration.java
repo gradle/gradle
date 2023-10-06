@@ -101,6 +101,8 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             ConfigurationRoles.DEPENDENCY_SCOPE,
             true
         );
+
+        setVisible(false);
     }
 
 }

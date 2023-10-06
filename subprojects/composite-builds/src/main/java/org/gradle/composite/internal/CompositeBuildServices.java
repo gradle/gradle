@@ -45,7 +45,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(CompositeBuildClassPathInitializer.class);
         registration.add(CompositeBuildPluginResolverContributor.class);
     }
 
@@ -63,11 +62,13 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             serviceRegistration.add(DefaultIncludedBuildRegistry.class);
         }
 
-        public GlobalDependencySubstitutionRegistry createGlobalDependencySubstitutionRegistry(CompositeBuildContext context,
-                                                                                               Instantiator instantiator,
-                                                                                               ObjectFactory objectFactory,
-                                                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                                                                               ImmutableAttributesFactory attributesFactory) {
+        public GlobalDependencySubstitutionRegistry createGlobalDependencySubstitutionRegistry(
+            CompositeBuildContext context,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+            ImmutableAttributesFactory attributesFactory
+        ) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
             return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
         }

@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath
 
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import spock.lang.Specification
 
 import java.util.function.Predicate

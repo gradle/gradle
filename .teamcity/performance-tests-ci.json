@@ -186,6 +186,11 @@
         "per_day" : [ "linux" ]
       }
     }, {
+      "testProject" : "nowInAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
@@ -203,6 +208,11 @@
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
@@ -232,6 +242,11 @@
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }

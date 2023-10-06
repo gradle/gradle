@@ -24,7 +24,7 @@ import org.gradle.api.NonNullApi;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classpath.Instrumented.INTERCEPTOR_RESOLVER;
+import static org.gradle.internal.classpath.intercept.CallInterceptorResolver.INTERCEPTOR_RESOLVER;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.

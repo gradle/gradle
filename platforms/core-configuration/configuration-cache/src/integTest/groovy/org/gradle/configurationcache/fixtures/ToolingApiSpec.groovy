@@ -149,7 +149,11 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
-    private void addPluginBuildScript(String targetBuildName) {
+    void addPluginBuildScript(
+        String targetBuildName,
+        String pluginId = 'my.plugin',
+        String implClass = 'my.MyPlugin'
+    ) {
         file("$targetBuildName/build.gradle") << """
             plugins {
                 id("groovy-gradle-plugin")
@@ -157,13 +161,14 @@ trait ToolingApiSpec {
             gradlePlugin {
                 plugins {
                     test {
-                        id = "my.plugin"
-                        implementationClass = "my.MyPlugin"
+                        id = "$pluginId"
+                        implementationClass = "$implClass"
                     }
                 }
             }
         """
     }
+
     def <T> T fetchModel(Class<T> type = SomeToolingModel.class, String... tasks = null) {
         def model = null
         result = toolingApiExecutor.runBuildWithToolingConnection { connection ->
@@ -236,8 +241,8 @@ trait ToolingApiSpec {
                 .projectsLoaded(projectsLoadedAction, { Object model ->
                     projectsLoadedModel = model
                 }).buildFinished(modelAction, { Object model ->
-                    buildModel = model
-                }).build()
+                buildModel = model
+            }).build()
             config.delegate = actionExecuter
             config.call()
             actionExecuter

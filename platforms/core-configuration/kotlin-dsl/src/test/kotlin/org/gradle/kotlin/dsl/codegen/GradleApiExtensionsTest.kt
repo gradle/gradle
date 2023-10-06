@@ -21,19 +21,23 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import org.gradle.api.internal.file.pattern.PatternMatcher
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.internal.hash.Hashing
+import org.gradle.api.Incubating
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinCompilerWarning
+import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
+import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import java.util.Properties
@@ -47,20 +51,6 @@ import kotlin.reflect.KClass
 
 @LeaksFileHandles("embedded Kotlin compiler environment keepalive")
 class GradleApiExtensionsTest : TestWithClassPath() {
-
-    @Test
-    fun `gradle-api-extensions generated jar is reproducible`() {
-
-        apiKotlinExtensionsGenerationFor(
-            ClassToKClass::class,
-            ClassToKClassParameterizedType::class,
-            GroovyNamedArguments::class,
-            ClassAndGroovyNamedArguments::class
-        ) {
-
-            assertGeneratedJarHash("ce126498aa06bb03b1596d80eafc1058")
-        }
-    }
 
     @Test
     fun `maps java-lang-Class to kotlin-reflect-KClass`() {
@@ -307,12 +297,15 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     fun ApiKotlinExtensionsGeneration.assertGeneratedExtensions(vararg expectedExtensions: String) {
 
         generatedSourceFiles = generateKotlinDslApiExtensionsSourceTo(
+            ASM_LEVEL,
+            ClassLoaderUtils.getPlatformClassLoader(),
+            Type.getDescriptor(Incubating::class.java),
             file("src").also { it.mkdirs() },
             "org.gradle.kotlin.dsl",
             "SourceBaseName",
             apiJars,
             emptyList(),
-            PatternMatcher.MATCH_ALL,
+            { true },
             fixtureParameterNamesSupplier
         )
 
@@ -361,21 +354,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     }
 
     private
-    fun GradleApiExtensionsTest.ApiKotlinExtensionsGeneration.assertGeneratedJarHash(hash: String) =
-        file("api-extensions.jar").let { generatedJar ->
-            generateApiExtensionsJar(
-                DefaultTemporaryFileProvider { newFolder("tmp") },
-                generatedJar,
-                apiJars,
-                apiMetadataJar
-            ) {}
-            assertThat(
-                Hashing.md5().hashFile(generatedJar).toZeroPaddedString(32),
-                equalTo(hash)
-            )
-        }
-
-    private
     fun apiJarsWith(vararg classes: KClass<*>): List<File> =
         jarClassPathWith("gradle-api.jar", *classes, org.gradle.api.Generated::class).asFiles
 
@@ -405,21 +383,54 @@ val fixtureParameterNamesSupplier = { key: String ->
             key.contains("Classes(") -> listOf("types")
             else -> null
         }
+
         key.startsWith("${GroovyNamedArguments::class.qualifiedName}.") -> when {
             key.contains("Map(") -> listOf("args")
             key.contains("Parameters(") -> listOf("args", "foo", "bar")
             else -> null
         }
+
         key.startsWith("${ClassAndGroovyNamedArguments::class.qualifiedName}.") -> when {
             key.contains("mapAndClass(") -> listOf("args", "type")
             key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
             key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
             else -> null
         }
+
         key.startsWith("${ClassToKClassParameterizedType::class.qualifiedName}.") -> when {
             key.contains("Class(") -> listOf("type", "list")
             else -> null
         }
+
         else -> null
+    }
+}
+
+
+private
+fun compileKotlinApiExtensionsTo(
+    outputDirectory: File,
+    sourceFiles: Collection<File>,
+    classPath: Collection<File>,
+    logger: Logger,
+) {
+
+    val success = compileToDirectory(
+        outputDirectory,
+        GradleJvmVersion.minimalJavaVersion,
+        "gradle-api-extensions",
+        sourceFiles,
+        logger,
+        classPath = classPath,
+        onCompilerWarning = EmbeddedKotlinCompilerWarning.DEBUG
+    )
+
+    if (!success) {
+        throw IllegalStateException(
+            "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
+                "\tFrom:\n" +
+                sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
+                "\tSee compiler logs for details."
+        )
     }
 }

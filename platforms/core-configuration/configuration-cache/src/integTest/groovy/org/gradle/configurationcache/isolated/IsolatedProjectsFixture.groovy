@@ -164,6 +164,10 @@ class IsolatedProjectsFixture {
         assertNoModelsQueried()
     }
 
+    void assertNoConfigurationCache() {
+        configurationCacheBuildOperations.assertNoConfigurationCache()
+    }
+
     private void assertProjectsConfigured(HasIntermediateDetails details) {
         def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
         assert configuredProjects.collect { fullPath(it) }.toSet() == details.projects

@@ -113,9 +113,6 @@ platforms:
     name: 'core_configuration'
     subprojects:
       - 'platforms/core-configuration/'
-      - 'subprojects/instrumentation-agent/'
-      - 'subprojects/internal-instrumentation-api/'
-      - 'subprojects/internal-instrumentation-processor/'
   - core_execution:
     name: 'core_execution'
     subprojects:
@@ -209,7 +206,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

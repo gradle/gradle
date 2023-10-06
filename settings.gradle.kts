@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
@@ -83,7 +83,6 @@ unassigned {
     subproject("build-profile")
     subproject("security")
     subproject("build-operations")
-    subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
 
@@ -97,6 +96,9 @@ platform("core-runtime") {
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("instrumentation-agent")
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
     subproject("launcher")
     subproject("logging")
     subproject("logging-api")
@@ -195,8 +197,6 @@ platform("enterprise") {
 
 // Internal utility and verification projects
 unassigned {
-    subproject("internal-instrumentation-api")
-    subproject("internal-instrumentation-processor")
     subproject("docs")
     subproject("docs-asciidoctor-extensions-base")
     subproject("docs-asciidoctor-extensions")
