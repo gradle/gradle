@@ -27,6 +27,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -106,7 +107,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        FileLockManager fileLockManager
     ) {
         return new ImmutableTransformWorkspaceServices(
             unscopedCacheBuilderFactory
@@ -116,7 +118,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cacheConfigurations
+            cacheConfigurations,
+            fileLockManager
         );
     }
 }
