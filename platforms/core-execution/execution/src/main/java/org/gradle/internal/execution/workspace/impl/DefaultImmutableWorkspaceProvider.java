@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
+import com.google.common.io.Closer;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
@@ -37,9 +38,12 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Function;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemandShared;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -51,9 +55,11 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
     private final FileLockManager fileLockManager;
+    private final Closeable onClose;
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
+        CacheBuilder buildInHistoryCacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
@@ -63,6 +69,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     ) {
         return withBuiltInHistory(
             cacheBuilder,
+            buildInHistoryCacheBuilder,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
@@ -75,6 +82,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
+        CacheBuilder buildInHistoryCacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
@@ -83,13 +91,18 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheConfigurationsInternal cacheConfigurations,
         FileLockManager fileLockManager
     ) {
+        PersistentCache executionHistoryCache = buildInHistoryCacheBuilder
+            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
+            .withLockOptions(mode(OnDemandExclusive))
+            .open();
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
-            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
+            cache -> new DefaultExecutionHistoryStore(() -> executionHistoryCache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup,
             cacheConfigurations,
-            fileLockManager
+            fileLockManager,
+            executionHistoryCache
         );
     }
 
@@ -106,7 +119,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             __ -> executionHistoryStore,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
             cacheConfigurations,
-            fileLockManager
+            fileLockManager,
+            () -> {}
         );
     }
 
@@ -116,7 +130,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         Function<PersistentCache, ExecutionHistoryStore> historyFactory,
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        FileLockManager fileLockManager,
+        Closeable onClose
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
@@ -127,9 +142,10 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
         this.executionHistoryStore = historyFactory.apply(cache);
+        this.onClose = onClose;
     }
 
-    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
+    private static CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
         return DefaultCacheCleanupStrategy.from(
             createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations),
             cacheConfigurations.getCleanupFrequency()::get
@@ -158,6 +174,11 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public void close() {
-        cache.close();
+        try (Closer closer = Closer.create()) {
+            closer.register(onClose);
+            closer.register(cache);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
