@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -24,48 +23,42 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
-import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
- */
-public class BuildStatusRenderer implements OutputEventListener {
-    public static final int PROGRESS_BAR_WIDTH = 13;
-    public static final String PROGRESS_BAR_PREFIX = "<";
-    public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
-    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
-    public static final String PROGRESS_BAR_SUFFIX = ">";
+abstract class BuildStatusRenderer implements OutputEventListener {
 
-    private enum Phase {
-        Initializing, Configuring, Executing
+    protected enum Phase {
+        Initializing, Configuring, Executing, Waiting
     }
 
     private final OutputEventListener listener;
-    private final StyledLabel buildStatusLabel;
-    private final Console console;
-    private final ConsoleMetaData consoleMetaData;
     private OperationIdentifier buildProgressOperationId;
     private Phase currentPhase;
     private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private long currentTimePeriod;
 
-    // What actually shows up on the console
-    private ProgressBar progressBar;
-
     // Used to maintain timer
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    BuildStatusRenderer(OutputEventListener listener) {
         this.listener = listener;
-        this.buildStatusLabel = buildStatusLabel;
-        this.console = console;
-        this.consoleMetaData = consoleMetaData;
+    }
+
+    protected Phase getCurrentPhase() {
+        return currentPhase;
+    }
+
+    protected long getBuildStartTimestamp() {
+        return buildStartTimestamp;
+    }
+
+    protected boolean getTimerEnabled() {
+        return timerEnabled;
     }
 
     @Override
@@ -78,10 +71,10 @@ public class BuildStatusRenderer implements OutputEventListener {
                     // TODO - should use BuildRequestMetaData to determine the build start time
                     buildStartTimestamp = startEvent.getTimestamp();
                     buildProgressOperationId = startEvent.getProgressOperationId();
-                    phaseStarted(startEvent, Phase.Initializing);
+                    phaseStartedInternal(startEvent, Phase.Initializing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
-                    phaseStarted(startEvent, Phase.Configuring);
+                    phaseStartedInternal(startEvent, Phase.Configuring);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase == Phase.Configuring) {
                     // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
                     phaseHasMoreProgress(startEvent);
@@ -89,7 +82,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                     // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
-                    phaseStarted(startEvent, Phase.Executing);
+                    phaseStartedInternal(startEvent, Phase.Executing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
                     // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
                     phaseHasMoreProgress(startEvent);
@@ -101,7 +94,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
-                buildEnded();
+                buildEndedInternal();
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
                 phaseProgressed(completeEvent);
             }
@@ -117,46 +110,28 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
-    private void renderNow(long now) {
-        if (progressBar != null) {
-            buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
-        }
-        console.flush();
-    }
+    protected abstract void renderNow(long now);
 
-    private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
+    private void phaseStartedInternal(ProgressStartEvent startEvent, Phase phase) {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        progressBar = newProgressBar(phase.name().toUpperCase(), 0, progressStartEvent.getTotalProgress());
+        phaseStarted(startEvent, phase);
     }
 
-    private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
-        progressBar.moreProgress(progressStartEvent.getTotalProgress());
-    }
+    protected abstract void phaseStarted(ProgressStartEvent startEvent, Phase phase);
 
-    private void phaseProgressed(ProgressCompleteEvent progressEvent) {
-        if (progressBar != null) {
-            progressBar.update(progressEvent.isFailed());
-        }
-    }
+    protected abstract void phaseHasMoreProgress(ProgressStartEvent progressStartEvent);
 
-    private void buildEnded() {
-        progressBar = newProgressBar("WAITING", 0, 1);
-        currentPhase = null;
+    protected abstract void phaseProgressed(ProgressCompleteEvent progressEvent);
+
+    private void buildEndedInternal() {
+        currentPhase = Phase.Waiting;
         buildProgressOperationId = null;
         currentPhaseChildren.clear();
         timerEnabled = false;
+        buildEnded();
     }
 
-    @VisibleForTesting
-    public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            PROGRESS_BAR_SUFFIX,
-            PROGRESS_BAR_COMPLETE_CHAR,
-            PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix, initialProgress, totalProgress);
-    }
+    protected abstract void buildEnded();
 }

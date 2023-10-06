@@ -24,7 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
-import org.gradle.internal.logging.console.BuildStatusRenderer;
+import org.gradle.internal.logging.console.RichBuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
@@ -279,7 +279,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener getConsoleChainWithDynamicStdout(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
         return throttled(
             new UserInputConsoleRenderer(
-                new BuildStatusRenderer(
+                new RichBuildStatusRenderer(
                     new WorkInProgressRenderer(
                         new BuildLogLevelFilterRenderer(
                             new GroupingProgressLogEventGenerator(consoleListener, new PrettyPrefixedLogHeaderFormatter(), verbose)
