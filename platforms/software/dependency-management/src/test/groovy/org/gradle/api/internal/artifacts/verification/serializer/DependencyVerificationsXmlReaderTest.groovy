@@ -190,14 +190,14 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }
 
-    def "can parse ignored keys"() {
+    def "can parse and normalize ignored keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
    <configuration>
       <verify-metadata>true</verify-metadata>
       <ignored-keys>
-         <ignored-key id="ABCDEF"/>
+         <ignored-key id="ABcdEF"/>
          <ignored-key id="012345" reason="nope"/>
       </ignored-keys>
    </configuration>
@@ -243,7 +243,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         e.cause.message == "Invalid keyring format: invalid_format. The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both."
     }
 
-    def "can parse trusted keys"() {
+    def "can parse and normalize trusted keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
@@ -251,7 +251,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="A000000000000000000000000000000000000000" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="Abcd000000000000000000000000000000000000" group="g2" name="m1" file="file.jar" regex="true"/>
          <trusted-key id="B000000000000000000000000000000000000000">
             <trusting name="m3" version="1.4" file="file.zip"/>
             <trusting name="m4" file="other-file.zip" regex="true"/>
@@ -268,7 +268,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         def trustedKeys = verifier.configuration.trustedKeys
         trustedKeys.size() == 5
 
-        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
+        trustedKeys[0].keyId == "ABCD000000000000000000000000000000000000"
         trustedKeys[0].group == "g2"
         trustedKeys[0].name == "m1"
         trustedKeys[0].version == null
@@ -302,8 +302,6 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         trustedKeys[4].version == null
         trustedKeys[4].fileName == null
         trustedKeys[4].regex == false
-
-
     }
 
     def "can parse dependency verification metadata"() {
@@ -397,7 +395,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 
     }
 
-    def "can parse artifact specific ignored keys"() {
+    def "can parse and normalize artifact specific ignored keys"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata>
@@ -409,7 +407,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
       <component group="org" name="foo" version="1.0">
          <artifact name="foo-1.0.jar">
             <ignored-keys>
-               <ignored-key id="ABC"/>
+               <ignored-key id="ABCdef"/>
             </ignored-keys>
          </artifact>
          <artifact name="foo-1.0.pom">
@@ -425,7 +423,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         then:
         def component = verifier.verificationMetadata[0]
         def artifacts = component.artifactVerifications
-        artifacts[0].ignoredPgpKeys == [key('ABC')] as Set
+        artifacts[0].ignoredPgpKeys == [key('ABCDEF')] as Set
         artifacts[1].ignoredPgpKeys == [key('123'), key('456', 'bad things happen')] as Set
     }
 

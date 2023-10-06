@@ -72,22 +72,6 @@ class DependencyVerificationFixture {
         }
     }
 
-    void hasIgnoredKeys(Collection<String> ignoredKeys) {
-        withVerifier {
-            def actualIgnored = configuration.ignoredKeys
-            def expected = ignoredKeys as Set
-            assert actualIgnored == expected
-        }
-    }
-
-    void hasTrustedKeys(Collection<String> trustedKeys) {
-        withVerifier {
-            def actualIgnored = configuration.trustedKeys*.keyId as Set
-            def expected = trustedKeys as Set
-            assert actualIgnored == expected
-        }
-    }
-
     void hasNoModules() {
         hasModules([])
     }
