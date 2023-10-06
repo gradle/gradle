@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy-all:3.0.13'
+    implementation 'org.codehaus.groovy:groovy-all:3.0.18'
 }
 
 publishing {

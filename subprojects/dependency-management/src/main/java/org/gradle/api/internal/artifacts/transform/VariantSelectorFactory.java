@@ -16,16 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-
 public interface VariantSelectorFactory {
     /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
+     * Returns a selector that selects using variant aware attribute matching.
      */
-    VariantSelector create(
-        AttributeContainerInternal consumerAttributes,
-        boolean allowNoMatchingVariants,
-        boolean selectFromAllVariants,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory
-    );
+    ArtifactVariantSelector create(TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory);
 }

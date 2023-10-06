@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -33,12 +32,6 @@ import org.junit.Rule
 class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
     private ProjectDependencyMetadataConverter converter = new ProjectDependencyMetadataConverter(excludeRuleConverterStub)
-    private final ComponentIdentifier componentId = new ComponentIdentifier() {
-        @Override
-        String getDisplayName() {
-            return "example"
-        }
-    }
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
@@ -54,7 +47,7 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         def configuration = withArtifacts ? null : TEST_DEP_CONF
         ProjectDependency projectDependency = createProjectDependency(configuration)
         setUpDependency(projectDependency, withArtifacts)
-        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, projectDependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(projectDependency)
 
         then:
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)

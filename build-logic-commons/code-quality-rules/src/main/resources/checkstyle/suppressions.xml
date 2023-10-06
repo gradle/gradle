@@ -58,6 +58,12 @@
               files=".*[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]toolchains-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]java-platform[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
 
     <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
@@ -73,6 +79,25 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]war[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]bundling[/\\][^/\\]+"/>
 
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]language-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]language-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>
+
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>
@@ -80,6 +105,10 @@
     <!-- JavaScript plugin is incubating -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]javascript[/\\].+"/>
+
+    <!-- These packages are duplicated in ide and ide-plugins, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]ide[/\\]ide-plugins[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]plugins[/\\]ide[/\\]eclipse[/\\][^/\\]+"/>
 
     <!-- Protocol types may only define constants in interfaces -->
     <suppress checks="InterfaceIsTypeCheck"

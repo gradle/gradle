@@ -18,9 +18,7 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -33,9 +31,6 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         expectReindentedValidationMessage()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
         withPrecompiledScriptPlugins()
         def pluginFile = file("buildSrc/src/main/groovy/test.gradle.demo.plugin.gradle")
@@ -61,9 +56,6 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         }.trim())
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.TEST_PROBLEM
-    )
     def "detects that a problem is from a task declared in plugin"() {
         settingsFile << """
             includeBuild 'my-plugin'
@@ -132,7 +124,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         file("my-plugin/src/main/groovy/org/gradle/integtests/fixtures/validation/ValidationProblem.groovy") << """
 package org.gradle.integtests.fixtures.validation;
 
-import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.api.problems.Severity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -162,7 +154,7 @@ public @interface ValidationProblem {
     private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
         testFile << """$header
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.internal.reflect.validation.Severity
+            import org.gradle.api.problems.Severity
 
             abstract class SomeTask extends DefaultTask {
                 @ValidationProblem(value=Severity.ERROR)

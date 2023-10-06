@@ -1,0 +1,290 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_daemon]]
+= Gradle Daemon
+
+A daemon is a computer program that runs as a background process rather than being under the direct control of an interactive user.
+
+Gradle runs on the Java Virtual Machine (JVM) and uses several supporting libraries with non-trivial initialization time.
+Startups can be slow.
+The **Gradle Daemon** solves this problem.
+
+The Gradle Daemon is a long-lived background process that reduces the time it takes to run a build.
+
+The Gradle Daemon reduces build times by:
+
+* Caching project information across builds
+* Running in the background so every Gradle build doesn't have to wait for JVM startup
+* Benefiting from continuous runtime optimization in the JVM
+* <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
+
+[[understanding_wrapper]]
+== Understanding the Daemon
+
+The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
+The Wrapper is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
+Communication between the client and the Daemon happens via a local socket connection.
+
+Daemons use the JVM's default minimum heap size.
+
+If the requested build environment does not specify a maximum heap size, the Daemon uses up to 512MB of heap.
+512MB is adequate for most builds.
+Larger builds with hundreds of subprojects, configuration, and source code may benefit from a larger heap size.
+
+[[sec:status]]
+== Check Daemon status
+
+To get a list of running Daemons and their statuses, use the `--status` command:
+
+----
+$ gradle --status
+----
+
+----
+   PID STATUS   INFO
+ 28486 IDLE     7.5
+ 34247 BUSY     7.5
+----
+
+Currently, a given Gradle version can only connect to Daemons of the same version.
+This means the status output only shows Daemons spawned running the same version of Gradle as the current project.
+
+[[find_all_daemons]]
+== Find Daemons
+
+If you have installed the Java Development Kit (JDK), you can view live daemons with the `jps` command.
+
+----
+$ jps
+----
+----
+33920 Jps
+27171 GradleDaemon
+22792
+----
+
+Live Daemons appear under the name `GradleDaemon`.
+Because this command uses the JDK, you can view Daemons running any version of Gradle.
+
+== Enable Deamon
+
+Gradle enables the Daemon by default since Gradle 3.0.
+If your project doesn't use the Daemon, you can enable it for a single build with the `--daemon` flag when you run a build:
+
+----
+$ gradle <task> --daemon
+----
+
+This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
+
+To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the project root or your Gradle User Home (`GRADLE_USER_HOME`:
+
+====
+.gradle.properties
+[source,properties]
+----
+org.gradle.daemon=true
+----
+====
+
+[[sec:disabling_the_daemon]]
+== Disable Daemon
+
+You can disable the Daemon in multiple ways but there are important considerations:
+
+Single-use Deamon :: If the JVM args of the client process don't match what the build requires, a single-used Daemon (disposable JVM) is created.
+This means the Daemon is required for the build, so it is created, used, and then stopped at the end of the build.
+
+No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, the Daemon will not be used at all since the build happens in the client JVM.
+
+=== Disable for a build
+
+To disable the Daemon for a single build, pass the `--no-daemon` flag when you run a build:
+
+----
+$ gradle <task> --no-daemon
+----
+
+This flag overrides any settings that enable the Daemon in your project including the `gradle.properties` files.
+
+=== Disable for a project
+
+To disable the Daemon for all builds of a project, add `org.gradle.daemon=false` to the `gradle.properties` file in the project root.
+
+=== Disable for a user
+
+On Windows, this command disables the Daemon for the current user:
+
+[source]
+----
+(if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
+----
+
+On UNIX-like operating systems, the following Bash shell command disables the Daemon for the current user:
+
+[source,bash]
+----
+mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+----
+
+=== Disable globally
+
+There are two recommended ways to disable the Daemon globally across an environment:
+
+* add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
+* add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
+
+Don't forget to make sure your JVM arguments and `GRADLE_OPTS` / `JAVA_OPTS` match if you want to completely disable the Daemon and not simply invoke a single-use one.
+
+[[sec:stopping_an_existing_daemon]]
+== Stop Daemon
+
+It can be helpful to stop the Daemon when troubleshooting or debugging a failure.
+
+Daemons automatically stop given any of the following conditions:
+
+* Available system memory is low
+* Daemon has been idle for 3 hours
+
+To stop running Daemon processes, use the following command:
+
+----
+$ gradle --stop
+----
+
+This terminates all Daemon processes started with the same version of Gradle used to execute the command.
+
+You can also kill Daemons manually with your operating system.
+To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
+
+[[sec:tools_and_ides]]
+== Tools & IDEs
+
+The <<third_party_integration.adoc#embedding,Gradle Tooling API>> used by IDEs and other tools to integrate with Gradle _always_ uses the Gradle Daemon to execute builds.
+If you execute Gradle builds from within your IDE, you already use the Gradle Daemon.
+There is no need to enable it for your environment.
+
+== Continuous Integration
+
+We recommend using the Daemon for developer machines and Continuous Integration (CI) servers.
+
+[[deamon_compatibility]]
+== Compatibility
+
+Gradle starts a new Daemon if no idle or compatible Daemons exist.
+
+The following values determine compatibility:
+
+* *Requested build environment*, including the following:
+** Java version
+** JVM attributes
+** JVM properties
+* Gradle version
+
+Compatibility is based on exact matches of these values.
+For example:
+
+* If a Daemon is available with a Java 8 runtime, but the requested build environment calls for Java 10,
+then the Daemon is not compatible.
+
+* If a Daemon is available running Gradle 7.0, but the current build uses Gradle 7.4, then the
+Daemon is not compatible.
+
+Certain properties of a Java runtime are _immutable_: they cannot be changed once the JVM has started.
+The following JVM system properties are immutable:
+
+* `file.encoding`
+* `user.language`
+* `user.country`
+* `user.variant`
+* `java.io.tmpdir`
+* `javax.net.ssl.keyStore`
+* `javax.net.ssl.keyStorePassword`
+* `javax.net.ssl.keyStoreType`
+* `javax.net.ssl.trustStore`
+* `javax.net.ssl.trustStorePassword`
+* `javax.net.ssl.trustStoreType`
+* `com.sun.management.jmxremote`
+
+The following JVM attributes controlled by startup arguments are also immutable:
+
+* The maximum heap size (the `-Xmx` JVM argument)
+* The minimum heap size (the `-Xms` JVM argument)
+* The boot classpath (the `-Xbootclasspath` argument)
+* The "assertion" status (the `-ea` argument)
+
+If the requested build environment requirements for any of these properties and attributes
+differ from the Daemon's JVM requirements, the Daemon is not compatible.
+
+[NOTE]
+====
+For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
+====
+
+[[sec:why_the_daemon]]
+== Performance Impact
+
+The Daemon can reduce build times by 15-75% when you build the same project repeatedly.
+
+TIP: To understand the Daemon's impact on your builds, you can profile your build with `--profile`.
+
+In between builds, the Daemon waits idly for the next build.
+As a result, your machine only loads Gradle into memory once for multiple builds instead of once per build.
+This is a significant performance optimization.
+
+=== Runtime Code Optimizations
+
+The JVM gains significant performance from **runtime code optimization**: optimizations applied to code while it runs.
+
+JVM implementations like OpenJDK's Hotspot progressively optimize code during execution.
+Consequently, subsequent builds can be faster purely due to this optimization process.
+
+With the Daemon, perceived build times can drop dramatically between a project's 1^st^ and 10^th^ builds.
+
+=== Memory Caching
+
+The Daemon enables in-memory caching across builds.
+This includes classes for plugins and build scripts.
+
+Similarly, the Daemon maintains in-memory caches of build data, such as the hashes of task inputs and outputs for incremental builds.
+
+== Performance Monitoring
+
+Gradle actively monitors heap usage to detect memory leaks in the Daemon.
+
+When a memory leak exhausts available heap space, the Daemon:
+
+. Finishes the currently running build.
+. Restarts before running the next build.
+
+Gradle enables this monitoring by default.
+
+To disable this monitoring, set the `org.gradle.daemon.performance.enable-monitoring` Daemon option to `false`.
+
+You can do this on the command line with the following command:
+
+----
+$ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
+----
+
+Or you can configure the property in the `gradle.properties` file in the project root or your GRADLE_USER_HOME (Gradle User Home):
+
+====
+.gradle.properties
+[source,properties]
+----
+org.gradle.daemon.performance.enable-monitoring=false
+----
+====

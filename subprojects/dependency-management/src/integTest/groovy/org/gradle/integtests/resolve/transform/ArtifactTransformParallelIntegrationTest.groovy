@@ -33,7 +33,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         setupBuild(new BuildTestFile(testDirectory, "root"))
 
         executer.beforeExecute {
-            withArguments("--max-workers=10")
+            withArgument("--max-workers=10")
         }
     }
 

@@ -34,12 +34,15 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Problems
+import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,13 +50,12 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
 import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
-class LibrariesSourceGeneratorTest extends Specification implements VersionCatalogErrorMessages {
+class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
 
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
@@ -268,10 +270,10 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         where:
-        reservedName          | prefix
-        "bundles"             | "bundles"
-        "versions"            | "versions"
-        "plugins"             | "plugins"
+        reservedName | prefix
+        "bundles"    | "bundles"
+        "versions"   | "versions"
+        "plugins"    | "plugins"
     }
 
     @VersionCatalogProblemTestFor(
@@ -356,13 +358,25 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier))
+        def stub = Stub(BuildOperationProgressEventEmitter)
+        def problems = new DefaultProblems(stub)
+        DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
+            "lib",
+            Interners.newStrongInterner(),
+            Interners.newStrongInterner(),
+            TestUtil.objectFactory(),
+            Stub(Supplier)) {
+            @Override
+            protected Problems getProblemService() {
+                problems
+            }
+        }
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
         def writer = new StringWriter()
         def model = builder.build()
-        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className)
+        LibrariesSourceGenerator.generateSource(writer, model, 'org.test', className, problems)
         sources = new GeneratedSource(className, writer.toString(), model)
     }
 

@@ -19,15 +19,12 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assert
-import org.junit.Rule
 import org.junit.Test
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
-    @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
     void givesReasonableErrorMessageWhenPathCannotBeConverted() {

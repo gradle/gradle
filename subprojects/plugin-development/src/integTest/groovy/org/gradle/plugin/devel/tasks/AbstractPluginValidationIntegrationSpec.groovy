@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
+import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -37,22 +38,17 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
+import static org.gradle.api.problems.Severity.ERROR
+import static org.gradle.api.problems.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
+
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -187,9 +183,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE
-    )
+
     def "detects optional primitive type #primitiveType"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -211,7 +205,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationFailsWith([
             error(optionalOnPrimitive {
                 type('MyTask').property('primitive')
-                .primitive(primitiveType)
+                    .primitive(primitiveType)
             }, "validation_problems", "cannot_use_optional_on_primitive_types"),
         ])
 
@@ -226,9 +220,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         short         | "(short) 5"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
-    )
+
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.work.*;
@@ -267,9 +259,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MISSING_ANNOTATION
-    )
+
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -397,9 +387,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.MUTABLE_TYPE_WITH_SETTER
-    )
+
     def "reports setters for property of mutable type #testedType"() {
         file("input.txt").text = "input"
 
@@ -444,9 +432,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
-    )
+
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -491,9 +477,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD
-    )
+
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -535,10 +519,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor([
-        ValidationProblemId.IGNORED_ANNOTATIONS_ON_METHOD,
-        ValidationProblemId.MISSING_ANNOTATION
-    ])
+
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -595,9 +576,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED
-    )
+
     def "reports conflicting types when property is replaced"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -635,9 +614,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ])
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.CONFLICTING_ANNOTATIONS
-    )
+
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;

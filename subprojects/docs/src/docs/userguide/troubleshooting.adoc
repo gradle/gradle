@@ -1,10 +1,10 @@
-// Copyright 2017 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -121,7 +121,7 @@ In addition to <<command_line_interface.adoc#sec:command_line_logging,controllin
 You can also replace much of Gradle’s logging with your own by registering various event listeners. One example of a <<logging.adoc#sec:changing_what_gradle_logs,custom event logger is explained in the logging documentation>>. You can also <<logging.adoc#sec:external_tools,control logging from external tools>>, making them more verbose in order to debug their execution.
 
 [NOTE]
-Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can be found under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/<gradle-version>/`.
+Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can be found under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`.
 
 === Task executed when it should have been UP-TO-DATE
 

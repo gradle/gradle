@@ -24,6 +24,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -31,7 +32,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.model.VariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -78,13 +79,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         if (targetComponentState instanceof LenientPlatformGraphResolveState) {
             VariantGraphResolveState variant = ((LenientPlatformGraphResolveState) targetComponentState).getDefaultVariant(from, platformId);
-            return new VariantSelectionResult(Collections.singletonList(variant), false);
+            return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(cs, ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override

@@ -16,15 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-
-import javax.annotation.Nullable;
-import java.util.function.Function;
 
 /**
  * Immutable representation of the state of dependency resolution. Can represent intermediate resolution states after
@@ -37,14 +32,19 @@ import java.util.function.Function;
 public interface ResolverResults {
 
     /**
-     * Returns true if there was a failure attached to this result.
-     */
-    boolean hasError();
-
-    /**
-     * Returns the old model, slowly being replaced by the new model represented by {@link ResolutionResult}. Requires artifacts to be resolved.
+     * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
+     * Using this model directly should be avoided.
+     * This method should only be used to implement existing public API methods.
+     *
+     * @throws IllegalStateException if only build dependencies have been resolved.
      */
     ResolvedConfiguration getResolvedConfiguration();
+
+    /**
+     * Return the model representing the resolved graph. This model provides access
+     * to the root component as well as any failure that occurred while resolving the graph.
+     */
+    VisitedGraphResults getVisitedGraph();
 
     /**
      * Returns details of the artifacts visited during dependency graph resolution. This set is later refined during artifact resolution.
@@ -52,45 +52,7 @@ public interface ResolverResults {
     VisitedArtifactSet getVisitedArtifacts();
 
     /**
-     * Returns the dependency graph resolve result.
-     */
-    @Nullable
-    ResolutionResult getResolutionResult();
-
-    /**
      * Returns details of the local components in the resolved dependency graph.
      */
-    @Nullable
     ResolvedLocalComponentsResult getResolvedLocalComponents();
-
-    /**
-     * Returns intermediate state saved between dependency graph resolution and artifact resolution.
-     */
-    @Nullable
-    ArtifactResolveState getArtifactResolveState();
-
-    /**
-     * Returns the non-fatal failure, if present.
-     */
-    @Nullable
-    Throwable getNonFatalFailure();
-
-    /**
-     * Returns the failure, fatal or non-fatal, or null if there's no failure. Used internally to
-     * set the failure on the resolution build operation result.
-     */
-    @Nullable
-    ResolveException getFailure();
-
-    /**
-     * Return a new result with the provided {@code resolveException} attached.
-     */
-    ResolverResults withFailure(ResolveException failure);
-
-    /**
-     * Returns a new result with a resolution result equal to the value returned by the provided updater.
-     *
-     * @param updater a function that takes the current resolution result and returns a new resolution result
-     */
-    ResolverResults updateResolutionResult(Function<ResolutionResult, ResolutionResult> updater);
 }

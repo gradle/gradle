@@ -3,5 +3,5 @@ plugins {
 }
 
 greeting {
-    who.set("Bob")
+    who = "Bob"
 }

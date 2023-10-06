@@ -75,6 +75,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ExportKeysOption());
         options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
+        options.add(new ConfigurationCacheIgnoreInputsInTaskGraphSerialization());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheIgnoredFileSystemCheckInputs());
         options.add(new ConfigurationCacheDebugOption());
@@ -528,19 +529,34 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheIgnoreInputsInTaskGraphSerialization extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
+
+        public ConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(value);
+        }
+    }
+
     public static class ConfigurationCacheMaxProblemsOption extends IntegerBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.max-problems";
+
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.max-problems";
 
         public ConfigurationCacheMaxProblemsOption() {
             super(PROPERTY_NAME, DEPRECATED_PROPERTY_NAME);
         }
-
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
         }
+
     }
 
     public static class ConfigurationCacheIgnoredFileSystemCheckInputs extends StringBuildOption<StartParameterInternal> {

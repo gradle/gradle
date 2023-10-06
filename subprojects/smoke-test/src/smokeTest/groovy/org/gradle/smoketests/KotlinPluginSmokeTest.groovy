@@ -49,6 +49,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
 
@@ -101,6 +102,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
+                }
             }.build()
 
         then:
@@ -158,12 +162,17 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
-        result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
+        if (VersionNumber.parse(kotlinVersion).baseVersion >= VersionNumber.parse("1.9.20")) {
+            result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
+        } else {
+            result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
+        }
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
@@ -200,6 +209,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectProjectConventionDeprecation(versionNumber)
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
+                if (GradleContextualExecuter.isConfigCache()) {
+                    expectForUseAtConfigurationTimeDeprecation(versionNumber)
+                }
             }.build()
 
         then:

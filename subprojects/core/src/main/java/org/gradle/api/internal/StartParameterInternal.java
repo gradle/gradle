@@ -36,6 +36,7 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
+    private boolean configurationCacheIgnoreInputsInTaskGraphSerialization = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheRecreateCache;
@@ -153,6 +154,7 @@ public class StartParameterInternal extends StartParameter {
         return isolatedProjects;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
         return configurationCache.get();
@@ -176,6 +178,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheDebug(boolean configurationCacheDebug) {
         this.configurationCacheDebug = configurationCacheDebug;
+    }
+
+    public boolean isConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+        return configurationCacheIgnoreInputsInTaskGraphSerialization;
+    }
+
+    public void setConfigurationCacheIgnoreInputsInTaskGraphSerialization(boolean ignoreInputsInTaskGraphSerialization) {
+        configurationCacheIgnoreInputsInTaskGraphSerialization = ignoreInputsInTaskGraphSerialization;
     }
 
     public int getConfigurationCacheMaxProblems() {

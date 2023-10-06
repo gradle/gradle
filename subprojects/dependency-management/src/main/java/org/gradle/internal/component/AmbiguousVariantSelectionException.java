@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,20 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDescriber;
-import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForAmbiguity;
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
-
-public class AmbiguousVariantSelectionException extends VariantSelectionException {
-
-    public AmbiguousVariantSelectionException(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
-        super(format(describer, producerDisplayName, requested, matches, matcher, discarded));
+/**
+ * This type is {@code deprecated} and will be removed in Gradle 9.0.
+ *
+ * This is temporarily available for migration only.
+ * This exception class is internal and has been replaced by {@link AmbiguousArtifactVariantsException}, which is also internal. 
+ * If possible, catch a {@link RuntimeException} instead to avoid depending on Gradle internal classes.
+ */
+@Deprecated
+public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
+    public AmbiguousVariantSelectionException(String message) {
+        super(message);
     }
 
-    private static String format(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
-        TreeFormatter formatter = new TreeFormatter();
-        if (consumer.getAttributes().isEmpty()) {
-            formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
-        } else {
-            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(consumer.asMap()) + ". However we cannot choose between the following variants of " + producerDisplayName);
-        }
-        formatter.startChildren();
-        for (ResolvedVariant variant : variants) {
-            formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
-        }
-        formatter.endChildren();
-        if (!discarded.isEmpty()) {
-            formatter.node("The following variants were also considered but didn't match the requested attributes:");
-            formatter.startChildren();
-            discarded.stream()
-                .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
-                .forEach(discardedVariant -> {
-                    formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
-                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable(), describer);
-                });
-            formatter.endChildren();
-        }
-        return formatter.toString();
+    public AmbiguousVariantSelectionException(String message, Throwable cause) {
+        super(message, cause);
     }
-
 }

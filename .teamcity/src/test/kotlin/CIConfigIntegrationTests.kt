@@ -136,9 +136,11 @@ class CIConfigIntegrationTests {
                     functionalTestProject.name.contains("AllVersionsCrossVersion") -> {
                         assertProjectAreSplitByGradleVersionCorrectly(ALL_CROSS_VERSION_BUCKETS, TestType.allVersionsCrossVersion, functionalTestProject.functionalTests)
                     }
+
                     functionalTestProject.name.contains("QuickFeedbackCrossVersion") -> {
                         assertProjectAreSplitByGradleVersionCorrectly(QUICK_CROSS_VERSION_BUCKETS, TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
                     }
+
                     else -> {
                         assertProjectAreSplitByClassesCorrectly(functionalTestProject.functionalTests)
                     }
@@ -159,7 +161,10 @@ class CIConfigIntegrationTests {
 
     private fun subProjectFolderList(): List<File> {
         val subprojectRoots = File("../platforms").listFiles(File::isDirectory).plus(File("../subprojects"))
-        val subProjectFolders = subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten()
+        val subProjectFolders = subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten().filter { dir ->
+            // filter out the directories that have only a `build` subdirectory - this usually happens after branch switching
+            dir.listFiles { _: File, name: String -> name != "build" }!!.isNotEmpty()
+        }
         assertFalse(subProjectFolders.isEmpty())
         return subProjectFolders
     }

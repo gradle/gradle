@@ -16,7 +16,8 @@
 
 package org.gradle.internal.classpath
 
-
+import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
+import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import spock.lang.Specification
 
 import java.util.function.Predicate
@@ -28,6 +29,10 @@ abstract class AbstractCallInterceptionTest extends Specification {
 
     protected abstract GroovyCallInterceptorsProvider groovyCallInterceptors()
 
+    protected InstrumentingTypeRegistry typeRegistry() {
+        InstrumentingTypeRegistry.empty()
+    }
+
     protected InstrumentedClasses instrumentedClasses
 
     private GroovyInterceptorsSubstitution groovyInterceptorsSubstitution
@@ -36,7 +41,8 @@ abstract class AbstractCallInterceptionTest extends Specification {
         instrumentedClasses = new InstrumentedClasses(
             getClass().classLoader,
             shouldInstrumentAndReloadClassByName(),
-            jvmBytecodeInterceptorSet()
+            jvmBytecodeInterceptorSet(),
+            typeRegistry()
         )
         groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
         groovyInterceptorsSubstitution.setupForCurrentThread()

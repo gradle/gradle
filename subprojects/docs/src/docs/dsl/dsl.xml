@@ -148,6 +148,9 @@
                 <td>org.gradle.api.file.ProjectLayout</td>
             </tr>
             <tr>
+                <td>org.gradle.api.file.BuildLayout</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
@@ -161,6 +164,15 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.Configuration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.ConsumableConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.ResolvableConfiguration</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.DependencyScopeConfiguration</td>
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ResolutionStrategy</td>

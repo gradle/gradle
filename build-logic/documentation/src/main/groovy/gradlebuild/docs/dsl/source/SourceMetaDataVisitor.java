@@ -99,6 +99,9 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
     }
 
     private void visitTypeDeclaration(TypeDeclaration<?> typeDeclaration, ClassMetaDataRepository<ClassMetaData> repository, ClassMetaData.MetaType metaType, Runnable action) {
+        if (!typeDeclaration.isPublic()) {
+            return;
+        }
         ClassMetaData outerClass = classStack.isEmpty() ? null : getCurrentClass();
         String baseName = typeDeclaration.getNameAsString();
         String className = outerClass == null ? packageName + '.' + baseName : outerClass.getClassName() + '.' + baseName;

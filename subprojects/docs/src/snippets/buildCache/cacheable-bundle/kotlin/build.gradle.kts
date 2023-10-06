@@ -26,7 +26,7 @@ abstract class NpmTask : DefaultTask() {
 
 // tag::bundle-task[]
 tasks.register<NpmTask>("bundle") {
-    args.set(listOf("run", "bundle"))
+    args = listOf("run", "bundle")
 
     outputs.cacheIf { true }
 

@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[build_jenkins]]
 = Executing Gradle builds on Jenkins
 
@@ -104,7 +118,7 @@ Enter the URL of the GitHub repository: `https://github.com/gradle/gradle-site-p
 
 image::ci-systems/jenkins-scm.png[]
 
-Furthermore, create a "Build step" in the section "Build" by selecting "Invoke Gradle build script".
+Furthermore, create a "Build step" in the section "Build" by selecting "Invoke Gradle script".
 As mentioned before, we'll want to use the Wrapper to execute the build. In the "Tasks" input box enter the `build` and use the "Switches" `--scan -s` to generate a build scan and render a stack trace in case of a build failure.
 
 image::ci-systems/jenkins-build-step.png[]

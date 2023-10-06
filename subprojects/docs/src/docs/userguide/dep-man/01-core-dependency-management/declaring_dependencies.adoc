@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[declaring-dependencies]]
 = Declaring dependencies
 
@@ -82,7 +96,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 At this point, we have 3 different configurations with different roles:
 
-- `someConfiguration` declares the dependencies of my application. It's just a bucket that can hold a list of dependencies.
+- `someConfiguration` declares the dependencies of my application. It is simply a collection of dependencies.
 - `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
 
 This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
@@ -113,7 +127,7 @@ In short, a configuration's role is determined by the `canBeResolved` and `canBe
 .Configuration roles
 |===
 |Configuration role|can be resolved|can be consumed
-|Bucket of dependencies|false|false
+|Dependency Scope|false|false
 |Resolve for certain usage|true|false
 |Exposed to consumers|false|true
 |Legacy, don't use|true|true
@@ -131,6 +145,15 @@ It mostly depends on the way the configurations are organised, which is most oft
 For example, in the `java` plugin, the created configuration are <<java_plugin.adoc#tab:configurations,documented>> and should serve as the basis for determining where to declare a dependency, based on its role for your code.
 
 As a recommendation, plugins should clearly document the way their configurations are linked together and should strive as much as possible to isolate their <<#sec:resolvable-consumable-configs,roles>>.
+
+[[sec:deprecated-configurations]]
+== Deprecated configurations
+
+Configurations are intended to be used for a single role: declaring dependencies, performing resolution, or defining consumable variants.
+In the past, some configurations did not define which role they were intended to be used for.
+A deprecation warning is emitted when a configuration is used in a way that was not intended.
+To fix the deprecation, you will need to stop using the configuration in the deprecated role.
+The exact changes required depend on how the configuration is used and if there are alternative configurations that should be used instead.
 
 [[sec:defining-custom-configurations]]
 == Defining custom configurations

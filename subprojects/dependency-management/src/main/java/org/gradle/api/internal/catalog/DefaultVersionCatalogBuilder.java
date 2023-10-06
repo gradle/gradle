@@ -37,36 +37,55 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
-import org.gradle.api.internal.catalog.problems.VersionCatalogProblemBuilder;
+import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
+import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
+import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwErrorWithNewProblemsApi;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ALIAS_NOT_FINISHED;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_ALIAS_NOTATION;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.NO_IMPORT_FILES;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.RESERVED_ALIAS_NAME;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_IMPORT_FILES;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
+import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
-public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
+public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
     private enum AliasType {
         LIBRARY,
@@ -106,6 +125,9 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
     private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
+
+    //    @Inject
+//    private final Problems problemsService;
     private final Property<String> description;
 
     private String currentContext;
@@ -126,6 +148,9 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         this.strictVersionParser = new StrictVersionParser(strings);
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
     }
+
+    @Inject
+    protected abstract Problems getProblemService();
 
     @Override
     public String getLibrariesExtensionName() {
@@ -156,25 +181,23 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         maybeImportCatalogs();
         if (!aliasesInProgress.isEmpty()) {
             String alias = aliasesInProgress.iterator().next();
-            return throwVersionCatalogProblem(VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec ->
-                spec.withShortDescription(() -> "Dependency alias builder '" + alias + "' was not finished.")
-                    .happensBecause("A version was not set or explicitly declared as not wanted")
-                    .addSolution("Call `.version()` to give the alias a version")
-                    .addSolution("Call `.withoutVersion()` to explicitly declare that the alias should not have a version")
-                    .documented());
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "dependency alias builder '" + alias + "' was not finished.", ALIAS_NOT_FINISHED)
+                    .details("A version was not set or explicitly declared as not wanted")
+                    .solution("Call `.version()` to give the alias a version")
+                    .solution("Call `.withoutVersion()` to explicitly declare that the alias should not have a version")));
         }
         for (Map.Entry<String, BundleModel> entry : bundles.entrySet()) {
             String bundleName = entry.getKey();
             List<String> aliases = entry.getValue().getComponents();
             for (String alias : aliases) {
                 if (!libraries.containsKey(alias)) {
-                    return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE, spec ->
-                        spec.withShortDescription(() -> "A bundle with name '" + bundleName + "' declares a dependency on '" + alias + "' which doesn't exist")
-                            .happensBecause("Bundles can only contain references to existing library aliases")
-                            .addSolution(() -> "Make sure that the library alias '" + alias + "' is declared")
-                            .addSolution(() -> "Remove '" + alias + "' from bundle '" + bundleName + "'")
-                            .documented()
-                    );
+                    throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "a bundle with name '" + bundleName + "' declares a dependency on '" + alias +
+                            "' which doesn't exist.", UNDEFINED_ALIAS_REFERENCE)
+                            .details("Bundles can only contain references to existing library aliases.")
+                            .solution("Make sure that the library alias '" + alias + "' is declared")
+                            .solution("Remove '" + alias + "' from bundle '" + bundleName + "'.")));
                 }
             }
         }
@@ -189,6 +212,23 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
+    private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
+        return builder.label(message)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
+            .noLocation()
+            .category(VERSION_CATALOG_PROBLEMS, catalogProblemId.name())
+            .severity(ERROR);
+    }
+
+    private static RuntimeException throwVersionCatalogProblemException(ReportableProblem problem) {
+        throw throwErrorWithNewProblemsApi("Invalid catalog definition", ImmutableList.of(problem));
+    }
+
+    @Nonnull
+    private String getProblemInVersionCatalog() {
+        return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
+    }
+
     private void maybeImportCatalogs() {
         if (importedCatalog == null) {
             return;
@@ -199,12 +239,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
         if (artifacts.size() > 1) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec ->
-                spec.withShortDescription("Importing multiple files are not supported")
-                    .happensBecause("The import consists of multiple files")
-                    .addSolution("Only import a single file")
-                    .documented()
-            );
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "importing multiple files are not supported.", TOO_MANY_IMPORT_FILES)
+                    .details("The import consists of multiple files")
+                    .solution("Only import a single file")));
         }
 
         // We need to fall back to if-else with the Optional, as the Problems API cannot return an instance of an exception, only throw
@@ -214,12 +252,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             File file = resolvedArtifactResult.getFile();
             withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
         } else {
-            throwVersionCatalogProblem(VersionCatalogProblemId.NO_IMPORT_FILES, spec ->
-                spec.withShortDescription("No files are resolved to be imported")
-                    .happensBecause("The imported dependency doesn't resolve into any file")
-                    .addSolution("Check the import statement, it should resolve into a single file")
-                    .documented()
-            );
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "no files are resolved to be imported.", NO_IMPORT_FILES)
+                    .details("The imported dependency doesn't resolve into any file")
+                    .solution("Check the import statement, it should resolve into a single file")));
         }
     }
 
@@ -229,11 +265,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         cnf.getDependencies().add(dependency);
     }
 
+    @SuppressWarnings("deprecation")
     private Configuration createResolvableConfiguration(DependencyResolutionServices drs) {
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableBucket("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        Configuration cnf = ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeUnlocked("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
@@ -247,35 +284,30 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         if (importedCatalog == null) {
             importedCatalog = new Import(dependencyNotation);
         } else {
-            throwVersionCatalogProblem(VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec ->
-                spec.withShortDescription("You can only call the 'from' method a single time")
-                    .happensBecause("The method was called more than once")
-                    .addSolution("Remove further usages of the method call")
-                    .documented()
-            );
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "you can only call the 'from' method a single time.", TOO_MANY_IMPORT_INVOCATION)
+                    .details("The method was called more than once")
+                    .solution("Remove further usages of the method call")));
         }
     }
+
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
-                spec.withShortDescription(() -> "File " + modelFile.getName() + " isn't a supported")
-                    .happensBecause("Only .toml files are allowed when importing catalogs")
-                    .addSolution("Use a TOML file instead, with the .toml extension")
-                    .documented()
-            );
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "File " + modelFile.getName() + " isn't a supported", UNSUPPORTED_FILE_FORMAT)
+                    .details("Only .toml files are allowed when importing catalogs")
+                    .solution("Use a TOML file instead, with the .toml extension")));
         }
         if (!modelFile.exists()) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec ->
-                spec.withShortDescription(() -> "Import of external catalog file failed")
-                    .happensBecause(() -> "File '" + modelFile + "' doesn't exist")
-                    .addSolution(() -> "Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")
-                    .documented()
-            );
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "import of external catalog file failed.", CATALOG_FILE_DOES_NOT_EXIST)
+                    .details("File '" + modelFile + "' doesn't exist")
+                    .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")));
         }
 
         Instrumented.fileOpened(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(modelFile.toPath(), this);
+            TomlCatalogFileParser.parse(modelFile.toPath(), this, this::getProblemService);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -328,12 +360,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         if (coordinates.length == 3) {
             objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
         } else {
-            throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
-                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation")
-                            .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
-                            .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
-                            .addSolution("Use the to(group, name) method instead")
-                            .documented());
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "on alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation.", INVALID_DEPENDENCY_NOTATION)
+                    .details("The 'to(String)' method only supports 'group:artifact:version' coordinates")
+                    .solution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
+                    .solution("Use the to(group, name) method instead")));
         }
     }
 
@@ -358,52 +389,48 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         if (type == AliasType.LIBRARY) {
             for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
                 if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
-                    throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                                    .happensBecause(() -> "Prefix for dependency shouldn't be equal to '" + prefix + "'")
-                                    .addSolution(() -> "Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
-                                    .documented()
-                    );
+                    throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+                            .details("Prefix for dependency shouldn't be equal to '" + prefix + "'")
+                            .solution("Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
                 }
             }
         }
         if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                            .happensBecause(() -> "Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors")
-                            .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
-                            .documented()
-            );
+            throw throwAliasCatalogException(alias, RESERVED_ALIAS_NAMES);
         }
 
-        for (String name: normalizedAlias.split("\\.")) {
+        for (String name : normalizedAlias.split("\\.")) {
             if (RESERVED_JAVA_NAMES.contains(name)) {
-                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                        .happensBecause(() -> "Alias '" + alias + "' contains a reserved name in Gradle and prevents generation of accessors")
-                        .addSolution(() -> "Use a different alias which doesn't contain any of " + oxfordListOf(RESERVED_JAVA_NAMES, "or"))
-                        .documented()
-                );
+                throw throwAliasCatalogException(alias, RESERVED_JAVA_NAMES);
             }
         }
     }
 
-    private void validateAlias(AliasType type, String value) {
-        if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_ALIAS_NOTATION, spec ->
-                spec.withShortDescription(() -> "Invalid " + type + " alias '" + value + "'")
-                    .happensBecause(() -> type + " aliases must match the following regular expression: " + DependenciesModelHelper.ALIAS_REGEX)
-                    .addSolution(() -> "Make sure the alias matches the " + DependenciesModelHelper.ALIAS_REGEX + " regular expression")
-                    .documented()
-            );
-        }
+    @Nonnull
+    private RuntimeException throwAliasCatalogException(String alias, Collection<String> reservedNames) {
+        throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+            configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+                .details("Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors.")
+                .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
 
-    private <T> T throwVersionCatalogProblem(VersionCatalogProblemId id, Consumer<? super VersionCatalogProblemBuilder.ProblemWithId> spec) {
-        maybeThrowError("Invalid catalog definition", ImmutableList.of(
-            buildProblem(id, pb -> spec.accept(pb.inContext(() -> "version catalog " + name))))
-        );
-        return null;
+    @Nonnull
+    public static String getExcludedNames(Collection<String> reservedNames) {
+        String namesOrName = oxfordListOf(reservedNames, "or");
+        if (reservedNames.size() == 1) {
+            return namesOrName;
+        }
+        return "any of " + namesOrName;
+    }
+
+    private void validateAlias(AliasType type, String value) {
+        if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
+            throw throwVersionCatalogProblemException(getProblemService().createProblem(builder ->
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "invalid " + type + " alias '" + value + "'.", INVALID_ALIAS_NOTATION)
+                    .details(type + " aliases must match the following regular expression: " + ALIAS_REGEX)
+                    .solution("Make sure the alias matches the " + ALIAS_REGEX + " regular expression")));
+        }
     }
 
     @Override
@@ -453,16 +480,16 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public DependencyModel get() {
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
-                return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec -> {
-                        VersionCatalogProblemBuilder.DescribedProblemWithCause solutions = spec.withShortDescription(() -> "Version reference '" + versionRef + "' doesn't exist")
-                            .happensBecause("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
-                            .addSolution(() -> "Declare '" + versionRef + "' in the catalog")
-                            .documented();
-                        if (!versionConstraints.keySet().isEmpty()) {
-                            solutions.addSolution(() -> "Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
-                        }
+                throw throwVersionCatalogProblemException(getProblemService().createProblem(builder -> {
+                    ProblemBuilder configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                        .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
+                        .solution("Declare '" + versionRef + "' in the catalog");
+                    if (!versionConstraints.keySet().isEmpty()) {
+                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
                     }
-                );
+
+                    return configurator;
+                }));
             } else {
                 return new DependencyModel(group, name, versionRef, model.getVersion(), context);
             }
@@ -484,16 +511,15 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public PluginModel get() {
             VersionModel model = versionConstraints.get(versionRef);
             if (model == null) {
-                return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec -> {
-                        VersionCatalogProblemBuilder.DescribedProblemWithCause solutions = spec.withShortDescription(() -> "Version reference '" + versionRef + "' doesn't exist")
-                            .happensBecause("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
-                            .addSolution(() -> "Declare '" + versionRef + "' in the catalog")
-                            .documented();
-                        if (!versionConstraints.keySet().isEmpty()) {
-                            solutions.addSolution(() -> "Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
-                        }
+                throw throwVersionCatalogProblemException(getProblemService().createProblem(builder -> {
+                    ProblemBuilder configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                        .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
+                        .solution("Declare '" + versionRef + "' in the catalog");
+                    if (!versionConstraints.keySet().isEmpty()) {
+                        configurator.solution("Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
                     }
-                );
+                    return configurator;
+                }));
             } else {
                 return new PluginModel(id, versionRef, model.getVersion(), context);
             }

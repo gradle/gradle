@@ -19,51 +19,38 @@ package org.gradle.api.publish.ivy.internal.dependency;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.Set;
 
-public class DefaultIvyDependency implements IvyDependencyInternal {
+public class DefaultIvyDependency implements IvyDependency {
     private final String organisation;
     private final String module;
     private final String revision;
     private final String confMapping;
     private final boolean transitive;
-    private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
-    private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
-    private final ImmutableAttributes attributes;
+    private final String revConstraint;
+    private final Set<DependencyArtifact> artifacts;
+    private final Set<ExcludeRule> excludeRules;
 
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive) {
+    public DefaultIvyDependency(
+        String organisation,
+        String module,
+        String revision,
+        String confMapping,
+        boolean transitive,
+        @Nullable String revConstraint,
+        Set<DependencyArtifact> artifacts,
+        Set<ExcludeRule> excludeRules
+    ) {
         this.organisation = organisation;
         this.module = module;
         this.revision = Strings.nullToEmpty(revision);
         this.confMapping = confMapping;
         this.transitive = transitive;
-        this.attributes = ImmutableAttributes.EMPTY;
-    }
-
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts) {
-        this(organisation, module, revision, confMapping, transitive);
-        this.artifacts.addAll(artifacts);
-    }
-
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
-        this(organisation, module, revision, confMapping, transitive, artifacts);
-        this.excludeRules.addAll(excludeRules);
-    }
-
-    public DefaultIvyDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {
-        this.organisation = dependency.getGroup();
-        this.module = dependency.getName();
-        this.revision = Strings.nullToEmpty(dependency.getVersion());
-        this.confMapping = confMapping;
-        this.transitive = dependency.isTransitive();
-        this.artifacts.addAll(dependency.getArtifacts());
-        this.excludeRules.addAll(dependency.getExcludeRules());
-        this.attributes = attributes;
+        this.revConstraint = revConstraint;
+        this.excludeRules = excludeRules;
+        this.artifacts = artifacts;
     }
 
     @Override
@@ -81,6 +68,12 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         return revision;
     }
 
+    @Nullable
+    @Override
+    public String getRevConstraint() {
+        return revConstraint;
+    }
+
     @Override
     public String getConfMapping() {
         return confMapping;
@@ -92,22 +85,12 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     }
 
     @Override
-    public Iterable<DependencyArtifact> getArtifacts() {
+    public Set<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
 
     @Override
-    public Iterable<ExcludeRule> getExcludeRules() {
+    public Set<ExcludeRule> getExcludeRules() {
         return excludeRules;
-    }
-
-    @Override
-    public ImmutableAttributes getAttributes() {
-        return attributes;
-    }
-
-    @Override
-    public String getProjectPath() {
-        return null;
     }
 }

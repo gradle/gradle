@@ -196,7 +196,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         fails("impl:modifyConfigDuringTaskExecution")
 
         then:
-        failure.assertHasCause("Cannot change dependencies of dependency configuration ':impl:compile' after task dependencies have been resolved")
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':impl:compile' after it has been resolved.")
 
         when:
         fails("impl:modifyParentConfigDuringTaskExecution")
@@ -258,7 +258,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         when:
         fails("impl:addArtifactToConfigDuringTaskExecution")
         then:
-        failure.assertHasCause("Cannot change artifacts of dependency configuration ':impl:compile' after task dependencies have been resolved")
+        failure.assertHasCause("Cannot change artifacts of dependency configuration ':impl:compile' after it has been resolved.")
 
         when:
         fails("impl:addArtifactToParentConfigDuringTaskExecution")
@@ -492,7 +492,7 @@ task resolveChildFirst {
         role                      | code
         'consume or publish only' | 'configurations.a.canBeResolved = false'
         'query or resolve only'   | 'configurations.a.canBeConsumed = false'
-        'bucket'                  | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
+        'dependency scope'        | 'configurations.a.canBeResolved = false; configurations.a.canBeConsumed = false'
 
     }
 }

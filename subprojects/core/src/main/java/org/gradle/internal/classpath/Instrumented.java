@@ -22,11 +22,8 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
-import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
-import org.gradle.internal.classpath.intercept.CallSiteDecorator;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
@@ -52,6 +49,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 
@@ -109,7 +107,7 @@ public class Instrumented {
     }
 
     /**
-     * This API follows the requirements in {@link GroovyCallInterceptorsProvisionTools}.
+     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
      * @deprecated This should not be called from the sources.
      */
     @SuppressWarnings("unused")
@@ -132,29 +130,11 @@ public class Instrumented {
         );
     }
 
-    private static volatile CallSiteDecorator currentCallDecorator = new CallInterceptorsSet(
-        GroovyCallInterceptorsProvisionTools.getInterceptorsFromProvider(GroovyCallInterceptorsProvider.DEFAULT).stream()
-    );
-
-    // TODO: We can support getting the interceptors in the instrumented code from different locations, not just `Instrumented.currentCallDecorator`,
-    //       so that replacing the call interceptors for tests would instead work by embedding a different location
-    //       than this one in the instrumented code. Doing that adds much more complexity in the instrumentation.
-    @NonNullApi
-    public static class GroovyCallInterceptorInternalTesting {
-        static CallSiteDecorator getCurrentGroovyCallSiteDecorator() {
-            return currentCallDecorator;
-        }
-
-        static void setCurrentGroovyCallSiteDecorator(CallSiteDecorator interceptorsSet) {
-            currentCallDecorator = interceptorsSet;
-        }
-    }
-
     // Called by generated code
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = currentCallDecorator.maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator().maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -172,7 +152,7 @@ public class Instrumented {
      * @see IndyInterface
      */
     public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return currentCallDecorator.maybeDecorateIndyCallSite(
+        return getGroovyCallDecorator().maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
@@ -424,7 +404,7 @@ public class Instrumented {
         lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
     }
 
@@ -780,7 +760,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             int argsCount = invocation.getArgsCount();
             if (1 <= argsCount && argsCount <= 3) {
                 Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
@@ -824,7 +804,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
             // "Extension" calls have command as a receiver and optional arguments as arguments.
             boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
@@ -891,7 +871,7 @@ public class Instrumented {
         }
 
         @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+        public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();
             if (receiver instanceof ProcessBuilder) {
                 return start((ProcessBuilder) receiver, consumer);

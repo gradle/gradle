@@ -18,23 +18,18 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
-@ValidationTestFor(
-    ValidationProblemId.IMPLICIT_DEPENDENCY
-)
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
     def "detects missing dependency between two tasks and fails (#description)"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("${producedLocation}")
                 outputs.${outputType}(${producerOutput == null ? 'outputFile' : "'${producerOutput}'"})
@@ -72,7 +67,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         file(sourceDir).createDir()
         def outputDir = "build/output"
 
-        buildFile << """
+        buildFile """
             task firstTask {
                 inputs.dir("${sourceDir}")
                 def outputDir = file("${outputDir}")
@@ -104,7 +99,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "does not detect missing dependency when consuming the sibling of the output of the producer"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("build/output.txt")
                 outputs.file(outputFile)
@@ -131,7 +126,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "transitive dependencies are accepted as valid dependencies (including #dependency)"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("output.txt")
                 outputs.file(outputFile)
@@ -176,7 +171,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "only having shouldRunAfter fails"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("output.txt")
                 outputs.file(outputFile)
@@ -205,7 +200,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "fails with missing dependencies even if the consumer does not have outputs"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("output.txt")
                 outputs.file(outputFile)
@@ -230,7 +225,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "does not report missing dependencies when #disabledTask is disabled"() {
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("build/output.txt")
                 outputs.file(outputFile)
@@ -269,7 +264,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
 
     def "takes filters for inputs into account when detecting missing dependencies"() {
         file("src/main/java/MyClass.java").createFile()
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("build/output.txt")
                 outputs.file(outputFile)
@@ -298,7 +293,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
 
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
-        buildFile << """
+        buildFile """
             task producer {
                 def outputFile = file("build/problematic/output.txt")
                 outputs.file(outputFile)
@@ -381,6 +376,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                     exclude ".gradle"
                     exclude "build.gradle"
                     exclude "settings.gradle"
+                    exclude "operations-log.txt"
                 }
                 inputs.files(sources)
                 doLast {

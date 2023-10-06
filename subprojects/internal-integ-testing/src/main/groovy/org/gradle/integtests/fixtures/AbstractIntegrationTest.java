@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
 import org.gradle.test.fixtures.maven.M2Installation;
 import org.gradle.test.fixtures.maven.MavenFileRepository;
+import org.gradle.test.precondition.PreconditionVerifier;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
@@ -39,6 +40,10 @@ import java.io.File;
 @IntegrationTest
 @Category(IntegrationTest.class)
 public abstract class AbstractIntegrationTest {
+
+    @Rule
+    public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier();
+
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 

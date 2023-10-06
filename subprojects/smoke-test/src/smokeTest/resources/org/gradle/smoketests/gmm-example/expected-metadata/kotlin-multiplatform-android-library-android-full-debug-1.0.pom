@@ -18,16 +18,16 @@
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-stdlib-common</artifactId>
-          <groupId>org.jetbrains.kotlin</groupId>
         </exclusion>
         <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-test-common</artifactId>
-          <groupId>org.jetbrains.kotlin</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>kotlin-test-annotations-common</artifactId>
           <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-test-annotations-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -38,16 +38,16 @@
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-stdlib-common</artifactId>
-          <groupId>org.jetbrains.kotlin</groupId>
         </exclusion>
         <exclusion>
+          <groupId>org.jetbrains.kotlin</groupId>
           <artifactId>kotlin-test-common</artifactId>
-          <groupId>org.jetbrains.kotlin</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>kotlin-test-annotations-common</artifactId>
           <groupId>org.jetbrains.kotlin</groupId>
+          <artifactId>kotlin-test-annotations-common</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

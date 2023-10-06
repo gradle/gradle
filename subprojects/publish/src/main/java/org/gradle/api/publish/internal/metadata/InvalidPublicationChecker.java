@@ -22,7 +22,10 @@ import com.google.common.collect.HashBiMap;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -34,7 +37,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 @NotThreadSafe
-class InvalidPublicationChecker {
+public class InvalidPublicationChecker {
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -49,6 +52,12 @@ class InvalidPublicationChecker {
     public InvalidPublicationChecker(String publicationName, String taskPath) {
         this.publicationName = publicationName;
         this.taskPath = taskPath;
+    }
+
+    public void checkComponent(SoftwareComponent component) {
+        if (component instanceof SoftwareComponentInternal) {
+            PublicationErrorChecker.checkForUnpublishableAttributes((SoftwareComponentInternal) component, DOCUMENTATION_REGISTRY);
+        }
     }
 
     public void registerVariant(String name, AttributeContainer attributes, Set<? extends Capability> capabilities) {

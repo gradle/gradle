@@ -27,6 +27,7 @@ import gradlebuild.basics.androidStudioHome
 import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.capitalize
 import gradlebuild.basics.defaultPerformanceBaselines
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
@@ -38,7 +39,7 @@ import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
-import gradlebuild.capitalize
+import gradlebuild.basics.toLowerCase
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
 import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
@@ -50,7 +51,6 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
-import gradlebuild.toLowerCase
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -98,8 +98,8 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Giraffe (2022.3.1) Canary 8
-    const val androidStudioVersion = "2022.3.1.8"
+    // Android Studio Giraffe 2022.3.1.18
+    const val androidStudioVersion = "2022.3.1.18"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -35,22 +36,21 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
-import java.util.List;
-
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
-    private final List<ScriptClassPathInitializer> initializers;
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
 
-    public DefaultScriptClassPathResolver(List<ScriptClassPathInitializer> initializers, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
-        this.initializers = initializers;
+    public DefaultScriptClassPathResolver(
+        NamedObjectInstantiator instantiator,
+        CachedClasspathTransformer classpathTransformer
+    ) {
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
     }
 
     @Override
     public void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler) {
-        // should ideally reuse the `JvmEcosystemUtilities` but this code is too low level
+        // should ideally reuse the `JvmPluginServices` but this code is too low level
         // and this service is therefore not available!
         AttributeContainer attributes = configuration.getAttributes();
         attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
@@ -68,21 +68,25 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration) {
-        if (classpathConfiguration == null) {
-            return ClassPath.EMPTY;
-        }
-        for (ScriptClassPathInitializer initializer : initializers) {
-            initializer.execute(classpathConfiguration);
-        }
-        ArtifactView view = classpathConfiguration.getIncoming().artifactView(config -> {
-            config.componentFilter(componentId -> {
-                if (componentId instanceof OpaqueComponentIdentifier) {
-                    DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                    return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-                }
-                return true;
-            });
+        return classpathTransformer.transform(
+            resolveToClasspathWithoutGradleApi(classpathConfiguration),
+            CachedClasspathTransformer.StandardTransform.BuildLogic
+        );
+    }
+
+    private static ClassPath resolveToClasspathWithoutGradleApi(Configuration configuration) {
+        ArtifactView view = configuration.getIncoming().artifactView(config -> {
+            config.componentFilter(DefaultScriptClassPathResolver::removeGradleApi);
         });
-        return classpathTransformer.transform(DefaultClassPath.of(view.getFiles()), CachedClasspathTransformer.StandardTransform.BuildLogic);
+        return DefaultClassPath.of(view.getFiles());
+    }
+
+    private static boolean removeGradleApi(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API
+                && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
+        }
+        return true;
     }
 }

@@ -1,10 +1,10 @@
-// Copyright 2018 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,195 +23,243 @@
 :meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
 :meta-name-twitter_image: {website}/images/gradle-256x256.png
 
-toc::[]
+toc::[leveloffset=+2]
 
 [[part:about_gradle]]
-== About Gradle
+== **OVERVIEW**
 
 include::userguide.adoc[leveloffset=+2]
+include::about_manual.adoc[leveloffset=+2]
 
-[[part:getting_started]]
-== Getting Started
+'''
 
-include::introduction.adoc[leveloffset=2]
-
-include::installation.adoc[leveloffset=+2]
-
-include::troubleshooting.adoc[leveloffset=+2]
+[[part:releases]]
+== **RELEASES**
 
 include::compatibility.adoc[leveloffset=+2]
+include::feature_lifecycle.adoc[leveloffset=+2]
 
 [[part:upgrading_and_migrating]]
-== Upgrading and Migrating
+== UPGRADING
 
+include::upgrading_version_8.adoc[leveloffset=+2]
+include::upgrading_version_7.adoc[leveloffset=+2]
 include::upgrading_version_6.adoc[leveloffset=+2]
-
 include::upgrading_version_5.adoc[leveloffset=+2]
-
 include::upgrading_version_4.adoc[leveloffset=+2]
 
-include::migrating_from_maven.adoc[leveloffset=+2]
+== MIGRATING
 
+include::migrating_from_maven.adoc[leveloffset=+2]
 include::migrating_from_ant.adoc[leveloffset=+2]
 
+[[part:getting_started]]
+== **GETTING STARTED**
+
+include::introduction.adoc[leveloffset=+2]
+include::installation.adoc[leveloffset=+2]
+
+== TUTORIAL
+
+include::part1_gradle_init.adoc[leveloffset=+2]
+include::part2_gradle_tasks.adoc[leveloffset=+2]
+include::part3_gradle_dep_man.adoc[leveloffset=+2]
+include::part4_gradle_plugins.adoc[leveloffset=+2]
+include::part5_gradle_inc_builds.adoc[leveloffset=+2]
+include::part6_gradle_caching.adoc[leveloffset=+2]
+include::part7_gradle_refs.adoc[leveloffset=+2]
+
 [[part:running_builds]]
-== Running Gradle Builds
-
-include::build_environment.adoc[leveloffset=+2]
-
-include::gradle_daemon.adoc[leveloffset=+2]
-
-include::init_scripts.adoc[leveloffset=+2]
-
-include::intro_multi_project_builds.adoc[leveloffset=+2]
-
-include::build_cache.adoc[leveloffset=+2]
-
-[[part:authoring_builds]]
-== Authoring Gradle Builds
-
-include::tutorial_using_tasks.adoc[leveloffset=+2]
-
-include::more_about_tasks.adoc[leveloffset=+2]
-
-include::incremental_build.adoc[leveloffset=+2]
-
-include::writing_build_scripts.adoc[leveloffset=+2]
-
-include::working_with_files.adoc[leveloffset=+2]
-
-include::plugins.adoc[leveloffset=+2]
-
-include::build_lifecycle.adoc[leveloffset=+2]
-
-include::logging.adoc[leveloffset=+2]
-
-include::multi_project_builds.adoc[leveloffset=+2]
-
-include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
-
-include::fine_tuning_project_layout.adoc[leveloffset=+2]
-
-include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
-
-include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
-
-include::organizing_gradle_projects.adoc[leveloffset=+2]
-
-include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
-
-include::lazy_configuration.adoc[leveloffset=+2]
-
-include::test_kit.adoc[leveloffset=+2]
-
-include::ant.adoc[leveloffset=+2]
-
-[[part:dependency_management]]
-== Dependency Management
-
-include::dependency_management.adoc[leveloffset=+2]
-
-[[part:jvm_projects]]
-== Java & Other JVM Projects
-
-include::building_java_projects.adoc[leveloffset=+2]
-
-include::java_testing.adoc[leveloffset=+2]
-
-include::dependency_management_for_java_projects.adoc[leveloffset=+2]
-
-[[part:native_projects]]
-== C++ & Other Native Projects
-
-include::building_cpp_projects.adoc[leveloffset=+2]
-
-include::cpp_testing.adoc[leveloffset=+2]
-
-include::building_swift_projects.adoc[leveloffset=+2]
-
-include::swift_testing.adoc[leveloffset=+2]
-
-== Native Projects using the Software Model
-
-include::native_software.adoc[leveloffset=+2]
-
-include::rule_source.adoc[leveloffset=+2]
-
-[[part:extending_gradle]]
-== Extending Gradle
-
-include::custom_tasks.adoc[leveloffset=+2]
-
-include::custom_plugins.adoc[leveloffset=+2]
-
-include::custom_gradle_types.adoc[leveloffset=+2]
-
-include::java_gradle_plugin.adoc[leveloffset=+2]
-
-[[part:reference]]
-== Reference
-
-include::groovy_build_script_primer.adoc[leveloffset=+2]
-
-include::kotlin_dsl.adoc[leveloffset=+2]
-
-include::plugin_reference.adoc[leveloffset=2]
+== **RUNNING GRADLE BUILDS**
 
 include::command_line_interface.adoc[leveloffset=+2]
-
-include::third_party_integration.adoc[leveloffset=2]
-
 include::gradle_wrapper.adoc[leveloffset=+2]
+include::intro_multi_project_builds.adoc[leveloffset=+2]
+include::troubleshooting.adoc[leveloffset=+2]
 
+== CUSTOMIZING EXECUTION
+
+include::build_environment.adoc[leveloffset=+2]
+include::gradle_daemon.adoc[leveloffset=+2]
+include::file_system_watching.adoc[leveloffset=+2]
+include::init_scripts.adoc[leveloffset=+2]
+
+[[part:authoring_builds]]
+== **AUTHORING GRADLE BUILDS**
+
+== LEARNING THE BASICS
+
+include::build_lifecycle.adoc[leveloffset=+2]
 include::directory_layout.adoc[leveloffset=+2]
+include::tutorial_using_tasks.adoc[leveloffset=+2]
+include::writing_build_scripts.adoc[leveloffset=+2]
+include::plugins.adoc[leveloffset=+2]
+include::working_with_files.adoc[leveloffset=+2]
+include::logging.adoc[leveloffset=+2]
+include::potential_traps.adoc[leveloffset=+2]
 
-[[part:plugins]]
-== Plugins
+== STRUCTURING INDIVIDUAL BUILDS
 
-include::antlr_plugin.adoc[leveloffset=+2]
+include::multi_project_builds.adoc[leveloffset=+2]
+include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
+include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
+include::fine_tuning_project_layout.adoc[leveloffset=+2]
+include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
 
-include::application_plugin.adoc[leveloffset=+2]
+== STRUCTURING SOFTWARE PRODUCTS
 
-include::base_plugin.adoc[leveloffset=+2]
+include::structuring_software_products.adoc[leveloffset=+2]
+include::structuring_software_products_details.adoc[leveloffset=+2]
+include::composite_builds.adoc[leveloffset=+2]
 
-include::build_init_plugin.adoc[leveloffset=+2]
+== AUTHORING SUSTAINABLE BUILDS
 
-include::checkstyle_plugin.adoc[leveloffset=+2]
+include::organizing_gradle_projects.adoc[leveloffset=+2]
+include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
 
-include::codenarc_plugin.adoc[leveloffset=+2]
+== DEVELOPING GRADLE TASKS
 
-include::distribution_plugin.adoc[leveloffset=+2]
+include::more_about_tasks.adoc[leveloffset=+2]
+include::incremental_build.adoc[leveloffset=+2]
+include::custom_tasks.adoc[leveloffset=+2]
+include::lazy_configuration.adoc[leveloffset=+2]
+include::worker_api.adoc[leveloffset=+2]
 
-include::ear_plugin.adoc[leveloffset=+2]
+== DEVELOPING GRADLE PLUGINS
 
-include::eclipse_plugin.adoc[leveloffset=+2]
+include::custom_plugins.adoc[leveloffset=+2]
+include::designing_gradle_plugins.adoc[leveloffset=+2]
+include::implementing_gradle_plugins.adoc[leveloffset=+2]
+include::testing_gradle_plugins.adoc[leveloffset=+2]
+include::publishing_gradle_plugins.adoc[leveloffset=+2]
 
-include::groovy_plugin.adoc[leveloffset=+2]
+== OTHER DEVELOPING GRADLE TOPICS
 
-include::idea_plugin.adoc[leveloffset=+2]
+include::custom_gradle_types.adoc[leveloffset=+2]
+include::build_services.adoc[leveloffset=+2]
+include::dataflow_actions.adoc[leveloffset=+2]
+include::test_kit.adoc[leveloffset=+2]
+include::ant.adoc[leveloffset=+2]
 
-include::publishing_ivy.adoc[leveloffset=+2]
+[[part:jvm_projects]]
+== **AUTHORING JVM BUILDS**
 
-include::jacoco_plugin.adoc[leveloffset=+2]
+include::building_java_projects.adoc[leveloffset=+2]
+include::java_testing.adoc[leveloffset=+2]
+include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
-include::java_plugin.adoc[leveloffset=+2]
+== JAVA TOOLCHAINS
+
+include::toolchains.adoc[leveloffset=+2]
+include::toolchain_plugins.adoc[leveloffset=+2]
+
+== JVM PLUGINS
 
 include::java_library_plugin.adoc[leveloffset=+2]
-
-include::java_library_distribution_plugin.adoc[leveloffset=+2]
-
+include::application_plugin.adoc[leveloffset=+2]
 include::java_platform_plugin.adoc[leveloffset=+2]
-
-include::publishing_maven.adoc[leveloffset=+2]
-
-include::pmd_plugin.adoc[leveloffset=+2]
-
+include::groovy_plugin.adoc[leveloffset=+2]
 include::scala_plugin.adoc[leveloffset=+2]
 
-include::signing_plugin.adoc[leveloffset=+2]
+[[part:dependency_management]]
+== **WORKING WITH DEPENDENCIES**
 
-include::war_plugin.adoc[leveloffset=+2]
+include::dependency_management_terminology.adoc[leveloffset=+2]
 
-== License Information
+== LEARNINGS THE BASICS
 
-include::licenses.adoc[leveloffset=+1]
+include::core_dependency_management.adoc[leveloffset=+2]
+include::declaring_repositories.adoc[leveloffset=+2]
+include::declaring_dependencies.adoc[leveloffset=+2]
+include::library_vs_application.adoc[leveloffset=+2]
+include::viewing_debugging_dependencies.adoc[leveloffset=+2]
+include::dependency_resolution.adoc[leveloffset=+2]
+include::dependency_verification.adoc[leveloffset=+2]
+
+== DECLARING VERSIONS
+
+include::single_versions.adoc[leveloffset=+2]
+include::rich_versions.adoc[leveloffset=+2]
+include::dynamic_versions.adoc[leveloffset=+2]
+include::dependency_locking.adoc[leveloffset=+2]
+
+== CONTROLLING TRANSITIVES
+
+include::dependency_constraints.adoc[leveloffset=+2]
+include::dependency_downgrade_and_exclude.adoc[leveloffset=+2]
+include::platforms.adoc[leveloffset=+2]
+include::dependency_version_alignment.adoc[leveloffset=+2]
+include::dependency_capability_conflict.adoc[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
+include::resolution_rules.adoc[leveloffset=+2]
+include::resolution_strategy_tuning.adoc[leveloffset=+2]
+
+== PRODUCING AND CONSUMING VARIANTS OF LIBRARIES
+
+include::component_capabilities.adoc[leveloffset=+2]
+include::feature_variants.adoc[leveloffset=+2]
+include::variant_model.adoc[leveloffset=+2]
+include::variant_attributes.adoc[leveloffset=+2]
+include::cross_project_publications.adoc[leveloffset=+2]
+include::artifact_transforms.adoc[leveloffset=+2]
+
+== PUBLISHING LIBRARIES
+
+include::publishing_setup.adoc[leveloffset=+2]
+include::publishing_gradle_module_metadata.adoc[leveloffset=+2]
+include::publishing_signing.adoc[leveloffset=+2]
+include::publishing_customization.adoc[leveloffset=+2]
+include::publishing_maven.adoc[leveloffset=+2]
+include::publishing_ivy.adoc[leveloffset=+2]
+
+[[part:optimizing_build_times]]
+== **OPTIMIZING BUILD TIMES**
+
+include::performance.adoc[leveloffset=+2]
+include::configuration_cache.adoc[leveloffset=+2]
+include::inspect.adoc[leveloffset=+2]
+
+== USING THE BUILD CACHE
+
+include::build_cache.adoc[leveloffset=+2]
+include::build_cache_use_cases.adoc[leveloffset=+2]
+include::build_cache_performance.adoc[leveloffset=+2]
+include::build_cache_concepts.adoc[leveloffset=+2]
+include::caching_java_projects.adoc[leveloffset=+2]
+include::caching_android_projects.adoc[leveloffset=+2]
+include::build_cache_debugging.adoc[leveloffset=+2]
+include::common_caching_problems.adoc[leveloffset=+2]
+
+[[part:native_projects]]
+== **AUTHORING C++ / SWIFT BUILDS**
+
+include::building_cpp_projects.adoc[leveloffset=+2]
+include::cpp_testing.adoc[leveloffset=+2]
+include::building_swift_projects.adoc[leveloffset=+2]
+include::swift_testing.adoc[leveloffset=+2]
+
+== NATIVE PROJECTS USING THE SOFTWARE MODEL
+
+include::native_software.adoc[leveloffset=+2]
+include::rule_source.adoc[leveloffset=+2]
+
+[[part:gradle_on_ci]]
+== **GRADLE ON CI**
+
+include::jenkins.adoc[leveloffset=+2]
+include::teamcity.adoc[leveloffset=+2]
+include::github-actions.adoc[leveloffset=+2]
+include::travis-ci.adoc[leveloffset=+2]
+
+[[part:reference]]
+== **REFERENCE**
+
+include::groovy_build_script_primer.adoc[leveloffset=+2]
+include::kotlin_dsl.adoc[leveloffset=+2]
+include::migrating_from_groovy_to_kotlin_dsl.adoc[leveloffset=2]
+include::plugin_reference.adoc[leveloffset=2]
+include::third_party_integration.adoc[leveloffset=2]
+
+== **LICENSE INFORMATION**
+
+include::licenses.adoc[leveloffset=+2]

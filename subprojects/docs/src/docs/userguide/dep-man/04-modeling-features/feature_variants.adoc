@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 :maven-optional-deps: https://maven.apache.org/guides/introduction/introduction-to-optional-and-excludes-dependencies.html[Maven optional dependencies]
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
@@ -100,7 +114,7 @@ If you choose the capability name yourself or add more capabilities to a variant
 In the previous example, we're declaring a feature variant which uses the _main source set_.
 This is a typical use case in the Java ecosystem, where it's, for whatever reason, not possible to split the sources of a project into different subprojects or different source sets.
 Gradle will therefore declare the configurations as described, but will also setup the compile classpath and runtime classpath of the _main source set_ so that it extends from the feature configuration.
-Said differently, this allows you to declare the dependencies specific to a feature in their own "bucket", but everything is still compiled as a single source set.
+Said differently, this allows you to declare the dependencies specific to a feature in their own dependency scope, but everything is still compiled as a single source set.
 There will also be a single artifact (the component Jar) including support for all features.
 
 However, it is often preferred to have a _separate source set_ for a feature. Gradle will then perform a similar mapping, but will _not_ make the compile and runtime classpath of the main component extend from the dependencies of the registered features.

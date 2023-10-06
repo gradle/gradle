@@ -376,6 +376,7 @@ dependencies {
 """
         expect:
         fails 'checkDep'
-        failure.assertHasCause("Project : declares a dependency from configuration 'conf' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    project :")
+        failure.assertHasCause("A dependency was declared on configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
     }
 }

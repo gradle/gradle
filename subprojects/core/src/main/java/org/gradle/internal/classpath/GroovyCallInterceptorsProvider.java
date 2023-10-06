@@ -16,34 +16,126 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.Cast;
+import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.lazy.Lazy;
 
-import java.util.Collections;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES;
 
 @NonNullApi
 public interface GroovyCallInterceptorsProvider {
 
-    GroovyCallInterceptorsProvider DEFAULT = () -> Stream.concat(
-        Stream.of(Instrumented.class.getName()),
-        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES.stream()
-    ).collect(Collectors.toList());
+    GroovyCallInterceptorsProvider DEFAULT = new ClassSourceGroovyCallInterceptorsProvider(Instrumented.class.getName());
 
-    List<String> getInterceptorProviderClassNames();
+    List<CallInterceptor> getCallInterceptors();
 
     default GroovyCallInterceptorsProvider plus(GroovyCallInterceptorsProvider other) {
-        return () -> Stream.concat(getInterceptorProviderClassNames().stream(), other.getInterceptorProviderClassNames().stream()).collect(Collectors.toList());
+        return new CompositeGroovyCallInterceptorsProvider(this, other);
     }
 
-    static GroovyCallInterceptorsProvider fromClass(Class<?> theClass) {
-        return () -> Collections.singletonList(theClass.getName());
+    @NonNullApi
+    class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
+
+        private final Lazy<List<CallInterceptor>> interceptors;
+
+        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader) {
+            this(classLoader, "");
+        }
+
+        @VisibleForTesting
+        public ClassLoaderSourceGroovyCallInterceptorsProvider(ClassLoader classLoader, String forPackage) {
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClassLoader(classLoader, forPackage));
+        }
+
+        private static List<CallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
+            ImmutableList.Builder<CallInterceptor> interceptors = ImmutableList.builder();
+            for(CallInterceptor interceptor : ServiceLoader.load(CallInterceptor.class, classLoader)) {
+                if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
+                    interceptors.add(interceptor);
+                }
+            }
+            return interceptors.build();
+        }
+
+        @Override
+        public List<CallInterceptor> getCallInterceptors() {
+            return interceptors.get();
+        }
     }
 
-    static GroovyCallInterceptorsProvider fromClassName(String className) {
-        return () -> Collections.singletonList(className);
+    /**
+     * Use {@link ClassLoaderSourceGroovyCallInterceptorsProvider} instead that loads classes via SPI.
+     * Kept to support old case where we loaded a class directly.
+     */
+    @NonNullApi
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
+
+        private final Lazy<List<CallInterceptor>> interceptors;
+
+        public ClassSourceGroovyCallInterceptorsProvider(String className) {
+            this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClass(className));
+        }
+
+        @Override
+        public List<CallInterceptor> getCallInterceptors() {
+            return interceptors.get();
+        }
+
+        private static List<CallInterceptor> getInterceptorsFromClass(String className) {
+            try {
+                return getInterceptorsFromClass(Class.forName(className));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /**
+         * @param interceptorsProviderClass the class providing the Groovy call interceptors.
+         * It must have a method that follows the pattern: {@code public static List<CallInterceptor> getCallInterceptors()}
+         */
+        @SuppressWarnings("unchecked")
+        private static List<CallInterceptor> getInterceptorsFromClass(Class<?> interceptorsProviderClass) {
+            Method getCallInterceptors;
+            try {
+                getCallInterceptors = interceptorsProviderClass.getDeclaredMethod("getCallInterceptors");
+            } catch (NoSuchMethodException e) {
+                throw new IllegalArgumentException("The provider class does not have the expected getCallInterceptors method", e);
+            }
+
+            try {
+                return ImmutableList.copyOf((List<CallInterceptor>) Cast.uncheckedNonnullCast(getCallInterceptors.invoke(null)));
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException("Cannot access the getCallInterceptors method in the provider class", e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @NonNullApi
+    class CompositeGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
+
+        private final GroovyCallInterceptorsProvider first;
+        private final GroovyCallInterceptorsProvider second;
+
+        private CompositeGroovyCallInterceptorsProvider(GroovyCallInterceptorsProvider first, GroovyCallInterceptorsProvider second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        @Override
+        public List<CallInterceptor> getCallInterceptors() {
+            return Stream.concat(first.getCallInterceptors().stream(), second.getCallInterceptors().stream()).collect(Collectors.toList());
+        }
     }
 }

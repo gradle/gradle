@@ -15,11 +15,26 @@
  */
 package org.gradle.api.publish.internal.versionmapping;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
 
 import javax.annotation.Nullable;
 
 public interface VariantVersionMappingStrategyInternal extends VariantVersionMappingStrategy {
-    ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable String projectPath);
+    /**
+     * Return true if the user has explicitly enabled version mapping. False otherwise.
+     */
+    boolean isEnabled();
+
+    /**
+     * Get the resolution configuration, as specified by the user.
+     */
+    @Nullable
+    Configuration getUserResolutionConfiguration();
+
+    /**
+     * Get the resolution configuration, as specified by {@link VersionMappingStrategyInternal#defaultResolutionConfiguration(String, String)}.
+     */
+    @Nullable
+    Configuration getDefaultResolutionConfiguration();
 }

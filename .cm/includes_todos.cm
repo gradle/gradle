@@ -14,17 +14,20 @@ manifest:
 # if all the conditions pass.  You can define multiple automations in a .cm file, but
 # each automation name should be unique within the file.
 
-# Every action only runs if a JVM team member is the author of the change, for testing purposes.
 automations:
 
   # If someone adds a TODO, remind them about it by requesting removal
   point_out_todos:
     if:
-      - {{ false }} # disabled for now
-      - {{ author.using_gitstream }}
+      - {{ is.requested or not pr.author_is_org_member }}
+      - {{ author.using_gitstream or not pr.author_is_org_member }}
       - {{ source.diff.files | matchDiffLines(regex=r/(TODO)|(todo)/) | some }}
     run:
-      - action: request-changes@v1
+      - action: add-label@v1
+        args:
+          label: "⚠️ Includes TODOs"
+          color: {{ colors.yellow }}
+      - action: add-comment@v1
         args:
           comment: 'There are new TODOs present in this change.  Should any be removed?'
 
@@ -32,22 +35,29 @@ automations:
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
 # This section could also appear ahead of the automations section.
 
+colors:
+  yellow: 'ffb300'
+
+is:
+  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check todos') | some) }}
+
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
-      - 'alllex'
       - 'wolfs'
+  configuration:
+    members:
+      - 'alllex'
   dev_prod:
     members:
       - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
   ide:
     members:
       - 'hegyibalint'
@@ -57,6 +67,6 @@ teams:
     members:
       - 'big-guy'
       - 'ghale'
-      - 'jvandort'
+      - 'jvandort-DISABLED'
       - 'octylFractal'
       - 'tresat'

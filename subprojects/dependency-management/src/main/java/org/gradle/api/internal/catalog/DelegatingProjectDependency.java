@@ -29,6 +29,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class DelegatingProjectDependency implements ProjectDependencyInternal {
     private final TypeSafeProjectDependencyFactory factory;
     private final ProjectDependencyInternal delegate;
@@ -51,6 +53,11 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
 
     protected TypeSafeProjectDependencyFactory getFactory() {
         return factory;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return delegate.getIdentityPath();
     }
 
     @Override

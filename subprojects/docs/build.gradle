@@ -4,6 +4,8 @@ import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 
+import javax.inject.Inject
+
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.BuildParamsKt.isConfigurationCacheEnabledForDocsTests
 import static gradlebuild.basics.BuildParamsKt.shouldRunBrokenForConfigurationCacheDocsTests
@@ -586,9 +588,9 @@ tasks.named("docsTest") { task ->
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    def installationEnvProvider = new GradleInstallationForTestEnvironmentProvider(project, task)
+    def installationEnvProvider = objects.newInstance(GradleInstallationForTestEnvironmentProvider.class, project, task)
     installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
-    installationEnvProvider.samplesdir.set(project.layout.buildDirectory.dir("working/samples/testing"))
+    installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
     jvmArgumentProviders.add(installationEnvProvider)
 
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
@@ -617,15 +619,6 @@ tasks.named("docsTest") { task ->
         }
         // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
         excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample"
-
-        // Do not execute Java Module tests on JVM < 9
-        if (!javaVersion.java9Compatible) {
-            excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-application*.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
-        }
 
         if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
@@ -826,6 +819,7 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
     private final FileCollection testTaskClasspath
     private final Directory repoRoot
 
+    @Inject
     GradleInstallationForTestEnvironmentProvider(Project project, Test testTask) {
         this.gradleHomeDir = project.objects.fileCollection()
         this.samplesdir = project.objects.directoryProperty()

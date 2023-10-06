@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import com.google.common.io.Files;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -27,18 +27,18 @@ import java.io.File;
 public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     private final File file;
     private final String extension;
-    private final IvyPublicationIdentity identity;
+    private final IvyPublicationCoordinates coordinates;
 
-    public FileBasedIvyArtifact(File file, IvyPublicationIdentity identity, TaskDependencyFactory taskDependencyFactory) {
+    public FileBasedIvyArtifact(File file, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.file = file;
         extension = Files.getFileExtension(file.getName());
-        this.identity = identity;
+        this.coordinates = coordinates;
     }
 
     @Override
     protected String getDefaultName() {
-        return identity.getModule();
+        return coordinates.getModule().get();
     }
 
     @Override

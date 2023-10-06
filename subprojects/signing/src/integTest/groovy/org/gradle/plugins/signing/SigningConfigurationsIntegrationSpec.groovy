@@ -50,6 +50,29 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
+    def "configurations are signed when executing assemble task"() {
+        given:
+        buildFile << """
+            configurations {
+                meta
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives, configurations.meta
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+            ${getJavadocAndSourceJarsScript("meta")}
+        """
+
+        when:
+        run "assemble"
+
+        then:
+        executedAndNotSkipped ":signArchives", ":signMeta"
+    }
+
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"
@@ -154,8 +177,8 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
     }
 }

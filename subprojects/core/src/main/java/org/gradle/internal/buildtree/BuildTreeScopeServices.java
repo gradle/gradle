@@ -20,13 +20,18 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
+import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
+import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -39,6 +44,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
@@ -94,8 +100,8 @@ public class BuildTreeScopeServices {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
 
-    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
-        return new DefaultTaskSelector(new TaskNameResolver(), projectConfigurer);
+    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer, ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultTaskSelector.class, new TaskNameResolver(), projectConfigurer);
     }
 
     protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
@@ -116,5 +122,13 @@ public class BuildTreeScopeServices {
 
     protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory);
+    }
+
+    protected BuildLogicBuildQueue createBuildLogicBuildQueue(
+        FileLockManager fileLockManager,
+        BuildStateRegistry buildStateRegistry,
+        BuildTreeWorkGraphController buildTreeWorkGraphController
+    ) {
+        return new DefaultBuildLogicBuildQueue(fileLockManager, buildStateRegistry, buildTreeWorkGraphController);
     }
 }

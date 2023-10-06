@@ -18,8 +18,8 @@ package org.gradle.api.reporting.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
 
@@ -82,7 +82,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         """
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "task up to date when no reporting configuration change"() {
         expect:
@@ -94,7 +94,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         skipped(task)
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache
     def "task not up to date when enabled set changes"() {
         expect:
@@ -111,7 +111,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(task)
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Requires(IntegTestPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:

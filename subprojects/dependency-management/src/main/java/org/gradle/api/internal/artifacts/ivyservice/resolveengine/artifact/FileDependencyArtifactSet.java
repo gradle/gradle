@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.transform.VariantSelector;
+import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -35,9 +33,20 @@ public class FileDependencyArtifactSet implements ArtifactSet {
     }
 
     @Override
-    public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
+    public ResolvedArtifactSet select(
+        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionSpec spec
+    ) {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
-        return new LocalFileDependencyBackedArtifactSet(fileDependency, componentFilter, selector, artifactTypeRegistry, calculatedValueContainerFactory);
+        return new DefaultLocalFileDependencyBackedArtifactSet(
+            fileDependency,
+            spec.getComponentFilter(),
+            variantSelector,
+            artifactTypeRegistry,
+            calculatedValueContainerFactory,
+            spec.getRequestAttributes(),
+            spec.getAllowNoMatchingVariants()
+        );
     }
 
 }

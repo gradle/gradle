@@ -14,18 +14,22 @@ manifest:
 # if all the conditions pass.  You can define multiple automations in a .cm file, but
 # each automation name should be unique within the file.
 
-# Every action only runs if a JVM team member is the author of the change, for testing purposes.
 automations:
 
   # If a PR contains non-trivial source changes and no tests, add a comment to the PR
   no_tests:
     if:
-      - {{ author.using_gitstream }}
+      - {{ is.requested or not pr.author_is_org_member }}
+      - {{ author.using_gitstream or not pr.author_is_org_member }}
       - {{ includes_src_changes }}
       - {{ not (includes_test_changes) }}
       - {{ not (is_docs_only_change) }}
       - {{ not (is_formatting_only_change) }}
     run:
+      - action: add-label@v1
+        args:
+          label: "⚠️ Lacks Tests"
+          color: {{ colors.yellow }}
       - action: add-comment@v1
         args:
           comment: |
@@ -35,27 +39,34 @@ automations:
 # Read the "|" not as "or", but as a "pipe", taking the output of the previous command and passing it to the next command.
 # This section could also appear ahead of the automations section.
 
+colors:
+  yellow: 'ffb300'
+
 includes_src_changes: {{ files | match(regex=r/.*\/src\//) | some }}
 includes_test_changes: {{ files | match(regex=r/.*\/(test|integTest|crossVersionTest|docsTest|smokeTest)\//) | some }}
 is_docs_only_change: {{ (files | allDocs) or (files | match(regex=r/\.adoc$/) | every) }} # This won't catch a mix of .adoc and non .adoc changes, see: https://github.com/linear-b/gitstream/issues/93
 is_formatting_only_change: {{ source.diff.files | isFormattingChange }}
 
+is:
+  requested: {{ (pr.comments | match(attr='content', term='@bot-gitstream check all') | some) or (pr.comments | match(attr='content', term='@bot-gitstream check tests') | some) }}
+
 author:
-  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
+  using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
 
 teams:
   build_scan:
     members:
-      - 'alllex'
       - 'wolfs'
+  configuration:
+    members:
+      - 'alllex'
   dev_prod:
     members:
       - 'blindpirate'
   execution:
     members:
-      - 'asodja'
-      - 'lptr'
-      - 'FrauBoes'
+      - 'asodja-DISABLED'
+      - 'lptr-DISABLED'
   ide:
     members:
       - 'hegyibalint'

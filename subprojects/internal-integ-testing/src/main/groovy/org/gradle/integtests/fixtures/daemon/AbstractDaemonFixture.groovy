@@ -35,6 +35,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         this.context = DaemonContextParser.parseFromFile(daemonLog)
         if (!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
+            throw new IllegalStateException("unable to parse DefaultDaemonContext from source: [${daemonLog.absolutePath}].");
         }
         if (this.context?.pid == null) {
             println "PID in daemon log ($daemonLog.absolutePath) is null."
@@ -60,7 +61,7 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     @Override
     boolean logContains(long fromLine, String searchString) {
         Files.lines(logFile.toPath()).withCloseable { lines ->
-            lines.skip(fromLine).anyMatch{ it.contains(searchString) }
+            lines.skip(fromLine).anyMatch { it.contains(searchString) }
         }
     }
 

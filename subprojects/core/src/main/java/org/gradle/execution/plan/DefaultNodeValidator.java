@@ -16,19 +16,20 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.internal.reflect.validation.UserManualReference;
 
 import java.util.List;
+import java.util.Set;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
@@ -40,7 +41,7 @@ public class DefaultNodeValidator implements NodeValidator {
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
-        List<TypeValidationProblem> problems = validationContext.getProblems();
+        List<? extends Problem> problems = validationContext.getProblems();
         logWarnings(problems);
         reportErrors(problems, node.getTask(), validationContext);
         return !problems.isEmpty();
@@ -55,25 +56,23 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<TypeValidationProblem> problems) {
+    private void logWarnings(List<? extends Problem> problems) {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
             .forEach(problem -> {
-                UserManualReference userManualReference = problem.getUserManualReference();
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
                 // and rendering
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
-                DeprecationLogger.deprecateBehaviour(warning)
+                withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBeRemovedInGradle9()
-                    .withUserManual(userManualReference.getId(), userManualReference.getSection())
+                    .willBeRemovedInGradle9())
                     .nagUser();
             });
     }
 
-    private void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
+    private void reportErrors(List<? extends Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
+        Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
                 .withSummaryForContext(task.toString(), validationContext)
@@ -81,10 +80,10 @@ public class DefaultNodeValidator implements NodeValidator {
         }
     }
 
-    private static ImmutableSet<String> getUniqueErrors(List<TypeValidationProblem> problems) {
+    private static Set<String> getUniqueErrors(List<? extends Problem> problems) {
         return problems.stream()
             .filter(problem -> !problem.getSeverity().isWarning())
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(ImmutableSet.toImmutableSet());
+            .collect(toImmutableSet());
     }
 }

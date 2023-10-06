@@ -27,6 +27,7 @@ import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+import org.gradle.util.GradleVersion
 
 class LockFileReaderWriterTest extends Specification {
     @Rule
@@ -142,6 +143,25 @@ empty=d
         1 * listener.fileObserved(lockFile)
     }
 
+    def 'reads an invalid unique lock file '() {
+        given:
+        def lockFile = tmpDir.file('gradle.lockfile')
+        lockFile << """#ignored
+<<<<<<< HEAD
+======
+bar=a,c
+foo=a,b,c
+empty=d
+"""
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        def ex = thrown(InvalidLockFileException)
+        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
+    }
+
     def 'reads a unique lock file from a custom location'() {
         given:
         def file = tmpDir.file('custom', 'lock.file')
@@ -207,6 +227,28 @@ empty=d
 
         then:
         result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
+    }
+    
+    def 'reads an invalid unique lock file with prefix'() {
+        given:
+        context.isScript() >> true
+        resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
+        def lockFile = tmpDir.file('buildscript-gradle.lockfile')
+        lockFile << """#ignored
+<<<<<<< HEAD
+======
+bar=a,c
+foo=a,b,c
+empty=d
+"""
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        def ex = thrown(InvalidLockFileException)
+        ex.message == "Invalid lock state for lock file specified in '${lockFile.path}'. Line: <<<<<<< HEAD For more information on formatting, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."
     }
 
     def 'fails to read a unique lockfile if root could not be determined'() {

@@ -18,19 +18,16 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
+
+import static org.gradle.integtests.resolve.versions.AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON
 
 /**
  * Demonstrates the resolution of dependency excludes in published module metadata.
  */
-@IgnoreIf({
-    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
-    // infrastructure to simulate everything done here, so we're only going to execute this test in
-    // embedded mode
-    !GradleContextualExecuter.embedded
-})
+@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 class ModuleDependencyExcludeResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
     def setup() {
         buildFile << """
@@ -55,50 +52,50 @@ task check(type: Sync) {
 
 
     /**
-    * Dependency exclude for a single artifact by using a combination of exclude rules.
-    *
-    * Dependency graph:
-    * a -> b, c
-    */
-   def "dependency exclude that does not match transitive dependency is ignored"() {
-       given:
-       repository {
-           'a:a:1.0' {
-               dependsOn group: 'b', artifact: 'b', version: '1.0', exclusions: [excludeAttributes]
-               dependsOn 'c:c:1.0'
-           }
-           'b:b:1.0' {}
-           'c:c:1.0' {}
-       }
+     * Dependency exclude for a single artifact by using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     */
+    def "dependency exclude that does not match transitive dependency is ignored"() {
+        given:
+        repository {
+            'a:a:1.0' {
+                dependsOn group: 'b', artifact: 'b', version: '1.0', exclusions: [excludeAttributes]
+                dependsOn 'c:c:1.0'
+            }
+            'b:b:1.0' {}
+            'c:c:1.0' {}
+        }
 
-       repositoryInteractions {
-           'a:a:1.0' {expectResolve()}
-           'b:b:1.0' {expectResolve()}
-           'c:c:1.0' {expectResolve()}
-       }
+        repositoryInteractions {
+            'a:a:1.0' { expectResolve() }
+            'b:b:1.0' { expectResolve() }
+            'c:c:1.0' { expectResolve() }
+        }
 
-       when:
-       succeeds "checkDep"
+        when:
+        succeeds "checkDep"
 
-       then:
-       resolve.expectGraph {
-           root(":", ":test:") {
-               module("a:a:1.0") {
-                   module("b:b:1.0")
-                   module("c:c:1.0")
-               }
-           }
-       }
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("a:a:1.0") {
+                    module("b:b:1.0")
+                    module("c:c:1.0")
+                }
+            }
+        }
 
-       where:
-       condition             | excludeAttributes
-       'non-matching module' | [module: 'other']
-       'non-matching module' | [group: 'other']
-       'sibling module'      | [module: 'c']
-       'sibling group'       | [group: 'c']
-       'self module'         | [module: 'b']
-       'self group'          | [group: 'b']
-   }
+        where:
+        condition             | excludeAttributes
+        'non-matching module' | [module: 'other']
+        'non-matching module' | [group: 'other']
+        'sibling module'      | [module: 'c']
+        'sibling group'       | [group: 'c']
+        'self module'         | [module: 'b']
+        'self group'          | [group: 'b']
+    }
 
 
     /**
@@ -139,7 +136,7 @@ task check(type: Sync) {
         succeedsDependencyResolution()
 
         then:
-        def resolvedJars = expectResolved.collect { it + '-1.0.jar'}
+        def resolvedJars = expectResolved.collect { it + '-1.0.jar' }
         assertResolvedFiles(resolvedJars)
 
         where:
@@ -178,8 +175,8 @@ task check(type: Sync) {
         }
 
         repositoryInteractions {
-            'a:a:1.0' {expectResolve()}
-            'b:b:1.0' {expectResolve()}
+            'a:a:1.0' { expectResolve() }
+            'b:b:1.0' { expectResolve() }
         }
 
         when:
@@ -227,7 +224,7 @@ task check(type: Sync) {
         succeedsDependencyResolution()
 
         then:
-        def resolvedJars = expectResolved.collect { it + '-1.0.jar'}
+        def resolvedJars = expectResolved.collect { it + '-1.0.jar' }
         assertResolvedFiles(resolvedJars)
 
         where:
@@ -314,7 +311,7 @@ task check(type: Sync) {
         succeedsDependencyResolution()
 
         then:
-        def resolvedJars = expectResolved.collect { it + '-1.0.jar'}
+        def resolvedJars = expectResolved.collect { it + '-1.0.jar' }
         assertResolvedFiles(resolvedJars)
 
         where:
@@ -354,7 +351,7 @@ task check(type: Sync) {
         succeedsDependencyResolution()
 
         then:
-        assertResolvedFiles(expectResolved.collect { it + '-1.0.jar'})
+        assertResolvedFiles(expectResolved.collect { it + '-1.0.jar' })
 
         where:
         condition             | bExcludes       | cExcludes       | expectResolved
@@ -377,8 +374,8 @@ task check(type: Sync) {
         }
 
         repositoryInteractions {
-            'a:a:1.0' {expectResolve()}
-            'b:b:1.0' {expectResolve()}
+            'a:a:1.0' { expectResolve() }
+            'b:b:1.0' { expectResolve() }
         }
 
         and: // Initial request to cache metadata
@@ -460,19 +457,19 @@ task check(type: Sync) {
 
             'org.test:depA:1.0'()
             'org.test:depB:1.0' {
-                dependsOn  'org.test:depA'
+                dependsOn 'org.test:depA'
             }
             'org.test:depC:1.0' {
                 dependsOn 'org.test:depB:1.0'
             }
             'org.test:depD:1.0' {
-                dependsOn  group:'org.test', artifact: 'depC', version: '1.0', exclusions: [[module: 'depA']]
+                dependsOn group: 'org.test', artifact: 'depC', version: '1.0', exclusions: [[module: 'depA']]
             }
             'org.test:depE:1.0' {
-                dependsOn  'org.test:depC:1.0'
+                dependsOn 'org.test:depC:1.0'
             }
             'org.test:depF:1.0' {
-                dependsOn  'org.test:depE:1.0'
+                dependsOn 'org.test:depE:1.0'
             }
         }
 
@@ -608,7 +605,7 @@ configurations {
         succeedsDependencyResolution()
 
         then:
-        def resolvedJars = expectResolved.collect { it + '-1.0.jar'}
+        def resolvedJars = expectResolved.collect { it + '-1.0.jar' }
         assertResolvedFiles(resolvedJars)
     }
 }

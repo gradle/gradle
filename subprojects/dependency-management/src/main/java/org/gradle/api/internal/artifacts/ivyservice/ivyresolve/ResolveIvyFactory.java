@@ -52,7 +52,6 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -62,6 +61,9 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
+/**
+ * Creates resolver that can resolve module components from repositories.
+ */
 public class ResolveIvyFactory {
     private final ModuleRepositoryCacheProvider cacheProvider;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
@@ -201,11 +203,6 @@ public class ResolveIvyFactory {
         @Override
         public ArtifactResolver getArtifactResolver() {
             return this;
-        }
-
-        @Override
-        public OriginArtifactSelector getArtifactSelector() {
-            throw new UnsupportedOperationException();
         }
 
         @Override

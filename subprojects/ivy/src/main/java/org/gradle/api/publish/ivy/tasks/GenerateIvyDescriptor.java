@@ -18,16 +18,9 @@ package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyConfiguration;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
-import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
-import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
-import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
-import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
+import org.gradle.api.publish.ivy.internal.tasks.IvyDescriptorFileGenerator;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -109,43 +102,7 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {
         IvyModuleDescriptorSpecInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
-
-        IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getProjectIdentity(),
-                                                                                 descriptorInternal.writeGradleMetadataMarker(),
-                                                                                 descriptorInternal.getVersionMappingStrategy());
-        ivyGenerator.setStatus(descriptorInternal.getStatus());
-        ivyGenerator.setBranch(descriptorInternal.getBranch());
-        ivyGenerator.setExtraInfo(descriptorInternal.getExtraInfo().asMap());
-
-        for (IvyModuleDescriptorAuthor ivyAuthor : descriptorInternal.getAuthors()) {
-            ivyGenerator.addAuthor(ivyAuthor);
-        }
-
-        for (IvyModuleDescriptorLicense ivyLicense : descriptorInternal.getLicenses()) {
-            ivyGenerator.addLicense(ivyLicense);
-        }
-
-        ivyGenerator.setDescription(descriptorInternal.getDescription());
-
-        for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations().get()) {
-            ivyGenerator.addConfiguration(ivyConfiguration);
-        }
-
-        for (IvyArtifact ivyArtifact : descriptorInternal.getArtifacts()) {
-            ivyGenerator.addArtifact(((IvyArtifactInternal) ivyArtifact).asNormalisedArtifact());
-        }
-
-        for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies().get()) {
-            ivyGenerator.addDependency(ivyDependency);
-        }
-
-        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes().get()) {
-            ivyGenerator.addGlobalExclude(excludeRule);
-        }
-
-        ivyGenerator.withXml(descriptorInternal.getXmlAction());
-
-        return ivyGenerator.toSpec();
+        return IvyDescriptorFileGenerator.generateSpec(descriptorInternal);
     }
 
     private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {

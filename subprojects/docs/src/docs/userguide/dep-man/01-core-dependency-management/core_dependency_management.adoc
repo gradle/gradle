@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[dependency_management_in_gradle]]
 = Dependency Management
 
@@ -49,7 +63,7 @@ Subsequent builds use this cache to avoid unnecessary network calls and speed up
 <4> *Here we declare the specific dependency name and version within a scope.*
 +
 You can add code to your Java project from an external library such as `com.google.common.base` (a Guava package) which becomes a _dependency_. +
-In this example, the theoretical project uses Guava version 31.1-jre and JUnit 4.13.2 as _dependencies_. +
+In this example, the theoretical project uses Guava version 32.1.2-jre and JUnit 4.13.2 as _dependencies_. +
 A build engineer can <<declaring_dependencies.adoc#declaring-dependencies,declare dependencies>> for different scopes. For example, you can declare dependencies that are only used at compile time.
 Gradle calls the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
@@ -27,7 +26,6 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -38,6 +36,8 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -75,9 +75,8 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -91,9 +90,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
+import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class DefaultTransform implements Transform {
 
@@ -136,7 +138,7 @@ public class DefaultTransform implements Transform {
         DomainObjectContext owner,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         ServiceLookup internalServices,
-        DocumentationRegistry documentationRegistry
+        Problems problems
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
@@ -155,7 +157,7 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
-                fileCollectionFactory, documentationRegistry));
+                fileCollectionFactory, problems));
     }
 
     /**
@@ -195,18 +197,21 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
+    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
+
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
                 validationContext.visitPropertyProblem(problem ->
-                    problem.withId(ValidationProblemId.CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
-                        .reportAs(Severity.ERROR)
+                    problem
                         .forProperty(propertyName)
-                        .withDescription("is declared to be sensitive to absolute paths")
-                        .happensBecause("This is not allowed for cacheable transforms")
-                        .withLongDescription("Absolute path sensitivity does not allow sharing the transform result between different machines, although that is the goal of cacheable transforms.")
-                        .addPossibleSolution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath")
-                        .documentedAt("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"));
+                        .label("is declared to be sensitive to absolute paths")
+                        .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
+                        .noLocation()
+                        .category(VALIDATION, CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .severity(ERROR)
+                        .details("This is not allowed for cacheable transforms")
+                        .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
         }
     }
@@ -284,8 +289,11 @@ public class DefaultTransform implements Transform {
         isolatedParameters.finalizeIfNotAlready();
     }
 
+
+    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
+
     private static void fingerprintParameters(
-        DocumentationRegistry documentationRegistry,
+        Problems problems,
         InputFingerprinter inputFingerprinter,
         FileCollectionFactory fileCollectionFactory,
         PropertyWalker propertyWalker,
@@ -293,7 +301,7 @@ public class DefaultTransform implements Transform {
         Object parameterObject,
         boolean cacheable
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(documentationRegistry, cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(problems, cacheable);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -307,10 +315,13 @@ public class DefaultTransform implements Transform {
                     boolean optional
                 ) {
                     try {
+                        // TODO Unify this with AbstractValidatingProperty.validate();
+                        //   we are doing a slightly different version of the same code here,
+                        //   see https://github.com/gradle/gradle/issues/10846
                         Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                         if (preparedValue == null && !optional) {
-                            reportValueNotSet(propertyName, validationContext);
+                            reportValueNotSet(propertyName, validationContext, true);
                         }
                         visitor.visitInputProperty(propertyName, () -> preparedValue);
                     } catch (Throwable e) {
@@ -353,29 +364,32 @@ public class DefaultTransform implements Transform {
                     OutputFilePropertyType filePropertyType
                 ) {
                     validationContext.visitPropertyProblem(problem ->
-                        problem.withId(ValidationProblemId.ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
-                            .reportAs(Severity.ERROR)
+                        problem
                             .forProperty(propertyName)
-                            .withDescription("declares an output")
-                            .happensBecause("is annotated with an output annotation")
-                            .addPossibleSolution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
-                            .documentedAt("validation_problems", "artifact_transform_should_not_declare_output")
+                            .label("declares an output")
+                            .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
+                            .noLocation()
+                            .category(VALIDATION, ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                            .severity(ERROR)
+                            .details("is annotated with an output annotation")
+                            .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
                 }
             })
         );
 
-        ImmutableMap<String, Severity> validationMessages = validationContext.getProblems();
+        ImmutableList<Problem> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1
                         ? "A problem was found with the configuration of the artifact transform parameter %s."
                         : "Some problems were found with the configuration of the artifact transform parameter %s.",
                     getParameterObjectDisplayName(parameterObject)),
-                validationMessages.keySet().stream()
+                validationMessages.stream()
+                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                     .sorted()
                     .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
+                    .collect(toImmutableList())
             );
         }
 
@@ -555,7 +569,7 @@ public class DefaultTransform implements Transform {
         private final BuildOperationExecutor buildOperationExecutor;
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         private final FileCollectionFactory fileCollectionFactory;
-        private final DocumentationRegistry documentationRegistry;
+        private final Problems problems;
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
@@ -569,7 +583,7 @@ public class DefaultTransform implements Transform {
             BuildOperationExecutor buildOperationExecutor,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             FileCollectionFactory fileCollectionFactory,
-            DocumentationRegistry documentationRegistry
+            Problems problems
         ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
@@ -580,7 +594,7 @@ public class DefaultTransform implements Transform {
             this.buildOperationExecutor = buildOperationExecutor;
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
             this.fileCollectionFactory = fileCollectionFactory;
-            this.documentationRegistry = documentationRegistry;
+            this.problems = problems;
         }
 
         @Nullable
@@ -682,7 +696,7 @@ public class DefaultTransform implements Transform {
                     public void run(BuildOperationContext context) {
                         // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
                         fingerprintParameters(
-                            documentationRegistry,
+                            problems,
                             inputFingerprinter,
                             fileCollectionFactory,
                             parameterPropertyWalker,

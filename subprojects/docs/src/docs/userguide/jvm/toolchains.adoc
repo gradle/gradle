@@ -1,10 +1,10 @@
-// Copyright 2020 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -375,6 +375,7 @@ Sorting is done based on the following rules:
 .. GRAAL_VM
 .. HEWLETT_PACKARD
 .. IBM
+.. JETBRAINS
 .. MICROSOFT
 .. ORACLE
 .. SAP
@@ -389,8 +390,8 @@ Let's illustrate with an example.
 A toolchain specification requests Java version 17.
 Gradle detects the following matching installations:
 
-* Oracle JRE v17.0.0
-* Oracle JDK v17.0.1
+* Oracle JRE v17.0.1
+* Oracle JDK v17.0.0
 * Microsoft JDK 17.0.0
 * Microsoft JRE 17.0.1
 * Microsoft JDK 17.0.1

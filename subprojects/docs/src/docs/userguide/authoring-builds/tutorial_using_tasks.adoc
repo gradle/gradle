@@ -1,16 +1,18 @@
-// Copyright 2017 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+:fn-disclaimer: footnote:disclaimer[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>.]
 
 [[tutorial_using_tasks]]
 = Build Script Basics
@@ -44,13 +46,13 @@ Still, to give you an idea of what a task is, we will look at defining some simp
 [[sec:hello_world]]
 == Hello world
 [.multi-language-text.lang-kotlin]
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle.kts` in the current directory.{fn-disclaimer} We call this `build.gradle.kts` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 [.multi-language-text.lang-kotlin]
 To try this out, create the following build script named `build.gradle.kts`.
 
 [.multi-language-text.lang-groovy]
-You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.footnote:[There are command line switches to change this behavior. See <<command_line_interface.adoc#command_line_interface,Command-Line Interface>>] We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
+You run a Gradle build using the `gradle` command. The `gradle` command looks for a file called `build.gradle` in the current directory.{fn-disclaimer} We call this `build.gradle` file a _build script_, although strictly speaking it is a build configuration script, as we will see later. The build script defines a project and its tasks.
 
 [.multi-language-text.lang-groovy]
 To try this out, create the following build script named `build.gradle`.

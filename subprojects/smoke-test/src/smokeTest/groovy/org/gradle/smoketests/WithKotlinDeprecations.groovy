@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.smoketests.KotlinRunnerFactory.ParallelTasksInProject
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -91,7 +92,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
             "The TestReport.reportOn(Object...) method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Please use the testResults method instead. " +
-                String.format(RECOMMENDATION,"information",  DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.testing.TestReport", "testResults"))
+                String.format(RECOMMENDATION, "information", DOCUMENTATION_REGISTRY.getDslRefForProperty("org.gradle.api.tasks.testing.TestReport", "testResults"))
         )
     }
 
@@ -142,9 +143,20 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
 
     void expectConventionTypeDeprecation(VersionNumber versionNumber) {
         runner.expectLegacyDeprecationWarningIf(
-            versionNumber < VersionNumber.parse("1.7.22"),
+            shouldExpectConventionTypeDeprecation(versionNumber),
             CONVENTION_TYPE_DEPRECATION
         )
+    }
+
+    void maybeExpectConventionTypeDeprecation(VersionNumber versionNumber) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            shouldExpectConventionTypeDeprecation(versionNumber),
+            CONVENTION_TYPE_DEPRECATION
+        )
+    }
+
+    private boolean shouldExpectConventionTypeDeprecation(VersionNumber versionNumber) {
+        versionNumber < VersionNumber.parse("1.7.22")
     }
 
     void expectConventionTypeDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
@@ -164,13 +176,19 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
+    void expectForUseAtConfigurationTimeDeprecation(VersionNumber versionNumber) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionNumber < VersionNumber.parse("1.8.0"),
+            FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION
+        )
+    }
+
     void expectBuildIdentifierNameDeprecation(VersionNumber versionNumber) {
-        runner.expectDeprecationWarningIf(versionNumber >= VersionNumber.parse("1.8.20"),
+        runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse("1.8.20") && versionNumber.baseVersion < VersionNumber.parse('1.9.20'),
             "The BuildIdentifier.getName() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
-            "https://youtrack.jetbrains.com/issue/KT-58157"
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
         )
     }
 
@@ -186,6 +204,9 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         expectTestReportReportOnDeprecation(versionNumber)
         expectTestReportDestinationDirOnDeprecation(versionNumber)
         expectBuildIdentifierNameDeprecation(versionNumber)
+        if (GradleContextualExecuter.configCache || versionNumber == VersionNumber.parse("1.7.22")) {
+            expectForUseAtConfigurationTimeDeprecation(versionNumber)
+        }
     }
 
     protected static enum ProjectTypes {

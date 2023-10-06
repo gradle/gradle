@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("org.sample.myapp.Main")
+    mainClass = "org.sample.myapp.Main"
 }
 
 dependencies {

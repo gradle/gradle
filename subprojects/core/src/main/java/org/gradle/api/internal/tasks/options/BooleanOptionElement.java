@@ -55,8 +55,8 @@ public class BooleanOptionElement extends AbstractOptionElement {
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
         return optionElement.isDisableOption()
-            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter, false)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter, false);
+            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName + ".", optionElement.setter, false)
+            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName + ".", optionElement.setter, false);
     }
 
     /**

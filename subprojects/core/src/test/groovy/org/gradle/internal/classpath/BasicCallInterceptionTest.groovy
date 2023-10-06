@@ -22,7 +22,16 @@ import groovy.transform.stc.SimpleType
 import java.util.function.Predicate
 
 import static java.util.function.Predicate.isEqual
+import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
+import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider
 import static org.gradle.internal.classpath.InstrumentedClasses.nestedClassesOf
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestNoArg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestSingleArg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestSingleArgNull
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVararg
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithArray
+import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithNullItem
+import static org.gradle.internal.classpath.JvmBytecodeInterceptorSet.*
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -32,36 +41,99 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
 
     @Override
     protected JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS] }
+        return DEFAULT + new ClassLoaderSourceJvmBytecodeInterceptorSet(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
     @Override
     protected GroovyCallInterceptorsProvider groovyCallInterceptors() {
-        return { [BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS] }
+        return new ClassLoaderSourceGroovyCallInterceptorsProvider(this.getClass().classLoader, TEST_GENERATED_CLASSES_PACKAGE)
     }
 
-    String interceptedWhen(@ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call) {
+    // We don't want to interfere with other tests that modify the meta class
+    def interceptorTestReceiverClassLock = new ClassBasedLock(InterceptorTestReceiver)
+    def originalMetaClass = null
+
+    def setup() {
+        interceptorTestReceiverClassLock.lock()
+        originalMetaClass = InterceptorTestReceiver.metaClass
+    }
+
+    def cleanup() {
+        InterceptorTestReceiver.metaClass = originalMetaClass
+        interceptorTestReceiverClassLock.unlock()
+    }
+
+    String interceptedWhen(
+        boolean shouldDelegate,
+        @ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call
+    ) {
         def receiver = new InterceptorTestReceiver()
-        instrumentedClasses.instrumentedClosure(call).call(receiver)
+        def closure = instrumentedClasses.instrumentedClosure(call)
+        if (shouldDelegate) {
+            closure.delegate = receiver
+            closure.call()
+        } else {
+            closure.call(receiver)
+        }
         receiver.intercepted
     }
 
-    def 'intercepts a basic instance call with $name'() {
+    def 'intercepts a basic instance call with #method from #caller'() {
         when:
-        def intercepted = interceptedWhen(invocation)
+        def intercepted = interceptedWhen(shouldDelegate, invocation)
 
         then:
         intercepted == expected
 
         where:
-        // TODO: the set of the test cases should be extended; the ones listed currently are an example
-        name                       | invocation                                                    | expected
-        "no argument from Java"    | { JavaCallerForBasicCallInterceptorTest.doCallNoArg(it) }     | "call()"
-        "one argument from Java"   | { JavaCallerForBasicCallInterceptorTest.doCallSingleArg(it) } | "call(InterceptorTestReceiver)"
-        "vararg from Java"         | { JavaCallerForBasicCallInterceptorTest.doCallVararg(it) }    | "callVararg(Object...)"
+        method                  | caller                    | invocation                                | shouldDelegate | expected
+        "no argument"           | "Java"                    | { doTestNoArg(it) }                       | false          | "test()"
+        "one argument"          | "Java"                    | { doTestSingleArg(it) }                   | false          | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Java"                    | { doTestSingleArgNull(it) }               | false          | "test(InterceptorTestReceiver)"
+        "vararg"                | "Java"                    | { doTestVararg(it) }                      | false          | "testVararg(Object...)"
+        "vararg with array"     | "Java"                    | { doTestVarargWithArray(it) }             | false          | "testVararg(Object...)"
+        "vararg with null item" | "Java"                    | { doTestVarargWithNullItem(it) }          | false          | "testVararg(Object...)"
 
-        "no argument from Groovy"  | { it.call() }                                                 | "call()"
-        "one argument from Groovy" | { it.call(it) }                                               | "call(InterceptorTestReceiver)"
-        "vararg from Groovy"       | { it.callVararg(it, it, it) }                                 | "callVararg(Object...)"
+        "no argument"           | "Groovy callsite"         | { it.test() }                             | false          | "test()"
+        "one argument"          | "Groovy callsite"         | { it.test(it) }                           | false          | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Groovy callsite"         | { it.test(null) }                         | false          | "test(InterceptorTestReceiver)"
+        "vararg"                | "Groovy callsite"         | { it.testVararg(it, it, it) }             | false          | "testVararg(Object...)"
+        "vararg with array"     | "Groovy callsite"         | { it.testVararg([it, it, it].toArray()) } | false          | "testVararg(Object...)"
+        "vararg with null item" | "Groovy callsite"         | { it.testVararg(null) }                   | false          | "testVararg(Object...)"
+        "non-existent-method"   | "Groovy callsite"         | { it.nonExistent(null) }                  | false          | "nonExistent(String)-non-existent"
+
+        "no argument"           | "Groovy dynamic dispatch" | { test() }                                | true           | "test()"
+        "one argument"          | "Groovy dynamic dispatch" | { test(it) }                              | true           | "test(InterceptorTestReceiver)"
+        "one null argument"     | "Groovy dynamic dispatch" | { test(null) }                            | true           | "test(InterceptorTestReceiver)"
+        "vararg"                | "Groovy dynamic dispatch" | { testVararg(it, it, it) }                | true           | "testVararg(Object...)"
+        "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
+        "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
+        "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true          | "nonExistent(String)-non-existent"
+    }
+
+    def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {
+        when:
+        def intercepted = interceptedWhen(shouldDelegate, invocation)
+
+        then:
+        intercepted == expected
+
+        where:
+        kind                  | caller      | expected                                      | invocation                           | shouldDelegate
+        "normal getter"       | "call site" | "getTestString()"                             | { it.testString }                    | false
+        "boolean getter"      | "call site" | "isTestFlag()"                                | { it.testFlag }                      | false
+        "non-existent getter" | "call site" | "getNonExistentProperty()-non-existent"       | { it.nonExistentProperty }           | false
+
+        "normal getter"       | "dynamic"   | "getTestString()"                             | { testString }                       | true
+        "boolean getter"      | "dynamic"   | "isTestFlag()"                                | { testFlag }                         | true
+        "non-existent getter" | "dynamic"   | "getNonExistentProperty()-non-existent"       | { nonExistentProperty }              | true
+
+        "normal setter"       | "call site" | "setTestString(String)"                       | { it.testString = "value" }          | false
+        "boolean setter"      | "call site" | "setTestFlag(boolean)"                        | { it.testFlag = true }               | false
+        "non-existent setter" | "call site" | "setNonExistentProperty(String)-non-existent" | { it.nonExistentProperty = "value" } | false
+
+        "normal setter"       | "dynamic"   | "setTestString(String)"                       | { testString = "value" }             | true
+        "boolean setter"      | "dynamic"   | "setTestFlag(boolean)"                        | { testFlag = true }                  | true
+        "non-existent setter" | "dynamic"   | "setNonExistentProperty(String)-non-existent" | { nonExistentProperty = "value" }    | true
     }
 }

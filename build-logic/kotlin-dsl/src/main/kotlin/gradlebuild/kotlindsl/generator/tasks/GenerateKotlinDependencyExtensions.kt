@@ -18,6 +18,7 @@ package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.licenseHeader
 import org.gradle.work.DisableCachingByDefault
 
 import java.io.File

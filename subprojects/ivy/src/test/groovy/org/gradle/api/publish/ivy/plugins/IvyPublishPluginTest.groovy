@@ -69,9 +69,9 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
 
         then:
         with(publishing.publications.test) {
-            identity.module == project.name
-            identity.organisation == "foo"
-            identity.revision == "1.0"
+            module == project.name
+            organisation == "foo"
+            revision == "1.0"
             descriptor.status == "integration"
         }
 
@@ -81,8 +81,8 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
 
         then:
         with(publishing.publications.test) {
-            identity.organisation == "changed-group"
-            identity.revision == "changed-version"
+            organisation == "changed-group"
+            revision == "changed-version"
         }
     }
 

@@ -85,8 +85,8 @@ eclipse {
 // tag::test-sources[]
 eclipse {
     classpath {
-        testSourceSets.set(testSourceSets.get() + setOf(integTest))
-        testConfigurations.set(testConfigurations.get() + setOf(functional))
+        testSourceSets = testSourceSets.get() + setOf(integTest)
+        testConfigurations = testConfigurations.get() + setOf(functional)
     }
 }
 // end::test-sources[]
@@ -94,7 +94,7 @@ eclipse {
 // tag::test-fixtures[]
 eclipse {
     classpath {
-        containsTestFixtures.set(true)
+        containsTestFixtures = true
     }
 }
 // end::test-fixtures[]

@@ -32,6 +32,7 @@ object GradleDistributionSpecs {
         val coreRuntimeClasspath by configurations.getting
         val runtimeClasspath by configurations.getting
         val runtimeApiInfoJar by tasks.getting
+        val gradleApiKotlinExtensionsJar by tasks.getting
         val agentsRuntimeClasspath by configurations.getting
 
         from("${repoRoot()}/LICENSE")
@@ -44,6 +45,7 @@ object GradleDistributionSpecs {
 
         into("lib") {
             from(runtimeApiInfoJar)
+            from(gradleApiKotlinExtensionsJar)
             from(coreRuntimeClasspath)
             into("plugins") {
                 from(runtimeClasspath - coreRuntimeClasspath)
