@@ -352,7 +352,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
-        outputs.stdOut.readLines() == ['info', '> description status']
+        outputs.stdOut.readLines() == ['info', '> description status', '> Progress: WAITING 0%']
         outputs.stdErr == ''
     }
 
@@ -434,7 +434,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.restore(snapshot) // close console to flush
 
         then:
-        output.toString().readLines() == ['', '> description status', 'info']
+        output.toString().readLines() == ['', '> description status', 'info', '> Progress: WAITING 0%']
         error.toString().readLines() == ['un-grouped error', 'error']
     }
 
