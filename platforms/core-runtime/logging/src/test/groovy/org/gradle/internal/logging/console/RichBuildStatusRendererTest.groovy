@@ -24,12 +24,12 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 
-class BuildStatusRendererTest extends OutputSpecification {
+class RichBuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
     def console = new ConsoleStub()
     def consoleMetaData = Mock(ConsoleMetaData)
     long currentTimeMs
-    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData)
+    def renderer = new RichBuildStatusRenderer(listener, console.statusBar, console, consoleMetaData)
 
     @Override
     UpdateNowEvent updateNow() {
