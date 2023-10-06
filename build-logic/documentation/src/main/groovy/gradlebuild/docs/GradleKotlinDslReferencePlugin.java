@@ -77,7 +77,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
      * The name of the module must match the first header of {@code kotlin/Module.md} file.
      */
     private static void renameModule(Project project) {
-        getDokkatooExtension(project).getModuleName().set("Kotlin DSL Reference for Gradle");
+        getDokkatooExtension(project).getModuleName().set("gradle");
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
