@@ -43,6 +43,9 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
             cacheBuilderFactory
                 .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
+            cacheBuilderFactory
+                .createCacheBuilder("dependencies-accessors/.executionHistory")
+                .withDisplayName("dependencies-accessors/.executionHistory"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
