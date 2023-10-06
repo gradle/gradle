@@ -18,9 +18,11 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -255,6 +257,18 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return newFiles;
     }
 
+    @Override
+    public ConfigurableFileCollection update(Transformer<? extends FileCollection, ? super FileCollection> transformer) {
+        assertMutable();
+        FileCollection transformedCollection = transformer.transform(value.freeze(host));
+        if (transformedCollection == null) {
+            setFrom();
+        } else {
+            setFrom(transformedCollection);
+        }
+        return this;
+    }
+
     private void assertMutable() {
         if (state == State.Final && disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " is final and cannot be changed.");
@@ -350,6 +364,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Nullable
         List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
+
+        FileCollection freeze(PropertyHost propertyHost);
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -385,6 +401,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
+        }
+
+        @Override
+        public FileCollection freeze(PropertyHost propertyHost) {
+            return FileCollectionFactory.empty();
         }
     }
 
@@ -497,6 +518,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 return null;
             }
         }
+
+        @Override
+        public FileCollection freeze(PropertyHost propertyHost) {
+            DefaultConfigurableFileCollection frozen = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
+            frozen.from(items.toArray());
+            return frozen;
+        }
     }
 
     private static class ResolvedItemsCollector implements ValueCollector {
@@ -542,6 +570,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Override
         public List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
             return null;
+        }
+
+        @Override
+        public FileCollection freeze(PropertyHost propertyHost) {
+            throw new UnsupportedOperationException("Should not be called");
         }
     }
 

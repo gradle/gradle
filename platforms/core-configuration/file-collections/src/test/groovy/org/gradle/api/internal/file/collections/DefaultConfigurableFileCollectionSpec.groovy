@@ -352,7 +352,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def src = containing(file1, file2)
 
         when:
-        collection.from = src + collection
+        collection.update { src + it }
         def files = collection.files
 
         then:
@@ -367,7 +367,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         when:
         collection.from = "src2"
-        collection.from = src + collection
+        collection.update { src + it }
         def files = collection.files
 
         then:

@@ -181,7 +181,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def files2 = files('b.txt', 'b.bin')
             task merge(type: LegacyTask) {
                 inFiles = files1
-                inFiles = files(inFiles, files2).filter { f -> f.name.endsWith('.txt') }
+                inFiles.update { (it + files2).filter { f -> f.name.endsWith('.txt') } }
             }
         """
         file('a.txt').text = 'a'
@@ -210,8 +210,10 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def files2 = files('b.txt', 'b.bin')
             task merge(type: LegacyTask) {
                 inFiles = files1
-                def sum = inFiles.plus(files2)
-                inFiles = sum.filter { f -> f.name.endsWith('.txt') } + sum.filter { f -> f.name.endsWith('.bin') }
+                inFiles.update {
+                    def sum = it + files2
+                    sum.filter { f -> f.name.endsWith('.txt') } + sum.filter { f -> f.name.endsWith('.bin') }
+                }
             }
         """
         file('a.txt').text = 'a1'

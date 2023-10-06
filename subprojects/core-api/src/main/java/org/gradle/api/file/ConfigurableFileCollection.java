@@ -15,7 +15,9 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
 
@@ -81,4 +83,37 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @return this
      */
     ConfigurableFileCollection builtBy(Object... tasks);
+
+    /**
+     * Applies the provided transform to the current contents of this collection and replaces content with the result.
+     * The {@link FileCollection} argument of the transformer contains the same files as this collection but doesn't reflect further modifications to it.
+     * Because of this it is safe to build return value of the transformer upon it.
+     * <p>
+     * This method can be used to avoid circular dependencies. For example, the code:
+     * <pre>
+     *     val collection = files("a.txt")
+     *     val prefix = files("1.txt")
+     *     collection = prefix + collection  // self-referencing expression, deprecated.
+     * </pre>
+     * Can be rewritten with this method as:
+     * <pre>
+     *     val collection = files("a.txt")
+     *     val prefix = files("1.txt")
+     *     collection.update { oldValue -&gt; prefix + oldValue }
+     * </pre>
+     * <p>
+     * This method is somewhat equivalent to {@code setFrom(transformer.transform(files(new LinkedHashSet<>(getFiles())))} but doesn't resolve contents of this collection.
+     * <p>
+     * NOTE: this method evaluates transformer eagerly.
+     *
+     * @param transformer the transformer. If the transformer returns {@code null}, then this collection is cleared.
+     * @return this
+     *
+     * @since 8.5
+     */
+    @Incubating
+    // TODO(mlopatkin) should we provide ConfigurableFileCollection as an argument to the transformer?
+    //    * it may be convenient to be able to modify some stuff in-place
+    //    * it may be a source of confusion if the user decides they have to use it as an "output parameter".
+    ConfigurableFileCollection update(Transformer<? extends FileCollection, ? super FileCollection> transformer);
 }
