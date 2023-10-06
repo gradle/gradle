@@ -16,10 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
@@ -37,15 +35,10 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -61,7 +54,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-    @Nullable private String maybeCreateContextDesc;
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
@@ -77,16 +69,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
-    }
-
-    @Override
-    public Optional<String> getMaybeCreateContext() {
-        return Optional.ofNullable(maybeCreateContextDesc);
-    }
-
-    @Override
-    public void recordMaybeCreateContext(@Nullable String contextDescription) {
-        maybeCreateContextDesc = contextDescription;
     }
 
     @Override
@@ -262,33 +244,39 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
         assertMutable("migratingUnlocked(String, ConfigurationRole, Action)");
 
-        if (!ConfigurationRolesForMigration.ALL.contains(role)) {
+        if (ConfigurationRolesForMigration.ALL.contains(role)) {
+            return createUnlockedConfiguration(name, role, action);
+        } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
-
-        return createUnlockedConfiguration(name, role, action);
     }
 
     @Override
     public Configuration maybeCreateResolvableUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return resolvableUnlocked(name);
-        }
+        return maybeCreateResolvableUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.RESOLVABLE));
+    }
 
-        emitConfigurationExistsDeprecation(name);
-        validateExistingUsageIsConsistent(name, ConfigurationRoles.RESOLVABLE);
-        return getByName(name);
+    @Override
+    public Configuration maybeCreateResolvableUnlocked(ConfigurationCreationRequest context) {
+        if (hasWithName(context.getConfigurationName())) {
+            return verifyExistingConfiguration(context);
+        } else {
+            return resolvableUnlocked(context.getConfigurationName());
+        }
     }
 
     @Override
     public Configuration maybeCreateConsumableUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return consumableUnlocked(name);
-        }
+        return maybeCreateConsumableUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.CONSUMABLE));
+    }
 
-        emitConfigurationExistsDeprecation(name);
-        validateExistingUsageIsConsistent(name, ConfigurationRoles.CONSUMABLE);
-        return getByName(name);
+    @Override
+    public Configuration maybeCreateConsumableUnlocked(ConfigurationCreationRequest context) {
+        if (hasWithName(context.getConfigurationName())) {
+            return verifyExistingConfiguration(context);
+        } else {
+            return consumableUnlocked(context.getConfigurationName());
+        }
     }
 
     @Override
@@ -297,39 +285,56 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate) {
-        if (!hasWithName(name)) {
-            return dependencyScopeUnlocked(name);
-        }
+    public Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest request) {
+        return maybeCreateDependencyScopeUnlocked(request, true);
+    }
 
-        if (warnOnDuplicate) {
-            emitConfigurationExistsDeprecation(name);
-            validateExistingUsageIsConsistent(name, ConfigurationRoles.DEPENDENCY_SCOPE);
+    @Override
+    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
+        return maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+    }
+
+    @Override
+    public Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context, boolean verifyPrexisting) {
+        if (hasWithName(context.getConfigurationName())) {
+            if (verifyPrexisting) {
+                return verifyExistingConfiguration(context);
+            } else {
+                return getByName(context.getConfigurationName());
+            }
+        } else {
+            return dependencyScopeUnlocked(context.getConfigurationName());
         }
-        return getByName(name);
     }
 
     @Override
     public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
-        if (!hasWithName(name)) {
-            return migratingUnlocked(name, role);
-        }
+        return maybeCreateMigratingUnlocked(ConfigurationCreationRequest.noContext(name, role));
+    }
 
-        emitConfigurationExistsDeprecation(name);
-        validateExistingUsageIsConsistent(name, role);
-        return getByName(name);
+    @Override
+    public Configuration maybeCreateMigratingUnlocked(ConfigurationCreationRequest context) {
+        if (hasWithName(context.getConfigurationName())) {
+            return verifyExistingConfiguration(context);
+        } else {
+            return migratingUnlocked(context.getConfigurationName(), context.getRole());
+        }
     }
 
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return resolvableDependencyScopeUnlocked(name);
-        }
+        return maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
+    }
 
-        emitConfigurationExistsDeprecation(name);
-        validateExistingUsageIsConsistent(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-        return getByName(name);
+    @Override
+    @Deprecated
+    public Configuration maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest context) {
+        if (hasWithName(context.getConfigurationName())) {
+            return verifyExistingConfiguration(context);
+        } else {
+            return resolvableDependencyScopeUnlocked(context.getConfigurationName());
+        }
     }
 
     private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
@@ -375,12 +380,37 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
-    private static void emitConfigurationExistsDeprecation(String name) {
-        DeprecationLogger.deprecateBehaviour("The configuration " + name + " was created explicitly. This configuration name is reserved for creation by Gradle.")
-            .withAdvice(String.format("Do not create a configuration with the name %s.", name))
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "configurations_allowed_usage")
-            .nagUser();
+    /**
+     * A request is valid if either the configuration exists and is in the expected role, or it exists
+     * and can be mutated to match the expected role.
+     *
+     * This method should only be called internally, when maybe-creating a configuration that Gradle would prefer to create and not have already exist.
+     *
+     *
+     *
+     *
+     *
+     * Validates and ensures that the allowed usage of an existing configuration is consistent with the given expected usage.
+     *
+     * This method will emit a detailed deprecation method with suggestions if the usage is inconsistent.  It will then attempt to mutate
+     * the usage to match the expectation.  If the usage cannot be mutated, it will throw an exception.
+     *
+     * Does <strong>NOT</strong> check anything to do with deprecated usage.
+     */
+    private Configuration verifyExistingConfiguration(ConfigurationCreationRequest request) {
+        request.warnAboutReservedName();
+        ConfigurationInternal conf = getByName(request.getConfigurationName());
+
+        if (!request.getRole().isUsageConsistentWithRole(conf)) {
+            request.warnAboutNeedToMutateRole(conf);
+            if (conf.usageCanBeMutated()) {
+                conf.setAllowedUsageFromRole(request.getRole());
+            } else {
+                request.errorOnInabilityToMutateRole();
+            }
+        }
+
+        return conf;
     }
 
     private static void validateNameIsAllowed(String name) {
@@ -390,85 +420,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "reserved_configuration_names")
                     .nagUser();
-        }
-    }
-
-    /**
-     * Validates and ensures that the allowed usage of an existing configuration is consistent with the given expected usage.
-     *
-     * This method will emit a detailed deprecation method with suggestions if the usage is inconsistent.  It will then attempt to mutate
-     * the usage to match the expectation.  If the usage cannot be mutated, it will throw an exception.
-     *
-     * Does <strong>NOT</strong> check anything to do with deprecated usage.
-     *
-     * @param confName the name of the configuration
-     * @param expectedUsage the expectedUsage defining the usage the configuration should allow
-     */
-    private void validateExistingUsageIsConsistent(String confName, ConfigurationRole expectedUsage) {
-        ConfigurationInternal conf = getByName(confName);
-        if (expectedUsage.isUsageConsistentWithRole(conf)) {
-            return;
-        }
-
-        String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
-        String expectedUsageDesc = UsageDescriber.describeRole(expectedUsage);
-
-        boolean hasContext = getMaybeCreateContext().isPresent();
-        boolean hasSourceSetContext = hasContext && getMaybeCreateContext().get().contains("sourceSet");
-
-        String msgDiscovery;
-        if (hasContext) {
-            msgDiscovery = String.format("When creating configurations during %s, Gradle found that configuration %s already exists with permitted usage(s):\n" +
-                "%s\n", getMaybeCreateContext().get(), confName, currentUsageDesc);
-        } else {
-            msgDiscovery = String.format("Configuration %s already exists with permitted usage(s):\n" +
-                "%s\n", confName, currentUsageDesc);
-        }
-
-        String msgExpectation = String.format("Yet Gradle expected to create it with the usage(s):\n" +
-            "%s\n" +
-            "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, confName);
-        String basicNameAdvice = String.format("Do not create a configuration with the name %s.", confName);
-        String sourceSetAdvice = "Create sourceSets prior to creating or accessing the configurations associated with them.";
-
-        DeprecationMessageBuilder<?> builder = DeprecationLogger.deprecate(msgDiscovery + msgExpectation);
-        if (hasSourceSetContext) {
-            builder.withAdvice(sourceSetAdvice)
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
-                .nagUser();
-        } else {
-            builder.withAdvice(basicNameAdvice)
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("authoring_maintainable_build_scripts", "sec:dont_anticipate_configuration_creation")
-                .nagUser();
-        }
-
-        if (conf.usageCanBeMutated()) {
-            conf.setAllowedUsageFromRole(expectedUsage);
-        } else {
-            List<String> resolutions = Lists.newArrayList(basicNameAdvice);
-            if (hasSourceSetContext) {
-                resolutions.add(sourceSetAdvice);
-            }
-            throw new UnmodifiableConfigurationException(confName, resolutions);
-        }
-    }
-
-    /**
-     * An exception to be thrown when Gradle cannot mutate the usage of a configuration.
-     */
-    public static class UnmodifiableConfigurationException extends GradleException implements ResolutionProvider {
-        private final List<String> resolutions;
-
-        public UnmodifiableConfigurationException(String configurationName, List<String> resolutions) {
-            super(String.format("Gradle cannot mutate the usage of configuration '%s' because it is locked.", configurationName));
-            this.resolutions = resolutions;
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.unmodifiableList(resolutions);
         }
     }
 

@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
-
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
  * All methods in this interface produce <strong>unlocked</strong> configurations, meaning they
@@ -115,6 +112,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateResolvableUnlocked(String name);
 
+    Configuration maybeCreateResolvableUnlocked(ConfigurationCreationRequest context);
+
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new consumable configuration with the given name.
@@ -123,6 +122,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
     Configuration maybeCreateConsumableUnlocked(String name);
+
+    Configuration maybeCreateConsumableUnlocked(ConfigurationCreationRequest context);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -133,18 +134,22 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateDependencyScopeUnlocked(String name);
 
+    Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context);
+
     /**
      * If a configuration with the given name already exists,return it.
      * Otherwise, creates a new dependency scope configuration with the given name.
      *
-     * <p>If {@code warnOnDuplicate} is false, the normal deprecation warning will not be emitted. Setting this to false
+     * <p>If {@code verifyPrexisting} is false, the normal deprecation warning will not be emitted. Setting this to false
      * should be avoided except in edge cases where it may emit deprecation warnings affecting large third-party plugins.</p>
      *
      * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
      * would be set if the configuration needed to be created and emit an additional deprecation warning when doing this
-     * <strong>IFF</strong> {@code warnOnDuplicate} is set to {@code true}.
+     * <strong>IFF</strong> {@code verifyPrexisting} is set to {@code true}.
      */
-    Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate);
+    Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting);
+
+    Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context, boolean verifyPrexisting);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -158,6 +163,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role);
 
+    Configuration maybeCreateMigratingUnlocked(ConfigurationCreationRequest context);
+
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new resolvable + dependency scope configuration with the given name.
@@ -169,10 +176,11 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
 
-    Optional<String> getMaybeCreateContext();
-
-    void recordMaybeCreateContext(@Nullable String contextDescription);
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    Configuration maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest context);
 }
