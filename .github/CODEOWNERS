@@ -22,6 +22,7 @@ platforms/core-configuration/                   @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
+build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers

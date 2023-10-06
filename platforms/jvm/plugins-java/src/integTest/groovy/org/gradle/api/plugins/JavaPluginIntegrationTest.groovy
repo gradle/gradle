@@ -17,10 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import spock.lang.Issue
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
 
     def "main component is java component"() {
         given:
@@ -556,5 +557,46 @@ Artifacts
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
         )
         succeeds('help')
+    }
+
+    def "changing the role of jvm configurations emits deprecation warnings"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations {
+                [apiElements, runtimeElements].each {
+                    it.canBeResolved = true
+                    it.canBeDeclared = true
+                }
+
+                [implementation, runtimeOnly, compileOnly, api, compileOnlyApi].each {
+                    it.canBeConsumed = true
+                    it.canBeResolved = true
+                }
+
+                [runtimeClasspath, compileClasspath].each {
+                    it.canBeDeclared = true
+                    it.canBeConsumed = true
+                }
+            }
+        """
+
+        expect:
+        [":apiElements", ":runtimeElements"].each {
+            expectResolvableChanging(it, true)
+            expectDeclarableChanging(it, true)
+        }
+        [":implementation", ":runtimeOnly", ":compileOnly", ":api", ":compileOnlyApi"].each {
+            expectConsumableChanging(it, true)
+            expectResolvableChanging(it, true)
+        }
+        [":runtimeClasspath", ":compileClasspath"].each {
+            expectDeclarableChanging(it, true)
+            expectConsumableChanging(it, true)
+        }
+
+        succeeds("help")
     }
 }

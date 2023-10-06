@@ -71,7 +71,7 @@ teams:
       - 'wolfs'
   configuration:
     members:
-      - 'alllex'
+      - 'alllex-DISABLED'
   dev_prod:
     members:
       - 'blindpirate'
@@ -79,7 +79,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

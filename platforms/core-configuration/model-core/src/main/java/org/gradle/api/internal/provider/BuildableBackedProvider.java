@@ -73,7 +73,7 @@ public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     private Set<? extends Task> buildableDependencies() {
-        return TaskDependencyUtil.getDependenciesForInternalUse(buildable.getBuildDependencies(), null);
+        return TaskDependencyUtil.getDependenciesForInternalUse(buildable);
     }
 
     @Override

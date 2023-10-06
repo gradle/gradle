@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
-import gradlebuild.capitalize
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde

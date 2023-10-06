@@ -68,11 +68,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.allProblems.collect {new JsonSlurper().parse(it.json.bytes) }
+        def problems = listener.allProblems.collect {new JsonSlurper().parseText(it.json) }
         problems.size() == 2
 
         problems[0].label.contains('The RepositoryHandler.jcenter() method has been deprecated.')
         problems[0].severity == Severity.WARNING.name()
+        problems[0].where[0].path.endsWith("'$buildFile.absolutePath'")
+        problems[0].where[0].line == 5
         problems[1].label.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
         problems[1].severity == Severity.ERROR.name()
         problems[1].where[0].path == 'ba'

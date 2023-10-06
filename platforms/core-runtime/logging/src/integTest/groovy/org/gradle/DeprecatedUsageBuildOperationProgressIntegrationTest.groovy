@@ -27,11 +27,17 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
     def "emits deprecation warnings as build operation progress events with context"() {
         when:
-        file('settings.gradle') << "rootProject.name = 'root'"
+        settingsFile "rootProject.name = 'root'"
 
-        file('init.gradle') << """
-            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script').willBeRemovedInGradle9().undocumented().nagUser();
-            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script').willBeRemovedInGradle9().undocumented().nagUser();
+        initScript  """
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script')
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate('Init script')
+                  .willBeRemovedInGradle9()
+                  .undocumented()
+                  .nagUser()
         """
 
         file('script.gradle') << """

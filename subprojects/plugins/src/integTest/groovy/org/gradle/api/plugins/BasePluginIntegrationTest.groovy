@@ -99,4 +99,86 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("myJar")
     }
+
+    def "artifacts on archives and base configurations are built by assemble task"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+
+            configurations {
+                named("default") {
+                    outgoing.artifact(tasks.jar1)
+                }
+                archives {
+                    outgoing.artifact(tasks.jar2)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        executedAndNotSkipped(":jar1", ":jar2")
+    }
+
+    def "artifacts on role-locked configurations are not built by the assemble task by default"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+            task jar3(type: Jar) {}
+
+            configurations {
+                consumable("con") {
+                    outgoing.artifact(tasks.jar1)
+                }
+                resolvable("res") {
+                    outgoing.artifact(tasks.jar2)
+                }
+                dependencyScope("dep") {
+                    outgoing.artifact(tasks.jar3)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        notExecuted(":jar1", ":jar2", ":jar3")
+    }
+
+    def "artifacts on legacy configurations are built by default if visible"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            task jar1(type: Jar) {}
+            task jar2(type: Jar) {}
+
+            configurations {
+                foo {
+                    visible = true
+                    outgoing.artifact(tasks.jar1)
+                }
+                bar {
+                    visible = false
+                    outgoing.artifact(tasks.jar2)
+                }
+            }
+        """
+
+        expect:
+        succeeds("assemble")
+
+        executedAndNotSkipped(":jar1")
+        notExecuted(":jar2")
+    }
 }

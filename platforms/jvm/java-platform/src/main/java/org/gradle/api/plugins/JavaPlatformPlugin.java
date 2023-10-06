@@ -126,6 +126,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private Configuration createConsumableRuntime(ProjectInternal project, Configuration apiElements, String name, String platformKind) {
         Configuration runtimeElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        runtimeElements.setVisible(false);
         runtimeElements.extendsFrom(apiElements);
         declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
         declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
@@ -134,6 +135,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind) {
         Configuration apiElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        apiElements.setVisible(false);
         apiElements.extendsFrom(api);
         declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
         declareConfigurationCategory(project.getObjects(), apiElements, platformKind);

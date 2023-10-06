@@ -45,8 +45,12 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
+import org.gradle.api.internal.initialization.BuildLogicBuilder;
+import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -87,7 +91,6 @@ import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -104,8 +107,6 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
-import org.gradle.internal.Factory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
 import org.gradle.execution.ProjectConfigurer;
@@ -157,14 +158,15 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -184,6 +186,7 @@ import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -515,19 +518,34 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(CompileOperationFactory.class));
     }
 
-    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, NamedObjectInstantiator instantiator) {
+    protected BuildSourceBuilder createBuildSourceBuilder(
+        BuildState currentBuild,
+        BuildOperationExecutor buildOperationExecutor,
+        CachingServiceLocator cachingServiceLocator,
+        BuildStateRegistry buildRegistry,
+        PublicBuildPath publicBuildPath,
+        ScriptClassPathResolver scriptClassPathResolver,
+        BuildLogicBuildQueue buildQueue
+    ) {
         return new BuildSourceBuilder(
             currentBuild,
-            fileLockManager,
             buildOperationExecutor,
             new BuildSrcBuildListenerFactory(
                 PluginsProjectConfigureActions.of(
                     BuildSrcProjectConfigurationAction.class,
                     cachingServiceLocator),
-                instantiator,
-                cachedClasspathTransformer),
+                scriptClassPathResolver),
             buildRegistry,
-            publicBuildPath);
+            publicBuildPath,
+            buildQueue);
+    }
+
+    protected BuildLogicBuilder createBuildLogicBuilder(
+        BuildState currentBuild,
+        ScriptClassPathResolver scriptClassPathResolver,
+        BuildLogicBuildQueue buildQueue
+    ) {
+        return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor, TextFileResourceLoader resourceLoader) {
@@ -679,9 +697,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultCompileOperationFactory(documentationRegistry);
     }
 
-    protected DefaultScriptCompilationHandler createScriptCompilationHandler(Deleter deleter, ImportsReader importsReader, InstantiatorFactory instantiatorFactory) {
-        return instantiatorFactory.inject(this).newInstance(DefaultScriptCompilationHandler.class, deleter, importsReader);
-//        return objectFactory.newInstance(DefaultScriptCompilationHandler.class, deleter, importsReader);
+    protected DefaultScriptCompilationHandler createScriptCompilationHandler(Deleter deleter, ImportsReader importsReader, ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultScriptCompilationHandler.class, deleter, importsReader);
     }
 
     protected ScriptRunnerFactory createScriptRunnerFactory(ListenerManager listenerManager, InstantiatorFactory instantiatorFactory) {

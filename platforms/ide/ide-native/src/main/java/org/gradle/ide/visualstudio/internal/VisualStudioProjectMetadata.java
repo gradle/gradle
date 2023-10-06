@@ -50,7 +50,7 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return TaskDependencyUtil.getDependenciesForInternalUse(project.getBuildDependencies(), null);
+        return TaskDependencyUtil.getDependenciesForInternalUse(project);
     }
 
     public List<VisualStudioProjectConfigurationMetadata> getConfigurations() {

@@ -23,17 +23,14 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         settingsFile << """
             rootProject.name = 'test'
         """
-        buildFile << """
-            plugins {
-                id 'version-catalog'
-            }
-
-            group = 'org.gradle'
-            version = '1.0'
-        """
     }
 
     def "can generate a Gradle platform file"() {
+        buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+        """
         withSampleCatalog()
 
         when:
@@ -43,7 +40,32 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         expectPlatformContents 'expected1'
     }
 
+    def "assemble task generates platform file"() {
+        buildFile << """
+            plugins {
+                id("version-catalog")
+                id("base")
+            }
+        """
+        withSampleCatalog()
+
+        when:
+        succeeds ':assemble'
+
+        then:
+        executedAndNotSkipped(":generateCatalogAsToml")
+        expectPlatformContents 'expected1'
+    }
+
     def "can publish a Gradle platform"() {
+        buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
+            group = 'org.gradle'
+            version = '1.0'
+        """
         withSampleCatalog()
         withPublishing()
 
@@ -71,6 +93,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can generate a Gradle platform file from a dependencies configuration"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             dependencies {
                 versionCatalog 'org:foo:1.0'
                 versionCatalog('org:bar') {
@@ -90,6 +116,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can generate a Gradle platform file from a dependencies configuration and the extension"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             catalog {
                 versionCatalog {
                     bundle('my', ['foo', 'bar'])
@@ -114,6 +144,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "reasonable error message if there's a name clash between two dependencies"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             dependencies {
                 versionCatalog 'org1:foo:1.0'
                 versionCatalog 'org2:foo:1.0'
@@ -129,6 +163,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can declare a different alias in case of name clash"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             catalog {
                configureExplicitAlias 'foo2', 'org2', 'foo'
             }
@@ -147,6 +185,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can declare a explicit alias without name clash"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             catalog {
                configureExplicitAlias 'other', 'org', 'bar'
             }
@@ -165,6 +207,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can use either dependencies or constraints"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             dependencies {
                 versionCatalog 'org:foo:1.0'
                 constraints {
@@ -186,6 +232,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can detect name clash between dependencies and constraints"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             dependencies {
                 versionCatalog 'org:foo:1.0'
                 constraints {
@@ -207,6 +257,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can fix name clash between dependencies and constraints"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             catalog {
                 configureExplicitAlias 'foo2', 'org2', 'foo'
             }
@@ -231,6 +285,10 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
 
     def "can mix plugins, dependencies, constraints and model to create a platform"() {
         buildFile << """
+            plugins {
+                id("version-catalog")
+            }
+
             catalog {
                 configureExplicitAlias 'foo2', 'org', 'foo'
                 versionCatalog {

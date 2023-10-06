@@ -49,20 +49,11 @@ dependencyResolutionManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-// Platform: defines shared dependency versions
-include("build-platform")
-
 // Utilities for updating the build itself which are not part of the usual build process
 include("build-update-utils")
 
 // Collection of plugins for the root build to configure lifecycle, reporting and IDE integration
 include("root-build")
-
-// Shared basics for all
-include("basics")
-
-// Compute the identity/version we are building and related details (like current git commit)
-include("module-identity")
 
 // Shared information about external modules
 include("dependency-modules")
@@ -85,5 +76,8 @@ include("packaging")
 include("performance-testing")
 include("profiling")
 include("publishing")
+
+// Components used both at build time and GBT runtime, shipped in the distribution
+include("kotlin-dsl-shared-runtime")
 
 rootProject.name = "build-logic"

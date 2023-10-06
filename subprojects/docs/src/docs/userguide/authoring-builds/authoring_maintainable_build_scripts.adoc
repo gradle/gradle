@@ -69,42 +69,53 @@ include::sample[dir="snippets/bestPractices/conditionalLogic-do/groovy", files="
 
 Use of Gradle internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
 
-The following packages are listed in the link:https://github.com/gradle/gradle/blob/180b9d3fa84b91768364c603380e82947437eda1/buildSrc/subprojects/configuration/src/main/kotlin/org/gradle/gradlebuild/public-api.kt[Gradle public API definition], with the exception of any subpackage with `internal` in the name:
+The following packages are listed in the
+link:https://github.com/gradle/gradle/blob/6961503e70aa634653e71413224831fd3fa3ec2d/build-logic/basics/src/main/kotlin/gradlebuild/basics/PublicApi.kt[Gradle public API definition]
+and the
+link:https://github.com/gradle/gradle/blob/6961503e70aa634653e71413224831fd3fa3ec2d/build-logic/basics/src/main/kotlin/gradlebuild/basics/PublicKotlinDslApi.kt[Kotlin DSL API definition], except any subpackage with `internal` in the name.
 
+// If these list is modified due changes in the public API definitions, update the permalinks too
+.Gradle API packages
 ----
-org/gradle/*
-org/gradle/api/**
-org/gradle/authentication/**
-org/gradle/buildinit/**
-org/gradle/caching/**
-org/gradle/concurrent/**
-org/gradle/deployment/**
-org/gradle/external/javadoc/**
-org/gradle/ide/**
-org/gradle/includedbuild/**
-org/gradle/ivy/**
-org/gradle/jvm/**
-org/gradle/language/**
-org/gradle/maven/**
-org/gradle/nativeplatform/**
-org/gradle/normalization/**
-org/gradle/platform/**
-org/gradle/play/**
-org/gradle/plugin/devel/**
-org/gradle/plugin/repository/*
-org/gradle/plugin/use/*
-org/gradle/plugin/management/*
-org/gradle/plugins/**
-org/gradle/process/**
-org/gradle/testfixtures/**
-org/gradle/testing/jacoco/**
-org/gradle/tooling/**
-org/gradle/swiftpm/**
-org/gradle/model/**
-org/gradle/testkit/**
-org/gradle/testing/**
-org/gradle/vcs/**
-org/gradle/workers/**
+org.gradle
+org.gradle.api.*
+org.gradle.authentication.*
+org.gradle.build.*
+org.gradle.buildinit.*
+org.gradle.caching.*
+org.gradle.concurrent.*
+org.gradle.deployment.*
+org.gradle.external.javadoc.*
+org.gradle.ide.*
+org.gradle.ivy.*
+org.gradle.jvm.*
+org.gradle.language.*
+org.gradle.maven.*
+org.gradle.nativeplatform.*
+org.gradle.normalization.*
+org.gradle.platform.*
+org.gradle.plugin.devel.*
+org.gradle.plugin.use
+org.gradle.plugin.management
+org.gradle.plugins.*
+org.gradle.process.*
+org.gradle.testfixtures.*
+org.gradle.testing.jacoco.*
+org.gradle.tooling.*
+org.gradle.swiftpm.*
+org.gradle.model.*
+org.gradle.testkit.*
+org.gradle.testing.*
+org.gradle.vcs.*
+org.gradle.work.*
+org.gradle.workers.*
+org.gradle.util.*
+----
+
+.Kotlin DSL API packages
+----
+org.gradle.kotlin.dsl
+org.gradle.kotlin.dsl.precompile
 ----
 
 === Alternatives for oft-used internal APIs
