@@ -31,6 +31,7 @@ import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.FlushConsoleListener;
+import org.gradle.internal.logging.console.PlainBuildStatusRenderer;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
@@ -297,13 +298,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return throttled(
             new UserInputStandardOutputRenderer(
                 new BuildLogLevelFilterRenderer(
-                    new GroupingProgressLogEventGenerator(
-                        outputListener,
-                        new PrettyPrefixedLogHeaderFormatter(),
-                        verbose
+                    new PlainBuildStatusRenderer(
+                        new GroupingProgressLogEventGenerator(
+                            outputListener,
+                            new PrettyPrefixedLogHeaderFormatter(),
+                            verbose
+                        )
                     )
                 )
-        ));
+            )
+        );
     }
 
     private OutputEventListener throttled(OutputEventListener consoleChain) {
