@@ -26,12 +26,12 @@ import org.gradle.internal.operations.CallableBuildOperation
 
 internal
 fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
-    withOperation("Load configuration cache state", block, LoadDetails, LoadResult)
+    withOperation("Load configuration cache state", "Loading configuration cache state", block, LoadDetails, LoadResult)
 
 
 internal
 fun BuildOperationExecutor.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> Unit) =
-    withOperation("Store configuration cache state", block, StoreDetails, StoreResult)
+    withOperation("Store configuration cache state", "Storing configuration cache state", block, StoreDetails, StoreResult)
 
 
 private
@@ -51,10 +51,10 @@ object StoreResult : ConfigurationCacheStoreBuildOperationType.Result
 
 
 private
-fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, block: () -> T, details: D, result: R): T =
+fun <T : Any, D : Any, R : Any> BuildOperationExecutor.withOperation(displayName: String, progressDisplayName: String, block: () -> T, details: D, result: R): T =
     call(object : CallableBuildOperation<T> {
         override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor.displayName(displayName).details(details)
+            BuildOperationDescriptor.displayName(displayName).progressDisplayName(progressDisplayName).details(details)
 
         override fun call(context: BuildOperationContext): T =
             block().also { context.setResult(result) }
