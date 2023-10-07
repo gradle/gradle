@@ -41,6 +41,7 @@ import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
@@ -244,6 +245,20 @@ class InitBuildSpec extends Specification {
         Language.GROOVY | of(JavaLanguageVersion.of(11)) | true
         Language.CPP    | empty()                        | false
         Language.SWIFT  | empty()                        | false
+    }
+
+    def "gets java-version from property"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+        init.javaVersion = "11"
+
+        when:
+        def version = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        version.isPresent()
     }
 
     def "gets useful error when requesting invalid Java target"() {

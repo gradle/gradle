@@ -276,4 +276,27 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
+
+    def "user can provide all options for java application from command line"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(
+            "init",
+            "--type", "java-application",
+            "--dsl", "groovy",
+            "--test-framework", "junit-jupiter",
+            "--package", "my.project",
+            "--project-name", "my-project",
+            "--no-split-project",
+            "--java-version", "14"
+        )
+        def handle = executer.start()
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesForApplicationGenerated()
+
+    }
 }

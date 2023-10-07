@@ -68,6 +68,10 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
 
+    private Boolean noInteractiveMode;
+
+    private String javaVersion;
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -126,6 +130,20 @@ public abstract class InitBuild extends DefaultTask {
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
+
+    @Optional
+    @Input
+    public Boolean getNoInteractiveMode() {
+        return noInteractiveMode != null && noInteractiveMode;
+    }
+
+    @Optional
+    @Input
+    public String getJavaVersion() {
+        return javaVersion;
+    }
+
+
 
     /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
@@ -237,15 +255,17 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        String version = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        if(isNullOrEmpty(javaVersion)) {
+            javaVersion = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        }
         try {
-            int parsedVersion = Integer.parseInt(version);
+            int parsedVersion = Integer.parseInt(javaVersion);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
-                throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
+                throw new GradleException("Java target version: '" + javaVersion + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
             }
             return of(JavaLanguageVersion.of(parsedVersion));
         } catch (NumberFormatException e) {
-            throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
+            throw new GradleException("Invalid Java target version '" + javaVersion + "'. The version must be an integer.", e);
         }
     }
 
@@ -433,6 +453,16 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
+    }
+
+    @Option(option = "no-interactive-mode", description = "Force non-interactive mode, throwing error on missing options. Disabled by default")
+    public void setNoInteractiveMode(Boolean noInteractiveMode) {
+        this.noInteractiveMode = noInteractiveMode;
+    }
+
+    @Option(option = "java-version", description = "Provides java version to use in the project.")
+    public void setJavaVersion(String javaVersion) {
+        this.javaVersion = javaVersion;
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
