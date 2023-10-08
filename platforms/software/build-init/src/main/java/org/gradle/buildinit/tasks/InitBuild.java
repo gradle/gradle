@@ -68,8 +68,6 @@ public abstract class InitBuild extends DefaultTask {
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
 
-    private Boolean noInteractiveMode;
-
     private String javaVersion;
 
     @Internal
@@ -129,12 +127,6 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs.")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
-    }
-
-    @Optional
-    @Input
-    public Boolean getNoInteractiveMode() {
-        return noInteractiveMode != null && noInteractiveMode;
     }
 
     @Optional
@@ -453,11 +445,6 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
-    }
-
-    @Option(option = "no-interactive-mode", description = "Force non-interactive mode, throwing error on missing options. Disabled by default")
-    public void setNoInteractiveMode(Boolean noInteractiveMode) {
-        this.noInteractiveMode = noInteractiveMode;
     }
 
     @Option(option = "java-version", description = "Provides java version to use in the project.")
