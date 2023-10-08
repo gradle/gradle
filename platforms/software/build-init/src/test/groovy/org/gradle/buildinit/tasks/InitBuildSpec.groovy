@@ -41,7 +41,6 @@ import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT_JUPITER
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
