@@ -129,6 +129,22 @@ public abstract class InitBuild extends DefaultTask {
         return useIncubatingAPIs;
     }
 
+    /**
+     * The java version to be used by java projects
+     *
+     * When set, tries to use the provided value as the desired java version for
+     * the project.
+     *
+     * Init script will perform validations to ensure it's a valid and supported
+     * major version.
+     *
+     * When not provided and the project being greated demands it, gradle will
+     * prompt the user and ask for a value.
+     *
+     * @return the java version number yet to be validated
+     *
+     * @since 8.5
+     */
     @Optional
     @Input
     public String getJavaVersion() {
