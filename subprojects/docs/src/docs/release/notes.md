@@ -84,6 +84,15 @@ The Wrapper and the Gradle Build Tool are licensed under the [Apache Software Li
 The JAR file is now self-attributing so that you don't need to add a separate `LICENSE` file in your codebase.
 
 
+<a name="plugin-authoring-improvements"></a>
+### Plugin authoring improvements
+
+#### New API in `FileSystemOperations` to create `CopySpec` instances when no `Project` is available
+
+The `FileSystemOperations` service now has a [copySpec()](javadoc/org/gradle/api/file/FileSystemOperations.html#copySpec--) method for creating `CopySpec` instances in a [configuration cache](userguide/configuration_cache.html) friendly way.
+The new method allows you to create, configure, and use `CopySpec` instances during the [execution phase](userguide/build_lifecycle.html#sec:build_phases).
+
+
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
