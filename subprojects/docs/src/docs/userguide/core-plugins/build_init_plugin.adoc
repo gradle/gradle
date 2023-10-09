@@ -193,7 +193,7 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 [[sec:java_version_option]]
 ==== The `--java-version` option
 
-When creating a java project you must set the java version. You can do that by issuing *the major version* of java you have available to use:
+When creating a java project you must set the java version. You can do that by supplying *the major version* of java you wish to use:
 
 ```bash
 mkdir my-java-project
