@@ -349,6 +349,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         super.visitDependencies(context);
     }
 
+    @Override
+    public FileCollectionInternal freeze() {
+        return value.freeze(host);
+    }
+
     private interface ValueCollector {
         void collectSource(Collection<Object> dest);
 
@@ -365,7 +370,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         @Nullable
         List<Object> replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier);
 
-        FileCollection freeze(PropertyHost propertyHost);
+        FileCollectionInternal freeze(PropertyHost propertyHost);
     }
 
     private static class EmptyCollector implements ValueCollector {
@@ -404,7 +409,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public FileCollection freeze(PropertyHost propertyHost) {
+        public FileCollectionInternal freeze(PropertyHost propertyHost) {
             return FileCollectionFactory.empty();
         }
     }
@@ -520,7 +525,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public FileCollection freeze(PropertyHost propertyHost) {
+        public FileCollectionInternal freeze(PropertyHost propertyHost) {
             DefaultConfigurableFileCollection frozen = new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, patternSetFactory, propertyHost);
             frozen.from(items.toArray());
             return frozen;
@@ -573,7 +578,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public FileCollection freeze(PropertyHost propertyHost) {
+        public FileCollectionInternal freeze(PropertyHost propertyHost) {
             throw new UnsupportedOperationException("Should not be called");
         }
     }
