@@ -333,7 +333,7 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 [[sub:remove_auto_provisioned_toolchain]]
 === How to remove an auto-provisioned toolchain
 
-To properly remove any auto-provisioned toolchain, you can remove the `jdk` directory from the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
+To properly remove any auto-provisioned toolchain, you can remove the `jdks` directory from the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
 
 [NOTE]
 ====
