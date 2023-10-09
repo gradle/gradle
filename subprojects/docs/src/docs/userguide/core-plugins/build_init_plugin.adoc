@@ -88,7 +88,8 @@ You can see available options from the task help:
 gradle help --task init
 ```
 
-The build type can be specified by using the `--type` command-line option. For example, to create a Java library project run:
+The build type can be specified by using the `--type` command-line option. 
+For example, to create a Java library project run:
 
 ```bash
 gradle init --type java-library
