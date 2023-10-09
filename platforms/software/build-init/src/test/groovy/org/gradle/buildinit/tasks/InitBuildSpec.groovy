@@ -258,6 +258,7 @@ class InitBuildSpec extends Specification {
 
         then:
         version.isPresent()
+        version.get().asInt() == 11
     }
 
     def "gets useful error when requesting invalid Java target"() {

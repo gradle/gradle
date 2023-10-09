@@ -308,7 +308,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   UPGRADE
                                   WARN
 
-     --java-version     Provides major java version to use in the project.
+     --java-version     Provides java version to use in the project.
 
      --package     Set the package for source files.
 

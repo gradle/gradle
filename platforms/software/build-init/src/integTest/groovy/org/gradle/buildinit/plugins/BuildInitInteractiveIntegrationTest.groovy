@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -297,7 +298,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.waitForFinish()
 
         then:
-        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesForApplicationGenerated()
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
 
     }
 }

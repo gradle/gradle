@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -67,9 +68,7 @@ public abstract class InitBuild extends DefaultTask {
     private String projectName;
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
-
-    private String javaVersion;
-
+    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -140,9 +139,11 @@ public abstract class InitBuild extends DefaultTask {
      *
      * @since 8.5
      */
-    @Optional
     @Input
-    public String getJavaVersion() {
+    @Optional
+    @Incubating
+    @Option(option = "java-version", description = "Provides java version to use in the project.")
+    public Property<String> getJavaVersion() {
         return javaVersion;
     }
 
@@ -258,17 +259,15 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        if (isNullOrEmpty(javaVersion)) {
-            javaVersion = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
-        }
+        String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
         try {
-            int parsedVersion = Integer.parseInt(javaVersion);
+            int parsedVersion = Integer.parseInt(version);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
-                throw new GradleException("Java target version: '" + javaVersion + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
+                throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
             }
             return of(JavaLanguageVersion.of(parsedVersion));
         } catch (NumberFormatException e) {
-            throw new GradleException("Invalid Java target version '" + javaVersion + "'. The version must be an integer.", e);
+            throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
         }
     }
 
@@ -456,11 +455,6 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
-    }
-
-    @Option(option = "java-version", description = "Provides java version to use in the project.")
-    public void setJavaVersion(String javaVersion) {
-        this.javaVersion = javaVersion;
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
