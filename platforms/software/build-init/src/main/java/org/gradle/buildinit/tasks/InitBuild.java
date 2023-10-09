@@ -130,18 +130,13 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
-     * The java version to be used by java projects
+     * Java version to be used by generated Java projects.
      *
-     * When set, tries to use the provided value as the desired java version for
-     * the project.
+     * When set, Gradle will and use the provided value as the target major Java version
+     * for all relevant generated projects.  Gradle will validate the number to ensure
+     * it is a valid and supported major version.
      *
-     * Init script will perform validations to ensure it's a valid and supported
-     * major version.
-     *
-     * When not provided and the project being greated demands it, gradle will
-     * prompt the user and ask for a value.
-     *
-     * @return the java version number yet to be validated
+     * @return the java version number supplies by the user
      *
      * @since 8.5
      */
