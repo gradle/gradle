@@ -105,7 +105,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                             exclusiveLock.close();
                         }
                     }
-                    fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+                    fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
                     rebuild = initializationAction.requiresInitialization(fileLock);
                 }
                 if (rebuild) {
