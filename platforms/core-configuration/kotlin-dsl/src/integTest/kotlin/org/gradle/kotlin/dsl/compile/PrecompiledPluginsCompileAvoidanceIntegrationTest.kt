@@ -47,7 +47,7 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
             """
         )
         configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
-    }
+    } // TODO: reproducer, ask why it recompiles
 
     @Test
     fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {

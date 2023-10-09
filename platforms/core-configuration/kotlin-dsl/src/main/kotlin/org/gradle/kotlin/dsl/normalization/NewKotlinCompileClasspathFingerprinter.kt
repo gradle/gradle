@@ -47,7 +47,6 @@ class NewKotlinCompileClasspathFingerprinter : FileCollectionFingerprinter { // 
 
     override fun fingerprint(files: FileCollection): CurrentFileCollectionFingerprint {
         val fingerprints: Map<String, HashCode> = files
-            .filter { !it.absolutePath.contains("accessors") } // TODO: remove
             .map {
                 val snapshots = compilationService.calculateClasspathSnapshot(it, ClassSnapshotGranularity.CLASS_LEVEL).classSnapshots
                 val path = it.path
