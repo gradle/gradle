@@ -39,7 +39,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         cacheAccess.open()
 
         then:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> lock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> lock
 
         then:
         1 * initAction.requiresInitialization(lock) >> false
@@ -58,21 +58,21 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         cacheAccess.open()
 
         then:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> initialLock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> initialLock
 
         then:
         1 * initAction.requiresInitialization(initialLock) >> true
         1 * initialLock.close()
 
         then:
-        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive }, "<cache>") >> exclusiveLock
+        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive }, "<cache>", "", _) >> exclusiveLock
         1 * initAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(exclusiveLock)
         1 * exclusiveLock.close()
 
         then:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> sharedLock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> sharedLock
         1 * initAction.requiresInitialization(sharedLock) >> false
 
         then:
@@ -101,12 +101,12 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         e == failure
 
         and:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> initialLock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> initialLock
         1 * initAction.requiresInitialization(initialLock) >> true
         1 * initialLock.close()
 
         then:
-        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive}, "<cache>") >> exclusiveLock
+        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive}, "<cache>", "", _) >> exclusiveLock
         1 * initAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(exclusiveLock) >> { throw failure }
@@ -134,19 +134,19 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         e == failure
 
         and:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> initialLock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> initialLock
         1 * initAction.requiresInitialization(initialLock) >> true
         1 * initialLock.close()
 
         then:
-        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive}, "<cache>") >> exclusiveLock
+        1 * lockManager.lock(file, {it.mode == FileLockManager.LockMode.Exclusive}, "<cache>", "", _) >> exclusiveLock
         1 * initAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initAction.initialize(exclusiveLock)
         1 * exclusiveLock.close()
 
         then:
-        1 * lockManager.lock(file, lockOptions, "<cache>") >> sharedLock
+        1 * lockManager.lock(file, lockOptions, "<cache>", "", _) >> sharedLock
         1 * initAction.requiresInitialization(sharedLock) >> false
 
         then:
@@ -165,7 +165,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
         def lock = Mock(FileLock)
 
         given:
-        lockManager.lock(file, lockOptions, "<cache>") >> lock
+        lockManager.lock(file, lockOptions, "<cache>", "", _) >> lock
         cacheAccess.open()
 
         when:
