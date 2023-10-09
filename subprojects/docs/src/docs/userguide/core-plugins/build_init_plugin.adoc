@@ -32,7 +32,7 @@ gradle init \
   --java-version 17
 ```
 
-Gradle enters interactive mode and prompts the user when any parameter is missing.
+Gradle enters interactive mode and prompts the user when a required parameter for the selected project type is missing.
 
 == Supported Gradle build types
 
