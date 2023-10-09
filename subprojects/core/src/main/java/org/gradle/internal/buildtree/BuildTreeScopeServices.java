@@ -64,7 +64,6 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;

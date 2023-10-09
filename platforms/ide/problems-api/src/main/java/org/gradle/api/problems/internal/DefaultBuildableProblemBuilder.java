@@ -19,16 +19,16 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.PluginIdLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,13 +55,13 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     private String problemCategory;
     private final InternalProblems problemsService;
     private Severity severity;
-    private Set<ProblemLocation> locations = new LinkedHashSet<>();
+    private Set<ProblemLocation> locations = new LinkedHashSet<ProblemLocation>();
     private String description;
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private RuntimeException exception;
-    protected final Map<String, String> additionalMetadata = new HashMap<>();
+    protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
 
     public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
@@ -124,7 +124,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
 
     public BuildableProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
-            this.solution = new ArrayList<>();
+            this.solution = new ArrayList<String>();
         }
         this.solution.add(solution);
         return this;

@@ -61,7 +61,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.A
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.internal.RenderingUtils.oxfordJoin;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 

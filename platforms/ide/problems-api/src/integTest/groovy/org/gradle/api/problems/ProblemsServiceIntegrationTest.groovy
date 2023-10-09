@@ -16,13 +16,14 @@
 
 package org.gradle.api.problems
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
-        buildFile << """
+        buildFile """
             tasks.register("reportProblem", ProblemReportingTask)
         """
     }
@@ -40,8 +41,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{ it
-                        .label("label")
+                    problems.createProblem{
+                        it.label("label")
                         .undocumented()
                         .noLocation()
                         .category("type")
@@ -57,6 +58,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems.size() == 1
         this.collectedProblems[0]["label"] == "label"
         this.collectedProblems[0]["problemCategory"]["category"] == "type"
+        this.collectedProblems[0]["where"][0] == [
+            type:"task",
+            identityPath:
+                [absolute:true,
+                 path:":reportProblem",
+                 name:"reportProblem",
+                 parent:
+                     [absolute:true,
+                      path:":",
+                      name:null,
+                      parent:null
+                     ]
+                ]
+            ]
     }
 
     def "can emit a problem with user-manual documentation"() {
@@ -72,11 +87,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem { it
-                        .label("label")
-                        .documentedAt(
-                            Documentation.userManual("test-id", "test-section")
-                        )
+                    problems.createProblem{
+                        it.label("label")
+                        .documentedAt(Documentation.userManual("test-id", "test-section"))
                         .noLocation()
                         .category("type")
                         }.report()
@@ -103,6 +116,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
+
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
@@ -111,9 +125,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 void run() {
                     problems.createProblem{
                         it.label("label")
-                        .documentedAt(
-                            Documentation.upgradeGuide(8, "test-section")
-                        )
+                        .documentedAt(Documentation.upgradeGuide(8, "test-section"))
                         .noLocation()
                         .category("type")
                         }.report()
@@ -249,7 +261,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can emit a problem with plugin location specified"() {
         given:
-        buildFile << """
+        buildFile """
             import org.gradle.api.problems.Problem
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
@@ -260,7 +272,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    Problem problem = problems.createProblem{
+                    problems.createProblem{
                         it.label("label")
                         .undocumented()
                         .pluginLocation("org.example.pluginid")
@@ -428,7 +440,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    def exception = new RuntimeException("test")
+                    RuntimeException exception = new RuntimeException("test")
                     problems.throwing {
                         spec -> spec
                             .label("label")

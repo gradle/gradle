@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.internal.buildtree;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -32,8 +35,19 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+@NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
-    private static final ProblemStream.StackTraceTransformer NO_OP = ImmutableList::copyOf;
+
+    @NonNullApi
+    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer{
+        @Override
+        public List<StackTraceElement> transform(StackTraceElement[] original) {
+            return ImmutableList.copyOf(original);
+        }
+
+    }
+    private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
+
     private static final Supplier<Throwable> EXCEPTION_FACTORY = Exception::new;
 
     private final ProblemLocationAnalyzer locationAnalyzer;
@@ -94,6 +108,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         return new DefaultProblemDiagnostics(keepException ? throwable : null, stackTrace, location, source);
     }
 
+    @NonNullApi
     private class DefaultProblemStream implements ProblemStream {
         private final AtomicInteger remainingStackTraces = new AtomicInteger();
 
@@ -101,7 +116,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             remainingStackTraces.set(maxStackTraces);
         }
 
-        @Override
         public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
             if (exception == null) {
                 return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
@@ -110,12 +124,10 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             }
         }
 
-        @Override
         public ProblemDiagnostics forCurrentCaller() {
             return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
         }
 
-        @Override
         public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
             return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
         }
@@ -135,6 +147,7 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
     }
 
+    @NonNullApi
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
         private final Throwable exception;
         private final List<StackTraceElement> stackTrace;

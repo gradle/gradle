@@ -66,4 +66,8 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
     public void report() {
         problemService.reportAsProgressEvent(this);
     }
+
+    public InternalProblems getProblemService() {
+        return problemService;
+    }
 }

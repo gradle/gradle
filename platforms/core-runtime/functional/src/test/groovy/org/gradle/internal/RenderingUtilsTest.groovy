@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal
+package org.gradle.internal
 
 import spock.lang.Specification
 

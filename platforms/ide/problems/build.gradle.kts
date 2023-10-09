@@ -26,6 +26,9 @@ description = """Problem SPI implementations.
 dependencies {
     api(project(":problems-api"))
 
+    implementation(libs.guava)
+    implementation(libs.inject)
+
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-operations"))

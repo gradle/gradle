@@ -16,10 +16,10 @@
 
 package org.gradle.internal.problems
 
+import org.gradle.internal.buildtree.DefaultProblemDiagnosticsFactory
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.problems.Location
-import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
 
 import java.util.function.Supplier
@@ -72,7 +72,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     }
 
     def "does not populate stack traces after limit has been reached"() {
-        def transformer = Stub(ProblemStream.StackTraceTransformer) {
+        def transformer = Stub(DefaultProblemDiagnosticsFactory.DefaultProblemStream.StackTraceTransformer) {
             transform(_) >> { StackTraceElement[] original -> original.toList() }
         }
         def supplier = Stub(Supplier) {
@@ -103,7 +103,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     }
 
     def "each stream has an independent stack trace limit"() {
-        def transformer = Stub(ProblemStream.StackTraceTransformer) {
+        def transformer = Stub(DefaultProblemDiagnosticsFactory.DefaultProblemStream.StackTraceTransformer) {
             transform(_) >> { StackTraceElement[] original -> original.toList() }
         }
         def supplier = Stub(Supplier) {

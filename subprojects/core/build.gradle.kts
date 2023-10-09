@@ -151,6 +151,7 @@ dependencies {
         because("test fixtures expose file snapshot related functionality")
     }
     testFixturesImplementation(project(":build-option"))
+    testFixturesImplementation(project(":functional"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))

@@ -33,7 +33,7 @@ import static org.gradle.integtests.fixtures.validation.ValidationProblemPropert
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
-import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
+import static org.gradle.internal.RenderingUtils.oxfordListOf
 
 class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
 
