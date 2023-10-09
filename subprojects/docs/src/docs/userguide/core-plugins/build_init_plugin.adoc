@@ -82,7 +82,7 @@ The Build Init plugin also uses the `wrapper` task to <<gradle_wrapper.adoc#sec:
 The simplest, and recommended, way to use the `init` task is to run `gradle init` from an interactive console. Gradle will list the available build types and ask you to select one. It will then ask some additional questions to allow you to fine-tune the result.
 
 There are several command-line options available for the `init` task that control what it will generate. You can use these when Gradle is not running from an interactive console.
-You can see available options from the task help:
+You can see available options using the `help` task:
 
 ```bash
 gradle help --task init
