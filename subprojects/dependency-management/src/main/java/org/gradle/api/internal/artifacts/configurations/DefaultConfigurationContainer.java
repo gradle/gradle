@@ -286,7 +286,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        return maybeCreate(createRequestWithoutContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
+        return maybeCreate(createRequestWithoutContext(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
     }
 
     /**
