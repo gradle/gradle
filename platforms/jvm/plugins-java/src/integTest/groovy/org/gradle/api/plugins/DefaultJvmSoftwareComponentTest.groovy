@@ -39,13 +39,19 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaBasePlugin)
 
+        def f1 = createFeature("main")
+        def f2 = createFeature("foo")
+        def f3 = createFeature("bar")
+
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
 
+        component.features.add(f1)
+        component.features.add(f2)
+        component.features.add(f3)
+
         then:
-        component.features.add(createFeature("main"))
-        component.features.add(createFeature("foo"))
-        component.features.add(createFeature("bar"))
+        component.features.containsAll([f1, f2, f3])
     }
 
     def createFeature(String name) {

@@ -23,7 +23,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
@@ -242,12 +241,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
-    private final ObjectFactory objectFactory;
-
     @Inject
-    public JavaPlugin(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-    }
+    public JavaPlugin() {}
 
     @Override
     public void apply(final Project project) {
@@ -259,12 +254,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
+        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-
-        JvmFeatureInternal mainFeature = createMainFeature(projectInternal, javaExtension);
-        JvmTestSuite defaultTestSuite = configureBuiltInTest(mainFeature, projectInternal.getConfigurations(), project.getTasks(), project.getExtensions(), objectFactory);
-        JvmSoftwareComponentInternal javaComponent = createJavaComponent(mainFeature, defaultTestSuite, project.getObjects(), project.getComponents());
+        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
 
         configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
@@ -273,20 +265,21 @@ public abstract class JavaPlugin implements Plugin<Project> {
         defaultConfiguration.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration());
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
+        // Build the main jar when running `assemble`.
+        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
+        publicationSet.addCandidate(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
-        configureSourceSets(javaExtension, buildOutputCleanupRegistry);
+        configureSourceSets(buildOutputCleanupRegistry, sourceSets);
 
         configureTestTaskOrdering(project.getTasks());
-        configureDiagnostics(project, mainFeature);
+        configureDiagnostics(project, javaComponent.getMainFeature());
         configureBuild(project);
     }
 
-    private static JvmFeatureInternal createMainFeature(ProjectInternal project, JavaPluginExtension javaExtension) {
-        // Create the 'main' feature - create source set first
-        SourceSetContainer sourceSets = javaExtension.getSourceSets();
+    private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
         SourceSet sourceSet = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        // Supply the sourceSet to the feature
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.JAVA_MAIN_FEATURE_NAME,
             sourceSet,
@@ -295,26 +288,27 @@ public abstract class JavaPlugin implements Plugin<Project> {
             false,
             false
         );
+
         // Create a source directories variant for the feature
         feature.withSourceElements();
-
-        // Build the main jar when running `assemble`.
-        DefaultArtifactPublicationSet publicationSet = project.getExtensions().getByType(DefaultArtifactPublicationSet.class);
-        publicationSet.addCandidate(feature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
         return feature;
     }
 
-    private static JvmSoftwareComponentInternal createJavaComponent(JvmFeatureInternal mainFeature, JvmTestSuite defaultTestSuite, ObjectFactory objectFactory, SoftwareComponentContainer components) {
-        DefaultJvmSoftwareComponent component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, JvmConstants.JAVA_MAIN_COMPONENT_NAME);
-        components.add(component);
+    private static JvmSoftwareComponentInternal createJavaComponent(ProjectInternal project, SourceSetContainer sourceSets) {
+        DefaultJvmSoftwareComponent component = project.getObjects().newInstance(DefaultJvmSoftwareComponent.class, JvmConstants.JAVA_MAIN_COMPONENT_NAME);
+        project.getComponents().add(component);
 
+        // Create the main feature
+        JvmFeatureInternal mainFeature = createMainFeature(project, sourceSets);
         component.getFeatures().add(mainFeature);
 
         // TODO: This process of manually adding variants to the component should be handled automatically when adding the feature to the component.
         component.addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false));
         component.addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false));
 
+        // Create the default test suite
+        JvmTestSuite defaultTestSuite = createDefaultTestSuite(mainFeature, project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getObjects());
         component.getTestSuites().add(defaultTestSuite);
 
         return component;
@@ -340,9 +334,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private static void configureSourceSets(final BuildOutputCleanupRegistry buildOutputCleanupRegistry, SourceSetContainer sourceSets) {
         // Register the project's source set output directories
-        pluginExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
+        sourceSets.all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
     /**
@@ -358,7 +352,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         tasks.withType(Test.class).configureEach(test -> test.shouldRunAfter(jarTasks));
     }
 
-    private static JvmTestSuite configureBuiltInTest(
+    private static JvmTestSuite createDefaultTestSuite(
         JvmFeatureInternal mainFeature,
         RoleBasedConfigurationContainerInternal configurations,
         TaskContainer tasks,

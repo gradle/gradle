@@ -31,7 +31,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
  */
 class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
-    def "can create a single feature"() {
+    def "can create a single main feature with a main source set"() {
         given:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
@@ -56,7 +56,7 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         project.tasks.getByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME)
     }
 
-    def "can create a single feature with a non-main source set"() {
+    def "can create a single non-main feature with a non-main source set"() {
         given:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
@@ -121,7 +121,7 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         project.tasks.getByName(feature.sourceSet.sourcesJarTaskName)
     }
 
-    def "can create multiple features in a project"() {
+    def "can create multiple features in a project without adding them to a component"() {
         given:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension)
@@ -129,9 +129,23 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         SourceSet one = ext.getSourceSets().create("one")
         SourceSet two = ext.getSourceSets().create("two")
 
-        expect:
-        new DefaultJvmFeature("feature1", one, Collections.emptyList(), project, false, false)
-        new DefaultJvmFeature("feature2", two, Collections.emptyList(), project, false, false)
+        when:
+        // The constructor and `with` methods have side effects, like creating domain objects in project-scope containers
+        def f1 = new DefaultJvmFeature("feature1", one, Collections.emptyList(), project, false, false)
+        def f2 = new DefaultJvmFeature("feature2", two, Collections.emptyList(), project, false, false)
+
+        f1.withJavadocJar()
+        f1.withSourcesJar()
+        f1.withApi()
+        f1.withSourceElements()
+
+        f2.withJavadocJar()
+        f2.withSourcesJar()
+        f2.withApi()
+        f2.withSourceElements()
+
+        then:
+        noExceptionThrown()
     }
 
     private JvmFeatureInternal createFeature(String name, String sourceSetName = name) {

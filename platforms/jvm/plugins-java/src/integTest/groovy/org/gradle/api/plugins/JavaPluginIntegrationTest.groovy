@@ -609,19 +609,24 @@ Artifacts
 
             sourceSets {
                 foo
+                bar
             }
 
             java {
                 registerFeature("foo") {
                     usingSourceSet(sourceSets.foo)
                 }
+                registerFeature("bar") {
+                    usingSourceSet(sourceSets.bar)
+                }
             }
 
             task verify {
                 components.java.features {
-                    assert size() == 2
+                    assert size() == 3
                     assert main.sourceSet == sourceSets.main
                     assert foo.sourceSet == sourceSets.foo
+                    assert bar.sourceSet == sourceSets.bar
                 }
             }
         """

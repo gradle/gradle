@@ -30,12 +30,12 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 thing(JvmSoftwareComponentInternal)
-                feature(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponentInternal)
             }
 
             task verify {
                 assert components.thing instanceof DefaultJvmSoftwareComponent
-                assert components.feature instanceof DefaultJvmSoftwareComponent
+                assert components.comp instanceof DefaultJvmSoftwareComponent
             }
         """
 
@@ -50,12 +50,12 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 create<JvmSoftwareComponentInternal>("thing")
-                create<JvmSoftwareComponentInternal>("feature")
+                create<JvmSoftwareComponentInternal>("comp")
             }
 
             tasks.register("verify") {
                 assert(components.named("thing").get() is DefaultJvmSoftwareComponent)
-                assert(components.named("feature").get() is DefaultJvmSoftwareComponent)
+                assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
             }
         """
 
@@ -189,8 +189,8 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        fails "tasks"
-        result.assertHasErrorOutput("Cannot register feature 'myFeature' because multiple JVM components are present.  These components were found: module, thing.")
+        fails("tasks")
+        failure.assertHasErrorOutput("Cannot register feature because multiple JVM components are present. The following components were found: module, thing")
     }
 
     private static final String factoryRegistrationGroovy() {
