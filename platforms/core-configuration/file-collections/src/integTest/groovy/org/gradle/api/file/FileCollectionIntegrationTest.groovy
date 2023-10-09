@@ -16,6 +16,7 @@
 
 package org.gradle.api.file
 
+import groovy.transform.CompileStatic
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
@@ -152,19 +153,35 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
             def files1 = files('a.txt')
             def files2 = files('b.txt')
+            def files3 = files('c.txt')
             task merge(type: LegacyTask) {
-                inFiles += files1
-                inFiles += files2
+                 inFiles += files1
             }
+
+            merge.inFiles += files2
+
+            @${CompileStatic.name}
+            void makeStuff(LegacyTask legacy, FileCollection toAdd) {
+                legacy.inFiles += toAdd
+            }
+
+            makeStuff(merge, files3)
+            def files4 = {
+                merge.inFiles += files('d.txt')
+            }
+
+            files4()
         """
         file('a.txt').text = 'a'
         file('b.txt').text = 'b'
+        file('c.txt').text = 'c'
+        file('d.txt').text = 'd'
 
         when:
         run("merge")
 
         then:
-        outputContains("result = [a.txt, b.txt]")
+        outputContains("result = [a.txt, b.txt, c.txt, d.txt]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12832")
