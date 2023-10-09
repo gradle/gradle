@@ -280,17 +280,17 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String sourceSetName = sourceSet.toString();
 
         SourceSetConfigurationCreationRequest implementationRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), implementationConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration implementationConfiguration = configurations.maybeCreateDependencyScopeUnlocked(implementationRequest);
+        Configuration implementationConfiguration = configurations.maybeCreate(implementationRequest);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest compileOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration compileOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(compileOnlyRequest);
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyRequest);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest compileClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration compileClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(compileClasspathRequest);
+        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathRequest);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
@@ -298,19 +298,18 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         @SuppressWarnings("deprecation")
         SourceSetConfigurationCreationRequest annotationProcessorRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-        @SuppressWarnings("deprecation")
-        Configuration annotationProcessorConfiguration = configurations.maybeCreateResolvableDependencyScopeUnlocked(annotationProcessorRequest);
+        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorRequest);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         SourceSetConfigurationCreationRequest runtimeOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateDependencyScopeUnlocked(runtimeOnlyRequest);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyRequest);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest runtimeClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateResolvableUnlocked(runtimeClasspathRequest);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathRequest);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
@@ -373,9 +372,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         // TODO: Gradle 8.1+: Deprecate `getLibsDirectory` in BasePluginExtension and move it to `JavaPluginExtension`
         BasePluginExtension basePluginExtension = project.getExtensions().getByType(BasePluginExtension.class);
 
-        project.getTasks().withType(Jar.class).configureEach(task -> {
-            task.getDestinationDirectory().convention(basePluginExtension.getLibsDirectory());
-        });
+        project.getTasks().withType(Jar.class).configureEach(task -> task.getDestinationDirectory().convention(basePluginExtension.getLibsDirectory()));
     }
 
     private void configureTest(final Project project, final JavaPluginExtension javaPluginExtension) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
@@ -253,30 +254,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateResolvableUnlocked(String name) {
-        return maybeCreateResolvableUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.RESOLVABLE));
-    }
-
-    @Override
-    public Configuration maybeCreateResolvableUnlocked(ConfigurationCreationRequest context) {
-        if (hasWithName(context.getConfigurationName())) {
-            return verifyExistingConfiguration(context);
-        } else {
-            return resolvableUnlocked(context.getConfigurationName());
-        }
+        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.RESOLVABLE), true);
     }
 
     @Override
     public Configuration maybeCreateConsumableUnlocked(String name) {
-        return maybeCreateConsumableUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.CONSUMABLE));
-    }
-
-    @Override
-    public Configuration maybeCreateConsumableUnlocked(ConfigurationCreationRequest context) {
-        if (hasWithName(context.getConfigurationName())) {
-            return verifyExistingConfiguration(context);
-        } else {
-            return consumableUnlocked(context.getConfigurationName());
-        }
+        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.CONSUMABLE), true);
     }
 
     @Override
@@ -285,17 +268,33 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest request) {
-        return maybeCreateDependencyScopeUnlocked(request, true);
-    }
-
-    @Override
     public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
-        return maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context, boolean verifyPrexisting) {
+    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
+        ConfigurationCreationRequest request = ConfigurationCreationRequest.noContext(name, role);
+
+        if (hasWithName(request.getConfigurationName())) {
+            return verifyExistingConfiguration(request);
+        } else {
+            return migratingUnlocked(request.getConfigurationName(), request.getRole());
+        }
+    }
+
+    @Override
+    @Deprecated
+    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
+        return maybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
+    }
+
+    @Override
+    public Configuration maybeCreate(ConfigurationCreationRequest context) {
+        return doMaybeCreate(context, true);
+    }
+
+    private Configuration doMaybeCreate(ConfigurationCreationRequest context, boolean verifyPrexisting) {
         if (hasWithName(context.getConfigurationName())) {
             if (verifyPrexisting) {
                 return verifyExistingConfiguration(context);
@@ -303,37 +302,18 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return getByName(context.getConfigurationName());
             }
         } else {
-            return dependencyScopeUnlocked(context.getConfigurationName());
-        }
-    }
-
-    @Override
-    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
-        return maybeCreateMigratingUnlocked(ConfigurationCreationRequest.noContext(name, role));
-    }
-
-    @Override
-    public Configuration maybeCreateMigratingUnlocked(ConfigurationCreationRequest context) {
-        if (hasWithName(context.getConfigurationName())) {
-            return verifyExistingConfiguration(context);
-        } else {
-            return migratingUnlocked(context.getConfigurationName(), context.getRole());
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        return maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
-    }
-
-    @Override
-    @Deprecated
-    public Configuration maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest context) {
-        if (hasWithName(context.getConfigurationName())) {
-            return verifyExistingConfiguration(context);
-        } else {
-            return resolvableDependencyScopeUnlocked(context.getConfigurationName());
+            switch (context.getRole().getName()) {
+                case ConfigurationRoles.CONSUMABLE_NAME:
+                    return consumableUnlocked(context.getConfigurationName());
+                case ConfigurationRoles.RESOLVABLE_NAME:
+                    return resolvableUnlocked(context.getConfigurationName());
+                case ConfigurationRoles.DEPENDENCY_SCOPE_NAME:
+                    return dependencyScopeUnlocked(context.getConfigurationName());
+                case ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE_NAME:
+                    return resolvableDependencyScopeUnlocked(context.getConfigurationName());
+                default:
+                    throw new GradleException("Cannot maybe create role: " + context.getRole());
+            }
         }
     }
 

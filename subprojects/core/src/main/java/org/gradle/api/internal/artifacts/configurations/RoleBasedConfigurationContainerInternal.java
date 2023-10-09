@@ -112,8 +112,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateResolvableUnlocked(String name);
 
-    Configuration maybeCreateResolvableUnlocked(ConfigurationCreationRequest context);
-
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new consumable configuration with the given name.
@@ -123,8 +121,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateConsumableUnlocked(String name);
 
-    Configuration maybeCreateConsumableUnlocked(ConfigurationCreationRequest context);
-
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new dependency scope configuration with the given name.
@@ -133,8 +129,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
     Configuration maybeCreateDependencyScopeUnlocked(String name);
-
-    Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context);
 
     /**
      * If a configuration with the given name already exists,return it.
@@ -149,8 +143,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting);
 
-    Configuration maybeCreateDependencyScopeUnlocked(ConfigurationCreationRequest context, boolean verifyPrexisting);
-
     /**
      * If a configuration with the given name already exists, return it.
      * Otherwise, creates a new configuration with the given name.
@@ -162,8 +154,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
     Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role);
-
-    Configuration maybeCreateMigratingUnlocked(ConfigurationCreationRequest context);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -180,7 +170,5 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     @Deprecated
     Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
 
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    Configuration maybeCreateResolvableDependencyScopeUnlocked(ConfigurationCreationRequest context);
+    Configuration maybeCreate(ConfigurationCreationRequest context);
 }

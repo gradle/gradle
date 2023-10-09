@@ -30,6 +30,10 @@ import java.util.Set;
  * @since 8.1
  */
 public final class ConfigurationRoles {
+    public static final String CONSUMABLE_NAME = "Consumable";
+    public static final String RESOLVABLE_NAME = "Resolvable";
+    public static final String DEPENDENCY_SCOPE_NAME = "Dependency Scope";
+    public static final String RESOLVABLE_DEPENDENCY_SCOPE_NAME = "Resolvable Dependency Scope";
 
     private ConfigurationRoles() {
         // Private to prevent instantiation.
@@ -47,12 +51,12 @@ public final class ConfigurationRoles {
     /**
      * Meant to be used only for consumption by other projects.
      */
-    public static final ConfigurationRole CONSUMABLE = createNonDeprecatedRole("Consumable", true, false, false);
+    public static final ConfigurationRole CONSUMABLE = createNonDeprecatedRole(CONSUMABLE_NAME, true, false, false);
 
     /**
      * Meant to be used only for resolving dependencies.
      */
-    public static final ConfigurationRole RESOLVABLE = createNonDeprecatedRole("Resolvable", false, true, false);
+    public static final ConfigurationRole RESOLVABLE = createNonDeprecatedRole(RESOLVABLE_NAME, false, true, false);
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a resolvable configuration.
@@ -60,7 +64,7 @@ public final class ConfigurationRoles {
      * These situations should be updated to use a separate dependency scope configuration for declaring dependencies and extend it with a separate resolvable configuration.
      */
     @Deprecated
-    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
+    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole(RESOLVABLE_DEPENDENCY_SCOPE_NAME, false, true, true);
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
@@ -75,7 +79,7 @@ public final class ConfigurationRoles {
      *
      * AKA {@code DECLARABLE}.
      */
-    public static final ConfigurationRole DEPENDENCY_SCOPE = createNonDeprecatedRole("Dependency Scope", false, false, true);
+    public static final ConfigurationRole DEPENDENCY_SCOPE = createNonDeprecatedRole(DEPENDENCY_SCOPE_NAME, false, false, true);
 
     /**
      * Creates a new role which is not deprecated for any usage.
