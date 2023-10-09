@@ -38,27 +38,27 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : DynamicObject {
-    override fun hasMethod(name: String?, vararg arguments: Any?): Boolean {
+    override fun hasMethod(name: String, vararg arguments: Any?): Boolean {
         onAccess(MemberKind.METHOD, name)
         return delegate.hasMethod(name, *arguments)
     }
 
-    override fun tryInvokeMethod(name: String?, vararg arguments: Any?): DynamicInvokeResult {
+    override fun tryInvokeMethod(name: String, vararg arguments: Any?): DynamicInvokeResult {
         onAccess(MemberKind.METHOD, name)
         return delegate.tryInvokeMethod(name, *arguments)
     }
 
-    override fun hasProperty(name: String?): Boolean {
+    override fun hasProperty(name: String): Boolean {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.hasProperty(name)
     }
 
-    override fun tryGetProperty(name: String?): DynamicInvokeResult {
+    override fun tryGetProperty(name: String): DynamicInvokeResult {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.tryGetProperty(name)
     }
 
-    override fun trySetProperty(name: String?, value: Any?): DynamicInvokeResult {
+    override fun trySetProperty(name: String, value: Any?): DynamicInvokeResult {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.trySetProperty(name, value)
     }
@@ -68,32 +68,32 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         return delegate.properties
     }
 
-    override fun getMissingProperty(name: String?): MissingPropertyException {
+    override fun getMissingProperty(name: String): MissingPropertyException {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.getMissingProperty(name)
     }
 
-    override fun setMissingProperty(name: String?): MissingPropertyException {
+    override fun setMissingProperty(name: String): MissingPropertyException {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.setMissingProperty(name)
     }
 
-    override fun methodMissingException(name: String?, vararg params: Any?): MissingMethodException {
+    override fun methodMissingException(name: String, vararg params: Any?): MissingMethodException {
         onAccess(MemberKind.METHOD, name)
         return delegate.methodMissingException(name, *params)
     }
 
-    override fun getProperty(name: String?): Any {
+    override fun getProperty(name: String): Any? {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.getProperty(name)
     }
 
-    override fun setProperty(name: String?, value: Any?) {
+    override fun setProperty(name: String, value: Any?) {
         onAccess(MemberKind.PROPERTY, name)
         return delegate.setProperty(name, value)
     }
 
-    override fun invokeMethod(name: String?, vararg arguments: Any?): Any {
+    override fun invokeMethod(name: String, vararg arguments: Any?): Any? {
         onAccess(MemberKind.METHOD, name)
         return delegate.invokeMethod(name, *arguments)
     }

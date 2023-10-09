@@ -289,12 +289,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
+        @Nullable
         public Object propertyMissing(String name) {
             return getProperty(name);
         }
 
         @Override
-        public DynamicInvokeResult trySetProperty(String name, Object value) {
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
             checkExtensionIsNotReassigned(name);
             if (plugins == null) {
                 return DynamicInvokeResult.notFound();
@@ -315,7 +316,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
@@ -333,12 +334,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
+        @Nullable
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[]) args);
         }
 
         @Override
-        public boolean hasMethod(String name, Object... args) {
+        public boolean hasMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return true;
             }

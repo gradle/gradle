@@ -533,19 +533,19 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean hasMethod(String name, Object... arguments) {
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
             return isConfigureMethod(name, arguments);
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
             return DynamicInvokeResult.notFound();
         }
 
-        private boolean isConfigureMethod(String name, Object... arguments) {
+        private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
             return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
         }
     }
