@@ -52,7 +52,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, CleanupActionDecorator cleanupActionDecorator) {
         this.vcsWorkingDirCache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("vcs-1")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive))
             .withDisplayName("VCS Checkout Cache")
             .withCleanupStrategy(createCacheCleanupStrategy(cleanupActionDecorator))
             .open();

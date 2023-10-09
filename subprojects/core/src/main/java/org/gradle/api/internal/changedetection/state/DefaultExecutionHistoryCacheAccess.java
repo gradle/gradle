@@ -31,7 +31,7 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
         this.cache = cacheBuilderFactory
             .createCacheBuilder("executionHistory")
             .withDisplayName("execution history cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // Lock on demand
             .open();
     }
 

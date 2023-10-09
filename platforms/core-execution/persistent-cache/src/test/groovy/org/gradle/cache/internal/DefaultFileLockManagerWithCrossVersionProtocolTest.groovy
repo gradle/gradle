@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLockManagerTest {
     @Override
     protected LockOptionsBuilder options() {
-        return LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand).useCrossVersionImplementation()
+        return LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive).useCrossVersionImplementation()
     }
 
     void isVersionLockFile(TestFile lockFile, boolean dirty) {

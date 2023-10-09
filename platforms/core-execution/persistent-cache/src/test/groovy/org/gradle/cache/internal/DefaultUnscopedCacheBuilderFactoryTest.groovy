@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
@@ -88,11 +88,11 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache("a").withLockOptions(mode(OnDemand)).open()
+        repository.cache("a").withLockOptions(mode(OnDemandExclusive)).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(OnDemandExclusive), null, null) >> cache
     }
 
     void canSpecifyDisplayNameForDirectoryCache() {

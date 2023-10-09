@@ -35,7 +35,7 @@ public class NativeDependencyCache implements Stoppable {
     private final PersistentCache cache;
 
     public NativeDependencyCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
-        cache = cacheBuilderFactory.createCacheBuilder("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)).open();
+        cache = cacheBuilderFactory.createCacheBuilder("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive)).open();
     }
 
     public File getModuleMapFile(final ModuleMap moduleMap) {
