@@ -377,7 +377,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
     }
 
-    private boolean isConfigureExtensionMethod(String name, Object[] args) {
+    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
         return args.length == 1 &&
             (args[0] instanceof Closure || args[0] instanceof Action) &&
             extensionsStorage.hasExtension(name);
