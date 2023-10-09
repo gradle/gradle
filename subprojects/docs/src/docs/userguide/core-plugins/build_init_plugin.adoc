@@ -194,8 +194,6 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 When creating a java project you must set the java version. You can do that by supplying *the major version* of java you wish to use:
 
 ```bash
-mkdir my-java-project
-cd my-java-project
 gradle init --type java-application  --java-version 11 --dsl kotlin # and other parameters
 ```
 
