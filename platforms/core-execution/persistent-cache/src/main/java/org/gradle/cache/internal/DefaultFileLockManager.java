@@ -33,6 +33,7 @@ import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
 import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -158,7 +159,7 @@ public class DefaultFileLockManager implements FileLockManager {
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
             try {
-                if (whenContended != null) {
+                if (whenContended != null && whenContended != Actions.<FileLockReleasedSignal>doNothing()) {
                     fileLockContentionHandler.start(lockId, whenContended);
                 }
                 lockState = lock(options.getMode());
