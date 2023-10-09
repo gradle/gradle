@@ -57,26 +57,26 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
 
     @Override
     public void withJavadocJar() {
-        getFeatures().configureEach(feature -> {
-            feature.withJavadocJar();
+        JvmFeatureInternal feature = getMainFeature();
 
-            Configuration javadocElements = feature.getJavadocElementsConfiguration();
-            if (!isRegisteredAsLegacyVariant(javadocElements)) {
-                addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-            }
-        });
+        feature.withJavadocJar();
+
+        Configuration javadocElements = feature.getJavadocElementsConfiguration();
+        if (!isRegisteredAsLegacyVariant(javadocElements)) {
+            addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
     }
 
     @Override
     public void withSourcesJar() {
-        getFeatures().configureEach(feature -> {
-            feature.withSourcesJar();
+        JvmFeatureInternal feature = getMainFeature();
 
-            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-            if (!isRegisteredAsLegacyVariant(sourcesElements)) {
-                addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-            }
-        });
+        feature.withSourcesJar();
+
+        Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+        if (!isRegisteredAsLegacyVariant(sourcesElements)) {
+            addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
     }
 
     @Override
