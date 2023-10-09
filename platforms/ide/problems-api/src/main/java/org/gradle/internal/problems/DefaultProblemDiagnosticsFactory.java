@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.internal.problems;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
-import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
-import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -33,22 +32,27 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
     @NonNullApi
-    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer{
+    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
         @Override
         public List<StackTraceElement> transform(StackTraceElement[] original) {
             return ImmutableList.copyOf(original);
         }
 
     }
+
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
-    private static final Supplier<Throwable> EXCEPTION_FACTORY = Exception::new;
+    private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
+        @Override
+        public Throwable get() {
+            return new Exception();
+        }
+    };
 
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;

@@ -16,19 +16,17 @@
 
 package org.gradle.problems.internal.transformers;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.Location;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-
-import static com.google.common.collect.Sets.union;
 
 public class StackLocationTransformer implements ProblemTransformer {
 
@@ -47,10 +45,12 @@ public class StackLocationTransformer implements ProblemTransformer {
             List<StackTraceElement> stackTraceElements = Arrays.asList(throwable.getStackTrace());
             Location location = problemLocationAnalyzer.locationForUsage(stackTraceElements, true);
             if (location != null) {
+                List<ProblemLocation> s = new ArrayList<>(problem.getWhere());
+                s.add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
                 return new DefaultReportableProblem(
                     problem.getLabel(),
                     problem.getSeverity(),
-                    new HashSet<>(union(problem.getWhere(), ImmutableSet.of(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null)))),
+                    s,
                     problem.getDocumentationLink(),
                     problem.getDetails(),
                     problem.getSolutions(),

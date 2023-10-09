@@ -245,9 +245,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         when:
         run("reportProblem")
 
+
+        def problems = this.collectedProblems
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"][0] == [
+        problems.size() == 1
+        problems[0]["where"][0] == [
             "type": "file",
             "path": "test-location",
             "line": 1,
@@ -255,7 +257,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             "length": 0
         ]
 
-        def taskPath = this.collectedProblems[0]["where"][1]
+        def taskPath = problems[0]["where"][2]
         taskPath["type"] == "task"
         taskPath["identityPath"]["absolute"] == true
         taskPath["identityPath"]["path"] == ":reportProblem"

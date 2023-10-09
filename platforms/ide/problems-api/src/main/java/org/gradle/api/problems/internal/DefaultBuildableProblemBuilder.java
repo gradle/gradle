@@ -34,10 +34,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Builder for problems.
@@ -55,7 +53,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     private String problemCategory;
     private final InternalProblems problemsService;
     private Severity severity;
-    private Set<ProblemLocation> locations = new LinkedHashSet<ProblemLocation>();
+    private List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
     private String description;
     private DocLink documentationUrl;
     private boolean explicitlyUndocumented = false;

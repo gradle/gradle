@@ -135,7 +135,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as Set
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].exception.message == "cause"
     }
@@ -158,7 +158,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as Set
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
 
@@ -185,7 +185,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as Set
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
         deserialized[0].solutions[1] == "solution 1"
@@ -210,7 +210,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as Set
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"

@@ -18,14 +18,13 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @NonNullApi
 public class DefaultReportableProblem extends DefaultProblem implements ReportableProblem {
@@ -35,7 +34,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
     public DefaultReportableProblem(
         String message,
         Severity severity,
-        Set<ProblemLocation> location,
+        List<ProblemLocation> location,
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,

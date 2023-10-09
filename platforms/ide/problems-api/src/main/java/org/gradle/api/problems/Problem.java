@@ -22,7 +22,6 @@ import org.gradle.api.problems.locations.ProblemLocation;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Interface for describing structured information about a problem.
@@ -64,7 +63,7 @@ public interface Problem {
      */
     Severity getSeverity();
 
-    Set<ProblemLocation> getWhere();
+    List<ProblemLocation> getWhere();
 
     /**
      * A link to the documentation for this problem.

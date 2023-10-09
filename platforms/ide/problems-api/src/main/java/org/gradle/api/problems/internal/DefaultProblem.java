@@ -20,21 +20,20 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @NonNullApi
 public class DefaultProblem implements Problem {
     private String label;
     private Severity severity;
-    private Set<ProblemLocation> where;
+    private List<ProblemLocation> where;
     private DocLink documentationLink;
     private String description;
     private List<String> solutions;
@@ -45,7 +44,7 @@ public class DefaultProblem implements Problem {
     public DefaultProblem(
         String label,
         Severity severity,
-        Set<ProblemLocation> locations,
+        List<ProblemLocation> locations,
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,
@@ -78,7 +77,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Set<ProblemLocation> getWhere() {
+    public List<ProblemLocation> getWhere() {
         return where;
     }
 

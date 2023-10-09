@@ -16,6 +16,7 @@
 
 package org.gradle.internal.problems;
 
+import com.google.common.base.Supplier;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -25,7 +26,6 @@ import org.gradle.problems.buildtree.ProblemStream;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
     public static final ProblemDiagnostics EMPTY_DIAGNOSTICS = new ProblemDiagnostics() {
