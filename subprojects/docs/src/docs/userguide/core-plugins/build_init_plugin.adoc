@@ -22,8 +22,6 @@ The Build Init plugin can be used to create a new Gradle build. It supports crea
 == Sample usage
 
 ```bash
-mkdir my-project
-cd my-project
 gradle init \
   --type java-application \
   --dsl kotlin \
