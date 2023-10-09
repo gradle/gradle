@@ -98,7 +98,7 @@ If a `--type` option is not provided, Gradle will attempt to infer the type from
 
 The `init` task also supports generating build scripts using either the Gradle Kotlin DSL or the Gradle Groovy DSL. The build script DSL defaults to the Kotlin DSL for most build types and to the Groovy DSL for Groovy build types. The DSL can be selected by using the `--dsl` command-line option.
 
-For example, to create a Java library project with Kotlin DSL build scripts  run:
+For example, to create a Java library project with Kotlin DSL build scripts, run:
 
 ```bash
 gradle init --type java-library --dsl kotlin
