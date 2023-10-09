@@ -98,7 +98,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
     @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended) {
-        if (options.getMode() == LockMode.OnDemand) {
+        if (options.getMode().isOnDemand()) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
         File canonicalTarget = FileUtils.canonicalize(target);
@@ -137,7 +137,7 @@ public class DefaultFileLockManager implements FileLockManager {
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
-            if (options.getMode() == LockMode.OnDemand) {
+            if (options.getMode().isOnDemand()) {
                 throw new UnsupportedOperationException("Locking mode OnDemand is not supported.");
             }
 

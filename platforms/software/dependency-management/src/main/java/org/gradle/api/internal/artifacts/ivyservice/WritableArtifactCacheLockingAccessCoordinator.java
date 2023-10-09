@@ -58,7 +58,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
                 .open();
     }

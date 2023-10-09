@@ -39,7 +39,7 @@ public class DefaultDecompressionCache implements DecompressionCache {
     public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) //TODO: the documentation above says this is a cross-version cache, not it's not! should it be?
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) //TODO: the documentation above says this is a cross-version cache, not it's not! should it be?
                 .open();
     }
 

@@ -80,7 +80,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive))
             .open();
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;

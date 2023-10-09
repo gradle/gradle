@@ -53,7 +53,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         cache = cacheBuilderFactory
             .createCacheBuilder("fileContent")
             .withDisplayName("file content cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // Lock on demand
             .open();
     }
 

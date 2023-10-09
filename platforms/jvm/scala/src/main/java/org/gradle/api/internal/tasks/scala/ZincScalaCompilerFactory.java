@@ -109,7 +109,7 @@ public class ZincScalaCompilerFactory {
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
         final PersistentCache zincCache = unscopedCacheBuilderFactory.cache(zincCacheKey)
             .withDisplayName(zincCacheName)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive))
             .open();
 
 

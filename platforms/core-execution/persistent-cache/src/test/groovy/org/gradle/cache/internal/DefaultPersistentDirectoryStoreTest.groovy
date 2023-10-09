@@ -33,7 +33,7 @@ import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
@@ -56,7 +56,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     @Subject @AutoCleanup
-    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemandExclusive), cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
     def "has useful toString() implementation"() {
         expect:
@@ -128,7 +128,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemandExclusive), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
         when:
         store.open()
@@ -191,7 +191,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
     def "does not use gc.properties when no cleanup action is defined"() {
         given:
-        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
+        store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemandExclusive), null, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
         when:
         store.open()

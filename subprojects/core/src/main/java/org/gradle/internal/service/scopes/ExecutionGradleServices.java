@@ -105,7 +105,7 @@ public class ExecutionGradleServices {
             .createCrossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);

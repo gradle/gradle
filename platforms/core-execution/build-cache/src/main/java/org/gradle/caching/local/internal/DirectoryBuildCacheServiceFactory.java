@@ -41,7 +41,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
@@ -95,7 +95,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .cache(target)
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
-            .withLockOptions(mode(OnDemand))
+            .withLockOptions(mode(OnDemandExclusive))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
