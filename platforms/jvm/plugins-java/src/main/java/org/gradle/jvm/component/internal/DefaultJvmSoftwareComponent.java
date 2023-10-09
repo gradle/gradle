@@ -142,7 +142,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
          */
         TestingExtension testing = extensions.findByType(TestingExtension.class);
         if (null != testing && JvmConstants.JAVA_MAIN_COMPONENT_NAME.equals(getName())) {
-            final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JavaPluginHelper.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
+            final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
                 final SourceSet testSourceSet = suite.getSources();
 
                 Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
