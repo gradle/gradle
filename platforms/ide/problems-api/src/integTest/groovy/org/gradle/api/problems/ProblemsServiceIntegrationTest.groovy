@@ -55,10 +55,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        this.collectedProblems.size() == 1
-        this.collectedProblems[0]["label"] == "label"
-        this.collectedProblems[0]["problemCategory"]["category"] == "type"
-        this.collectedProblems[0]["where"][0] == [
+        def problems = this.collectedProblems
+        problems.size() == 1
+        problems[0]["label"] == "label"
+        problems[0]["problemCategory"]["category"] == "type"
+        problems[0]["where"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
+        problems[0]["where"][1] == [
             type:"task",
             identityPath:
                 [absolute:true,
