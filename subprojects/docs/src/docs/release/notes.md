@@ -150,7 +150,8 @@ See [authoring maintainable builds](userguide/authoring_maintainable_builds.html
 
 ### Dependency verification improvements
 
-When Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII armored versions of the keys.
+By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
+Also, when Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII-armored versions of the keys.
 
 You can now change this behavior to choose only one format.
 To do so, edit `verification-metadata.xml` by adding the `keyring-format` setting:

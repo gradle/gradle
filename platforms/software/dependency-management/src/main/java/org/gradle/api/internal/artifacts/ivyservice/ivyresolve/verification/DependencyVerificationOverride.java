@@ -26,15 +26,9 @@ import java.io.File;
 public interface DependencyVerificationOverride {
     DependencyVerificationOverride NO_VERIFICATION = (original, resolveContextName, resolutionStrategy) -> original;
     String VERIFICATION_METADATA_XML = "verification-metadata.xml";
-    String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
-    String VERIFICATION_KEYRING_DRYRUN_GPG = "verification-keyring-dryrun.gpg";
 
     static File dependencyVerificationsFile(File gradleDirectory) {
         return new File(gradleDirectory, VERIFICATION_METADATA_XML);
-    }
-
-    static File keyringsFile(File gradleDir) {
-        return new File(gradleDir, VERIFICATION_KEYRING_GPG);
     }
 
     ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy);
