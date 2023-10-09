@@ -21,7 +21,9 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CrossProcessCacheAccess;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
@@ -35,6 +37,9 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared;
  * exclusive lock be held, so this implementation simply throws 'not supported' exceptions for these methods.
  */
 public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
+
+    private final static Action<FileLockReleasedSignal> NO_OP_CONTENDED_ACTION = Actions.doNothing();
+
     private final String cacheDisplayName;
     private final File lockTarget;
     private final LockOptions lockOptions;
@@ -60,7 +65,19 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
+        this.fileLock = getFileLock(lockManager, lockTarget, lockOptions, cacheDisplayName, initializationAction, onOpenAction, NO_OP_CONTENDED_ACTION);
+    }
+
+    static FileLock getFileLock(
+        FileLockManager lockManager,
+        File lockTarget,
+        LockOptions lockOptions,
+        String cacheDisplayName,
+        CacheInitializationAction initializationAction,
+        Action<FileLock> onOpenAction,
+        Action<FileLockReleasedSignal> whenContended
+    ) {
+        FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
@@ -70,7 +87,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     fileLock = null;
                     FileLock exclusiveLock = null;
                     try {
-                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName);
+                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, "", whenContended);
                     } catch (Exception e) {
                         // acquiring the exclusive lock can fail in the rare case where another process is just doing or has just done the cache initialization
                         latestException = e;
@@ -80,12 +97,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                             final FileLock acquiredExclusiveLock = exclusiveLock;
                             rebuild = initializationAction.requiresInitialization(acquiredExclusiveLock);
                             if (rebuild) {
-                                exclusiveLock.writeFile(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        initializationAction.initialize(acquiredExclusiveLock);
-                                    }
-                                });
+                                exclusiveLock.writeFile(() -> initializationAction.initialize(acquiredExclusiveLock));
                             }
                         }
                     } finally {
@@ -101,13 +113,13 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                 }
             }
             onOpenAction.execute(fileLock);
+            return fileLock;
         } catch (Exception e) {
             if (fileLock != null) {
                 fileLock.close();
             }
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        this.fileLock = fileLock;
     }
 
     @Override

@@ -22,12 +22,14 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.locks.Lock;
+
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
 
 public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
@@ -103,26 +105,21 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
-                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
-                try {
-                    if (initAction.requiresInitialization(fileLock)) {
-                        fileLock.writeFile(new Runnable() {
-                            @Override
-                            public void run() {
-                                initAction.initialize(fileLock);
-                            }
-                        });
-                    }
-                    onOpen.execute(fileLock);
-                } catch (Exception e) {
-                    fileLock.close();
-                    fileLock = null;
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                fileLock = getFileLock(lockOptions);
             }
             lockCount++;
         } finally {
             stateLock.unlock();
+        }
+    }
+
+    private FileLock getFileLock(LockOptions lockOptions) {
+        if (lockOptions.getMode() == Exclusive) {
+            return FixedExclusiveModeCrossProcessCacheAccess.getFileLock(lockManager, lockTarget, lockOptions, cacheDisplayName, initAction, onOpen, whenContended);
+        } else if (lockOptions.getMode() == Shared) {
+            return FixedSharedModeCrossProcessCacheAccess.getFileLock(lockManager, lockTarget, lockOptions, cacheDisplayName, initAction, onOpen, whenContended);
+        } else {
+            throw new UnsupportedOperationException("Unsupported lock mode with on demand locking: " + lockOptions.getMode());
         }
     }
 
