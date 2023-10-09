@@ -92,7 +92,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir, mode(Shared), "<display> ($cacheDir)") >> lock
+        1 * lockManager.lock(cacheDir, mode(Shared), "<display> ($cacheDir)", "", _) >> lock
 
         when:
         store.close()
@@ -110,7 +110,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir.file(lockFile), mode(Shared), "<display> ($cacheDir)") >> lock
+        1 * lockManager.lock(cacheDir.file(lockFile), mode(Shared), "<display> ($cacheDir)", "", _) >> lock
 
         when:
         store.close()

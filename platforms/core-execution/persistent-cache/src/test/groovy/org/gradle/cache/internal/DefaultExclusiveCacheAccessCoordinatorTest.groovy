@@ -67,7 +67,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -175,19 +175,19 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock)
         1 * exclusiveLock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> sharedLock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> sharedLock
         1 * initializationAction.requiresInitialization(sharedLock) >> false
         _ * sharedLock.state
         0 * _._
@@ -235,12 +235,12 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock) >> { throw failure }
@@ -320,11 +320,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "cannot be opened more than once for mode #lockMode"() {
-        if (lockMode == Shared) {
-            lockManager.lock(lockFile, _, "<display-name>") >> lock
-        } else {
-            lockManager.lock(lockFile, _, "<display-name>", "", _) >> lock
-        }
+        lockManager.lock(lockFile, _, "<display-name>", "", _) >> lock
         def access = newAccess(lockMode)
 
         when:
@@ -485,7 +481,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(Shared)
 
         given:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
         access.open()
 
         when:
