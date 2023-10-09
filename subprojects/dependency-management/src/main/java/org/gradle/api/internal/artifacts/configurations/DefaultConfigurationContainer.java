@@ -254,12 +254,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateResolvableUnlocked(String name) {
-        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.RESOLVABLE), true);
+        return doMaybeCreate(createRequestWithoutContext(name, ConfigurationRoles.RESOLVABLE), true);
     }
 
     @Override
     public Configuration maybeCreateConsumableUnlocked(String name) {
-        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.CONSUMABLE), true);
+        return doMaybeCreate(createRequestWithoutContext(name, ConfigurationRoles.CONSUMABLE), true);
     }
 
     @Override
@@ -269,15 +269,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+        return doMaybeCreate(createRequestWithoutContext(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
     }
 
     @Override
     public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
-        ConfigurationCreationRequest request = ConfigurationCreationRequest.noContext(name, role);
+        AbstractRoleBasedConfigurationCreationRequest request = createRequestWithoutContext(name, role);
 
         if (hasWithName(request.getConfigurationName())) {
-            return verifyExistingConfiguration(request);
+            return verifyExistingConfigurationUsage(request);
         } else {
             return migratingUnlocked(request.getConfigurationName(), request.getRole());
         }
@@ -286,18 +286,27 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        return maybeCreate(ConfigurationCreationRequest.noContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
+        return maybeCreate(createRequestWithoutContext(name, ConfigurationRoles.DEPENDENCY_SCOPE));
+    }
+
+    /**
+     * Creates a {@link ConfigurationCreationRequest} without any specific context information.
+     *
+     * @return a request to create a configuration with the given name and role
+     */
+    private static AbstractRoleBasedConfigurationCreationRequest createRequestWithoutContext(String configurationName, ConfigurationRole role) {
+        return new AbstractRoleBasedConfigurationCreationRequest(configurationName, role) { /* uses all defaults */ };
     }
 
     @Override
-    public Configuration maybeCreate(ConfigurationCreationRequest context) {
-        return doMaybeCreate(context, true);
+    public Configuration maybeCreate(AbstractRoleBasedConfigurationCreationRequest request) {
+        return doMaybeCreate(request, true);
     }
 
-    private Configuration doMaybeCreate(ConfigurationCreationRequest context, boolean verifyPrexisting) {
+    private Configuration doMaybeCreate(AbstractRoleBasedConfigurationCreationRequest context, boolean verifyPrexisting) {
         if (hasWithName(context.getConfigurationName())) {
             if (verifyPrexisting) {
-                return verifyExistingConfiguration(context);
+                return verifyExistingConfigurationUsage(context);
             } else {
                 return getByName(context.getConfigurationName());
             }
@@ -361,32 +370,30 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     /**
-     * A request is valid if either the configuration exists and is in the expected role, or it exists
-     * and can be mutated to match the expected role.
+     * Given a request to create an existing configuration, ensures the usage of that configuration is consistent
+     * with the role in the request.
      *
-     * This method should only be called internally, when maybe-creating a configuration that Gradle would prefer to create and not have already exist.
-     *
-     *
-     *
-     *
-     *
-     * Validates and ensures that the allowed usage of an existing configuration is consistent with the given expected usage.
+     * This method should only be called internally, when maybe-creating a configuration that already exists.
      *
      * This method will emit a detailed deprecation method with suggestions if the usage is inconsistent.  It will then attempt to mutate
      * the usage to match the expectation.  If the usage cannot be mutated, it will throw an exception.
      *
      * Does <strong>NOT</strong> check anything to do with deprecated usage.
+     *
+     * @param request the request to create a configuration
+     * @return the existing configuration, with its usage now matching the requested usage
+     * @throws AbstractRoleBasedConfigurationCreationRequest.UnmodifiableUsageException if the usage doesn't match the request and cannot be mutated
      */
-    private Configuration verifyExistingConfiguration(ConfigurationCreationRequest request) {
+    private Configuration verifyExistingConfigurationUsage(AbstractRoleBasedConfigurationCreationRequest request) {
         request.warnAboutReservedName();
         ConfigurationInternal conf = getByName(request.getConfigurationName());
 
         if (!request.getRole().isUsageConsistentWithRole(conf)) {
-            request.warnAboutNeedToMutateRole(conf);
+            request.warnAboutNeedToMutateUsage(conf);
             if (conf.usageCanBeMutated()) {
                 conf.setAllowedUsageFromRole(request.getRole());
             } else {
-                request.errorOnInabilityToMutateRole();
+                request.failOnInabilityToMutateUsage();
             }
         }
 

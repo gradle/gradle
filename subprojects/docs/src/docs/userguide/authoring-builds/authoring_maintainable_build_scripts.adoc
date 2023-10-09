@@ -277,7 +277,7 @@ Yet Gradle expected to create it with the usage(s):
 Gradle will then attempt to mutate the allowed usage to match the expected usage and will emit a second warning:
 
 ```
-Gradle will mutate the usage of this configuration to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This is scheduled to be removed in Gradle 9.0. Create sourceSets prior to creating or accessing the configurations associated with them.
+Gradle will mutate the usage of this configuration to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This is scheduled to be removed in Gradle 9.0. Create source sets prior to creating or accessing the configurations associated with them.
 ```
 
 Some configurations may have their usage locked against mutation.

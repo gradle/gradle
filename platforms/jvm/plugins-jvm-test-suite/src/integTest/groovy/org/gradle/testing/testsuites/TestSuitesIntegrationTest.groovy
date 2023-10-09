@@ -530,7 +530,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
-    def "custom Test tasks still function if java plugin is never applied to create sourcesets"() {
+    def "custom Test tasks still function if java plugin is never applied to Create source sets"() {
         buildFile << """
             tasks.withType(Test) {
                 // realize all test tasks

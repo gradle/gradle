@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -27,10 +28,11 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationCreationRequest.AbstractConfigurationCreationRequest;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -45,8 +47,8 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.internal.NaggingJavaPluginConvention;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
@@ -452,7 +454,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private static class SourceSetConfigurationCreationRequest extends AbstractConfigurationCreationRequest {
+    /**
+     * Aa {@link AbstractRoleBasedConfigurationCreationRequest} that provides context for error messages and warnings
+     * emitted when creating the configurations implicitly associated with a {@link SourceSet}.
+     */
+    private static class SourceSetConfigurationCreationRequest extends AbstractRoleBasedConfigurationCreationRequest {
         private final String sourceSetName;
 
         private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role) {
@@ -460,26 +466,44 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             this.sourceSetName = sourceSetName;
         }
 
-        @Override
-        public String getAdvice() {
-            if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSetName)) {
-                // The main source set is implicit, so don't mention it by name
-                return "Create sourceSets prior to creating or accessing the configurations associated with them.";
-            } else {
-                return String.format("Create sourceSet %s prior to creating or accessing the configurations associated with it.", sourceSetName);
-            }
+        public String getSourceSetName() {
+            return sourceSetName;
         }
 
         @Override
-        public DocumentationSpec getAdditionalDocumentation() {
-            return new DocumentationSpec("building_java_projects", "sec:implicit_sourceset_configurations");
-        }
-
-        @Override
-        public String getDiscoveryMessage(DeprecatableConfiguration conf) {
+        protected String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
             return String.format("When creating configurations during sourceSet %s setup, Gradle found that configuration %s already exists with permitted usage(s):\n" +
                 "%s\n", sourceSetName, getConfigurationName(), currentUsageDesc);
+        }
+
+        @Override
+        public void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf) {
+            String msgDiscovery = getUsageDiscoveryMessage(conf);
+            String msgExpectation = getUsageExpectationMessage(conf);
+
+            DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
+                .withAdvice(getUsageMutationAdvice())
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
+                .nagUser();
+        }
+
+        @Override
+        public void failOnInabilityToMutateUsage() {
+            List<String> resolutions = Lists.newArrayList(
+                ConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
+                getUsageMutationAdvice());
+            throw new UnmodifiableUsageException(getConfigurationName(), resolutions);
+        }
+
+        private String getUsageMutationAdvice() {
+            if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSetName)) {
+                // The main source set is implicit, so don't mention it by name
+                return "Create source sets prior to creating or accessing the configurations associated with them.";
+            } else {
+                return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);
+            }
         }
     }
 }
