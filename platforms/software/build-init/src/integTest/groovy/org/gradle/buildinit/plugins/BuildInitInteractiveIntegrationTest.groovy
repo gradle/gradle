@@ -277,7 +277,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
-    def "user can provide all options for java application from command line"() {
+    @Issue("https://github.com/gradle/gradle/issues/26598")
+    def "user can provide all necessary options to generate java application non-interactively"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
