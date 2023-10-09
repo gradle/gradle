@@ -32,7 +32,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -293,12 +292,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             DefaultJvmSoftwareComponent.class,
             JvmConstants.JAVA_MAIN_COMPONENT_NAME,
             feature,
-            project.getObjects(),
-            project.getProviders(),
-            project.getConfigurations(),
-            project.getTasks(),
-            project.getExtensions(),
-            ((ProjectInternal) project).getServices().get(JvmPluginServices.class)
+            project.getExtensions()
         );
         project.getComponents().add(component);
 
