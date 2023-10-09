@@ -135,8 +135,8 @@ The build below demonstrates this unwanted behavior.
 
 .Configurations created prior to their associated source sets
 ====
-include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
-include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.gradle.kts[tags=create-configurations]"]
+include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=create-configurations]"]
 ====
 
 In this case, the following deprecation warning is emitted:
@@ -155,6 +155,14 @@ Following two simple best practices will avoid this problem:
 1. Don't create configurations with names that will be used by source sets, such as names ending in `Api`, `Implementation`, `ApiElements`, `CompileOnly`, `CompileOnlyApi`, `RuntimeOnly`, `RuntimeClasspath` or `RuntimeElements`.
 (This list is not exhaustive.)
 1. Create any custom source sets prior to any custom configurations.
+
+Remember that any time you reference a configuration within the `configurations` container - with or without supplying an initialization action - Gradle will create the configuration.
+
+.Custom Configuration creation
+====
+include::sample[dir="snippets/java/customConfs-creation/kotlin",files="build.gradle.kts[tags=create-configurations]"]
+include::sample[dir="snippets/java/customConfs-creation/groovy",files="build.gradle[tags=create-configurations]"]
+====
 
 For more information see <<authoring_maintainable_build_scripts.adoc#sec:dont_anticipate_configuration_creation, Don't anticipate configuration creation>>.
 

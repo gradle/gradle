@@ -2,6 +2,7 @@ plugins {
     `java-library`
 }
 
+// tag::create-configurations[]
 configurations {
     val myCodeCompileClasspath: Configuration by creating
 }
@@ -9,3 +10,4 @@ configurations {
 sourceSets {
     val myCode: SourceSet by creating
 }
+// end::create-configurations[]

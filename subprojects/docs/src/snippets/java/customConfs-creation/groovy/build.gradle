@@ -4,10 +4,8 @@ plugins {
 
 // tag::create-configurations[]
 configurations {
-    myCodeCompileClasspath
-}
-
-sourceSets {
-    myCode
+    myCustomConfiguration {
+        extendsFrom(implementation)
+    }
 }
 // end::create-configurations[]
