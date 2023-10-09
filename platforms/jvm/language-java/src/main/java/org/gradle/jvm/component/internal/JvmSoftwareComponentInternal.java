@@ -16,15 +16,17 @@
 
 package org.gradle.jvm.component.internal;
 
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.testing.base.TestSuite;
 
 /**
  * A {@link SoftwareComponent} which produces variants intended for use within the JVM ecosystem.
  *
  * <p>TODO: There is currently no public interface for this type of component, as the JVM component
  * infrastructure is still under construction. The main blocker for publicizing this component
- * is the lack of a proper variant API and support for dynamically adding Features to a component.</p>
+ * is the lack of a proper variant API and support for automatically aggregating variants of owned features.</p>
  *
  * <p>TODO: Before publicizing this component, we also need to consider how component extensibility works.
  * For example, for the java-library plugin we have the additional {@code api} and {@code compileOnlyApi}
@@ -42,6 +44,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
     // instance with the value changed, but these mutate the component. However, other names
     // like like "enableJavadocJar" or "addJavadocJar" are also not great since their names
     // are not declarative.
+
     /**
      * Configures this component to publish a javadoc jar alongside the primary artifacts. As a result,
      * this method also configures the necessary configurations and tasks required to produce
@@ -56,10 +59,23 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      */
     void withSourcesJar();
 
-    // TODO: Future iterations of this component should support dynamically adding new features.
+    /**
+     * Get all features owned by this component.
+     */
+    NamedDomainObjectContainer<JvmFeatureInternal> getFeatures();
+
+    /**
+     * Get all test suites owned by this component.
+     *
+     * TODO: A test suite is a feature, so this method should eventually be removed and all
+     * suites should be accessed via {@link #getFeatures()}.
+     */
+    NamedDomainObjectContainer<TestSuite> getTestSuites();
 
     /**
      * Get the feature which encapsulates all logic and domain objects for building the production software product.
+     *
+     * <p>This is a legacy API. Plugins should support components with multiple features by calling {@link #getFeatures()}.</p>
      */
     JvmFeatureInternal getMainFeature();
 

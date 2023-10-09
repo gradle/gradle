@@ -66,7 +66,16 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             throw new GradleException("Cannot register feature '" + name + "' because multiple JVM components are present.  These components were found: " + componentNames + ".");
         }
 
-        setupConfigurations(sourceSet);
+        JvmFeatureInternal feature = createFeature();
+
+        // TODO: #23495 Investigate the implications of using this class without
+        //       the java plugin applied, and thus no java component present.
+        //       In the long run, all domain objects created by this feature should be
+        //       owned by a component. If we do not add them to the default java component,
+        //       we should be adding them to a user-provided or new component instead.
+        if (!jvmComponents.isEmpty()) {
+            addFeatureToComponent(feature, jvmComponents.iterator().next());
+        }
     }
 
     @Override
@@ -84,7 +93,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         allowPublication = false;
     }
 
-    private void setupConfigurations(SourceSet sourceSet) {
+    private JvmFeatureInternal createFeature() {
         if (sourceSet == null) {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
         }
@@ -96,28 +105,28 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, true, SourceSet.isMain(sourceSet));
         feature.withApi();
 
-        // TODO: #23495 Investigate the implications of using this class without
-        //       the java plugin applied, and thus no java component present.
-        //       In the long run, all domain objects created by this feature should be
-        //       owned by a component. If we do not add them to the default java component,
-        //       we should be adding them to a user-provided or new component instead.
-        project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(component -> {
-            AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
-            if (withJavadocJar) {
-                feature.withJavadocJar();
-                Configuration javadocElements = feature.getJavadocElementsConfiguration();
-                adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-            }
-            if (withSourcesJar) {
-                feature.withSourcesJar();
-                Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-                adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-            }
+        return feature;
+    }
 
-            if (allowPublication) {
-                adhocComponent.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
-                adhocComponent.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
-            }
-        });
+    private void addFeatureToComponent(JvmFeatureInternal feature, JvmSoftwareComponentInternal component) {
+
+        component.getFeatures().add(feature);
+
+        AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
+        if (withJavadocJar) {
+            feature.withJavadocJar();
+            Configuration javadocElements = feature.getJavadocElementsConfiguration();
+            adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
+        if (withSourcesJar) {
+            feature.withSourcesJar();
+            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+            adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
+
+        if (allowPublication) {
+            adhocComponent.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+            adhocComponent.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+        }
     }
 }

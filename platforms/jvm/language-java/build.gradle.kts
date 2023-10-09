@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":testing-base"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

@@ -75,6 +75,8 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
         project.getPluginManager().withPlugin("java", plugin -> {
             DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
+            component.getFeatures().add(feature);
+
             component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
             component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
 

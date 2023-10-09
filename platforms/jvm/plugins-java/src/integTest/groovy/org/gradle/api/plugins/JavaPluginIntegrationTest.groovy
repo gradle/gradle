@@ -599,4 +599,34 @@ Artifacts
 
         succeeds("help")
     }
+
+    def "registerFeature features are added to java component"() {
+        given:
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                foo
+            }
+
+            java {
+                registerFeature("foo") {
+                    usingSourceSet(sourceSets.foo)
+                }
+            }
+
+            task verify {
+                components.java.features {
+                    assert size() == 2
+                    assert main.sourceSet == sourceSets.main
+                    assert foo.sourceSet == sourceSets.foo
+                }
+            }
+        """
+
+        expect:
+        succeeds("verify")
+    }
 }
