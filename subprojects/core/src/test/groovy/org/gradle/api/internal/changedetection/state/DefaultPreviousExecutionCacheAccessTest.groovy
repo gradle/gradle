@@ -36,7 +36,7 @@ class DefaultPreviousExecutionCacheAccessTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder("executionHistory") >> cacheBuilder
         1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
         0 * _._
     }

@@ -109,7 +109,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // Lock on demand
             .open();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();

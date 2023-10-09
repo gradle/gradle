@@ -58,6 +58,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
 public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
@@ -107,8 +108,12 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
-            case OnDemand:
+            case OnDemandExclusive:
                 crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                fileAccess = new UnitOfWorkFileAccess();
+                break;
+            case OnDemandShared:
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.withMode(Shared), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case None:

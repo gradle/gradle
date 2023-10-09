@@ -27,7 +27,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
@@ -40,7 +40,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Issue("GRADLE-3206")
     def "can create new caches and access them in parallel"() {
-        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), null, lockManager, executorFactory, new NoOpProgressLoggerFactory())
+        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", CacheBuilder.LockTarget.DefaultTarget, mode(OnDemandExclusive), null, lockManager, executorFactory, new NoOpProgressLoggerFactory())
         store.open()
 
         when:
