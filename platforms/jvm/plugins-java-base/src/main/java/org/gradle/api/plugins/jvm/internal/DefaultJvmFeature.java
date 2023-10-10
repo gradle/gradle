@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -73,6 +74,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
 public class DefaultJvmFeature implements JvmFeatureInternal {
+    private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
 
     private final String name;
     private final SourceSet sourceSet;
@@ -111,6 +113,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
 
     public DefaultJvmFeature(
         String name,
+        // Should features just create the sourcesets they are going to use?  How can we ensure the same sourceset isn't used
+        // by multiple features (and that the same feature isn't used by multiple components)?
         SourceSet sourceSet,
         List<Capability> capabilities,
         ProjectInternal project,
@@ -324,6 +328,27 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             sourceSet.getSourcesJarTaskName(),
             sourceSet.getAllSource(),
             project
+        );
+    }
+
+    @Override
+    public void withSourceElements() {
+        // TODO: Why are we using this non-standard name? For the `java` component, this
+        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
+        // Can we change this name without breaking compatibility? Is the variant name part
+        // of the component's API?
+        String variantName = getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
+
+        ConsumableConfiguration variant = project.getConfigurations().consumable(variantName).get();
+        variant.setDescription("List of source directories contained in the Main SourceSet.");
+        variant.setVisible(false);
+        variant.extendsFrom(getImplementationConfiguration());
+
+        jvmPluginServices.configureAsSources(variant);
+
+        variant.getOutgoing().artifacts(
+            getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> project.provider(() -> e)),
+            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
         );
     }
 
