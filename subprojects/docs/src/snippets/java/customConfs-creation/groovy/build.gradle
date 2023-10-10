@@ -4,8 +4,6 @@ plugins {
 
 // tag::create-configurations[]
 configurations {
-    myCustomConfiguration {
-        extendsFrom(implementation)
-    }
+    myCustomConfiguration.extendsFrom(implementation)
 }
 // end::create-configurations[]

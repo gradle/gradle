@@ -157,10 +157,10 @@ Following two simple best practices will avoid this problem:
 1. Create any custom source sets prior to any custom configurations.
 
 Remember that any time you reference a configuration within the `configurations` container - with or without supplying an initialization action - Gradle will create the configuration.
+Sometimes when using the Groovy DSL this creation is not obvious, as in the example below, where `myCustomConfiguration` is created prior to the call to `extendsFrom`.
 
-.Custom Configuration creation
+.Custom Configuration creation in Groovy
 ====
-include::sample[dir="snippets/java/customConfs-creation/kotlin",files="build.gradle.kts[tags=create-configurations]"]
 include::sample[dir="snippets/java/customConfs-creation/groovy",files="build.gradle[tags=create-configurations]"]
 ====
 
