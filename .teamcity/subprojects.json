@@ -700,6 +700,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-test-report-aggregation",
+    "path": "platforms/jvm/plugins-test-report-aggregation",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "precondition-tester",
     "path": "subprojects/precondition-tester",
     "unitTests": true,
