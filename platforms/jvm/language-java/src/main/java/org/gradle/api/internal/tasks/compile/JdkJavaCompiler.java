@@ -78,19 +78,36 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private void reportProblem(Diagnostic<? extends JavaFileObject> diagnostic) {
         String message = diagnostic.getMessage(Locale.getDefault());
 
+        String label = mapKindToLabel(diagnostic.getKind());
         String resourceName = diagnostic.getSource().getName();
         Integer line = Math.toIntExact(diagnostic.getLineNumber());
         Integer column = Math.toIntExact(diagnostic.getColumnNumber());
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
         problems.createProblem(problem -> problem
-            .label("urn:gradle:compilation/error/java")
+            .label(label)
             .undocumented()
             .location(resourceName, line, column)
-            .type("compiler_diagnostic")
+            .category("java", "compilation")
             .severity(severity)
             .details(message)
-        );
+        ).report();
+    }
+
+    private String mapKindToLabel(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return "Java compilation error";
+            case WARNING:
+            case MANDATORY_WARNING:
+                return "Java compilation warning";
+            case NOTE:
+                return "Java compilation note";
+            case OTHER:
+                return "Java compilation problem";
+            default:
+                return "Unknown java compilation problem";
+        }
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
