@@ -219,7 +219,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def jarTask = project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
-        SoftwareComponentInternal javaLibrary = project.components.getByName(JvmConstants.JAVA_COMPONENT_NAME)
+        SoftwareComponentInternal javaLibrary = project.components.getByName(JvmConstants.JAVA_MAIN_COMPONENT_NAME)
         def runtimeVariant = javaLibrary.usages.find { it.name == 'runtimeElements' }
         def apiVariant = javaLibrary.usages.find { it.name == 'apiElements' }
 

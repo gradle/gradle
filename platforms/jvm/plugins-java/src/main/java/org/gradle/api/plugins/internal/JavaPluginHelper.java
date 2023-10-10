@@ -44,7 +44,7 @@ public class JavaPluginHelper {
      * @throws GradleException If the {@code java} component does not exist.
      */
     public static JvmSoftwareComponentInternal getJavaComponent(Project project) {
-        SoftwareComponent component = project.getComponents().findByName(JvmConstants.JAVA_COMPONENT_NAME);
+        SoftwareComponent component = project.getComponents().findByName(JvmConstants.JAVA_MAIN_COMPONENT_NAME);
 
         if (!(component instanceof JvmSoftwareComponentInternal)) {
             throw new GradleException("The Java plugin must be applied to access the java component.");
