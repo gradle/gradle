@@ -1700,6 +1700,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
+    @Override
     public boolean usageCanBeMutated() {
         return usageCanBeMutated;
     }

@@ -20,12 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.exceptions.ResolutionProvider;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
@@ -178,94 +172,12 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
 
     /**
-     * If a configuration with the given name already exists, verify it's usage matches the expected role and return it.
+     * If a configuration with the given name already exists, verify its usage matches the expected role and return it.
      * Otherwise, create a new configuration as defined by the given {@code request}.
      *
      * @param request information about the desired configuration
      * @return the configuration that was created or already existed
      * @throws GradleException if the request cannot be fulfilled
      */
-    Configuration maybeCreate(AbstractRoleBasedConfigurationCreationRequest request);
-
-    /**
-     * An {@code abstract} implementation of {@link ConfigurationCreationRequest} to be extended by any
-     * creation context that involves pre-defined {@link ConfigurationRole}s.
-     *
-     * This abstract type provides support for warning and error messages related to the need to mutate
-     * the role of an existing configuration to match a request.
-     */
-    abstract class AbstractRoleBasedConfigurationCreationRequest implements ConfigurationCreationRequest {
-        protected final String configurationName;
-        protected final ConfigurationRole role;
-
-        protected AbstractRoleBasedConfigurationCreationRequest(String configurationName, ConfigurationRole role) {
-            this.configurationName = configurationName;
-            this.role = role;
-        }
-
-        @Override
-        public String getConfigurationName() {
-            return configurationName;
-        }
-
-        public ConfigurationRole getRole() {
-            return role;
-        }
-
-        protected String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
-            String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
-            return String.format("Configuration %s already exists with permitted usage(s):\n" +
-                "%s\n", getConfigurationName(), currentUsageDesc);
-        }
-
-        protected String getUsageExpectationMessage(@SuppressWarnings("unused") DeprecatableConfiguration conf) {
-            String expectedUsageDesc = UsageDescriber.describeRole(getRole());
-            return String.format("Yet Gradle expected to create it with the usage(s):\n" +
-                "%s\n" +
-                "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
-        }
-
-        /**
-         * Issues a deprecation warning when a configuration already exists and Gradle needs to mutate its
-         * usage to match the role in the request.
-         *
-         * @param conf the existing configuration
-         */
-        public void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf) {
-            String msgDiscovery = getUsageDiscoveryMessage(conf);
-            String msgExpectation = getUsageExpectationMessage(conf);
-
-            DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
-                .withAdvice(ConfigurationCreationRequest.getDefaultReservedNameAdvice(configurationName))
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("authoring_maintainable_build_scripts", "sec:dont_anticipate_configuration_creation")
-                .nagUser();
-        }
-
-        /**
-         * Throws an exception when Gradle fails to mutate the usage of a pre-existing configuration.
-         * @throws UnmodifiableUsageException always
-         */
-        public void failOnInabilityToMutateUsage() {
-            throw new UnmodifiableUsageException(getConfigurationName(), Collections.singletonList(ConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName())));
-        }
-
-        /**
-         * An exception thrown when Gradle cannot mutate the usage of a configuration that already
-         * exists, but does not match the expected usage for the given role.
-         */
-        public static class UnmodifiableUsageException extends GradleException implements ResolutionProvider {
-            private final List<String> resolutions;
-
-            public UnmodifiableUsageException(String configurationName, List<String> resolutions) {
-                super(String.format("Gradle cannot mutate the usage of configuration '%s' because it is locked.", configurationName));
-                this.resolutions = resolutions;
-            }
-
-            @Override
-            public List<String> getResolutions() {
-                return Collections.unmodifiableList(resolutions);
-            }
-        }
-    }
+    Configuration maybeCreate(RoleBasedConfigurationCreationRequest request);
 }

@@ -28,11 +28,11 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationCreationRequest;
+import org.gradle.api.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -455,10 +455,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     }
 
     /**
-     * Aa {@link AbstractRoleBasedConfigurationCreationRequest} that provides context for error messages and warnings
+     * An {@link AbstractRoleBasedConfigurationCreationRequest} that provides context for error messages and warnings
      * emitted when creating the configurations implicitly associated with a {@link SourceSet}.
      */
-    private static class SourceSetConfigurationCreationRequest extends AbstractRoleBasedConfigurationCreationRequest {
+    private static final class SourceSetConfigurationCreationRequest extends AbstractRoleBasedConfigurationCreationRequest {
         private final String sourceSetName;
 
         private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role) {
@@ -471,16 +471,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         }
 
         @Override
-        protected String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
-            String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
-            return String.format("When creating configurations during sourceSet %s setup, Gradle found that configuration %s already exists with permitted usage(s):\n" +
-                "%s\n", sourceSetName, getConfigurationName(), currentUsageDesc);
-        }
-
-        @Override
         public void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf) {
             String msgDiscovery = getUsageDiscoveryMessage(conf);
-            String msgExpectation = getUsageExpectationMessage(conf);
+            String msgExpectation = getUsageExpectationMessage();
 
             DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
                 .withAdvice(getUsageMutationAdvice())
@@ -489,17 +482,30 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 .nagUser();
         }
 
+        private String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
+            String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
+            return String.format("When creating configurations during sourceSet %s setup, Gradle found that configuration %s already exists with permitted usage(s):\n" +
+                "%s\n", sourceSetName, getConfigurationName(), currentUsageDesc);
+        }
+
+        private String getUsageExpectationMessage() {
+            String expectedUsageDesc = UsageDescriber.describeRole(getRole());
+            return String.format("Yet Gradle expected to create it with the usage(s):\n" +
+                "%s\n" +
+                "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
+        }
+
         @Override
         public void failOnInabilityToMutateUsage() {
             List<String> resolutions = Lists.newArrayList(
-                ConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
+                RoleBasedConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
                 getUsageMutationAdvice());
             throw new UnmodifiableUsageException(getConfigurationName(), resolutions);
         }
 
         private String getUsageMutationAdvice() {
             if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSetName)) {
-                // The main source set is implicit, so don't mention it by name
+                // The main source set is created implicitly, so don't mention it by name
                 return "Create source sets prior to creating or accessing the configurations associated with them.";
             } else {
                 return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);

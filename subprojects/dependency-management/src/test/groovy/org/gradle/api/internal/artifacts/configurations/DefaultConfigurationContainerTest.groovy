@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import groovy.test.NotYetImplemented
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConsumableConfiguration
@@ -376,6 +377,18 @@ class DefaultConfigurationContainerTest extends Specification {
         !configurationContainer.resolvable("d", {}).get().visible
         !configurationContainer.dependencyScope("e").get().visible
         !configurationContainer.dependencyScope("f", {}).get().visible
+    }
+
+    def "cannot maybeCreate invalid role (#role)"() {
+        when:
+        configurationContainer.maybeCreate(new NoContextRoleBasedConfigurationCreationRequest("foo", role));
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Cannot maybe create invalid role: ${role.getName()}"
+
+        where:
+        role << [ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
