@@ -169,7 +169,7 @@
   },
   {
     "name": "dependency-management",
-    "path": "subprojects/dependency-management",
+    "path": "platforms/software/dependency-management",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
