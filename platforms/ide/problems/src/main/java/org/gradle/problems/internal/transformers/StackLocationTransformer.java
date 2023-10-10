@@ -38,30 +38,32 @@ public class StackLocationTransformer implements ProblemTransformer {
 
     @Override
     public Problem transform(Problem problem) {
-        if (problem.getException() != null) {
-            Throwable throwable = problem.getException();
-
-            // Converts the array of stack trace elements to an array list
-            List<StackTraceElement> stackTraceElements = Arrays.asList(throwable.getStackTrace());
-            Location location = problemLocationAnalyzer.locationForUsage(stackTraceElements, true);
-            if (location != null) {
-                List<ProblemLocation> s = new ArrayList<>(problem.getWhere());
-                s.add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
-                return new DefaultReportableProblem(
-                    problem.getLabel(),
-                    problem.getSeverity(),
-                    s,
-                    problem.getDocumentationLink(),
-                    problem.getDetails(),
-                    problem.getSolutions(),
-                    problem.getException(),
-                    problem.getProblemCategory().toString(),
-                    problem.getAdditionalData(),
-                    ((DefaultReportableProblem) problem).getProblemService());
-//                problem = problem.withLocation(location);
-            }
+        if (problem.getException() == null) {
+            return problem;
         }
 
-        return problem;
+        Throwable throwable = problem.getException();
+
+        // Converts the array of stack trace elements to an array list
+        List<StackTraceElement> stackTraceElements = Arrays.asList(throwable.getStackTrace());
+        Location location = problemLocationAnalyzer.locationForUsage(stackTraceElements, true);
+        if (location == null) {
+            return problem;
+        }
+
+        List<ProblemLocation> problemLocations = new ArrayList<>(problem.getWhere());
+        problemLocations.add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
+        return new DefaultReportableProblem(
+            problem.getLabel(),
+            problem.getSeverity(),
+            problemLocations,
+            problem.getDocumentationLink(),
+            problem.getDetails(),
+            problem.getSolutions(),
+            problem.getException(),
+            problem.getProblemCategory().toString(),
+            problem.getAdditionalData(),
+            ((DefaultReportableProblem) problem).getProblemService());
+
     }
 }

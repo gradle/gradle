@@ -17,53 +17,39 @@
 package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.internal.OperationListener;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public class PluginIdLocationTransformer implements ProblemTransformer {
-
-    private final BuildOperationAncestryTracker buildOperationAncestryTracker;
-    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    private final OperationListener operationListener = new OperationListener();
+public class PluginIdLocationTransformer extends BaseLocationTransformer {
 
 
     public PluginIdLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
         BuildOperationListenerManager buildOperationListenerManager
     ) {
-        this.buildOperationAncestryTracker = buildOperationAncestryTracker;
-        buildOperationListenerManager.addListener(operationListener);
+        super(buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     @Override
     public Problem transform(Problem problem) {
-        Optional<OperationIdentifier> executeTask = buildOperationAncestryTracker.findClosestMatchingAncestor(
-            currentBuildOperationRef.getId(),
-            id -> operationListener.getOp(id, DefaultPluginManager.OperationDetails.class) != null
-        );
-
-        executeTask.ifPresent(id -> {
-            try {
-                DefaultPluginManager.OperationDetails operationDetails = operationListener.getOp(id, DefaultPluginManager.OperationDetails.class);
-                Objects.requireNonNull(operationDetails, "operationDetails should not be null");
-                String pluginId = operationDetails.getPluginId();
-                if (pluginId != null) {
-                    problem.getWhere().add(new PluginIdLocation(pluginId));
+        getExecuteTask(OperationDetails.class)
+            .ifPresent(id -> {
+                try {
+                    OperationDetails operationDetails = operationListener.getOp(id, OperationDetails.class);
+                    Objects.requireNonNull(operationDetails, "operationDetails should not be null");
+                    String pluginId = operationDetails.getPluginId();
+                    if (pluginId != null) {
+                        problem.getWhere().add(new PluginIdLocation(pluginId));
+                    }
+                } catch (Exception ex) {
+                    throw new GradleException("Problem meanwhile reporting problem", ex);
                 }
-            } catch (Exception ex) {
-                throw new GradleException("Problem meanwhile reporting problem", ex);
-            }
-        });
+            });
 
         return problem;
     }
