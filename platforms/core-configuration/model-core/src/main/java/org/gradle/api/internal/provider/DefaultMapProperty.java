@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
@@ -597,5 +598,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
         }
+    }
+
+    private Provider<Map<K, V>> frozen() {
+        return Providers.of(get());
+    }
+
+    @Override
+    public MapProperty<K, V> update(Transformer<? extends Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<? extends Map<? extends K, ? extends V>>> transformer)  {
+        set(transformer.transform(frozen()));
+        return this;
     }
 }

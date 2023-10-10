@@ -16,7 +16,9 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 
@@ -152,4 +154,15 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     @Override
     void finalizeValue();
+
+    /**
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
+     *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
+     * @since 8.5
+     */
+    @Incubating
+    HasMultipleValues<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer);
 }

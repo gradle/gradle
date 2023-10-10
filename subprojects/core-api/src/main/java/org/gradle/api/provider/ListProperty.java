@@ -16,6 +16,9 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -61,4 +64,24 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      */
     @Override
     ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Incubating
+    @Override
+    default ListProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
+        return updateList(transformer);
+    }
+
+    /**
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
+     *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
+     * @since 8.5
+     */
+    @Incubating
+    ListProperty<T> updateList(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer);
 }
