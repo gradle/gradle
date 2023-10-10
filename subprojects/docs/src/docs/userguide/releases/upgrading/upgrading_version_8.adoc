@@ -50,6 +50,14 @@ Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
+If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
+For example, in OpenJDK this can be done by adding the following to `gradle.properties`:
+```
+systemProp.javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl
+systemProp.javax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+systemProp.javax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+```
+See the link:https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8[CVE-2023-42445] advisory for more details and ways to enable secure XML processing on previous Gradle versions.
 
 ==== EAR plugin with customized JEE 1.3 descriptor
 
