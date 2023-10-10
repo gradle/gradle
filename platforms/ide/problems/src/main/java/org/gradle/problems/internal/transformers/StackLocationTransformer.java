@@ -18,13 +18,10 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.Location;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,19 +48,8 @@ public class StackLocationTransformer implements ProblemTransformer {
             return problem;
         }
 
-        List<ProblemLocation> problemLocations = new ArrayList<>(problem.getWhere());
-        problemLocations.add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
-        return new DefaultReportableProblem(
-            problem.getLabel(),
-            problem.getSeverity(),
-            problemLocations,
-            problem.getDocumentationLink(),
-            problem.getDetails(),
-            problem.getSolutions(),
-            problem.getException(),
-            problem.getProblemCategory().toString(),
-            problem.getAdditionalData(),
-            ((DefaultReportableProblem) problem).getProblemService());
+        problem.getWhere().add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
+        return problem;
 
     }
 }

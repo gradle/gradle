@@ -85,7 +85,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.BuildObjectFactory;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -197,9 +196,7 @@ class DependencyManagementBuildScopeServices {
         FileCollectionFactory fileCollectionFactory,
         DependencyMetaDataProvider dependencyMetaDataProvider,
         BuildObjectFactory objects,
-        ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        Problems problemService
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
@@ -208,9 +205,7 @@ class DependencyManagementBuildScopeServices {
             fileCollectionFactory,
             dependencyMetaDataProvider,
             objects,
-            providers,
-            collectionCallbackActionDecorator,
-            problemService
+            collectionCallbackActionDecorator
         );
     }
 
