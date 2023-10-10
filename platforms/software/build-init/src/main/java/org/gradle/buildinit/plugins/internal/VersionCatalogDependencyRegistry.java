@@ -19,7 +19,6 @@ package org.gradle.buildinit.plugins.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
-import org.gradle.util.internal.TextUtil;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -93,7 +92,7 @@ public class VersionCatalogDependencyRegistry {
         }
         LibraryEntry l = new LibraryEntry();
         if (RESERVED_LIBRARY_PREFIX.matcher(alias).find()) {
-            alias = "my" + TextUtil.capitalize(alias);
+            alias = "my" + alias;
         }
         l.alias = findFreeAlias(libraries.keySet(), alias);
         l.module = module;
@@ -127,12 +126,12 @@ public class VersionCatalogDependencyRegistry {
     }
 
     private static String coordinatesToAlias(String coordinates) {
-        String normalizedModule = coordinates.replaceAll("[.:_]", "-").replaceAll("-(\\d)", "-v$1");
-        String alias = normalizedModule.substring(0, Math.min(2, normalizedModule.length())).toLowerCase(Locale.ENGLISH) + normalizedModule.substring(Math.min(2, normalizedModule.length()));
+        // not required but Groovy and Kotlin slightly differ in the handling of uppercase letters of alias parts so make everything lowercase to avoid lookup failures
+        String alias = coordinates.replaceAll("[.:_]", "-").replaceAll("-(\\d)", "-v$1").toLowerCase(Locale.ENGLISH);
         StringBuffer resultingAlias = new StringBuffer();
         Matcher reservedComponentsMatcher = RESERVED_ALIAS_COMPONENT.matcher(alias);
         while (reservedComponentsMatcher.find()) {
-            reservedComponentsMatcher.appendReplacement(resultingAlias, "$1my" + TextUtil.capitalize(reservedComponentsMatcher.group(2)) + "$3");
+            reservedComponentsMatcher.appendReplacement(resultingAlias, "$1my" + reservedComponentsMatcher.group(2) + "$3");
         }
         reservedComponentsMatcher.appendTail(resultingAlias);
         return resultingAlias.toString();

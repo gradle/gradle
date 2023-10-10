@@ -80,22 +80,25 @@ class VersionCatalogDependencyRegistryTest extends Specification {
     }
 
     @Unroll
-    def "deals with reserved aliases"() {
+    def "deals with special aliases"() {
         expect:
         new VersionCatalogDependencyRegistry(true).registerLibrary(module, "42") == alias
 
         where:
         module || alias
-        "bundles:a" | "libs.myBundles.a"
-        "bundles-a:a" | "libs.myBundles.a.a"
-        "versions:b" | "libs.myVersions.b"
-        "versions-b:b" | "libs.myVersions.b.b"
-        "plugins:c" | "libs.myPlugins.c"
-        "plugins-c:c" | "libs.myPlugins.c.c"
-        "some:extensions" | "libs.some.myExtensions"
-        "another:class" | "libs.another.myClass"
-        "the:convention" | "libs.the.myConvention"
-        "some.class.embedded:d" | "libs.some.myClass.embedded.d"
+        "bundles:a" | "libs.mybundles.a"
+        "bundles-a:a" | "libs.mybundles.a.a"
+        "versions:b" | "libs.myversions.b"
+        "versions-b:b" | "libs.myversions.b.b"
+        "plugins:c" | "libs.myplugins.c"
+        "plugins-c:c" | "libs.myplugins.c.c"
+        "some:extensions" | "libs.some.myextensions"
+        "another:class" | "libs.another.myclass"
+        "the:convention" | "libs.the.myconvention"
+        "some.class.embedded:d" | "libs.some.myclass.embedded.d"
+        "Capitalized:Library" | "libs.capitalized.library"
+        "UPPERCASE:ALL-THE-THINGS" | "libs.uppercase.all.the.things"
+        "embedded-42:numbers" | "libs.embedded.v42.numbers"
     }
 
     @Unroll
@@ -105,7 +108,7 @@ class VersionCatalogDependencyRegistryTest extends Specification {
 
         where:
         fullyQualify | module || alias
-        true | "bundles:a" | "libs.myBundles.a"
+        true | "bundles:a" | "libs.mybundles.a"
         false | "bundles:a" | "libs.a"
         true | "com.example.group:artifact" | "libs.com.example.group.artifact"
         false | "com.example.group:artifact" | "libs.artifact"
