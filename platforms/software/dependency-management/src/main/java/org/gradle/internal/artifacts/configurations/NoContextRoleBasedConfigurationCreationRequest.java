@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.internal.artifacts.configurations;
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
+import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 
 /**
  * An {@code abstract} implementation of {@link RoleBasedConfigurationCreationRequest} that

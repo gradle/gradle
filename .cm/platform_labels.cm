@@ -174,7 +174,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
       - 'subprojects/platform-base/'
