@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -19,7 +19,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -120,6 +120,22 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
+<a name="error-reporting"></a>
+### Error and Warning Reporting Improvements
+
+Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+
+#### Improved error messages when creating configurations with reserved names
+
+Gradle now provides more helpful error and warning messages when you attempt to create a configuration with a "reserved" name prior to Gradle creating it.
+
+This can cause problems if the allowed usage of that configuration differs from what Gradle expects and requires.
+This can happen when a configuration is explicitly created using a name that Gradle will use for a configuration it will create to support a [custom source set](userguide/building_java_projects.html#sec:implicit_sourceset_configurations).
+
+It is recommended that you rename your configuration to something that does not conflict with Gradle's implicitly reserved names, and that you always create source sets prior to accessing the configurations associated with them.
+The warnings and errors will help you identify and resolve these situations.
+
+See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
