@@ -106,6 +106,23 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     ConfigurationRole getRoleAtCreation();
 
     /**
+     * Indicates if the allowed usages of this configuration (consumable, resolvable, declarable) can be changed.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    boolean usageCanBeMutated();
+
+    /**
+     * Update a configuration's allowed and disallowed usage to match the given role
+     *
+     * This method does <strong>NOT</strong> warn.  This method does <strong>NOT</strong> modify deprecation status.  It
+     * is only meant to be called by the container.
+     *
+     * @param role the role specifying the usage the conf should possess
+     */
+     void setAllowedUsageFromRole(ConfigurationRole role);
+
+    /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.
      * This method should probably be made {@code private} when upgrading to Java 9.

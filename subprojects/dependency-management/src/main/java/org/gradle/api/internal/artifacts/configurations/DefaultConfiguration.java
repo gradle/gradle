@@ -1700,6 +1700,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
+    @Override
+    public boolean usageCanBeMutated() {
+        return usageCanBeMutated;
+    }
+
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
@@ -1850,10 +1855,19 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
+        setCanBeConsumed(allowed, true);
+    }
+
+    /**
+     * Configures if a configuration can be consumed, and if a warning should be emitted if it is not already consumable.
+     */
+    public void setCanBeConsumed(boolean allowed, boolean warn) {
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            maybeWarnOnChangingUsage("consumable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("consumable", allowed);
+            }
         } else if (canBeConsumed && allowed) {
             maybeWarnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
@@ -1866,10 +1880,19 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeResolved(boolean allowed) {
+        setCanBeResolved(allowed, true);
+    }
+
+    /**
+     * Configures if a configuration can be resolved, and if a warning should be emitted if it is not already resolvable.
+     */
+    public void setCanBeResolved(boolean allowed, boolean warn) {
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            maybeWarnOnChangingUsage("resolvable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("resolvable", allowed);
+            }
         } else if (canBeResolved && allowed) {
             maybeWarnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
@@ -1882,12 +1905,34 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
+        setCanBeDeclared(allowed, true);
+    }
+
+    /**
+     * Configures if a configuration can have dependencies declared against it, and if a warning should be emitted if it is not already declarable against.
+     */
+    public void setCanBeDeclared(boolean allowed, boolean warn) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            maybeWarnOnChangingUsage("declarable", allowed);
+            if (warn) {
+                maybeWarnOnChangingUsage("declarable", allowed);
+            }
         } else if (canBeDeclaredAgainst && allowed) {
             maybeWarnOnRedundantUsageActivation("declarable", "setCanBeDeclared(true)");
+        }
+    }
+
+    @Override
+    public void setAllowedUsageFromRole(ConfigurationRole role) {
+        if (isCanBeConsumed() != role.isConsumable()) {
+            setCanBeConsumed(role.isConsumable(), false);
+        }
+        if (isCanBeResolved() != role.isResolvable()) {
+            setCanBeResolved(role.isResolvable(), false);
+        }
+        if (isCanBeDeclared() != role.isDeclarable()) {
+            setCanBeDeclared(role.isDeclarable(), false);
         }
     }
 

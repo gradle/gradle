@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.UnknownDomainObjectException;
@@ -39,6 +40,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -49,6 +52,8 @@ import java.util.regex.Pattern;
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
+    @SuppressWarnings("deprecation")
+    private static final Set<ConfigurationRole> VALID_MAYBE_CREATE_ROLES = new HashSet<>(Arrays.asList(ConfigurationRoles.CONSUMABLE, ConfigurationRoles.RESOLVABLE, ConfigurationRoles.DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -244,31 +249,21 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
         assertMutable("migratingUnlocked(String, ConfigurationRole, Action)");
 
-        if (!ConfigurationRolesForMigration.ALL.contains(role)) {
+        if (ConfigurationRolesForMigration.ALL.contains(role)) {
+            return createUnlockedConfiguration(name, role, action);
+        } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
-
-        return createUnlockedConfiguration(name, role, action);
     }
 
     @Override
     public Configuration maybeCreateResolvableUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return resolvableUnlocked(name);
-        }
-
-        emitConfigurationExistsDeprecation(name);
-        return getByName(name);
+        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE), true);
     }
 
     @Override
     public Configuration maybeCreateConsumableUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return consumableUnlocked(name);
-        }
-
-        emitConfigurationExistsDeprecation(name);
-        return getByName(name);
+        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE), true);
     }
 
     @Override
@@ -277,36 +272,48 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean warnOnDuplicate) {
-        if (!hasWithName(name)) {
-            return dependencyScopeUnlocked(name);
-        }
-
-        if (warnOnDuplicate) {
-            emitConfigurationExistsDeprecation(name);
-        }
-        return getByName(name);
+    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
+        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
     }
 
     @Override
     public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
-        if (!hasWithName(name)) {
-            return migratingUnlocked(name, role);
-        }
+        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role);
 
-        emitConfigurationExistsDeprecation(name);
-        return getByName(name);
+        Configuration conf = findByName(request.getConfigurationName());
+        if (null != conf) {
+            return request.verifyExistingConfigurationUsage(conf);
+        } else {
+            return migratingUnlocked(request.getConfigurationName(), request.getRole());
+        }
     }
 
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        if (!hasWithName(name)) {
-            return resolvableDependencyScopeUnlocked(name);
-        }
+        return maybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
+    }
 
-        emitConfigurationExistsDeprecation(name);
-        return getByName(name);
+    @Override
+    public Configuration maybeCreate(RoleBasedConfigurationCreationRequest request) {
+        return doMaybeCreate(request, true);
+    }
+
+    private Configuration doMaybeCreate(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
+        Configuration conf = findByName(request.getConfigurationName());
+        if (null != conf) {
+            if (verifyPrexisting) {
+                return request.verifyExistingConfigurationUsage(conf);
+            } else {
+                return getByName(request.getConfigurationName());
+            }
+        } else {
+            if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
+                return createUnlockedConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
+            } else {
+                throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
+            }
+        }
     }
 
     private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
@@ -352,6 +359,16 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
+    private static void validateNameIsAllowed(String name) {
+        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
+            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
+                    .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "reserved_configuration_names")
+                    .nagUser();
+        }
+    }
+
     // Cannot be private due to reflective instantiation
     public class NamedDomainObjectCreatingProvider<I extends Configuration> extends AbstractDomainObjectCreatingProvider<I> {
 
@@ -365,24 +382,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         @Override
         protected I createDomainObject() {
             return factory.apply(getName());
-        }
-    }
-
-    private static void emitConfigurationExistsDeprecation(String configurationName) {
-        DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
-            .withAdvice("Do not create a configuration with this name.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "configurations_allowed_usage")
-            .nagUser();
-    }
-
-    private static void validateNameIsAllowed(String name) {
-        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
-            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
-                    .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "reserved_configuration_names")
-                    .nagUser();
         }
     }
 }
