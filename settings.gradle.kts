@@ -54,11 +54,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("resources")
-    subproject("resources-http")
-    subproject("resources-gcs")
-    subproject("resources-s3")
-    subproject("resources-sftp")
     subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
@@ -153,6 +148,11 @@ platform("software") {
     subproject("maven")
     subproject("platform-base")
     subproject("publish")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
     subproject("reporting")
     subproject("security")
     subproject("signing")
