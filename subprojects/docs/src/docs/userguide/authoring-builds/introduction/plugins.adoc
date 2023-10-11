@@ -17,8 +17,6 @@
 
 Many Gradle features, like the ability to compile Java code, are added by _plugins_.
 
-image::author-gradle-1.png[]
-
 Plugins add new tasks (e.g., link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g., link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g., Java source is located at `src/main/java`), and extend core objects or objects from other plugins.
 
 [[sec:what_plugins_do]]
@@ -158,6 +156,7 @@ apply plugin: PrintClass
 
 The plugin DSL provides a concise and convenient way to declare plugin dependencies.
 
+[[sec:binary_plugins]]
 The plugins block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`]:
 
 [source, build.gradle.kts]
@@ -469,6 +468,26 @@ For more information on publishing plugins to custom repositories, read <<java_g
 
 See link:{javadocPath}/org/gradle/plugin/management/PluginManagementSpec.html[PluginManagementSpec] for complete documentation for using the `pluginManagement{}` block.
 
+[[sec:plugin_markers]]
+=== Plugin Marker Artifacts
+
+Since the `plugins{}` DSL block only allows for declaring plugins by their globally unique plugin `id` and `version` properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact.
+
+To do so, Gradle will look for a Plugin Marker Artifact with the coordinates `plugin.id:plugin.id.gradle.plugin:plugin.version`.
+This marker needs to have a dependency on the actual plugin implementation.
+Publishing these markers is automated by the <<java_gradle_plugin.adoc#java_gradle_plugin,java-gradle-plugin>>.
+
+For example, the following complete sample from the `sample-plugins` project shows how to publish a `com.example.hello` plugin and a `com.example.goodbye` plugin to both an Ivy and Maven repository using the combination of the <<java_gradle_plugin.adoc#java_gradle_plugin,java-gradle-plugin>>, the <<publishing_maven.adoc#publishing_maven,maven-publish>> plugin, and the <<publishing_ivy.adoc#publishing_ivy,ivy-publish>> plugin.
+
+====
+include::sample[dir="snippets/plugins/publishing/kotlin", files="build.gradle.kts[tags=complete-plugin-publishing]"]
+include::sample[dir="snippets/plugins/publishing/groovy", files="build.gradle[tags=complete-plugin-publishing]"]
+====
+
+Running `gradle publish` in the sample directory creates the following Maven repository layout (the Ivy layout is similar):
+
+image::plugin-markers.png[]
+
 [[sec:old_plugin_application]]
 == Legacy Plugin Application
 
@@ -501,6 +520,4 @@ Furthermore, one needs to append the `::class` suffix to identify a class litera
 [.multi-language-text.lang-groovy]
 Furthermore, it is unnecessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
-[[sec:binary_plugins]]
-[[sec:plugin_markers]]
 [[sec:finding_community_plugins]]

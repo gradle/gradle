@@ -17,8 +17,6 @@
 
 The work that Gradle can do on a project is defined by one or more _tasks_.
 
-image::author-gradle-1.png[]
-
 A task represents some atomic piece of work that a build performs.
 This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 

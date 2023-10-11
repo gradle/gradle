@@ -15,5 +15,20 @@
 [[partr5_registering_tasks]]
 = Part 5: Registering Tasks
 
+Learn the basics of authoring Gradle tasks by creating a simple one in your Build script.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+****
+
+[[part1_begin]]
+== Step 0. Before you Begin
+
+1. You authored a build script in <<partr4_gradle_init.adoc#part1_begin,part 4>>.
+
+== Step 1.
+
 [.text-right]
-**Next Step:** <<partr6_using_plugins#partr6_writing_plugins,Writing Plugins>> >>
+**Next Step:** <<partr6_using_plugins#partr6_using_plugins,Using Plugins>> >>

@@ -15,5 +15,38 @@
 [[partr4_build_script]]
 = Part 4: Writing a Build Script
 
+Learn the basics of authoring Gradle by developing the Build Script.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+****
+
+[[part1_begin]]
+== Step 0. Before you Begin
+
+1. You authored a settings file in <<partr3_gradle_init.adoc#part1_begin,part 3>>.
+
+== Step 1.
+
+[source]
+----
+val file1 = File("src/main/java/tutorial/App.java")
+val file2 = File("src/test/java/tutorial/App.java")
+
+val File.size get() = if (!exists()) 0.0 else length().toDouble()
+
+println(file1.size)
+println(file2.size)
+
+if (file1.size == file2.size) {
+    println("Files have the same size at ${file1.size} bytes.")
+} else {
+    var largestFile = if (file1.size > file2.size) file1 else file2
+    println("${largestFile.toString()} was the largest file at ${largestFile.size} bytes.")
+}
+----
+
 [.text-right]
 **Next Step:** <<partr5_registering_tasks#partr5_registering_tasks,Registering Tasks>> >>

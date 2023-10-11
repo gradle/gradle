@@ -15,5 +15,52 @@
 [[partr3_settings_file]]
 = Part 3: Writing the Settings File
 
+Learn the basics of authoring Gradle by developing the Settings File.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+- Run a Java application
+- Produce a Build Scan
+- Bundle the application in an archive
+- Review the directory layout
+****
+
+[[part1_begin]]
+== Step 0. Before you Begin
+
+1. You understand the Gradle Build Lifecycle from <<partr2_gradle_init.adoc#part1_begin,part 2>>.
+
+== Step 1.
+
+[source,settings.gradle.kts]
+----
+pluginManagement {                                          // <1>
+    repositories {
+        gradlePluginPortal()
+        google()
+    }
+    includeBuild("../build-logic")
+}
+
+plugins {                                                   // <2>
+    id("org.gradle.toolchains.fake") version "0.6.0"
+}
+
+rootProject.name = "root-project"                           // <3>
+
+dependencyResolutionManagement {                            // <4>
+    repositories {
+        mavenCentral()
+    }
+    includeBuild("../other-project")
+}
+
+include("sub-project-a")                                    // <5>
+include("sub-project-b")
+include("sub-project-c")
+----
+
 [.text-right]
 **Next Step:** <<partr4_build_script#partr4_build_script,Writing a Build Script>> >>

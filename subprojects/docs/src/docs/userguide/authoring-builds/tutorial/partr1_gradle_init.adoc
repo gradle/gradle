@@ -15,7 +15,7 @@
 [[partr1_gradle_init]]
 = Part 1: Initializing the Project
 
-Learn the basics of Gradle by creating a Java app using Gradle init.
+Learn the basics of authoring Gradle by first creating a Java app using Gradle init.
 
 ****
 **In this section you will:**
@@ -94,22 +94,22 @@ The *project root directory* contains all source files from your project.
 When you are done with Gradle `init`, the directory should look as follows:
 
 ----
-├── gradle                          // <1>
+├── gradle                              // <1>
 │   └── wrapper
-├── gradlew                         // <2>
-├── gradlew.bat                     // <2>
-├── settings.gradle.kts             // <3>
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle.kts                 // <3>
 └── app
-    ├── build.gradle.kts            // <4>
+    ├── build.gradle.kts                // <4>
     └── src
         ├── main
         │   └── java
         │       └── demo
-        │           └── App.java    // <5>
+        │           └── App.java        // <5>
         └── test
             └── java
                 └── demo
-                    └── AppTest.java// <6>
+                    └── AppTest.java    // <6>
 
 ----
 <1> Generated folder for wrapper files
@@ -149,9 +149,7 @@ repositories {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")     // <3>
-
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
     implementation("com.google.guava:guava:32.1.1-jre")             // <4>
 }
 

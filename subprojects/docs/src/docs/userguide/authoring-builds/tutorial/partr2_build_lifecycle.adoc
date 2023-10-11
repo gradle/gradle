@@ -15,21 +15,19 @@
 [[partr2_build_lifecycle]]
 = Part 2: The Build Lifecycle
 
-Learn the basics of Gradle tasks by running one and looking at its output.
+Learn the Gradle build lifecycle.
 
 ****
 **In this section you will:**
 
-- See available tasks
-- Run a task and inspect the results
-- Understand tasks
-- Explore task dependencies
+- Understand the Build Lifecycle
+- Run a task to view it in action
 ****
 
 [[part2_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 
 == Step 1. Understanding the Build Lifecycle
 

@@ -17,7 +17,7 @@
 
 In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file if it exists.
 
-image::author-gradle-1.png[]
+image::author-gradle-4.png[]
 
 Then, for each project included in the settings file, Gradle creates a `Project()` instance.
 
