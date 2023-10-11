@@ -22,6 +22,8 @@ import org.gradle.workers.internal.ForkedWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
+import java.io.File;
+
 public class ProcessIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompilerWorkerExecutor {
     public ProcessIsolatedCompilerWorkerExecutor(WorkerDaemonFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         super(delegate, actionExecutionSpecFactory);
@@ -29,6 +31,8 @@ public class ProcessIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompi
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
-        return new ForkedWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions);
+        File workingDir = daemonForkOptions.getJavaForkOptions().getWorkingDir();
+        // TODO-RC what to do about the root directory?
+        return new ForkedWorkerRequirement(workingDir, workingDir, daemonForkOptions);
     }
 }

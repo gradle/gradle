@@ -44,7 +44,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.hash.ChecksumService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -160,8 +159,7 @@ class TestUtil {
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     def projectDir = fileResolver.resolve(".")
-                    def buildLocations = new BuildLocations(projectDir, null, null, null)
-                    return new DefaultProjectLayout(projectDir, fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory, buildLocations)
+                    return new DefaultProjectLayout(projectDir, projectDir.parentFile, fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
                 }
 
                 ChecksumService createChecksumService() {

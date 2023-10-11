@@ -75,7 +75,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, temporaryFolder.testDirectory)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

@@ -40,7 +40,7 @@ public interface ProjectLayout {
     Directory getProjectDirectory();
 
     /**
-     * Returns the root build directory.
+     * Returns the build root directory.
      *
      * @since 8.5
      */

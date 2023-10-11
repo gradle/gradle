@@ -32,7 +32,6 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -46,9 +45,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final PropertyHost propertyHost;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
-    private final Directory rootBuildDir;
+    private final Directory rootDir;
 
-    public DefaultProjectLayout(File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory, BuildLocations buildLocations) {
+    public DefaultProjectLayout(File projectDir, File rootDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
@@ -57,12 +56,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         this.fileFactory = fileFactory;
         this.projectDir = fileFactory.dir(projectDir);
         this.buildDir = filePropertyFactory.newDirectoryProperty().convention(fileFactory.dir(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME)));
-        this.rootBuildDir = fileFactory.dir(buildLocations.getRootDirectory());
+        this.rootDir = fileFactory.dir(rootDir);
     }
 
     @Override
     public Directory getRootDirectory() {
-        return rootBuildDir;
+        return rootDir;
     }
 
     @Override

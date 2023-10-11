@@ -49,7 +49,6 @@ import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
@@ -70,9 +69,11 @@ import java.io.File;
  */
 public class WorkerSharedProjectScopeServices {
     private final File projectDir;
+    private final File rootDir;
 
-    public WorkerSharedProjectScopeServices(File projectDir) {
+    public WorkerSharedProjectScopeServices(File projectDir, File rootDir) {
         this.projectDir = projectDir;
+        this.rootDir = rootDir;
     }
 
     void configure(ServiceRegistration registration) {
@@ -151,8 +152,8 @@ public class WorkerSharedProjectScopeServices {
     }
 
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
-                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory, BuildLocations buildLocations) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory, buildLocations);
+                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+        return new DefaultProjectLayout(projectDir, rootDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
     protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {

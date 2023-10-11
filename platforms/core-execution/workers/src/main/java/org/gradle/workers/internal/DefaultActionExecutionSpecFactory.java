@@ -39,13 +39,13 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
-        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.isInternalServicesRequired());
+        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getProjectRootDir(), spec.getRootDir(), spec.isInternalServicesRequired());
     }
 
     @Override
     public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices) {
         ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure() : null;
-        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, implementationClass.getName(), isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), usesInternalServices);
+        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, implementationClass.getName(), isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getProjectDirectory(), workerRequirement.getRootDirectory(), usesInternalServices);
     }
 
     @Override

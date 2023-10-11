@@ -27,26 +27,38 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final String actionImplementationClassName;
     private final Isolatable<T> isolatedParams;
     private final ClassLoaderStructure classLoaderStructure;
-    private final File baseDir;
+    private final File projectDir;
+    private final File rootDir;
     private final boolean usesInternalServices;
     private final String displayName;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File projectDir, File rootDir, boolean usesInternalServices) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.actionImplementationClassName = actionImplementationClassName;
         this.isolatedParams = isolatedParams;
         this.classLoaderStructure = classLoaderStructure;
-        this.baseDir = baseDir;
+        this.projectDir = projectDir;
+        this.rootDir = rootDir;
         this.usesInternalServices = usesInternalServices;
+    }
+
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File projectDir, boolean usesInternalServices) {
+        this(implementationClass, displayName, actionImplementationClassName, isolatedParams, classLoaderStructure, projectDir,
+            /* TODO-RC: what to do about root directory? */ projectDir,
+            usesInternalServices);
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public File getBaseDir() {
-        return baseDir;
+    public File getProjectRootDir() {
+        return projectDir;
+    }
+
+    public File getRootDir() {
+        return rootDir;
     }
 
     public ClassLoaderStructure getClassLoaderStructure() {

@@ -80,7 +80,6 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
-import org.gradle.initialization.layout.BuildLocations
 import org.gradle.internal.Factory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -244,7 +243,7 @@ class DefaultProjectTest extends Specification {
         ModelSchemaStore modelSchemaStore = Stub(ModelSchemaStore)
         serviceRegistryMock.get((Type) ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
-        serviceRegistryMock.get((Type) DefaultProjectLayout) >> new DefaultProjectLayout(rootDir, TestFiles.resolver(rootDir), Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory(), new BuildLocations(rootDir, null, null, null))
+        serviceRegistryMock.get((Type) DefaultProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, TestFiles.resolver(rootDir), Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
 
         build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
         build.getParent() >> null
