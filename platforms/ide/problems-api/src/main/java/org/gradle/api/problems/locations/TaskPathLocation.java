@@ -33,11 +33,6 @@ public class TaskPathLocation implements ProblemLocation {
         this.identityPath = identityPath;
     }
 
-    @Override
-    public String getType() {
-        return "task";
-    }
-
     public Path getIdentityPath() {
         return identityPath;
     }

@@ -25,14 +25,4 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ProblemLocation {
-
-    /**
-     * Returns an identifier of the location type.
-     * <p>
-     * As locations will be serialized into a JSON format,
-     * this identifier is used to distinguish between different location types.
-     *
-     * @since 8.5
-     */
-    String getType();
 }

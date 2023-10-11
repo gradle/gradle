@@ -32,11 +32,6 @@ public class PluginIdLocation implements ProblemLocation {
         this.pluginId = pluginId;
     }
 
-    @Override
-    public String getType() {
-        return "pluginId";
-    }
-
     public String getPluginId() { // TODO rename to getId()
         return pluginId;
     }

@@ -40,11 +40,6 @@ public class FileLocation implements ProblemLocation {
         this.length = length;
     }
 
-    @Override
-    public String getType() {
-        return "file";
-    }
-
     public String getPath() {
         return path;
     }

@@ -29,12 +29,8 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.util.Path;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +38,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 @Nonnull
@@ -61,9 +56,6 @@ public class ValidationProblemSerialization {
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(FileLocation.class, new FileLocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(PluginIdLocation.class, new PluginIdLocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(TaskPathLocation.class, new TaskLocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -197,146 +189,6 @@ public class ValidationProblemSerialization {
 
     }
 
-    public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginObject();
-            out.name("type").value(value.getType());
-            out.name("path").value(value.getPath());
-            out.name("line").value(value.getLine());
-            out.name("column").value(value.getColumn());
-            out.name("length").value(value.getLength());
-            out.endObject();
-        }
-
-        @Override
-        public FileLocation read(JsonReader in) throws IOException {
-            in.beginObject();
-            FileLocation fileLocation = readObject(in);
-            in.endObject();
-
-            Objects.requireNonNull(fileLocation, "path must not be null");
-            return fileLocation;
-        }
-
-        @Nonnull
-        private static FileLocation readObject(JsonReader in) throws IOException {
-            String path = null;
-            Integer line = null;
-            Integer column = null;
-            Integer length = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                switch (name) {
-                    case "path": {
-                        path = in.nextString();
-                        break;
-                    }
-                    case "line": {
-                        line = in.nextInt();
-                        break;
-                    }
-                    case "column": {
-                        column = in.nextInt();
-                        break;
-                    }
-                    case "length": {
-                        length = in.nextInt();
-                        break;
-                    }
-                    default:
-                        in.skipValue();
-                }
-            }
-            return new FileLocation(path, line, column, length);
-        }
-    }
-
-    public static class PluginIdLocationAdapter extends TypeAdapter<PluginIdLocation> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable PluginIdLocation value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginArray();
-            out.name("type").value(value.getType());
-            out.name("pluginId").value(value.getPluginId());
-            out.endObject();
-        }
-
-        @Override
-        public PluginIdLocation read(JsonReader in) throws IOException {
-            in.beginObject();
-            PluginIdLocation problemLocation = readObject(in);
-            in.endObject();
-
-            Objects.requireNonNull(problemLocation, "pluginId must not be null");
-            return problemLocation;
-        }
-
-        private static PluginIdLocation readObject(JsonReader in) throws IOException {
-            String pluginId = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                if (name.equals("pluginId")) {
-                    pluginId = in.nextString();
-                } else {
-                    in.skipValue();
-                }
-            }
-            return new PluginIdLocation(pluginId);
-        }
-    }
-
-    public static class TaskLocationAdapter extends TypeAdapter<TaskPathLocation> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable TaskPathLocation value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginArray();
-            out.name("type").value(value.getType());
-            out.name("identityPath").value(value.getIdentityPath().getPath());
-            out.endObject();
-        }
-
-        @Override
-        public TaskPathLocation read(JsonReader in) throws IOException {
-            in.beginObject();
-            TaskPathLocation identityPath = readObject(in);
-            in.endObject();
-
-            Objects.requireNonNull(identityPath, "identityPath must not be null");
-            return identityPath;
-        }
-
-        @Nonnull
-        private static TaskPathLocation readObject(JsonReader in) throws IOException {
-            String identityPath = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                if (name.equals("identityPath")) {
-                    identityPath = in.nextString();
-                } else {
-                    in.skipValue();
-                }
-            }
-            return new TaskPathLocation(Path.path(identityPath));
-        }
-    }
-
     public static class DocLinkAdapter extends TypeAdapter<DocLink> {
 
         @Override
@@ -398,49 +250,39 @@ public class ValidationProblemSerialization {
                 return;
             }
 
-            if (value instanceof FileLocation) {
-                new FileLocationAdapter().write(out, (FileLocation) value);
-                return;
-            }
-            if (value instanceof PluginIdLocation) {
-                new PluginIdLocationAdapter().write(out, (PluginIdLocation) value);
-                return;
-            }
-            if (value instanceof TaskPathLocation) {
-                new TaskLocationAdapter().write(out, (TaskPathLocation) value);
-            }
+            out.beginObject();
+            out.name("type").value(value.getClass().getName());
+            // Serialize the rest of the object by serializing all the fields
+            Gson gson = new Gson();
+            gson.toJson(value, value.getClass(), out);
+            out.endObject();
         }
 
         @Override
         public ProblemLocation read(JsonReader in) throws IOException {
-            if (in.hasNext()) {
-                in.beginObject();
-                try {
-                    String type = null;
-                    String name = in.nextName();
-                    if (name.equals("type")) {
-                        type = in.nextString();
-                    }
-                    if (type == null) {
-                        throw new JsonParseException("type must not be null");
-                    }
-
-                    switch (type) {
-                        case "file":
-                            return FileLocationAdapter.readObject(in);
-                        case "pluginId":
-                            return PluginIdLocationAdapter.readObject(in);
-                        case "task":
-                            return TaskLocationAdapter.readObject(in);
-                        default:
-                            throw new JsonParseException("Unknown type: " + type);
-                    }
-
-                } finally {
-                    in.endObject();
+            in.beginObject();
+            String type = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                if (name.equals("type")) {
+                    type = in.nextString();
+                } else {
+                    in.skipValue();
                 }
             }
-            return null;
+            in.endObject();
+
+            if (type == null) {
+                throw new JsonParseException("Missing 'type' field");
+            }
+
+            try {
+                Class<?> clazz = Class.forName(type);
+                Gson gson = new Gson();
+                return gson.fromJson(in, clazz);
+            } catch (ClassNotFoundException e) {
+                throw new JsonParseException("Could not find class for type '" + type + "'", e);
+            }
         }
     }
 }
