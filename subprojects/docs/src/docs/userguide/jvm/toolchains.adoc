@@ -333,13 +333,14 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 [[sub:removing_auto_provisioned_toolchain]]
 === Removing an auto-provisioned toolchain
 
-There are cases where a user might want to take explicit control over the toolchain configuration for their project. This could include specifying custom versions of a toolchain, ensuring compatibility with specific project requirements, or addressing issues related to the auto-provisioned toolchain.
+In some cases, a user might want explicit control over the toolchain configuration for their project.
+This could include specifying custom versions of a toolchain, ensuring compatibility with specific project requirements, or addressing issues related to the auto-provisioned toolchain.
 
-In a situation where it's necessary to remove an auto-provisioned toolchain, remove the relevant toolchain located in the `/jdks` directory within the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
+When removing an auto-provisioned toolchain is necessary, remove the relevant toolchain located in the `/jdks` directory within the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
 
 [NOTE]
 ====
-The <<gradle_daemon.adoc#sec:gradle_daemon,Gradle Daemon>> caches information about your project, including configuration details such as toolchain paths or versions. Changes made to a project's toolchain configuration might not take effect until the Gradle Daemon is restarted. It's recommended to  <<gradle_daemon.adoc#sec:stopping_an_existing_daemon,stop the Gradle Daemon>> to ensure that Gradle updates the configuration for subsequent builds.
+The <<gradle_daemon.adoc#sec:gradle_daemon,Gradle Daemon>> caches information about your project, including configuration details such as toolchain paths or versions. Changes to a project's toolchain configuration might only occur once the Gradle Daemon is restarted. It is recommended to  <<gradle_daemon.adoc#sec:stopping_an_existing_daemon,stop the Gradle Daemon>> to ensure that Gradle updates the configuration for subsequent builds.
 ====
 
 [[sec:custom_loc]]
