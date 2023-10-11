@@ -37,6 +37,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.Stat;
+import org.gradle.util.internal.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -74,7 +75,10 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
         File outputFile = outputs.file(instrumentedJarName);
-        outputs.file(getInput());
+        
+        // TODO: Copy in a separate transform
+        File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
+        GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
 
         ClasspathElementTransformFactoryForAgent transformFactory = instrumentationServices.getTransformFactory();
         ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
