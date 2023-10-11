@@ -18,6 +18,9 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
 
+/**
+ * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
+ */
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -46,7 +49,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 2
         for (def problem in collectedProblems) {
-            assertError(problem, files)
+            assertProblem(problem, files, "ERROR")
         }
     }
 
@@ -65,7 +68,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertError(problem, files)
+            assertProblem(problem, files, "ERROR")
         }
     }
 
@@ -83,7 +86,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 2
         for (def problem in collectedProblems) {
-            assertWarning(problem, files)
+            assertProblem(problem, files, "WARNING")
         }
     }
 
@@ -102,11 +105,11 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            assertWarning(problem, files)
+            assertProblem(problem, files, "WARNING")
         }
     }
 
-    def "problems received when a multi-file compilation failure and warning happens"() {
+    def "only failures received when a multi-file compilation failure and warning happens"() {
         enableProblemsApiCheck()
         def files = [
             writeJavaCausingCompilationErrorAndWarning("Foo"),
@@ -119,41 +122,14 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         def result = fails("compileJava")
 
         then:
-        collectedProblems.size() == 8
+        collectedProblems.size() == 4
         for (def problem in collectedProblems) {
-            if (problem["severity"] == "ERROR") {
-                assertError(problem, files)
-            } else {
-                assertWarning(problem, files)
-            }
+            assertProblem(problem, files, "ERROR")
         }
     }
 
-    def assertError(Map<String, Object> problem, List<String> possibleFiles) {
-        assert problem["severity"] == "ERROR"
-
-        def locations = problem["where"] as List<Map<String, Object>>
-        assert locations.size() == 2
-
-        def taskLocation = locations.find {
-            it["type"] == "task"
-        }
-        assert taskLocation != null
-        assert taskLocation["identityPath"]["path"] == ":compileJava"
-
-        def fileLocation = locations.find {
-            it["type"] == "file"
-        }
-        assert fileLocation != null
-        assert possibleFiles.remove(fileLocation["path"])
-        assert fileLocation["line"] != null
-        assert fileLocation["column"] != null
-
-        return true
-    }
-
-    def assertWarning(Map<String, Object> problem, List<String> possibleFiles) {
-        assert problem["severity"] == "WARNING"
+    def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
+        assert problem["severity"] == severity
 
         def locations = problem["where"] as List<Map<String, Object>>
         assert locations.size() == 2
