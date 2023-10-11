@@ -693,6 +693,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-jvm-test-fixtures",
+    "path": "platforms/jvm/plugins-jvm-test-fixtures",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-jvm-test-suite",
     "path": "platforms/jvm/plugins-jvm-test-suite",
     "unitTests": false,

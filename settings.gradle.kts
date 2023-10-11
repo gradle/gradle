@@ -178,6 +178,7 @@ platform("jvm") {
     subproject("plugins-groovy")
     subproject("plugins-java")
     subproject("plugins-java-base")
+    subproject("plugins-jvm-test-fixtures")
     subproject("plugins-jvm-test-suite")
     subproject("plugins-test-report-aggregation")
     subproject("scala")
