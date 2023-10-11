@@ -56,7 +56,7 @@ The custom task is provided by a plugin that takes care of communicating via HTT
 .LatestArtifactVersion.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
 ----
 
 The end user of the task can now easily create multiple tasks of that type with different configuration.
@@ -86,7 +86,7 @@ The text written to those files is provided by a String property.
 .Generate.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[]
+include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[tags=snippet]
 ----
 
 The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
@@ -119,7 +119,7 @@ First of all, you'll need to introduce a new data object for managing the proper
 .CustomData.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[]
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[tags=snippet]
 ----
 
 In the extension, you'll need to create an instance of the `CustomData` class and a method that can delegate the captured values to the data instance.
@@ -129,7 +129,7 @@ The following example demonstrates the use of `Action` in an extension definitio
 .SiteExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[]
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
 [[capturing_user_input_to_configure_plugin_runtime_behavior]]
@@ -161,7 +161,7 @@ The plugin creates the extension of type `BinaryRepositoryExtension` and maps th
 .BinaryRepositoryVersionPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryVersionPlugin.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryVersionPlugin.java[tags=snippet]
 ----
 
 Instead of using a plain `String` type, the extension defines the properties `coordinates` and `serverUrl` with type `Property<String>`.
@@ -174,7 +174,7 @@ It allows developers to simplify code like `obj.prop.set 'foo'` to `obj.prop = '
 .BinaryRepositoryExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryExtension.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryExtension.java[tags=snippet]
 ----
 
 The task property also defines the `serverUrl` with type `Property`.
@@ -183,7 +183,7 @@ It allows for mapping the state of the property without actually accessing its v
 .LatestArtifactVersion.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
 ----
 
 NOTE: We encourage plugin developers to migrate their plugins to the public property API as soon as possible.
@@ -212,7 +212,7 @@ The POJO `ServerEnvironment` shown below fulfills those requirements.
 .ServerEnvironment.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
 ----
 
 Gradle exposes the factory method
@@ -224,7 +224,7 @@ The created instance of type link:{javadocPath}/org/gradle/api/NamedDomainObject
 .ServerEnvironmentPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
 ----
 
 It's very common for a plugin to post-process the captured values within the plugin implementation e.g. to configure tasks.
@@ -239,7 +239,7 @@ For example a plugin could assume that it is applied to a Java-based project and
 .InhouseStrongOpinionConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
 ----
 
 The drawback to this approach is that it automatically forces the project to apply the Java plugin and therefore imposes a strong opinion on it.
@@ -250,7 +250,7 @@ Only if that is the case then certain configuration is applied.
 .InhouseConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
 ----
 
 Reacting to plugins should be preferred over blindly applying other plugins if there is not a good reason for assuming that the consuming project has the expected setup.
@@ -259,7 +259,7 @@ The same concept applies to task types.
 .InhouseConventionWarPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
 ----
 
 == Providing default dependencies for plugins
@@ -275,13 +275,13 @@ The plugin implementation declares a custom configuration that allows for <<decl
 .DataProcessingPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[]
+include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
 ----
 
 .DataProcessing.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[]
+include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
 ----
 
 Now, this approach is very convenient for the end user as there’s no need to actively declare a dependency.
