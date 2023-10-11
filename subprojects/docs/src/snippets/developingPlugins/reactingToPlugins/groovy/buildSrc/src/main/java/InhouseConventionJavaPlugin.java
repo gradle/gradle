@@ -5,6 +5,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
+// tag::snippet[]
 public class InhouseConventionJavaPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
@@ -14,3 +15,4 @@ public class InhouseConventionJavaPlugin implements Plugin<Project> {
         });
     }
 }
+// end::snippet[]

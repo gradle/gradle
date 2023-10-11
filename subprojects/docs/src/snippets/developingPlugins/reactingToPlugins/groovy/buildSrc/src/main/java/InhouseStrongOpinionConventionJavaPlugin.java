@@ -5,6 +5,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
+// tag::snippet[]
 public class InhouseStrongOpinionConventionJavaPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPlugins().apply(JavaPlugin.class);
@@ -13,3 +14,4 @@ public class InhouseStrongOpinionConventionJavaPlugin implements Plugin<Project>
         main.getJava().setSrcDirs(Arrays.asList("src"));
     }
 }
+// end::snippet[]
