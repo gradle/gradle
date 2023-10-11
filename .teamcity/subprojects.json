@@ -169,7 +169,7 @@
   },
   {
     "name": "dependency-management",
-    "path": "subprojects/dependency-management",
+    "path": "platforms/software/dependency-management",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -697,13 +697,6 @@
     "path": "platforms/jvm/plugins-jvm-test-suite",
     "unitTests": false,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "plugins-jvm-test-suite-base",
-    "path": "platforms/jvm/plugins-jvm-test-suite-base",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

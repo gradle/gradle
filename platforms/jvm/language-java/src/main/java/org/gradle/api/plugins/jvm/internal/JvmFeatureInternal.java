@@ -72,6 +72,11 @@ public interface JvmFeatureInternal {
     void withSourcesJar();
 
     /**
+     * Configures this feature to publish a variant containing a list of this feature's source directories.
+     */
+    void withSourceElements();
+
+    /**
      * Adds the {@code api} and {@code compileOnlyApi} dependency configurations to this feature.
      *
      * TODO: Should this live on the "base" JVM feature? Should all JVM features know how to add

@@ -174,7 +174,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/dependency-management/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
       - 'subprojects/platform-base/'
@@ -206,7 +205,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

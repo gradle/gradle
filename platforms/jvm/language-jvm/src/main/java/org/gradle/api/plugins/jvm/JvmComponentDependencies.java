@@ -20,9 +20,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.GradleDependencies;
+import org.gradle.testing.base.TestSuite;
 
 /**
- * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
+ * This DSL element is used to add dependencies to a component, for instance a {@link TestSuite}
  *
  * <ul>
  *     <li><code>implementation</code> dependencies are used at compilation and runtime.</li>
