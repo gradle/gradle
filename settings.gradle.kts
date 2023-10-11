@@ -54,7 +54,6 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("dependency-management")
     subproject("resources")
     subproject("resources-http")
     subproject("resources-gcs")
@@ -157,6 +156,7 @@ platform("ide") {
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("dependency-management")
     subproject("distributions-publishing")
     subproject("testing-base")
 }
