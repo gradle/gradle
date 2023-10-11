@@ -33,31 +33,74 @@ Learn the Gradle build lifecycle.
 
 A Gradle build has three distinct phases:
 
-Initialization  :: Gradle supports single and multi-project builds. During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a Project instance for each of these projects.
+Phase 1 - Initialization  :: During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a `Project` instance for each of these projects.
 
-Configuration  :: During this phase the project objects are configured. The build scripts of all projects which are part of the build are executed. Gradle 1.4 introduced an incubating opt-in feature called configuration on demand. In this mode, Gradle configures only relevant projects (see Section 57.1.1.1, “Configuration on demand”).
+Phase 2 - Configuration  :: During this phase, the `Project` objects are configured using the build scripts of all projects which are part of the build are executed.
 
-Execution  :: Gradle determines the subset of the tasks, created and configured during the configuration phase, to be executed. The subset is determined by the task name arguments passed to the gradle command and the current directory. Gradle then executes each of the selected tasks.
+Phase 3 - Execution  :: Gradle determines the set of tasks, created and configured during the configuration phase, to be executed. Gradle then executes each of the selected tasks.
 
-== Step 2.
+When Gradle is invoked to execute a task, the lifecycle begins:
 
-[source, settings.gradle]
+image::gradle-build-lifecycle.png[]
+
+== Step 2. Update the Settings File
+
+Add the following line to the Settings file:
+
+.settings.gradle.kts
+[source, kotlin]
 ----
-println 'This is executed during the initialization phase.'
+println("SETTINGS FILE: This is executed during the initialization phase")
 ----
 
-[source, build.gradle]
-----
-println 'This is executed during the configuration phase.'
+== Step 3. Update the Build Script
 
-task configured {
-println 'This is also executed during the configuration phase.'
+Add the following lines to the Build script:
+
+.build.gradle.kts
+[source, kotlin]
+----
+println("BUILD SCRIPT: This is executed during the configuration phase")
+
+tasks.register("lifecycle"){
+    println("REGISTER TASK: This is executed during the configuration phase")
 }
 
-task test << {
-println 'This is executed during the execution phase.'
+tasks.named("lifecycle"){
+    println("NAMED TASK: This is executed during the configuration phase")
+    doLast {
+        println("NAMED TASK: This is executed during the execution phase")
+    }
 }
 ----
+
+== Step 4. Run a Gradle Task
+
+Run the `lifecycle` task created in Step 3:
+
+[source]
+----
+$ ./gradlew lifecycle
+----
+
+[source]
+----
+SETTINGS FILE: This is executed during the initialization phase <1>
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase   <2>
+REGISTER TASK: This is executed during the configuration phase  <2>
+NAMED TASK: This is executed during the configuration phase     <2>
+
+> Task :app:lifecycle
+NAMED TASK: This is executed during the execution phase         <3>
+
+BUILD SUCCESSFUL in 335ms
+1 actionable task: 1 executed
+----
+<1> *Initialization*: Gradle executes `settings.gradle.kts` to determine the projects to be built and creates a `Project` object for each one.
+<2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
+<3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
 
 [.text-right]
 **Next Step:** <<partr3_settings_file#partr3_settings_file,Settings File>> >>

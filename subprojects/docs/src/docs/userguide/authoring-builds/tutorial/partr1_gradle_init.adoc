@@ -36,7 +36,9 @@ Learn the basics of authoring Gradle by first creating a Java app using Gradle i
 The Community Edition is a free version of IntelliJ IDEA.
 
 == Step 1. Initializing the Project
+
 Create a new directory called `tutorial` and `cd` into it:
+
 [source]
 ----
 $ mkdir tutorial
@@ -47,6 +49,7 @@ $ cd tutorial
 ----
 
 Run `gradle init` and continue with the prompt as indicated below:
+
 [source]
 ----
 $ gradle init
@@ -89,6 +92,7 @@ Generate build using new APIs and behavior (some features may change in the next
 NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project (as it is the default DSL starting in Gradle 8.2). All examples are macOS based.
 
 == Step 2. Understanding the Directory layout
+
 The *project root directory* contains all source files from your project.
 
 When you are done with Gradle `init`, the directory should look as follows:
@@ -110,7 +114,6 @@ When you are done with Gradle `init`, the directory should look as follows:
             └── java
                 └── demo
                     └── AppTest.java    // <6>
-
 ----
 <1> Generated folder for wrapper files
 <2> Gradle wrapper start scripts
@@ -120,9 +123,11 @@ When you are done with Gradle `init`, the directory should look as follows:
 <6> Default Java test source folder
 
 == Step 3. Review the Gradle Files
+
 The `settings.gradle.kts` file has two interesting lines:
 
-[source, settings.gradle.kts]
+.settings.gradle.kts
+[source, kotlin]
 ----
 rootProject.name = "demo"
 include("app")
@@ -137,7 +142,8 @@ More subprojects can be added by additional `include()` statements.
 Our build contains one subproject called app that represents the Java application we are building.
 It is configured in the `app/build.gradle(.kts)` file:
 
-[source, build.gradle.kts]
+.build.gradle.kts
+[source, kotlin]
 ----
 plugins {
     application                                                     // <1>
@@ -172,7 +178,8 @@ tasks.named<Test>("test") {
 
 The file `src/main/java/demo/App.java` contains the main class and source code:
 
-[source, App.java]
+.App.java
+[source, java]
 ----
 package tutorial;
 
@@ -189,7 +196,8 @@ public class App {
 
 The generated test, `src/test/java/demo/App.java`:
 
-[source, AppTest.java]
+.App.java
+[source, java]
 ----
 package tutorial;
 
@@ -239,6 +247,7 @@ BUILD SUCCESSFUL in 876ms
 If you run a full build as shown above, Gradle will have produced the archive in two formats for you: app/build/distributions/app.tar and app/build/distributions/app.zip.
 
 == Step 6. Publish a Build Scan
+
 The best way to learn more about what your build is doing behind the scenes, is to publish a link:https://scans.gradle.com[build scan].
 To do so, run Gradle with the `--scan` flag.
 
