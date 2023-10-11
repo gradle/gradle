@@ -75,7 +75,7 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
         File outputFile = outputs.file(instrumentedJarName);
-        
+
         // TODO: Copy in a separate transform
         File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
         GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
