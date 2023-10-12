@@ -17,9 +17,18 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
@@ -30,13 +39,20 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final BuildOperationIdFactory idFactory;
+    private final Gson gson;
 
     public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
         super(progressEventConsumer);
         this.idFactory = idFactory;
+        this.gson = new GsonBuilder()
+            .registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationSerializer())
+            .create();
     }
 
     @Override
@@ -52,7 +68,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         ),
                         buildOperationId),
                     new DefaultProblemDetails(
-                        new Gson().toJson(problem)
+                        gson.toJson(problem)
                     )
                 )
             );
@@ -64,4 +80,27 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         super.finished(buildOperation, result);
     }
 
+    private static final class ProblemLocationSerializer extends TypeAdapter<ProblemLocation> {
+
+        // This GSON instance doesn't have the ProblemLocationSerializer registered
+        // Otherwise, we would create an infinite loop at the inner call to `toJson`
+        private static final Gson gson = new Gson();
+
+        @Override
+        public void write(JsonWriter out, ProblemLocation value) throws IOException {
+            out.beginObject();
+            out.name("type");
+            out.value(value.getClass().getName());
+            out.name("data");
+            out.jsonValue(gson.toJson(value));
+            out.endObject();
+        }
+
+        @Override
+        public ProblemLocation read(JsonReader in) {
+            // Event consumer does not need to deserialize problem locations
+            throw new UnsupportedOperationException();
+        }
+
+    }
 }

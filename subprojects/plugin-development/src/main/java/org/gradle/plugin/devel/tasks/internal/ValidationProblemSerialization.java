@@ -25,11 +25,9 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import javax.annotation.Nonnull;
@@ -54,8 +52,8 @@ public class ValidationProblemSerialization {
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
-        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
+//        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
+//        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
@@ -189,100 +187,4 @@ public class ValidationProblemSerialization {
 
     }
 
-    public static class DocLinkAdapter extends TypeAdapter<DocLink> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable DocLink value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginObject();
-            out.name("url").value(value.getUrl());
-            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
-            out.endObject();
-        }
-
-        @Override
-        public DocLink read(JsonReader in) throws IOException {
-            in.beginObject();
-            String url = null;
-            String consultDocumentationMessage = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                switch (name) {
-                    case "url": {
-                        url = in.nextString();
-                        break;
-                    }
-                    case "consultDocumentationMessage": {
-                        consultDocumentationMessage = in.nextString();
-                        break;
-                    }
-                    default:
-                        in.skipValue();
-                }
-            }
-            in.endObject();
-
-            final String finalUrl = url;
-            final String finalConsultDocumentationMessage = consultDocumentationMessage;
-            return new DocLink() {
-                @Override
-                public String getUrl() {
-                    return finalUrl;
-                }
-
-                @Override
-                public String getConsultDocumentationMessage() {
-                    return finalConsultDocumentationMessage;
-                }
-            };
-        }
-    }
-
-    private static class LocationAdapter extends TypeAdapter<ProblemLocation> {
-        @Override
-        public void write(JsonWriter out, ProblemLocation value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginObject();
-            out.name("type").value(value.getClass().getName());
-            // Serialize the rest of the object by serializing all the fields
-            Gson gson = new Gson();
-            gson.toJson(value, value.getClass(), out);
-            out.endObject();
-        }
-
-        @Override
-        public ProblemLocation read(JsonReader in) throws IOException {
-            in.beginObject();
-            String type = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                if (name.equals("type")) {
-                    type = in.nextString();
-                } else {
-                    in.skipValue();
-                }
-            }
-            in.endObject();
-
-            if (type == null) {
-                throw new JsonParseException("Missing 'type' field");
-            }
-
-            try {
-                Class<?> clazz = Class.forName(type);
-                Gson gson = new Gson();
-                return gson.fromJson(in, clazz);
-            } catch (ClassNotFoundException e) {
-                throw new JsonParseException("Could not find class for type '" + type + "'", e);
-            }
-        }
-    }
 }
