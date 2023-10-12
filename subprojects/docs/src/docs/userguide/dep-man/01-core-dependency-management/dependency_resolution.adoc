@@ -313,7 +313,7 @@ The dependency cache, both the file and metadata parts, are fully encoded using 
 This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
 
 The path that can be copied is `$GRADLE_USER_HOME/caches/modules-<version>`.
-The only constraint is placing it using the same structure at the destination, where the value of `GRADLE_HOME` can be different.
+The only constraint is placing it using the same structure at the destination, where the value of `GRADLE_USER_HOME` can be different.
 
 Do not copy the `*.lock` or `gc.properties` files if they exist.
 
