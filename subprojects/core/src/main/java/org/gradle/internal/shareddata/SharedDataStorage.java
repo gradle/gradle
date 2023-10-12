@@ -24,13 +24,15 @@ import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
 class SharedDataStorage {
-    private final Map<DataKey, Map<Path, Provider<?>>> dataByKeyAndProjectPath = new HashMap<>();
+    private final Map<DataKey, Map<Path, Provider<?>>> dataByKeyAndProjectPath = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Nullable
     public <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier) {
@@ -43,7 +45,7 @@ class SharedDataStorage {
     }
 
     public <T> void put(Project sourceProject, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
-        dataByKeyAndProjectPath.computeIfAbsent(new DataKey(type, identifier), key -> new HashMap<>()).compute(((ProjectInternal) sourceProject).getIdentityPath(), (key, oldValue) -> {
+        dataByKeyAndProjectPath.computeIfAbsent(new DataKey(type, identifier), key -> new ConcurrentHashMap<>()).compute(((ProjectInternal) sourceProject).getIdentityPath(), (key, oldValue) -> {
             if (oldValue != null) {
                 throw new IllegalStateException("Shared data for type " + type + (identifier != null ? " (identifier '" + identifier + "')" : "") + " has already been registered in " + sourceProject);
             }
