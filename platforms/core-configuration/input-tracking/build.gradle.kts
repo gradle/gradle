@@ -7,4 +7,6 @@ description = "Configuration input discovery code"
 dependencies {
     implementation(project(":base-annotations"))
     implementation(libs.guava)
+
+    testImplementation(libs.guava)
 }

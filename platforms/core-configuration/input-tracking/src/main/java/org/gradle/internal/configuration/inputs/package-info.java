@@ -22,4 +22,7 @@
  * Knowing these inputs is important for configuration caching to understand if the cache has to be invalidated when the value of the system property changes.
  * It can also be used to determine undeclared task inputs, and the likes.
  */
+@NonNullApi
 package org.gradle.internal.configuration.inputs;
+
+import org.gradle.api.NonNullApi;
