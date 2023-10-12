@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
@@ -51,11 +52,11 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, RoleBasedConfigurationContainerInternal configContainer) {
         return buildQueue.build(
             currentBuild,
             taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, dependencyHandler)
+            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer)
         );
     }
 

@@ -17,6 +17,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -26,5 +27,5 @@ public interface BuildLogicBuilder {
 
     void prepareClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler);
+    ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, RoleBasedConfigurationContainerInternal configContainer);
 }

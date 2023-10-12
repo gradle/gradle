@@ -16,7 +16,9 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,5 +34,5 @@ public interface ScriptClassPathResolver {
      */
     void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler);
 
-    ClassPath resolveClassPath(Configuration classpath, DependencyHandler dependencyHandler);
+    ClassPath resolveClassPath(Configuration classpath, DependencyHandler dependencyHandler, ConfigurationContainer configContainer);
 }

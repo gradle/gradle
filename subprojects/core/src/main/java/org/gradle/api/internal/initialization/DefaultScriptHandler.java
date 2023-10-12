@@ -100,7 +100,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                resolvedClasspath = buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler);
+                resolvedClasspath = buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
                 if (!getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
                 }

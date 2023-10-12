@@ -85,7 +85,7 @@ public class BuildSrcBuildListenerFactory {
         }
 
         public ClassPath getRuntimeClasspath() {
-            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration, project.getRootProject().getDependencies()));
+            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration, project.getRootProject().getDependencies(), project.getRootProject().getConfigurations()));
         }
     }
 }
