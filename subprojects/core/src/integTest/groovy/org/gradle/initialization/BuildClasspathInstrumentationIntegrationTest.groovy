@@ -28,11 +28,19 @@ import java.util.stream.Collectors
 
 class BuildClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
 
-    def "buildSrc should be cached in global cache"() {
+    def "buildSrc and included builds should be cached in global cache"() {
         given:
         // Run with a clean global cache
         executer.requireOwnGradleUserHomeDir()
         withBuildSrc()
+        withIncludedBuild()
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath "org.test:included"
+                }
+            }
+        """
 
         when:
         run("tasks")
@@ -40,22 +48,48 @@ class BuildClasspathInstrumentationIntegrationTest extends AbstractIntegrationSp
         then:
         gradleUserHomeOutput("buildSrc.jar").exists()
         gradleUserHomeOutput("buildSrc.jiar").exists()
+        gradleUserHomeOutput("included-1.0.jar").exists()
+        gradleUserHomeOutput("included-1.0.jiar").exists()
     }
 
-    def "buildSrc should be just instrumented and not upgraded"() {
+    def "buildSrc and included build should be just instrumented and not upgraded"() {
         given:
         withBuildSrc()
+        withIncludedBuild()
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath "org.test:included"
+                }
+            }
+        """
 
         when:
         run("tasks", "--info")
 
         then:
         allTransformsFor("buildSrc.jar") == ["InstrumentArtifactTransform"]
+        allTransformsFor("included-1.0.jar") == ["InstrumentArtifactTransform"]
     }
 
     def withBuildSrc() {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
         file("buildSrc/settings.gradle") << "\n"
+    }
+
+    def withIncludedBuild() {
+        file("included/src/main/java/Thing.java") << "class Thing { }"
+        file("included/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        settingsFile << """
+            includeBuild("./included")
+        """
     }
 
     List<String> allTransformsFor(String fileName) {
