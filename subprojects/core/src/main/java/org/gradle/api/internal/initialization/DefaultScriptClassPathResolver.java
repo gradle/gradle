@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -29,7 +32,9 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -41,7 +46,20 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
+
+    private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API = EnumSet.copyOf(ImmutableSet.of(
+        DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
+        DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
+    ));
+    private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API_AND_PROJECTS = EnumSet.copyOf(ImmutableSet.of(
+        DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
+        DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH,
+        DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
+    ));
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("hierarchy-collected", Boolean.class);
     private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("instrumented", Boolean.class);
@@ -79,30 +97,31 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     @Override
-    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
-        ArtifactView instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler);
+    public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+        ArtifactView instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView.getFiles()));
     }
 
-    private static boolean removeGradleApi(ComponentIdentifier componentId) {
-        if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API
-                && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-        }
-        return true;
-    }
+    private static ArtifactView getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+        Configuration instrumentedClasspath = configContainer.create("instrumentedClasspath", config -> {
+            config.extendsFrom(classpathConfiguration);
+            config.setCanBeConsumed(false);
+            config.setCanBeResolved(true);
+        });
 
-    private static ArtifactView getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler) {
-        dependencyHandler.registerTransform(
-            CollectDirectClassSuperTypesTransform.class,
-            spec -> {
-                spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
-                spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
-            }
+        // Handle projects as files, so we cache them globally
+        ArtifactView projectsView = artifactView(instrumentedClasspath, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
+        DefaultSelfResolvingDependency projectDependencies = new DefaultSelfResolvingDependency(
+            new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH),
+            (FileCollectionInternal) projectsView.getFiles()
         );
+        dependencyHandler.add(instrumentedClasspath.getName(), projectDependencies);
 
-        ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true)));
+        // Collect type hierarchy
+        ArtifactView hierarchyCollectedView = artifactView(instrumentedClasspath, config -> {
+            config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
+            config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API_AND_PROJECTS));
+        });
         dependencyHandler.registerTransform(
             CollectDirectClassSuperTypesTransform.class,
             spec -> {
@@ -111,6 +130,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
+        // Do instrumentation and upgrades
         dependencyHandler.registerTransform(
             InstrumentArtifactTransform.class,
             spec -> {
@@ -119,14 +139,20 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
             }
         );
-
-        return artifactView(classpathConfiguration, config -> config.attributes(attributes -> attributes.attribute(INSTRUMENTED_ATTRIBUTE, true)));
+        return artifactView(instrumentedClasspath, config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
+            config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API));
+        });
+    }
+    private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
+        return configuration.getIncoming().artifactView(configAction);
     }
 
-    private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
-        return configuration.getIncoming().artifactView(config -> {
-            configAction.execute(config);
-            config.componentFilter(DefaultScriptClassPathResolver::removeGradleApi);
-        });
+    private static boolean filterGradleDependencies(ComponentIdentifier componentId, Set<DependencyFactoryInternal.ClassPathNotation> ignoredClasspathNotations) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return !ignoredClasspathNotations.contains(classPathNotation);
+        }
+        return !(componentId instanceof ProjectComponentIdentifier);
     }
 }
