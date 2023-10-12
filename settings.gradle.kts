@@ -62,12 +62,9 @@ unassigned {
     subproject("plugins")
     subproject("maven")
     subproject("build-events")
-    subproject("signing")
-    subproject("reporting")
     subproject("diagnostics")
     subproject("publish")
     subproject("ivy")
-    subproject("platform-base")
     subproject("platform-native")
     subproject("language-native")
     subproject("tooling-native")
@@ -78,9 +75,7 @@ unassigned {
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("version-control")
     subproject("build-profile")
-    subproject("security")
     subproject("build-operations")
     subproject("instrumentation-declarations")
 }
@@ -157,7 +152,12 @@ platform("software") {
     subproject("build-init")
     subproject("dependency-management")
     subproject("distributions-publishing")
+    subproject("platform-base")
+    subproject("reporting")
+    subproject("security")
+    subproject("signing")
     subproject("testing-base")
+    subproject("version-control")
 }
 
 // JVM Platform

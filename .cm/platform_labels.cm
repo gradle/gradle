@@ -176,17 +176,12 @@ platforms:
       - 'platforms/software/'
       - 'subprojects/ivy/'
       - 'subprojects/maven/'
-      - 'subprojects/platform-base/'
       - 'subprojects/publish/'
-      - 'subprojects/reporting/'
       - 'subprojects/resources/'
       - 'subprojects/resources-gcs/'
       - 'subprojects/resources-http/'
       - 'subprojects/resources-s3/'
       - 'subprojects/resources-sftp/'
-      - 'subprojects/security/'
-      - 'subprojects/signing/'
-      - 'subprojects/version-control/'
 
 author:
   using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}

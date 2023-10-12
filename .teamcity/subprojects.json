@@ -631,7 +631,7 @@
   },
   {
     "name": "platform-base",
-    "path": "subprojects/platform-base",
+    "path": "platforms/software/platform-base",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -729,7 +729,7 @@
   },
   {
     "name": "reporting",
-    "path": "subprojects/reporting",
+    "path": "platforms/software/reporting",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -785,14 +785,14 @@
   },
   {
     "name": "security",
-    "path": "subprojects/security",
+    "path": "platforms/software/security",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "signing",
-    "path": "subprojects/signing",
+    "path": "platforms/software/signing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -890,7 +890,7 @@
   },
   {
     "name": "version-control",
-    "path": "subprojects/version-control",
+    "path": "platforms/software/version-control",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
