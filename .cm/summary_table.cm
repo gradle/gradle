@@ -188,8 +188,3 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/resources/'
-      - 'subprojects/resources-gcs/'
-      - 'subprojects/resources-http/'
-      - 'subprojects/resources-s3/'
-      - 'subprojects/resources-sftp/'

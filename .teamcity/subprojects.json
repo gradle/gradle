@@ -743,35 +743,35 @@
   },
   {
     "name": "resources",
-    "path": "subprojects/resources",
+    "path": "platforms/software/resources",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-gcs",
-    "path": "subprojects/resources-gcs",
+    "path": "platforms/software/resources-gcs",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-http",
-    "path": "subprojects/resources-http",
+    "path": "platforms/software/resources-http",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-s3",
-    "path": "subprojects/resources-s3",
+    "path": "platforms/software/resources-s3",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-sftp",
-    "path": "subprojects/resources-sftp",
+    "path": "platforms/software/resources-sftp",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
