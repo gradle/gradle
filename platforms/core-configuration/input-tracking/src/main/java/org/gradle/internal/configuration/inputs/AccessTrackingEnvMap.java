@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ForwardingMap;
@@ -27,7 +27,7 @@ import java.util.function.BiConsumer;
 /**
  * A wrapper for the {@link System#getenv()} result that notifies a listener about accesses.
  */
-class AccessTrackingEnvMap extends ForwardingMap<String, String> {
+public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private final Map<String, String> delegate;
     private final BiConsumer<? super String, ? super String> onAccess;
 
@@ -36,7 +36,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     }
 
     @VisibleForTesting
-    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
+    public AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -173,4 +173,3 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         };
     }
 }
-

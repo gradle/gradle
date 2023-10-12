@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.configuration.inputs
 
 import com.google.common.collect.Maps
 import spock.lang.Specification

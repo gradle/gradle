@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
 
@@ -39,7 +39,7 @@ import java.util.function.Function;
 /**
  * A wrapper for {@link Properties} that notifies a listener about accesses.
  */
-class AccessTrackingProperties extends Properties {
+public class AccessTrackingProperties extends Properties {
     /**
      * A listener that is notified about reads and modifications of the Properties instance.
      * Note that there's no guarantee about the state of the Properties object when the

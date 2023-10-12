@@ -27,6 +27,8 @@ import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
+import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
