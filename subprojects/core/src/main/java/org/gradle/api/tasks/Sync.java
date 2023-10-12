@@ -28,7 +28,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -101,7 +100,6 @@ public abstract class Sync extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
-    @Nullable
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();
     }

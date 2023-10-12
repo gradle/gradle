@@ -202,7 +202,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @return The parent of this path, or null if this is the root path.
      */
-    public @Nullable RelativePath getParent() {
+    public RelativePath getParent() {
         switch (segments.length) {
             case 0:
                 return null;

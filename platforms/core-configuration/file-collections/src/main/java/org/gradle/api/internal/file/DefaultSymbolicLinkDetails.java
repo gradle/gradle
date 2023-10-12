@@ -45,13 +45,15 @@ public class DefaultSymbolicLinkDetails implements SymbolicLinkDetails {
         }
     }
 
+    //TODO: cover with tests better
     private boolean isRelativeToRoot(Path path, Path absoluteTarget, RelativePath relativePath) { //TOOD: optimize
         // "/q/a/root/b/c/d" and "root/b/c/d"
         // "/q/target/some" vs "/q/a/root/er/target/some"
         Path rootAbsolutePath = path;
-        for (String __ : relativePath.getSegments()) {
+        for (String segment : relativePath.getSegments()) {
             rootAbsolutePath = rootAbsolutePath.getParent();
         }
+        rootAbsolutePath = rootAbsolutePath.getParent();
         return absoluteTarget.startsWith(rootAbsolutePath);
     }
 

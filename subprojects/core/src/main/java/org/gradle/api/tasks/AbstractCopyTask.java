@@ -98,7 +98,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
-            getInputs().property(specPropertyName + ".preserveLinks", (Callable<LinksStrategy>) spec::getPreserveLinks);
+            getInputs().property(specPropertyName + ".linksStrategy", spec.getLinksStrategy()).optional(true);
         });
         this.getOutputs().doNotCacheIf(
             "Has custom actions",
@@ -644,16 +644,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    @Nullable
-    public LinksStrategy getPreserveLinks() {
-        return getMainSpec().getPreserveLinks();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
-        getMainSpec().setPreserveLinks(preserveLinks);
+    public Property<LinksStrategy> getLinksStrategy() {
+        return getMainSpec().getLinksStrategy();
     }
 }

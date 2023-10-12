@@ -333,14 +333,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    @Nullable
-    public LinksStrategy getPreserveLinks() {
-        return getDelegateCopySpec().getPreserveLinks();
-    }
-
-    @Override
-    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
-        getDelegateCopySpec().setPreserveLinks(preserveLinks);
+    public Property<LinksStrategy> getLinksStrategy() {
+        return getDelegateCopySpec().getLinksStrategy();
     }
 
     @Override

@@ -24,9 +24,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
-import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.AttributeBasedFileVisitDetailsFactory;
-import org.gradle.api.internal.file.DefaultSymbolicLinkDetails;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -37,10 +35,7 @@ import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -137,7 +132,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     //TODO: cover with test for links
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
-        LinksStrategy linksStrategy = visitor.getLinksStrategy();
+        LinksStrategy linksStrategy = visitor.linksStrategy();
 
         RelativePath path = new RelativePath(true, file.getName());
         FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);

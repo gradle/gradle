@@ -115,14 +115,20 @@ public interface FileTreeElement {
     FilePermissions getPermissions();
 
     /**
-     * @since 8.3
+     * Symbolic link details of this file, or null if this file is not a symbolic link.
+     *
+     * @return the symbolic link details of this file.
+     * @since 8.6
      */
     @Incubating
     @Nullable
     SymbolicLinkDetails getSymbolicLinkDetails();
 
     /**
-     * @since 8.3
+     * Check if this file is a symbolic link.
+     *
+     * @return true if this file is a symbolic link.
+     * @since 8.6
      */
     @Incubating
     default boolean isSymbolicLink() {

@@ -26,7 +26,6 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.SymbolicLinkDetails;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
@@ -36,8 +35,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,7 +61,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
-    private final LinksStrategy preserveLinks;
 
     @Inject
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, ObjectFactory objectFactory, Chmod chmod) {
@@ -73,7 +71,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.objectFactory = objectFactory;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
-        this.preserveLinks = specResolver.getPreserveLinks();
     }
 
     @Override

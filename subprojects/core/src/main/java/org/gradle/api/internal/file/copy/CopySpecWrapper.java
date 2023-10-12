@@ -345,14 +345,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    @Nullable
-    public LinksStrategy getPreserveLinks() {
-        return delegate.getPreserveLinks();
-    }
-
-    @Override
-    public void setPreserveLinks(@Nullable LinksStrategy preserveLinks) {
-        delegate.setPreserveLinks(preserveLinks);
+    public Property<LinksStrategy> getLinksStrategy() {
+        return delegate.getLinksStrategy();
     }
 
     @Override

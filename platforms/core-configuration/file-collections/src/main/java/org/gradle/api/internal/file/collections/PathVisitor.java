@@ -54,7 +54,7 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
         this.stopFlag = stopFlag;
         this.rootPath = rootPath;
         this.fileSystem = fileSystem;
-        this.linksStrategy = visitor.getLinksStrategy();
+        this.linksStrategy = visitor.linksStrategy();
     }
 
     private boolean shouldVisit(FileTreeElement element) {

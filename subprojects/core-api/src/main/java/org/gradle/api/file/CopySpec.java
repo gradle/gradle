@@ -18,12 +18,15 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -417,20 +420,13 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setFilteringCharset(String charset);
 
     /**
-     * Specifies whether symbolic links should be copied as links or as the contents of the linked file or directory.
-     * Defaults to {@code false}.
+     * Specifies the symbolic links handling strategy for this copy spec.
      *
-     * @return <code>true</code> if symbolic links should be copied as links
-     * @since 8.3
+     * @return Property with the strategy
+     * @since 8.6
      */
-    @Nullable
-    LinksStrategy getPreserveLinks();
-
-    /**
-     * Specifies whether symbolic links should be copied as links or as the contents of the linked file or directory.
-     *
-     * @param preserveLinks <code>true</code> if symbolic links should be copied as links
-     * @since 8.3
-     */
-    void setPreserveLinks(@Nullable LinksStrategy preserveLinks);
+    @Incubating
+    @Optional
+    @Input
+    Property<LinksStrategy> getLinksStrategy();
 }

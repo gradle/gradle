@@ -17,34 +17,58 @@
 package org.gradle.api.file;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+/**
+ * Strategy for handling symbolic links when copying files.
+ *
+ * @since 8.6
+ */
+@Incubating
 public interface LinksStrategy extends Serializable {
     /**
-     * Do not preserve any symlinks. This is the default.
-     */
-    LinksStrategy NONE = new LinksStrategy() {};
+     * Do not preserve any symlinks.
+     * Treat any link as a file it points to.
+     * This is the default.
+     *
+     * @since 8.6
+     **/
+    LinksStrategy FOLLOW = new LinksStrategy() {
+        @Override
+        public String toString() {
+            return "FOLLOW";
+        }
+    };
     /**
-     * Preserve relative symlinks.
-     */
-    LinksStrategy RELATIVE = new LinksStrategy() {
+     * Preserve relative symlinks, throw an exception if a symlink points outside the root directory of copy spec.
+     * It also throws an exception for broken links and links pointing to another link.
+     * @since 8.6
+     **/
+    LinksStrategy PRESERVE_RELATIVE = new LinksStrategy() {
         @Override
         public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             if (linkDetails == null) {
                 return false;
             }
             if (!linkDetails.isRelative()) {
-                throw new GradleException(String.format("Links strategy is set to RELATIVE, but a symlink pointing outside was visited: %s pointing to %s.", originalPath, linkDetails.getTarget()));
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: %s pointing to %s.", this, originalPath, linkDetails.getTarget()));
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return "PRESERVE_RELATIVE";
         }
     };
     /**
      * Preserve all symlinks, even if they point to non-existent paths.
-     */
-    LinksStrategy ALL = new LinksStrategy() {
+     * @since 8.6
+     **/
+    LinksStrategy PRESERVE_ALL = new LinksStrategy() {
         @Override
         public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             return linkDetails != null;
@@ -54,17 +78,28 @@ public interface LinksStrategy extends Serializable {
         public void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             // do nothing
         }
+
+        @Override
+        public String toString() {
+            return "PRESERVE_ALL";
+        }
     };
     /**
      * Throw an error if a symlink is visited.
-     */
+     * @since 8.6
+     **/
     LinksStrategy ERROR = new LinksStrategy() {
         @Override
         public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             if (linkDetails != null) {
-                throw new GradleException(String.format("Links strategy is set to ERROR, but a symlink was visited: %s pointing to %s.", originalPath, linkDetails.getTarget()));
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: %s pointing to %s.", this, originalPath, linkDetails.getTarget()));
             }
             return false;
+        }
+
+        @Override
+        public String toString() {
+            return "ERROR";
         }
     };
 

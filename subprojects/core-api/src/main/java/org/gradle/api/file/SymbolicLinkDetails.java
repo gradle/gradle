@@ -16,10 +16,36 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Information about a symbolic link in a file tree.
+ *
+ * @since 8.6
+ */
+@Incubating
 public interface SymbolicLinkDetails {
+    /**
+     * The target of the symbolic link
+     *
+     * @return the target of the symbolic link.
+     * @since 8.6
+     */
     String getTarget();
 
+    /**
+     * Check if target exists
+     *
+     * @return true if target exists
+     * @since 8.6
+     */
     boolean targetExists();
 
+    /**
+     * Check if the link is relative
+     *
+     * @return true if the link is relative.
+     * @since 8.6
+     */
     boolean isRelative();
 }

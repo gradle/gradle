@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.LinksStrategy;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
@@ -50,7 +51,7 @@ public interface CopySpecResolver {
 
     String getFilteringCharset();
 
-    LinksStrategy getPreserveLinks();
+    Property<LinksStrategy> getLinksStrategy();
 
     RelativePath getDestPath();
 

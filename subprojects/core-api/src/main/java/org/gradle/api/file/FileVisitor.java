@@ -15,6 +15,8 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
 /**
  * <p>A {@code FileVisitor} is used to visit each of the files in a {@link FileTree}.</p>
  */
@@ -33,7 +35,14 @@ public interface FileVisitor {
      */
     void visitFile(FileVisitDetails fileDetails);
 
-    default LinksStrategy getLinksStrategy() {
-        return LinksStrategy.NONE;
+    /**
+     * Returns the strategy to use for handling symbolic links.
+     *
+     * @return The strategy.
+     * @since 8.6
+     */
+    @Incubating
+    default LinksStrategy linksStrategy() {
+        return LinksStrategy.FOLLOW;
     }
 }

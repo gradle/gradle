@@ -129,7 +129,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
 
     //TODO: cover with tests for links
     private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
-        LinksStrategy linksStrategy = visitor.getLinksStrategy();
+        LinksStrategy linksStrategy = visitor.linksStrategy();
 
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {

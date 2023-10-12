@@ -81,7 +81,7 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     }
 
     @Override
-    public LinksStrategy getLinksStrategy() {
-        return copySpecResolver.getPreserveLinks();
+    public LinksStrategy linksStrategy() {
+        return copySpecResolver.getLinksStrategy().getOrElse(LinksStrategy.FOLLOW);
     }
 }

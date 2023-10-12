@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-
+import org.gradle.api.file.LinksStrategy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -42,14 +42,14 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         executer.withStacktraceEnabled()
     }
 
-    def "symlinked files should be copied as #hint if preserveLinks=#preserveLinks"() {
+    def "symlinked files should be copied as #hint if linksStrategy=#linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}")
             """
         )
@@ -66,21 +66,21 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         "$expectedOutcome"(linkCopy, originalCopy)
 
         where:
-        preserveLinks            | expectedOutcome  | hint
-        "LinksStrategy.ALL"      | "isValidSymlink" | "valid symlink"
-        "LinksStrategy.RELATIVE" | "isValidSymlink" | "valid symlink"
-        "LinksStrategy.NONE"     | "isCopy"         | "full copy"
-        null                     | "isCopy"         | "full copy"
+        linksStrategy                   | expectedOutcome  | hint
+        LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "valid symlink"
+        LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink" | "valid symlink"
+        LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
+        null                            | "isCopy"         | "full copy"
     }
 
-    def "symlinked files should be reported as error if preserveLinks is ERROR"() {
+    def "symlinked files should be reported as error if linksStrategy is ERROR"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = LinksStrategy.ERROR
+            linksStrategy = LinksStrategy.ERROR
             from("${inputDirectory.name}")
             """
         )
@@ -92,7 +92,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasCause("Links strategy is set to ERROR, but a symlink was visited: /${link.name} pointing to ${originalFile.getRelativePathFromBase()}.")
     }
 
-    def "symlinked files should be reported as error if preserveLinks is RELATIVE and points to a path outside the copy root"() {
+    def "symlinked files should be reported as error if linksStrategy is RELATIVE and points to a path outside the copy root"() {
         given:
         def externalFile = inputDirectory.createFile("original.txt") << "some text"
         def root = inputDirectory.createDir("root")
@@ -101,7 +101,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = LinksStrategy.RELATIVE
+            linksStrategy = LinksStrategy.PRESERVE_RELATIVE
             from("${inputDirectory.name}")
             """
         )
@@ -110,10 +110,10 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         def failure = fails(mainTask)
 
         then:
-        failure.assertHasCause("Links strategy is set to RELATIVE, but a symlink pointing outside was visited: ${root.name}/${link.name} pointing to ../${externalFile.name}.")
+        failure.assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: ${root.name}/${link.name} pointing to ../${externalFile.name}.")
     }
 
-    def "symlinked directories should be copied as #hint if preserveLinks=#preserveLinks"() {
+    def "symlinked directories should be copied as #hint if linksStrategy=#linksStrategy"() {
         given:
         def original = inputDirectory.createDir("original")
         def originalFile = original.createFile("original.txt") << "some text"
@@ -121,7 +121,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}")
             """
         )
@@ -143,14 +143,14 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         isNotASymlink(linkCopyFile)
 
         where:
-        preserveLinks            | expectedOutcome  | hint
-        "LinksStrategy.ALL"      | "isValidSymlink" | "valid symlink"
-        "LinksStrategy.RELATIVE" | "isValidSymlink" | "valid symlink"
-        "LinksStrategy.NONE"     | "isCopy"         | "full copy"
-        null                     | "isCopy"         | "full copy"
+        linksStrategy                   | expectedOutcome  | hint
+        LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "valid symlink"
+        LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink" | "valid symlink"
+        LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
+        null                            | "isCopy"         | "full copy"
     }
 
-    def "symlinked files with absolute path should be copied as #hint if preserveLinks=#preserveLinks"() {
+    def "symlinked files with absolute path should be copied as #hint if linksStrategy=#linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile)
@@ -161,7 +161,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}")
             """
         )
@@ -181,20 +181,20 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         "$expectedOutcome"(linkDirCopy, originalDir)
 
         where:
-        preserveLinks            | expectedOutcome  | hint
-        "LinksStrategy.ALL"      | "isValidSymlink" | "absolute link"
-        "LinksStrategy.RELATIVE" | "isCopy"         | "full copy"
-        "LinksStrategy.NONE"     | "isCopy"         | "full copy"
-        null                     | "isCopy"         | "full copy"
+        linksStrategy                   | expectedOutcome  | hint
+        LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "absolute link"
+        LinksStrategy.PRESERVE_RELATIVE | "isCopy"         | "full copy"
+        LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
+        null                            | "isCopy"         | "full copy"
     }
 
-    def "broken links should fail build if preserveLinks=#preserveLinks"() {
+    def "broken links should fail build if linksStrategy=#linksStrategy"() {
         given:
         def link = inputDirectory.file("link").createLink("non-existent-file")
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}")
             """
         )
@@ -207,22 +207,22 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
 
         where:
-        preserveLinks << [
-            "LinksStrategy.RELATIVE",
-            "LinksStrategy.NONE",
+        linksStrategy << [
+            LinksStrategy.PRESERVE_RELATIVE,
+            LinksStrategy.FOLLOW,
             null
         ]
     }
 
 
-    def "broken links should be preserved as is if preserveLinks=#preserveLinks"() {
+    def "broken links should be preserved as is if linksStrategy=#linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink("non-existent-file")
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}")
             """
         )
@@ -239,7 +239,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         isBrokenSymlink(linkCopy, originalCopy)
 
         where:
-        preserveLinks << ["LinksStrategy.ALL"]
+        linksStrategy << [LinksStrategy.PRESERVE_ALL]
     }
 
     def "broken links should not cause errors if they are excluded"() {
@@ -249,7 +249,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}"){
                 exclude("**/${link.name}")
             }
@@ -268,10 +268,10 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         !linkCopy.exists()
 
         where:
-        preserveLinks << ["LinksStrategy.NONE", null]
+        linksStrategy << [LinksStrategy.FOLLOW, null]
     }
 
-    def "nested spec should be processed properly with parent preserveLinks=#preserveLinksParent and child preserveLinks=#preserveLinksChild"() {
+    def "nested spec should be processed properly with parent linksStrategy=#linksStrategyParent and child linksStrategy=#linksStrategyChild"() {
         given:
         def inputWithChildSpec = inputDirectory.createDir("input-child")
         def inputWithParentSpec = inputDirectory.createDir("input-parent")
@@ -281,10 +281,10 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         }
 
         buildKotlinFile << constructBuildScript("""
-            preserveLinks = $preserveLinksParent
+            ${configureStrategy(linksStrategyParent)}
             from("$inputDirectory.name/${inputWithParentSpec.name}")
             from("$inputDirectory.name/${inputWithChildSpec.name}"){
-               preserveLinks = $preserveLinksChild
+               ${configureStrategy(linksStrategyChild)}
             }
             """)
 
@@ -300,16 +300,16 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         "$expectedOutcomeParent"(linkParentSpec, outputDirectory.file("original-${inputWithParentSpec.name}.txt"))
 
         where:
-        preserveLinksParent  | preserveLinksChild   | expectedOutcomeParent | expectedOutcomeChild
-        "LinksStrategy.NONE" | "LinksStrategy.NONE" | "isCopy"              | "isCopy"
-        "LinksStrategy.NONE" | "LinksStrategy.ALL"  | "isCopy"              | "isValidSymlink"
-        "LinksStrategy.NONE" | null                 | "isCopy"              | "isCopy"
-        "LinksStrategy.ALL"  | "LinksStrategy.NONE" | "isValidSymlink"      | "isCopy"
-        "LinksStrategy.ALL"  | "LinksStrategy.ALL"  | "isValidSymlink"      | "isValidSymlink"
-        "LinksStrategy.ALL"  | null                 | "isValidSymlink"      | "isValidSymlink"
-        null                 | "LinksStrategy.NONE" | "isCopy"              | "isCopy"
-        null                 | "LinksStrategy.ALL"  | "isCopy"              | "isValidSymlink"
-        null                 | null                 | "isCopy"              | "isCopy"
+        linksStrategyParent        | linksStrategyChild         | expectedOutcomeParent | expectedOutcomeChild
+        LinksStrategy.FOLLOW       | LinksStrategy.FOLLOW       | "isCopy"              | "isCopy"
+        LinksStrategy.FOLLOW       | LinksStrategy.PRESERVE_ALL | "isCopy"              | "isValidSymlink"
+        LinksStrategy.FOLLOW       | null                       | "isCopy"              | "isCopy"
+        LinksStrategy.PRESERVE_ALL | LinksStrategy.FOLLOW       | "isValidSymlink"      | "isCopy"
+        LinksStrategy.PRESERVE_ALL | LinksStrategy.PRESERVE_ALL | "isValidSymlink"      | "isValidSymlink"
+        LinksStrategy.PRESERVE_ALL | null                       | "isValidSymlink"      | "isValidSymlink"
+        null                       | LinksStrategy.FOLLOW       | "isCopy"              | "isCopy"
+        null                       | LinksStrategy.PRESERVE_ALL | "isCopy"              | "isValidSymlink"
+        null                       | null                       | "isCopy"              | "isCopy"
     }
 
     def "symlinks are not preserved with filter"() {
@@ -318,7 +318,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript("""
-            preserveLinks = LinksStrategy.ALL
+            linksStrategy = LinksStrategy.PRESERVE_ALL
             from("${inputDirectory.name}"){
                 filter { line: String ->
                     if (line.startsWith('#')) "" else line
@@ -346,7 +346,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         buildKotlinFile << constructBuildScript(
             """
-            preserveLinks = LinksStrategy.ALL
+            linksStrategy = LinksStrategy.PRESERVE_ALL
             from("${inputDirectory.name}"){
                 expand(mapOf("key" to "value"))
             }
@@ -367,7 +367,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
     //TODO: test a case when root is a symlink
 
-    def "symlinks should respect inclusions and similar transformations for #preserveLinks"() {
+    def "symlinks should respect inclusions and similar transformations for #linksStrategy"() {
         given:
         def originalDir = inputDirectory.createDir("original")
         def originalFile = originalDir.createFile("original.txt") << "some text"
@@ -376,7 +376,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         def linkDir = inputDirectory.file("linkDir").createLink(originalDir.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript("""
-            preserveLinks = $preserveLinks
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}"){
                 include("**/*.txt")
             }
@@ -397,10 +397,10 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         originalFileLinkDirCopy.exists() == copied
 
         where:
-        preserveLinks        | copied
-        "LinksStrategy.ALL"  | false
-        "LinksStrategy.NONE" | true
-        null                 | true
+        linksStrategy              | copied
+        LinksStrategy.PRESERVE_ALL | false
+        LinksStrategy.FOLLOW       | true
+        null                       | true
     }
 
     //TODO: add permissions checks
@@ -434,5 +434,12 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
     protected def haveSameContents(File one, File other) {
         one.text == other.text
+    }
+
+    protected String configureStrategy(LinksStrategy linksStrategy) {
+        if (linksStrategy == null) {
+            return ""
+        }
+        return "linksStrategy = LinksStrategy.$linksStrategy"
     }
 }

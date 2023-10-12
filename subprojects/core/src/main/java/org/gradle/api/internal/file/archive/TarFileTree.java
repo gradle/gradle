@@ -36,8 +36,8 @@ import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.GFileUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -115,7 +115,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         File expandedDir = getExpandedDir();
         ReadableResourceInternal resource = this.resource.get();
         TarArchiveEntry entry;
-        LinksStrategy linksStrategy = visitor.getLinksStrategy();
+        LinksStrategy linksStrategy = visitor.linksStrategy();
         while (!stopFlag.get() && (entry = (TarArchiveEntry) tar.getNextEntry()) != null) {
             SymbolicLinkDetails linkDetails = null;
             if (entry.isSymbolicLink()) {

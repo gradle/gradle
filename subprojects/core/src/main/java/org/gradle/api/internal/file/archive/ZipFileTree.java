@@ -32,8 +32,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +94,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
             AtomicBoolean stopFlag = new AtomicBoolean();
             File expandedDir = getExpandedDir();
-            LinksStrategy linksStrategy = visitor.getLinksStrategy();
+            LinksStrategy linksStrategy = visitor.linksStrategy();
             try (ZipFile zip = new ZipFile(zipFile)) {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
                 // to us. So, collect the entries in a map and iterate over them in alphabetical order.
