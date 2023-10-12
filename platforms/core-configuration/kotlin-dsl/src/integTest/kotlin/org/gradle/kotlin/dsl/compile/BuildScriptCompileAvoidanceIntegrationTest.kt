@@ -325,7 +325,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             }
             """
         )
-        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar") // TODO: report and ask
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @Test
@@ -451,45 +451,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
         )
         configureProject().assertOutputContains("barfoo")
     }
-
-    @Test
-    fun `recompiles buildscript when not able to determine Kotlin metadata kind for class on buildscript classpath`() {
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String foo() {
-                return "foo";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        withUniqueScript("println(\"foo\")")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
-
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String foo() {
-                return "bar";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("foo")
-    } // TODO: delete test
-
-    @Test
-    fun `avoids recompiling buildscript when not able to determine Kotlin metadata kind for unchanged class on buildscript classpath`() {
-        givenJavaClassInBuildSrcContains(
-            """
-            public static String bar() {
-                return "bar";
-            }
-            """,
-            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
-        )
-        withUniqueScript("println(\"foo\")")
-        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
-        configureProject().assertBuildScriptCompilationAvoided()
-    } // TODO: delete this test
 
     private
     fun buildJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
