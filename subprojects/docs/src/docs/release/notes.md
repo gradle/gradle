@@ -9,7 +9,8 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Philipp Schneider](https://github.com/p-schneider),
+[Leonardo Silveira](https://github.com/sombriks),
+[Philipp Schneider](https://github.com/p-schneider)
 
 ## Upgrade instructions
 
