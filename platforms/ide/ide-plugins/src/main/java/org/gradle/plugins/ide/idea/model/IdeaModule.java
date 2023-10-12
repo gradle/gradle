@@ -26,7 +26,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -202,9 +201,8 @@ public abstract class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        // TODO: remove this whileDisabled wrapping for Gradle 8.1
-        testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
-        testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
+        testSources.from(project.provider(this::getTestSourceDirs));
+        testResources.from(project.provider(this::getTestResourceDirs));
     }
 
     /**
