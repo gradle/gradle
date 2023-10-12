@@ -19,7 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
-class AutoTestedSamplesMavenIntegrationTest extends AbstractAutoTestedSamplesTest {
+class AutoTestedSamplesIvyIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test
     void runSamples() {

@@ -42,6 +42,8 @@ dependencies {
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":platform-native")))
 
+    integTestImplementation(project(":internal-integ-testing"))
+
     integTestImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributions-core")) {

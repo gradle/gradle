@@ -640,7 +640,7 @@
     "name": "platform-jvm",
     "path": "platforms/jvm/platform-jvm",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
