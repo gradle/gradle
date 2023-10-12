@@ -60,6 +60,7 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
+import org.gradle.kotlin.dsl.normalization.ApiJarExtractor
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -105,6 +106,7 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val gradlePropertiesController: GradlePropertiesController,
+    private val apiJarExtractor: ApiJarExtractor,
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -153,11 +155,12 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(gradlePropertiesController, jvmTarget))
+        Interpreter(InterpreterHost(gradlePropertiesController, apiJarExtractor, jvmTarget))
     }
 
     inner class InterpreterHost(
-        private val gradlePropertiesController: GradlePropertiesController,
+        gradlePropertiesController: GradlePropertiesController,
+        private val apiJarExtractor: ApiJarExtractor,
         override val jvmTarget: JavaVersion,
     ) : Interpreter.Host {
 
@@ -280,7 +283,10 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
-            classPathProvider.compilationClassPathOf(classLoaderScope)
+            DefaultClassPath.of(
+                classPathProvider.compilationClassPathOf(classLoaderScope).asFiles
+                    .map { apiJarExtractor.extractAbiJar(it) }
+            )
 
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,

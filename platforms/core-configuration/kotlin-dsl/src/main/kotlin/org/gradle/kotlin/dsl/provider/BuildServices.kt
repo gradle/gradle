@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.GradlePropertiesController
@@ -37,6 +38,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
+import org.gradle.kotlin.dsl.normalization.ApiJarExtractor
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -80,6 +82,10 @@ object BuildServices {
         ClassPathModeExceptionCollector()
 
     @Suppress("unused")
+    fun createApiJarExtractor(cacheFactory: BuildTreeScopedCacheBuilderFactory) =
+        ApiJarExtractor(cacheFactory)
+
+    @Suppress("unused")
     fun createKotlinScriptEvaluator(
         classPathProvider: KotlinScriptClassPathProvider,
         classloadingCache: KotlinScriptClassloadingCache,
@@ -101,6 +107,7 @@ object BuildServices {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         gradlePropertiesController: GradlePropertiesController,
+        apiJarExtractor: ApiJarExtractor,
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -123,6 +130,7 @@ object BuildServices {
             fileCollectionFactory,
             inputFingerprinter,
             gradlePropertiesController,
+            apiJarExtractor,
         )
 
     @Suppress("unused")
