@@ -18,28 +18,78 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def app = new CppAppWithLibrary()
+    def app = new CppAppWithLibraries()
+
+    def setup() {
+        settingsFile << """
+            include 'app', 'hello', 'log'
+        """
+
+        writeApp()
+    }
 
     @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle-native/issues/994")
     def "can depends on library with generated headers"() {
         given:
-        settingsFile << """
-            include 'app', 'lib'
-        """
+        writeHelloLibrary { TestFile libraryPath ->
+            app.greeterLib.publicHeaders.writeToSourceDir(testDirectory.file("staging-includes"))
+            app.greeterLib.privateHeaders.writeToSourceDir(libraryPath.file("src/main/headers"))
+            app.greeterLib.sources.writeToSourceDir(libraryPath.file("src/main/cpp"))
+            libraryPath.file('build.gradle') << '''
+                library {
+                    def generatorTask = tasks.register('generatePublicHeaders', Sync) {
+                        from(rootProject.file('staging-includes'))
+                        into({ temporaryDir })
+                    }
 
-        writeApp()
-        writeLibrary()
+                    publicHeaders.from(generatorTask)
+                }
+            '''
+        }
+        writeLogLibrary()
 
         when:
         succeeds ":app:compileDebugCpp"
         then:
-        result.assertTasksExecuted(":lib:generatePublicHeaders", ":app:compileDebugCpp")
+        result.assertTasksExecuted(":hello:generatePublicHeaders", ":app:compileDebugCpp")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle-native/issues/994")
+    def "can transitively depends on library with generated headers"() {
+        given:
+        writeHelloLibrary()
+        writeLogLibrary { TestFile logPath ->
+            app.loggerLib.publicHeaders.writeToSourceDir(testDirectory.file("staging-includes"))
+            app.loggerLib.privateHeaders.writeToSourceDir(logPath.file("src/main/headers"))
+            app.loggerLib.sources.writeToSourceDir(logPath.file("src/main/cpp"))
+            logPath.file('build.gradle') << '''
+                library {
+                    def generatorTask = tasks.register('generatePublicHeaders', Sync) {
+                        from(rootProject.file('staging-includes'))
+                        into({ temporaryDir })
+                    }
+
+                    publicHeaders.from(generatorTask)
+                }
+            '''
+        }
+
+        when:
+        succeeds ":hello:compileDebugCpp"
+        then:
+        result.assertTasksExecuted(":log:generatePublicHeaders", ":hello:compileDebugCpp")
+
+        when:
+        succeeds ":app:compileDebugCpp"
+        then:
+        result.assertTasksExecuted(":log:generatePublicHeaders", ":app:compileDebugCpp")
     }
 
     private writeApp() {
@@ -50,29 +100,28 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
             version = '1.0'
 
             dependencies {
-                implementation project(':lib')
+                implementation project(':hello')
             }
         """
     }
 
-    private writeLibrary(TestFile dir = testDirectory) {
-        def libraryPath = dir.file("lib")
-        app.greeter.publicHeaders.writeToSourceDir(testDirectory.file("staging-includes"))
-        app.greeter.privateHeaders.writeToSourceDir(libraryPath.file("src/main/headers"))
-        app.greeter.sources.writeToSourceDir(libraryPath.file("src/main/cpp"))
+    private writeHelloLibrary(Closure writeFixtureTo = { TestFile libraryPath -> app.greeterLib.writeToProject(libraryPath) }) {
+        def libraryPath = testDirectory.file("hello")
         libraryPath.file("build.gradle") << """
             apply plugin: 'cpp-library'
-            group = 'org.gradle.cpp'
-            version = '1.0'
 
-            library {
-                def generatorTask = tasks.register('generatePublicHeaders', Sync) {
-                    from(rootProject.file('staging-includes'))
-                    into({ temporaryDir })
-                }
-
-                publicHeaders.from(generatorTask)
+            dependencies {
+                api project(':log')
             }
         """
+        writeFixtureTo(libraryPath)
+    }
+
+    private writeLogLibrary(Closure writeFixtureTo = { TestFile logPath -> app.loggerLib.writeToProject(logPath) }) {
+        def logPath = testDirectory.file("log")
+        logPath.file("build.gradle") << """
+            apply plugin: 'cpp-library'
+        """
+        writeFixtureTo(logPath)
     }
 }
