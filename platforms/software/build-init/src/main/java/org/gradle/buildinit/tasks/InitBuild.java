@@ -135,7 +135,7 @@ public abstract class InitBuild extends DefaultTask {
      * for all relevant generated projects.  Gradle will validate the number to ensure
      * it is a valid and supported major version.
      *
-     * @return the java version number supplies by the user
+     * @return the java version number supplied by the user
      *
      * @since 8.5
      */
