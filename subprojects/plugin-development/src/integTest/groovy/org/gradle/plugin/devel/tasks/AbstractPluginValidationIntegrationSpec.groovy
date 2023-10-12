@@ -669,7 +669,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     TestFile getGroovyTaskSource() {
-        buildFile << """
+        buildFile """
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")

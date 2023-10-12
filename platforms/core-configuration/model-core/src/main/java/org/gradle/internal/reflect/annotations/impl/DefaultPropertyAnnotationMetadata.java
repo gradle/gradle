@@ -42,6 +42,7 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
         this.propertyName = propertyName;
         this.getter = getter;
         getter.setAccessible(true);
+//        getter.getDeclaringClass()
         this.declaredType = TypeToken.of(getter.getGenericReturnType());
         this.annotationsByCategory = annotationsByCategory;
         this.annotationsByType = collectAnnotationsByType(annotationsByCategory);

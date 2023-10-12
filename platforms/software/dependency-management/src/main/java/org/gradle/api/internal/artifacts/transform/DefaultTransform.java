@@ -93,8 +93,8 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
-import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.VALIDATION;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class DefaultTransform implements Transform {
@@ -301,7 +301,7 @@ public class DefaultTransform implements Transform {
         Object parameterObject,
         boolean cacheable
     ) {
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(problems, cacheable);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),

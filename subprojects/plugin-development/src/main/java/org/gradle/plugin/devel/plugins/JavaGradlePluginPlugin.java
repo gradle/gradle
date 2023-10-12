@@ -264,6 +264,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
+            task.getSourceSet().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getJava());
 
             task.getLauncher().convention(toolchainLauncher(project));
         });

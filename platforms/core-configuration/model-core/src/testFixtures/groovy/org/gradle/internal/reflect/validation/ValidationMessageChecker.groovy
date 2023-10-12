@@ -756,17 +756,17 @@ trait ValidationMessageChecker {
         }
 
         AnnotationContext forTransformAction() {
-            validAnnotations = "@Inject, @InputArtifact or @InputArtifactDependencies"
+            validAnnotations = "@Inject, @InputArtifact, or @InputArtifactDependencies"
             this
         }
 
         AnnotationContext forTransformParameters() {
-            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference"
+            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy, or @ServiceReference"
             this
         }
 
         AnnotationContext forTask() {
-            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference"
+            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy, or @ServiceReference"
             this
         }
     }

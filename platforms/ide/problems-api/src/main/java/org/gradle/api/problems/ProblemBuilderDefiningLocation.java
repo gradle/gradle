@@ -18,6 +18,8 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * {@link Problem} instance builder requiring the specification of the problem location.
  *
@@ -32,7 +34,7 @@ public interface ProblemBuilderDefiningLocation {
      * @param line the line number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningCategory location(String path, Integer line); // TODO rename to fileLocation
+    ProblemBuilderDefiningCategory location(String path, @Nullable Integer line); // TODO rename to fileLocation
 
     /**
      * Declares that this problem is in a file at a particular line.
@@ -42,7 +44,7 @@ public interface ProblemBuilderDefiningLocation {
      * @param column the column number
      * @return the builder for the next required property
      */
-    ProblemBuilderDefiningCategory location(String path, Integer line, Integer column); // TODO rename to fileLocation
+    ProblemBuilderDefiningCategory location(String path, @Nullable Integer line, @Nullable Integer column); // TODO rename to fileLocation
 
     // TODO discuss how to compose multiple explicit location information in problem builders
 

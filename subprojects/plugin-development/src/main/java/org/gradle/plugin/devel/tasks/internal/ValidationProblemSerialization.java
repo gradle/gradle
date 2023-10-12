@@ -392,7 +392,7 @@ public class ValidationProblemSerialization {
 
     private static class LocationAdapter extends TypeAdapter<ProblemLocation> {
         @Override
-        public void write(JsonWriter out, ProblemLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable ProblemLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;

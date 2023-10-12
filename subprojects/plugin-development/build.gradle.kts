@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.gson)
 
     testImplementation(project(":file-collections"))

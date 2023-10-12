@@ -30,7 +30,7 @@ import static org.junit.Assume.assumeNotNull
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
     def setup() {
-        buildFile << """
+        buildFile """
             apply plugin: "java-gradle-plugin"
         """
     }
@@ -144,7 +144,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "can enable stricter validation"() {
-        buildFile << """
+        buildFile """
             dependencies {
                 implementation localGroovy()
             }
@@ -188,7 +188,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "can validate task classes using external types"() {
-        buildFile << """
+        buildFile """
             ${mavenCentralRepository()}
 
             dependencies {
@@ -226,7 +226,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             include 'lib'
         """
 
-        buildFile << """
+        buildFile """
             allprojects {
                 ${mavenCentralRepository()}
             }
@@ -407,7 +407,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "tests only classes from plugin source set"() {
-        buildFile << """
+        buildFile """
             sourceSets {
                 plugin {
                     java {
@@ -461,35 +461,33 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     def "detects missing DisableCachingByDefault annotations"() {
-        javaTaskSource << """
+        enableProblemsApiCheck()
+
+
+        def myTaskJavaFile = source("src/main/java/pa/MyTask.java")
+        myTaskJavaFile << """
+            package pa;
+
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
 
             public abstract class MyTask extends DefaultTask {
             }
         """
-        file("src/main/java/MyTransformAction.java") << """
+
+        def myTransformationJavaFile = file("src/main/java/MyTransformAction.java")
+        myTransformationJavaFile << """
             import org.gradle.api.artifacts.transform.*;
 
             public abstract class MyTransformAction implements TransformAction<TransformParameters.None> {
             }
         """
-        buildFile << """
+        buildFile """
             validatePlugins.enableStricterValidation = true
         """
 
         expect:
         assertValidationFailsWith([
-            warning("""
-                Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
-
-                Reason: The task author should make clear why a task is not cacheable.
-
-                Possible solutions:
-                  1. Add @DisableCachingByDefault(because = ...).
-                  2. Add @CacheableTask.
-                  3. Add @UntrackedTask(because = ...).
-            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
             warning("""
                 Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
 
@@ -498,8 +496,23 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 Possible solutions:
                   1. Add @DisableCachingByDefault(because = ...).
                   2. Add @CacheableTransform.
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
+            warning("""
+                Type 'pa.MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+                Reason: The task author should make clear why a task is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTask.
+                  3. Add @UntrackedTask(because = ...).
             """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default")
         ])
+
+        def problems = collectedProblems
+        problems.size() == 2
+        problems[0].where[0].path == myTransformationJavaFile.path
+        problems[1].where[0].path == myTaskJavaFile.path
     }
 
     def "untracked tasks don't need a disable caching by default reason"() {
@@ -511,7 +524,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             public abstract class MyTask extends DefaultTask {
             }
         """
-        buildFile << """
+        buildFile """
             validatePlugins.enableStricterValidation = true
         """
 
@@ -1063,7 +1076,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             }
         """
         executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        buildFile << """
+        buildFile """
             java {
                 toolchain {
                     languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion.majorVersion}))

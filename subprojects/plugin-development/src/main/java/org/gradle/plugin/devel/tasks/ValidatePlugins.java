@@ -104,6 +104,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                 params.getClasses().setFrom(getClasses());
                 params.getOutputFile().set(getOutputFile());
                 params.getEnableStricterValidation().set(getEnableStricterValidation());
+                params.getSourceSet().set(getSourceSet());
             });
         getWorkerExecutor().await();
 
@@ -156,6 +157,16 @@ public abstract class ValidatePlugins extends DefaultTask {
     /**
      * The toolchain launcher used to execute workers when forking.
      *
+     * @since 8.5.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Incubating
+    public abstract ConfigurableFileCollection getSourceSet();
+
+    /**
+     * The toolchain launcher used to execute workers when forking.
+     *
      * @since 8.1.
      */
     @Nested
@@ -188,8 +199,9 @@ public abstract class ValidatePlugins extends DefaultTask {
     public abstract RegularFileProperty getOutputFile();
 
     @Inject
-    abstract protected DocumentationRegistry getDocumentationRegistry();
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Inject
-    abstract protected WorkerExecutor getWorkerExecutor();
+    protected abstract WorkerExecutor getWorkerExecutor();
+
 }
