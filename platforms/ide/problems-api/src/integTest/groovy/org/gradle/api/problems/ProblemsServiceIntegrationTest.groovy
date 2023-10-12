@@ -59,21 +59,25 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problems.size() == 1
         problems[0]["label"] == "label"
         problems[0]["problemCategory"]["category"] == "type"
-        problems[0]["where"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
+        problems[0]["where"][0] == [
+            length: null,
+            column: null,
+            line: 14,
+            path: "build file '$buildFile.absolutePath'"
+        ]
         problems[0]["where"][1] == [
-            type:"task",
-            identityPath:
-                [absolute:true,
-                 path:":reportProblem",
-                 name:"reportProblem",
-                 parent:
-                     [absolute:true,
-                      path:":",
-                      name:null,
-                      parent:null
-                     ]
+            identityPath: [
+                absolute: true,
+                path: ":reportProblem",
+                name: "reportProblem",
+                parent: [
+                    absolute: true,
+                    path: ":",
+                    name: null,
+                    parent: null
                 ]
             ]
+        ]
     }
 
     def "can emit a problem with user-manual documentation"() {
@@ -211,7 +215,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         this.collectedProblems.size() == 1
         this.collectedProblems[0]["where"][0] == [
-            "type": "file",
             "path": "test-location",
             "line": 1,
             "column": null,
@@ -250,7 +253,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         problems.size() == 1
         problems[0]["where"][0] == [
-            "type": "file",
             "path": "test-location",
             "line": 1,
             "column": 1,
@@ -258,7 +260,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         ]
 
         def taskPath = problems[0]["where"][2]
-        taskPath["type"] == "task"
         taskPath["identityPath"]["absolute"] == true
         taskPath["identityPath"]["path"] == ":reportProblem"
     }
@@ -294,7 +295,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         def problem = this.collectedProblems[0]
 
         def fileLocation = problem["where"][0]
-        fileLocation["type"] == "pluginId"
         fileLocation["pluginId"] == "org.example.pluginid"
     }
 
