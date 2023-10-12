@@ -80,7 +80,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
         // This GSON instance doesn't have the ProblemLocationSerializer registered
         // Otherwise, we would create an infinite loop at the inner call to `toJson`
-        private static final Gson gson = new Gson();
+        private final Gson gson = new Gson();
 
         @Override
         public void write(JsonWriter out, ProblemLocation value) throws IOException {
