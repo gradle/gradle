@@ -74,12 +74,10 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
+        TransformWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
         UnitOfWork execution;
-        TransformWorkspaceServices workspaceServices;
-        boolean isImmutable = producerProject == null || !transform.requiresInputChanges();
-        if (isImmutable) {
-            workspaceServices = immutableWorkspaceProvider;
+        if (producerProject == null) {
             execution = new ImmutableTransformExecution(
                 transform,
                 inputArtifact,
@@ -92,10 +90,9 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
-                immutableWorkspaceProvider
+                workspaceServices
             );
         } else {
-            workspaceServices = producerProject.getServices().get(TransformWorkspaceServices.class);
             execution = new MutableTransformExecution(
                 transform,
                 inputArtifact,
@@ -117,6 +114,13 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
             .map(result -> result
                 .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
+    }
+
+    private TransformWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
+        if (producerProject == null) {
+            return immutableWorkspaceProvider;
+        }
+        return producerProject.getServices().get(TransformWorkspaceServices.class);
     }
 
     @Nullable
