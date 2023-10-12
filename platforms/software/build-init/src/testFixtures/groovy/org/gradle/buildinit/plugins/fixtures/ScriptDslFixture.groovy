@@ -80,7 +80,7 @@ class ScriptDslFixture {
         new TestFile(fileWithoutExtension.parentFile, fileNameFor(fileWithoutExtension.name))
     }
 
-    void assertGradleFilesGenerated(TestFile parentFolder = rootDir, String ...pathForBuild) {
+    void assertGradleFilesGenerated(TestFile parentFolder = rootDir, String... pathForBuild) {
         assert getBuildFile(parentFolder.file(pathForBuild)).exists()
         assert getSettingsFile(parentFolder).exists()
         def gradleVersion = GradleVersion.current().version
