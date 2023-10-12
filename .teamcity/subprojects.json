@@ -449,7 +449,7 @@
   },
   {
     "name": "ivy",
-    "path": "subprojects/ivy",
+    "path": "platforms/software/ivy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -575,7 +575,7 @@
   },
   {
     "name": "maven",
-    "path": "subprojects/maven",
+    "path": "platforms/software/maven",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -729,7 +729,7 @@
   },
   {
     "name": "publish",
-    "path": "subprojects/publish",
+    "path": "platforms/software/publish",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

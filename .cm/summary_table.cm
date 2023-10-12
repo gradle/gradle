@@ -188,9 +188,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/ivy/'
-      - 'subprojects/maven/'
-      - 'subprojects/publish/'
       - 'subprojects/resources/'
       - 'subprojects/resources-gcs/'
       - 'subprojects/resources-http/'
