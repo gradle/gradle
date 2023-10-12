@@ -21,6 +21,7 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.kotlin.dsl.normalization.ApiJarExtractor
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
 import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -117,7 +118,7 @@ fun scriptDefinitionFromTemplate(
 ): ScriptDefinition {
     val hostConfiguration = ScriptingHostConfiguration {
         getScriptingClass(JvmGetScriptingClass())
-        configurationDependencies(JvmDependency(classPath))
+        configurationDependencies(JvmDependency(classPath.map { ApiJarExtractor().extractAbiJar(it) }))
     }
     return ScriptDefinition.FromConfigurations(
         hostConfiguration = hostConfiguration,
