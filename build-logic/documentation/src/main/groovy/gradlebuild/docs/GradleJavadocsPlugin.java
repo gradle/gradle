@@ -91,7 +91,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
 
-            task.source(extension.getDocumentedSource());
+            task.source(extension.getDocumentedSource().filter(f -> f.getName().endsWith(".java") || f.getName().endsWith(".kt")));
 
             task.setClasspath(extension.getClasspath());
 
