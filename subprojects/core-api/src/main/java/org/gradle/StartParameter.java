@@ -995,6 +995,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Deprecated
     public boolean isConfigurationCacheRequested() {
+        // TODO: add nagging in 8.6 (https://github.com/gradle/gradle/issues/26720)
         return false;
     }
 }
