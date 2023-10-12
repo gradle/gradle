@@ -106,7 +106,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.migratingUnlocked('classpath', ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) >> configuration
         1 * buildLogicBuilder.prepareClassPath(configuration, dependencyHandler)
-        1 * buildLogicBuilder.resolveClassPath(configuration, dependencyHandler) >> classpath
+        1 * buildLogicBuilder.resolveClassPath(configuration, dependencyHandler, configContainer) >> classpath
     }
 
     def "script classpath queries runtime classpath"() {
