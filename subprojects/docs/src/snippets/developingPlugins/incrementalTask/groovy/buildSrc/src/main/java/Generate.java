@@ -10,6 +10,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
+// tag::snippet[]
 public abstract class Generate extends DefaultTask {
 
     @Input
@@ -40,3 +41,4 @@ public abstract class Generate extends DefaultTask {
         }
     }
 }
+// end::snippet[]
