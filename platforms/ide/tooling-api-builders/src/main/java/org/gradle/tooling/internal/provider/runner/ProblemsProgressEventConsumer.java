@@ -18,10 +18,6 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -40,7 +36,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -80,6 +75,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         super.finished(buildOperation, result);
     }
 
+    @NonNullApi
     private static final class ProblemLocationSerializer extends TypeAdapter<ProblemLocation> {
 
         // This GSON instance doesn't have the ProblemLocationSerializer registered
