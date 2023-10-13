@@ -122,7 +122,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
         when:
         executer.inDirectory(project1)
-        withBuildCache().run 'myTask'
+        withBuildCache().run 'myTask', "--info"
 
         then:
         executedAndNotSkipped(':myTask')
@@ -130,7 +130,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
         when:
         executer.inDirectory(project2)
-        withBuildCache().run 'myTask'
+        withBuildCache().run 'myTask', "--info"
 
         then:
         skipped(':myTask')
