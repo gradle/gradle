@@ -431,7 +431,7 @@ class IntegTestPreconditions {
     static final class Groovy3OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return VersionNumber.parse(GroovySystem.version).major < 3
+            return VersionNumber.parse(GroovySystem.version).major <= 3
         }
     }
 }

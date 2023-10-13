@@ -169,7 +169,7 @@
   },
   {
     "name": "dependency-management",
-    "path": "subprojects/dependency-management",
+    "path": "platforms/software/dependency-management",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -449,7 +449,7 @@
   },
   {
     "name": "ivy",
-    "path": "subprojects/ivy",
+    "path": "platforms/software/ivy",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -575,7 +575,7 @@
   },
   {
     "name": "maven",
-    "path": "subprojects/maven",
+    "path": "platforms/software/maven",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
@@ -631,7 +631,7 @@
   },
   {
     "name": "platform-base",
-    "path": "subprojects/platform-base",
+    "path": "platforms/software/platform-base",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -700,6 +700,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-test-report-aggregation",
+    "path": "platforms/jvm/plugins-test-report-aggregation",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "precondition-tester",
     "path": "subprojects/precondition-tester",
     "unitTests": true,
@@ -722,49 +729,49 @@
   },
   {
     "name": "publish",
-    "path": "subprojects/publish",
+    "path": "platforms/software/publish",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "reporting",
-    "path": "subprojects/reporting",
+    "path": "platforms/software/reporting",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources",
-    "path": "subprojects/resources",
+    "path": "platforms/software/resources",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-gcs",
-    "path": "subprojects/resources-gcs",
+    "path": "platforms/software/resources-gcs",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-http",
-    "path": "subprojects/resources-http",
+    "path": "platforms/software/resources-http",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-s3",
-    "path": "subprojects/resources-s3",
+    "path": "platforms/software/resources-s3",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "resources-sftp",
-    "path": "subprojects/resources-sftp",
+    "path": "platforms/software/resources-sftp",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -785,14 +792,14 @@
   },
   {
     "name": "security",
-    "path": "subprojects/security",
+    "path": "platforms/software/security",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "signing",
-    "path": "subprojects/signing",
+    "path": "platforms/software/signing",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -890,7 +897,7 @@
   },
   {
     "name": "version-control",
-    "path": "subprojects/version-control",
+    "path": "platforms/software/version-control",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

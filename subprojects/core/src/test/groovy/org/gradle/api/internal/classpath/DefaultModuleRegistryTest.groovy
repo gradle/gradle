@@ -115,11 +115,11 @@ class DefaultModuleRegistryTest extends Specification {
         expect:
         if (cpFiles.size() == 1) {
             // jar - command line test execution
-            assert cpFiles[0].path.contains("subprojects/resources/build/libs/gradle-resources".replace('/', File.separator)) // jar
+            assert cpFiles[0].path.contains("platforms/software/resources/build/libs/gradle-resources".replace('/', File.separator)) // jar
         } else {
             assert cpFiles.size() == 3
             // folders - IDE test execution
-            assert cpFiles[0].path.endsWith("subprojects/resources/build/generated-resources/main".replace('/', File.separator))
+            assert cpFiles[0].path.endsWith("platforms/software/resources/build/generated-resources/main".replace('/', File.separator))
             assert cpFiles[1].path.endsWith("/classes")
             assert cpFiles[2].path.endsWith("/resources")
         }
