@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -31,6 +32,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.nio.file.Files
 import java.util.stream.Collectors
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -241,7 +243,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        gcFile.lastModified = daysAgo(2)
+        jars9GcFile.lastModified = daysAgo(2)
         writeLastFileAccessTimeToJournal(jar.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
 
         and:
@@ -269,7 +271,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
             userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
         ]
-        gcFile.createFile().lastModified = daysAgo(2)
+        jars9GcFile.createFile().lastModified = daysAgo(2)
 
         when:
         succeeds("help")
@@ -499,9 +501,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         file("current/build.gradle").text = subprojectSource(currentTimestampJar)
 
         expect:
-        succeeds("printMessage")
+        succeeds("printMessage", "--info")
 
-        getCachedTransformedJarsByName("testClasses.jar").size() == 1
+        getArtifactTransformJarsByName("testClasses.jar").size() == 1
+        getArtifactTransformJarsByName("testClasses.jiar").size() == 1
     }
 
     void notInJarCache(String filename) {
@@ -510,16 +513,20 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     TestFile inJarCache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
-        assert fullpath.startsWith(cacheDir.toURI().toString()) == shouldBeFound
+        assert fullpath.startsWith(jars9CacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
     }
 
-    TestFile getGcFile() {
-        return cacheDir.file("gc.properties")
+    TestFile getJars9GcFile() {
+        return jars9CacheDir.file("gc.properties")
     }
 
-    TestFile getCacheDir() {
+    TestFile getJars9CacheDir() {
         return userHomeCacheDir.file(DefaultClasspathTransformerCacheFactory.CACHE_KEY)
+    }
+
+    TestFile getArtifactTransformCacheDir() {
+        return userHomeCacheDir.file(CacheLayout.TRANSFORMS.key)
     }
 
     /**
@@ -527,14 +534,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
      * @param jarName the name of the JAR to look
      * @return the list of transformed JARs in the cache
      */
-    List<File> getCachedTransformedJarsByName(String jarName) {
-        Arrays.stream(cacheDir.listFiles()).filter {
-            File cacheChild -> isCachedTransformedEntryDir(cacheChild)
-        }.map {
-            File cacheChild -> new File(cacheChild, jarName)
-        }.filter {
-            it.exists()
-        }.collect(Collectors.toList())
+    List<File> getArtifactTransformJarsByName(String jarName) {
+        return Files.find(artifactTransformCacheDir.toPath(), 4, (path, attributes) -> path.toString().endsWith(jarName))
+            .map { new TestFile(it.toFile()) }
+            .collect(Collectors.toList())
     }
 
     private static boolean isCachedTransformedEntryDir(File cacheChild) {
