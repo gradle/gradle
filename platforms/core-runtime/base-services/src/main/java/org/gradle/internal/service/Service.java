@@ -16,12 +16,18 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.api.NonNullApi;
+
 /**
  * Wraps a single service instance. Implementations must be thread safe.
  */
+@NonNullApi
 interface Service {
     String getDisplayName();
 
+    /**
+     * Returns the instance of the underlying service.
+     */
     Object get();
 
     void requiredBy(ServiceProvider serviceProvider);

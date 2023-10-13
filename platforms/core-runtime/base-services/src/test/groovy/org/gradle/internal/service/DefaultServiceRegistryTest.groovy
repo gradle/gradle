@@ -1470,6 +1470,7 @@ class DefaultServiceRegistryTest extends Specification {
         Factory<?> getFactory(Class<?> type)
     }
 
+    @NonNullApi
     private static class MockServiceWrapper implements Service {
         private final Object instance
 
