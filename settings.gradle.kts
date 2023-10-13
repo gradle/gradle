@@ -147,6 +147,7 @@ platform("software") {
     subproject("ivy")
     subproject("maven")
     subproject("platform-base")
+    subproject("plugins-version-catalog")
     subproject("publish")
     subproject("resources")
     subproject("resources-http")
