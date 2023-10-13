@@ -201,9 +201,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         then:
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
         def classpathOperations = resetClasspathConfiguration
-            ? [resolveOperations[0], resolveOperations[2]]
+            ? [resolveOperations[0], resolveOperations[3]]
             : [resolveOperations[0]]
-        resolveOperations.size() == resetClasspathConfiguration ? 3 : 2
+        resolveOperations.size() == (resetClasspathConfiguration ? 4 : 3)
         classpathOperations.each {
             assert it.details.configurationName == "classpath"
             assert it.details.projectPath == null
@@ -262,7 +262,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
-        resolveOperations.size() == 1
+        resolveOperations.size() == 2
         resolveOperations[0].details.buildPath == ":"
         resolveOperations[0].details.configurationName == "classpath"
         resolveOperations[0].details.projectPath == null
@@ -271,6 +271,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.configurationVisible == true
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 1
+        resolveOperations[1].details.configurationName.toString().startsWith("detachedConfiguration")
 
         where:
         scriptType      | scriptBlock   | scriptFileName
