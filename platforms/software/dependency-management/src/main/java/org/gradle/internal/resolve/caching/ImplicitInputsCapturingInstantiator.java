@@ -25,6 +25,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -67,6 +68,7 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         };
     }
 
+    @Nullable
     public <IN, OUT, SERVICE> ImplicitInputsProvidingService<IN, OUT, SERVICE> findInputCapturingServiceByName(String name) {
         try {
             // TODO: Whenever we allow _user_ services to be injected, this would have to know

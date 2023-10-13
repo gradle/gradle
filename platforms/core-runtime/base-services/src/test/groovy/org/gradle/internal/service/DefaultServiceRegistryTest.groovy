@@ -18,6 +18,7 @@ package org.gradle.internal.service
 
 import com.google.common.reflect.TypeToken
 import org.gradle.api.Action
+import org.gradle.api.NonNullApi
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.internal.TextUtil
@@ -1540,6 +1541,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    @NonNullApi
     private static class MockServiceRegistry implements ContainsServices, ServiceRegistry {
         private final ParentServices parentServices
 

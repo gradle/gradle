@@ -16,6 +16,7 @@
 package org.gradle.internal.service;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * A read-only registry of services. May or may not be immutable.
  */
+@NonNullApi
 public interface ServiceRegistry extends ServiceLookup {
     /**
      * Locates the service of the given type.
