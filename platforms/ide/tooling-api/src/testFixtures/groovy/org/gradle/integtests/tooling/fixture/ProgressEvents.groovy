@@ -106,6 +106,7 @@ class ProgressEvents implements ProgressListener {
                         || descriptor.displayName.startsWith('Resolve files of')
                         || descriptor.displayName.startsWith('Identifying ')
                         || descriptor.displayName.startsWith('Execute unit of work')
+                        || descriptor.displayName.startsWith('Execute transform')
                         || descriptor.displayName.startsWith('Executing ')
                         || descriptor.displayName.startsWith('Execute container callback action')
                         || descriptor.displayName.startsWith('Resolving ')
