@@ -17,6 +17,9 @@ dependencies {
 
     integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
         because("Tests require 'future-plugin-versions.properties' on the test classpath")
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
+        }
     }
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))

@@ -143,6 +143,22 @@ configurations.create("localLibsRepositoryElements") {
     }
 }
 
+configurations.create("futureVersion") {
+    isVisible = false
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
+    }
+    outgoing {
+        artifact(futurePluginVersionsDestDir) {
+            builtBy(writeFuturePluginVersions)
+        }
+    }
+}
+
 // Workaround for https://github.com/gradle/gradlecom/issues/627
 configurations.archives.get().allArtifacts.removeIf {
     it.name != "plugins"
