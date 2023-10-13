@@ -29,7 +29,11 @@ import javax.annotation.Nullable;
 
 public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProjectState {
 
-    private SharedDataStorage storage = new SharedDataStorage();
+    private final SharedDataStorage storage;
+
+    public DefaultSharedDataRegistry(SharedDataStorage storage) {
+        this.storage = storage;
+    }
 
     @Override
     public <T> void registerSharedDataProducer(ProjectInternal providerProject, Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider) {
@@ -44,7 +48,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
 
     @Override
     public void discardAll() {
-        storage = new SharedDataStorage();
+        storage.discardAll();
     }
 
     // TODO: does it make sense to record project dependencies based on the providers used in tasks?

@@ -18,6 +18,7 @@ package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -31,35 +32,21 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
-class SharedDataStorage {
-    private final Map<DataKey, Map<Path, Provider<?>>> dataByKeyAndProjectPath = Collections.synchronizedMap(new LinkedHashMap<>());
-
+public interface SharedDataStorage extends HoldsProjectState {
     @Nullable
-    public <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier) {
-        @Nullable Map<Path, Provider<?>> dataWithKey = dataByKeyAndProjectPath.get(new DataKey(type, identifier));
-        if (dataWithKey == null) {
-            return null;
-        }
-        // Unchecked cast is OK since the calls to the code putting the items is type-checked with the same constraints
-        return Cast.uncheckedCast(dataWithKey.get(sourceProjectIdentityPath));
-    }
+    <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier);
 
-    public <T> void put(Project sourceProject, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
-        dataByKeyAndProjectPath.computeIfAbsent(new DataKey(type, identifier), key -> new ConcurrentHashMap<>()).compute(((ProjectInternal) sourceProject).getIdentityPath(), (key, oldValue) -> {
-            if (oldValue != null) {
-                throw new IllegalStateException("Shared data for type " + type + (identifier != null ? " (identifier '" + identifier + "')" : "") + " has already been registered in " + sourceProject);
-            }
-            return dataProvider;
-        });
-    }
+    <T> void put(Project sourceProject, Class<T> type, @Nullable String identifier, Provider<T> dataProvider);
 
-    private static class DataKey {
+    Map<DataKey, Provider<?>> getProjectData(Path sourceProjectIdentitityPath);
+
+    class DataKey {
         public final Class<?> type;
 
         @Nullable
         public final String identifier;
 
-        private DataKey(Class<?> type, @Nullable String identifier) {
+        DataKey(Class<?> type, @Nullable String identifier) {
             this.type = type;
             this.identifier = identifier;
         }
@@ -81,5 +68,4 @@ class SharedDataStorage {
             return Objects.hash(type, identifier);
         }
     }
-
 }
