@@ -82,7 +82,7 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
 
         then:
         succeeds "build" // tests message
-        output.endsWith("...\n")
+        output.contains("Waiting for changes to input files...\n")
 
         when:
         file("src/main/java/Thing.java") << "class Thing {}"

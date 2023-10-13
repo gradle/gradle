@@ -29,6 +29,7 @@ import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ProgressLoggingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SpringBootWebAppTestOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ToolchainDownloadOutputNormalizer;
@@ -41,6 +42,7 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     FileSeparatorOutputNormalizer.class,
     GradleWelcomeOutputNormalizer.class,
     GradleOutputNormalizer.class,
+    ProgressLoggingOutputNormalizer.class,
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,

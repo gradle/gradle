@@ -571,7 +571,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d to exit)\n")
+        output.contains("Waiting for changes to input files... (ctrl-d to exit)\n")
     }
 
     @Requires(UnitTestPreconditions.Windows)
