@@ -16,7 +16,6 @@
 package org.gradle.internal.service;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -82,7 +81,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-@NonNullApi
 public class DefaultServiceRegistry implements ServiceRegistry, Closeable, ContainsServices {
     private enum State {INIT, STARTED, CLOSED}
 

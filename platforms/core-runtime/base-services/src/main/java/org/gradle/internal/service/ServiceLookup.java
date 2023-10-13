@@ -16,8 +16,6 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.api.NonNullApi;
-
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -25,7 +23,6 @@ import java.lang.reflect.Type;
 /**
  * A read-only supplier of services.
  */
-@NonNullApi
 public interface ServiceLookup {
 
     /**
