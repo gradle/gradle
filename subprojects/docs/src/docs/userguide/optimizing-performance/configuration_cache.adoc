@@ -581,6 +581,18 @@ Let your team know they can opt-in by, for example, enabling the configuration c
 Later on, when more workflows are working, you can flip this around.
 Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
 
+[[config_cache:adoption:reacting]]
+=== Reacting to the configuration cache in the build
+
+There are additional ways to streamline the migration process for the configuration cache compatibility.
+
+Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+You can access it by <<custom_gradle_types#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+
+You can use this information to configure features of your plugin differently or to disable an optional feature that is not yet compatible.
+Another example involves providing additional guidance for your users, should they need to adjust their setup or be informed of temporary limitations.
+
 [[config_cache:adoption:changes_in_behavior]]
 === Adopting changes in the configuration cache behavior
 
