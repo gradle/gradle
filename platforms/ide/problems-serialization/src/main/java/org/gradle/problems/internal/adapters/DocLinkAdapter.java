@@ -24,6 +24,9 @@ import org.gradle.api.problems.internal.DefaultDocLink;
 
 import java.io.IOException;
 
+/**
+ * A GSON adapter for serializing and deserializing {@link DocLink} instances to/from JSON.
+ */
 public class DocLinkAdapter extends TypeAdapter<DocLink> {
 
     @Override

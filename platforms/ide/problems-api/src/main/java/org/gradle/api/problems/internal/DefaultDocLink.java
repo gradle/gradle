@@ -19,6 +19,11 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.DocLink;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Simple implementation of {@link DocLink}.
+ * <p>
+ * This class is capable of holding a URL and a message detailing how to consult the documentation.
+ */
 public class DefaultDocLink implements DocLink {
 
     private final String url;

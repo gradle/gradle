@@ -24,6 +24,9 @@ import org.gradle.api.problems.locations.ProblemLocation;
 
 import java.io.IOException;
 
+/**
+ * A GSON adapter for serializing and deserializing {@link ProblemLocation} instances to/from JSON.
+ */
 public class ProblemLocationAdapter extends TypeAdapter<ProblemLocation> {
 
     private final Gson gson = new Gson();
