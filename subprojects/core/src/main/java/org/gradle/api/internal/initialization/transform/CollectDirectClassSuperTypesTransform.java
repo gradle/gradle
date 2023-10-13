@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization.transform;
 
 import com.google.common.io.Files;
-import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -26,6 +25,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.nio.charset.StandardCharsets;
  * TODO: This class has similar implementation in build-logic/packaging/src/main/kotlin/gradlebuild/instrumentation/transforms/CollectDirectClassSuperTypesTransform.kt.
  *  We could reuse the same class at some point.
  */
-@CacheableTransform
+@DisableCachingByDefault(because = "Not enable yet, since original instrumentation is also not cached in build cache.")
 public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<TransformParameters.None> {
 
     private static final String DIRECT_SUPER_TYPES_FILE = "direct-super-types.properties";

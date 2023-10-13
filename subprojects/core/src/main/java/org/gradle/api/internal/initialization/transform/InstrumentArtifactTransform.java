@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.transform;
 
-import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -38,13 +37,14 @@ import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.Stat;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform.InstrumentArtifactTransformParameters;
 
-@CacheableTransform
+@DisableCachingByDefault(because = "Not enable yet, since original instrumentation is also not cached in build cache.")
 public abstract class InstrumentArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
