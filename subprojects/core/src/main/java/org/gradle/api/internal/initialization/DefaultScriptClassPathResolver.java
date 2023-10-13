@@ -32,6 +32,7 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -98,27 +99,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        ArtifactView instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
-        return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView.getFiles()));
+        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
+        return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
     }
 
-    private static ArtifactView getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        Configuration instrumentedClasspath = configContainer.create("instrumentedClasspath", config -> {
-            config.extendsFrom(classpathConfiguration);
-            config.setCanBeConsumed(false);
-            config.setCanBeResolved(true);
-        });
-
+    private static FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
         // Handle projects as files, so we cache them globally
-        ArtifactView projectsView = artifactView(instrumentedClasspath, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
+        ArtifactView projectsView = artifactView(classpathConfiguration, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
         DefaultSelfResolvingDependency projectDependencies = new DefaultSelfResolvingDependency(
             new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH),
             (FileCollectionInternal) projectsView.getFiles()
         );
-        dependencyHandler.add(instrumentedClasspath.getName(), projectDependencies);
+        Configuration projectsOnlyConfiguration = configContainer.detachedConfiguration(projectDependencies);
 
-        // Collect type hierarchy
-        ArtifactView hierarchyCollectedView = artifactView(instrumentedClasspath, config -> {
+        // Register collect type hierarchy
+        ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
             config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API_AND_PROJECTS));
         });
@@ -130,7 +125,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
-        // Do instrumentation and upgrades
+        // Register instrumentation and upgrades transform
         dependencyHandler.registerTransform(
             InstrumentArtifactTransform.class,
             spec -> {
@@ -139,11 +134,18 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
             }
         );
-        return artifactView(instrumentedClasspath, config -> {
+
+        FileCollection instrumentedClasspath = artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
             config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API));
-        });
+        }).getFiles();
+        //noinspection CodeBlock2Expr
+        FileCollection instrumentedProjectsOnlyClasspath = artifactView(projectsOnlyConfiguration, config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
+        }).getFiles();
+        return instrumentedClasspath.plus(instrumentedProjectsOnlyClasspath);
     }
+
     private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
         return configuration.getIncoming().artifactView(configAction);
     }
