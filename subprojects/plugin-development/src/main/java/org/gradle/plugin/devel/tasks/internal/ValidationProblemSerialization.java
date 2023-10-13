@@ -25,10 +25,14 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.internal.DefaultReportableProblem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.problems.internal.adapters.DocLinkAdapter;
+import org.gradle.problems.internal.adapters.ProblemLocationAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,8 +56,8 @@ public class ValidationProblemSerialization {
     public static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
-//        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
+        gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;

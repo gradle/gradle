@@ -25,6 +25,8 @@ dependencies {
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-suite"))
+    implementation(project(":problems-api"))
+    implementation(project(":problems-serialization"))
     implementation(project(":language-java"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))

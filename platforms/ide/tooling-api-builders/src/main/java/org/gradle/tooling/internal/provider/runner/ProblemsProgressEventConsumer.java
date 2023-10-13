@@ -18,10 +18,8 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.locations.ProblemLocation;
@@ -34,8 +32,8 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
-
-import java.io.IOException;
+import org.gradle.problems.internal.adapters.DocLinkAdapter;
+import org.gradle.problems.internal.adapters.ProblemLocationAdapter;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
@@ -46,7 +44,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         super(progressEventConsumer);
         this.idFactory = idFactory;
         this.gson = new GsonBuilder()
-            .registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationSerializer())
+            .registerTypeHierarchyAdapter(ProblemLocation.class, new ProblemLocationAdapter())
+            .registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter())
             .create();
     }
 
@@ -73,30 +72,5 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
         super.finished(buildOperation, result);
-    }
-
-    @NonNullApi
-    private static final class ProblemLocationSerializer extends TypeAdapter<ProblemLocation> {
-
-        // This GSON instance doesn't have the ProblemLocationSerializer registered
-        // Otherwise, we would create an infinite loop at the inner call to `toJson`
-        private final Gson gson = new Gson();
-
-        @Override
-        public void write(JsonWriter out, ProblemLocation value) throws IOException {
-            out.beginObject();
-            out.name("type");
-            out.value(value.getClass().getName());
-            out.name("data");
-            out.jsonValue(gson.toJson(value));
-            out.endObject();
-        }
-
-        @Override
-        public ProblemLocation read(JsonReader in) {
-            // Event consumer does not need to deserialize problem locations
-            throw new UnsupportedOperationException();
-        }
-
     }
 }

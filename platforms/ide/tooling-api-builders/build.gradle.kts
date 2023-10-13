@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":native"))
+    implementation(project(":problems-serialization"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
     implementation(project(":resources"))

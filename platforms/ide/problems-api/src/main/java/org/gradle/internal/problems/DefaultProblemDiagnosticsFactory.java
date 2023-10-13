@@ -42,7 +42,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         public List<StackTraceElement> transform(StackTraceElement[] original) {
             return ImmutableList.copyOf(original);
         }
-
     }
 
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();

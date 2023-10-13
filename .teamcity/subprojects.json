@@ -721,6 +721,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "problems-serialization",
+    "path": "platforms/ide/problems-serialization",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
     "unitTests": true,
