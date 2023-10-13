@@ -1365,11 +1365,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(0).empty
 
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
-        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.none(ExecuteWorkBuildOperationType)
-        buildOperations.none(SnapshotTransformInputsBuildOperationType)
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 3
+        // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations,
+        // except for instrumentation transforms
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 1
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 1
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 3
     }
 
     def "planned transform steps from project buildscript context are captured"() {
@@ -1390,11 +1391,12 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         getPlannedNodes(0)
         getExecutePlannedStepOperations(2)
 
-        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 2
+        buildOperations.progress(IdentifyTransformExecutionProgressDetails).size() == 3
         // The execution engine in DependencyManagementBuildScopeServices doesn't fire build operations
-        buildOperations.all(ExecuteWorkBuildOperationType).size() == 0
-        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 0
-        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 2
+        // except for instrumentation transforms
+        buildOperations.all(ExecuteWorkBuildOperationType).size() == 1
+        buildOperations.all(SnapshotTransformInputsBuildOperationType).size() == 1
+        buildOperations.all(ExecuteTransformActionBuildOperationType).size() == 3
     }
 
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
