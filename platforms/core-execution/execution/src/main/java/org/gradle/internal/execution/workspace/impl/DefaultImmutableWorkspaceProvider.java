@@ -162,14 +162,16 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        File workspace = new File(baseDirectory, path);
-        FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "Immutable workspace: " + workspace.getParentFile().getName() + "/" + workspace.getName());
-        try {
-            fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace, executionHistoryStore);
-        } finally {
-            innerLock.close();
-        }
+        return cache.withFileLock(() -> {
+            File workspace = new File(baseDirectory, path);
+            FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "Immutable workspace: " + workspace.getParentFile().getName() + "/" + workspace.getName());
+            try {
+                fileAccessTracker.markAccessed(workspace);
+                return action.executeInWorkspace(workspace, executionHistoryStore);
+            } finally {
+                innerLock.close();
+            }
+        });
     }
 
     @Override
