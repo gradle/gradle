@@ -1,0 +1,40 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_plugins]]
+= Writing Plugins
+
+Many Gradle features, like the ability to compile Java code, are added by _plugins_.
+
+Plugins add new tasks (e.g., link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g., link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g., Java source is located at `src/main/java`), and extend core objects or objects from other plugins.
+
+== Sample plugin
+
+A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+
+The example below is the most straightforward plugin, a "hello world" *script plugin*:
+
+[source, kotlin]
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class SamplePlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.create("SampleTask") {
+            println("Hello there!")
+        }
+    }
+}
+----
