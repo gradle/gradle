@@ -96,6 +96,8 @@ class Interpreter(val host: Host) {
             classLoaderScope: ClassLoaderScope
         ): ClassPath
 
+        fun abiClassPathOf(classPath: ClassPath): ClassPath
+
         /**
          * Provides an additional [ClassPath] to be used in the compilation of a top-level [Project] script
          * `buildscript` or `plugins` block.
@@ -334,6 +336,7 @@ class Interpreter(val host: Host) {
                     temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
+                    extractApiClasspath = host::abiClassPathOf,
                     packageName = residualProgram.packageName,
                 ).compile(residualProgram.document)
             }
@@ -491,7 +494,8 @@ class Interpreter(val host: Host) {
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
-                                    host::runCompileBuildOperation
+                                    host::runCompileBuildOperation,
+                                    extractApiClasspath = host::abiClassPathOf
                                 ).emitStage2ProgramFor(
                                     scriptFile,
                                     originalScriptPath

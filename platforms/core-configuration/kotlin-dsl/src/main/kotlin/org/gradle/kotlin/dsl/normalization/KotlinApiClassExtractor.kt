@@ -54,8 +54,8 @@ class KotlinApiClassExtractor : ApiClassExtractor(
 }
 
 
-private
-class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(apiMemberAdapter) {
+internal
+class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, private val forCompilation: Boolean = false) : ApiMemberWriter(apiMemberAdapter) {
 
     val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
 
@@ -88,13 +88,16 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     }
 
     override fun writeClassAnnotations(annotationMembers: Set<AnnotationMember>) {
-        super.writeClassAnnotations(annotationMembers.filter { it.name != kotlinMetadataAnnotationSignature }.toSet())
+        when {
+            forCompilation -> super.writeClassAnnotations(annotationMembers)
+            else -> super.writeClassAnnotations(annotationMembers.filter { it.name != kotlinMetadataAnnotationSignature }.toSet())
+        }
     }
 
     override fun writeMethod(method: MethodMember) {
         when {
             method.isInternal() -> return
-            method.isInline() -> throw CompileAvoidanceException.publicInlineFunction(method)
+            method.isInline() && !forCompilation -> throw CompileAvoidanceException.publicInlineFunction(method)
             else -> super.writeMethod(method)
         }
     }

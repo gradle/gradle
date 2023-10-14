@@ -283,10 +283,13 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
-            DefaultClassPath.of(
-                classPathProvider.compilationClassPathOf(classLoaderScope).asFiles
-                    .map { apiJarExtractor.extractAbiJar(it) }
-            )
+            classPathProvider.compilationClassPathOf(classLoaderScope)
+
+        override fun abiClassPathOf(classPath: ClassPath): ClassPath =
+            DefaultClassPath.of(classPath.asFiles.map { file ->
+                if (file.name.startsWith("kotlin-") || file.name.startsWith("gradle-kotlin-")) file
+                else apiJarExtractor.extractAbiJar(file)
+            })
 
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,

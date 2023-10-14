@@ -22,6 +22,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.normalization.java.ApiClassExtractor
+import org.gradle.internal.normalization.java.impl.MethodStubbingApiMemberAdapter
 import org.gradle.kotlin.dsl.support.walkReproducibly
 import org.objectweb.asm.ClassReader
 import java.io.File
@@ -46,7 +47,9 @@ class ApiJarExtractor @Inject constructor(
             .open()
 
     fun extractAbiJar(jarOrClassesDir: File): File {
-        val apiClassExtractor = ApiClassExtractor(emptySet())
+        val apiClassExtractor = ApiClassExtractor(emptySet()) { classWriter ->
+            KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter), forCompilation = true)
+        }
         return cache.useCache(Factory {
             when {
                 jarOrClassesDir.isDirectory -> extractAbiJarFromClassesDir(apiClassExtractor, jarOrClassesDir)

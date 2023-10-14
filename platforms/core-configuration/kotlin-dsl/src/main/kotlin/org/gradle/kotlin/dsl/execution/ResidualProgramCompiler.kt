@@ -95,6 +95,7 @@ class ResidualProgramCompiler(
     private val temporaryFileProvider: TemporaryFileProvider,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
+    private val extractApiClasspath: (ClassPath) -> ClassPath = { it },
     private val packageName: String? = null,
 ) {
 
@@ -714,7 +715,7 @@ class ResidualProgramCompiler(
                 jvmTarget,
                 scriptFile,
                 scriptDefinition,
-                compileClassPath.asFiles,
+                extractApiClasspath(compileClassPath).asFiles, // TODO HERE
                 messageCollectorFor(logger, allWarningsAsErrors) { path ->
                     if (path == scriptFile.path) originalPath
                     else path

@@ -164,6 +164,9 @@ class SimplifiedKotlinScriptEvaluator(
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             scriptCompilationClassPath
 
+        override fun abiClassPathOf(classPath: ClassPath): ClassPath =
+            classPath
+
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             ClassPath.EMPTY
 

@@ -150,7 +150,7 @@ fun compileKotlinScriptToDirectory(
         "buildscript",
         listOf(scriptFile.path),
         scriptDef,
-        classPath,
+        classPath, // TODO HERE
         messageCollector
     )
 
