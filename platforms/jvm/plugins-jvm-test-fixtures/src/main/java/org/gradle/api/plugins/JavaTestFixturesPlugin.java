@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,9 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  * Other projects may consume the test fixtures of the current project by
  * declaring a dependency using the {@link DependencyHandler#testFixtures(Object)}
  * method.
+ *
+ * This should really be named `JVMTestFixturesPlugin`, as there is no requirement
+ * for the test fixtures to be written in Java, any supported JVM language will work.
  *
  * @since 5.6
  * @see <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Java Test Fixtures reference</a>

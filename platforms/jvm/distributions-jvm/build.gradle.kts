@@ -20,6 +20,7 @@ dependencies {
     pluginsRuntimeOnly(project(":plugins-groovy"))
     pluginsRuntimeOnly(project(":plugins-java"))
     pluginsRuntimeOnly(project(":plugins-java-base"))
+    pluginsRuntimeOnly(project(":plugins-jvm-test-fixtures"))
     pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
     pluginsRuntimeOnly(project(":plugins-test-report-aggregation"))
     pluginsRuntimeOnly(project(":scala"))

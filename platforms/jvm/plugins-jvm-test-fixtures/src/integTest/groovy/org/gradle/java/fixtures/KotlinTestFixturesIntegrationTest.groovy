@@ -16,6 +16,7 @@
 
 package org.gradle.java.fixtures
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import spock.lang.Issue
 
@@ -50,7 +51,7 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
                 id("org.jetbrains.kotlin.jvm").version("${new KotlinGradlePluginVersions().latest}")
             }
 
-            ${mavenCentralRepository()}
+            ${AbstractIntegrationSpec.mavenCentralRepository()}
 
             dependencies {
                 testImplementation('junit:junit:4.13')

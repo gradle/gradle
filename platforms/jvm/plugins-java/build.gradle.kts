@@ -34,15 +34,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
-
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":language-jvm")))
     integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":plugins-jvm-test-fixtures")))
     integTestImplementation(testFixtures(project(":workers")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
