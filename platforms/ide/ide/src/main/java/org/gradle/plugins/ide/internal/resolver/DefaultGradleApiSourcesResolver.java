@@ -16,11 +16,15 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectInternal.DetachedResolver;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
@@ -28,6 +32,8 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,13 +43,45 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
+    private static final String GRADLE_LIBS_REPO_OVERRIDE_PROPERTY = "org.gradle.internal.gradle.libs.repo.override";
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
-    private final DetachedResolver resolver;
+    private final DependencyHandler dependencyHandler;
 
-    public DefaultGradleApiSourcesResolver(DetachedResolver resolver) {
-        this.resolver = resolver;
-        addGradleLibsRepository();
+    public DefaultGradleApiSourcesResolver(DependencyHandler dependencyHandler) {
+        this.dependencyHandler = dependencyHandler;
+    }
+
+    public static DefaultGradleApiSourcesResolver newSourcesResolverWithDefaultRepoConfig(ProjectInternal projectInternal) {
+        return newSourcesResolver(
+            projectInternal,
+            a -> {
+                a.setName("Gradle Libs");
+                a.setUrl(gradleLibsRepoUrl(
+                    GRADLE_LIBS_REPO_URL,
+                    () -> Objects.toString(projectInternal.findProperty(GRADLE_LIBS_REPO_OVERRIDE_PROPERTY), null),
+                    () -> System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR)
+                ));
+            }
+        );
+    }
+
+    @SafeVarargs
+    @VisibleForTesting
+    static String gradleLibsRepoUrl(String defaultRepoUrl, Supplier<String>... repoUrlOverrideSources) {
+        for (Supplier<String> repoUrlOverrideSource : repoUrlOverrideSources) {
+            String repoUrlOverride = repoUrlOverrideSource.get();
+            if (repoUrlOverride != null) {
+                return repoUrlOverride;
+            }
+        }
+        return defaultRepoUrl;
+    }
+
+    public static DefaultGradleApiSourcesResolver newSourcesResolver(ProjectInternal projectInternal, Action<? super MavenArtifactRepository> repoConfigAction) {
+        DetachedResolver resolver = projectInternal.newDetachedResolver();
+        resolver.getRepositories().maven(repoConfigAction);
+        return new DefaultGradleApiSourcesResolver(resolver.getDependencies());
     }
 
     @Override
@@ -58,7 +96,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private File downloadLocalGroovySources(String artifact, VersionNumber version) {
-        ArtifactResolutionResult result = resolver.getDependencies().createArtifactResolutionQuery()
+        ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
             .forModule(groovyGroupName(version), artifact, version.toString())
             .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
             .execute();
@@ -71,17 +109,5 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
             }
         }
         return null;
-    }
-
-    private MavenArtifactRepository addGradleLibsRepository() {
-        return resolver.getRepositories().maven(a -> {
-            a.setName("Gradle Libs");
-            a.setUrl(gradleLibsRepoUrl());
-        });
-    }
-
-    private static String gradleLibsRepoUrl() {
-        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
-        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
     }
 }

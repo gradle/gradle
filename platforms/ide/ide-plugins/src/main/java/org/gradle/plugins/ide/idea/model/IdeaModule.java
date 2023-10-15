@@ -492,7 +492,7 @@ public abstract class IdeaModule {
      * The JDK to use for this module.
      * If {@code null}, the value of the existing or default ipr XML (inherited) is used.
      * If it is set to <code>inherited</code>, the project SDK is used.
-     * Otherwise the SDK for the corresponding value of java version is used for this module.
+     * Otherwise, the SDK for the corresponding value of java version is used for this module.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
@@ -621,7 +621,11 @@ public abstract class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(
+            projectInternal,
+            ideArtifactRegistry,
+            DefaultGradleApiSourcesResolver.newSourcesResolverWithDefaultRepoConfig(projectInternal)
+        );
         return ideaDependenciesProvider.provide(this);
     }
 
