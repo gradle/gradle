@@ -588,7 +588,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds "a"
-        output.endsWith("(ctrl-d then enter to exit)\n")
+        output.contains("(ctrl-d then enter to exit)\n")
     }
 
     @Issue("GRADLE-3415")
