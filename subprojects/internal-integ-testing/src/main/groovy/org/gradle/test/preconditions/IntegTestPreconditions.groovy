@@ -126,13 +126,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static final class IsIsolatedProjects implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isIsolatedProjects()
-        }
-    }
-
     static final class NotIsolatedProjects implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
