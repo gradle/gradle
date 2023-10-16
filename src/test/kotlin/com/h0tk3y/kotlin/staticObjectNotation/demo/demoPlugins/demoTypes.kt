@@ -3,6 +3,7 @@ package com.h0tk3y.kotlin.staticObjectNotation.demo.demoPlugins
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
+import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
 
 class TopLevelScope {
     val plugins = PluginsBlock()
@@ -23,6 +24,8 @@ class PluginsBlock {
 
 class PluginDefinition(val id: String) {
     var version: String = ""
+    
+    @HasDefaultValue
     var apply: Boolean = false
 
     @Builder

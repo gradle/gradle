@@ -24,9 +24,9 @@ fun main() {
             
             id("org.jetbrains.kotlin.jvm") version kotlinVersion
             id("org.jetbrains.kotlin.kapt") version kotlinVersion apply false
-            id("java") apply false
+            val java = id("java")
             val app = id("application")
-            app.apply(false)
+            app.apply(java.apply)
         }
         """.trimIndent()
     )

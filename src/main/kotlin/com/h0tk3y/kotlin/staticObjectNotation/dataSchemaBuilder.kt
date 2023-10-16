@@ -87,7 +87,9 @@ private fun dataPropertiesOf(kClass: KClass<*>) = kClass.memberProperties
             ?: error("classes with no primary constructor are not supported yet")
         val isReadOnly = property !is KMutableProperty<*>
         // TODO: a better predicate
-        val hasDefaultValue = isReadOnly && constructor.parameters.none { it.name == property.name }
+        val hasDefaultValue =
+            property.annotations.any { it is HasDefaultValue } ||
+                    isReadOnly && constructor.parameters.none { it.name == property.name }
         DataProperty(property.name, typeToRef(typeClassifier), isReadOnly, hasDefaultValue)
     }
 
