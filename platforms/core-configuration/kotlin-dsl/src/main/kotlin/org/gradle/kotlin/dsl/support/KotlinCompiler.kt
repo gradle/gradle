@@ -185,6 +185,7 @@ fun compileKotlinScriptModuleTo(
             val environment = kotlinCoreEnvironmentFor(configuration).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
                 KotlinAssignmentCompilerPlugin.apply(project)
+                ProvenanceCompilerPlugin.apply(project)
             }
 
             compileBunchOfSources(environment)
