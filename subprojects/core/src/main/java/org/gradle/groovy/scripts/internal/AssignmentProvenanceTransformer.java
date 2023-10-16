@@ -63,17 +63,24 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
         public void visitBinaryExpression(BinaryExpression expr) {
             if (expr.getClass() == BinaryExpression.class && expr.getOperation().getText().equals("=")) {
                 Expression rhs = expr.getRightExpression();
-                String provenance = (location != null ? location.getPath() : "?") + ":" + rhs.getLineNumber() + ":" + rhs.getColumnNumber();
                 expr.setRightExpression(
                     new StaticMethodCallExpression(
                         ClassHelper.make(DefaultProperty.class),
                         "withProv",
-                        new ArgumentListExpression(new ConstantExpression(provenance), rhs)
+                        new ArgumentListExpression(
+                            new ConstantExpression(provenanceStringOf(rhs)),
+                            rhs
+                        )
                     )
                 );
-                return;
             }
             super.visitBinaryExpression(expr);
+        }
+
+        private String provenanceStringOf(Expression e) {
+            int line = e.getLineNumber();
+            int column = e.getColumnNumber();
+            return (location != null ? location.getPath() : "?") + ":" + line + ":" + column;
         }
     }
 }
