@@ -1,6 +1,5 @@
 [versions]
-# Note the missing equals operator
-groovy "2.5.6"
+groovy = "2.5.6"
 
 [libraries]
 groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
@@ -10,4 +9,3 @@ guava = "com.google.guava:guava:17.0-jre"
 
 [bundles]
 groovy = ["groovy", "groovy-json"]
-

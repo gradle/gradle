@@ -88,4 +88,4 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
-description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""
+description = """Provides core Gradle plugins, as well as many JVM-related plugins for building different types of Java and Groovy projects."""

@@ -714,6 +714,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-version-catalog",
+    "path": "platforms/software/plugins-version-catalog",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "precondition-tester",
     "path": "subprojects/precondition-tester",
     "unitTests": true,

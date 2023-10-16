@@ -23,6 +23,7 @@ dependencies {
     pluginsRuntimeOnly(project(":plugins-jvm-test-fixtures"))
     pluginsRuntimeOnly(project(":plugins-jvm-test-suite"))
     pluginsRuntimeOnly(project(":plugins-test-report-aggregation"))
+    pluginsRuntimeOnly(project(":plugins-version-catalog"))
     pluginsRuntimeOnly(project(":scala"))
     pluginsRuntimeOnly(project(":war"))
 
