@@ -31,6 +31,8 @@ fun main() {
         """.trimIndent()
     )
     printResolutionResults(result)
+
+    println("\nResolved assignments")
     printResolvedAssignments(result)
 }
 

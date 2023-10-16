@@ -110,7 +110,15 @@ class AssignmentResolver {
                         if (receiverAssigned != null) {
                             Ok(receiverAssigned.toOrigin(objectOrigin))
                         } else {
-                            UnresolvedReceiver(objectOrigin)
+                            if (objectOrigin.property.hasDefaultValue) {
+                                Ok(
+                                    ObjectOrigin.PropertyDefaultValue(
+                                        receiverOrigin, objectOrigin.property, objectOrigin.originElement
+                                    )
+                                )
+                            } else {
+                                UnresolvedReceiver(objectOrigin)
+                            }
                         }
                     }
                 }
@@ -131,6 +139,7 @@ class AssignmentResolver {
             is ObjectOrigin.ConstantOrigin,
             is ObjectOrigin.External,
             is ObjectOrigin.NullObjectOrigin,
+            is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
         }
 

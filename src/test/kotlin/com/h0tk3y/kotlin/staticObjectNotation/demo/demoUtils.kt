@@ -78,16 +78,20 @@ inline fun <reified T> typeRef(): DataTypeRef.Name {
     return DataTypeRef.Name(FqName(parts.dropLast(1).joinToString("."), parts.last()))
 }
 
-fun printReflection(objectReflection: ObjectReflection): String {
+fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
     val visitedIdentity = mutableSetOf<Long>()
     
     fun StringBuilder.recurse(current: ObjectReflection, depth: Int) {
         fun indent() = "    ".repeat(depth)
         fun nextIndent() = "    ".repeat(depth + 1)
         when (current) {
-            is ObjectReflection.ConstantValue -> append(current.value)
+            is ObjectReflection.ConstantValue -> append(
+                if (current.type == DataType.StringDataType) 
+                    "\"${current.value}\"" 
+                else current.value.toString()
+            )
             is ObjectReflection.DataObjectReflection -> {
-                append(current.type.toString() + "#" + current.identity + " ")
+                append(current.type.toString() + (if (current.identity != -1L) "#" + current.identity else "") + " ")
                 if (visitedIdentity.add(current.identity)) {
                     append("{\n")
                     current.properties.forEach {

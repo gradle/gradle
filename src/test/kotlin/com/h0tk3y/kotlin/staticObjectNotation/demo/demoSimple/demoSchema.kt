@@ -12,15 +12,15 @@ val abcRef = DataTypeRef.Name(FqName.parse("com.example.Abc"))
 val dRef = DataTypeRef.Name(FqName.parse("com.example.D"))
 
 internal fun demoSchema(): AnalysisSchema {
-    val cX = DataProperty("x", int, false)
-    val cD = DataProperty("d", dRef, false)
-    val dId = DataProperty("id", string, false)
+    val cX = DataProperty("x", int, false, false)
+    val cD = DataProperty("d", dRef, false, false)
+    val dId = DataProperty("id", string, false, false)
 
     val cClass = DataType.DataClass(
         C::class,
         properties = listOf(
             cX,
-            DataProperty("y", string, true),
+            DataProperty("y", string, true, false),
             cD
         ),
         memberFunctions = listOf(
@@ -42,7 +42,7 @@ internal fun demoSchema(): AnalysisSchema {
 
     val abcClass = DataType.DataClass(
         Abc::class,
-        properties = listOf(DataProperty("a", int, false)),
+        properties = listOf(DataProperty("a", int, false, false)),
         memberFunctions = listOf(
             DataMemberFunction(abcRef, "b", emptyList(), Pure(int)),
             DataMemberFunction(
@@ -57,7 +57,7 @@ internal fun demoSchema(): AnalysisSchema {
     val dClass = DataType.DataClass(
         D::class,
         properties = listOf(
-            DataProperty("id", string, false)
+            DataProperty("id", string, false, false)
         ),
         memberFunctions = emptyList(),
         constructorSignatures = emptyList()

@@ -102,6 +102,30 @@ sealed interface ObjectOrigin {
         override fun toString(): String = "$receiver${'.'}${property.name}"
     }
 
+    data class PropertyDefaultValue(
+        val receiver: ObjectOrigin,
+        val property: DataProperty,
+        override val originElement: LanguageTreeElement
+    ) : ObjectOrigin {
+        override fun toString(): String = "$receiver${'.'}${property.name}_default"
+        
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is PropertyDefaultValue) return false
+
+            if (receiver != other.receiver) return false
+            if (property != other.property) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = receiver.hashCode()
+            result = 31 * result + property.hashCode()
+            return result
+        }
+    }
+
     data class External(val key: ExternalObjectProviderKey, override val originElement: PropertyAccess) : ObjectOrigin {
         override fun toString(): String = "${key.type}"
     }

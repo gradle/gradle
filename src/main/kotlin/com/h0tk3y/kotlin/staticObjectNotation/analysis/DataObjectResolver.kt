@@ -205,6 +205,7 @@ class DataObjectResolverImpl : DataObjectResolver {
             is ObjectOrigin.NullObjectOrigin -> false
             is ObjectOrigin.PropertyReference -> true
             is ObjectOrigin.TopLevelReceiver -> true
+            is ObjectOrigin.PropertyDefaultValue -> true
         }
 
         return when {
@@ -764,6 +765,7 @@ fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (obj
     is ObjectOrigin.External -> resolveRef(objectOrigin.key.type)
     is ObjectOrigin.NewObjectFromFunctionInvocation -> resolveRef(objectOrigin.function.returnValueType)
     is ObjectOrigin.PropertyReference -> resolveRef(objectOrigin.property.type)
+    is ObjectOrigin.PropertyDefaultValue -> resolveRef(objectOrigin.property.type)
     is ObjectOrigin.TopLevelReceiver -> objectOrigin.type
     is ObjectOrigin.FromLocalValue -> getDataType(objectOrigin.assigned)
     is ObjectOrigin.NullObjectOrigin -> DataType.NullType

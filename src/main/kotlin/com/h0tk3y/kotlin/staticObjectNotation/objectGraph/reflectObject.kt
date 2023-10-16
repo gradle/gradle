@@ -12,11 +12,12 @@ sealed interface ObjectReflection {
         val identity: Long,
         override val type: DataType,
         val properties: Map<DataProperty, ObjectReflection>,
-        val addedObjects: List<ObjectReflection>
+        val addedObjects: List<DataObjectReflection>
     ) : ObjectReflection
 
     data class ConstantValue(
         override val type: DataType.ConstantType<*>,
+        val objectOrigin: ObjectOrigin,
         val value: Any
     ) : ObjectReflection
 
@@ -47,6 +48,7 @@ fun reflect(
     return when (objectOrigin) {
         is ObjectOrigin.ConstantOrigin -> ObjectReflection.ConstantValue(
             type as DataType.ConstantType<*>,
+            objectOrigin,
             objectOrigin.constant.value
         )
 
@@ -55,6 +57,8 @@ fun reflect(
         is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null
 
         is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass<*>, objectOrigin, context)
+
+        is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.NewObjectFromFunctionInvocation -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
                 is FunctionSemantics.AddAndConfigure -> reflectData(
@@ -82,6 +86,26 @@ fun reflect(
     }
 }
 
+fun reflectDefaultValue(
+    objectOrigin: ObjectOrigin.PropertyDefaultValue,
+    context: ReflectionContext
+): ObjectReflection {
+    val type = context.typeRefContext.getDataType(objectOrigin)
+    return when (type) {
+        is DataType.ConstantType<*> -> ObjectReflection.ConstantValue(type, objectOrigin, defaultConstantValue(type))
+        is DataType.DataClass<*> -> reflectData(-1L, type, objectOrigin, context)
+        DataType.NullType -> ObjectReflection.Null
+        DataType.UnitType -> error("Unit can't appear in property types")
+    }
+}
+
+fun defaultConstantValue(type: DataType.ConstantType<*>) = when (type) {
+    DataType.BooleanDataType -> false
+    DataType.IntDataType -> 0
+    DataType.LongDataType -> 0L
+    DataType.StringDataType -> ""
+}
+
 fun reflectData(
     identity: Long,
     type: DataType.DataClass<*>,
@@ -92,10 +116,12 @@ fun reflectData(
         val referenceResolution = PropertyReferenceResolution(objectOrigin, it)
         when (val assignment = context.resolveAssignment(referenceResolution)) {
             is Assigned -> it to reflect(assignment.objectOrigin, context)
-            else -> null
+            else -> if (it.hasDefaultValue) {
+                it to reflect(ObjectOrigin.PropertyDefaultValue(objectOrigin, it, objectOrigin.originElement), context)
+            } else null
         }
     }.toMap()
-    val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) }
+    val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) as ObjectReflection.DataObjectReflection }
     return ObjectReflection.DataObjectReflection(identity, type, propertiesWithValue, added)
 }
 

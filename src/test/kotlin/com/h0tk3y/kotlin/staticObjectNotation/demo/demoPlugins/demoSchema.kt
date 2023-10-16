@@ -12,10 +12,10 @@ fun demoSchema(): AnalysisSchema {
     val pluginsBlockRef = typeRef<PluginsBlock>()
     val pluginDefinitionRef = typeRef<PluginDefinition>()
     
-    val topLevelScopePlugins = DataProperty("plugins", pluginsBlockRef, isReadOnly = true)
-    val pluginDefinitionId = DataProperty("id", string, isReadOnly = true)
-    val pluginDefinitionVersion = DataProperty("version", string, isReadOnly = true)
-    val pluginDefinitionApply = DataProperty("apply", boolean, isReadOnly = true)
+    val topLevelScopePlugins = DataProperty("plugins", pluginsBlockRef, isReadOnly = true, false)
+    val pluginDefinitionId = DataProperty("id", string, isReadOnly = true, false)
+    val pluginDefinitionVersion = DataProperty("version", string, isReadOnly = true, false)
+    val pluginDefinitionApply = DataProperty("apply", boolean, isReadOnly = true, false)
     
     val topLevelScope = DataType.DataClass(
         TopLevelScope::class,

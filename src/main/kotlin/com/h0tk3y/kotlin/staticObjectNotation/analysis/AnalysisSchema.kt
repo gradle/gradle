@@ -11,7 +11,7 @@ data class AnalysisSchema(
 )
 
 sealed interface DataType {
-    interface ConstantType<JvmType> : DataType
+    sealed interface ConstantType<JvmType> : DataType
     data object IntDataType : ConstantType<Int> {
         override fun toString(): String = "Int"
     }
@@ -42,14 +42,15 @@ sealed interface DataType {
         val constructors: List<DataConstructor>
             get() = constructorSignatures.map { DataConstructor(it.parameters, DataTypeRef.Type(this)) }
 
-        override fun toString(): String = "${kClass.qualifiedName}"
+        override fun toString(): String = "${kClass.simpleName}"
     }
 }
 
 data class DataProperty(
     val name: String,
     val type: DataTypeRef,
-    val isReadOnly: Boolean
+    val isReadOnly: Boolean,
+    val hasDefaultValue: Boolean
 )
 
 sealed interface SchemaFunction {
