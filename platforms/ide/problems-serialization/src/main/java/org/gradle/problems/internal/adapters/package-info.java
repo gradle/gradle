@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+@NonNullApi
+package org.gradle.problems.internal.adapters;
 
-description = """Problem instance serializations.
-    |
-    |This project contains adapters and utilities to serialize and deserialize
-    |problem instances.
-""".trimMargin()
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(project(":problems-api"))
-    api(libs.gson)
-
-    implementation(project(":base-annotations"))
-}
+import org.gradle.api.NonNullApi;
