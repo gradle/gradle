@@ -48,14 +48,14 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
 
     @Override
     public void register(CompilationUnit compilationUnit) {
+        URI scriptSourceUri = scriptSource.getResource().getLocation().getURI();
         new FilteringScriptTransformer(filter).register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
-        URI uri = scriptSource.getResource().getLocation().getURI();
-        new ModelBlockTransformer(scriptSource.getDisplayName(), uri).register(compilationUnit);
+        new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSourceUri).register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
-        new AssignmentProvenanceTransformer(uri).register(compilationUnit);
+        new AssignmentProvenanceTransformer(scriptSourceUri).register(compilationUnit);
     }
 
     @Override
