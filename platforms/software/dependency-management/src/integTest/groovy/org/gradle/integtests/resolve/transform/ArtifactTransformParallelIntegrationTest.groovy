@@ -425,6 +425,47 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
+    def "only one process should run immutable transform for same artifact at once"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'test:test:1.3'
+            }
+            task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+
+                doLast {
+                    assert artifacts.artifactFiles.collect { it.name } == ['test-1.3.jar.txt']
+                }
+            }
+        """
+        server.expect("test-1.3.jar")
+
+        when:
+        def buildHandles = (1..2).collect {
+            return executer.withTasks(':resolve').start()
+        }
+
+        then:
+        buildHandles[0].each {
+            it.waitForFinish()
+            assert it.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        }
+        buildHandles[1].each {
+            it.waitForFinish()
+            assert !it.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        }
+    }
+
     @Ignore("Needs a fix for parallel artifact transform")
     def "only one process can run immutable transforms at the same time"() {
         given:

@@ -35,6 +35,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -164,6 +165,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, path);
+            GFileUtils.mkdirs(workspace);
             FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "Immutable workspace: " + workspace.getParentFile().getName() + "/" + workspace.getName());
             try {
                 fileAccessTracker.markAccessed(workspace);
