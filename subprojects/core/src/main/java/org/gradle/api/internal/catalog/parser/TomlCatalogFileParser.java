@@ -143,6 +143,7 @@ public class TomlCatalogFileParser {
     private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, ProblemBuilderDefiningLocation::noLocation);
     }
+
     private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId, Function<ProblemBuilderDefiningLocation, ProblemBuilderDefiningCategory> locationDefiner) {
         ProblemBuilderDefiningLocation definingLocation = builder
             .label(message)

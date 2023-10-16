@@ -767,6 +767,39 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
         problems[0].where[0].path == tomlFile.absolutePath
     }
 
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "has multiple TOML parse errors"() {
+        enableProblemsApiCheck()
+
+        tomlFile << """
+# missing key values
+[plugins]
+key=
+key2=
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, parseError {
+            inCatalog('libs')
+            addError(getUnexpectedErrorString(4, 5))
+            addError(getUnexpectedErrorString(5, 6))
+        })
+
+        def problems = collectedProblems
+        problems.size() == 1
+        problems[0].where[0].path == tomlFile.absolutePath
+        problems[0].where[1].path == tomlFile.absolutePath
+    }
+
+    private String getUnexpectedErrorString(int line, int column) {
+        return "In file '${tomlFile.absolutePath}' at line $line, column $column: Unexpected end of line, expected ', \", ''', \"\"\", a number, a boolean, a date/time, an array, or a table"
+    }
+
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
     }
