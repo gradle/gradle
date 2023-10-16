@@ -60,7 +60,7 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
          */
         @Override
         public void visitBinaryExpression(BinaryExpression expr) {
-            if (expr.getOperation().getText().equals("=")) {
+            if (expr.getClass() == BinaryExpression.class && expr.getOperation().getText().equals("=")) {
                 Expression rhs = expr.getRightExpression();
                 String provenance = (location != null ? location.getPath() : "?") + ":" + rhs.getLineNumber() + ":" + rhs.getColumnNumber();
                 expr.setRightExpression(
