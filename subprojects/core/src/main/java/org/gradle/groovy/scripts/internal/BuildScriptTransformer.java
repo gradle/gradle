@@ -24,6 +24,7 @@ import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.Factory;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,9 +52,10 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
-        new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getLocation().getURI()).register(compilationUnit);
+        URI uri = scriptSource.getResource().getLocation().getURI();
+        new ModelBlockTransformer(scriptSource.getDisplayName(), uri).register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
-        new AssignmentProvenanceTransformer().register(compilationUnit);
+        new AssignmentProvenanceTransformer(uri).register(compilationUnit);
     }
 
     @Override

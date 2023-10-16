@@ -20,6 +20,43 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
 
+    def 'it works for local Groovy plugin'() {
+        given:
+        groovyFile file('buildSrc/build.gradle'), '''
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        '''
+        groovyFile file('buildSrc/src/main/groovy/my-application.gradle'), """
+            plugins {
+                id 'application'
+            }
+
+            application {
+                $assignment
+            }
+        """
+
+        buildFile """
+            plugins {
+                id 'my-application'
+            }
+
+            println application.mainClass.provenance
+        """
+
+        when:
+        run 'build'
+
+        then:
+        outputContains "my-application.gradle:$position"
+
+        where:
+        assignment           | position
+        "mainClass = 'Foo'"  | "7:29"
+        "mainClass =  'Foo'" | "7:30"
+    }
+
     def 'it works for direct assignment'() {
         given:
         buildFile """
