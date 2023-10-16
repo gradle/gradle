@@ -31,9 +31,13 @@ import javax.annotation.Nullable;
  * @param <T> the type of the property value
  */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
+
+    private static ThreadLocal<String> nextProvenance = new ThreadLocal<>();
+
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
+    private String provenance;
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -45,6 +49,15 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     protected ProviderInternal<? extends T> getDefaultValue() {
         return Providers.notDefined();
+    }
+
+    public String getProvenance() {
+        return provenance;
+    }
+
+    public static <T> T withProv(String provenance, T value) {
+        nextProvenance.set(provenance);
+        return value;
     }
 
     @Override
@@ -74,6 +87,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         } else {
             set(Cast.<T>uncheckedNonnullCast(object));
         }
+        provenance = nextProvenance.get();
     }
 
     @Override
