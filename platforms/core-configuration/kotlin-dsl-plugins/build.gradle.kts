@@ -21,6 +21,8 @@ dependencies {
     compileOnly(project(":language-java"))
     compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
+    compileOnly(project(":plugins"))
+    compileOnly(project(":toolchains-jvm"))
     compileOnly(project(":kotlin-dsl"))
 
     compileOnly(libs.slf4jApi)
