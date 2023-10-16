@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
@@ -111,4 +112,60 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
         "mainClass = 'Foo'"  | "7:29"
         "mainClass =  'Foo'" | "7:30"
     }
+
+    def 'it works for direct assignment in Kotlin'() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("application")
+            }
+
+            application {
+                $assignment
+            }
+
+            println((application.mainClass as $DefaultProperty.name<*>).provenance)
+        """
+
+        when:
+        run 'build'
+
+        then:
+        outputContains "build.gradle.kts:$position"
+
+        where:
+        assignment           | position
+        'mainClass = "Foo"'  | "7:29"
+        'mainClass =  "Foo"' | "7:30"
+    }
+
+    def 'it works for chained assignment in Kotlin'() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("application")
+            }
+
+            application {
+                $assignment
+            }
+
+            val chained = objects.property<String>()
+            chained = application.mainClass
+
+            println((chained as $DefaultProperty.name<*>).provenance)
+        """
+
+        when:
+        run 'build'
+
+        then:
+        outputContains "build.gradle.kts:$position"
+
+        where:
+        assignment           | position
+        'mainClass = "Foo"'  | "7:29"
+        'mainClass =  "Foo"' | "7:30"
+    }
+
 }
