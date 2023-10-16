@@ -27,7 +27,16 @@ import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.internal.provider.DefaultProperty;
 
+import javax.annotation.Nullable;
+import java.net.URI;
+
 public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
+    private final URI location;
+
+    public AssignmentProvenanceTransformer(@Nullable URI location) {
+        this.location = location;
+    }
+
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
@@ -42,15 +51,18 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
 
         /**
          * a = b
-         * a = DefaultProperty.withProv("...", b)
+         * =>
+         * clearProv(a = withProv("...", b))
+         *
          * a = b = c
-         * a = DefaultProperty.withProv("...", b = DefaultProperty.withProv("...", c))
+         * =>
+         * clearProv(a = withProv("...", clearProv(b = withProv("...", c))))
          */
         @Override
         public void visitBinaryExpression(BinaryExpression expr) {
             if (expr.getOperation().getText().equals("=")) {
                 Expression rhs = expr.getRightExpression();
-                String provenance = "build.gradle:" + rhs.getLineNumber() + ":" + rhs.getColumnNumber();
+                String provenance = (location != null ? location.getPath() : "?") + ":" + rhs.getLineNumber() + ":" + rhs.getColumnNumber();
                 expr.setRightExpression(
                     new StaticMethodCallExpression(
                         ClassHelper.make(DefaultProperty.class),
