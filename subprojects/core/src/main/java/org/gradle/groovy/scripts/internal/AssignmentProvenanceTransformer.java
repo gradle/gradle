@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
@@ -44,10 +45,10 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
-        source.getAST().getStatementBlock().visit(new Visitor());
+        AstUtils.visitScriptCode(source, new Visitor());
     }
 
-    class Visitor extends ExpressionReplacingVisitorSupport {
+    class Visitor extends CodeVisitorSupport {
 
         /**
          * a = b
