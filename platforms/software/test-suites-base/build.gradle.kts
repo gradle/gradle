@@ -23,4 +23,8 @@ dependencies {
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":base-services")))
+
+    testRuntimeOnly(project(":distributions-core")) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
 }
