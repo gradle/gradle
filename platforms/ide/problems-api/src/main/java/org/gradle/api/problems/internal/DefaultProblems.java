@@ -80,9 +80,9 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public void reportAsProgressEvent(Problem problem) {
         // Transform the problem with all registered transformers
-//        for (ProblemTransformer transformer : transformers) {
-//            problem = transformer.transform(problem);
-//        }
+        for (ProblemTransformer transformer : transformers) {
+            problem = transformer.transform(problem);
+        }
 
         buildOperationProgressEventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
     }
