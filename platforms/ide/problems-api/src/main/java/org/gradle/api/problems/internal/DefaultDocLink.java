@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.DocLink;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of {@link DocLink}.
@@ -34,13 +33,11 @@ public class DefaultDocLink implements DocLink {
         this.message = message;
     }
 
-    @Nullable
     @Override
     public String getUrl() {
         return url;
     }
 
-    @Nullable
     @Override
     public String getConsultDocumentationMessage() {
         return message;
