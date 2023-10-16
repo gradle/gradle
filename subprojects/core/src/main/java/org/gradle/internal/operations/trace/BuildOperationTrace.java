@@ -439,4 +439,5 @@ public class BuildOperationTrace implements Stoppable {
             return builder.build();
         }
     }
+
 }
