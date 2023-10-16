@@ -44,7 +44,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             $printScriptJavaClassFileMajorVersion
         """)
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
+        assertThat(build("help").output, containsString(outputFor(currentJavaVersionOrLastKotlinSupported())))
     }
 
     @Test
@@ -62,7 +62,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
+        assertThat(build("help").output, containsString(outputFor(currentJavaVersionOrLastKotlinSupported())))
     }
 
     @Test
@@ -179,4 +179,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     private
     fun outputFor(javaVersion: JavaVersion) =
         "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
+
+    private
+    fun currentJavaVersionOrLastKotlinSupported(): JavaVersion =
+        JavaVersion.current().takeIf { it <= JavaVersion.VERSION_20 } ?: JavaVersion.VERSION_20
 }
