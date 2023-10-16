@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":toolchains-jvm"))
 
     implementation(libs.ant)

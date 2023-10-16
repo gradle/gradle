@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":plugins"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
