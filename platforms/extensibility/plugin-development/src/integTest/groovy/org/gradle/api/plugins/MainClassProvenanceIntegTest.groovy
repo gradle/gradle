@@ -57,20 +57,14 @@ class MainClassProvenanceIntegTest extends AbstractIntegrationSpec {
                 $assignment
             }
 
-            abstract class QueryMainClassProvenance extends DefaultTask {
-                @Input abstract Property<String> getMainClass()
-                @TaskAction def printIt() {
-                    println mainClass.provenance
-                }
-            }
+            def chained = objects.property(String)
+            chained.set(application.mainClass)
 
-            tasks.register('prov', QueryMainClassProvenance) {
-                mainClass = application.mainClass
-            }
+            println chained.provenance
         """
 
         when:
-        run 'prov'
+        run 'build'
 
         then:
         outputContains "build.gradle:$position"
