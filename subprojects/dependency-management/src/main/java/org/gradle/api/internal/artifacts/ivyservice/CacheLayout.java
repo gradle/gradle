@@ -82,7 +82,9 @@ public enum CacheLayout {
 
     TRANSFORMS(null, "transforms", introducedIn("3.5-rc-1")
         .changedTo(2, "5.1")
-        .changedTo(3, "6.8-rc-1"));
+        .changedTo(3, "6.8-rc-1")
+        .changedTo(4, "8.5-rc-1")
+    );
 
     private final String name;
     private final CacheVersionMapping versionMapping;
@@ -101,7 +103,10 @@ public enum CacheLayout {
     }
 
     public String getKey() {
-        return getName() + "-" + getVersion();
+        String version = getVersion().toString().endsWith("4")
+            ? getVersion() + "-dev"
+            : getVersion().toString();
+        return getName() + "-" + version;
     }
 
     public CacheVersionMapping getVersionMapping() {

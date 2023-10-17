@@ -81,10 +81,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'transforms'
-        cacheLayout.key == 'transforms-3'
-        cacheLayout.version == CacheVersion.parse("3")
-        cacheLayout.version.toString() == '3'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-3')
+        cacheLayout.key == 'transforms-4-dev'
+        cacheLayout.version == CacheVersion.parse("4")
+        cacheLayout.version.toString() == '4'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-4-dev')
     }
 
 }
