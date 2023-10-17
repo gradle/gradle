@@ -110,7 +110,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         when:
-        run "resolve", "--stacktrace"
+        run "resolve"
 
         then:
         outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
@@ -128,7 +128,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
 
         when:
-        run "resolve", "--stacktrace"
+        run "resolve"
 
         then:
         output.count("Transforming") == 0

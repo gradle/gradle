@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.concurrent.TimeUnit
 
@@ -471,16 +470,16 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         when:
         server.expect("resolveStarted_build0")
-        def firstHttpBuildHandle = server.expectAndBlock("test-1.3.jar")
+        def firstBuildHttpHandle = server.expectAndBlock("test-1.3.jar")
         def firstBuildGradleHandle = executer.inDirectory(firstBuild).withTasks(':resolve').start()
-        firstHttpBuildHandle.waitForAllPendingCalls()
+        firstBuildHttpHandle.waitForAllPendingCalls()
 
         def secondBuildHttpHandle = server.expectAndBlock("resolveStarted_build1")
         def secondBuildGradleHandle = executer.inDirectory(secondBuild).withTasks(':resolve').start()
         secondBuildHttpHandle.waitForAllPendingCalls()
         secondBuildHttpHandle.releaseAll()
         Thread.sleep(ONE_SECOND_IN_MILLIS)
-        firstHttpBuildHandle.releaseAll()
+        firstBuildHttpHandle.releaseAll()
 
         then:
         firstBuildGradleHandle.waitForFinish()
@@ -489,8 +488,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         !secondBuildGradleHandle.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
     }
 
-    @Ignore("Needs a fix for parallel artifact transform")
-    def "only one process can run immutable transforms at the same time"() {
+    def "multiple processes can run immutable transforms at the same time for different artifacts"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
             def lib = mavenRepo.module("org.test.foo", "build${idx}").publish()
@@ -536,17 +534,13 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         expect:
         server.expectConcurrent(buildNames.collect { "resolveStarted_" + it })
-        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + "-1.0.jar" } as String[])
+        def transformations = server.expectConcurrentAndBlock(3, buildNames.collect { it + "-1.0.jar" } as String[])
         def buildHandles = builds.collect {
             executer.inDirectory(it).withTasks("resolve").start()
         }
 
-        for (build in builds) {
-            transformations.waitForAllPendingCalls()
-            Thread.sleep(ONE_SECOND_IN_MILLIS)
-            transformations.release(1)
-        }
-
+        transformations.waitForAllPendingCalls()
+        transformations.releaseAll()
         buildHandles.each {
             it.waitForFinish()
         }
