@@ -31,7 +31,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.time.ZoneOffset
@@ -125,7 +124,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         LogLevel.INFO  | ["-Dorg.gradle.logging.level=info"]
     }
 
-    @Ignore("Needs a fix for parallel artifact transform")
     def "tooling api uses the wrapper properties to determine which version to use"() {
         buildFile << """
         wrapper {
@@ -149,7 +147,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         notThrown(Throwable)
     }
 
-    @Ignore("Needs a fix for parallel artifact transform")
     def "tooling api searches up from the project directory to find the wrapper properties"() {
         settingsFile << "include 'child'"
         buildFile << """
