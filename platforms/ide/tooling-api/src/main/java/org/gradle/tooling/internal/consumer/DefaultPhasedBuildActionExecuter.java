@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.IntermediateModelListener;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
@@ -42,6 +43,11 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
     @Override
     protected DefaultPhasedBuildActionExecuter getThis() {
         return this;
+    }
+
+    @Override
+    public void setIntermediateModelListener(IntermediateModelListener intermediateModelListener) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

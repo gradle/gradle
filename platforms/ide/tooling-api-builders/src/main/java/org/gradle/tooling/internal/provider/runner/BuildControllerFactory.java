@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.service.scopes.Scopes;
@@ -28,14 +29,16 @@ public class BuildControllerFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildCancellationToken buildCancellationToken;
     private final BuildStateRegistry buildStateRegistry;
+    private final BuildEventConsumer buildEventConsumer;
 
-    public BuildControllerFactory(WorkerThreadRegistry workerThreadRegistry, BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry) {
+    public BuildControllerFactory(WorkerThreadRegistry workerThreadRegistry, BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry, BuildEventConsumer buildEventConsumer) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildStateRegistry = buildStateRegistry;
+        this.buildEventConsumer = buildEventConsumer;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry);
+        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, buildEventConsumer);
     }
 }
