@@ -169,4 +169,6 @@ public interface ProviderOperationParameters {
      * @since 7.6
      */
     Map<String, String> getSystemProperties(Map<String, String> defaultValue);
+
+    void sendIntermediate(Object model);
 }

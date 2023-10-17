@@ -33,6 +33,10 @@ public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAw
 
     @Override
     public void sendIntermediate(Object model) {
-        relay.sendIntermediate(model);
+        relay.sendIntermediate(unpack(model));
+    }
+
+    private Object unpack(Object model) {
+        return new ProtocolToModelAdapter().unpack(model);
     }
 }

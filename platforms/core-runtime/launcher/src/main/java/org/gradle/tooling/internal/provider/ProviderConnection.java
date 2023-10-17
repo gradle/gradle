@@ -28,7 +28,6 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.invocation.BuildAction;
@@ -405,12 +404,15 @@ public class ProviderConnection {
         }
 
         @VisibleForTesting
-        static ProgressListenerConfiguration from(ProviderOperationParameters providerParameters, GradleVersion consumerVersion) {
+        static ProgressListenerConfiguration from(
+            ProviderOperationParameters providerParameters,
+            GradleVersion consumerVersion
+        ) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener();
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
             BuildEventSubscriptions clientSubscriptions = new BuildEventSubscriptions(operationTypes);
             FailsafeBuildProgressListenerAdapter wrapper = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
-            BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+            BuildEventConsumer buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new IntermediateSendingBuildEventConsumer(providerParameters);
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
                 // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode
                 // Need to apply some synchronization when in embedded mode
