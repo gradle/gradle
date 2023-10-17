@@ -146,6 +146,31 @@ It is recommended that you rename your configuration to something that does not 
 The warnings and errors will help you identify and resolve these situations.
 
 See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
+<a name="dependency-verification"></a>
+
+### Dependency verification improvements
+
+By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
+Also, when Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII-armored versions of the keys.
+
+You can now change this behavior to choose only one format.
+To do so, edit `verification-metadata.xml` by adding the `keyring-format` setting:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    <configuration>
+        <verify-metadata>true</verify-metadata>
+        <verify-signatures>true</verify-signatures>
+        <keyring-format>armored</keyring-format> <!-- or binary -->
+    </configuration>
+</verification-metadata>
+```
+
+We've also updated the XML validation schema for `verification-metadata.xml`.
+Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -154,6 +179,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

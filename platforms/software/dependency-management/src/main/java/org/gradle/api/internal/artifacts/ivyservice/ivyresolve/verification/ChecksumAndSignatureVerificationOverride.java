@@ -82,7 +82,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         BuildOperationExecutor buildOperationExecutor,
         File gradleUserHome,
         File verificationsFile,
-        BuildTreeDefinedKeys keyrings,
         ChecksumService checksumService,
         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
         DependencyVerificationMode verificationMode,
@@ -105,7 +104,8 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         } catch (DependencyVerificationException e) {
             throw new DependencyVerificationException("Unable to read dependency verification metadata from " + verificationsFile, e.getCause());
         }
-        this.signatureVerificationService = signatureVerificationServiceFactory.create(keyrings, keyServers(), verifier.getConfiguration().isUseKeyServers());
+        BuildTreeDefinedKeys localKeyring = new BuildTreeDefinedKeys(verificationsFile.getParentFile(), verifier.getConfiguration().getKeyringFormat());
+        this.signatureVerificationService = signatureVerificationServiceFactory.create(localKeyring, keyServers(), verifier.getConfiguration().isUseKeyServers());
     }
 
     private List<URI> keyServers() {

@@ -17,43 +17,62 @@
 package org.gradle.api.internal.artifacts.verification.signatures;
 
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride.VERIFICATION_KEYRING_DRYRUN_GPG;
-
 public class BuildTreeDefinedKeys {
+    private static final String VERIFICATION_KEYRING_GPG = "verification-keyring.gpg";
+    private static final String VERIFICATION_KEYRING_ASCII = "verification-keyring.keys";
+
     private final KeyringFilePublicKeyService keyService;
-    private final File keyringsFile;
+    private final File keyringsRoot;
+
     private final File effectiveKeyringsFile;
 
-    public BuildTreeDefinedKeys(File keyringsFile) {
-        this.keyringsFile = keyringsFile;
-        if (!keyringsFile.exists()) {
-            keyringsFile = getAsciiKeyringsFile();
+    public BuildTreeDefinedKeys(
+        File keyringsRoot,
+        @Nullable DependencyVerificationConfiguration.KeyringFormat effectiveFormat
+    ) {
+        this.keyringsRoot = keyringsRoot;
+
+        File effectiveFile;
+        if (effectiveFormat == DependencyVerificationConfiguration.KeyringFormat.ARMORED) {
+            effectiveFile = getAsciiKeyringsFile();
+        } else if (effectiveFormat == DependencyVerificationConfiguration.KeyringFormat.BINARY) {
+            effectiveFile = getBinaryKeyringsFile();
+        } else if (effectiveFormat == null) {
+            effectiveFile = getBinaryKeyringsFile();
+            if (!effectiveFile.exists()) {
+                effectiveFile = getAsciiKeyringsFile();
+            }
+        } else {
+            throw new IllegalArgumentException("Unknown keyring format: " + effectiveFormat);
         }
-        if (keyringsFile.exists()) {
-            this.effectiveKeyringsFile = keyringsFile;
-            keyService = new KeyringFilePublicKeyService(keyringsFile);
+
+        if (effectiveFile.exists()) {
+            this.effectiveKeyringsFile = effectiveFile;
+            this.keyService = new KeyringFilePublicKeyService(effectiveKeyringsFile);
         } else {
             this.effectiveKeyringsFile = null;
-            keyService = null;
+            this.keyService = null;
         }
     }
 
     public File getBinaryKeyringsFile() {
-        return keyringsFile;
+        return new File(keyringsRoot, VERIFICATION_KEYRING_GPG);
     }
 
     public File getAsciiKeyringsFile() {
-        return SecuritySupport.asciiArmoredFileFor(keyringsFile);
+        return new File(keyringsRoot, VERIFICATION_KEYRING_ASCII);
     }
 
     public File getEffectiveKeyringsFile() {
@@ -74,9 +93,5 @@ public class BuildTreeDefinedKeys {
         } else {
             return original;
         }
-    }
-
-    public BuildTreeDefinedKeys dryRun() {
-        return new BuildTreeDefinedKeys(new File(keyringsFile.getParentFile(), VERIFICATION_KEYRING_DRYRUN_GPG));
     }
 }

@@ -55,6 +55,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -121,6 +122,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inTrustedKeys;
         private boolean inTrustedKey;
         private String currentTrustedKey;
+        private boolean inKeyRingFormat;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
@@ -210,6 +212,10 @@ public class DependencyVerificationsXmlReader {
                         addIgnoredKey(attributes);
                     }
                     break;
+                case KEYRING_FORMAT:
+                    assertInConfiguration(KEYRING_FORMAT);
+                    inKeyRingFormat = true;
+                    break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
                         builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
@@ -289,6 +295,8 @@ public class DependencyVerificationsXmlReader {
                 builder.setVerifyMetadata(readBoolean(ch, start, length));
             } else if (inVerifySignatures) {
                 builder.setVerifySignatures(readBoolean(ch, start, length));
+            } else if (inKeyRingFormat) {
+                builder.setKeyringFormat(new String(ch, start, length));
             }
         }
 
@@ -362,6 +370,9 @@ public class DependencyVerificationsXmlReader {
                     break;
                 case IGNORED_KEYS:
                     inIgnoredKeys = false;
+                    break;
+                case KEYRING_FORMAT:
+                    inKeyRingFormat = false;
                     break;
             }
         }

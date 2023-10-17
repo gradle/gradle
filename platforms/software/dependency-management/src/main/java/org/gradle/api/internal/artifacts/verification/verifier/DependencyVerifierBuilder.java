@@ -56,6 +56,26 @@ public class DependencyVerifierBuilder {
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
     private final List<String> topLevelComments = Lists.newArrayList();
+    private DependencyVerificationConfiguration.KeyringFormat keyringFormat = null;
+
+    public void setKeyringFormat(String newKeyringFormat) {
+        this.keyringFormat = parseKeyringFormat(newKeyringFormat);
+    }
+
+    private DependencyVerificationConfiguration.KeyringFormat parseKeyringFormat(String keyringFormat) {
+        if (keyringFormat == null) {
+            return null;
+        }
+        try {
+            return DependencyVerificationConfiguration.KeyringFormat.valueOf(keyringFormat.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new DependencyVerificationException("Invalid keyring format: " + keyringFormat + ". The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both.");
+        }
+    }
+
+    public DependencyVerificationConfiguration.KeyringFormat getKeyringFormat() {
+        return keyringFormat;
+    }
 
     public void addTopLevelComment(String comment) {
         topLevelComments.add(comment);
@@ -141,7 +161,7 @@ public class DependencyVerifierBuilder {
         byComponent.entrySet().stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
             .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)), topLevelComments);
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys), keyringFormat), topLevelComments);
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {

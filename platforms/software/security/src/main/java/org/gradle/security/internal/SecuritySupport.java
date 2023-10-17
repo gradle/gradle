@@ -132,9 +132,4 @@ public class SecuritySupport {
         }
         return stream;
     }
-
-    public static File asciiArmoredFileFor(File keyringsFile) {
-        String baseName = keyringsFile.getName().substring(0, keyringsFile.getName().toLowerCase().lastIndexOf(".gpg"));
-        return new File(keyringsFile.getParentFile(), baseName + KEYS_FILE_EXT);
-    }
 }

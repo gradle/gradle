@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.verification.serializer
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
 
@@ -58,7 +59,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
 </verification-metadata>
 """
         then:
@@ -204,6 +205,42 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 """
         then:
         verifier.configuration.ignoredKeys == [key("ABCDEF"), key("012345", "nope")] as Set
+    }
+
+    def "can parse #expectedResult keyring format"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      $formatLine
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        verifier.configuration.keyringFormat == expectedResult
+
+        where:
+        formatLine                                 | expectedResult
+        "<keyring-format>armored</keyring-format>" | DependencyVerificationConfiguration.KeyringFormat.ARMORED
+        "<keyring-format>binary</keyring-format>"  | DependencyVerificationConfiguration.KeyringFormat.BINARY
+        ""                                         | null
+    }
+
+    def "reasonable error message when invalid invalid keyring format given"() {
+        when:
+        parse """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <keyring-format>invalid_format</keyring-format>
+   </configuration>
+</verification-metadata>
+"""
+        then:
+        DependencyVerificationException e = thrown()
+        e.message == "Unable to read dependency verification metadata"
+        e.cause.message == "Invalid keyring format: invalid_format. The keyring format should be either 'armored' or 'binary', which determines how keys are stored. Please choose a valid format or leave it unset to generate both."
     }
 
     def "can parse trusted keys"() {

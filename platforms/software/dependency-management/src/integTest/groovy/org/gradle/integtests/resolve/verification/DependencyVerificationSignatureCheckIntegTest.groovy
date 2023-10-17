@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
+import org.gradle.security.fixtures.SimpleKeyRing
 import org.gradle.security.internal.Fingerprint
 import spock.lang.Issue
 
@@ -1428,6 +1429,105 @@ ${verifFile.getText('us-ascii')}""", 'us-ascii')
         'ASCII with header' | 'keys'    | 'some comment showing we can have arbitrary text'
     }
 
+    def "by default, prioritizes gpg format over ascii-armored when #hint"() {
+        // key will not be published on the server fixture but available locally
+        def keyring = newKeyRing()
+        def pkId = toHexString(keyring.publicKey.fingerprint)
+
+        createMetadataFile {
+            disableKeyServers()
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+
+        def binaryFile = file("gradle/verification-keyring.gpg")
+        writeLocalKeyring(keyring, binaryFile, binaryHasValidContent)
+
+        def asciiArmoredFile = file("gradle/verification-keyring.keys")
+        writeLocalKeyring(keyring, asciiArmoredFile, asciiArmoredHasValidContent)
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        expect:
+        if (expectError) {
+            fails ":compileJava"
+        } else {
+            succeeds ":compileJava"
+        }
+
+        where:
+        binaryHasValidContent | asciiArmoredHasValidContent | expectError | hint
+        true                  | null                        | false       | 'only gpg exists'
+        true                  | false                       | false       | 'gpg exists and ascii armored has invalid content'
+        true                  | true                        | false       | 'both files are valid'
+        false                 | null                        | true        | 'gpg is invalid and ascii is absent'
+        false                 | false                       | true        | 'gpg is invalid and ascii armored has invalid content'
+        false                 | true                        | true        | 'gpg is invalid and ascii exists'
+        null                  | null                        | true        | 'both files are absent'
+        null                  | false                       | true        | 'gpg is absent and ascii armored has invalid content'
+        null                  | true                        | false       | 'only ascii armored exists'
+    }
+
+    def "other formats should be ignored keyringFormat=#keyringFormat is specified when #hint"() {
+        // key will not be published on the server fixture but available locally
+        def keyring = newKeyRing()
+        def pkId = toHexString(keyring.publicKey.fingerprint)
+
+        createMetadataFile {
+            disableKeyServers()
+            verifySignatures()
+            keyRingFormat(keyringFormat)
+            addTrustedKey("org:foo:1.0", pkId)
+            addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
+        }
+
+        def binaryFile = file("gradle/verification-keyring.gpg")
+        writeLocalKeyring(keyring, binaryFile, binaryHasValidContent)
+
+        def asciiArmoredFile = file("gradle/verification-keyring.keys")
+        writeLocalKeyring(keyring, asciiArmoredFile, asciiArmoredHasValidContent)
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        expect:
+        if (expectError) {
+            fails ":compileJava"
+        } else {
+            succeeds ":compileJava"
+        }
+
+        where:
+        binaryHasValidContent | asciiArmoredHasValidContent | keyringFormat | expectError | hint
+        true                  | false                       | 'binary'      | false       | 'gpg exists and ascii armored has invalid content'
+        true                  | false                       | 'armored'     | true        | 'gpg exists and ascii armored has invalid content'
+        true                  | null                        | 'armored'     | true        | 'gpg exists and ascii armored has invalid content'
+        false                 | true                        | 'armored'     | false       | 'gpg is invalid and ascii exists'
+        null                  | true                        | 'binary'      | true        | 'only ascii armored exists'
+    }
+
     @UnsupportedWithConfigurationCache
     def "can verify dependencies in a buildFinished hook (terse output=#terse)"() {
         createMetadataFile {
@@ -1771,5 +1871,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     private static void tamperWithFile(File file) {
         file.bytes = [0, 1, 2, 3] + file.readBytes().toList() as byte[]
+    }
+
+    private void writeLocalKeyring(SimpleKeyRing keyring, File target, Boolean valid) {
+        if (valid == null) {
+            return
+        }
+        if (valid) {
+            keyring.writePublicKeyRingTo(target)
+        } else {
+            def differentKeyring = newKeyRing()
+            differentKeyring.writePublicKeyRingTo(target)
+        }
     }
 }
