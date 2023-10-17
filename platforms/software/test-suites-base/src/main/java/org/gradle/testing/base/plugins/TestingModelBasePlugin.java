@@ -42,7 +42,7 @@ import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 /**
  * Base plugin for testing.
  *
- * - Adds a {@link org.gradle.testing.base.TestSuiteContainer} named {@code testSuites} to the model.
+ * - Adds a {@link TestSuiteContainer} named {@code testSuites} to the model.
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
 @Incubating

@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":snapshots"))
     implementation(project(":publish"))
     implementation(project(":ivy"))

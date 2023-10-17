@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":toolchains-jvm"))
     implementation(project(":workers"))
 

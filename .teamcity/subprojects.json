@@ -847,6 +847,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "test-suites-base",
+    "path": "platforms/software/test-suites-base",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "testing-base",
     "path": "platforms/software/testing-base",
     "unitTests": true,

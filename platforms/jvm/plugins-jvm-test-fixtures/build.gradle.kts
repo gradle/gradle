@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":publish"))
     implementation(project(":testing-base"))
+    implementation(project(":test-suites-base"))
 
     implementation(libs.groovy)
     implementation(libs.inject)
