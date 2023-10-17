@@ -20,10 +20,15 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 import spock.lang.Ignore
 
+import java.util.concurrent.TimeUnit
+
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
+
+    private static final long ONE_SECOND_IN_MILLIS = TimeUnit.SECONDS.toMillis(1);
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(180_000)
@@ -425,19 +430,32 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    def "only one process should run immutable transform for same artifact at once"() {
+    def "only one process should run immutable transform for the same artifact at once"() {
+        executer.requireOwnGradleUserHomeDir()
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
 
         given:
-        buildFile << """
+        def firstBuild = new BuildTestFile(file("build0"), "build")
+        def secondBuild = new BuildTestFile(file("build1"), "build")
+        setupBuild(firstBuild)
+        firstBuild.buildFile << """
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
             dependencies {
                 compile 'test:test:1.3'
             }
+
+            task beforeResolve {
+                def projectDirName = layout.projectDirectory.asFile.name
+                doLast {
+                    ${server.callFromBuildUsingExpression('"resolveStarted_\$projectDirName"')}
+                }
+            }
+
             task resolve {
+                dependsOn('beforeResolve')
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
                 }.artifacts
@@ -448,22 +466,27 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 }
             }
         """
-        server.expect("test-1.3.jar")
+        // Let's just use exactly the same build for a second build and run it in parallel
+        GFileUtils.copyDirectory(firstBuild, secondBuild)
 
         when:
-        def buildHandles = (1..2).collect {
-            return executer.withTasks(':resolve').start()
-        }
+        server.expect("resolveStarted_build0")
+        def firstHttpBuildHandle = server.expectAndBlock("test-1.3.jar")
+        def firstBuildGradleHandle = executer.inDirectory(firstBuild).withTasks(':resolve').start()
+        firstHttpBuildHandle.waitForAllPendingCalls()
+
+        def secondBuildHttpHandle = server.expectAndBlock("resolveStarted_build1")
+        def secondBuildGradleHandle = executer.inDirectory(secondBuild).withTasks(':resolve').start()
+        secondBuildHttpHandle.waitForAllPendingCalls()
+        secondBuildHttpHandle.releaseAll()
+        Thread.sleep(ONE_SECOND_IN_MILLIS)
+        firstHttpBuildHandle.releaseAll()
 
         then:
-        buildHandles[0].each {
-            it.waitForFinish()
-            assert it.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
-        }
-        buildHandles[1].each {
-            it.waitForFinish()
-            assert !it.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
-        }
+        firstBuildGradleHandle.waitForFinish()
+        firstBuildGradleHandle.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        secondBuildGradleHandle.waitForFinish()
+        !secondBuildGradleHandle.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
     }
 
     @Ignore("Needs a fix for parallel artifact transform")
@@ -520,7 +543,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         for (build in builds) {
             transformations.waitForAllPendingCalls()
-            Thread.sleep(1000)
+            Thread.sleep(ONE_SECOND_IN_MILLIS)
             transformations.release(1)
         }
 
