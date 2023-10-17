@@ -438,4 +438,22 @@ hamcrest-core-1.3.jar
             }
         }
     }
+
+    def "test fixtures feature is added to java component"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-test-fixtures'
+
+            task verify {
+                components.java.features {
+                    assert size() == 2
+                    assert main.sourceSet == sourceSets.main
+                    assert testFixtures.sourceSet == sourceSets.testFixtures
+                }
+            }
+        """
+
+        expect:
+        succeeds("verify")
+    }
 }

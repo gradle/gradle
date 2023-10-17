@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.plugins.FeatureSpec;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 
 public interface FeatureSpecInternal extends FeatureSpec {
-    void create();
+    boolean isPublished();
+    JvmFeatureInternal create();
 }

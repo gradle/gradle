@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.tasks.SourceSet;
@@ -42,7 +43,7 @@ import javax.annotation.Nullable;
  * SingleTargetJvmFeature now and in the future implement a MultiTargetJvmFeature when we're ready.
  * This would allow us to use the JvmFeature interface as a common parent interface.</p>
  */
-public interface JvmFeatureInternal {
+public interface JvmFeatureInternal extends Named {
 
     /**
      * Get the capabilities of this feature. All variants exposed by this feature must provide at least
