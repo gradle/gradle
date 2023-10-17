@@ -147,7 +147,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         validateTimeStamps();
         try {
             if (isSymbolicLink()) {
-                copySymlinkTo(target); //TODO: permissions?
+                copySymlinkTo(target);
             } else if (isDirectory()) {
                 GFileUtils.mkdirs(target);
                 adaptPermissions(target);

@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.file.LinksStrategy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.nativeintegration.filesystem.jdk7.PosixFilePermissionConverter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -89,7 +90,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         def failure = fails(mainTask)
 
         then:
-        failure.assertHasCause("Links strategy is set to ERROR, but a symlink was visited: /${link.name} pointing to ${originalFile.getRelativePathFromBase()}.")
+        failure.assertHasCause("Links strategy is set to ERROR, but a symlink was visited: ${link.name} pointing to ${originalFile.getRelativePathFromBase()}.")
     }
 
     def "symlinked files should be reported as error if linksStrategy is RELATIVE and points to a path outside the copy root"() {
@@ -343,7 +344,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         ]
     }
 
-
     def "broken links should be preserved as is if linksStrategy=#linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
@@ -532,7 +532,74 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         null                       | true
     }
 
-    //TODO: add permissions checks
+    def "links permissions are preserved"() {
+        given:
+        def originalFile = inputDirectory.createFile("original.txt") << "some text"
+        originalFile.mode = fileMode
+        def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
+
+        buildKotlinFile << constructBuildScript(
+            """
+            ${configureStrategy(linksStrategy)}
+            from("${inputDirectory.name}")
+            """
+        )
+
+        when:
+        succeeds(mainTask)
+        def outputDirectory = getResultDir()
+
+        then:
+        def linkCopy = outputDirectory.file(link.name)
+        def fileCopy = outputDirectory.file(originalFile.name)
+        isValidSymlink(linkCopy, fileCopy)
+
+        permissions(linkCopy) == permissions(link)
+        permissions(originalFile) == permissions(fileCopy)
+
+        where:
+        fileMode | linksStrategy
+        0746     | LinksStrategy.PRESERVE_ALL
+        0746     | LinksStrategy.PRESERVE_ALL
+        0746     | LinksStrategy.PRESERVE_ALL
+        0400     | LinksStrategy.PRESERVE_ALL
+        0777     | LinksStrategy.PRESERVE_RELATIVE
+    }
+
+    def "links permissions are not affected by filePermissions"() {
+        given:
+        def originalFile = inputDirectory.createFile("original.txt") << "some text"
+        originalFile.mode = fileMode
+        def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
+
+        buildKotlinFile << constructBuildScript(
+            """
+            ${configureStrategy(linksStrategy)}
+            from("${inputDirectory.name}")
+            filePermissions {
+                unix("$specMode")
+            }
+            """
+        )
+
+        when:
+        succeeds(mainTask)
+        def outputDirectory = getResultDir()
+
+        then:
+        def linkCopy = outputDirectory.file(link.name)
+        def fileCopy = outputDirectory.file(originalFile.name)
+        isValidSymlink(linkCopy, fileCopy)
+
+        permissions(linkCopy) == permissions(link)
+        permissions(fileCopy) == Integer.parseInt(specMode, 8)
+
+        where:
+        fileMode | specMode | linksStrategy
+        0746     | "0777"   | LinksStrategy.PRESERVE_ALL
+        0746     | "0746"   | LinksStrategy.PRESERVE_ALL
+        0777     | "0700"   | LinksStrategy.PRESERVE_RELATIVE
+    }
 
     @SuppressWarnings('unused')
     protected boolean isValidSymlink(File link, File target) {
@@ -558,7 +625,8 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         copy.exists() &&
             !Files.isSymbolicLink(copy.toPath()) &&
             copy.canonicalPath != original.canonicalPath &&
-            (copy.isDirectory() || haveSameContents(copy, original))
+            (copy.isDirectory() || haveSameContents(copy, original)) &&
+            permissions(copy) == permissions(original)
     }
 
     protected def haveSameContents(File one, File other) {
@@ -570,5 +638,9 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
             return ""
         }
         return "linksStrategy = LinksStrategy.$linksStrategy"
+    }
+
+    protected def permissions(File file) {
+        return PosixFilePermissionConverter.convertToInt(Files.getPosixFilePermissions(file.toPath(), NOFOLLOW_LINKS));
     }
 }
