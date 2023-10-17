@@ -16,6 +16,7 @@
 
 package org.gradle.tooling;
 
+// TODO: Consider renaming to StreamingModelListener
 public interface IntermediateModelListener {
 
     void onModel(Object model);
