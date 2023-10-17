@@ -40,12 +40,8 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         FileLockManager fileLockManager
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-            cacheBuilderFactory
-                .createCacheBuilder("dependencies-accessors")
-                .withDisplayName("dependencies-accessors"),
-            cacheBuilderFactory
-                .createCacheBuilder("dependencies-accessors/.executionHistory")
-                .withDisplayName("dependencies-accessors/.executionHistory"),
+            "dependencies-accessors",
+            cacheBuilderFactory,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,

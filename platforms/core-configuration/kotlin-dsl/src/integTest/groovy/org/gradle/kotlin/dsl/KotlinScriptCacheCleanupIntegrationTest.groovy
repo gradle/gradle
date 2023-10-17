@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 class KotlinScriptCacheCleanupIntegrationTest
     extends AbstractIntegrationSpec
     implements FileAccessTimeJournalFixture {
 
-    @Ignore("Needs a fix for parallel artifact transform")
     @UnsupportedWithConfigurationCache(because = "tests script compilation")
     def "cleanup deletes old script cache entries"() {
         given:

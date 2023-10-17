@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -36,41 +37,31 @@ class KotlinDslWorkspaceProvider(
     classLoaderHasher: ClassLoaderHierarchyHasher,
     cacheConfigurations: CacheConfigurationsInternal,
     fileLockManager: FileLockManager
-
 ) : Closeable {
 
-    val accessors = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-        cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl/accessors")
-            .withDisplayName("kotlin-dsl/accessors"),
-        cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl/accessors/.executionHistory")
-            .withDisplayName("kotlin-dsl/accessors/.executionHistory"),
+    private
+    val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
+        "kotlin-dsl",
+        cacheBuilderFactory,
         fileAccessTimeJournal,
         inMemoryCacheDecoratorFactory,
         stringInterner,
         classLoaderHasher,
+        2, // scripts and accessors caches sit below the root directory
         cacheConfigurations,
         fileLockManager
     )
 
-    val scripts = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-        cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl/scripts")
-            .withDisplayName("kotlin-dsl/scripts"),
-        cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl/scripts/.executionHistory")
-            .withDisplayName("kotlin-dsl/scripts/.executionHistory"),
-        fileAccessTimeJournal,
-        inMemoryCacheDecoratorFactory,
-        stringInterner,
-        classLoaderHasher,
-        cacheConfigurations,
-        fileLockManager
-    )
+    val accessors = subWorkspace("accessors")
 
-    override fun close() {
-        accessors.close()
-        scripts.close()
+    val scripts = subWorkspace("scripts")
+
+    override fun close() =
+        kotlinDslWorkspace.close()
+
+    private
+    fun subWorkspace(prefix: String): WorkspaceProvider = object : WorkspaceProvider {
+        override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
+            kotlinDslWorkspace.withWorkspace("$prefix/$path", action)
     }
 }
