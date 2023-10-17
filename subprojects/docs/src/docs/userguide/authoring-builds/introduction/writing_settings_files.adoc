@@ -17,7 +17,7 @@
 
 The settings file is the entry point of every Gradle project.
 
-image::author-gradle-3.png[]
+image::author-gradle-3.png[Settings,500,63,align="center"]
 
 Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initialization,initialization phase>> finds the settings file in your <<directory_layout#dir:project_root,project root directory>>.
 
@@ -26,7 +26,7 @@ When the settings file `settings.gradle(.kts)` is found, Gradle instantiates a l
 One of the purposes of the `Settings` object is to allow you to declare all the projects to be included in the build.
 
 [[sec:settings_script]]
-== Settings scripts
+== Settings Scripts
 
 The settings script is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
 
@@ -40,7 +40,7 @@ Therefore, the _settings file_ defines the `Settings` object.
 There is a one-to-one correspondence between a `Settings` instance and a `settings.gradle(.kts)` file.
 ====
 
-== Settings object
+== The `Settings` Object
 
 The `Settings` object is part of the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Gradle API].
 
@@ -64,7 +64,7 @@ rootProject.name = "root"
 ----
 
 [[sec:standard_settings_properties]]
-=== Standard settings properties
+=== Standard `Settings` properties
 
 The `Settings` object exposes a standard set of properties in your settings script.
 
@@ -117,7 +117,7 @@ When Gradle executes a Kotlin settings script (`settings.gradle.kts`), it compil
 
 As a result, settings scripts have access to all visible properties and functions declared by the `KotlinSettingsScript` type.
 
-== Settings script structure
+== Settings Script structure
 
 Let's take a look at an example and break it down:
 

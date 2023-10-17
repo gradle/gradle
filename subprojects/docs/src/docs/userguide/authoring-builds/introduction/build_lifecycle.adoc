@@ -44,15 +44,15 @@ A Gradle build has three distinct phases.
 
 Gradle runs these phases in order:
 
-PHASE 1. Initialization::
+Phase 1. Initialization::
 - Detects the `settings.gradle.kts` file.
 - Creates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] instance.
 - Evaluates the settings file to determine which projects (and included builds) make up the build.
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
-PHASE 2. Configuration::
+Phase 2. Configuration::
 - Evaluates the build scripts (`build.gradle.kts`) of every project participating in the build.
 - Creates a task graph for requested tasks.
-PHASE 3. Execution::
+Phase 3. Execution::
 - Schedules and executes the selected tasks.
 - Dependencies between tasks determine execution order.
 - Execution of tasks can occur in parallel.
@@ -111,7 +111,7 @@ During settings file evaluation, Gradle:
 - Defines which included builds participate in a composite build.
 - Defines which projects participate in a multi-project build.
 
-=== Create Project Object
+=== Create `Project` Object(s)
 
 Gradle creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] for every project in the build.
 

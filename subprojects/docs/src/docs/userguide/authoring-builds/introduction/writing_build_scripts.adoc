@@ -17,14 +17,14 @@
 
 In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file if it exists.
 
-image::author-gradle-4.png[]
+image::author-gradle-4.png[Build,500,63,align="center"]
 
 Then, for each project included in the settings file, Gradle creates a `Project()` instance.
 
 Gradle then looks for a corresponding build script file which is used in the configuration phase.
 
 [[tutorial_using_tasks]]
-== Build scripts
+== Build Scripts
 
 Every Gradle build is made up of one or more _projects_; a root project and subprojects.
 
@@ -46,7 +46,7 @@ The build script is either a `\*.gradle` file if written in Groovy or a `*.gradl
 _Build scripts_ define `Project` objects.
 ====
 
-== Project object
+== The `Project` object
 
 The `Project` object is part of the link:{javadocPath}org/gradle/api/Project.html[Gradle API].
 
@@ -144,7 +144,7 @@ When Gradle executes a Kotlin build script (`.gradle.kts`), it compiles the scri
 
 As a result, builds scripts have access to all visible properties and functions declared by the `KotlinProjectScriptTemplate` type.
 
-== Build script structure
+== Build Script structure
 
 Let's take a look at an example and break it down:
 
@@ -165,27 +165,26 @@ repositories {
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")       // <4>
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")  // <5>
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("com.google.guava:guava:32.1.1-jre")                 // <6>
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")  // <4>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")       // <4>
+    implementation("com.google.guava:guava:32.1.1-jre")                 // <5>
 }
 
 application {
-    mainClass.set("main")                                               // <7>
+    mainClass.set("main")                                               // <6>
 }
 
 tasks.named<Test>("test") {
-    useJUnitPlatform()                                                  // <8>
+    useJUnitPlatform()                                                  // <7>
 }
 ----
 <1> Apply the org.jetbrains.kotlin.jvm plugin to add support for Kotlin.
 <2> Apply the application plugin to add support for building a CLI application in Java.
 <3> Use Maven Central for resolving dependencies.
-<4> Use the Kotlin JUnit 5 integration.
-<5> Use the JUnit 5 integration.
-<6> This dependency from Google is used by the application.
-<7> Define the main class for the application.
-<8> Use JUnit Platform for unit tests.
+<4> Use the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit5[Kotlin JUnit 5] integration, link:https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine[JUnit engine], and link:https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher[JUnit 5] integration for testing code.
+<5> Use the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] dependency from Google for the application.
+<6> Define the main class for the application.
+<7> Use JUnit Platform, a JVM testing framework, when running the test task.
 =====
 
 [.multi-language-sample]
@@ -223,7 +222,7 @@ tasks.named('test') {
 <4> Use the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit5[Kotlin JUnit 5] integration, link:https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine[JUnit engine], and link:https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher[JUnit 5] integration for testing code.
 <5> Use the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] dependency from Google for the application.
 <6> Define the main class for the application.
-<7> Use JUnit Platform, a JVM testing framework, for unit tests.
+<7> Use JUnit Platform, a JVM testing framework, when running the test task.
 =====
 ====
 
@@ -270,6 +269,9 @@ dependencies {
     implementation("com.google.guava:guava:32.1.1-jre")
 }
 ----
+
+In the example, the application code uses the `guava` libraries from Google.
+Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
 
 === Use convention properties
 
@@ -338,7 +340,24 @@ tasks.named("javadoc").configure {
 }
 ----
 
-== Build scripting
+[[sec:dynamic_tasks]]
+== Flexible task registration
+
+The capabilities of the Groovy or Kotlin language can be used in the build script.
+
+As an example, you can register multiple tasks in a loop:
+
+====
+include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task1
+include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
+----
+====
+
+== Build Scripting
 
 A build script is made up of zero or more statements and script blocks:
 
@@ -396,51 +415,10 @@ include::{snippetsPath}/tutorial/count/tests/count.out[]
 ----
 ====
 
-[[sec:build_script_external_dependencies]]
-=== External dependencies for the build script
-
-NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#plugins,apply plugins>> that come with their own classpath.
-For custom build logic, the recommendation is to <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,use a custom plugin>>.
-
-If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a block which declares the build script classpath.
-
-.Declaring external dependencies for the build script
-====
-include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=declare-classpath]"]
-include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=declare-classpath]"]
-====
-
-The block passed to the `buildscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance.
-You declare the build script classpath by adding dependencies to the `classpath` configuration.
-This is the same way you declare, for example, the Java compilation classpath.
-You can use any of the <<declaring_dependencies.adoc#sec:dependency-types,dependency types>> except project dependencies.
-
-Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
-
-====
-include::sample[dir="snippets/tutorial/externalDependency/kotlin", files="build.gradle.kts[tags=all]"]
-include::sample[dir="snippets/tutorial/externalDependency/groovy", files="build.gradle[tags=all]"]
-
-----
-$ gradle -q encode
-include::{snippetsPath}/tutorial/externalDependency/tests/externalBuildDependency.out[]
-----
-====
-
-For multi-project builds, the dependencies declared with a project's `buildscript()` method are available to the build scripts of all its sub-projects.
-
-Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
-
-NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability.
-Some libraries may fail integrity self-checks because of this.
-In this case, the use of such libraries should be <<configuration_cache#config_cache:requirements:bytecode_modifications_and_isolation,isolated>>.
-
-Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.
-
 [[sec:declaring_variables]]
 === Declare Variables
 
-Build scripts can declare two kinds of variables: local variables and extra properties.
+Build scripts can declare two kinds of variables: *local variables* and *extra properties*.
 
 [[sec:local_variables]]
 ==== Local Variables
@@ -565,3 +543,5 @@ Gradle implicitly adds the following imports to each script:
 ----
 include::default-imports.txt[]
 ----
+
+[[sec:build_script_external_dependencies]]
