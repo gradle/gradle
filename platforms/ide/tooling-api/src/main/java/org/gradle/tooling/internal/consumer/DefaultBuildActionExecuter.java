@@ -51,7 +51,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public void setIntermediateModelListener(IntermediateModelListener intermediateModelListener) {
-        // Ignore for now
+        operationParamsBuilder.setIntermediateModelListener(intermediateModelListener);
     }
 
     @Override

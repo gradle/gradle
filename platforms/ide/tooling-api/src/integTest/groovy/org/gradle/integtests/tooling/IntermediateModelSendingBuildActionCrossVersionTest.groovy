@@ -33,6 +33,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         Collection<Object> intermediateModels = new CopyOnWriteArrayList<Object>()
         CustomModel customModel = withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
+            collectOutputs(builder)
             builder.setIntermediateModelListener({ model ->
                 intermediateModels.add(model)
             } as IntermediateModelListener)
@@ -51,7 +52,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
 
         and:
         EclipseProject eclipseModel = intermediateModels.get(1)
-        eclipseModel.gradleProject.name == ""
+        eclipseModel.gradleProject.name == "hello-world"
     }
 
 }
