@@ -120,8 +120,9 @@ public class AttributeBasedFileVisitDetailsFactory {
         SymbolicLinkDetails linkDetails = null;
         boolean preserveLink = false;
         if (Files.isSymbolicLink(path)) { //TODO: optimize to have only one call to shouldBePreserved/isSymbolicLink
-            linkDetails = new DefaultSymbolicLinkDetails(path, parentPath);
-            preserveLink = linksStrategy.shouldBePreserved(linkDetails, parentPath.getPathString() + "/" + path.getFileName().toString()); //FIXME: refactor path hint
+            RelativePath childPath = parentPath.append(false, path.getFileName().toString()); //FIXME: refactor path hint
+            linkDetails = new DefaultSymbolicLinkDetails(path, childPath);
+            preserveLink = linksStrategy.shouldBePreserved(linkDetails, childPath.getPathString());
         }
         boolean isDirectory = attrs != null && attrs.isDirectory() && !preserveLink;
         RelativePath relativePath = parentPath.append(!isDirectory, path.getFileName().toString());

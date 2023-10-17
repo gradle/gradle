@@ -94,23 +94,133 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
     def "symlinked files should be reported as error if linksStrategy is RELATIVE and points to a path outside the copy root"() {
         given:
-        def externalFile = inputDirectory.createFile("original.txt") << "some text"
-        def root = inputDirectory.createDir("root")
-        def originalFile = root.createFile("original.txt") << "other text"
-        def link = root.file("link").createLink("../${externalFile.name}")
+        def externalFile = inputDirectory.createFile("external.txt") << "external text"
+        def rootDir = inputDirectory.createDir("root")
+        def rootFile = rootDir.createFile("root.txt") << "root text"
+        def subRootDir = rootDir.createDir("subroot")
+        def originalFile = subRootDir.createFile("original.txt") << "other text"
+        def link = subRootDir.file("link").createLink(symlinkTarget)
+        def subDir = subRootDir.createDir("sub")
+        def subFile = subDir.createFile("sub.txt") << "subfile"
 
+        when:
         buildKotlinFile << constructBuildScript(
             """
-            linksStrategy = LinksStrategy.PRESERVE_RELATIVE
-            from("${inputDirectory.name}")
+            linksStrategy = LinksStrategy.${LinksStrategy.PRESERVE_RELATIVE}
+            from("${inputDirectory.name}/$root")
             """
         )
 
+        then:
+        if (error) {
+            def relativePathToLink = inputDirectory.toPath().resolve(root).relativize(link.toPath())
+            fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToLink pointing to $symlinkTarget.")
+        } else {
+            succeeds(mainTask)
+        }
+
+        where:
+        root           | symlinkTarget                       | error
+        "root"         | "original.txt"                      | false
+        "root"         | "../root.txt"                       | false
+        "root"         | "../subroot/original.txt"           | false
+
+        "root"         | "../../external.txt"                | true
+        "root/subroot" | "original.txt"                      | false
+        "root/subroot" | "../root.txt"                       | true
+        "root/subroot" | "../../external.txt"                | true
+        "root/subroot" | "../subroot/original.txt"           | true // any traversal out of the root should be an error
+
+        "root/subroot" | "sub/sub.txt"                       | false
+        "root/subroot" | "../subroot/sub/sub.txt"            | true
+        "root/subroot" | "sub/../../subroot/sub/sub.txt"     | true
+        "root/subroot" | "sub/./../../subroot/sub/sub.txt"   | true
+        "root/subroot" | "./sub/.././../subroot/sub/sub.txt" | true
+        "root"         | "sub/sub.txt"                       | false
+        "root"         | "../subroot/sub/sub.txt"            | false
+        "root"         | "sub/../../subroot/sub/sub.txt"     | false
+        "root"         | "./sub/.././../subroot/sub/sub.txt" | false
+    }
+
+    // TODO: document this as a known limitation
+    def "symlink relativeness checks forbid another symlinks in path"() {
+        given:
+        def externalFile = inputDirectory.createFile("external.txt") << "external text"
+        def rootDir = inputDirectory.createDir("root")
+        def rootFile = rootDir.createFile("root.txt") << "root text"
+        def subRootDir = rootDir.createDir("subroot")
+        def originalFile = subRootDir.createFile("original.txt") << "other text"
+        def link = subRootDir.file("link").createLink(symlinkTarget)
+        def trickyLink = subRootDir.file("trickyLink").createLink(trickyLinkTarget)
+        def subDir = subRootDir.createDir("sub")
+        def subFile = subDir.createFile("sub.txt") << "subfile"
+
         when:
-        def failure = fails(mainTask)
+        buildKotlinFile << constructBuildScript(
+            """
+            linksStrategy = LinksStrategy.${LinksStrategy.PRESERVE_RELATIVE}
+            from("${inputDirectory.name}/$root")
+            """
+        )
 
         then:
-        failure.assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: ${root.name}/${link.name} pointing to ../${externalFile.name}.")
+        if (error) {
+            def relativePathToLink = inputDirectory.toPath().resolve(root).relativize(link.toPath())
+            fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToLink pointing to $symlinkTarget.")
+        } else {
+            succeeds(mainTask)
+        }
+
+        where:
+        root   | symlinkTarget                       | trickyLinkTarget         | error
+        "root" | "trickyLink"                        | "original.txt"           | true
+        "root" | "trickyLink/../original.txt"        | "sub"                    | true
+        "root" | "trickyLink/../external.txt"        | ".."                     | true
+        "root" | "trickyLink/../root.txt"            | "../../root/subroot"     | true
+        "root" | "../subroot/trickyLink/../root.txt" | "../../root/subroot"     | true
+        "root" | "trickyLink/../../root.txt"         | "sub"                    | true
+        "root" | "trickyLink/../root.txt"            | "../../root/nonexisting" | true  // nonexistent file can be replaced by symlink
+        "root" | "nonExistent/original.txt"          | "stub"                   | true
+    }
+
+    def "symlinked files with nested spec should be reported as error if linksStrategy is RELATIVE and points to a path outside the copy root"() {
+        given:
+        def externalFile = inputDirectory.createFile("external.txt") << "external text"
+        def rootDir = inputDirectory.createDir("root")
+        def rootFile = rootDir.createFile("root.txt") << "root text"
+        def subRootDir = rootDir.createDir("subroot")
+        def originalFile = subRootDir.createFile("original.txt") << "other text"
+        def link = subRootDir.file("link").createLink(symlinkTarget)
+
+        when:
+        buildKotlinFile << constructBuildScript("""
+            ${configureStrategy(linksStrategyParent)}
+            from("$inputDirectory.name/$root"){
+               ${configureStrategy(linksStrategyChild)}
+            }
+            """)
+
+        then:
+        if (error) {
+            def relativePathToLink = inputDirectory.toPath().resolve(root).relativize(link.toPath())
+            fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToLink pointing to $symlinkTarget.")
+        } else {
+            succeeds(mainTask)
+        }
+        where:
+        root           | symlinkTarget        | linksStrategyParent             | linksStrategyChild              | error
+        "root"         | "original.txt"       | LinksStrategy.FOLLOW            | LinksStrategy.PRESERVE_RELATIVE | false
+        "root"         | "../../external.txt" | LinksStrategy.FOLLOW            | LinksStrategy.PRESERVE_RELATIVE | true
+        "root"         | "../root.txt"        | LinksStrategy.FOLLOW            | LinksStrategy.PRESERVE_RELATIVE | false
+        "root/subroot" | "../root.txt"        | LinksStrategy.FOLLOW            | LinksStrategy.PRESERVE_RELATIVE | true
+
+        "root"         | "original.txt"       | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.FOLLOW            | false
+        "root"         | "../../external.txt" | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.FOLLOW            | false
+        "root"         | "../root.txt"        | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.FOLLOW            | false
+        "root/subroot" | "../root.txt"        | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.FOLLOW            | false
+
+        "root"         | "original.txt"       | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.PRESERVE_RELATIVE | false
+        "root/subroot" | "../root.txt"        | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.PRESERVE_RELATIVE | true
     }
 
     def "symlinked directories should be copied as #hint if linksStrategy=#linksStrategy"() {
@@ -181,11 +291,31 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         "$expectedOutcome"(linkDirCopy, originalDir)
 
         where:
-        linksStrategy                   | expectedOutcome  | hint
-        LinksStrategy.PRESERVE_ALL      | "isValidSymlink" | "absolute link"
-        LinksStrategy.PRESERVE_RELATIVE | "isCopy"         | "full copy"
-        LinksStrategy.FOLLOW            | "isCopy"         | "full copy"
-        null                            | "isCopy"         | "full copy"
+        linksStrategy              | expectedOutcome  | hint
+        LinksStrategy.PRESERVE_ALL | "isValidSymlink" | "absolute link"
+        LinksStrategy.FOLLOW       | "isCopy"         | "full copy"
+        null                       | "isCopy"         | "full copy"
+    }
+
+    def "symlinked files with absolute path should be treated as error if linksStrategy=PRESERVE_RELATIVE"() {
+        given:
+        def linksStrategy = LinksStrategy.PRESERVE_RELATIVE
+        def originalFile = inputDirectory.createFile("original.txt") << "some text"
+
+        def originalDir = inputDirectory.createDir("originalDir")
+        originalDir.createFile("originalDir.txt") << "some other text"
+        def linkDir = inputDirectory.file("linkDir").createLink(originalDir)
+
+        when:
+        buildKotlinFile << constructBuildScript(
+            """
+            ${configureStrategy(linksStrategy)}
+            from("${inputDirectory.name}")
+            """
+        )
+
+        then:
+        fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: ${linkDir.name} pointing to $originalDir.")
     }
 
     def "broken links should fail build if linksStrategy=#linksStrategy"() {
@@ -208,7 +338,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         where:
         linksStrategy << [
-            LinksStrategy.PRESERVE_RELATIVE,
             LinksStrategy.FOLLOW,
             null
         ]
