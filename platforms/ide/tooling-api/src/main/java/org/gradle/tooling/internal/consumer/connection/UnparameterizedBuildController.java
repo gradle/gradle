@@ -174,4 +174,9 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
         return results;
     }
+
+    @Override
+    public void sendIntermediate(Object model) {
+        throw new UnsupportedOperationException();
+    }
 }

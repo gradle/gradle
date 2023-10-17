@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.IntermediateModelListener;
 import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -46,6 +47,11 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     @Override
     protected DefaultBuildActionExecuter<T> getThis() {
         return this;
+    }
+
+    @Override
+    public void setIntermediateModelListener(IntermediateModelListener intermediateModelListener) {
+        // Ignore for now
     }
 
     @Override

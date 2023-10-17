@@ -24,6 +24,8 @@ package org.gradle.tooling;
  */
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
+    void setIntermediateModelListener(IntermediateModelListener intermediateModelListener);
+
     /**
      * Builder for a build action that hooks into different phases of the build.
      *

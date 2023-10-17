@@ -209,4 +209,6 @@ public interface BuildController {
      * @since 6.8
      */
     boolean getCanQueryProjectModelInParallel(Class<?> modelType);
+
+    void sendIntermediate(Object model);
 }
