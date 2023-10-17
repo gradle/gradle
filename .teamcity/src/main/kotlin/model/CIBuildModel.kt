@@ -221,7 +221,7 @@ data class TestCoverage(
     val testType: TestType,
     val os: Os,
     val testJvmVersion: JvmVersion,
-    val vendor: JvmVendor = JvmVendor.oracle,
+    val vendor: JvmVendor = JvmVendor.openjdk,
     val buildJvm: Jvm = BuildToolBuildJvm,
     val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
     val withoutDependencies: Boolean = false,
