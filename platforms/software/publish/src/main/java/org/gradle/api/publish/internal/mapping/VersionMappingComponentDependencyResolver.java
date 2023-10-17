@@ -45,12 +45,12 @@ import java.util.Set;
  *
  * @see org.gradle.api.publish.VersionMappingStrategy
  */
-public class VersionMappingVariantDependencyResolver implements ComponentDependencyResolver {
+public class VersionMappingComponentDependencyResolver implements ComponentDependencyResolver {
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final Configuration versionMappingConfiguration;
 
-    public VersionMappingVariantDependencyResolver(
+    public VersionMappingComponentDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
         Configuration versionMappingConfiguration
     ) {

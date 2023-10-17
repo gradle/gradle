@@ -89,8 +89,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy)) {
-            componentResolver instanceof VersionMappingVariantDependencyResolver
-            (componentResolver as VersionMappingVariantDependencyResolver).versionMappingConfiguration == conf
+            componentResolver instanceof VersionMappingComponentDependencyResolver
+            (componentResolver as VersionMappingComponentDependencyResolver).versionMappingConfiguration == conf
             variantResolver.delegate == componentResolver
         }
     }
@@ -103,8 +103,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy)) {
-            componentResolver instanceof VersionMappingVariantDependencyResolver
-            (componentResolver as VersionMappingVariantDependencyResolver).versionMappingConfiguration == conf
+            componentResolver instanceof VersionMappingComponentDependencyResolver
+            (componentResolver as VersionMappingComponentDependencyResolver).versionMappingConfiguration == conf
             variantResolver.delegate == componentResolver
         }
     }
@@ -118,8 +118,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy)) {
-            componentResolver instanceof VersionMappingVariantDependencyResolver
-            (componentResolver as VersionMappingVariantDependencyResolver).versionMappingConfiguration == dependencyMappingConf
+            componentResolver instanceof VersionMappingComponentDependencyResolver
+            (componentResolver as VersionMappingComponentDependencyResolver).versionMappingConfiguration == dependencyMappingConf
             variantResolver.delegate == componentResolver
         }
     }
@@ -133,8 +133,8 @@ class DefaultDependencyCoordinateResolverFactoryTest extends Specification {
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy)) {
-            componentResolver instanceof VersionMappingVariantDependencyResolver
-            (componentResolver as VersionMappingVariantDependencyResolver).versionMappingConfiguration == versionMappingConf
+            componentResolver instanceof VersionMappingComponentDependencyResolver
+            (componentResolver as VersionMappingComponentDependencyResolver).versionMappingConfiguration == versionMappingConf
             variantResolver.delegate == componentResolver
         }
     }

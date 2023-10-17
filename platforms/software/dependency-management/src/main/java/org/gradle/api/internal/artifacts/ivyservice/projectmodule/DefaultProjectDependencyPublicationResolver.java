@@ -139,7 +139,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
      */
     private static <T> T getImplicitCoordinates(Class<T> coordsType, Project project) {
         // Project has no publications: simply use the project name in place of the dependency name
-        if (coordsType.isAssignableFrom(ModuleVersionIdentifier.class)) {
+        if (coordsType.equals(ModuleVersionIdentifier.class)) {
 
             // TODO: Deprecate this behavior
 //        String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +

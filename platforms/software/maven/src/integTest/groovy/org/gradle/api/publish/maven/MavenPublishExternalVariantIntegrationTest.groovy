@@ -675,6 +675,11 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
     // region Component builder fixture
 
+    // This test fixture facilitates the creation of custom components that
+    // span over multiple coordinates by publishing artifacts from multiple
+    // compilations. We may eventually pull this out into a separate file
+    // once its functionality stabilizes
+
     class CompilationDetails {
         boolean withSeparatePublishedConfiguration = false
         String attributes

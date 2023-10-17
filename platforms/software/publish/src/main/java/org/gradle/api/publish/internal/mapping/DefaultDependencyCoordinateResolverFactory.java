@@ -46,7 +46,15 @@ import javax.inject.Inject;
  */
 public class DefaultDependencyCoordinateResolverFactory implements DependencyCoordinateResolverFactory {
 
-    // TODO: Once dependency mapping is stabilized, we should be able to turn this off
+    /**
+     * Determines whether we implement publication versionMapping with the legacy implementation
+     * or the new dependency mapping implementation.
+     *
+     * TODO: While this is currently static, we should selectively enable it in order to run
+     *       versionMapping tests against both implementations.
+     *
+     * TODO: Once dependency mapping is stabilized, we should be able to turn this off / remove it entirely
+     */
     private static final boolean USE_LEGACY_VERSION_MAPPING = true;
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
@@ -111,9 +119,11 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
             }
 
             if (configuration != null) {
-                componentResolver = USE_LEGACY_VERSION_MAPPING
-                    ? new VersionMappingVariantDependencyResolver(projectDependencyResolver, configuration)
-                    : new ResolutionBackedComponentDependencyResolver(configuration, moduleIdentifierFactory, projectDependencyResolver);
+                if (USE_LEGACY_VERSION_MAPPING) {
+                    componentResolver = new VersionMappingComponentDependencyResolver(projectDependencyResolver, configuration);
+                } else {
+                    componentResolver = new ResolutionBackedComponentDependencyResolver(configuration, moduleIdentifierFactory, projectDependencyResolver);
+                }
             }
         }
 
