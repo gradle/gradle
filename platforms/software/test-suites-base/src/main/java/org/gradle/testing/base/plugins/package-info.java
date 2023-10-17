@@ -17,4 +17,5 @@
 /**
  * Plugin classes for generic support for testing.
  */
+@org.gradle.api.NonNullApi
 package org.gradle.testing.base.plugins;
