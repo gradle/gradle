@@ -23,11 +23,11 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 class ImmutableTransformWorkspaceIdentity implements TransformWorkspaceIdentity {
     private final ValueSnapshot inputArtifactPath;
-    private final ValueSnapshot inputArtifactSnapshot;
+    private final HashCode inputArtifactSnapshot;
     private final ValueSnapshot secondaryInputsSnapshot;
     private final HashCode dependenciesHash;
 
-    public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, ValueSnapshot inputArtifactSnapshot, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
+    public ImmutableTransformWorkspaceIdentity(ValueSnapshot inputArtifactPath, HashCode inputArtifactSnapshot, ValueSnapshot secondaryInputsSnapshot, HashCode dependenciesHash) {
         this.inputArtifactPath = inputArtifactPath;
         this.inputArtifactSnapshot = inputArtifactSnapshot;
         this.secondaryInputsSnapshot = secondaryInputsSnapshot;
@@ -38,7 +38,7 @@ class ImmutableTransformWorkspaceIdentity implements TransformWorkspaceIdentity 
     public String getUniqueId() {
         Hasher hasher = Hashing.newHasher();
         inputArtifactPath.appendToHasher(hasher);
-        inputArtifactSnapshot.appendToHasher(hasher);
+        hasher.putHash(inputArtifactSnapshot);
         secondaryInputsSnapshot.appendToHasher(hasher);
         hasher.putHash(dependenciesHash);
         return hasher.hash().toString();

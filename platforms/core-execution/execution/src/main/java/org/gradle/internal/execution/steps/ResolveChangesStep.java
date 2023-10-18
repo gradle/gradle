@@ -30,6 +30,8 @@ import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.properties.InputBehavior;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
@@ -85,11 +87,12 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
             case NON_INCREMENTAL:
                 return IncrementalInputProperties.NONE;
             case INCREMENTAL:
+                Set<String> alreadyVisitedProperty = new HashSet<>();
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
                     @Override
                     public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier valueSupplier) {
-                        if (behavior.shouldTrackChanges()) {
+                        if (behavior.shouldTrackChanges() && alreadyVisitedProperty.add(propertyName)) {
                             Object value = valueSupplier.getValue();
                             if (value == null) {
                                 throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
