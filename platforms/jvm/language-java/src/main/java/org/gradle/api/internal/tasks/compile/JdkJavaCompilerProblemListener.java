@@ -26,6 +26,8 @@ import java.util.Locale;
 
 /**
  * A {@link DiagnosticListener} that adopts {@link Diagnostic} problems into Gradle's {@link Problems}, and reports them.
+ *
+ * @since 8.5
  */
 public class JdkJavaCompilerProblemListener implements DiagnosticListener<JavaFileObject> {
 
