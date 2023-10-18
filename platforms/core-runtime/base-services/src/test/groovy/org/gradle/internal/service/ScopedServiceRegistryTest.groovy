@@ -31,7 +31,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${ScopedService.simpleName}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
 
         where:
         method     | registration
@@ -70,12 +70,32 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
+    def "fails to create an inherited registry providing a service in the wrong scope"() {
+        when:
+        new BrokenServiceRegistry()
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+    }
+
     @ServiceScope(Scopes.BuildTree)
     static class ScopedService {}
 
     static class UnscopedService {}
 
     static class ScopedServiceProvider {
+        @SuppressWarnings(["unused", 'GrMethodMayBeStatic'])
+        ScopedService createScopedService() {
+            return new ScopedService()
+        }
+    }
+
+    static class BrokenServiceRegistry extends ScopedServiceRegistry {
+        BrokenServiceRegistry() {
+            super(Scopes.Build)
+        }
+
         @SuppressWarnings(["unused", 'GrMethodMayBeStatic'])
         ScopedService createScopedService() {
             return new ScopedService()
