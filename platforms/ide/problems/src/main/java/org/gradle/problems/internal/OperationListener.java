@@ -24,14 +24,13 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 
 public class OperationListener implements BuildOperationListener {
 
-    final Map<OperationIdentifier, Object> runningOps = new ConcurrentHashMap<>();
+    private final ThreadLocal<ConcurrentHashMap<OperationIdentifier, Object>> runningOps = ThreadLocal.withInitial(ConcurrentHashMap::new);
 
     static final Object NO_DETAILS = new Object();
     @Override
@@ -40,7 +39,7 @@ public class OperationListener implements BuildOperationListener {
         if (details == null) {
             details = NO_DETAILS;
         }
-        runningOps.put(mandatoryIdOf(buildOperation), details);
+        runningOps.get().put(mandatoryIdOf(buildOperation), details);
     }
 
     @Override
@@ -49,7 +48,7 @@ public class OperationListener implements BuildOperationListener {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        runningOps.remove(mandatoryIdOf(buildOperation));
+        runningOps.get().remove(mandatoryIdOf(buildOperation));
     }
 
     private OperationIdentifier mandatoryIdOf(BuildOperationDescriptor buildOperation) {
@@ -71,7 +70,7 @@ public class OperationListener implements BuildOperationListener {
      */
     @Nullable
     public <T> T getOp(OperationIdentifier id, Class<T> targetClass) {
-        Object op = runningOps.get(id);
+        Object op = runningOps.get().get(id);
         return targetClass.isInstance(op) ? targetClass.cast(op) : null;
     }
 }
