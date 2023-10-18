@@ -19,7 +19,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -28,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.tools.Diagnostic;
-import javax.tools.DiagnosticCollector;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -39,19 +36,18 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
-    private final Problems problems;
+    private final DiagnosticListener<JavaFileObject> problemReporter;
 
     @Inject
     public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, Problems problems) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.problems = problems;
+        this.problemReporter = new JdkJavaCompilerProblemListener(problems);
     }
 
     @Override
@@ -59,71 +55,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result, diagnosticCollector);
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result, problemReporter);
         boolean success = task.call();
-        reportProblems(diagnosticCollector);
         if (!success) {
             throw new CompilationFailedException(result);
         }
         return result;
     }
-
-    private void reportProblems(DiagnosticCollector<JavaFileObject> diagnosticCollector) {
-        for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticCollector.getDiagnostics()) {
-            reportProblem(diagnostic);
-        }
-    }
-
-    private void reportProblem(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String message = diagnostic.getMessage(Locale.getDefault());
-
-        String label = mapKindToLabel(diagnostic.getKind());
-        String resourceName = diagnostic.getSource().getName();
-        Integer line = Math.toIntExact(diagnostic.getLineNumber());
-        Integer column = Math.toIntExact(diagnostic.getColumnNumber());
-        Severity severity = mapKindToSeverity(diagnostic.getKind());
-
-        problems.createProblem(problem -> problem
-            .label(label)
-            .undocumented()
-            .location(resourceName, line, column)
-            .category("java", "compilation")
-            .severity(severity)
-            .details(message)
-        ).report();
-    }
-
-    private String mapKindToLabel(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "Java compilation error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "Java compilation warning";
-            case NOTE:
-                return "Java compilation note";
-            case OTHER:
-                return "Java compilation problem";
-            default:
-                return "Unknown java compilation problem";
-        }
-    }
-
-    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return Severity.ERROR;
-            case WARNING:
-            case MANDATORY_WARNING:
-                return Severity.WARNING;
-            case NOTE:
-            case OTHER:
-            default:
-                return Severity.ADVICE;
-        }
-    }
-
 
     private JavaCompiler.CompilationTask createCompileTask(JavaCompileSpec spec, ApiCompilerResult result, DiagnosticListener<JavaFileObject> diagnosticListener) {
         List<String> options = new JavaCompilerArgumentsBuilder(spec).build();
