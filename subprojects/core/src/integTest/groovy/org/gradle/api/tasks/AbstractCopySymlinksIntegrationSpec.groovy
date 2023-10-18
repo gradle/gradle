@@ -24,6 +24,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS
 
@@ -143,7 +145,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         "root"         | "./sub/.././../subroot/sub/sub.txt" | false
     }
 
-    // TODO: document this as a known limitation
     def "symlink relativeness checks forbid another symlinks in path"() {
         given:
         def externalFile = inputDirectory.createFile("external.txt") << "external text"
@@ -222,6 +223,46 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
         "root"         | "original.txt"       | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.PRESERVE_RELATIVE | false
         "root/subroot" | "../root.txt"        | LinksStrategy.PRESERVE_RELATIVE | LinksStrategy.PRESERVE_RELATIVE | true
+    }
+
+    def "PRESERVE_ALL preserves any link as is"() {
+        given:
+        def externalFile = inputDirectory.createFile("external.txt") << "external text"
+        def rootDir = inputDirectory.createDir("root")
+        def rootFile = rootDir.createFile("root.txt") << "root text"
+        def subRootDir = rootDir.createDir("subroot")
+        def originalFile = subRootDir.createFile("original.txt") << "other text"
+        def link = subRootDir.file("link").createLink(symlinkTarget)
+        def trickyLink = subRootDir.file("trickyLink").createLink(trickyLinkTarget)
+        def subDir = subRootDir.createDir("sub")
+        def subFile = subDir.createFile("sub.txt") << "subfile"
+
+        when:
+        buildKotlinFile << constructBuildScript(
+            """
+            linksStrategy = LinksStrategy.${LinksStrategy.PRESERVE_ALL}
+            from("${inputDirectory.name}/${rootDir.name}")
+            """
+        )
+
+        then:
+        succeeds(mainTask)
+        def outputDirectory = getResultDir()
+        def linkCopy = outputDirectory.file("${subRootDir.name}/${link.name}")
+
+        "$expectedOutcome"(linkCopy, outputDirectory.file(expectedTarget))
+        Files.readSymbolicLink(linkCopy.toPath()) == Paths.get(symlinkTarget)
+
+        where:
+        symlinkTarget                       | trickyLinkTarget         | expectedOutcome   | expectedTarget
+        "trickyLink"                        | "original.txt"           | "isValidSymlink"  | "subroot/original.txt"
+        "trickyLink/../original.txt"        | "sub"                    | "isValidSymlink"  | "subroot/original.txt"
+        "trickyLink/../external.txt"        | ".."                     | "isBrokenSymlink" | "../external.txt"
+        "trickyLink/../root.txt"            | "../../root/subroot"     | "isBrokenSymlink" | "root.txt" //no "root" part in path
+        "../subroot/trickyLink/../root.txt" | "../../root/subroot"     | "isBrokenSymlink" | "root.txt"
+        "trickyLink/../../root.txt"         | "sub"                    | "isValidSymlink"  | "root.txt"
+        "trickyLink/../root.txt"            | "../../root/nonexisting" | "isBrokenSymlink" | "nonexisting"
+        "nonExistent/original.txt"          | "stub"                   | "isBrokenSymlink" | "nonExistent/original.txt"
     }
 
     def "symlinked directories should be copied as #hint if linksStrategy=#linksStrategy"() {
