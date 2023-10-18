@@ -307,6 +307,8 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
+
+        enabled = !usesEmbeddedExecuter() // TODO: revert?
     }
 }
 
