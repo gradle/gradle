@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -35,7 +34,6 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.testing.AggregateTestReport;
-import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
@@ -114,9 +112,8 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
             testAggregation.getDependencies().add(project.getDependencyFactory().create(project));
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            testSuites.withType(JvmTestSuite.class).all(testSuite -> {
+            testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
                     report.getTestType().convention(testSuite.getTestType());
                 });

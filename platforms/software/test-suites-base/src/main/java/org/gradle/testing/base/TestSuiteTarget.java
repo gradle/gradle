@@ -17,7 +17,6 @@
 package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 
 /**
  * Base test suite target.

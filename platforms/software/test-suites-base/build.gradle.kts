@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":testing-base"))
 
     implementation(libs.inject)
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))

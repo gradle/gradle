@@ -18,13 +18,22 @@ package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
-import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4ToolchainParameters;
@@ -39,31 +48,30 @@ import org.gradle.api.testing.toolchains.internal.SpockTestToolchain;
 import org.gradle.api.testing.toolchains.internal.SpockToolchainParameters;
 import org.gradle.api.testing.toolchains.internal.TestNGTestToolchain;
 import org.gradle.api.testing.toolchains.internal.TestNGToolchainParameters;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.jvm.JvmComponentDependencies;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.testing.base.MatrixContainer;
+import org.gradle.testing.base.MatrixDimensions;
+import org.gradle.testing.base.internal.DefaultMatrixContainer;
+import org.gradle.testing.base.internal.DefaultMatrixDimensions;
+import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
+    public static final String IS_DEFAULT_TEST_TARGET = "org.gradle.jvm.isDefaultTestTarget";
+    private final DefaultMatrixDimensions<JvmTestSuiteTarget> targetDimensions;
+    private final DefaultMatrixContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final JvmComponentDependencies dependencies;
@@ -82,8 +90,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        this.targetDimensions = Cast.uncheckedCast(getObjectFactory().newInstance(
+            DefaultMatrixDimensions.class,
+            (Function<MatrixCoordinatesInternal, DefaultJvmTestSuiteTarget>) coordinates ->
+                getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, name, coordinates)
+        ));
+        this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultMatrixContainer.class));
 
         this.dependencies = getObjectFactory().newInstance(
                 DefaultJvmComponentDependencies.class,
@@ -104,9 +116,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             toolchain.getParameters().getJupiterVersion().convention(JUnitJupiterTestToolchain.DEFAULT_VERSION);
         }
 
-        addDefaultTestTarget();
-
-        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
+        this.targets.all(target -> {
             target.getTestTask().configure(this::initializeTestFramework);
         });
 
@@ -132,17 +142,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private void initializeTestFramework(Test task) {
         // The Test task's testing framework is derived from the test suite's toolchain
         task.getTestFrameworkProperty().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
-    }
-
-    private void addDefaultTestTarget() {
-        final String target;
-        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            target = JvmConstants.TEST_TASK_NAME;
-        } else {
-            target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
-        }
-
-        targets.register(target);
     }
 
     protected abstract Property<JvmTestToolchain<?>> getTestToolchain();
@@ -175,7 +174,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
+    public MatrixDimensions getTargetDimensions() {
+        return targetDimensions;
+    }
+
+    @Override
+    public MatrixContainer<JvmTestSuiteTarget> getTargets() {
         return targets;
     }
 
@@ -308,7 +312,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public TaskDependency getBuildDependencies() {
         return taskDependencyFactory.visitingDependencies(context -> {
-            getTargets().forEach(context::add);
+            Set<JvmTestSuiteTarget> values = targetDimensions.getMatrixValues();
+            targets.applyConfigurationTo(values.iterator());
+            values.forEach(target -> context.add(target.getTestTask()));
         });
     }
 

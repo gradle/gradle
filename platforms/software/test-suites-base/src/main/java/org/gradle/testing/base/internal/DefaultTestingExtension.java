@@ -18,6 +18,7 @@ package org.gradle.testing.base.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
@@ -28,7 +29,7 @@ public abstract class DefaultTestingExtension implements TestingExtension {
 
     @Inject
     public DefaultTestingExtension() {
-        this.suites = getObjectFactory().polymorphicDomainObjectContainer(TestSuite.class);
+        this.suites = Cast.uncheckedCast(getObjectFactory().polymorphicDomainObjectContainer(TestSuite.class));
     }
 
     @Inject

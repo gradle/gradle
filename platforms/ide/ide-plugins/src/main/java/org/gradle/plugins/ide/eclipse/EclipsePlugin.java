@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -65,7 +64,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 
@@ -347,8 +345,7 @@ public abstract class EclipsePlugin extends IdePlugin {
 
         project.getPlugins().withType(TestSuiteBasePlugin.class, testSuiteBasePlugin -> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites = testing.getSuites();
-            suites.withType(JvmTestSuite.class).configureEach(jvmTestSuite -> {
+            testing.getSuites().withType(JvmTestSuite.class).configureEach(jvmTestSuite -> {
                 // jvm test suite source sets are marked as test on the Eclipse classpath
                 testSourceSetsConvention.add(jvmTestSuite.getSources());
 

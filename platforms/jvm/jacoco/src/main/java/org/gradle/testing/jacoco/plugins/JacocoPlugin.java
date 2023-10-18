@@ -16,7 +16,6 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -48,8 +47,8 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -106,10 +105,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureCoverageDataElementsVariants(Project project) {
         project.getPlugins().withType(JvmTestSuitePlugin.class, p -> {
             final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
-            testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
-                suite.getTargets().configureEach(target -> {
+            testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
+                suite.getTargets().all(target -> {
                     createCoverageDataVariant((ProjectInternal) project, suite, target);
                 });
             });
@@ -117,15 +115,17 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
-        variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
+        // TODO serialize the dimensions in a better manner (since this is not just the task name)
+        String name = ((MatrixCoordinatesInternal) target.getCoordinates()).toTaskNamePart();
+        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(name), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + name + " target.");
         variant.setVisible(false);
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
             attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
-            attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
+            attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, name));
             attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
         });
@@ -211,7 +211,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             JvmTestSuite defaultTestSuite = testing.getSuites().withType(JvmTestSuite.class).getByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
-            defaultTestSuite.getTargets().configureEach(target -> {
+            defaultTestSuite.getTargets().all(target -> {
                 TaskProvider<Test> testTask = target.getTestTask();
                 addDefaultReportTask(extension, testTask);
                 addDefaultCoverageVerificationTask(testTask);

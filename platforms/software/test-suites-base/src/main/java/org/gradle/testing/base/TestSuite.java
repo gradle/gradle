@@ -25,16 +25,16 @@ import org.gradle.api.Named;
  * @since 7.3
  */
 @Incubating
-public interface TestSuite<A extends MatrixAxes, M extends MatrixContainer<?, ? extends TestSuiteTarget>> extends Named {
+public interface TestSuite extends Named {
     /**
-     * Configuration for the {@link #getTargets() targets matrix} axes.
+     * Configuration for the {@link #getTargets() targets matrix} dimensions.
      *
-     * @return configuration for the targets matrix axes
+     * @return configuration for the targets matrix dimensions
      */
-    A getTargetAxes();
+    MatrixDimensions getTargetDimensions();
 
     /**
      * Available targets for this test suite.
      */
-    M getTargets();
+    MatrixContainer<? extends TestSuiteTarget> getTargets();
 }

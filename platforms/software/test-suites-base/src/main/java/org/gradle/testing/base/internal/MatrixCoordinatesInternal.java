@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.testing.base.internal;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.testing.base.MatrixAxis;
+import org.gradle.testing.base.MatrixCoordinates;
 
-public interface JavaVersionAxis extends MatrixAxis<JavaVersion> {
+public interface MatrixCoordinatesInternal extends MatrixCoordinates {
+    /**
+     * Converts the coordinates to a task name part. This essentially appends the key-value pairs to form something
+     * that can be used as a task name.
+     */
+    String toTaskNamePart();
 }

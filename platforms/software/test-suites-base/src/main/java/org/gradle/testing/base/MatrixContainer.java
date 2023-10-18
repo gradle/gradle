@@ -17,38 +17,22 @@
 package org.gradle.testing.base;
 
 import org.gradle.api.Action;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 
 /**
- * A container with arbitrary dimensions. Axes are defined by a {@link MatrixAxes} instance, which is usually available adjacent to the container.
+ * A container with arbitrary dimensions. Dimensions are defined by a {@link MatrixDimensions} instance, which is usually available adjacent to the container.
  *
- * @param <S> the spec type, used to select coordinates for operations
- * @param <V> the value type
+ * <p>
+ * Unlike a {@link org.gradle.api.DomainObjectCollection} and its subtypes, matrix containers are <strong>always lazily evaluated</strong>. Even further, there is no way
+ * to eagerly evaluate a specific item. This is because the items in a matrix container is not known until all dimensions have been configured.
+ * </p>
+ *
+ * @param <V> the type of values in this container
+ * @since 8.5
  */
-public interface MatrixContainer<S extends MatrixContainer.MatrixSpec, V extends MatrixContainer.MatrixValue> {
-    @HasInternalProtocol
-    interface MatrixSpec {
-        /**
-         * Set the required values for the given axis.
-         *
-         * @param axis the axis
-         * @param values the values
-         * @throws IllegalArgumentException if the axis is not registered
-         * @throws IllegalArgumentException if the values are empty
-         */
-        <T> void axis(Class<? extends MatrixAxis<T>> axis, T... values);
-
-        /**
-         * Set the required values for the given axis.
-         *
-         * @param axis the axis
-         * @param values the values
-         * @throws IllegalArgumentException if the axis is not registered
-         * @throws IllegalArgumentException if the values are empty
-         */
-        <T> void axis(Class<? extends MatrixAxis<T>> axis, Iterable<T> values);
-    }
-
+@Incubating
+public interface MatrixContainer<V extends MatrixContainer.MatrixValue> {
     /**
      * The values of a matrix. These are mutable objects with immutable coordinates.
      */
@@ -57,20 +41,6 @@ public interface MatrixContainer<S extends MatrixContainer.MatrixSpec, V extends
          * Returns the coordinates of this value.
          */
         MatrixCoordinates getCoordinates();
-    }
-
-    /**
-     * The coordinates of a value in a matrix.
-     */
-    @HasInternalProtocol
-    interface MatrixCoordinates {
-        /**
-         * Returns the value for the given axis.
-         *
-         * @param axis the axis
-         * @throws IllegalArgumentException if the axis is not registered
-         */
-        <T> T get(Class<? extends MatrixAxis<T>> axis);
     }
 
     /**
@@ -83,8 +53,18 @@ public interface MatrixContainer<S extends MatrixContainer.MatrixSpec, V extends
     /**
      * Configure the values whose coordinates match the spec.
      *
-     * @param spec the spec configuration
+     * @param spec the spec to match
      * @param action the action to perform on the matching values
      */
-    void with(Action<? super S> spec, Action<? super V> action);
+    void matching(Spec<? super MatrixCoordinates> spec, Action<? super V> action);
+
+    /**
+     * Configure the values whose coordinates match the spec.
+     *
+     * <p>Before the task graph is assembled, if spec does not match anything, an error will be thrown.</p>
+     *
+     * @param spec the spec to match
+     * @param action the action to perform on the matching values
+     */
+    void require(Spec<? super MatrixCoordinates> spec, Action<? super V> action);
 }

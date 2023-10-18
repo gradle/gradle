@@ -18,27 +18,27 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.testing.base.MatrixCoordinatesInternal;
+import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
 import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
-    private final MatrixCoordinatesInternal coords;
     private final TaskProvider<Test> testTask;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public DefaultJvmTestSuiteTarget(String suiteName, MatrixCoordinatesInternal coords, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
-        this.coords = coords;
-
-        String name = suiteName + "_" + coords.toTaskNamePart();
+        String name = coords.get(DefaultJvmTestSuite.IS_DEFAULT_TEST_TARGET, boolean.class)
+            ? JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME
+            : suiteName + "_" + coords.toTaskNamePart();
         // Might not always want Test type here?
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(suiteName) + " suite's " + coords.toTaskNamePart() + " target.");
