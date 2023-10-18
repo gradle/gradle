@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.internal.service.scopes.Scope;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +25,7 @@ public class ServiceRegistryBuilder {
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
     private final List<Object> providers = new ArrayList<Object>();
     private String displayName;
+    private Class<? extends Scope> scope;
 
     private ServiceRegistryBuilder() {
     }
@@ -46,8 +49,18 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
+    public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
+        this.scope = scope;
+        return this;
+    }
+
     public ServiceRegistry build() {
-        DefaultServiceRegistry registry = new DefaultServiceRegistry(displayName, parents.toArray(new ServiceRegistry[0]));
+        ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
+
+        DefaultServiceRegistry registry = scope != null
+            ? new ScopedServiceRegistry(scope, displayName, parents)
+            : new DefaultServiceRegistry(displayName, parents);
+
         for (Object provider : providers) {
             registry.addProvider(provider);
         }

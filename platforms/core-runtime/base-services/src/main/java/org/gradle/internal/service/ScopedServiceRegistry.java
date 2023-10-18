@@ -17,58 +17,22 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
 
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
     public ScopedServiceRegistry(Class<? extends Scope> scope) {
-        add(new ServiceScopeValidator(scope));
+        addServiceValidator(scope);
     }
 
-    private static class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
+    public ScopedServiceRegistry(
+        Class<? extends Scope> scope,
+        String displayName,
+        ServiceRegistry... parents
+    ) {
+        super(displayName, parents);
+        addServiceValidator(scope);
+    }
 
-        private final Class<? extends Scope> scope;
-
-        public ServiceScopeValidator(Class<? extends Scope> scope) {
-            this.scope = scope;
-        }
-
-        @Override
-        public List<Class<? extends Annotation>> getAnnotations() {
-            return Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
-        }
-
-        @Override
-        public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
-            assertCorrectScope(registration.getDeclaredType());
-        }
-
-        private void assertCorrectScope(Class<?> serviceType) {
-            Class<? extends Scope> serviceScope = scopeOf(serviceType);
-            if (serviceScope != null && scope != serviceScope) {
-                throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
-            }
-        }
-
-        private String invalidScopeMessage(
-            Class<?> serviceType,
-            Class<? extends Scope> actualScope
-        ) {
-            return String.format("Service '%s' was declared in scope '%s' but registered in scope '%s'",
-                serviceType.getSimpleName(),
-                actualScope.getSimpleName(),
-                scope.getSimpleName()
-            );
-        }
-
-        @Nullable
-        private static Class<? extends Scope> scopeOf(Class<?> serviceType) {
-            ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
-            return scopeAnnotation != null ? scopeAnnotation.value() : null;
-        }
+    private DefaultServiceRegistry addServiceValidator(Class<? extends Scope> scope) {
+        return add(new ServiceScopeValidator(scope));
     }
 }
