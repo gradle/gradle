@@ -23,8 +23,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,7 +50,6 @@ public class DefaultArtifactIdentifierFileStore extends GroupedAndNamedUniqueFil
         super(baseDir, temporaryFileProvider, fileAccessTimeJournal, GROUPER, NAMER, checksumService);
     }
 
-    @ServiceScope(Scopes.Build.class)
     public static class Factory {
         private final TemporaryFileProvider temporaryFileProvider;
         private final FileAccessTimeJournal fileAccessTimeJournal;
