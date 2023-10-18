@@ -121,11 +121,11 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         then:
         succeeds("showBuildscript")
         // A jar coming from some file repo is copied into the transformation cache and served from there.
-        inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
+        inArtifactTransformCache("test-1.3-BUILD-SNAPSHOT.jar")
         // A jar coming from remote repo is cached in the global modules cache and served from there.
         // It isn't copied into the transformation cache.
         // The transformed counterparts are not visible when printing classpath data.
-        notInJarCache("commons-io-1.4.jar")
+        notInArtifactTransformCache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
@@ -227,7 +227,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs"() {
+    def "cleans up unused cached JARs in Jar9"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -240,7 +240,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJarCache("a-1.jar").assertExists()
+        def jar = inJar9Cache("proj.jiar").assertExists()
         journal.assertExists()
 
         when:
@@ -509,15 +509,26 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         getArtifactTransformJarsByName("testClasses.jiar").size() == 1
     }
 
-    void notInJarCache(String filename) {
-        inJarCache(filename, false)
+    void notInJar9Cache(String filename) {
+        inJar9Cache(filename, false)
     }
 
-    TestFile inJarCache(String filename, boolean shouldBeFound = true) {
+    TestFile inJar9Cache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
         assert fullpath.startsWith(jars9CacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
     }
+
+    TestFile notInArtifactTransformCache(String filename) {
+        inArtifactTransformCache(filename, false)
+    }
+
+    TestFile inArtifactTransformCache(String filename, boolean shouldBeFound = true) {
+        String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
+        assert fullpath.startsWith(artifactTransformCacheDir.toURI().toString()) == shouldBeFound
+        return new TestFile(new File(URI.create(fullpath)))
+    }
+
 
     TestFile getJars9GcFile() {
         return jars9CacheDir.file("gc.properties")
