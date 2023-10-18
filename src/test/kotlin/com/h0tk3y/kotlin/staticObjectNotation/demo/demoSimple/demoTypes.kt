@@ -15,7 +15,7 @@ class Abc {
             cItems.add(this)
         }
 
-    val cItems = mutableListOf<C>()
+    internal val cItems = mutableListOf<C>()
 }
 
 class C(var x: Int = 0) {

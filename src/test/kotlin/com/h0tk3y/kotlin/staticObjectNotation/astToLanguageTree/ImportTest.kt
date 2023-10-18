@@ -1,7 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisContext
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataObjectResolverImpl
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ErrorReason
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ResolutionError
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
@@ -13,7 +12,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ImportTest {
-    private val resolver = DataObjectResolverImpl()
+    private val resolver = defaultCodeResolver()
 
     private val ast = object : Ast {
         override val description: String = "test"
@@ -40,7 +39,7 @@ class ImportTest {
             Import(AccessChain(nameParts = listOf("a", "b", "c", "d"), originAst = ast), originAst = ast)
         )
         val errors = mutableListOf<ResolutionError>()
-        val result = resolver.collectImports(imports, testContext(errors))
+        val result = defaultCodeResolver().collectImports(imports, testContext(errors))
 
         assertEquals(
             mapOf(

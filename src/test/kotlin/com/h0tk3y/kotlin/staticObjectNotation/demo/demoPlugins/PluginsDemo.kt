@@ -32,7 +32,6 @@ fun main() {
     )
     printResolutionResults(result)
 
-    println("\nResolved assignments")
     printResolvedAssignments(result)
 }
 

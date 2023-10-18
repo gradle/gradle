@@ -17,7 +17,7 @@ fun AnalysisSchema.resolve(
 
     val languageBuilder = LanguageTreeBuilderWithTopLevelBlock(DefaultLanguageTreeBuilder())
     val tree = languageBuilder.build(ast.single())
-    val resolver: DataObjectResolver = DataObjectResolverImpl()
+    val resolver: Resolver = defaultCodeResolver()
     val languageElements = tree.results.filterIsInstance<Element<*>>().map { it.element }
 
     val failures = tree.results.filterIsInstance<FailingResult>()
@@ -70,6 +70,7 @@ fun printAssignmentTrace(trace: AssignmentTrace) {
 }
 
 fun printResolvedAssignments(result: ResolutionResult) {
+    println("\nResolved assignments:")
     printAssignmentTrace(assignmentTrace(result))
 }
 
