@@ -148,6 +148,7 @@ The warnings and errors will help you identify and resolve these situations.
 See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
 <a name="dependency-verification"></a>
 
+<a name="dependency-verification-improvements"></a>
 ### Dependency verification improvements
 
 By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
@@ -171,6 +172,9 @@ To do so, edit `verification-metadata.xml` by adding the `keyring-format` settin
 
 We've also updated the XML validation schema for `verification-metadata.xml`.
 Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
+
+Trusted and ignored keys in `verification-metadata.xml` are now case-insensitive.
+By default, they are written in upper-case to match the ASCII-armored format of `verification-keyring.keys`.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

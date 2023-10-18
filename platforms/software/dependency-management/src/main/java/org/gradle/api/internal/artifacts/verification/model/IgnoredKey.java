@@ -16,13 +16,14 @@
 package org.gradle.api.internal.artifacts.verification.model;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 public class IgnoredKey {
     private final String keyId;
     private final String reason;
 
     public IgnoredKey(String keyId, @Nullable String reason) {
-        this.keyId = keyId;
+        this.keyId = keyId.toUpperCase(Locale.ROOT);
         this.reason = reason;
     }
 
