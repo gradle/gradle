@@ -27,6 +27,8 @@ description = """A problems description API
     |at https://github.com/melix/jdoctor/
 """.trimMargin()
 
+gradlebuildJava.usedInWorkers()
+
 dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":base-services"))
