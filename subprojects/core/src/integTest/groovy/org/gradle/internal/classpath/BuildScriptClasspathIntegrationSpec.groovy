@@ -122,8 +122,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         then:
         succeeds("showBuildscript")
-        inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
-        inJarCache("commons-io-1.4.jar")
+        inJar9Cache("test-1.3-BUILD-SNAPSHOT.jar")
+        inJar9Cache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
@@ -225,7 +225,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    def "cleans up unused cached JARs"() {
+    def "cleans up unused cached JARs in Jar9"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -238,7 +238,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("showBuildscript")
 
         then:
-        def jar = inJarCache("a-1.jar").assertExists()
+        def jar = inJar9Cache("proj.jiar").assertExists()
         journal.assertExists()
 
         when:
@@ -507,11 +507,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         getArtifactTransformJarsByName("testClasses.jiar").size() == 1
     }
 
-    void notInJarCache(String filename) {
-        inJarCache(filename, false)
-    }
-
-    TestFile inJarCache(String filename, boolean shouldBeFound = true) {
+    TestFile inJar9Cache(String filename, boolean shouldBeFound = true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
         assert fullpath.startsWith(jars9CacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
