@@ -85,7 +85,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public File getFile() {
-        if (filterChain.hasFilters()) {
+        if (filterChain.hasFilters() && !isSymbolicLink()) {
             throw new UnsupportedOperationException();
         } else {
             return fileDetails.getFile();

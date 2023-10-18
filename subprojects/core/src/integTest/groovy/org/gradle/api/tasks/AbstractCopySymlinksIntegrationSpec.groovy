@@ -441,13 +441,13 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         null                       | null                       | "isCopy"              | "isCopy"
     }
 
-    def "symlinks are not preserved with filter"() {
+    def "symlinks are not processed by filter with #linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript("""
-            linksStrategy = LinksStrategy.PRESERVE_ALL
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}"){
                 filter { line: String ->
                     if (line.startsWith('#')) "" else line
@@ -464,18 +464,24 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         isCopy(originalCopy, originalFile)
 
         def linkCopy = outputDirectory.file(link.name)
-        isCopy(linkCopy, originalCopy)
+        "$expectedOutcome"(linkCopy, originalCopy)
+
+        where:
+        linksStrategy                   | expectedOutcome
+        LinksStrategy.PRESERVE_ALL      | "isValidSymlink"
+        LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink"
+        LinksStrategy.FOLLOW            | "isCopy"
+        null                            | "isCopy"
     }
 
-    //TODO: decide on actual behavior
-    def "symlinks are not preserved with expand"() {
+    def "symlinks are not processed by filter with #linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
 
         buildKotlinFile << constructBuildScript(
             """
-            linksStrategy = LinksStrategy.PRESERVE_ALL
+            ${configureStrategy(linksStrategy)}
             from("${inputDirectory.name}"){
                 expand(mapOf("key" to "value"))
             }
@@ -491,7 +497,14 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         isCopy(originalCopy, originalFile)
 
         def linkCopy = outputDirectory.file(link.name)
-        isCopy(linkCopy, originalCopy)
+        "$expectedOutcome"(linkCopy, originalCopy)
+
+        where:
+        linksStrategy                   | expectedOutcome
+        LinksStrategy.PRESERVE_ALL      | "isValidSymlink"
+        LinksStrategy.PRESERVE_RELATIVE | "isValidSymlink"
+        LinksStrategy.FOLLOW            | "isCopy"
+        null                            | "isCopy"
     }
 
     //TODO: test a case when root is a symlink
