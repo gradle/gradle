@@ -455,11 +455,6 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     public void sendIntermediate(Object model) {
-        intermediateModelListener.onModel(adapt(model));
-    }
-
-    private Object adapt(Object model) {
-        return model;
-//        return new ProtocolToModelAdapter().unpack(model);
+        intermediateModelListener.onModel(model);
     }
 }

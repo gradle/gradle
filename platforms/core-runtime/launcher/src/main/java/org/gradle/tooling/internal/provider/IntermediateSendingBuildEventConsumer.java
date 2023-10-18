@@ -18,17 +18,24 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
+    private final PayloadSerializer payloadSerializer;
 
-    public IntermediateSendingBuildEventConsumer(ProviderOperationParameters providerParameters) {
+    public IntermediateSendingBuildEventConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer) {
         this.providerParameters = providerParameters;
+        this.payloadSerializer = payloadSerializer;
     }
 
     @Override
     public void dispatch(Object message) {
-        providerParameters.sendIntermediate(message);
+        if (message instanceof SerializedPayload) {
+            Object deserializedMessage = payloadSerializer.deserialize((SerializedPayload) message);
+            providerParameters.sendIntermediate(deserializedMessage);
+        }
     }
 }

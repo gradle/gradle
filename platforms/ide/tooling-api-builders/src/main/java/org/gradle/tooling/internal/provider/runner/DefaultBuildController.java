@@ -35,6 +35,8 @@ import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -53,6 +55,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildStateRegistry buildStateRegistry;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
     private final BuildEventConsumer buildEventConsumer;
+    private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -60,7 +63,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        BuildEventConsumer buildEventConsumer
+        BuildEventConsumer buildEventConsumer,
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -68,6 +72,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.buildStateRegistry = buildStateRegistry;
         this.parameterCarrierFactory = parameterCarrierFactory;
         this.buildEventConsumer = buildEventConsumer;
+        this.payloadSerializer = payloadSerializer;
     }
 
     /**
@@ -170,7 +175,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     @Override
     public void sendIntermediate(Object model) {
-        buildEventConsumer.dispatch(model);
+        SerializedPayload serializedResult = payloadSerializer.serialize(model);
+        buildEventConsumer.dispatch(serializedResult);
     }
 
     private static class NestedAction<T> implements RunnableBuildOperation {
