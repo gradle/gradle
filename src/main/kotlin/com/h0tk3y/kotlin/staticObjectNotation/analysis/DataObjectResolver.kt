@@ -1,7 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.AssignProperty
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.ReassignLocalVal
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.*
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataObjectResolverImpl.FunctionResolutionAndBinding
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.ObjectOrigin.FunctionInvocationOrigin
 import com.h0tk3y.kotlin.staticObjectNotation.evaluation.DataValue
@@ -31,6 +30,7 @@ sealed interface ErrorReason {
     data class UnresolvedReference(val reference: Expr) : ErrorReason
     data class AmbiguousFunctions(val functions: List<FunctionResolutionAndBinding>) : ErrorReason
     data class ValReassignment(val localVal: LocalValue) : ErrorReason
+    data class ExternalReassignment(val external: ObjectOrigin.External) : ErrorReason
     data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
 
     data object UnusedConfigureLambda : ErrorReason
@@ -117,7 +117,7 @@ class AnalysisContext(
 
     val additions: List<DataAddition> get() = mutableAdditions
     
-    val typeRefContext = SchemaTypeRefContext(schema)
+    private val typeRefContext = SchemaTypeRefContext(schema)
 
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
 
@@ -185,7 +185,7 @@ class DataObjectResolverImpl : DataObjectResolver {
     }
 
     // If we can trace the function invocation back to something that is not transient, we consider it not dangling
-    fun isDanglingPureExpression(obj: FunctionInvocationOrigin): Boolean {
+    private fun isDanglingPureExpression(obj: FunctionInvocationOrigin): Boolean {
         fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
             is ObjectOrigin.ConfigureReceiver -> true
             is ObjectOrigin.ConstantOrigin -> false
@@ -215,7 +215,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
     }
 
-    fun AnalysisContext.analyzeCodeInProgramOrder(trees: List<LanguageTreeElement>) {
+    private fun AnalysisContext.analyzeCodeInProgramOrder(trees: List<LanguageTreeElement>) {
         for (tree in trees) {
             when (tree) {
                 is Assignment -> doAnalyzeAssignment(tree)
@@ -242,7 +242,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
     }
 
-    fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
+    private fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
         val rhs = doResolveExpression(localValue.rhs)
         if (rhs == null) {
             errorCollector(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
@@ -254,7 +254,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
     }
 
-    fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment) {
+    private fun AnalysisContext.doAnalyzeAssignment(assignment: Assignment) {
         val lhsResolution =
             doResolvePropertyAccessToAssignableReference(assignment.lhs)
         if (lhsResolution == null) {
@@ -289,7 +289,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         }
     }
 
-    fun AnalysisContext.doResolveExpression(expr: Expr): ObjectOrigin? = when (expr) {
+    private fun AnalysisContext.doResolveExpression(expr: Expr): ObjectOrigin? = when (expr) {
         is PropertyAccess -> doResolvePropertyAccessToObject(expr)
         is FunctionCall -> doResolveFunctionCall(expr)
         is Literal<*> -> literalObjectOrigin(expr)
@@ -297,102 +297,133 @@ class DataObjectResolverImpl : DataObjectResolver {
         is This -> currentScopes.last().receiver
     }
 
-    fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
+    private fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
         ObjectOrigin.ConstantOrigin(DataValue.Constant(literalExpr.type, literalExpr, literalExpr.value))
 
-    fun AnalysisContext.doResolvePropertyAccessToAssignableReference(propertyAccess: PropertyAccess): PropertyReferenceResolution? {
-        val propertyName = propertyAccess.name
-        val candidates: List<AssignmentResolution> = buildList {
-            if (propertyAccess.receiver == null) {
-                currentScopes.reversed().forEach { scope ->
-                    val local = scope.resolveLocalValueAsObjectSource(propertyName)
-                    if (local != null) {
-                        add(ReassignLocalVal(local.localValue))
-                    }
-                    val scopeReceiver = scope.receiver
-                    val property = findDataProperty(getDataType(scopeReceiver), propertyName)
-                    if (property != null) {
-                        add(AssignProperty(PropertyReferenceResolution(scopeReceiver, property)))
-                    }
-                }
-                // TODO: support assignments to external properties?
-            } else {
-                val receiverOrigin = doResolveExpression(propertyAccess.receiver)
-                if (receiverOrigin != null) {
-                    val property = findDataProperty(getDataType(receiverOrigin), propertyName)
-                    if (property != null) {
-                        add(AssignProperty(PropertyReferenceResolution(receiverOrigin, property)))
-                    }
-                }
-                // TODO: support assignments to external properties by FQN?
-            }
+    private fun AnalysisContext.doResolvePropertyAccessToAssignableReference(propertyAccess: PropertyAccess): PropertyReferenceResolution? {
+        val candidates = sequence {
+            runPropertyAccessResolution(
+                propertyAccess,
+                onLocalValue = { yield(ReassignLocalVal(it.localValue)) },
+                onProperty = { yield(AssignProperty(PropertyReferenceResolution(it.receiver, it.property))) },
+                onExternalObject = { yield(ReassignExternal(it)) }
+            )
         }
+        
         return when (val firstMatch = candidates.firstOrNull()) {
             null -> return null
             is ReassignLocalVal -> {
-                errorCollector(
-                    ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue))
-                )
+                errorCollector(ResolutionError(propertyAccess, ErrorReason.ValReassignment(firstMatch.localValue)))
                 null
             }
-
+            is ReassignExternal -> {
+                errorCollector(ResolutionError(propertyAccess, ErrorReason.ExternalReassignment(firstMatch.external)))
+                null
+            }
             is AssignProperty -> firstMatch.propertyReference
         }
     }
 
-    fun AnalysisContext.doResolvePropertyAccessToObject(propertyAccess: PropertyAccess): ObjectOrigin? {
-        val propertyName = propertyAccess.name
-        // TODO: optimize, resolve lazily against the receivers
-        val candidates: List<ObjectOrigin> = buildList {
-            if (propertyAccess.receiver == null) {
-                // Simple name is resolved against the current receivers
-                currentScopes.reversed().forEach { scope ->
-                    val localValue = scope.resolveLocalValueAsObjectSource(propertyName)
-                    if (localValue != null) {
-                        add(localValue)
-                    }
-                    val scopeReceiver = scope.receiver
-                    val property = findDataProperty(getDataType(scopeReceiver), propertyName)
-                    if (property != null) {
-                        add(ObjectOrigin.PropertyReference(scopeReceiver, property, propertyAccess))
-                    }
-                }
-                addAll(lookupPropertiesInScopes(propertyName).map { it.asObjectOrigin(propertyAccess) })
+    private inline fun AnalysisContext.runPropertyAccessResolution(
+        propertyAccess: PropertyAccess,
+        onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
+        onProperty: (ObjectOrigin.PropertyReference) -> Unit,
+        onExternalObject: (ObjectOrigin.External) -> Unit
+    ) {
+        when (propertyAccess.receiver) {
+            null -> resolveUnqualifiedPropertyAccess(
+                propertyAccess = propertyAccess,
+                onLocalValue = onLocalValue,
+                onProperty = onProperty,
+                onExternal = onExternalObject
+            )
 
-                if (propertyName in imports) {
-                    val externalObject = schema.externalObjectsByFqName[imports[propertyName]]
-                    if (externalObject != null) {
-                        add(ObjectOrigin.External(externalObject, propertyAccess))
-                    }
-                }
-            } else {
-                val receiverOrigin = doResolveExpression(propertyAccess.receiver)
-                if (receiverOrigin != null) {
-                    val property = findDataProperty(getDataType(receiverOrigin), propertyName)
-                    if (property != null) {
-                        add(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
-                    }
-                }
-                val asChainOrNull = propertyAccess.asChainOrNull()
-                if (asChainOrNull != null) {
-                    val externalObject = schema.externalObjectsByFqName[asChainOrNull.asFqName()]
-                    if (externalObject != null) {
-                        add(ObjectOrigin.External(externalObject, propertyAccess))
-                    }
-                }
-            }
+            else -> doResolveQualifiedPropertyAccess(
+                propertyAccess,
+                onProperty = onProperty,
+                onExternalObject = onExternalObject
+            )
         }
-        return candidates.firstOrNull()
     }
 
-    fun AnalysisContextView.lookupPropertiesInScopes(name: String): Sequence<PropertyReferenceResolution> =
-        currentScopes.reversed().asSequence().mapNotNull { scope ->
-            val receiver = scope.receiver
-            val receiverType = getDataType(receiver)
-            findDataProperty(receiverType, name)?.let { property -> PropertyReferenceResolution(receiver, property) }
+    private fun AnalysisContext.doResolvePropertyAccessToObject(propertyAccess: PropertyAccess): ObjectOrigin? {
+        val candidates: Sequence<ObjectOrigin> = sequence {
+            runPropertyAccessResolution(
+                propertyAccess = propertyAccess,
+                onLocalValue = { yield(it) },
+                onProperty = { yield(it) },
+                onExternalObject = { yield(it) },
+            )
         }
+        return candidates.firstOrNull().also { 
+            if (it == null) {
+                errorCollector(ResolutionError(propertyAccess, ErrorReason.UnresolvedReference(propertyAccess)))
+            }
+        }
+    }
 
-    fun AnalysisContext.doResolveFunctionCall(functionCall: FunctionCall): FunctionInvocationOrigin? {
+    private inline fun AnalysisContextView.resolveUnqualifiedPropertyAccess(
+        propertyAccess: PropertyAccess,
+        onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
+        onProperty: (ObjectOrigin.PropertyReference) -> Unit,
+        onExternal: (ObjectOrigin.External) -> Unit
+    ) {
+        require(propertyAccess.receiver == null) { "Name-only property access is expected" }
+
+        lookupNamedValueInScopes(propertyAccess, onLocalValue, onProperty)
+
+        if (propertyAccess.name in imports) {
+            val externalObject = schema.externalObjectsByFqName[imports[propertyAccess.name]]
+            if (externalObject != null) {
+                onExternal(ObjectOrigin.External(externalObject, propertyAccess))
+            }
+        }
+    }
+
+    private inline fun AnalysisContextView.lookupNamedValueInScopes(
+        propertyAccess: PropertyAccess,
+        onLocalValue: (ObjectOrigin.FromLocalValue) -> Unit,
+        onProperty: (ObjectOrigin.PropertyReference) -> Unit
+    ) {
+        currentScopes.asReversed().forEach { scope ->
+            val localValue = scope.findLocalAsObjectOrigin(propertyAccess.name)
+            if (localValue != null) {
+                onLocalValue(localValue)
+            }
+            val scopeReceiver = scope.receiver
+            val property = findDataProperty(getDataType(scopeReceiver), propertyAccess.name)
+            if (property != null) {
+                onProperty(ObjectOrigin.PropertyReference(scopeReceiver, property, propertyAccess))
+            }
+        }
+    }
+
+    private inline fun AnalysisContext.doResolveQualifiedPropertyAccess(
+        propertyAccess: PropertyAccess,
+        onProperty: (ObjectOrigin.PropertyReference) -> Unit,
+        onExternalObject: (ObjectOrigin.External) -> Unit
+    ) {
+        require(propertyAccess.receiver != null) { "Property access with explicit receiver expected" }
+
+        val propertyName = propertyAccess.name
+
+        val receiverOrigin = doResolveExpression(propertyAccess.receiver)
+        if (receiverOrigin != null) {
+            val property = findDataProperty(getDataType(receiverOrigin), propertyName)
+            if (property != null) {
+                onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
+            }
+        }
+        val asChainOrNull = propertyAccess.asChainOrNull()
+        if (asChainOrNull != null) {
+            val externalObject = schema.externalObjectsByFqName[asChainOrNull.asFqName()]
+            if (externalObject != null) {
+                onExternalObject(ObjectOrigin.External(externalObject, propertyAccess))
+            }
+        }
+    }
+    
+    private fun AnalysisContext.doResolveFunctionCall(functionCall: FunctionCall): FunctionInvocationOrigin? {
         val argResolutions = functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>()
             .associateWith {
                 doResolveExpression(it.expr)
@@ -538,7 +569,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         newFunctionCallId
     )
 
-    fun AnalysisContextView.findDataConstructor(
+    private fun AnalysisContextView.findDataConstructor(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
@@ -574,7 +605,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         val binding: ParameterArgumentBinding
     )
 
-    fun TypeRefContext.findMemberFunction(
+    private fun TypeRefContext.findMemberFunction(
         receiver: ObjectOrigin,
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
@@ -598,7 +629,7 @@ class DataObjectResolverImpl : DataObjectResolver {
         args: List<FunctionArgument>,
     ) = matchingMembers.filter { it.parameters.size >= args.filterIsInstance<FunctionArgument.ValueArgument>().size }
 
-    fun AnalysisContextView.findTopLevelFunction(
+    private fun AnalysisContextView.findTopLevelFunction(
         functionCall: FunctionCall,
         argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ): List<FunctionResolutionAndBinding> {
@@ -719,7 +750,7 @@ fun checkIsAssignable(valueType: DataType, isAssignableTo: DataType): Boolean = 
     DataType.UnitType -> valueType == DataType.UnitType
 }
 
-private fun AnalysisScopeView.resolveLocalValueAsObjectSource(name: String): ObjectOrigin.FromLocalValue? {
+private fun AnalysisScopeView.findLocalAsObjectOrigin(name: String): ObjectOrigin.FromLocalValue? {
     val local = findLocal(name) ?: return null
     val fromLocalValue = ObjectOrigin.FromLocalValue(local.localValue, local.assignment)
     return fromLocalValue
@@ -729,9 +760,6 @@ private fun findDataProperty(
     receiverType: DataType, name: String
 ): DataProperty? =
     if (receiverType is DataType.DataClass<*>) receiverType.properties.find { it.name == name } else null
-
-fun PropertyReferenceResolution.asObjectOrigin(originElement: PropertyAccess): ObjectOrigin =
-    ObjectOrigin.PropertyReference(this.receiverObject, property, originElement)
 
 @OptIn(ExperimentalContracts::class)
 inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
@@ -744,18 +772,6 @@ inline fun AnalysisContext.withScope(scope: AnalysisScope, action: () -> Unit) {
     } finally {
         leaveScope(scope)
     }
-}
-
-private val AccessChain.length: Int get() = nameParts.size
-
-// TODO: handle the AST with more care?
-private fun AccessChain.dropLast(nParts: Int) = AccessChain(nameParts.dropLast(nParts), originAst)
-private fun AccessChain.takeFirst(nParts: Int) = AccessChain(nameParts.take(nParts), originAst)
-private fun AccessChain.takeLast(nParts: Int) = AccessChain(nameParts.takeLast(nParts), originAst)
-private fun AccessChain.afterPrefix(prefix: AccessChain): AccessChain {
-    require(this.originAst === prefix.originAst)
-    require(nameParts.take(prefix.nameParts.size) == prefix.nameParts)
-    return AccessChain(nameParts.drop(nameParts.size), originAst)
 }
 
 private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())

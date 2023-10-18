@@ -6,6 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.*
 sealed interface AssignmentResolution {
     data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution
     data class ReassignLocalVal(val localValue: LocalValue) : AssignmentResolution
+    data class ReassignExternal(val external: ObjectOrigin.External) : AssignmentResolution
 }
 
 // TODO: report failures to resolve with potential candidates that could not work
