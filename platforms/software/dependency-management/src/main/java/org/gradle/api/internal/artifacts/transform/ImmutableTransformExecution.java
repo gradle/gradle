@@ -21,7 +21,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -29,7 +28,6 @@ import java.io.File;
 import java.util.Map;
 
 class ImmutableTransformExecution extends AbstractTransformExecution {
-    private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
 
     private final FileSystemAccess fileSystemAccess;
 
@@ -57,21 +55,14 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
     @Override
     public void visitIdentityInputs(InputVisitor visitor) {
         super.visitIdentityInputs(visitor);
-        visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, InputBehavior.INCREMENTAL,
-            new InputFileValueSupplier(
-                inputArtifact,
-                transform.getInputArtifactNormalizer(),
-                transform.getInputArtifactDirectorySensitivity(),
-                transform.getInputArtifactLineEndingNormalization(),
-                () -> fileCollectionFactory.fixed(inputArtifact)
-            ));
+        visitRegularInputs(visitor);
     }
 
     @Override
     public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
         ImmutableTransformWorkspaceIdentity transformWorkspaceIdentity = new ImmutableTransformWorkspaceIdentity(
             identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
-            identityFileInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME).getHash(),
+            identityFileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME).getHash(),
             identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
             identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
