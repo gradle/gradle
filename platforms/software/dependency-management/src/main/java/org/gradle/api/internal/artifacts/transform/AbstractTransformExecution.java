@@ -78,7 +78,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     private final TransformExecutionListener transformExecutionListener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOperationProgressEventEmitter progressEventEmitter;
-    private final FileCollectionFactory fileCollectionFactory;
+    protected final FileCollectionFactory fileCollectionFactory;
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
