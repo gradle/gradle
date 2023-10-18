@@ -18,7 +18,6 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.internal.OperationListener;
@@ -29,11 +28,11 @@ import java.util.Optional;
 public abstract class BaseLocationTransformer implements ProblemTransformer {
     protected final BuildOperationAncestryTracker buildOperationAncestryTracker;
     protected final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    protected final OperationListener operationListener = new OperationListener();
+    protected final OperationListener operationListener;
 
-    public BaseLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, BuildOperationListenerManager buildOperationListenerManager) {
+    public BaseLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
         this.buildOperationAncestryTracker = buildOperationAncestryTracker;
-        buildOperationListenerManager.addListener(operationListener);
+        this.operationListener = operationListener;
     }
 
     @Nonnull

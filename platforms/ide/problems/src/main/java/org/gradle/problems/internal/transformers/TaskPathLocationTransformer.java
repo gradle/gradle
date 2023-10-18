@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.locations.TaskPathLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.problems.internal.OperationListener;
 import org.gradle.util.Path;
 
 import java.util.Objects;
@@ -30,14 +30,13 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
 
     public TaskPathLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager
+        OperationListener buildOperationListenerManager
     ) {
         super(buildOperationAncestryTracker, buildOperationListenerManager);
     }
 
     @Override
     public Problem transform(Problem problem) {
-
         getExecuteTask(ExecuteTaskBuildOperationDetails.class)
             .ifPresent(id -> {
                 try {

@@ -21,7 +21,7 @@ import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.problems.internal.OperationListener;
 
 import java.util.Objects;
 
@@ -30,9 +30,9 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
 
     public PluginIdLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
-        BuildOperationListenerManager buildOperationListenerManager
+        OperationListener operationListener
     ) {
-        super(buildOperationAncestryTracker, buildOperationListenerManager);
+        super(buildOperationAncestryTracker, operationListener);
     }
 
     @Override
