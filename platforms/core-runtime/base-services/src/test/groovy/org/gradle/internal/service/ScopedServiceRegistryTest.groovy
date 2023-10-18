@@ -27,17 +27,17 @@ class ScopedServiceRegistryTest extends Specification {
         def registry = new ScopedServiceRegistry(Scopes.Build)
 
         when:
-        registry.add(new MyService())
+        registry.add(new ScopedService())
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service 'MyService' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${ScopedService.simpleName}' was declared in scope 'BuildTree' but registered in scope 'Build'")
     }
 
     def "succeeds when registering a service in the correct scope"() {
         given:
         def registry = new ScopedServiceRegistry(Scopes.BuildTree)
-        def service = new MyService()
+        def service = new ScopedService()
 
         when:
         registry.add(service)
@@ -46,9 +46,26 @@ class ScopedServiceRegistryTest extends Specification {
         noExceptionThrown()
 
         and:
-        registry.get(MyService) === service
+        registry.get(ScopedService) === service
+    }
+
+    def "succeeds when registering an unscoped service"() {
+        given:
+        def registry = new ScopedServiceRegistry(Scopes.BuildTree)
+        def service = new UnscopedService()
+
+        when:
+        registry.add(service)
+
+        then:
+        noExceptionThrown()
+
+        and:
+        registry.get(UnscopedService) === service
     }
 
     @ServiceScope(Scopes.BuildTree)
-    class MyService {}
+    class ScopedService {}
+
+    class UnscopedService {}
 }

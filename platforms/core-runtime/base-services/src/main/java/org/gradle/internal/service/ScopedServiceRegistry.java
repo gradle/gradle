@@ -23,9 +23,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
-    private final Class<? extends Scopes> scope;
+    private final Class<? extends Scope> scope;
 
-    public ScopedServiceRegistry(Class<? extends Scopes> scope) {
+    public ScopedServiceRegistry(Class<? extends Scope> scope) {
         this.scope = scope;
     }
 
@@ -37,7 +37,7 @@ public class ScopedServiceRegistry extends DefaultServiceRegistry {
 
     private void assertCorrectScope(Class<?> serviceType) {
         Class<? extends Scope> serviceScope = scopeOf(serviceType);
-        if (scope != serviceScope) {
+        if (serviceScope != null && scope != serviceScope) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
         }
     }
