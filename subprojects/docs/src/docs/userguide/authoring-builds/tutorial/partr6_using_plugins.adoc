@@ -23,10 +23,10 @@ Learn the basics of using Gradle plugins and create a simple script plugin.
 - Initialize a Java project
 ****
 
-[[part1_begin]]
+[[part6_begin]]
 == Step 0. Before you Begin
 
-1. You authored a task in <<partr5_gradle_init.adoc#part1_begin,part 5>>.
+1. You authored a task in <<partr5_registering_tasks.adoc#part5_begin,part 5>>.
 
 == Step 1.
 

@@ -27,10 +27,10 @@ Learn the basics of authoring Gradle by developing the Settings File.
 - Review the directory layout
 ****
 
-[[part1_begin]]
+[[part3_begin]]
 == Step 0. Before you Begin
 
-1. You understand the Gradle Build Lifecycle from <<partr2_gradle_init.adoc#part1_begin,part 2>>.
+1. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
 == Step 1.
 

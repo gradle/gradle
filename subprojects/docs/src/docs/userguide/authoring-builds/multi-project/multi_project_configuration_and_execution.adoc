@@ -62,7 +62,7 @@ While this provides a great deal of power and flexibility to the build author, i
 For instance, this effectively prevents Gradle from correctly building multiple projects in parallel, configuring only a subset of projects, or from substituting a pre-built artifact in place of a project dependency.
 
 Two projects are said to be _decoupled_ if they do not directly access each other's project model.
-Decoupled projects may only interact in terms of declared dependencies: <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> and/or <<writing_tasks.adoc#sec:task_dependencies,task dependencies>>.
+Decoupled projects may only interact in terms of declared dependencies: <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> and/or <<using_tasks.adoc#sec:task_dependencies,task dependencies>>.
 Any other form of project interaction (i.e. by modifying another project object or by reading a value from another project object) causes the projects to be coupled.
 The consequence of coupling during the configuration phase is that if gradle is invoked with the 'configuration on demand' option, the result of the build can be flawed in several ways.
 The consequence of coupling during execution phase is that if gradle is invoked with the parallel option, one project task runs too late to influence a task of a project building in parallel.

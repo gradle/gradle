@@ -141,7 +141,7 @@ For optimal readability and maintainability follow these rules:
 
 * The task type should be the only key-value pair within the parentheses after the task name.
 * Other configuration should be done within the task's configuration block.
-* <<writing_tasks#sec:hello_world,Task actions>> added when declaring a task should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
+* <<using_tasks.adoc#sec:task_registration,Task actions>> added when declaring a task should only be declared with the methods link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doFirst(org.gradle.api.Action)[Task.doFirst{}] or link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}].
 * When declaring an ad-hoc task — one that doesn't have an explicit type — you should use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast{}] if you're only declaring a single action.
 * A task should <<#sec:improving_task_discoverability,define a group and description>>.
 

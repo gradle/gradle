@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-This page has been moved to <<writing_tasks.adoc#tutorial_using_tasks,Writing Tasks>>.
+This page has been moved to <<using_tasks.adoc#tutorial_using_tasks,Using Tasks>>.

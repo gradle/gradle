@@ -100,7 +100,7 @@ Two classes of tasks can be executed:
 
 Typically, a *lifecycle* tasks depends on many *actionable* tasks.
 
-[[sec:hello_world]]
+[[sec:task_registration]]
 == Task registration and action
 
 Let's take a look at a simple "Hello World" task in a build script:
@@ -136,7 +136,7 @@ processTestResources - Processes test resources.
 startScripts - Creates OS specific scripts to run the project as a JVM application.
 ----
 
-You can execute the task in the build script with `./gradlew -q hello`:
+You can execute the task in the build script with `./gradlew hello`:
 
 ====
 ----
@@ -300,7 +300,7 @@ TIP: The calls `doFirst` and `doLast` can be executed multiple times.
 They add an action to the beginning or the end of the task's actions list.
 When the task executes, the actions in the action list are executed in order.
 
-Or you can configure a plugin:
+Here is an example of the `named` method being used to configure a plugin:
 
 [source,groovy]
 ----

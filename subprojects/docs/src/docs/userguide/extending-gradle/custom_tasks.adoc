@@ -15,7 +15,7 @@
 [[custom_tasks]]
 = Developing Custom Gradle Task Types
 
-Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<writing_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
+Gradle supports two types of task. One such type is the simple task, where you define the task with an action closure. We have seen these in <<using_tasks.adoc#tutorial_using_tasks,Build Script Basics>>. For this type of task, the action closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your build script.
 
 The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks.adoc#more_about_tasks,Authoring Tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
 

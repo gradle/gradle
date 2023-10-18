@@ -23,10 +23,10 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 - Initialize a Java project
 ****
 
-[[part1_begin]]
+[[part5_begin]]
 == Step 0. Before you Begin
 
-1. You authored a build script in <<partr4_gradle_init.adoc#part1_begin,part 4>>.
+1. You authored a build script in <<partr4_build_script.adoc#part4_begin,part 4>>.
 
 == Step 1.
 

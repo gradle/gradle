@@ -223,7 +223,7 @@ If you attempt to pass a `null` value, Gradle will throw a `NullPointerException
 [[sec:adding_dependencies_to_tasks]]
 == Adding dependencies to a task
 
-There are several ways you can define the dependencies of a task. In <<writing_tasks.adoc#sec:task_dependencies,Task dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
+There are several ways you can define the dependencies of a task. In <<using_tasks.adoc#sec:task_dependencies,Task dependencies>> you were introduced to defining dependencies using task names. Task names can refer to tasks in the same project as the task, or to tasks in other projects. To refer to a task in another project, you prefix the name of the task with the path of the project it belongs to. The following is an example which adds a dependency from `project-a:taskX` to `project-b:taskY`:
 
 .Adding dependency on task from another project
 ====
