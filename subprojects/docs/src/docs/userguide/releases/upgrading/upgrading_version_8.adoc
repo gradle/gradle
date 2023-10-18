@@ -44,7 +44,7 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
 
-If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+If you are using this task *without applying `groovy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
 [[changes_8.4]]

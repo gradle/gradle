@@ -87,9 +87,7 @@ compileJava - Compiles main Java source.
 ...
 ----
 
-This is because the `application` plugin contains additional tasks now available in your project.
-
-Many of these tasks, such as `assemble`, `build`, and `clean`, should be familiar to you.
+Many of these tasks, such as `assemble`, `build`, and `clean`, should be familiar to a developer.
 
 == Task classification
 
@@ -112,7 +110,7 @@ include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 
 In the example, the build script *registers* a single task called `hello`, and adds an *action* to it.
 
-Now, when the Gradle tasks are listed, the `hello` task is available:
+If the tasks in the project are listed, the `hello` task is available to Gradle:
 
 [source]
 ----
@@ -133,7 +131,7 @@ compileTestJava - Compiles test Java source.
 hello
 processResources - Processes main resources.
 processTestResources - Processes test resources.
-startScripts - Creates OS specific scripts to run the project as a JVM application.
+startScripts - Creates OS-specific scripts to run the project as a JVM application.
 ----
 
 You can execute the task in the build script with `./gradlew hello`:
@@ -150,7 +148,7 @@ The action is simply a block containing some code to execute: `println("Hello wo
 
 == Task group and description
 
-The `hello` task from the previous section can be further detailed with a *description* and assigned to a *group*.
+The `hello` task from the previous section can be detailed with a *description* and assigned to a *group*.
 
 .build.gradle.kts
 [source,kotlin]
@@ -202,7 +200,7 @@ Group
 Custom
 ----
 
-As we can see we have created a `hello` task in the `custom` group and added a simple description.
+As we can see, the `hello` task belongs to the `custom` group.
 
 [[sec:task_dependencies]]
 == Task dependencies
@@ -272,7 +270,7 @@ Hello world!
 
 Once tasks are registered, they can be accessed via an _API_ for further configuration.
 
-For instance, you can use this to dynamically add dependencies to a task, at runtime:
+For instance, you can use this to dynamically add dependencies to a task at runtime:
 
 ====
 include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]
@@ -332,7 +330,7 @@ tasks.register<HelloTask>("hello") {
 }
 ----
 
-The `hello` task is then registered with the *type* `HelloTask`.
+The `hello` task is registered with the *type* `HelloTask`.
 
 Executing our new `hello` task:
 
@@ -372,7 +370,7 @@ Custom tasks
 ----
 
 == Built-in task types
-Gradle provides many built-in tasks types with common and popular functionality, such as copying or deleting files.
+Gradle provides many built-in task types with common and popular functionality, such as copying or deleting files.
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task:
 
@@ -385,7 +383,7 @@ tasks.register("copyTask",Copy) {
 }
 ----
 
-There are many task types, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, `Delete`, and link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[much more].
+There are many task types developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are available in the link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
 
 [[sec:build_scripts_are_code]]
 [[sec:using_ant_tasks_tutorial]]
