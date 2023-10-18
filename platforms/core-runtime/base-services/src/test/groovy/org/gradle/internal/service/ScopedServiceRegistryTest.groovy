@@ -24,7 +24,7 @@ import spock.lang.Specification
 class ScopedServiceRegistryTest extends Specification {
     def "fails when registering a service by adding #method in a wrong scope"() {
         given:
-        def registry = new ScopedServiceRegistry(Scopes.Build)
+        def registry = ServiceRegistryBuilder.builder().scope(Scopes.Build).build()
 
         when:
         registration(registry)
