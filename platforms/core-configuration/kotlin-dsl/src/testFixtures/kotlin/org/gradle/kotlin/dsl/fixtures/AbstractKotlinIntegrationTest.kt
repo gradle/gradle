@@ -330,5 +330,5 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
-        inDirectory(rootDir).withArguments(*arguments).withArgument("--stacktrace")
+        inDirectory(rootDir).withArguments(*arguments)
 }
