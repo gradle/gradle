@@ -168,16 +168,14 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     }
 
     @Override
+    @SuppressWarnings("try")
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, path);
             GFileUtils.mkdirs(workspace);
-            FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "");
-            try {
+            try (FileLock ignored = fileLockManager.lock(workspace, mode(Exclusive), "")) {
                 fileAccessTracker.markAccessed(workspace);
                 return action.executeInWorkspace(workspace, executionHistoryStore);
-            } finally {
-                innerLock.close();
             }
         });
     }
