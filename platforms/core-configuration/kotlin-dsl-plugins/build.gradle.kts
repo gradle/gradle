@@ -21,7 +21,7 @@ dependencies {
     compileOnly(project(":language-java"))
     compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
-    compileOnly(project(":plugins"))
+    compileOnly(project(":plugins-java-base"))
     compileOnly(project(":toolchains-jvm"))
     compileOnly(project(":kotlin-dsl"))
 
