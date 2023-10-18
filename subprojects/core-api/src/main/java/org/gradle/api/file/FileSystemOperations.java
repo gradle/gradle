@@ -35,6 +35,26 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface FileSystemOperations {
 
     /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
+     * to configure the {@link CopySpec} before it is returned by this method.
+     *
+     * @param action Action to configure the CopySpec
+     * @return The CopySpec
+     * @since 8.5
+     */
+    @Incubating
+    CopySpec copySpec(Action<? super CopySpec> action);
+
+    /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
+     *
+     * @return a newly created copy spec
+     * @since 8.5
+     */
+    @Incubating
+    CopySpec copySpec();
+
+    /**
      * Copies the specified files.
      * The given action is used to configure a {@link CopySpec}, which is then used to copy the files.
      *

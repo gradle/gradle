@@ -67,7 +67,6 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
         normalizedOutput
             .replaceAll(/Received \d+ file system events .*\n/, '')
             .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
-            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
     }

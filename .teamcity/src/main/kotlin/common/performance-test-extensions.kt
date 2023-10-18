@@ -102,7 +102,7 @@ fun BuildSteps.cleanUpReadOnlyDir(os: Os) {
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """
                 rmdir /s /q %teamcity.build.checkoutDir%\subprojects\performance\build && (echo performance-build-dir removed) || (echo performance-build-dir not found)
-                rmdir /s /q %teamcity.build.checkoutDir%\subprojects\version-control\build && (echo version-control-build-dir removed) || (echo version-control-build-dir not found)
+                rmdir /s /q %teamcity.build.checkoutDir%\platforms\software\version-control\build && (echo version-control-build-dir removed) || (echo version-control-build-dir not found)
                 """
             skipConditionally()
         }

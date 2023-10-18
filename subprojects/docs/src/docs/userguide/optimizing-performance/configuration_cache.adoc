@@ -860,7 +860,7 @@ The following table shows what APIs or injected service should be used as a repl
 | A task input or output property or a script variable to capture the result of using `project.resource` to calculate the actual parameter.
 
 | `project.copySpec {}`
-| A task input or output property or a script variable to capture the result of using `project.copySpec {}` to calculate the actual parameter.
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copySpec--[FileSystemOperations.copySpec {}]
 
 | `project.copy {}`
 | link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy {}]

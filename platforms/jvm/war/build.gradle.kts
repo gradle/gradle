@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":plugins-java-base"))
     implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":testing-base"))
+    implementation(project(":test-suites-base"))
 
     implementation(libs.groovy)
     implementation(libs.inject)

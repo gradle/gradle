@@ -94,9 +94,16 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-java-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-fixtures[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]platforms[/\\]jvm[/\\]plugins-jvm-test-suite[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]jvm[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]jvm[/\\]plugins-test-report-aggregation[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]platforms[/\\]software[/\\]plugins-version-catalog[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
 
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"

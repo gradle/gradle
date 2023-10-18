@@ -19,10 +19,13 @@ package org.gradle.api.plugins.internal;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -33,6 +36,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -44,7 +48,9 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
+import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.regex.Pattern;
 
@@ -203,14 +209,53 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     /**
-     * @implNote throws an exception if used when multiple {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
-     * components are present.
+     * @implNote throws an exception if used when multiple {@link JvmSoftwareComponentInternal} components are present.
      */
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
-        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
+        FeatureSpecInternal spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
         configureAction.execute(spec);
-        spec.create();
+        JvmFeatureInternal feature = spec.create();
+
+        JvmSoftwareComponentInternal component = getSingleJavaComponent();
+        if (component != null) {
+            component.getFeatures().add(feature);
+
+            // TODO: Much of the logic below should become automatic.
+            // The component should be aware of all variants in its features and should advertise them
+            // without needing to explicitly know about each variant.
+
+            AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
+            Configuration javadocElements = feature.getJavadocElementsConfiguration();
+            if (javadocElements != null) {
+                adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+            }
+
+            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+            if (sourcesElements != null) {
+                adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+            }
+
+            if (spec.isPublished()) {
+                adhocComponent.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+                adhocComponent.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+            }
+        }
+    }
+
+    @Nullable
+    private JvmSoftwareComponentInternal getSingleJavaComponent() {
+        NamedDomainObjectSet<JvmSoftwareComponentInternal> jvmComponents = project.getComponents().withType(JvmSoftwareComponentInternal.class);
+        if (jvmComponents.size() > 1) {
+            String componentNames = CollectionUtils.join(", ", jvmComponents.getNames());
+            throw new InvalidUserCodeException("Cannot register feature because multiple JVM components are present. The following components were found: " + componentNames);
+        } else if (!jvmComponents.isEmpty()) {
+            return jvmComponents.iterator().next();
+        }
+
+        // TODO: This case should be deprecated.
+        // Users should not be able to create detached features with `registerFeature`
+        return null;
     }
 
     @Override

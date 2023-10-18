@@ -22,6 +22,93 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * Tests {@link DefaultJvmSoftwareComponent}.
  */
 class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec {
+
+    def "can instantiate component instances in Groovy DSL"() {
+        given:
+        buildFile << """
+            ${factoryRegistrationGroovy()}
+
+            components {
+                thing(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponentInternal)
+            }
+
+            task verify {
+                assert components.thing instanceof DefaultJvmSoftwareComponent
+                assert components.comp instanceof DefaultJvmSoftwareComponent
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can instantiate component instances in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            ${factoryRegistrationKotlin()}
+
+            components {
+                create<JvmSoftwareComponentInternal>("thing")
+                create<JvmSoftwareComponentInternal>("comp")
+            }
+
+            tasks.register("verify") {
+                assert(components.named("thing").get() is DefaultJvmSoftwareComponent)
+                assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can instantiate component instances adjacent to java component with java-library plugin applied in Groovy DSL"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-library')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponentInternal)
+            }
+
+            task verify {
+                assert components.java instanceof DefaultJvmSoftwareComponent
+                assert components.comp instanceof DefaultJvmSoftwareComponent
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can instantiate component instances adjacent to java component with java-library plugin applied in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${factoryRegistrationKotlin()}
+
+            components {
+                create<JvmSoftwareComponentInternal>("comp")
+            }
+
+            tasks.register("verify") {
+                assert(components.named("java").get() is DefaultJvmSoftwareComponent)
+                assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
     def "can configure java component added by java-library plugin in Groovy DSL"() {
         given:
         buildFile << """
@@ -74,6 +161,56 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds "verify"
+    }
+
+    def "can not registerFeature with multiple component instances"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("java-base")
+            }
+
+            ${factoryRegistrationKotlin()}
+
+            sourceSets {
+                val custom by registering
+            }
+
+            components {
+                create<JvmSoftwareComponentInternal>("module")
+                create<JvmSoftwareComponentInternal>("thing")
+            }
+
+            java {
+                registerFeature("myFeature") {
+                    usingSourceSet(sourceSets["custom"])
+                }
+            }
+        """
+
+        expect:
+        fails("tasks")
+        failure.assertHasErrorOutput("Cannot register feature because multiple JVM components are present. The following components were found: module, thing")
+    }
+
+    private static final String factoryRegistrationGroovy() {
+        """
+            ${importStatements()}
+
+            components {
+                registerBinding(JvmSoftwareComponentInternal, DefaultJvmSoftwareComponent)
+            }
+        """
+    }
+
+    private static final String factoryRegistrationKotlin() {
+        """
+            ${importStatements()}
+
+            components {
+                registerBinding(JvmSoftwareComponentInternal::class.java, DefaultJvmSoftwareComponent::class.java)
+            }
+        """
     }
 
     /**

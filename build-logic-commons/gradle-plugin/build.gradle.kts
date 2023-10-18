@@ -14,7 +14,7 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.15")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.15.1")
 
     api(platform(project(":build-platform")))
 

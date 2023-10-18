@@ -43,12 +43,12 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ENABLED;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.IGNORED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEYRING_FORMAT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.KEY_SERVERS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
@@ -60,6 +60,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_ARTIFACTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEY;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTED_KEYS;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TRUSTING;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.URI;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
@@ -95,7 +96,7 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd");
+        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -106,10 +107,21 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(CONFIG);
         writeVerifyMetadata(configuration);
         writeSignatureCheck(configuration);
+        writeKeyRingFormat(configuration);
         writeKeyServers(configuration);
         writeTrustedArtifacts(configuration);
         writIgnoredKeys(configuration);
         writeGloballyTrustedKeys(configuration);
+        writer.endElement();
+    }
+
+    private void writeKeyRingFormat(DependencyVerificationConfiguration configuration) throws IOException {
+        DependencyVerificationConfiguration.KeyringFormat keyRingFormat = configuration.getKeyringFormat();
+        if (keyRingFormat == null) {
+            return;
+        }
+        writer.startElement(KEYRING_FORMAT);
+        writer.write(String.valueOf(keyRingFormat).toLowerCase());
         writer.endElement();
     }
 

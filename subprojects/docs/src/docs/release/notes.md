@@ -9,7 +9,8 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Philipp Schneider](https://github.com/p-schneider),
+[Leonardo Silveira](https://github.com/sombriks),
+[Philipp Schneider](https://github.com/p-schneider)
 
 ## Upgrade instructions
 
@@ -84,6 +85,15 @@ The Wrapper and the Gradle Build Tool are licensed under the [Apache Software Li
 The JAR file is now self-attributing so that you don't need to add a separate `LICENSE` file in your codebase.
 
 
+<a name="plugin-authoring-improvements"></a>
+### Plugin authoring improvements
+
+#### New API in `FileSystemOperations` to create `CopySpec` instances when no `Project` is available
+
+The `FileSystemOperations` service now has a [copySpec()](javadoc/org/gradle/api/file/FileSystemOperations.html#copySpec--) method for creating `CopySpec` instances in a [configuration cache](userguide/configuration_cache.html) friendly way.
+The new method allows you to create, configure, and use `CopySpec` instances during the [execution phase](userguide/build_lifecycle.html#sec:build_phases).
+
+
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
@@ -136,6 +146,31 @@ It is recommended that you rename your configuration to something that does not 
 The warnings and errors will help you identify and resolve these situations.
 
 See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
+<a name="dependency-verification"></a>
+
+### Dependency verification improvements
+
+By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
+Also, when Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII-armored versions of the keys.
+
+You can now change this behavior to choose only one format.
+To do so, edit `verification-metadata.xml` by adding the `keyring-format` setting:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    <configuration>
+        <verify-metadata>true</verify-metadata>
+        <verify-signatures>true</verify-signatures>
+        <keyring-format>armored</keyring-format> <!-- or binary -->
+    </configuration>
+</verification-metadata>
+```
+
+We've also updated the XML validation schema for `verification-metadata.xml`.
+Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -144,6 +179,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

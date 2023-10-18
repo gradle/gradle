@@ -44,7 +44,6 @@ dependencies {
     testImplementation(libs.slf4jApi)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":plugins")))
     testImplementation(testFixtures(project(":plugins-java")))
     testImplementation(testFixtures(project(":language-jvm")))
     testImplementation(testFixtures(project(":language-java")))
