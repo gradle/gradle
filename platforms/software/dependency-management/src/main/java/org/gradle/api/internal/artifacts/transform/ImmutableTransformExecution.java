@@ -57,7 +57,7 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
     @Override
     public void visitIdentityInputs(InputVisitor visitor) {
         super.visitIdentityInputs(visitor);
-        visitor.visitInputFileProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, InputBehavior.NON_INCREMENTAL,
+        visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, InputBehavior.INCREMENTAL,
             new InputFileValueSupplier(
                 inputArtifact,
                 transform.getInputArtifactNormalizer(),
