@@ -22,16 +22,22 @@ import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
 class ScopedServiceRegistryTest extends Specification {
-    def "fails when registering a service in a wrong scope"() {
+    def "fails when registering a service by adding #method in a wrong scope"() {
         given:
         def registry = new ScopedServiceRegistry(Scopes.Build)
 
         when:
-        registry.add(new ScopedService())
+        registration(registry)
 
         then:
         def exception = thrown(IllegalArgumentException)
         exception.message.contains("Service '${ScopedService.simpleName}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+
+        where:
+        method     | registration
+        'instance' | { ScopedServiceRegistry it -> it.add(new ScopedService()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(ScopedService) } }
+        'provider' | { ScopedServiceRegistry it -> it.addProvider(new ScopedServiceProvider()) }
     }
 
     def "succeeds when registering a service in the correct scope"() {
@@ -65,7 +71,14 @@ class ScopedServiceRegistryTest extends Specification {
     }
 
     @ServiceScope(Scopes.BuildTree)
-    class ScopedService {}
+    static class ScopedService {}
 
-    class UnscopedService {}
+    static class UnscopedService {}
+
+    static class ScopedServiceProvider {
+        @SuppressWarnings(["unused", 'GrMethodMayBeStatic'])
+        ScopedService createScopedService() {
+            return new ScopedService()
+        }
+    }
 }

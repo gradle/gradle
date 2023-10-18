@@ -17,45 +17,58 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
-    private final Class<? extends Scope> scope;
-
     public ScopedServiceRegistry(Class<? extends Scope> scope) {
-        this.scope = scope;
+        add(new ServiceScopeValidator(scope));
     }
 
-    @Override
-    public <T> DefaultServiceRegistry add(Class<? extends T> serviceType, T serviceInstance) {
-        assertCorrectScope(serviceType);
-        return super.add(serviceType, serviceInstance);
-    }
+    private static class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
-    private void assertCorrectScope(Class<?> serviceType) {
-        Class<? extends Scope> serviceScope = scopeOf(serviceType);
-        if (serviceScope != null && scope != serviceScope) {
-            throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
+        private final Class<? extends Scope> scope;
+
+        public ServiceScopeValidator(Class<? extends Scope> scope) {
+            this.scope = scope;
         }
-    }
 
-    private String invalidScopeMessage(
-        Class<?> serviceType,
-        Class<? extends Scope> actualScope
-    ) {
-        return String.format("Service '%s' was declared in scope '%s' but registered in scope '%s'",
-            serviceType.getSimpleName(),
-            actualScope.getSimpleName(),
-            scope.getSimpleName()
-        );
-    }
+        @Override
+        public List<Class<? extends Annotation>> getAnnotations() {
+            return Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
+        }
 
-    @Nullable
-    private Class<? extends Scope> scopeOf(Class<?> serviceType) {
-        ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
-        return scopeAnnotation != null ? scopeAnnotation.value() : null;
+        @Override
+        public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
+            assertCorrectScope(registration.getDeclaredType());
+        }
+
+        private void assertCorrectScope(Class<?> serviceType) {
+            Class<? extends Scope> serviceScope = scopeOf(serviceType);
+            if (serviceScope != null && scope != serviceScope) {
+                throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
+            }
+        }
+
+        private String invalidScopeMessage(
+            Class<?> serviceType,
+            Class<? extends Scope> actualScope
+        ) {
+            return String.format("Service '%s' was declared in scope '%s' but registered in scope '%s'",
+                serviceType.getSimpleName(),
+                actualScope.getSimpleName(),
+                scope.getSimpleName()
+            );
+        }
+
+        @Nullable
+        private static Class<? extends Scope> scopeOf(Class<?> serviceType) {
+            ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
+            return scopeAnnotation != null ? scopeAnnotation.value() : null;
+        }
     }
 }
