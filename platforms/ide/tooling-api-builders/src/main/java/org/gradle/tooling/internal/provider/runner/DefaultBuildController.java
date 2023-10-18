@@ -41,6 +41,8 @@ import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
@@ -59,19 +61,22 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
     private final BuildEventConsumer buildEventConsumer;
+    private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry,
-        BuildEventConsumer buildEventConsumer
+        BuildEventConsumer buildEventConsumer,
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
         this.buildEventConsumer = buildEventConsumer;
+        this.payloadSerializer = payloadSerializer;
     }
 
     /**
@@ -201,7 +206,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     @Override
     public void sendIntermediate(Object model) {
-        buildEventConsumer.dispatch(model);
+        SerializedPayload serializedResult = payloadSerializer.serialize(model);
+        buildEventConsumer.dispatch(serializedResult);
     }
 
     private static class NestedAction<T> implements RunnableBuildOperation {

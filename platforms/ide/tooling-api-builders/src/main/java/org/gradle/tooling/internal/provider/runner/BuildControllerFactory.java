@@ -23,6 +23,7 @@ import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildControllerFactory {
@@ -30,15 +31,17 @@ public class BuildControllerFactory {
     private final BuildCancellationToken buildCancellationToken;
     private final BuildStateRegistry buildStateRegistry;
     private final BuildEventConsumer buildEventConsumer;
+    private final PayloadSerializer payloadSerializer;
 
-    public BuildControllerFactory(WorkerThreadRegistry workerThreadRegistry, BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry, BuildEventConsumer buildEventConsumer) {
+    public BuildControllerFactory(WorkerThreadRegistry workerThreadRegistry, BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry, BuildEventConsumer buildEventConsumer, PayloadSerializer payloadSerializer) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildStateRegistry = buildStateRegistry;
         this.buildEventConsumer = buildEventConsumer;
+        this.payloadSerializer = payloadSerializer;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
-        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, buildEventConsumer);
+        return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry, buildEventConsumer, payloadSerializer);
     }
 }
