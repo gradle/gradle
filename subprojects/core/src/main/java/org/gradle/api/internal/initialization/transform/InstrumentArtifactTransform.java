@@ -25,9 +25,8 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -49,15 +48,15 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
         @InputFiles
-        @PathSensitive(PathSensitivity.NAME_ONLY)
+        @Classpath
         ConfigurableFileCollection getClassHierarchy();
     }
 
     @Inject
     public abstract ObjectFactory getObjects();
 
+    @Classpath
     @InputArtifact
-    @PathSensitive(PathSensitivity.NAME_ONLY)
     public abstract Provider<FileSystemLocation> getInput();
 
     private File getInputAsFile() {
@@ -76,6 +75,7 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
         File outputFile = outputs.file(instrumentedJarName);
+        System.out.println("Instrumenting to: " + outputFile.getParentFile().getParentFile().getName() + "/" + outputFile.getParentFile().getName());
 
         // TODO: Copy in a separate transform
         File copyOfOriginalFile = outputs.file(getInputAsFile().getName());

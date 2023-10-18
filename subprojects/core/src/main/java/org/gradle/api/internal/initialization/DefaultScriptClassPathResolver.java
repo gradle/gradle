@@ -131,7 +131,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
-                spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
+                // Disable for now
+                // spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
             }
         );
 

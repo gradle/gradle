@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.work.DisableCachingByDefault;
@@ -42,7 +43,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     private static final String DIRECT_SUPER_TYPES_FILE = "direct-super-types.properties";
 
     @InputArtifact
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @Classpath
     public abstract Provider<FileSystemLocation> getInput();
 
     private File getInputAsFile() {
@@ -52,7 +53,7 @@ public abstract class CollectDirectClassSuperTypesTransform implements Transform
     public void transform(TransformOutputs outputs) {
         try {
             File file = outputs.file(DIRECT_SUPER_TYPES_FILE);
-            Files.write((getInputAsFile().getName() + ": test.class").getBytes(StandardCharsets.UTF_8), file);
+            Files.write("".getBytes(StandardCharsets.UTF_8), file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
