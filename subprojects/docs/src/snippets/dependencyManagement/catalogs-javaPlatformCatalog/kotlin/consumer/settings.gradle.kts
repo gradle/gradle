@@ -50,3 +50,25 @@ if (providers.systemProperty("create2").getOrNull() != null) {
     }
     // end::overwrite_version[]
 }
+
+if (providers.systemProperty("create3").getOrNull() != null) {
+    // tag::dynamic_version[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                from("com.mycompany:catalog:[1.0,2.0)")
+            }
+        }
+    }
+    // end::dynamic_version[]
+
+    // tag::disable_caching[]
+    dependencyResolutionManagement {
+        configurations.all {
+            resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+        }
+    }
+    // end::disable_caching[]
+}
+
+

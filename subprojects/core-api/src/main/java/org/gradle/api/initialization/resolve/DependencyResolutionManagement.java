@@ -17,6 +17,7 @@ package org.gradle.api.initialization.resolve;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.provider.Property;
@@ -89,4 +90,29 @@ public interface DependencyResolutionManagement {
      * @since 7.0
      */
     Property<String> getDefaultLibrariesExtensionName();
+
+    /**
+     * <p>Returns the configurations used internally by the dependency resolution management.</p>
+     *
+     * <p>For example, you can use it to disable caching of the version catalog dynamic version:</p>
+     *
+     * <pre>
+     * dependencyResolutionManagement {
+     *
+     *     configurations.all {
+     *         resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+     *     }
+     *
+     *     versionCatalogs {
+     *         create("libs") {
+     *             from("org.gradle.test:my-platform:[1.0,2.0)")
+     *         }
+     *     }
+     * }
+     * </pre>
+     *
+     * @since 8.5
+     */
+    @Incubating
+    ConfigurationContainer getConfigurations();
 }

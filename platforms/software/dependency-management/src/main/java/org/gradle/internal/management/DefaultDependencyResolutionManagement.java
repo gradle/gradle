@@ -25,6 +25,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -160,6 +161,11 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     @Override
     public List<VersionCatalogBuilder> getDependenciesModelBuilders() {
         return ImmutableList.copyOf(versionCatalogs);
+    }
+
+    @Override
+    public ConfigurationContainer getConfigurations() {
+        return dependencyResolutionServices.get().getConfigurationContainer();
     }
 
     @Override

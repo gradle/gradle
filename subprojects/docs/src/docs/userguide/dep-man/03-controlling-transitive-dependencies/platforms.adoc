@@ -430,6 +430,26 @@ In the example above, any dependency which was using the `groovy` version as ref
 NOTE: Again, overwriting a version doesn't mean that the actual _resolved_ dependency version will be the same: this only changes what is _imported_, that is to say what is used when declaring a dependency.
 The actual version will be subject to traditional conflict resolution, if any.
 
+[[sec:dynamic-versions-and-caching]]
+==== Using dynamic version in catalog import
+
+You can specify a dynamic version for your version catalog import:
+
+.Importing version catalog with the dynamic version
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=dynamic_version]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=dynamic_version]"]
+====
+
+By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version of the version catalog, use:
+
+.Dynamic version cache control
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/kotlin/consumer",files="settings.gradle.kts[tags=disable_caching]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=disable_caching]"]
+====
+
+
 [[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 

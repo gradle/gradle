@@ -46,3 +46,21 @@ dependencyResolutionManagement {
     }
 }
 // end::overwrite_version[]
+
+// tag::dynamic_version[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from("com.mycompany:catalog:[1.0,2.0)")
+        }
+    }
+}
+// end::dynamic_version[]
+
+// tag::disable_caching[]
+dependencyResolutionManagement {
+    configurations.all {
+        resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+    }
+}
+// end::disable_caching[]
