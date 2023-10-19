@@ -9,7 +9,7 @@ object GrammarToTree {
     /**
      * script : -shebangLine? -fileAnnotation* -packageHeader importList (statement semi)* EOF
      */
-    fun script(ast: Ast): List<ElementResult<*>> {
+    fun script(ast: Ast): SyntacticResult<List<ElementResult<*>>> {
         ast.expectKind(script)
         val result = syntacticOrFailure {
             collectingFailure(ast.findChild(shebangLine)?.unsupported(UnsupportedShebangInScript))
@@ -23,7 +23,7 @@ object GrammarToTree {
                 Syntactic(failures + imports + statements)
             }
         }
-        return (result as Syntactic).value
+        return result
     }
 
     fun importList(ast: Ast): List<ElementResult<Import>> {

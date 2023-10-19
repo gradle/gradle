@@ -25,7 +25,12 @@ sealed interface SyntacticResult<out T> : LanguageResult<T> {
 
 data class Element<T : LanguageTreeElement>(val element: T) : ElementResult<T>
 data class Syntactic<out T>(val value: T) : SyntacticResult<T>
-sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing>
+sealed interface FailingResult : ElementResult<Nothing>, SyntacticResult<Nothing> {
+    fun failures() = when (this) {
+        is MultipleFailuresResult -> failures
+        else -> listOf(this)
+    }
+}
 
 data class UnsupportedConstruct(
     val potentialElementAst: Ast,

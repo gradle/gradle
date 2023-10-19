@@ -20,5 +20,9 @@ class LanguageTreeBuilderWithTopLevelBlock(
 }
 
 class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
-    override fun build(ast: Ast): LanguageTreeResult = LanguageTreeResult(GrammarToTree.script(ast))
+    override fun build(ast: Ast): LanguageTreeResult =
+        when (val results = GrammarToTree.script(ast)) {
+            is FailingResult -> LanguageTreeResult(results.failures())
+            is Syntactic -> LanguageTreeResult(results.value)
+        }
 }
