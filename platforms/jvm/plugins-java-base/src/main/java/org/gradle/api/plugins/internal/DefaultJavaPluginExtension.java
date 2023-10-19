@@ -228,12 +228,12 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
             Configuration javadocElements = feature.getJavadocElementsConfiguration();
             if (javadocElements != null) {
-                adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true, null));
+                adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
 
             Configuration sourcesElements = feature.getSourcesElementsConfiguration();
             if (sourcesElements != null) {
-                adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true, null));
+                adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }
 
             if (spec.isPublished()) {

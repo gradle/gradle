@@ -194,7 +194,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
                 ModuleComponentIdentifier moduleComponentId = (ModuleComponentIdentifier) owningComponent;
                 return moduleIdentifierFactory.moduleWithVersion(moduleComponentId.getModuleIdentifier(), moduleComponentId.getVersion());
             }
-            throw new InvalidUserDataException("Expected owning component of module component to be a module component: " + owningComponent);
+            throw new GradleException("Expected owning component of module component to be a module component: " + owningComponent);
         }
 
         return moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());

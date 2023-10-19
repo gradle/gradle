@@ -49,10 +49,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * A service that will resolve a project identity path into publication coordinates. If the target variant
- * of the project is provided, this resolver will attempt to resolve the coordinates for that variant
- * specifically. Otherwise, it will attempt to resolve the coordinates of the project's root component as
- * long as the root component does not span across multiple coordinates.
+ * A service that will resolve a project identity path into publication coordinates.
+ * This resolver can determine the coordinates of a project's root component
+ * or can resolve the coordinates of a specific variant of that component.
  */
 @ServiceScope(Scopes.Build.class)
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
@@ -110,8 +109,8 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 
         // For all published components, find those that are not children of other components.
         // These are the top-level publications.
-        Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<>();
         Set<ProjectComponentPublication> topLevel = new LinkedHashSet<>();
+        Set<ProjectComponentPublication> topLevelWithComponent = new LinkedHashSet<>();
         Set<SoftwareComponent> childComponents = getChildComponents(publications.keySet());
         for (Map.Entry<ProjectComponentPublication, T> entry : publications.entrySet()) {
             ProjectComponentPublication publication = entry.getKey();
@@ -142,13 +141,13 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         if (coordsType.equals(ModuleVersionIdentifier.class)) {
 
             // TODO: Deprecate this behavior
-//        String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
-//            "Publishing a component that depends on another project without publications";
-//        DeprecationLogger.deprecate(message)
-//            .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
-//            .willBecomeAnErrorInGradle9()
-//            .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
-//            .nagUser();
+//            String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
+//                "Publishing a component that depends on another project without publications";
+//            DeprecationLogger.deprecate(message)
+//                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
+//                .willBecomeAnErrorInGradle9()
+//                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
+//                .nagUser();
 
             return coordsType.cast(DefaultModuleVersionIdentifier.newId(project.getGroup().toString(), project.getName(), project.getVersion().toString()));
         }

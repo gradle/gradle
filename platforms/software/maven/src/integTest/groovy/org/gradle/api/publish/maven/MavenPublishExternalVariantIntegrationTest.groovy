@@ -178,7 +178,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         def first = javaLibrary(mavenRepo.module('org', "root-first", '1.0'))
         def second = javaLibrary(mavenRepo.module('org', "root-second", '1.0'))
 
-        // POM uses resolved variant coordinates
         def firstDependencies = first.parsedPom.scopes.runtime.dependencies
         firstDependencies.size() == 1
         with(firstDependencies.values().first()) {
