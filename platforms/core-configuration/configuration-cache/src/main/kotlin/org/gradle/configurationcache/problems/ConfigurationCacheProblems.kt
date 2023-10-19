@@ -168,9 +168,10 @@ class ConfigurationCacheProblems(
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
 
     private
-    fun ProblemSeverity.toProblemSeverity() = when (isFailOnProblems) {
-        true -> Severity.ERROR
-        false -> Severity.WARNING
+    fun ProblemSeverity.toProblemSeverity() = when {
+        this == ProblemSeverity.Suppressed -> Severity.ADVICE
+        isFailOnProblems -> Severity.ERROR
+        else -> Severity.WARNING
     }
 
     override fun getId(): String {

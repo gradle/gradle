@@ -80,4 +80,26 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             severity == "WARNING"
         }
     }
+
+    def "notCompatibleWithConfigurationCache task problems are reported as Advice"() {
+        given:
+        buildFile << """
+            task run {
+                notCompatibleWithConfigurationCache("because")
+                doLast {
+                    println(project.name)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("run")
+
+        then:
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "invocation of 'Task.project' at execution time is unsupported."
+            severity == "ADVICE"
+        }
+    }
 }
