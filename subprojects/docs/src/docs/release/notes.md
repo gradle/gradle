@@ -12,6 +12,8 @@ We would like to thank the following community members for their contributions t
 [Leonardo Silveira](https://github.com/sombriks),
 [Philipp Schneider](https://github.com/p-schneider)
 
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
