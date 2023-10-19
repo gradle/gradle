@@ -38,3 +38,42 @@ class SamplePlugin : Plugin<Project> {
     }
 }
 ----
+
+== Script plugin
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {
+    @get:Input
+    abstract val fileText: Property<String>
+
+    @Input
+    val fileName = "myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+class MyPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.run {
+            tasks {
+                register("createFileTask", CreateFileTask::class) {
+                    group = "from my plugin"
+                    description = "Create myfile.txt in the current directory"
+                    fileText.set("HELLO FROM MY PLUGIN")
+                }
+            }
+        }
+    }
+}
+
+apply<MyPlugin>()
+----

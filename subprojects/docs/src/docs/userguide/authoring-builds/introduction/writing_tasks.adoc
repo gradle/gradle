@@ -107,11 +107,13 @@ abstract class CreateFileTask : DefaultTask() {
     @Input
     val fileName = "myfile.txt"
 
+    @OutputFile
+    val myFile: File = File(fileName)
+
     @TaskAction
     fun action() {
-        val file = File(fileName)
-        file.createNewFile()
-        file.writeText(fileText)
+        myFile.createNewFile()
+        myFile.writeText(fileText)
     }
 }
 
@@ -131,7 +133,6 @@ The `CreateFileTask` class is updated so that the text in the file is configurab
 [source,kotlin]
 ----
 abstract class CreateFileTask : DefaultTask() {
-    // Configurable by the user
     @get:Input
     abstract val fileText: Property<String>
 

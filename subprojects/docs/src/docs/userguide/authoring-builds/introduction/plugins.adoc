@@ -40,7 +40,7 @@ There are many advantages to applying plugins over adding logic to the project b
 Plugins are available in three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
-2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
+2. **Community plugins** - Gradle plugins shared in a remote repository such as Maven, Google, or the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Local plugins** - Gradle enables users to create *custom* plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
 [[sec:types_of_plugins]]
