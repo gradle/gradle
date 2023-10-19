@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
+@Ignore("Doesn't temporarily work, because we have the embedded test runner disabled, see the unittest-and-compile internal plugin")
 class GradleBuildIntegTestConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
     def "can run Gradle integ tests with configuration cache enabled"() {
         given: "tasks whose configuration can only be loaded in the original daemon"
