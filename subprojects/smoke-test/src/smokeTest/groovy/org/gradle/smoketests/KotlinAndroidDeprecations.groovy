@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.smoketests.KotlinRunnerFactory.ParallelTasksInProject
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
@@ -41,5 +42,16 @@ class KotlinAndroidDeprecations extends BaseDeprecations implements WithKotlinDe
 
     void expectAndroidOrKotlinWorkerSubmitDeprecation(VersionNumber androidPluginVersionNumber, ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinPluginVersionNumber) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(androidPluginVersionNumber.toString()) || (parallelTasksInProject.isPropertyPresent() && kotlinPluginUsesOldWorkerApi(kotlinPluginVersionNumber)), WORKER_SUBMIT_DEPRECATION)
+    }
+
+    void expectBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber kotlinVersionNumber, VersionNumber androidVersionNumber) {
+        expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber)
+        runner.expectLegacyDeprecationWarningIf(
+            kotlinVersionNumber >= VersionNumber.parse('1.7.0') && androidVersionNumber < VersionNumber.parse('7.4.0'),
+            "The BasePluginExtension.archivesBaseName property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the archivesName property instead. " +
+                "For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
+        )
     }
 }
