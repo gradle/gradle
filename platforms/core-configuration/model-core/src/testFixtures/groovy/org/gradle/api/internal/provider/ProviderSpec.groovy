@@ -18,11 +18,10 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
 import spock.lang.Specification
-
-import java.util.function.Predicate
 
 abstract class ProviderSpec<T> extends Specification implements ProviderAssertions {
     abstract Provider<T> providerWithValue(T value)
@@ -166,17 +165,17 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * transform._
     }
 
-    def "filtering provider uses the result of the provider when predicate returns true"() {
-        def predicate = Mock(Predicate)
+    def "filtering provider uses the result of the provider when spec returns true"() {
+        def spec = Mock(Spec)
 
         given:
         def provider = providerWithValue(someValue())
 
         when:
-        def filtered = provider.filter(predicate)
+        def filtered = provider.filter(spec)
 
         then:
-        0 * predicate._
+        0 * spec._
 
         when:
         def present = filtered.present
@@ -185,8 +184,8 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         present
 
         and:
-        1 * predicate.test(someValue()) >> true
-        0 * predicate._
+        1 * spec.isSatisfiedBy(someValue()) >> true
+        0 * spec._
 
         when:
         def result = filtered.get()
@@ -195,28 +194,28 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         result == someValue()
 
         and:
-        1 * predicate.test(someValue()) >> true
-        0 * predicate._
+        1 * spec.isSatisfiedBy(someValue()) >> true
+        0 * spec._
 
         when:
         assert filtered.getOrNull() == someValue()
         assert filtered.getOrElse(someOtherValue()) == someValue()
 
         then:
-        2 * predicate.test(someValue()) >> true
-        0 * predicate._
+        2 * spec.isSatisfiedBy(someValue()) >> true
+        0 * spec._
     }
 
-    def "filtering provider has no value when predicate returns false"() {
+    def "filtering provider has no value when spec returns false"() {
         given:
-        def predicate = Mock(Predicate)
+        def spec = Mock(Spec)
         def provider = providerWithValue(someValue())
 
         when:
-        def filtered = provider.filter(predicate)
+        def filtered = provider.filter(spec)
 
         then:
-        0 * predicate._
+        0 * spec._
 
         when:
         def present = filtered.present
@@ -225,15 +224,15 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         !present
 
         and:
-        1 * predicate.test(someValue()) >> false
-        0 * predicate._
+        1 * spec.isSatisfiedBy(someValue()) >> false
+        0 * spec._
 
         when:
         filtered.get()
 
         then:
-        1 * predicate.test(someValue()) >> false
-        0 * predicate._
+        1 * spec.isSatisfiedBy(someValue()) >> false
+        0 * spec._
 
         and:
         def e = thrown(IllegalStateException)
@@ -244,8 +243,8 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         assert filtered.getOrElse(someOtherValue()) == someOtherValue()
 
         then:
-        2 * predicate.test(someValue()) >> false
-        0 * predicate._
+        2 * spec.isSatisfiedBy(someValue()) >> false
+        0 * spec._
     }
 
     def "can chain mapped providers"() {
@@ -291,7 +290,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
     def "can chain mapped providers with filtering providers"() {
         def transform1 = Mock(Transformer)
-        def predicate = Mock(Predicate)
+        def spec = Mock(Spec)
         def transform2 = Mock(Transformer)
 
         given:
@@ -299,7 +298,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         when:
         def result1 = provider.map(transform1)
-        def result2 = result1.filter(predicate)
+        def result2 = result1.filter(spec)
         def result3 = result2.map(transform2)
 
         then:
@@ -313,7 +312,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         and:
         1 * transform1.transform(someValue()) >> someOtherValue()
-        1 * predicate.test(someOtherValue()) >> true
+        1 * spec.isSatisfiedBy(someOtherValue()) >> true
         1 * transform2.transform(someOtherValue()) >> someOtherValue3()
         0 * _
 
@@ -325,7 +324,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         and:
         1 * transform1.transform(someValue()) >> someOtherValue()
-        1 * predicate.test(someOtherValue()) >> true
+        1 * spec.isSatisfiedBy(someOtherValue()) >> true
         1 * transform2.transform(someOtherValue()) >> someOtherValue3()
         0 * _
     }

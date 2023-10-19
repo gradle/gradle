@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
@@ -27,7 +28,6 @@ import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
 
 import java.util.concurrent.Callable
-import java.util.function.Predicate
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
@@ -480,11 +480,11 @@ The value of this property is derived from: <source>""")
     }
 
     def "can filter value"() {
-        def predicate = Mock(Predicate)
+        def spec = Mock(Spec)
         def property = propertyWithNoValue()
 
         when:
-        def provider = property.filter(predicate)
+        def provider = property.filter(spec)
 
         then:
         0 * _
@@ -495,7 +495,7 @@ The value of this property is derived from: <source>""")
 
         then:
         r1 == someValue()
-        1 * predicate.test(someValue()) >> true
+        1 * spec.isSatisfiedBy(someValue()) >> true
         0 * _
 
         when:
@@ -503,7 +503,7 @@ The value of this property is derived from: <source>""")
 
         then:
         r2 == null
-        1 * predicate.test(someValue()) >> false
+        1 * spec.isSatisfiedBy(someValue()) >> false
         0 * _
     }
 

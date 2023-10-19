@@ -47,6 +47,12 @@ The `groovy-base` plugin is now responsible for configuring source and target co
 If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
+==== Provider.filter
+
+The type of the argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
+This change should not affect anyone using `Provider.filter` with a lambda expression.
+However, this might affect plugin authors if they don't use SAM conversions to create a lambda.
+
 === Deprecations
 
 [[org_gradle_util_reports_deprecations]]
