@@ -187,6 +187,17 @@ This was done to encourage version catalog usage since it became a stable featur
 Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-dependencies) and the [TOML file format](userguide/platforms.html#sub::toml-dependencies-format) for information on the topic.
 
 
+<a name="better-diagnostics-unable-to-delete"></a>
+### Better diagnostics when unable to delete files
+
+When failing to delete files Gradle will now provide extended diagnostics.
+This helps troubleshoot issues with locked files, concurrent writes etc... 
+
+The list of files that failed to delete are reported.
+If new files appeared under a directory during deletion, their paths will be reported separately.
+Last but not least, the root cause exceptions for each file deletion failure will be attached to the stacktrace.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
