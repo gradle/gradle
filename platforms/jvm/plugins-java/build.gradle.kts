@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":toolchains-jvm"))
 
     implementation(libs.ant)
@@ -34,15 +35,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":logging"))
-
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(testFixtures(project(":enterprise-operations")))
     integTestImplementation(testFixtures(project(":language-java")))
     integTestImplementation(testFixtures(project(":language-jvm")))
     integTestImplementation(testFixtures(project(":plugins-java-base")))
+    integTestImplementation(testFixtures(project(":plugins-jvm-test-fixtures")))
     integTestImplementation(testFixtures(project(":workers")))
 
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))

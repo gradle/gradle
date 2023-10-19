@@ -44,7 +44,7 @@ class GradlePropertiesGeneratorTest extends Specification {
         settings.isUseIncubatingAPIs() >> true
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         propertiesFile.file
@@ -58,7 +58,7 @@ class GradlePropertiesGeneratorTest extends Specification {
         settings.isUseIncubatingAPIs() >> false
 
         when:
-        generator.generate(settings)
+        generator.generate(settings, null)
 
         then:
         !propertiesFile.file

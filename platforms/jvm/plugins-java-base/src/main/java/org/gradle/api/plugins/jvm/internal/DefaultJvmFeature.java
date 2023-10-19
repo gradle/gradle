@@ -378,6 +378,11 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public CapabilitiesMetadata getCapabilities() {
         return ImmutableCapabilities.of(capabilities);
     }

@@ -23,6 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -72,20 +73,24 @@ public class BuildScriptBuilder {
     private final String fileNameWithoutExtension;
     private boolean externalComments;
     private final MavenRepositoryURLHandler mavenRepoURLHandler;
+    private final BuildContentGenerationContext buildContentGenerationContext;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
     private final boolean useIncubatingAPIs;
     private final boolean useTestSuites;
+    private final boolean useVersionCatalog;
 
-    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
+    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, BuildContentGenerationContext buildContentGenerationContext, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption, boolean useVersionCatalog) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
         this.useIncubatingAPIs = useIncubatingAPIs;
         this.useTestSuites = useIncubatingAPIs;
         this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
         this.block = new TopLevelBlock(this);
+        this.buildContentGenerationContext = buildContentGenerationContext;
+        this.useVersionCatalog = useVersionCatalog;
     }
 
     public BuildScriptBuilder withExternalComments() {
@@ -154,8 +159,15 @@ public class BuildScriptBuilder {
      *
      * @param comment A description of why the plugin is required
      */
-    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, String version) {
-        block.plugins.add(new PluginSpec(pluginId, version, comment));
+    public BuildScriptBuilder plugin(@Nullable String comment, String pluginId, @Nullable String version) {
+        AbstractStatement plugin;
+        if (useVersionCatalog && version != null) {
+            String versionCatalogRef = buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerPlugin(pluginId, version);
+            plugin = new PluginSpec(versionCatalogRef, comment);
+        } else {
+            plugin = new PluginSpec(pluginId, version, comment);
+        }
+        block.plugins.add(plugin);
         return this;
     }
 
@@ -164,24 +176,20 @@ public class BuildScriptBuilder {
      *
      * @param configuration The configuration where the dependency should be added
      * @param comment A description of why the dependencies are required
-     * @param dependencies the dependencies, in string notation
+     * @param dependencies the dependencies
      */
-    public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
+    public BuildScriptBuilder dependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
         dependencies().dependency(configuration, comment, dependencies);
         return this;
-    }
-
-    public void dependencyForSuite(SuiteSpec targetSuite, String configuration, String comment, String... dependencies) {
-        targetSuite.dependencies.dependency(configuration, comment, dependencies);
     }
 
     /**
      * Adds one or more external implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies, in string notation
+     * @param dependencies The dependencies
      */
-    public BuildScriptBuilder implementationDependency(@Nullable String comment, String... dependencies) {
+    public BuildScriptBuilder implementationDependency(@Nullable String comment, BuildInitDependency... dependencies) {
         return dependency("implementation", comment, dependencies);
     }
 
@@ -189,9 +197,9 @@ public class BuildScriptBuilder {
      * Adds one or more dependency constraints to the implementation scope.
      *
      * @param comment A description of why the constraints are required
-     * @param dependencies The constraints, in string notation
+     * @param dependencies The dependency constraints
      */
-    public BuildScriptBuilder implementationDependencyConstraint(@Nullable String comment, String... dependencies) {
+    public BuildScriptBuilder implementationDependencyConstraint(@Nullable String comment, BuildInitDependency... dependencies) {
         dependencies().dependencyConstraint("implementation", comment, dependencies);
         return this;
     }
@@ -200,9 +208,9 @@ public class BuildScriptBuilder {
      * Adds one or more external test implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies, in string notation
+     * @param dependencies The dependencies
      */
-    public BuildScriptBuilder testImplementationDependency(@Nullable String comment, String... dependencies) {
+    public BuildScriptBuilder testImplementationDependency(@Nullable String comment, BuildInitDependency... dependencies) {
         assert !isUsingTestSuites() : "do not add dependencies directly to testImplementation configuration";
         return dependency("testImplementation", comment, dependencies);
     }
@@ -211,9 +219,9 @@ public class BuildScriptBuilder {
      * Adds one or more external test runtime only dependencies.
      *
      * @param comment A description of why the dependencies are required
-     * @param dependencies The dependencies, in string notation
+     * @param dependencies The dependencies
      */
-    public BuildScriptBuilder testRuntimeOnlyDependency(@Nullable String comment, String... dependencies) {
+    public BuildScriptBuilder testRuntimeOnlyDependency(@Nullable String comment, BuildInitDependency... dependencies) {
         assert !isUsingTestSuites() : "do not add dependencies directly to testRuntimeOnly configuration";
         return dependency("testRuntimeOnly", comment, dependencies);
     }
@@ -516,6 +524,10 @@ public class BuildScriptBuilder {
         block.includePluginsBuild();
     }
 
+    public void useVersionCatalogFromOuterBuild(String comment) {
+        block.useVersionCatalogFromOuterBuild(comment);
+    }
+
     public interface Expression {
     }
 
@@ -697,55 +709,82 @@ public class BuildScriptBuilder {
     }
 
     private static class PluginSpec extends AbstractStatement {
+        @Nullable
         final String id;
         @Nullable
         final String version;
+        @Nullable
+        final String versionCatalogRef;
 
-        PluginSpec(String id, @Nullable String version, String comment) {
+        PluginSpec(String id, @Nullable String version, @Nullable String comment) {
             super(comment);
             this.id = id;
             this.version = version;
+            this.versionCatalogRef = null;
+        }
+
+        PluginSpec(String versionCatalogRef, @Nullable String comment) {
+            super(comment);
+            this.id = null;
+            this.version = null;
+            this.versionCatalogRef = versionCatalogRef;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.pluginDependencySpec(id, version));
+            if (versionCatalogRef != null) {
+                printer.println(printer.syntax.pluginAliasSpec(versionCatalogRef));
+            } else {
+                printer.println(printer.syntax.pluginDependencySpec(id, version));
+            }
         }
     }
 
     private static class DepSpec extends AbstractStatement {
         final String configuration;
-        final List<String> deps;
+        final String dependencyOrCatalogReference;
+        final boolean catalogReference;
 
-        DepSpec(String configuration, @Nullable String comment, List<String> deps) {
+        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
-            this.deps = deps;
+            this.dependencyOrCatalogReference = dependencyOrCatalogReference;
+            this.catalogReference = catalogReference;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            for (String dep : deps) {
-                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dep)));
+            if (catalogReference) {
+                printer.println(printer.syntax.dependencySpec(configuration, dependencyOrCatalogReference));
+            } else {
+                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dependencyOrCatalogReference)));
             }
         }
     }
 
     private static class PlatformDepSpec extends AbstractStatement {
         private final String configuration;
-        private final String dep;
+        private final String dependencyOrCatalogReference;
+        final boolean catalogReference;
 
-        PlatformDepSpec(String configuration, @Nullable String comment, String dep) {
+        PlatformDepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
-            this.dep = dep;
+            this.dependencyOrCatalogReference = dependencyOrCatalogReference;
+            this.catalogReference = catalogReference;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.dependencySpec(
-                configuration, "platform(" + printer.syntax.string(dep) + ")"
-            ));
+            if (catalogReference) {
+                printer.println(printer.syntax.dependencySpec(
+                    configuration, "platform(" + dependencyOrCatalogReference + ")"
+                ));
+            } else {
+                printer.println(printer.syntax.dependencySpec(
+                    configuration, "platform(" + printer.syntax.string(dependencyOrCatalogReference) + ")"
+                ));
+            }
         }
     }
 
@@ -921,6 +960,31 @@ public class BuildScriptBuilder {
         }
     }
 
+    @NonNullApi
+    private static class StatementGroup extends AbstractStatement {
+        private final List<Statement> statements = new ArrayList<>();
+        StatementGroup(@Nullable String comment) {
+            super(comment);
+        }
+
+        @Override
+        public Type type() {
+            return getComment() == null ? Type.Single : Type.Group;
+        }
+
+        public StatementGroup add(Statement statement) {
+            statements.add(statement);
+            return this;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            for (Statement statement : statements) {
+                statement.writeCodeTo(printer);
+            }
+        }
+    }
+
     private static class MethodInvocation extends AbstractStatement {
 
         final MethodInvocationExpression invocationExpression;
@@ -1084,22 +1148,49 @@ public class BuildScriptBuilder {
     }
 
     private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
+        final BuildScriptBuilder buildScriptBuilder;
         final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
         final ListMultimap<String, Statement> constraints = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
-        @Override
-        public void dependency(String configuration, @Nullable String comment, String... dependencies) {
-            this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
+        public DependenciesBlock(BuildScriptBuilder buildScriptBuilder) {
+            this.buildScriptBuilder = buildScriptBuilder;
         }
 
         @Override
-        public void dependencyConstraint(String configuration, @Nullable String comment, String... constraints) {
-            this.constraints.put(configuration, new DepSpec(configuration, comment, Arrays.asList(constraints)));
+        public void dependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+            this.dependencies.put(configuration, makeDepSpec(configuration, comment, dependencies));
         }
 
         @Override
-        public void platformDependency(String configuration, @Nullable String comment, String dependency) {
-            this.dependencies.put(configuration, new PlatformDepSpec(configuration, comment, dependency));
+        public void dependencyConstraint(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+            this.constraints.put(configuration, makeDepSpec(configuration, comment, dependencies));
+        }
+
+        private Statement makeDepSpec(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+            StatementGroup statementGroup = new StatementGroup(comment);
+            for (BuildInitDependency d : dependencies) {
+                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true));
+                } else {
+                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false));
+                }
+            }
+            return statementGroup;
+        }
+
+        @Override
+        public void platformDependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
+            StatementGroup statementGroup = new StatementGroup(comment);
+            for (BuildInitDependency d : dependencies) {
+                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                    statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, true));
+                } else {
+                    statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), false));
+                }
+            }
+            this.dependencies.put(configuration, statementGroup);
         }
 
         @Override
@@ -1245,7 +1336,7 @@ public class BuildScriptBuilder {
         private final TestSuiteFramework framework;
         private final String frameworkVersion;
 
-        private final DependenciesBlock dependencies = new DependenciesBlock();
+        private final DependenciesBlock dependencies;
         private final TargetsBlock targets;
 
         private final boolean isDefaultTestSuite;
@@ -1258,6 +1349,7 @@ public class BuildScriptBuilder {
             this.frameworkVersion = frameworkVersion;
             this.name = name;
             targets = new TargetsBlock(builder);
+            this.dependencies = new DependenciesBlock(builder);
 
             isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
@@ -1301,11 +1393,11 @@ public class BuildScriptBuilder {
             return Type.Group;
         }
 
-        void implementation(String comment, String... dependencies) {
+        void implementation(String comment, BuildInitDependency... dependencies) {
             this.dependencies.dependency("implementation", comment, dependencies);
         }
 
-        void runtimeOnly(String comment, String... dependencies) {
+        void runtimeOnly(String comment, BuildInitDependency... dependencies) {
             this.dependencies.dependency("runtimeOnly", comment, dependencies);
         }
 
@@ -1519,8 +1611,9 @@ public class BuildScriptBuilder {
     private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement pluginsManagement = new BlockStatement(InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
         final BlockStatement plugins = new BlockStatement(InitialPassStatementTransformer.PLUGINS);
+        final BlockStatement dependencyResolutionManagement = new BlockStatement("dependencyResolutionManagement");
         final RepositoriesBlock repositories;
-        final DependenciesBlock dependencies = new DependenciesBlock();
+        final DependenciesBlock dependencies;
         final TestingBlock testing;
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
@@ -1531,12 +1624,14 @@ public class BuildScriptBuilder {
             repositories = new RepositoriesBlock(builder);
             testing = new TestingBlock(builder);
             this.builder = builder;
+            this.dependencies = new DependenciesBlock(builder);
         }
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
             printer.printStatement(pluginsManagement);
             printer.printStatement(plugins);
+            printer.printStatement(dependencyResolutionManagement);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
             if (builder.useTestSuites && !builder.getSuites().isEmpty()) {
@@ -1589,6 +1684,12 @@ public class BuildScriptBuilder {
         public void includePluginsBuild() {
             pluginsManagement.add(new MethodInvocation("Include 'plugins build' to define convention plugins.",
                 new MethodInvocationExpression(null, "includeBuild", expressionValues(PLUGINS_BUILD_LOCATION))));
+        }
+
+        public void useVersionCatalogFromOuterBuild(String comment) {
+            BlockStatement vc = new BlockStatement(comment, "versionCatalogs");
+            vc.body.add(new MethodInvocation(null, new MethodInvocationExpression(null, "create", expressionValues("libs", new LiteralValue("{ from(files(\"../gradle/libs.versions.toml\")) }")))));
+            dependencyResolutionManagement.add(vc);
         }
     }
 
@@ -1889,6 +1990,8 @@ public class BuildScriptBuilder {
         @SuppressWarnings("unused")
         String nestedPluginDependencySpec(String pluginId, @Nullable String version);
 
+        String pluginAliasSpec(String alias);
+
         String dependencySpec(String config, String notation);
 
         String propertyAssignment(PropertyAssignment expression);
@@ -1980,6 +2083,11 @@ public class BuildScriptBuilder {
                 throw new UnsupportedOperationException();
             }
             return "plugins.apply(\"" + pluginId + "\")";
+        }
+
+        @Override
+        public String pluginAliasSpec(String alias) {
+            return "alias(" + alias + ")";
         }
 
         @Override
@@ -2164,6 +2272,11 @@ public class BuildScriptBuilder {
                 throw new UnsupportedOperationException();
             }
             return "apply plugin: '" + pluginId + "'";
+        }
+
+        @Override
+        public String pluginAliasSpec(String alias) {
+            return "alias(" + alias + ")";
         }
 
         @Override

@@ -2,14 +2,17 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Philipp Schneider](https://github.com/p-schneider),
+[Leonardo Silveira](https://github.com/sombriks),
+[Philipp Schneider](https://github.com/p-schneider)
+
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
@@ -19,7 +22,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -84,6 +87,15 @@ The Wrapper and the Gradle Build Tool are licensed under the [Apache Software Li
 The JAR file is now self-attributing so that you don't need to add a separate `LICENSE` file in your codebase.
 
 
+<a name="plugin-authoring-improvements"></a>
+### Plugin authoring improvements
+
+#### New API in `FileSystemOperations` to create `CopySpec` instances when no `Project` is available
+
+The `FileSystemOperations` service now has a [copySpec()](javadoc/org/gradle/api/file/FileSystemOperations.html#copySpec--) method for creating `CopySpec` instances in a [configuration cache](userguide/configuration_cache.html) friendly way.
+The new method allows you to create, configure, and use `CopySpec` instances during the [execution phase](userguide/build_lifecycle.html#sec:build_phases).
+
+
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
@@ -120,6 +132,68 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
+<a name="error-reporting"></a>
+### Error and Warning Reporting Improvements
+
+Gradle provides a rich set of error and warning messages to help you understand and resolve problems in your build.
+
+#### Improved error messages when creating configurations with reserved names
+
+Gradle now provides more helpful error and warning messages when you attempt to create a configuration with a "reserved" name prior to Gradle creating it.
+
+This can cause problems if the allowed usage of that configuration differs from what Gradle expects and requires.
+This can happen when a configuration is explicitly created using a name that Gradle will use for a configuration it will create to support a [custom source set](userguide/building_java_projects.html#sec:implicit_sourceset_configurations).
+
+It is recommended that you rename your configuration to something that does not conflict with Gradle's implicitly reserved names, and that you always create source sets prior to accessing the configurations associated with them.
+The warnings and errors will help you identify and resolve these situations.
+
+See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
+<a name="dependency-verification"></a>
+
+<a name="dependency-verification-improvements"></a>
+### Dependency verification improvements
+
+By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
+Also, when Gradle is asked to export all trusted keys via `./gradlew --export-keys`, it generates both binary and ASCII-armored versions of the keys.
+
+You can now change this behavior to choose only one format.
+To do so, edit `verification-metadata.xml` by adding the `keyring-format` setting:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+    <configuration>
+        <verify-metadata>true</verify-metadata>
+        <verify-signatures>true</verify-signatures>
+        <keyring-format>armored</keyring-format> <!-- or binary -->
+    </configuration>
+</verification-metadata>
+```
+
+We've also updated the XML validation schema for `verification-metadata.xml`.
+Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
+
+Trusted and ignored keys in `verification-metadata.xml` are now case-insensitive.
+By default, they are written in upper-case to match the ASCII-armored format of `verification-keyring.keys`.
+
+<a name="build-init"></a>
+### Build Init improvements
+
+#### Build Init utilizing version Catalogs
+Version catalogs are the recommended way to centrally define dependency modules, plugins and their versions.
+The [build init plugin](userguide/build_init_plugin.html) now generates projects utilizing version catalogs in the conventional location `gradle/libs.versions.toml`.
+This was done to encourage version catalog usage since it became a stable feature in Gradle 8.0.
+
+Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-dependencies) and the [TOML file format](userguide/platforms.html#sub::toml-dependencies-format) for information on the topic.
+
+#### New `--java-version` Parameter
+
+Gradle enters interactive mode and prompts the user when required information for the selected project type is missing.
+
+In order to support generating Java projects non-interactively, the `--java-version` parameter was added to the `init` task.
+This parameter allows you to specify the major version of Java to use in the generated project when launching the `init` task, in order to avoid Gradle later prompting you for it.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -128,6 +202,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

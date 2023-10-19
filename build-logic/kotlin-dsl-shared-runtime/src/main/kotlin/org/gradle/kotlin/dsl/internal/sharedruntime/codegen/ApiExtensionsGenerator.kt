@@ -48,6 +48,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
     outputDirectory: File,
     packageName: String,
     sourceFilesBaseName: String,
+    hashTypeSourceName: (String) -> String,
     classPath: List<File>,
     classPathDependencies: List<File>,
     apiSpec: ApiSpec,
@@ -77,9 +78,9 @@ fun generateKotlinDslApiExtensionsSourceTo(
 
         packageDir.mkdirs()
 
-        for ((index, extensionsSubset) in extensionsPerTarget.values.withIndex()) {
+        for ((targetType, extensionsSubset) in extensionsPerTarget) {
             writeExtensionsTo(
-                sourceFile("$sourceFilesBaseName$index.kt"),
+                sourceFile("${sourceFilesBaseName}_${hashTypeSourceName(targetType.sourceName)}.kt"),
                 packageName,
                 extensionsSubset
             )

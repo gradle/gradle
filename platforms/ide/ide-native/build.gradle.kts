@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":language-native"))
     implementation(project(":testing-base"))
     implementation(project(":testing-native"))
+    implementation(project(":test-suites-base"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

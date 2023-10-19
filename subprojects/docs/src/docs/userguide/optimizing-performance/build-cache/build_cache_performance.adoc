@@ -29,7 +29,7 @@ Proper configuration and maintenance of a build can improve caching performance 
 
 The most straightforward way to get a feel for what the cache can do for you is to measure the difference between a non-cached build and a _fully cached_ build. This will give you the theoretical limit of how fast builds with the cache can get, if everything you're trying to build has already been built. The easiest way to measure this is using the local cache:
 
-1. Clean the cache directory to avoid any hits from previous builds (`rm -rf $GRADLE_HOME/caches/build-cache-*`)
+1. Clean the cache directory to avoid any hits from previous builds (`rm -rf $GRADLE_USER_HOME/caches/build-cache-*`)
 2. Run the build (e.g. `./gradlew --build-cache clean assemble`), so that all the results from cacheable tasks get stored in the cache.
 3. Run the build again (e.g. `./gradlew --build-cache clean assemble`); depending on your build, you should see many of the tasks being retrieved from the cache.
 4. Compare the execution time for the two builds

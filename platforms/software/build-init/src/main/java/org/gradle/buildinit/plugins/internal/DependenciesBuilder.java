@@ -21,11 +21,11 @@ import javax.annotation.Nullable;
 public interface DependenciesBuilder {
     void projectDependency(String configuration, @Nullable String comment, String projectPath);
 
-    void platformDependency(String configuration, @Nullable String comment, String dependency);
+    void platformDependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies);
 
     void selfDependency(String configuration, @Nullable String comment);
 
-    void dependency(String configuration, @Nullable String comment, String... dependencies);
+    void dependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies);
 
-    void dependencyConstraint(String configuration, @Nullable String comment, String... dependencies);
+    void dependencyConstraint(String configuration, @Nullable String comment, BuildInitDependency... dependencies);
 }
