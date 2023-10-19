@@ -18,6 +18,8 @@ package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemBuilderDefiningCategory
+import org.gradle.api.problems.ProblemBuilderDefiningLocation
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.configurationcache.ConfigurationCacheAction
@@ -145,11 +147,25 @@ class ConfigurationCacheProblems(
         createProblem { builder ->
             builder.label(problem.message.toString())
                 .undocumented()
-                .noLocation()
+                .locationOfProblem(problem)
                 .category("CC")
                 .severity(severity.toProblemSeverity())
         }.report()
     }
+
+    private
+    fun ProblemBuilderDefiningLocation.locationOfProblem(problem: PropertyProblem): ProblemBuilderDefiningCategory {
+        val trace = problem.trace.buildLogic()
+        return when {
+            trace?.lineNumber != null ->
+                location(trace.source.displayName, trace.lineNumber)
+            else ->
+                noLocation()
+        }
+    }
+
+    private
+    fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
 
     private
     fun ProblemSeverity.toProblemSeverity() = when (isFailOnProblems) {
