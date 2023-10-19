@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.m8
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture
-import org.gradle.integtests.fixtures.logging.ProgressLoggingOutputNormalizer
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.file.LeaksFileHandles
