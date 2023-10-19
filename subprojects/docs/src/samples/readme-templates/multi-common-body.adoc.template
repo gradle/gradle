@@ -81,51 +81,53 @@ The `init` task generates the new project with the following structure:
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>
+│   ├── libs.versions.toml // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle.kts // <3>
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle.kts // <4>
 ├── buildSrc
-│   ├── build.gradle.kts // <4>
+│   ├── build.gradle.kts // <5>
+│   ├── settings.gradle.kts // <5>
 │   └── src
 │       └── main
-│           └── kotlin // <5>
+│           └── kotlin // <6>
 │               ├── demo.${languageLC.raw}-application-conventions.gradle.kts
 │               ├── demo.${languageLC.raw}-common-conventions.gradle.kts
 │               └── demo.${languageLC.raw}-library-conventions.gradle.kts
 ├── app
-│   ├── build.gradle.kts // <6>
+│   ├── build.gradle.kts // <7>
 │   └── src
-│       ├── main // <7>
+│       ├── main // <8>
 │       │   └── java
 │       │       └── demo
 │       │           └── app
 │       │               ├── App.java
 │       │               └── MessageUtils.${languageExtension.raw}
-│       └── test // <8>
+│       └── test // <9>
 │           └── java
 │               └── demo
 │                   └── app
 │                       └── MessageUtilsTest.${languageExtension.raw}
 ├── list
-│   ├── build.gradle.kts // <6>
+│   ├── build.gradle.kts // <7>
 │   └── src
-│       ├── main // <7>
+│       ├── main // <8>
 │       │   └── java
 │       │       └── demo
 │       │           └── list
 │       │               └── LinkedList.${languageExtension.raw}
-│       └── test // <8>
+│       └── test // <9>
 │           └── java
 │               └── demo
 │                   └── list
 │                       └── LinkedListTest.${languageExtension.raw}
 └── utilities
-    ├── build.gradle.kts // <6>
+    ├── build.gradle.kts // <7>
     └── src
-        └── main // <7>
+        └── main // <8>
             └── java
                 └── demo
                     └── utilities
@@ -137,51 +139,53 @@ The `init` task generates the new project with the following structure:
 [source.multi-language-sample,groovy]
 ----
 ├── gradle // <1>
+│   ├── libs.versions.toml // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle // <3>
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle // <4>
 ├── buildSrc
-│   ├── build.gradle // <4>
+│   ├── build.gradle // <5>
+│   ├── settings.gradle // <5>
 │   └── src
 │       └── main
-│           └── groovy // <5>
+│           └── groovy // <6>
 │               ├── demo.${languageLC.raw}-application-conventions.gradle
 │               ├── demo.${languageLC.raw}-common-conventions.gradle
 │               └── demo.${languageLC.raw}-library-conventions.gradle
 ├── app
-│   ├── build.gradle // <6>
+│   ├── build.gradle // <7>
 │   └── src
-│       ├── main // <7>
+│       ├── main // <8>
 │       │   └── java
 │       │       └── demo
 │       │           └── app
 │       │               ├── App.java
 │       │               └── MessageUtils.java
-│       └── test // <8>
+│       └── test // <9>
 │           └── java
 │               └── demo
 │                   └── app
 │                       └── MessageUtilsTest.java
 ├── list
-│   ├── build.gradle // <6>
+│   ├── build.gradle // <7>
 │   └── src
-│       ├── main // <7>
+│       ├── main // <8>
 │       │   └── java
 │       │       └── demo
 │       │           └── list
 │       │               └── LinkedList.java
-│       └── test // <8>
+│       └── test // <9>
 │           └── java
 │               └── demo
 │                   └── list
 │                       └── LinkedListTest.java
 └── utilities
-    ├── build.gradle // <6>
+    ├── build.gradle // <7>
     └── src
-        └── main // <7>
+        └── main // <8>
             └── java
                 └── demo
                     └── utilities
@@ -191,13 +195,14 @@ The `init` task generates the new project with the following structure:
 ----
 
 <1> Generated folder for wrapper files
-<2> Gradle wrapper start scripts
-<3> Settings file to define build name and subprojects
-<4> Build script of _buildSrc_ to configure dependencies of the build logic
-<5> Source folder for _convention plugins_ written in Groovy or Kotlin DSL
-<6> Build script of the three subprojects - `app`, `list` and `utilities`
-<7> ${language.raw} source folders in each of the subprojects
-<8> ${language.raw} test source folders in the subprojects
+<2> Generated version catalog
+<3> Gradle wrapper start scripts
+<4> Settings file to define build name and subprojects
+<5> Build script of _buildSrc_ to configure dependencies of the build logic
+<6> Source folder for _convention plugins_ written in Groovy or Kotlin DSL
+<7> Build script of the three subprojects - `app`, `list` and `utilities`
+<8> ${language.raw} source folders in each of the subprojects
+<9> ${language.raw} test source folders in the subprojects
 
 You now have the project setup to build a ${language.raw} ${componentType.raw} which is modularized into multiple subprojects.
 

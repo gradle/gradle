@@ -75,49 +75,52 @@ The `init` task generates the new project with the following structure:
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>
+│   ├── libs.versions.toml // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle.kts // <3>
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle.kts // <4>
 └── ${subprojectName.raw}
-    ├── build.gradle.kts // <4>
+    ├── build.gradle.kts // <5>
     └── src
         ├── main
-        │   └── ${languageLC.raw} // <5>
+        │   └── ${languageLC.raw} // <6>
 ${sourceFileTree.raw}
         └── test
-            └── ${languageLC.raw} // <6>
+            └── ${languageLC.raw} // <7>
 ${testSourceFileTree.raw}
 ----
 
 [source.multi-language-sample,groovy]
 ----
 ├── gradle // <1>
+│   ├── libs.versions.toml // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle // <3>
+├── gradlew // <3>
+├── gradlew.bat // <3>
+├── settings.gradle // <4>
 └── ${subprojectName.raw}
-    ├── build.gradle // <4>
+    ├── build.gradle // <5>
     └── src
         ├── main
-        │   └── ${languageLC.raw} // <5>
+        │   └── ${languageLC.raw} // <6>
 ${sourceFileTree.raw}
         └── test
-            └── ${languageLC.raw} // <6>
+            └── ${languageLC.raw} // <7>
 ${testSourceFileTree.raw}
 ----
 
 <1> Generated folder for wrapper files
-<2> Gradle wrapper start scripts
-<3> Settings file to define build name and subprojects
-<4> Build script of `${subprojectName.raw}` project
-<5> Default ${language.raw} source folder
-<6> Default ${language.raw} test source folder
+<2> Generated version catalog
+<3> Gradle wrapper start scripts
+<4> Settings file to define build name and subprojects
+<5> Build script of `${subprojectName.raw}` project
+<6> Default ${language.raw} source folder
+<7> Default ${language.raw} test source folder
 
 You now have the project setup to build a ${language.raw} ${componentType.raw}.
 

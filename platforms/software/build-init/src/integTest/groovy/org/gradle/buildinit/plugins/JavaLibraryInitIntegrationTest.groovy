@@ -115,7 +115,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.spockframework')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'spock.core')
 
         when:
         run("build")
@@ -138,7 +138,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.testng')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'testng')
 
         when:
         run("build")
@@ -161,7 +161,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         and:
         commonJvmFilesGenerated(scriptDsl)
         def dslFixture = dslFixtureFor(scriptDsl)
-        buildFileSeparatesImplementationAndApi(dslFixture, 'org.junit.jupiter')
+        buildFileSeparatesImplementationAndApi(dslFixture, 'junit.jupiter')
 
         when:
         run("build")
@@ -312,11 +312,11 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'org.junit.jupiter') {
+    private static void buildFileSeparatesImplementationAndApi(ScriptDslFixture dslFixture, String testFramework = 'junit.jupiter') {
         dslFixture.buildFile.assertContents(
             allOf(
-                dslFixture.containsConfigurationDependencyNotation('api', 'org.apache.commons:commons-math3'),
-                dslFixture.containsConfigurationDependencyNotation('implementation', 'com.google.guava:guava:'),
-                dslFixture.containsConfigurationDependencyNotation('testImplementation', testFramework)))
+                dslFixture.containsConfigurationDependencyNotation('api', 'libs.commons.math3'),
+                dslFixture.containsConfigurationDependencyNotation('implementation', 'libs.guava'),
+                dslFixture.containsConfigurationDependencyNotation('testImplementation', 'libs.' + testFramework)))
     }
 }
