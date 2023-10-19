@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+package org.gradle.internal.component;
 
 /**
  * This exception is thrown during variant aware dependency resolution
  * when a specific configuration of a dependency is requested by name
- * and it is not consumable.
+ * and it is found in the component but it is not consumable.
  */
-public class ConfigurationNotConsumableException extends IllegalArgumentException {
+public class ConfigurationNotConsumableException extends AbstractNamedConfigurationException {
     public ConfigurationNotConsumableException(String targetComponent, String configurationName) {
         super("Selected configuration '" + configurationName + "' on '" + targetComponent + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");
     }

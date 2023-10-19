@@ -27,7 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.ConfigurationNotFoundException;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
+import org.gradle.internal.component.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;

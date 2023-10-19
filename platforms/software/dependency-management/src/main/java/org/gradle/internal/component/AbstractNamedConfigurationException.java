@@ -16,19 +16,12 @@
 
 package org.gradle.internal.component;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-
 /**
- * This exception is thrown during variant aware dependency resolution
- * when a specific configuration of a dependency is requested by name
- * and it doesn't exist in that component.
+ * Abstract base class for all exceptions thrown during graph resolution
+ * when resolving a dependency specified using an explicitly named configuration.
  */
-public class ConfigurationNotFoundException extends AbstractNamedConfigurationException {
-    public ConfigurationNotFoundException(String toConfiguration, ComponentIdentifier toComponent) {
-        super(String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", toConfiguration, toComponent.getDisplayName()));
-    }
-
-    public ConfigurationNotFoundException(String message) {
+public abstract class AbstractNamedConfigurationException extends AbstractGraphVariantSelectionException {
+    public AbstractNamedConfigurationException(String message) {
         super(message);
     }
 }
