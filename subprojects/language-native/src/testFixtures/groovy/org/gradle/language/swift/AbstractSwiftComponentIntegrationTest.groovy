@@ -41,7 +41,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         settingsFile << "rootProject.name = '${componentUnderTest.projectName}'"
 
         expect:
-        succeeds taskNameToAssembleDevelopmentBinary
+        succeeds taskNameToAssembleDevelopmentBinary, "-i"
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
         assertComponentUnderTestWasBuilt()
     }
