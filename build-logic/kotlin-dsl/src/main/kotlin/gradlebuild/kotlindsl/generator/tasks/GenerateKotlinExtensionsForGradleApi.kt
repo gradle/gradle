@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
+import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
 import org.objectweb.asm.Type
 import java.io.File
@@ -45,6 +46,8 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
     @TaskAction
     fun action() =
         destinationDirectory.get().asFile.let { outputDir ->
+            outputDir.deleteRecursively()
+            outputDir.mkdirs()
             GradleApiJars(classpath.files).run {
                 writeBuiltinPluginIdExtensionsTo(
                     builtInPluginIdExtFileIn(outputDir),
@@ -53,6 +56,7 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
                 writeGradleApiKotlinDslExtensionsTo(
                     ASM_LEVEL,
                     ClassLoaderUtils.getPlatformClassLoader(),
+                    ::hashTypeSourceName,
                     Type.getDescriptor(Incubating::class.java),
                     outputDir,
                     javaJars,
@@ -72,4 +76,8 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
         outputDir.resolve("$kotlinDslPackagePath/BuiltinPluginIdExtensions.kt").apply {
             parentFile.mkdirs()
         }
+
+    private
+    fun hashTypeSourceName(typeSourceName: String): String =
+        Hashing.hashString(typeSourceName).toCompactString()
 }
