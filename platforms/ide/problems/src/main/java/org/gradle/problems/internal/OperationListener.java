@@ -24,13 +24,14 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.lang.String.format;
 
 public class OperationListener implements BuildOperationListener {
 
-    private final ThreadLocal<ConcurrentHashMap<OperationIdentifier, Object>> runningOps = ThreadLocal.withInitial(ConcurrentHashMap::new);
+    private final ThreadLocal<Map<OperationIdentifier, Object>> runningOps = ThreadLocal.withInitial(HashMap::new);
 
     static final Object NO_DETAILS = new Object();
     @Override
