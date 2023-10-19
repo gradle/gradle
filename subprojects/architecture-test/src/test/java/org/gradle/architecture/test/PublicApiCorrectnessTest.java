@@ -37,6 +37,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
+import java.util.function.BiFunction;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
@@ -62,7 +63,9 @@ public class PublicApiCorrectnessTest {
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
             .or(primitive)
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.util.function", "java.lang.reflect", "java.io")
+            // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
+            // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
+            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io")
                 .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))
@@ -70,6 +73,7 @@ public class PublicApiCorrectnessTest {
                 .or(type(BigDecimal.class))
                 .or(type(Element.class))
                 .or(type(QName.class))
+                .or(type(BiFunction.class))
                 .as("built-in JDK classes"))
             .or(type(Node.class)
                 .or(type(MarkupBuilder.class))
