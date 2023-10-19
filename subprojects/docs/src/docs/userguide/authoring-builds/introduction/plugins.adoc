@@ -82,15 +82,16 @@ Gradle provides the *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPu
 However, non-core plugins must be resolved before they can be applied.
 This can be achieved in several ways:
 
-[cols="1,~,~,~,~"]
+[%autowidth.stretch]
 |===
-|# |Application |Recommended Usage |Where |Example
+|# |Application |Recommended Usage |Where
 
 |<<#sec:plugins_block,1>>
 |<<#sec:plugins_block,Using the `plugins` block>>
 |Applying *community* plugin or *local* plugins in `buildSrc` to a specific project.
-|Build script
-Settings file
+|Build script or Settings file
+
+||
 a|
 [source,kotlin]
 ----
@@ -98,11 +99,14 @@ plugins {
   id("org.barfuin.gradle.taskinfo") version "2.1.0"
 }
 ----
+|
 
 |<<#sec:buildsrc_plugins_dsl,2>>
 |<<#sec:buildsrc_plugins_dsl,Using the `buildSrc` block>>
 |Applying *community* or *local* plugins to multiple subprojects.
 |Build script
+
+||
 a|
 [source,kotlin]
 ----
@@ -116,11 +120,14 @@ dependencies {
     implementation(Libs.Kotlin.coroutines)
 }
 ----
+|
 
 |<<#sec:applying_plugins_buildscript,3>>
 |<<#sec:applying_plugins_buildscript,Using the `buildscript` block>>
 |Applying *community* plugins to be used specifically in the build script or the build logic.
 |Build script
+
+||
 a|
 [source,kotlin]
 ----
@@ -138,17 +145,21 @@ plugins {
   id("org.barfuin.gradle.taskinfo") version "2.1.0"
 }
 ----
+|
 
 |<<sec:script_plugins,4>>
 |<<sec:script_plugins,Using the legacy `apply()` method>>
 |Applying *local* script plugins.
 |Build script
+
+||
 a|
 [source,kotlin]
 ----
 apply(plugin = "org.barfuin.gradle.taskinfo")
 apply<MyPlugin>()
 ----
+|
 |===
 
 [[sec:plugins_block]]

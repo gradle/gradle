@@ -25,7 +25,8 @@ A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plug
 
 The example below is the most straightforward plugin, a "hello world" *script plugin*:
 
-[source, kotlin]
+.build.gradle.kts
+[source,kotlin]
 ----
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -33,7 +34,7 @@ import org.gradle.api.Project
 class SamplePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.tasks.create("SampleTask") {
-            println("Hello there!")
+            println("Hello world!")
         }
     }
 }
