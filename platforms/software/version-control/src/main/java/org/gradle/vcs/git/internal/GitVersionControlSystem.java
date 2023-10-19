@@ -16,21 +16,14 @@
 
 package org.gradle.vcs.git.internal;
 
-import com.jcraft.jsch.Session;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
@@ -113,7 +106,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
         try {
-            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+            return Git.lsRemoteRepository().setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
         } catch (URISyntaxException | GitAPIException e) {
             throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
         }
@@ -122,7 +115,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
-            CloneCommand clone = configureTransport(Git.cloneRepository()).
+            CloneCommand clone = Git.cloneRepository().
                     setURI(normalizeUri(gitSpec.getUrl())).
                     setDirectory(workingDir).
                     setCloneSubmodules(true);
@@ -158,7 +151,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
                 try (Repository submodule = walker.getRepository()) {
                     if (submodule != null) {
                         Git submoduleGit = Git.wrap(submodule);
-                        configureTransport(submoduleGit.fetch()).call();
+                        submoduleGit.fetch().call();
                         git.submoduleUpdate().addPath(walker.getPath()).call();
                         submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
                         updateSubModules(submoduleGit);
@@ -186,25 +179,5 @@ public class GitVersionControlSystem implements VersionControlSystem {
             return new GradleException(String.format("Could not run %s for %s", commandName, repoUrl), e);
         }
         return new GradleException(String.format("Could not %s from %s in %s", commandName, repoUrl, workingDir), e);
-    }
-
-    private static <T extends TransportCommand<?, ?>> T configureTransport(T command) {
-        command.setTransportConfigCallback(new DefaultTransportConfigCallback());
-        return command;
-    }
-
-    private static class DefaultTransportConfigCallback implements TransportConfigCallback {
-        @Override
-        public void configure(Transport transport) {
-            if (transport instanceof SshTransport) {
-                SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new JschConfigSessionFactory() {
-                    @Override
-                    protected void configure(OpenSshConfig.Host hc, Session session) {
-                        // TODO: This is where the password information would go
-                    }
-                });
-            }
-        }
     }
 }
