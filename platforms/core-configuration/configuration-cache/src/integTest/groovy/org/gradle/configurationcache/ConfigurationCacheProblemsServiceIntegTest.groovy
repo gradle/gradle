@@ -56,4 +56,24 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             severity == "WARNING"
         }
     }
+
+    def "max problems are still reported as warnings"() {
+        given:
+        buildFile << """
+            gradle.buildFinished { }
+
+            task run
+        """
+
+        when:
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "-D$MAX_PROBLEMS_GRADLE_PROP=0", 'run'
+
+        then:
+        executed(':run')
+        collectedProblems.size() == 1
+        with(collectedProblems.get(0)) {
+            label == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            severity == "WARNING"
+        }
+    }
 }
