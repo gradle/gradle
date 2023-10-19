@@ -1,7 +1,8 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.AssignmentResolution.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.PropertyAccessResolverImpl.AssignmentResolution.*
 import com.h0tk3y.kotlin.staticObjectNotation.language.AccessChain
+import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.PropertyAccess
 import com.h0tk3y.kotlin.staticObjectNotation.language.asChainOrNull
 
@@ -109,17 +110,14 @@ class PropertyAccessResolverImpl(
 
         val propertyName = propertyAccess.name
 
-        val receiverOrigin = expressionResolver.doResolveExpression(this, propertyAccess.receiver)
-        if (receiverOrigin != null) {
-            val property = findDataProperty(getDataType(receiverOrigin), propertyName)
-            if (property != null) {
+        expressionResolver.doResolveExpression(this, propertyAccess.receiver)?.let { receiverOrigin ->
+            findDataProperty(getDataType(receiverOrigin), propertyName)?.let { property ->
                 onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, propertyAccess))
             }
         }
-        val asChainOrNull = propertyAccess.asChainOrNull()
-        if (asChainOrNull != null) {
-            val externalObject = schema.externalObjectsByFqName[asChainOrNull.asFqName()]
-            if (externalObject != null) {
+        
+        propertyAccess.asChainOrNull()?.let { chain ->
+            schema.externalObjectsByFqName[chain.asFqName()]?.let { externalObject ->
                 onExternalObject(ObjectOrigin.External(externalObject, propertyAccess))
             }
         }
@@ -136,9 +134,8 @@ class PropertyAccessResolverImpl(
         lookupNamedValueInScopes(propertyAccess, onLocalValue, onProperty)
 
         if (propertyAccess.name in imports) {
-            val externalObject = schema.externalObjectsByFqName[imports[propertyAccess.name]]
-            if (externalObject != null) {
-                onExternal(ObjectOrigin.External(externalObject, propertyAccess))
+            schema.externalObjectsByFqName[imports[propertyAccess.name]]?.let { external -> 
+                onExternal(ObjectOrigin.External(external, propertyAccess))
             }
         }
     }
@@ -149,14 +146,11 @@ class PropertyAccessResolverImpl(
         onProperty: (ObjectOrigin.PropertyReference) -> Unit
     ) {
         currentScopes.asReversed().forEach { scope ->
-            val localValue = scope.findLocalAsObjectOrigin(propertyAccess.name)
-            if (localValue != null) {
-                onLocalValue(localValue)
-            }
-            val scopeReceiver = scope.receiver
-            val property = findDataProperty(getDataType(scopeReceiver), propertyAccess.name)
-            if (property != null) {
-                onProperty(ObjectOrigin.PropertyReference(scopeReceiver, property, propertyAccess))
+            scope.findLocalAsObjectOrigin(propertyAccess.name)
+                ?.let(onLocalValue)
+
+            findDataProperty(getDataType(scope.receiver), propertyAccess.name)?.let {property ->
+                onProperty(ObjectOrigin.PropertyReference(scope.receiver, property, propertyAccess))
             }
         }
     }
@@ -171,6 +165,12 @@ class PropertyAccessResolverImpl(
         receiverType: DataType, name: String
     ): DataProperty? =
         if (receiverType is DataType.DataClass<*>) receiverType.properties.find { it.name == name } else null
+
+    sealed interface AssignmentResolution {
+        data class AssignProperty(val propertyReference: PropertyReferenceResolution) : AssignmentResolution
+        data class ReassignLocalVal(val localValue: LocalValue) : AssignmentResolution
+        data class ReassignExternal(val external: ObjectOrigin.External) : AssignmentResolution
+    }
 }
 
 private fun AccessChain.asFqName(): FqName = FqName(nameParts.dropLast(1).joinToString("."), nameParts.last())

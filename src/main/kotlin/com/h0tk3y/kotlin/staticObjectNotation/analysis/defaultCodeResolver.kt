@@ -16,8 +16,12 @@ fun defaultCodeResolver(): ResolverImpl {
     }
 }
 
-private class ResolverServicesContainer : PropertyAccessResolver, ExpressionResolver, FunctionCallResolver,
-    CodeAnalyzer {
+private class ResolverServicesContainer : 
+    PropertyAccessResolver, 
+    ExpressionResolver, 
+    FunctionCallResolver,
+    CodeAnalyzer 
+{
     lateinit var propertyAccessResolver: PropertyAccessResolver
     lateinit var functionCallResolver: FunctionCallResolver
     lateinit var expressionResolver: ExpressionResolver
