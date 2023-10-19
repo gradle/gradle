@@ -71,7 +71,7 @@ public class GroupedOutputFixture {
     /**
      * Pattern to extract plain text progress updates.
      */
-    private static final Pattern PLAIN_PROGRESS_REPORT_PATTERN = Pattern.compile(PLAIN_PROGRESS_REPORT);
+    public static final Pattern PLAIN_PROGRESS_REPORT_PATTERN = Pattern.compile(PLAIN_PROGRESS_REPORT);
 
     private static Pattern patternForHeader(String header) {
         String pattern = "(?ms)";
