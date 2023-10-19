@@ -20,6 +20,7 @@ import com.google.common.hash.Hashing;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.GradleException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.classpath.ClasspathEntryVisitor.Entry.CompressionMethod;
@@ -73,6 +74,26 @@ public class ClasspathBuilder {
         }
     }
 
+    public void dir(File outputDir, Action action) {
+        try {
+            buildDir(outputDir, action);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Failed to create output to dir %s.", outputDir), e);
+        }
+    }
+
+    private void buildDir(File outputDir, Action action) throws IOException {
+        File parentDir = outputDir.getParentFile();
+        File tmpFile = temporaryFileProvider.createTemporaryDirectory(outputDir.getName(), ".tmp");
+        try {
+            Files.createDirectories(parentDir.toPath());
+            action.execute(new DirEntryBuilder(tmpFile));
+            Files.move(tmpFile.toPath(), outputDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(tmpFile.toPath());
+        }
+    }
+
     public interface Action {
         void execute(EntryBuilder builder) throws IOException;
     }
@@ -84,7 +105,24 @@ public class ClasspathBuilder {
         void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException;
     }
 
-        public static class ZipEntryBuilder implements EntryBuilder {
+    @NonNullApi
+    public static class DirEntryBuilder implements EntryBuilder {
+
+        private final File destinationDir;
+
+        public DirEntryBuilder(File destinationDir) {
+            this.destinationDir = destinationDir;
+        }
+
+        @Override
+        public void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException {
+            File file = new File(destinationDir, name);
+            file.getParentFile().mkdirs();
+            Files.write(file.toPath(), content);
+        }
+    }
+
+    public static class ZipEntryBuilder implements EntryBuilder {
         private final ZipArchiveOutputStream outputStream;
         private final Set<String> dirs = new HashSet<>();
 

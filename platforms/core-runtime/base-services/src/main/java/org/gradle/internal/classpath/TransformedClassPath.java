@@ -44,6 +44,7 @@ import java.util.Set;
  */
 public class TransformedClassPath implements ClassPath {
     public static final String INSTRUMENTED_JAR_EXTENSION = ".jiar";
+    public static final String INSTRUMENTED_DIR_EXTENSION = ".idir";
 
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
@@ -315,7 +316,7 @@ public class TransformedClassPath implements ClassPath {
     }
 
     private static boolean isInstrumentedJar(File classPathEntry) {
-        return classPathEntry.getName().endsWith(INSTRUMENTED_JAR_EXTENSION);
+        return classPathEntry.getName().endsWith(INSTRUMENTED_JAR_EXTENSION) || classPathEntry.getName().endsWith(INSTRUMENTED_DIR_EXTENSION);
     }
 
     /**

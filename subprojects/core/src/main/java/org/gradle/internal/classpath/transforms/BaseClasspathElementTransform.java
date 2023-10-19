@@ -64,14 +64,25 @@ class BaseClasspathElementTransform implements ClasspathElementTransform {
 
     @Override
     public final void transform(File destination) {
-        classpathBuilder.jar(destination, builder -> {
+        transform(destination, TransformOutput.JAR);
+    }
+
+    @Override
+    public void transform(File destination, TransformOutput transformOutput) {
+        ClasspathBuilder.Action entryBuilderConsumer = builder -> {
             try {
                 visitEntries(builder);
             } catch (FileException e) {
                 // Badly formed archive, so discard the contents and produce an empty JAR
                 LOGGER.debug("Malformed archive '{}'. Discarding contents.", source.getName(), e);
             }
-        });
+        };
+
+        if (transformOutput == TransformOutput.DIRECTORY) {
+            classpathBuilder.dir(destination, entryBuilderConsumer);
+        } else {
+            classpathBuilder.jar(destination, entryBuilderConsumer);
+        }
     }
 
     @Override

@@ -29,6 +29,8 @@ public interface ClasspathElementTransform {
      */
     void transform(File destination);
 
+    void transform(File destination, TransformOutput transformOutput);
+
     /**
      * Modifies the default destination file name if necessary.
      *
@@ -36,4 +38,9 @@ public interface ClasspathElementTransform {
      * @return the modified destination file name
      */
     String decorateDestinationFileName(String rawDestinationName);
+
+    enum TransformOutput {
+        JAR,
+        DIRECTORY
+    }
 }

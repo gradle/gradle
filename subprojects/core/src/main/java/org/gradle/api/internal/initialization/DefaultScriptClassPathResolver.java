@@ -33,9 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -43,12 +41,15 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
+import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
 import java.util.EnumSet;
 import java.util.Set;
+
+import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -64,6 +65,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("hierarchy-collected", Boolean.class);
     private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("instrumented", Boolean.class);
+    private static final Attribute<Boolean> INSTRUMENTED_TO_DIR_ATTRIBUTE = Attribute.of("instrumented-dir", Boolean.class);
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
 
@@ -82,7 +84,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         AttributeContainer attributes = configuration.getAttributes();
         attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
         attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
-        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
+        attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
         attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
         attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
         attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
@@ -94,6 +96,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
         dependencyHandler.getArtifactTypes().getByName("jar").getAttributes()
             .attribute(INSTRUMENTED_ATTRIBUTE, false)
+            .attribute(INSTRUMENTED_TO_DIR_ATTRIBUTE, false)
             .attribute(HIERARCHY_COLLECTED_ATTRIBUTE, false);
     }
 
@@ -103,14 +106,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
     }
 
-    private static FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
         // Handle projects as files, so we cache them globally
-        ArtifactView projectsView = artifactView(classpathConfiguration, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
-        DefaultSelfResolvingDependency projectDependencies = new DefaultSelfResolvingDependency(
-            new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH),
-            (FileCollectionInternal) projectsView.getFiles()
-        );
-        Configuration projectsOnlyConfiguration = configContainer.detachedConfiguration(projectDependencies);
+        ArtifactView instrumentedProjectsOnlyClasspath = artifactView(classpathConfiguration, config -> {
+            config.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+            config.attributes(it -> it.attribute(INSTRUMENTED_TO_DIR_ATTRIBUTE, true));
+        });
 
         // Register collect type hierarchy
         ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
@@ -131,8 +132,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
-                // Disable for now
-                // spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
+                spec.parameters(parameters -> parameters.getOutput().set(ClasspathElementTransform.TransformOutput.JAR));
+            }
+        );
+
+        dependencyHandler.registerTransform(
+            InstrumentArtifactTransform.class,
+            spec -> {
+                spec.getFrom().attribute(INSTRUMENTED_TO_DIR_ATTRIBUTE, false);
+                spec.getTo().attribute(INSTRUMENTED_TO_DIR_ATTRIBUTE, true);
+                spec.parameters(parameters -> parameters.getOutput().set(ClasspathElementTransform.TransformOutput.DIRECTORY));
             }
         );
 
@@ -140,11 +149,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
             config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API));
         }).getFiles();
-        //noinspection CodeBlock2Expr
-        FileCollection instrumentedProjectsOnlyClasspath = artifactView(projectsOnlyConfiguration, config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
-        }).getFiles();
-        return instrumentedClasspath.plus(instrumentedProjectsOnlyClasspath);
+        return instrumentedClasspath.plus(instrumentedProjectsOnlyClasspath.getFiles());
     }
 
     private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {

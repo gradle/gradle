@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.initialization.transform;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -24,8 +26,10 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -39,9 +43,17 @@ import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform.InstrumentArtifactTransformParameters;
+import static org.gradle.internal.classpath.TransformedClassPath.INSTRUMENTED_DIR_EXTENSION;
+import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 
 @DisableCachingByDefault(because = "Not enable yet, since original instrumentation is also not cached in build cache.")
 public abstract class InstrumentArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
@@ -50,6 +62,9 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         @InputFiles
         @Classpath
         ConfigurableFileCollection getClassHierarchy();
+
+        @Input
+        Property<ClasspathElementTransform.TransformOutput> getOutput();
     }
 
     @Inject
@@ -74,16 +89,44 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         // TransformedClassPath.handleInstrumentingArtifactTransform depends on the order and this naming, we should make it more resilient in the future
         String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
-        File outputFile = outputs.file(instrumentedJarName);
-        System.out.println("Instrumenting to: " + outputFile.getParentFile().getParentFile().getName() + "/" + outputFile.getParentFile().getName());
-
-        // TODO: Copy in a separate transform
-        File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
-        GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
 
         ClasspathElementTransformFactoryForAgent transformFactory = instrumentationServices.getTransformFactory();
         ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
-        transform.transform(outputFile);
+        if (shouldOutputToDirectory()) {
+            instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", INSTRUMENTED_DIR_EXTENSION);
+            File outputFile = outputs.dir(instrumentedJarName);
+            File copyOfOriginalFile = outputs.dir(getInputAsFile().getName().replaceFirst("\\.jar$", ".dir"));
+            unzipTo(getInputAsFile(), copyOfOriginalFile);
+            transform.transform(outputFile, ClasspathElementTransform.TransformOutput.DIRECTORY);
+        } else {
+            File outputFile = outputs.file(instrumentedJarName);
+            // TODO: Copy in a separate transform
+            File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
+            GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
+            transform.transform(outputFile, ClasspathElementTransform.TransformOutput.JAR);
+        }
+    }
+
+    private static void unzipTo(File headersZip, File unzipDir) {
+        try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(java.nio.file.Files.newInputStream(headersZip.toPath())))) {
+            ZipEntry entry;
+            while ((entry = inputStream.getNextEntry()) != null) {
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                File outFile = new File(unzipDir, safePathName(entry.getName()));
+                Files.createParentDirs(outFile);
+                try (FileOutputStream outputStream = new FileOutputStream(outFile)) {
+                    IOUtils.copyLarge(inputStream, outputStream);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private boolean shouldOutputToDirectory() {
+        return getParameters().getOutput().get() == ClasspathElementTransform.TransformOutput.DIRECTORY;
     }
 
     static class InstrumentationServices {
