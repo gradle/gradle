@@ -38,6 +38,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         collectedProblems.size() == 1
         with(collectedProblems.get(0)) {
             label == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            with(where) {
+                path == "build file 'build.gradle'"
+                line == 2
+            }
             severity == "ERROR"
         }
         problems.assertFailureHasProblems(failure) {
