@@ -268,7 +268,7 @@ public class MavenComponentParser {
             this.globalExcludes = globalExcludes;
         }
 
-    private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
+        private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
 
             // TODO: These warnings are not very useful. There are cases where a dependency declared
             // with attributes or capabilities is correctly converted to maven coordinates -- even

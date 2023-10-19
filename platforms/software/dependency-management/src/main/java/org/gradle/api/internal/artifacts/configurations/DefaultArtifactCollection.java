@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
-import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import java.util.Collection;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     private final ResolutionBackedFileCollection fileCollection;
     private final boolean lenient;
-    private final CalculatedValueContainer<ArtifactSetResult, ?> result;
+    private final CalculatedValue<ArtifactSetResult> result;
 
     public DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.fileCollection = files;
