@@ -25,15 +25,15 @@ import javax.tools.JavaFileObject;
 import java.util.Locale;
 
 /**
- * A {@link DiagnosticListener} that adopts {@link Diagnostic} problems into Gradle's {@link Problems}, and reports them.
+ * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
  *
  * @since 8.5
  */
-public class JdkJavaCompilerProblemListener implements DiagnosticListener<JavaFileObject> {
+public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
     private final Problems problems;
 
-    public JdkJavaCompilerProblemListener(Problems problems) {
+    public DiagnosticToProblemListener(Problems problems) {
         this.problems = problems;
     }
 

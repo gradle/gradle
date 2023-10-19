@@ -42,12 +42,12 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
-    private final DiagnosticListener<JavaFileObject> problemReporter;
+    private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
     public JdkJavaCompiler(Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, Problems problems) {
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
-        this.problemReporter = new JdkJavaCompilerProblemListener(problems);
+        this.diagnosticToProblemListener = new DiagnosticToProblemListener(problems);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         LOGGER.info("Compiling with JDK Java compiler API.");
 
         ApiCompilerResult result = new ApiCompilerResult();
-        JavaCompiler.CompilationTask task = createCompileTask(spec, result, problemReporter);
+        JavaCompiler.CompilationTask task = createCompileTask(spec, result, diagnosticToProblemListener);
         boolean success = task.call();
         if (!success) {
             throw new CompilationFailedException(result);
