@@ -66,7 +66,7 @@ dependencies {
         api("org.codehaus.groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
         api("org.codenarc:CodeNarc:3.0.1")
-        api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
+        api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
         api("org.jsoup:jsoup:1.15.3")

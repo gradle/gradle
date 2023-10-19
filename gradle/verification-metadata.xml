@@ -61,9 +61,6 @@
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
-      <ignored-keys>
-         <ignored-key id="74dafdfd6dae2441" reason="Key couldn't be downloaded from any key server"/>
-      </ignored-keys>
       <trusted-keys>
          <trusted-key id="019082bc00e0324e2aef4cf00d3b328562a119a7" group="org.openjdk.jmh"/>
          <trusted-key id="04543577d6a9cc626239c50c7ecbd740ff06aeb5" group="com.sun.xml.bind"/>
@@ -189,18 +186,25 @@
             <trusting group="com.google.guava"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="6a27b2f30f3db8bf86d519f7ec5bce97b4defa96" group="^com[.]esotericsoftware($|([.].*))" regex="true"/>
-         <trusted-key id="6f538074ccebf35f28af9b066a0975f8b1127b83" group="org.jetbrains.kotlin"/>
-         <trusted-key id="6fca825c6e85fcb4df9a96b27a3c11434ec6434e" group="^com[.]trueaccord($|([.].*))" regex="true"/>
-         <trusted-key id="70cd19bfd9f6c330027d6f260315bfb7970a144f" group="com.sun.xml.bind"/>
-         <trusted-key id="7616eb882daf57a11477aaf559a252fb1199d873" group="com.google.code.findbugs"/>
-         <trusted-key id="76e94e8ff0ab5af3b6f8366972fefd1572eb75e1" group="org.spockframework"/>
-         <trusted-key id="7B121B76A7ED6CE6E60AD51784E913A8E3A748C0" group="org.bouncycastle"/>
-         <trusted-key id="7b79add11f8a779fe90fd3d0893a028475557671" group="com.gradle"/>
-         <trusted-key id="7c669810892cbd3148fa92995b05ccde140c2876" group="org.eclipse.jgit" name="org.eclipse.jgit"/>
-         <trusted-key id="7faa0f2206de228f0db01ad741321490758aad6f" group="org.codehaus.groovy"/>
-         <trusted-key id="829d279ba9a3c503eb98a0e53c48f45a0e97af7e" group="org.gebish"/>
-         <trusted-key id="8446b9e902a3f3ddee711fdb8e26ff248bc7aead">
+         <trusted-key id="6A27B2F30F3DB8BF86D519F7EC5BCE97B4DEFA96" group="^com[.]esotericsoftware($|([.].*))" regex="true"/>
+         <trusted-key id="6F538074CCEBF35F28AF9B066A0975F8B1127B83" group="org.jetbrains.kotlin"/>
+         <trusted-key id="6FCA825C6E85FCB4DF9A96B27A3C11434EC6434E" group="^com[.]trueaccord($|([.].*))" regex="true"/>
+         <trusted-key id="70CD19BFD9F6C330027D6F260315BFB7970A144F" group="com.sun.xml.bind"/>
+         <trusted-key id="719F7C29985A8E95F58F47194D8159D6A1159B69" group="dev.zacsweers.moshix"/>
+         <trusted-key id="7616EB882DAF57A11477AAF559A252FB1199D873" group="com.google.code.findbugs"/>
+         <trusted-key id="76E94E8FF0AB5AF3B6F8366972FEFD1572EB75E1" group="org.spockframework"/>
+         <trusted-key id="7B79ADD11F8A779FE90FD3D0893A028475557671">
+            <trusting group="com.gradle"/>
+            <trusting group="com.gradle" name="gradle-enterprise-gradle-plugin"/>
+            <trusting group="org.gradle"/>
+         </trusted-key>
+         <trusted-key id="7C669810892CBD3148FA92995B05CCDE140C2876">
+            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit"/>
+            <trusting group="org.eclipse.jgit" name="org.eclipse.jgit.ssh.apache"/>
+         </trusted-key>
+         <trusted-key id="7FAA0F2206DE228F0DB01AD741321490758AAD6F" group="org.codehaus.groovy"/>
+         <trusted-key id="829D279BA9A3C503EB98A0E53C48F45A0E97AF7E" group="org.gebish"/>
+         <trusted-key id="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD">
             <trusting group="com.github.jnr"/>
             <trusting group="com.headius"/>
             <trusting group="org.jruby.joni"/>
@@ -554,6 +558,11 @@
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
          </artifact>
       </component>
+      <component group="com.github.mwiede" name="jsch" version="0.2.16">
+         <artifact name="jsch-0.2.16.jar">
+            <pgp value="D4D4DEC73685B1A135E45E5C47933D17F199636B"/>
+         </artifact>
+      </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.14.3">
          <artifact name="japicmp-0.14.3.jar">
             <pgp value="fffd810fffde203d5fa27263beabcfbee059e4e5"/>
@@ -627,13 +636,13 @@
             <pgp value="4922c79af3339c8941c3e7af80662f8192d749a0"/>
          </artifact>
       </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.6">
-         <artifact name="JavaEWAH-1.1.6.jar">
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.13">
+         <artifact name="JavaEWAH-1.1.13.jar">
             <pgp value="015479e1055341431b4545ab72475fd306b9cab7"/>
          </artifact>
       </component>
-      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.7">
-         <artifact name="JavaEWAH-1.1.7.jar">
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.2.3">
+         <artifact name="JavaEWAH-1.2.3.jar">
             <pgp value="015479e1055341431b4545ab72475fd306b9cab7"/>
          </artifact>
       </component>
@@ -660,6 +669,12 @@
       <component group="com.h2database" name="h2" version="1.4.192">
          <artifact name="h2-1.4.192.jar">
             <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>
+         </artifact>
+      </component>
+      <component group="com.gradleup" name="gr8-plugin" version="0.9">
+         <artifact name="gr8-plugin-0.9.jar">
+            <pgp value="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F"/>
+            <sha256 value="07fe6fe9a922beb3d8258be2d3d5f65d4f7b146c99ff44c5f4227c045ae92673" origin="Generated by Gradle" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="com.h2database" name="h2" version="1.4.196">
@@ -786,6 +801,11 @@
             <sha256 value="81d795f8d22c09bdae192d3e2f40624d6a14325ae745547bbce9df74361be598" origin="Needed because PGP signature verification failed!">
                <also-trust value="eb08b570e408d4646705e70a949614d439ea2b11455f1652ab0330de8954dab9"/>
             </sha256>
+         </artifact>
+      </component>
+      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="2.0.0">
+         <artifact name="dokkatoo-plugin-2.0.0.jar">
+            <pgp value="CB764D538CF417822B4108341CF69814023DEDE9"/>
          </artifact>
       </component>
       <component group="flot" name="flot" version="0.8.1">
@@ -969,6 +989,11 @@
             <pgp value="f42b96b8648b5c4a1c43a62fbb2914c1fa0811c3"/>
          </artifact>
       </component>
+      <component group="net.i2p.crypto" name="eddsa" version="0.3.0">
+         <artifact name="eddsa-0.3.0.jar">
+            <pgp value="43C79B4BBD131821E17D2CA77B2F0491728B8E02"/>
+         </artifact>
+      </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Artifact is not signed"/>
@@ -1107,6 +1132,11 @@
       <component group="org.apache.mina" name="mina-core" version="2.0.17">
          <artifact name="mina-core-2.0.17.jar">
             <pgp value="4d2db2916149baa9d0c92f3731474e5e7c6b7034"/>
+         </artifact>
+      </component>
+      <component group="org.apache.sshd" name="sshd-osgi" version="2.10.0">
+         <artifact name="sshd-osgi-2.10.0.jar">
+            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
          </artifact>
       </component>
       <component group="org.apache.velocity" name="velocity" version="1.7">

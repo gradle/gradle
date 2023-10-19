@@ -34,7 +34,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 164 * 1024 * 1024
+        return 165 * 1024 * 1024
     }
 
     def allZipContents() {
