@@ -1,7 +1,6 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
 import com.h0tk3y.kotlin.staticObjectNotation.language.Expr
-import com.h0tk3y.kotlin.staticObjectNotation.language.FunctionArgument
 import com.h0tk3y.kotlin.staticObjectNotation.language.LanguageTreeElement
 import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 
