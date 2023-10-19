@@ -186,6 +186,12 @@ This was done to encourage version catalog usage since it became a stable featur
 
 Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-dependencies) and the [TOML file format](userguide/platforms.html#sub::toml-dependencies-format) for information on the topic.
 
+#### New `--java-version` Parameter
+
+Gradle enters interactive mode and prompts the user when required information for the selected project type is missing.
+
+In order to support generating Java projects non-interactively, the `--java-version` parameter was added to the `init` task.
+This parameter allows you to specify the major version of Java to use in the generated project when launching the `init` task, in order to avoid Gradle later prompting you for it.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
