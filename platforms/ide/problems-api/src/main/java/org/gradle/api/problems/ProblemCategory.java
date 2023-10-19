@@ -51,5 +51,6 @@ public interface ProblemCategory {
     String getNamespace();
 
     String getCategory();
-    List<String> getSubCateogies();
+
+    List<String> getSubCategories();
 }

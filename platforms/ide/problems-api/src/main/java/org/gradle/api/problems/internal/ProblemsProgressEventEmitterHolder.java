@@ -22,8 +22,10 @@ import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 
 import java.util.Collections;
 
+import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
+
 public class ProblemsProgressEventEmitterHolder {
-    private static Problems problemsService = new DefaultProblems(new NoOpBuildOperationProgressEventEmitter(), Collections.<ProblemTransformer>emptyList());
+    private static Problems problemsService = new DefaultProblems(new NoOpBuildOperationProgressEventEmitter(), Collections.<ProblemTransformer>emptyList(), EMPTY_STREAM);
 
     public static void init(Problems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;

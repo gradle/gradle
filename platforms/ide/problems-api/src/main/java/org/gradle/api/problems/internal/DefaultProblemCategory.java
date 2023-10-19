@@ -87,7 +87,7 @@ public class DefaultProblemCategory implements ProblemCategory {
     }
 
     @Override
-    public List<String> getSubCateogies() {
+    public List<String> getSubCategories() {
         return category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount());
     }
 

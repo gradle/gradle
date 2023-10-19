@@ -44,7 +44,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     problems.createProblem{
                         it.label("label")
                         .undocumented()
-                        .noLocation()
+                        .collectLocation()
                         .category("type")
                         }.report()
                 }
@@ -257,7 +257,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             "length": 0
         ]
 
-        def taskPath = problems[0]["where"][2]
+        def taskPath = problems[0]["where"][1]
         taskPath["type"] == "task"
         taskPath["identityPath"]["absolute"] == true
         taskPath["identityPath"]["path"] == ":reportProblem"

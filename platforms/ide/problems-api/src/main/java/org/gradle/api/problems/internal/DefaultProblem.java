@@ -63,9 +63,6 @@ public class DefaultProblem implements Problem {
         this.additionalMetadata = additionalMetadata;
     }
 
-    public DefaultProblem() {
-    }
-
     @Override
     public String getLabel() {
         return label;

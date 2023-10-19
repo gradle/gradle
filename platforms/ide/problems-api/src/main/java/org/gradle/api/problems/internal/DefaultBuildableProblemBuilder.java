@@ -60,6 +60,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     private List<String> solution;
     private RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
+    private boolean collectLocation = false;
 
     public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
         this.problemsService = problemsService;
@@ -90,6 +91,12 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     @Override
     public ProblemBuilderDefiningCategory pluginLocation(String pluginId) {
         this.locations.add(new PluginIdLocation(pluginId));
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderDefiningCategory collectLocation() {
+        this.collectLocation = true;
         return this;
     }
 
@@ -156,7 +163,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             documentationUrl,
             description,
             solution,
-            exception == null ? new Exception() : exception,
+            exception == null && collectLocation ? new Exception() : exception,
             problemCategory,
             additionalMetadata,
             problemsService);

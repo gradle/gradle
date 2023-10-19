@@ -19,18 +19,15 @@ package org.gradle.problems.internal.transformers;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.locations.FileLocation;
-import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.problems.Location;
-
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.problems.ProblemDiagnostics;
+import org.gradle.problems.buildtree.ProblemStream;
 
 public class StackLocationTransformer implements ProblemTransformer {
+    private final ProblemStream problemStream;
 
-    private final ProblemLocationAnalyzer problemLocationAnalyzer;
-
-    public StackLocationTransformer(ProblemLocationAnalyzer problemLocationAnalyzer) {
-        this.problemLocationAnalyzer = problemLocationAnalyzer;
+    public StackLocationTransformer(ProblemStream problemStream) {
+        this.problemStream = problemStream;
     }
 
     @Override
@@ -39,17 +36,11 @@ public class StackLocationTransformer implements ProblemTransformer {
             return problem;
         }
 
-        Throwable throwable = problem.getException();
-
-        // Converts the array of stack trace elements to an array list
-        List<StackTraceElement> stackTraceElements = Arrays.asList(throwable.getStackTrace());
-        Location location = problemLocationAnalyzer.locationForUsage(stackTraceElements, true);
-        if (location == null) {
-            return problem;
+        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
+        Location loc = problemDiagnostics.getLocation();
+        if (loc != null) {
+            problem.getWhere().add(new FileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber(), null, null));
         }
-
-        problem.getWhere().add(new FileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null));
         return problem;
-
     }
 }

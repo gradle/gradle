@@ -56,6 +56,15 @@ public interface ProblemBuilderDefiningLocation {
      */
     ProblemBuilderDefiningCategory pluginLocation(String pluginId);
 
+    /**
+     * Declares that this problem builder should automatically collect the location using an Exception.
+     *
+     * @return the builder for the next required property
+     * @since 8.5
+     */
+    ProblemBuilderDefiningCategory collectLocation();
+
+
     /*
      * Declares that this problem has no associated location data.
      *
