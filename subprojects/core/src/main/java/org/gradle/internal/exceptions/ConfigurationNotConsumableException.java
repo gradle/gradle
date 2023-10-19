@@ -16,6 +16,11 @@
 
 package org.gradle.internal.exceptions;
 
+/**
+ * This exception is thrown during variant aware dependency resolution
+ * when a specific configuration of a dependency is requested by name
+ * and it is not consumable.
+ */
 public class ConfigurationNotConsumableException extends IllegalArgumentException {
     public ConfigurationNotConsumableException(String targetComponent, String configurationName) {
         super("Selected configuration '" + configurationName + "' on '" + targetComponent + "' but it can't be used as a project dependency because it isn't intended for consumption by other components.");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.internal.component;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class ExternalConfigurationNotFoundException extends RuntimeException {
+/**
+ * This exception is used to indicate that a named configuration for an <strong>Ivy</strong> or <strong>Maven</strong>
+ * dependency wasn't found when resolving a Graph.
+ *
+ * For Maven, the configuration is always the single variant that uses the name "default".
+ */
+public class ExternalConfigurationNotFoundException extends ConfigurationNotFoundException {
     public ExternalConfigurationNotFoundException(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
         super(String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName()));
     }
