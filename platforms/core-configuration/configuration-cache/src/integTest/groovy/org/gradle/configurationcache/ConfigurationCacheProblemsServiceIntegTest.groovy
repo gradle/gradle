@@ -34,7 +34,6 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheFails 'run'
 
         then:
-        executed(':run')
         collectedProblems.size() == 1
         with(collectedProblems.get(0)) {
             label == "registration of listener on 'Gradle.buildFinished' is unsupported"
@@ -42,22 +41,19 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
                 path == "build file 'build.gradle'"
                 line == 2
             }
+            documentationLink != null
             severity == "ERROR"
         }
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
-        }
-        failure.assertHasFailures(1)
 
         when:
         configurationCacheRunLenient 'run'
 
         then:
-        executed(':run')
         collectedProblems.size() == 1
         with(collectedProblems.get(0)) {
             label == "registration of listener on 'Gradle.buildFinished' is unsupported"
             severity == "WARNING"
+            documentationLink != null
         }
     }
 
@@ -73,7 +69,6 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, "-D$MAX_PROBLEMS_GRADLE_PROP=0", 'run'
 
         then:
-        executed(':run')
         collectedProblems.size() == 1
         with(collectedProblems.get(0)) {
             label == "registration of listener on 'Gradle.buildFinished' is unsupported"

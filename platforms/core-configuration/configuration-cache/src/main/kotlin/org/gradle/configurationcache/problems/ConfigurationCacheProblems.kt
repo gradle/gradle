@@ -19,6 +19,7 @@ package org.gradle.configurationcache.problems
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemBuilderDefiningCategory
+import org.gradle.api.problems.ProblemBuilderDefiningDocumentation
 import org.gradle.api.problems.ProblemBuilderDefiningLocation
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
@@ -31,6 +32,7 @@ import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -146,12 +148,18 @@ class ConfigurationCacheProblems(
     fun Problems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         createProblem { builder ->
             builder.label(problem.message.toString())
-                .undocumented()
+                .documentOfProblem(problem)
                 .locationOfProblem(problem)
                 .category("CC")
                 .severity(severity.toProblemSeverity())
         }.report()
     }
+
+    private
+    fun ProblemBuilderDefiningDocumentation.documentOfProblem(problem: PropertyProblem) =
+        problem.documentationSection?.let {
+            documentedAt(Documentation.userManual("configuration_cache", it.anchor))
+        } ?: undocumented()
 
     private
     fun ProblemBuilderDefiningLocation.locationOfProblem(problem: PropertyProblem): ProblemBuilderDefiningCategory {
