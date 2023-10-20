@@ -332,13 +332,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 PluginModel plugin = config.getPlugin(path);
-                writePlugin(path, plugin.getId(), plugin.getContext(), true);
+                writePlugin(path, plugin, true);
             }
             for (String alias : aliases) {
                 String childName = leafNodeForAlias(alias);
                 if (!classNode.hasChild(childName)) {
                     PluginModel plugin = config.getPlugin(alias);
-                    writePlugin(alias, plugin.getId(), plugin.getContext(), false);
+                    writePlugin(alias, plugin, false);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -355,8 +355,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             String childName = leafNodeForAlias(alias);
             if (!classNode.hasChild(childName)) {
                 DependencyModel model = config.getDependencyData(alias);
-                String coordinates = coordinatesDescriptorFor(model);
-                writeDependencyAccessor(alias, coordinates, model.getContext(), false, deprecated);
+                writeDependencyAccessor(alias, model, false, deprecated);
             }
         }
         for (ClassNode child : classNode.getChildren()) {
@@ -402,7 +401,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             String childName = leafNodeForAlias(alias);
             if (!classNode.hasChild(childName)) {
                 PluginModel model = config.getPlugin(alias);
-                writePlugin(alias, model.getId(), model.getContext(), false);
+                writePlugin(alias, model, false);
             }
         }
         for (ClassNode child : classNode.getChildren()) {
@@ -439,14 +438,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 DependencyModel model = config.getDependencyData(path);
-                writeDependencyAccessor(path, coordinatesDescriptorFor(model), model.getContext(), true, deprecated);
+                writeDependencyAccessor(path, model, true, deprecated);
             }
             for (String alias : classNode.aliases) {
                 String childName = leafNodeForAlias(alias);
                 if (!classNode.hasChild(childName)) {
                     DependencyModel model = config.getDependencyData(alias);
-                    String coordinates = coordinatesDescriptorFor(model);
-                    writeDependencyAccessor(alias, coordinates, model.getContext(), false, deprecated);
+                    writeDependencyAccessor(alias, model, false, deprecated);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -563,10 +561,16 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
-    private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context, boolean asProvider, boolean deprecated) throws IOException {
+    private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean deprecated) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("    /**");
-        writeLn("     * Creates a dependency provider for " + name + " (" + coordinates + ")");
+        writeLn("     * Creates a dependency provider for " + name + " (" + coordinatesDescriptorFor(dependency) + ")");
+        if (dependency.getVersionRef() != null) {
+            writeLn(" * with versionRef '" + dependency.getVersionRef() + "'.");
+        } else {
+            writeLn(" * with version '" + dependency.getVersion().getDisplayName() + "'.");
+        }
+        String context = dependency.getContext();
         if (context != null) {
             writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
         }
@@ -654,10 +658,16 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writePlugin(String alias, String id, @Nullable String context, boolean asProvider) throws IOException {
+    private void writePlugin(String alias, PluginModel plugin, boolean asProvider) throws IOException {
         indent(() -> {
             writeLn("/**");
-            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + id + "'");
+            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + plugin.getId() + "'");
+            if (plugin.getVersionRef() != null) {
+                writeLn(" * with versionRef '" + plugin.getVersionRef() + "'.");
+            } else {
+                writeLn(" * with version '" + plugin.getVersion().getDisplayName() + "'.");
+            }
+            String context = plugin.getContext();
             if (context != null) {
                 writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
             }

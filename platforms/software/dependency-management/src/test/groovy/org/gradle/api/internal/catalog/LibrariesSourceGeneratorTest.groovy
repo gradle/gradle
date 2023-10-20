@@ -149,6 +149,29 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         'lang3Version'  | 'getLang3Version'
     }
 
+    def "generates version info in javadoc for dependencies and plugins"() {
+        when:
+        generate {
+            version('barVersion', '2.0')
+            library('foo', 'group:foo:1.0')
+            library('fooBaz', 'group', 'foo-baz').version {
+                it.prefer('1.2')
+                it.strictly('[1.0, 2.0[')
+            }
+            library('bar', 'group', 'bar').versionRef('barVersion')
+            plugin('fooPlugin', 'org.foo.plugin').version('1.0')
+            plugin('barPlugin', 'org.bar.plugin').versionRef('barVersion')
+        }
+
+        then:
+        sources.hasDependencyAlias('foo', 'getFoo', "with version '1.0'")
+        sources.hasDependencyAlias('fooBaz', 'getFooBaz', "with version '{strictly [1.0, 2.0[; prefer 1.2}'")
+        sources.hasDependencyAlias('bar', 'getBar', "with versionRef 'barVersion'")
+
+        sources.hasPlugin('fooPlugin', 'getFooPlugin', "with version '1.0'")
+        sources.hasPlugin('barPlugin', 'getBarPlugin', "with versionRef 'barVersion'")
+    }
+
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.ACCESSOR_NAME_CLASH
     )
@@ -428,6 +451,15 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
             def lookup = "public Provider<String> $methodName() {"
+            def result = Lookup.find(lines, lookup)
+            assert result.match
+            if (javadoc) {
+                assert result.javadocContains(javadoc)
+            }
+        }
+
+        void hasPlugin(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
+            def lookup = "public Provider<PluginDependency> $methodName() {"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
