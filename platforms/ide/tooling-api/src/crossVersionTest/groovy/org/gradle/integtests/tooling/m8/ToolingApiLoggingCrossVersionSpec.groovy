@@ -170,6 +170,7 @@ project.logger.debug("debug logging");
         // Must replace both build result formats for cross compat
         return output
             .replaceAll(/Unable to list file systems to check whether they can be watched.*\n/, '')
+            .replaceAll(/> Progress:.*\n/, '')
             .replaceFirst(/Support for .* was deprecated.*\n/, '')
             .replaceFirst(/ in [ \dms]+/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
