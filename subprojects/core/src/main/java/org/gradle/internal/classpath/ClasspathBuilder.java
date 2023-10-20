@@ -82,16 +82,10 @@ public class ClasspathBuilder {
         }
     }
 
-    private void buildDir(File outputDir, Action action) throws IOException {
+    private static void buildDir(File outputDir, Action action) throws IOException {
         File parentDir = outputDir.getParentFile();
-        File tmpFile = temporaryFileProvider.createTemporaryDirectory(outputDir.getName(), ".tmp");
-        try {
-            Files.createDirectories(parentDir.toPath());
-            action.execute(new DirEntryBuilder(tmpFile));
-            Files.move(tmpFile.toPath(), outputDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } finally {
-            Files.deleteIfExists(tmpFile.toPath());
-        }
+        Files.createDirectories(parentDir.toPath());
+        action.execute(new DirEntryBuilder(outputDir));
     }
 
     public interface Action {
