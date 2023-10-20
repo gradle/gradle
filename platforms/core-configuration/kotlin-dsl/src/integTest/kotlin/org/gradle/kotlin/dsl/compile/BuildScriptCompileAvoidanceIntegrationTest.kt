@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.compile
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -259,6 +260,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     @Test
+    @Ignore("https://youtrack.jetbrains.com/issue/KT-62555/Wrong-ABI-fingerprint-for-inline-function-containing-a-lambda?s=Wrong-ABI-fingerprint-for-inline-function-containing-a-lambda")
     fun `recompiles buildscript on inline lambda function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
@@ -305,6 +307,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     @Test
+    @Ignore("https://youtrack.jetbrains.com/issue/KT-62557/Wrong-ABI-fingerprint-for-public-function-delegating-to-internal-inline-function")
     fun `avoids buildscript recompilation on internal inline function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
