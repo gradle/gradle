@@ -24,6 +24,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -59,6 +60,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -129,6 +131,8 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     private String executable;
 
+    private final boolean offline;
+
     /**
      * Creates a new {@code Javadoc}.
      *
@@ -146,6 +150,7 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
+        this.offline = getStartParameter().isOffline();
     }
 
     /**
@@ -155,6 +160,10 @@ public abstract class Javadoc extends SourceTask {
      */
     @TaskAction
     protected void generate() {
+        if (offline) {
+            prepareForOfflineOperation();
+        }
+
         File destinationDir = getDestinationDirectory().get().getAsFile();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
@@ -233,6 +242,30 @@ public abstract class Javadoc extends SourceTask {
 
     private JavadocToolAdapter getJavadocToolAdapter() {
         return (JavadocToolAdapter) getJavadocTool().get();
+    }
+
+    /**
+     * When running with {@code --offline}, javadoc cannot download the package lists of linked sites, and fails.
+     * Replace each link with an offline link to an empty package list, so the documentation still builds.
+     */
+    private void prepareForOfflineOperation() {
+        List<String> links = options.getLinks();
+        if (links != null && !links.isEmpty()) {
+            File fallbackPackageList = setupFallbackPackageList();
+            substituteLinksForOfflineOperation(links, fallbackPackageList);
+        }
+    }
+
+    private File setupFallbackPackageList() {
+        File packageFile = getProjectLayout().getBuildDirectory().file("javadoc/offline-fallback/package-list").get().getAsFile();
+        GFileUtils.mkdirs(packageFile.getParentFile());
+        GFileUtils.touch(packageFile);
+        return packageFile;
+    }
+
+    private void substituteLinksForOfflineOperation(List<String> links, File fallbackPackageList) {
+        links.forEach(link -> options.linksOffline(link, fallbackPackageList.getParentFile().getAbsolutePath()));
+        links.clear();
     }
 
     /**
@@ -472,6 +505,9 @@ public abstract class Javadoc extends SourceTask {
 
     @Inject
     protected abstract PropertyFactory getPropertyFactory();
+
+    @Inject
+    protected abstract StartParameterInternal getStartParameter();
 
     @Inject
     protected abstract JavaModuleDetector getJavaModuleDetector();
