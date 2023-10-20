@@ -78,7 +78,7 @@ public class ClasspathBuilder {
         try {
             buildDir(outputDir, action);
         } catch (Exception e) {
-            throw new GradleException(String.format("Failed to create output to dir %s.", outputDir), e);
+            throw new GradleException(String.format("Failed to create output to dir %s: %s.", outputDir, e.getMessage()), e);
         }
     }
 
