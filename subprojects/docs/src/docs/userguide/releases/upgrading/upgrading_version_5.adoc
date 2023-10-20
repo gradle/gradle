@@ -155,7 +155,7 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 ==== Build scan plugin 2.x is no longer supported
 
-For Gradle 6, usage of the build scan plugin must be replaced with the Gradle Enterprise plugin.
+For Gradle 6, usage of the build scan plugin must be replaced with the Develocity plugin.
 This also requires changing how the plugin is applied.
 Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
 
@@ -624,7 +624,7 @@ The built-in <<play_plugin.adoc#play_plugin, Play plugin>> has been deprecated a
 
 The _build comparison_ plugin has been deprecated and will be removed in the next major version of Gradle.
 
-link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Gradle Enterprise] to directly compare two build's build-scans.
+link:https://gradle.com/build-scans[Build scans] show much deeper insights into your build and you can use link:https://gradle.com/[Develocity] to directly compare two build's build-scans.
 
 === Potential breaking changes
 
