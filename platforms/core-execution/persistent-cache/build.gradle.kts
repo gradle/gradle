@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.groovy)
 
     testImplementation(project(":core-api"))
     testImplementation(project(":functional"))

@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.codehaus.groovy.runtime.DefaultGroovyStaticMethods;
 import org.gradle.api.Action;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
@@ -335,6 +336,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS){
+                System.out.println("Dumb all threads: " + DefaultGroovyStaticMethods.dumpAll(null));
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by this Gradle process.Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else {
