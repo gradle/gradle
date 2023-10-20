@@ -205,6 +205,16 @@ The list of files that failed to be deleted is reported.
 If new files appear under a directory during deletion, their paths will be reported separately.
 The root cause exceptions for each file deletion failure will also be attached to the stacktrace.
 
+<a name="other-improvements"></a>
+### Other improvements
+
+#### Build-wide locations available to Settings scripts and plugins via `Settings.layout`
+
+Settings scripts and plugins can now access standard build-wide file system locations as lazily computed values via [`Settings.layout`](javadoc/org/gradle/api/initialization/Settings.html#getLayout--). That is analogous to what [`Project.layout`](javadoc/org/gradle/api/Project.html#getLayout--) offers for project-specific locations. 
+These API are currently incubating, but eventually should replace existing accessors in `Settings` which return eagerly computed locations: 
+
+* `Settings.rootDir` -> `Settings.layout.rootDirectory`
+* `Settings.settingsDir` -> `Settings.layout.settingsDirectory`
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
