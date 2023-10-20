@@ -35,6 +35,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -80,7 +81,7 @@ abstract class AbstractSmokeTest extends Specification {
         static shadow = Versions.of("8.1.1")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
-        static asciidoctor = Versions.of("3.3.2", "4.0.0-alpha.1")
+        static asciidoctor = Versions.ofAll(["3.3.2", "4.0.0-alpha.1"])
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "5.1.3"
@@ -98,10 +99,10 @@ abstract class AbstractSmokeTest extends Specification {
         static androidTools = "34.0.0"
 
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
+        static androidGradle = Versions.ofAll(AGP_VERSIONS.latestsPlusNightly, AGP_VERSIONS.latestStable)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests)
+        static kotlin = Versions.ofAll(KOTLIN_VERSIONS.latests, KOTLIN_VERSIONS.latestStable)
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
@@ -197,14 +198,35 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     static class Versions implements Iterable<String> {
-        static Versions of(String... versions) {
-            new Versions(versions)
+
+        static Versions of(String version) {
+            new Versions([version], version)
         }
 
-        final List<String> versions
+        static Versions ofAll(List<String> versions) {
+            new Versions(versions, doGetLatestStable(versions))
+        }
 
-        private Versions(String... given) {
-            versions = Arrays.asList(given)
+        static Versions ofAll(List<String> versions, String latestStable) {
+            new Versions(versions, latestStable)
+        }
+
+        private static doGetLatestStable(List<String> versions) {
+            // Assumes versions are already sorted
+            return versions
+                .collect { VersionNumber.parse(it) }
+                .findAll { it.baseVersion == it }
+                .collect { it.toString() }
+                .last()
+        }
+
+
+        final List<String> versions
+        final String latestStable
+
+        private Versions(List<String> versions, String latestStable) {
+            this.versions = versions
+            this.latestStable = latestStable
         }
 
         @Override

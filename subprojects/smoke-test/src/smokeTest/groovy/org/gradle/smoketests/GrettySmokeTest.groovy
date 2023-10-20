@@ -90,7 +90,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.gretty': Versions.of(grettyConfigForCurrentJavaVersion().collect { it.version } as String[])
+            'org.gretty': Versions.ofAll(grettyConfigForCurrentJavaVersion().collect { it.version } as List<String>)
         ]
     }
 

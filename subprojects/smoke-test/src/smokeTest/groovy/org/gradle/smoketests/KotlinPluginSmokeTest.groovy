@@ -43,10 +43,27 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinParallelTasksDeprecation(versionNumber, parallelTasksInProject)
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
-                expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
-                expectJavaPluginConventionDeprecation(versionNumber)
+                expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin'"
+                }
+                expectProjectConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectConventionTypeDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectJavaPluginConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
                     expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
@@ -62,10 +79,27 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result = runner(parallelTasksInProject, versionNumber, 'run')
             .deprecations(KotlinDeprecations) {
                 if (GradleContextualExecuter.isNotConfigCache()) {
-                    expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                    expectProjectConventionDeprecation(versionNumber)
-                    expectConventionTypeDeprecation(versionNumber)
-                    expectJavaPluginConventionDeprecation(versionNumber)
+                    expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
+                        cause = "plugin 'kotlin'"
+                    }
+                    expectProjectConventionDeprecation(versionNumber) {
+                        causes = [
+                            "plugin 'kotlin'",
+                            "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                        ]
+                    }
+                    expectConventionTypeDeprecation(versionNumber) {
+                        causes = [
+                            "plugin 'kotlin'",
+                            "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                        ]
+                    }
+                    expectJavaPluginConventionDeprecation(versionNumber) {
+                        causes = [
+                            "plugin 'kotlin'",
+                            "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                        ]
+                    }
                 }
             }.build()
 
@@ -97,12 +131,29 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinParallelTasksDeprecation(versionNumber, parallelTasksInProject)
                 expectKotlin2JsPluginDeprecation(versionNumber)
                 expectKotlinCompileDestinationDirPropertyDeprecation(versionNumber)
+                expectKotlinCompileDestinationDirPropertyDeprecation(versionNumber) { // TODO: This one does not occur for 1.6.21
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectKotlinArchiveNameDeprecation(versionNumber)
-                expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
+                expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectProjectConventionDeprecation(versionNumber)
+                expectProjectConventionDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectConventionTypeDeprecation(versionNumber)
+                expectConventionTypeDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectJavaPluginConventionDeprecation(versionNumber)
+                expectJavaPluginConventionDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectBasePluginConventionDeprecation(versionNumber)
+                expectBasePluginConventionDeprecation(versionNumber) {
+                    cause = "plugin 'kotlin2js'"
+                }
                 expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
@@ -158,10 +209,27 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinParallelTasksDeprecation(versionNumber, parallelTasksInProject)
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
-                expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
-                expectJavaPluginConventionDeprecation(versionNumber)
+                expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
+                    cause = "plugin 'org.jetbrains.kotlin.jvm'"
+                }
+                expectProjectConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'org.jetbrains.kotlin.jvm'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectConventionTypeDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'org.jetbrains.kotlin.jvm'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectJavaPluginConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'org.jetbrains.kotlin.jvm'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
                     expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
@@ -209,9 +277,24 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             .deprecations(KotlinDeprecations) {
                 expectAbstractCompileDestinationDirDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-                expectProjectConventionDeprecation(versionNumber)
-                expectConventionTypeDeprecation(versionNumber)
-                expectJavaPluginConventionDeprecation(versionNumber)
+                expectProjectConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectConventionTypeDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
+                expectJavaPluginConventionDeprecation(versionNumber) {
+                    causes = [
+                        "plugin 'kotlin'",
+                        "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                    ]
+                }
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }

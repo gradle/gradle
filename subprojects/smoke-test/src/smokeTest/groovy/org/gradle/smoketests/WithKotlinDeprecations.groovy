@@ -205,10 +205,18 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         if (projectTypes.contains(ProjectTypes.JS)) {
             expectAbstractCompileDestinationDirDeprecation(versionNumber)
         }
-        expectOrgGradleUtilWrapUtilDeprecation(versionNumber)
-        expectConventionTypeDeprecation(versionNumber)
-        expectJavaPluginConventionDeprecation(versionNumber)
-        expectProjectConventionDeprecation(versionNumber)
+        expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
+            cause = "plugin 'org.jetbrains.kotlin.multiplatform'"
+        }
+        expectConventionTypeDeprecation(versionNumber) {
+            cause = "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+        }
+        expectJavaPluginConventionDeprecation(versionNumber) {
+            cause = "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+        }
+        expectProjectConventionDeprecation(versionNumber) {
+            cause = "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+        }
         expectTestReportReportOnDeprecation(versionNumber)
         expectTestReportDestinationDirOnDeprecation(versionNumber)
         expectBuildIdentifierNameDeprecation(versionNumber)

@@ -73,4 +73,14 @@ class BaseDeprecations {
     BaseDeprecations(SmokeTestGradleRunner runner) {
         this.runner = runner
     }
+
+    void expectAbstractTaskConventionDeprecationWarning(@DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.expectLegacyDeprecationWarning(
+            "The AbstractTask.getConvention() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_8", "deprecated_access_to_conventions"),
+            action
+        )
+    }
 }
