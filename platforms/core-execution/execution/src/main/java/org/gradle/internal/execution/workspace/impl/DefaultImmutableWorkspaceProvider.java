@@ -163,6 +163,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+        System.out.println("Opening workspace: " + path);
         return cache.withFileLock(() -> {
             System.out.println("Locking workspace: " + path);
             File workspace = new File(baseDirectory, path);
