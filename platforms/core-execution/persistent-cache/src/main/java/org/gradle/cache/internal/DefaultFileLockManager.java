@@ -165,7 +165,7 @@ public class DefaultFileLockManager implements FileLockManager {
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
             try {
-                if (whenContended != null) {
+                if (whenContended != null && whenContended != Actions.<FileLockReleasedSignal>doNothing()) {
                     fileLockContentionHandler.start(lockId, whenContended);
                 }
                 lockState = lock(options.getMode());
