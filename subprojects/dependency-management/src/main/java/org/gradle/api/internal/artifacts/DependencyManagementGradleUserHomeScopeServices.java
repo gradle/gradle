@@ -110,6 +110,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheConfigurationsInternal cacheConfigurations,
         FileLockManager fileLockManager
     ) {
+        System.out.println("CREATING NEW ImmutableTransformWorkspaceServices");
         return new ImmutableTransformWorkspaceServices(
             unscopedCacheBuilderFactory
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())

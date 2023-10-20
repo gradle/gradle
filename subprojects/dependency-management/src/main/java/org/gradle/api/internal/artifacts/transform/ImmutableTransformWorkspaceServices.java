@@ -42,6 +42,7 @@ public class ImmutableTransformWorkspaceServices implements TransformWorkspaceSe
         CacheConfigurationsInternal cacheConfigurations,
         FileLockManager fileLockManager
     ) {
+        System.out.println("CREATING NEW ImmutableTransformWorkspaceServices2");
         this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations, fileLockManager);
         this.identityCache = identityCache;
     }

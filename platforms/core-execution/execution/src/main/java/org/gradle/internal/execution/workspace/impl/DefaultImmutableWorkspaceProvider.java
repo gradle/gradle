@@ -41,11 +41,12 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.management.ManagementFactory;
 import java.util.function.Function;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandShared;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -136,7 +137,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(None))
+            .withLockOptions(mode(OnDemandShared))
             .open();
         this.fileLockManager = fileLockManager;
         this.cache = cache;
@@ -163,15 +164,19 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        File workspace = new File(baseDirectory, path);
-        GFileUtils.mkdirs(workspace);
-        FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "Immutable workspace: " + workspace.getParentFile().getName() + "/" + workspace.getName());
-        try {
-            fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace, executionHistoryStore);
-        } finally {
-            innerLock.close();
-        }
+        System.out.println("Locking workspace " + baseDirectory.getName() + " with " + "DefaultImmutableWorkspaceProvider::" + System.identityHashCode(this) + "::" + ManagementFactory.getRuntimeMXBean().getName());
+        return cache.withFileLock(() -> {
+            System.out.println("Locking workspace: " + path);
+            File workspace = new File(baseDirectory, path);
+            GFileUtils.mkdirs(workspace);
+            FileLock innerLock = fileLockManager.lock(workspace, mode(Exclusive), "Immutable workspace: " + workspace.getParentFile().getName() + "/" + workspace.getName());
+            try {
+                fileAccessTracker.markAccessed(workspace);
+                return action.executeInWorkspace(workspace, executionHistoryStore);
+            } finally {
+                innerLock.close();
+            }
+        });
     }
 
     @Override
