@@ -16,6 +16,9 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Transformer;
+
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -61,4 +64,24 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      */
     @Override
     SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Incubating
+    @Override
+    default SetProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
+        return updateSet(transformer);
+    }
+
+    /**
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
+     *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
+     * @since 8.5
+     */
+    @Incubating
+    SetProperty<T> updateSet(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer);
 }

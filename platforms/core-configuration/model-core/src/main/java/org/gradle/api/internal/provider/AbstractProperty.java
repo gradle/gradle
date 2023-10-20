@@ -58,6 +58,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state.isFinalized();
     }
 
+    protected boolean isExplicit() {
+        return state.isExplicit();
+    }
+
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
         beforeRead(consumer);
@@ -323,6 +327,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public abstract FinalizationState<S> finalState();
 
+        public abstract boolean isExplicit();
+
         /**
          * Sets a value to be used as an implicit value, but does not
          * change this state into an implicit value state.
@@ -452,6 +458,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             finalizeOnNextGet = true;
         }
 
+        public boolean isExplicit() {
+            return explicitValue;
+        }
+
         @Override
         public S explicitValue(S value) {
             explicitValue = true;
@@ -520,6 +530,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         public void disallowChanges() {
             // Finalized, so already cannot change
+        }
+
+        @Override
+        public boolean isExplicit() {
+            return true;
         }
 
         @Override

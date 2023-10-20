@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 
@@ -95,22 +96,31 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
      * @since 5.1
      */
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
+//
+//    /**
+//     * Returns the configurer for this property's convention value.
+//     *
+//     * @since 8.5
+//     */
+//    @Incubating
+//    CollectionPropertyConfigurer<T> getConventionValue();
+//
+//    /**
+//     * Returns the configurer for this property's explicit value.
+//     *
+//     * @since 8.5
+//     */
+//    @Incubating
+//    CollectionPropertyConfigurer<T> getExplicitValue();
 
     /**
-     * Returns the configurer for this property's convention value.
+     * Returns the value configurer for this property's current value,
+     * be it explicitly assigned or defined by convention.
      *
      * @since 8.5
      */
     @Incubating
-    CollectionPropertyConfigurer<T> getConventionValue();
-
-    /**
-     * Returns the configurer for this property's explicit value.
-     *
-     * @since 8.5
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getExplicitValue();
+    CollectionPropertyConfigurer<T> value();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.
@@ -123,4 +133,15 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
      */
     @Override
     void finalizeValue();
+
+    /**
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
+     *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
+     * @since 8.5
+     */
+    @Incubating
+    HasMultipleValues<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer);
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
@@ -189,12 +190,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
-        setSupplier(getSupplier().keep(keyFilter.negate(), valueFilter.negate()));
-    }
-
-    @Override
-    public void exclude(Predicate<K> keyFilter) {
+    public void excludeAll(Predicate<K> keyFilter) {
         setSupplier(getSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
     }
 
@@ -215,18 +211,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(getSupplier().minus(new Collectors.SingleElement<>(key)));
     }
 
-    @Override
-    public MapConfigurer<K, V> getConventionValue() {
+    private MapConfigurer<K, V> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    @Override
-    public MapConfigurer<K, V> getExplicitValue() {
+    private MapConfigurer<K, V> getExplicitValue() {
         assertCanMutate();
         return new ExplicitConfigurer();
     }
 
+    @Override
+    public MapConfigurer<K, V> value() {
+        if (isExplicit())
+            return getExplicitValue();
+        return getConventionValue();
+    }
 
     @SuppressWarnings("unchecked")
     private ProviderInternal<? extends Map<? extends K, ? extends V>> checkMapProvider(@Nullable Provider<? extends Map<? extends K, ? extends V>> provider) {
@@ -706,13 +706,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
-            prune();
-            setConvention(getConventionSupplier().keep(keyFilter.negate(), valueFilter.negate()));
-        }
-
-        @Override
-        public void exclude(Predicate<K> keyFilter) {
+        public void excludeAll(Predicate<K> keyFilter) {
             prune();
             setConvention(getConventionSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
         }
@@ -776,15 +770,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+        public void excludeAll(Predicate<K> keyFilter) {
             prune();
-            DefaultMapProperty.this.exclude(keyFilter, valueFilter);
-        }
-
-        @Override
-        public void exclude(Predicate<K> keyFilter) {
-            prune();
-            DefaultMapProperty.this.exclude(keyFilter);
+            DefaultMapProperty.this.excludeAll(keyFilter);
         }
 
         @Override
@@ -805,5 +793,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             prune();
             DefaultMapProperty.this.excludeAll(provider);
         }
+    }
+
+    private Provider<Map<K, V>> frozen() {
+        return Providers.of(get());
+    }
+
+    @Override
+    public MapProperty<K, V> update(Transformer<? extends Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<? extends Map<? extends K, ? extends V>>> transformer)  {
+        set(transformer.transform(frozen()));
+        return this;
     }
 }
