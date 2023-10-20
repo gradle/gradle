@@ -66,20 +66,25 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    @Override
-    public CollectionPropertyConfigurer<T> getConventionValue() {
+    private CollectionPropertyConfigurer<T> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    @Override
-    public CollectionPropertyConfigurer<T> getExplicitValue() {
+    private CollectionPropertyConfigurer<T> getExplicitValue() {
         assertCanMutate();
         return new ExplicitValueConfigurer();
     }
 
     @Override
-    public void exclude(Predicate<T> filter) {
+    public CollectionPropertyConfigurer<T> value() {
+        if (isExplicit())
+            return getExplicitValue();
+        return getConventionValue();
+    }
+
+    @Override
+    public void excludeAll(Predicate<T> filter) {
         setSupplier(getSupplier().keep(filter.negate()));
     }
 
@@ -471,7 +476,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> keep(Predicate<T> filter) {
-            return new CollectingSupplier(new Collectors.FilteringCollector<>(value, filter, collectionFactory), pruning);
+            return minus(new Collectors.FilteringCollector<>(value, filter.negate(), collectionFactory));
         }
 
         @Override
@@ -619,7 +624,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void exclude(Predicate<T> filter) {
+        public void excludeAll(Predicate<T> filter) {
             prune();
             setConvention(getConventionSupplier().keep(filter.negate()));
         }
@@ -701,9 +706,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void exclude(Predicate<T> filter) {
+        public void excludeAll(Predicate<T> filter) {
             prune();
-            AbstractCollectionProperty.this.exclude(filter);
+            AbstractCollectionProperty.this.excludeAll(filter);
         }
 
         @Override
@@ -737,5 +742,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             prune();
             AbstractCollectionProperty.this.excludeAll(elements);
         }
+    }
+
+    /**
+     * Returns the frozen view of this Property. Further updates to this Property do not affect the return provider.
+     * However, the Provider itself is live - it reflects changes to its dependencies.
+     *
+     * @return the frozen view of this Property
+     */
+    protected Provider<C> freeze() {
+        return Providers.of(get());
     }
 }

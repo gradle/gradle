@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -155,18 +156,38 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     void finalizeValue();
 
     /**
-     * Returns the configurer for this property's explicit value.
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
      *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
      * @since 8.5
      */
     @Incubating
-    MapConfigurer<K, V> getExplicitValue();
+    MapProperty<K, V> update(Transformer<? extends Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<? extends Map<? extends K, ? extends V>>> transformer);
+
+//    /**
+//     * Returns the configurer for this property's explicit value.
+//     *
+//     * @since 8.5
+//     */
+//    @Incubating
+//    MapConfigurer<K, V> getExplicitValue();
+
+//    /**
+//     * Returns the configurer for this property's convention value.
+//     *
+//     * @since 8.5
+//     */
+//    @Incubating
+//    MapConfigurer<K, V> getConventionValue();
 
     /**
-     * Returns the configurer for this property's convention value.
+     * Returns the value configurer for this property's current value,
+     * no matter whether it was explicitly set or defined via convention.
      *
      * @since 8.5
      */
     @Incubating
-    MapConfigurer<K, V> getConventionValue();
+    MapConfigurer<K, V> value();
 }

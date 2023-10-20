@@ -67,9 +67,7 @@ public interface MapConfigurer<K, V> {
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 
-    void exclude(Predicate<K> keyFilter, Predicate<V> valueFilter);
-
-    void exclude(Predicate<K> keyFilter);
+    void excludeAll(Predicate<K> keyFilter);
 
     void exclude(K key);
 

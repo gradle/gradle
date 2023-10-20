@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -79,6 +80,19 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     @Override
     public ListProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
+        return this;
+    }
+
+    /**
+     * Updates the value of this property in place by executing the provided transformer.
+     * The transformer accepts the frozen value of this property.
+     *
+     * @param transformer the transformer to apply to frozen value of the property
+     * @return this
+     */
+    @Override
+    public ListProperty<T> updateList(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer)  {
+        set(transformer.transform(freeze()));
         return this;
     }
 }

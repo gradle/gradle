@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider
 
-import com.google.common.base.Predicates
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.provider.Property
@@ -26,6 +25,8 @@ import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
 import spock.lang.Issue
+
+import java.util.function.Predicate
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -1202,87 +1203,71 @@ The value of this property is derived from: <source>""")
         property.put('k2', '3')
         property.put('k3', '4')
         property.put('k4', '5')
-        property.exclude({ it > "k2" } )
+        property.excludeAll({ it > "k2" } as Predicate)
 
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '3'])
     }
 
-    def "may exclude entries based on value"() {
-        given:
-        property.put('k0', "1")
-        property.put('k1', '2')
-        property.put('k2', '3')
-        property.put('k3', '4')
-        property.put('k4', '5')
-        property.exclude(Predicates.alwaysFalse(), { it.toInteger() % 2 as Boolean} )
-
-        expect:
-        assertValueIs(['k1': '2', 'k3': '4'])
-    }
-
     def "may configure convention incrementally"() {
         given:
-        property.conventionValue.put('k0', '1')
-        property.conventionValue.put('k1', '2')
-        property.conventionValue.put('k2', Providers.notDefined())
-        property.conventionValue.put('k3', '4')
+        property.set(null as Map)
+        property.convention([:])
+        property.value().put('k0', '1')
+        property.value().put('k1', '2')
+        property.value().put('k2', Providers.notDefined())
+        property.value().put('k3', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k3': '4'])
     }
 
     def "may replace convention values"() {
         given:
-        property.conventionValue.put('k0', '1')
-        property.conventionValue.put('k1', '2')
-        property.conventionValue.put('k2', '3')
-        property.conventionValue.put('k1', '4')
+        property.set(null as Map)
+        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
+        property.value().put('k1', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
     }
 
     def "may exclude convention component values using a predicate"() {
         given:
-        property.conventionValue.put('k0', '1')
-        property.conventionValue.put('k1', '2')
-        property.conventionValue.put('k2', '3')
-        property.conventionValue.exclude { it == 'k1' }
+        property.set(null as Map)
+        property.value().put('k0', '1')
+        property.value().put('k1', '2')
+        property.value().put('k2', '3')
+        property.value().excludeAll({ it == 'k1' } as Predicate)
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
 
     def "may exclude multiple provided component values"() {
         given:
-        property.explicitValue.put('k0', '1')
-        property.explicitValue.put('k1', '2')
-        property.explicitValue.put('k2', '3')
-        property.explicitValue.put('k3', '4')
-        property.explicitValue.excludeAll(Providers.of(['k1', 'k5']))
-        property.explicitValue.excludeAll(Providers.of(['k5', 'k3', 'k7']))
+        property.set(['k0': '1', 'k1': '2', 'k2': '3', 'k3': '4'])
+        property.value().excludeAll(Providers.of(['k1', 'k5']))
+        property.value().excludeAll(Providers.of(['k5', 'k3', 'k7']))
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
 
     def "may exclude multiple component values"() {
         given:
-        property.explicitValue.put('k0', '1')
-        property.explicitValue.put('k1', '2')
-        property.explicitValue.put('k2', '3')
-        property.explicitValue.put('k3', '4')
-        property.explicitValue.excludeAll('k1', 'k5')
-        property.explicitValue.excludeAll('k5', 'k3', 'k7')
+        property.set(['k0': '1', 'k1': '2', 'k2': '3', 'k3': '4', 'k1': '5', 'k4': '5'])
+        property.excludeAll('k4', 'k3', 'k7')
         expect:
-        assertValueIs(['k0': '1', 'k2': '3'])
+        assertValueIs(['k0': '1', 'k1': '5', 'k2': '3'])
     }
 
     def "may exclude multiple convention component values"() {
         given:
-        property.conventionValue.put('k0', '1')
-        property.conventionValue.put('k1', '2')
-        property.conventionValue.put('k2', '3')
-        property.conventionValue.put('k3', '4')
-        property.conventionValue.excludeAll('k1', 'k5')
-        property.conventionValue.excludeAll('k5', 'k3', 'k7')
+        property.set(null as Map)
+        property.convention([:])
+        property.value().put('k0', '1')
+        property.value().put('k1', '2')
+        property.value().put('k2', '3')
+        property.value().put('k3', '4')
+        property.value().excludeAll('k1', 'k5')
+        property.value().excludeAll('k5', 'k3', 'k7')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
@@ -1290,13 +1275,14 @@ The value of this property is derived from: <source>""")
 
     def "may exclude single convention component values"() {
         given:
-        property.conventionValue.put('k0', '1')
-        property.conventionValue.put('k1', '2')
-        property.conventionValue.put('k2', '3')
-        property.conventionValue.put('k3', '4')
-        property.conventionValue.exclude('k1')
-        property.conventionValue.exclude('k5')
-        property.conventionValue.exclude('k3')
+        property.set(null as Map)
+        property.value().put('k0', '1')
+        property.value().put('k1', '2')
+        property.value().put('k2', '3')
+        property.value().put('k3', '4')
+        property.value().exclude('k1')
+        property.value().exclude('k5')
+        property.value().exclude('k3')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
