@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 /**
@@ -70,6 +71,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectBasePluginConventionDeprecation(agpVersion)
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
             }
         }.build()
     }
@@ -83,6 +85,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierNameDeprecation(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
             } else {
                 expectBuildIdentifierNameDeprecation(agpVersion)
                 // TODO - this is here because AGP 7.4.x reads build/generated/source/kapt/debug at configuration time
@@ -107,6 +110,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
                 expectConfigUtilDeprecationWarning(agpVersion)
                 expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
                 expectBuildIdentifierNameDeprecation(agpVersion)
+                expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
             }.build()
     }
 
@@ -146,6 +150,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             expectAndroidConventionTypeDeprecationWarning(agpVersion)
             expectBasePluginConventionDeprecation(agpVersion)
             expectConfigUtilDeprecationWarning(agpVersion)
+            expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
         }.build()
     }
 
