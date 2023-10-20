@@ -99,7 +99,9 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 VersionNumber.parse(asciidoctorVersion).major >= 4,
                 FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
                 "Seems to be fixed in main branch, but no releases with a fix"
-            )
+            ) {
+                cause = "plugin class 'org.asciidoctor.gradle.base.AsciidoctorBasePlugin'"
+            }
         }
     }
 }

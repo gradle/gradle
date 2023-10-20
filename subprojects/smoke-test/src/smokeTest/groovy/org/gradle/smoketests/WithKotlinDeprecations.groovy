@@ -42,10 +42,11 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         versionNumber >= KOTLIN_VERSION_USING_NEW_WORKERS_API && versionNumber <= KOTLIN_VERSION_WITH_OLD_WORKERS_API_REMOVED
     }
 
-    void expectKotlinCompileDestinationDirPropertyDeprecation(VersionNumber versionNumber) {
+    void expectKotlinCompileDestinationDirPropertyDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.21'),
-            ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION
+            ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION,
+            action
         )
     }
 
@@ -76,13 +77,14 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectOrgGradleUtilWrapUtilDeprecation(VersionNumber versionNumber) {
+    void expectOrgGradleUtilWrapUtilDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.7.20"),
             "The org.gradle.util.WrapUtil type has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
-                "${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")}"
+                "${DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_7", "org_gradle_util_reports_deprecations")}",
+            action
         )
     }
 
@@ -106,31 +108,35 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectProjectConventionDeprecation(VersionNumber versionNumber) {
+    void expectProjectConventionDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.7.22"),
-            PROJECT_CONVENTION_DEPRECATION
+            PROJECT_CONVENTION_DEPRECATION,
+            action
         )
     }
 
-    void expectBasePluginConventionDeprecation(VersionNumber versionNumber) {
+    void expectBasePluginConventionDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.7.0"),
-            BASE_PLUGIN_CONVENTION_DEPRECATION
+            BASE_PLUGIN_CONVENTION_DEPRECATION,
+            action
         )
     }
 
-    void expectBasePluginConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
+    void expectBasePluginConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("7.4.0") || kotlinVersionNumber < VersionNumber.parse("1.7.0"),
-            BASE_PLUGIN_CONVENTION_DEPRECATION
+            BASE_PLUGIN_CONVENTION_DEPRECATION,
+            action
         )
     }
 
-    void expectJavaPluginConventionDeprecation(VersionNumber versionNumber) {
+    void expectJavaPluginConventionDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.7.22"),
-            JAVA_PLUGIN_CONVENTION_DEPRECATION
+            JAVA_PLUGIN_CONVENTION_DEPRECATION,
+            action
         )
     }
 
@@ -141,17 +147,19 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectConventionTypeDeprecation(VersionNumber versionNumber) {
+    void expectConventionTypeDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             shouldExpectConventionTypeDeprecation(versionNumber),
-            CONVENTION_TYPE_DEPRECATION
+            CONVENTION_TYPE_DEPRECATION,
+            action
         )
     }
 
-    void maybeExpectConventionTypeDeprecation(VersionNumber versionNumber) {
+    void maybeExpectConventionTypeDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             shouldExpectConventionTypeDeprecation(versionNumber),
-            CONVENTION_TYPE_DEPRECATION
+            CONVENTION_TYPE_DEPRECATION,
+            action
         )
     }
 

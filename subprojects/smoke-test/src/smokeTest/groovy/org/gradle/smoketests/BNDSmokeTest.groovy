@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -32,7 +31,7 @@ pluginManagement {
         id "biz.aQute.bnd.builder" version "${TestedVersions.bnd}"
     }
 }
-    
+
 rootProject.name = 'bnd-smoke-test'
 """
     }
@@ -72,11 +71,11 @@ public class Example {
         when:
         runner("jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarning(
-                "The AbstractTask.getConvention() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+            .deprecations {
+                expectAbstractTaskConventionDeprecationWarning {
+                    cause = "plugin 'biz.aQute.bnd.builder'"
+                }
+            }
             .build()
 
         then: "version numbers exist in the manifest"
@@ -159,11 +158,11 @@ public class MyUtil {
         when:
         runner(":jar")
             .forwardOutput()
-            .expectLegacyDeprecationWarning(
-                "The AbstractTask.getConvention() method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+            .deprecations {
+                expectAbstractTaskConventionDeprecationWarning {
+                    cause = "plugin 'biz.aQute.bnd.builder'"
+                }
+            }
             .build()
 
         then: "version numbers exist in the manifest"
@@ -353,13 +352,13 @@ public class MyUtil {
 
         expect:
         runner(":resolve")
-                .forwardOutput()
-                .expectLegacyDeprecationWarning(
-                        "The AbstractTask.getConvention() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 9.0. " +
-                                "Consult the upgrading guide for further information: " +
-                                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-                .build()
+            .forwardOutput()
+            .deprecations {
+                expectAbstractTaskConventionDeprecationWarning {
+                    causes = [null, "plugin 'biz.aQute.bnd.builder'"]
+                }
+            }
+            .build()
     }
 
     @ToBeFixedForConfigurationCache(because = "Bndrun task does not support configuration cache")
@@ -432,13 +431,13 @@ Bundle-Activator: com.example.Activator
 
         expect:
         def result = runner(":run")
-                .forwardOutput()
-                .expectLegacyDeprecationWarning(
-                        "The AbstractTask.getConvention() method has been deprecated. " +
-                                "This is scheduled to be removed in Gradle 9.0. " +
-                                "Consult the upgrading guide for further information: " +
-                                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-                .build()
+            .forwardOutput()
+            .deprecations {
+                expectAbstractTaskConventionDeprecationWarning {
+                    causes = [null, "plugin 'biz.aQute.bnd.builder'"]
+                }
+            }
+            .build()
 
         assert result.getOutput().contains("Example project ran.")
     }

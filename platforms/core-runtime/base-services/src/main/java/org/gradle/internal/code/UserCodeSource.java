@@ -18,8 +18,6 @@ package org.gradle.internal.code;
 
 import org.gradle.internal.DisplayName;
 
-import javax.annotation.Nullable;
-
 /**
  * Describes the source of code being applied.
  */
@@ -30,8 +28,7 @@ public interface UserCodeSource {
     DisplayName getDisplayName();
 
     /**
-     * The ID of the plugin applying user code, if available.
+     * True if this source is a plugin. False if it is a script
      */
-    @Nullable
-    String getPluginId();
+    boolean isPlugin();
 }

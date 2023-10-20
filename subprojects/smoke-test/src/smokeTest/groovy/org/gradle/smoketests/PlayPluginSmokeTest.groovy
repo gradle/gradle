@@ -53,13 +53,49 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('build')
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7)) {
+                causes = [
+                    null,
+                    "plugin class 'org.gradle.playframework.plugins.PlayApplicationPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayDistributionPlugin'"
+                ]
+            }
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
-            .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
+            .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION) {
+                cause = "plugin class 'org.gradle.playframework.plugins.PlayDistributionPlugin'"
+            }
+            .expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION) {
+                causes = [
+                    "plugin class 'org.gradle.playframework.plugins.PlayTwirlPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayRoutesPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayApplicationPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayJavaScriptPlugin'"
+                ]
+            }
+            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION) {
+                causes = [
+                    "plugin class 'org.gradle.playframework.plugins.PlayTwirlPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayRoutesPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayApplicationPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayJavaScriptPlugin'"
+                ]
+            }
+            .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION) {
+                causes = [
+                    "plugin class 'org.gradle.playframework.plugins.PlayTwirlPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayRoutesPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayApplicationPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayJavaScriptPlugin'"
+                ]
+            }
+            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8)) {
+                causes = [
+                    "plugin class 'org.gradle.playframework.plugins.PlayTwirlPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayRoutesPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayApplicationPlugin'",
+                    "plugin class 'org.gradle.playframework.plugins.PlayJavaScriptPlugin'"
+                ]
+            }
             .build()
 
         then:

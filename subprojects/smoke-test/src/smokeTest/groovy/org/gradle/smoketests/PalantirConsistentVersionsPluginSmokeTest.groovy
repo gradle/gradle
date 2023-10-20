@@ -51,17 +51,39 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
         when:
         runner('--write-locks', '--stacktrace')
-            .expectDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl)
-            .expectDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl)
-            .expectDeprecationWarning("The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation", issueUrl)
-            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
+            .expectDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
             .build()
 
         then:
@@ -69,13 +91,27 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = runner("other:dependencies")
-            .expectDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl)
-            .expectDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl)
-            .expectDeprecationWarning("The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation", issueUrl)
-            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
-            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl)
+            .expectDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The org.gradle.api.plugins.Convention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_convention_deprecation", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The compileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testCompileClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
+            .expectDeprecationWarning("The testRuntimeClasspathCopy configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.", issueUrl) {
+                cause = "plugin class 'com.palantir.gradle.versions.VersionsLockPlugin'"
+            }
 
         def result = runner.build()
 

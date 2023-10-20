@@ -165,7 +165,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), pluginIdStr);
+                    UserCodeSource source = new DefaultUserCodeSource(plugin.getDisplayName(), true);
                     userCodeApplicationContext.apply(source, userCodeApplicationId ->
                         buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
                 }

@@ -61,7 +61,7 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             //no operation, if there is no script code provided
             decorated.apply(target);
         } else {
-            UserCodeSource source = new DefaultUserCodeSource(getSource().getShortDisplayName(), null);
+            UserCodeSource source = new DefaultUserCodeSource(getSource().getShortDisplayName(), false);
             userCodeApplicationContext.apply(source, userCodeApplicationId -> buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

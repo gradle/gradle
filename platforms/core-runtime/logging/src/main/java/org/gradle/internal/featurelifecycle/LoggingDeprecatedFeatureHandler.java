@@ -114,18 +114,26 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();
-        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getStack().isEmpty()) {
+        if (!loggedUsages.add(featureMessage) && location == null && diagnostics.getSource() == null && diagnostics.getStack().isEmpty()) {
             // This usage does not contain any useful diagnostics and the usage has already been logged, so skip it
             return;
         }
+
         StringBuilder message = new StringBuilder();
-        if (location != null) {
-            message.append(location.getFormatted());
-            message.append(SystemProperties.getInstance().getLineSeparator());
-        }
         message.append(featureMessage);
+
+        if (location != null) {
+            message.append(SystemProperties.getInstance().getLineSeparator());
+            message.append("    Caused by ");
+            message.append(location.getFormatted());
+        } else if (diagnostics.getSource() != null && diagnostics.getSource().isPlugin()) {
+            message.append(SystemProperties.getInstance().getLineSeparator());
+            message.append("    Caused by ");
+            message.append(diagnostics.getSource().getDisplayName());
+        }
+
         if (location != null && !loggedUsages.add(message.toString()) && diagnostics.getStack().isEmpty()) {
-            // This usage has no stack trace and has already been logged with the same location, so skip it
+            // This usage has no stack trace and has already been logged with the same diagnostics, so skip it
             return;
         }
         displayDeprecationIfSameMessageNotDisplayedBefore(message, diagnostics.getStack());
@@ -135,9 +143,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
         // Even when two deprecation messages are emitted from the same location,
         // the stack traces at very bottom might be different due to thread pool scheduling.
-        appendLogTraceIfNecessary(message, callStack, 0, 10);
+        boolean appendedSubset = appendLogTraceIfNecessary(message, callStack, 0, 10);
         if (loggedMessages.add(message.toString())) {
-            appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
+            appendedSubset |= appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
+            if (appendedSubset) {
+                appendRunWithStacktraceInfo(message, SystemProperties.getInstance().getLineSeparator());
+            }
             LOGGER.warn(message.toString());
         }
     }
@@ -166,7 +177,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
     }
 
-    private static void appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
+    /**
+     * Append a range of the stack trace to {@code message}.
+     *
+     * @return true if a subset of the range was appended.
+     */
+    private static boolean appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         int endIndex = Math.min(stack.size(), endIndexExclusive);
@@ -182,11 +198,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 if (isGradleScriptElement(element)) {
                     // only print first Gradle script stack trace element
                     appendStackTraceElement(element, message, lineSeparator);
-                    appendRunWithStacktraceInfo(message, lineSeparator);
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {

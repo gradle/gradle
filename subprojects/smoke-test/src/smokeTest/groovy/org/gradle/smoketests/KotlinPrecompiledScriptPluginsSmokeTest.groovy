@@ -95,7 +95,9 @@ class KotlinPrecompiledScriptPluginsSmokeTest extends AbstractSmokeTest {
                 VersionNumber.parse(pluginPublishGradleVersion) < VersionNumber.parse("6.0"),
                 "Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use a version of the plugin published with Gradle >= 6.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#kotlin_dsl_precompiled_gradle_lt_6",
                 "Remove testing of plugins published with Gradle < 6.0"
-            )
+            ) {
+                cause = "plugin 'com.example.undertest'"
+            }
             .forwardOutput()
             .build()
 

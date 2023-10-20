@@ -29,18 +29,20 @@ trait WithReportDeprecations {
         "Please use the outputLocation property instead. " +
         String.format(RECOMMENDATION, "information", new DocumentationRegistry().getDslRefForProperty("org.gradle.api.reporting.Report", "destination"))
 
-    void expectReportDestinationPropertyDeprecation(String agpVersion) {
+    void expectReportDestinationPropertyDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectDeprecationWarningIf(
             VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("7.4.1"),
             REPORT_DESTINATION_DEPRECATION,
-            "https://github.com/gradle/gradle/issues/21533"
+            "https://github.com/gradle/gradle/issues/21533",
+            action
         )
     }
 
-    void maybeExpectReportDestinationPropertyDeprecation(String agpVersion) {
+    void maybeExpectReportDestinationPropertyDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("7.4.1"),
-            REPORT_DESTINATION_DEPRECATION
+            REPORT_DESTINATION_DEPRECATION,
+            action
         )
     }
 }

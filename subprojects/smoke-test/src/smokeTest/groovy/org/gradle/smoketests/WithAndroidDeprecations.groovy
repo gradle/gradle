@@ -44,28 +44,28 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
     }
 
-    void expectProjectConventionDeprecationWarning(String agpVersion) {
-        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
+    void expectProjectConventionDeprecationWarning(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION, action)
     }
 
-    void maybeExpectProjectConventionDeprecationWarning(String agpVersion) {
-        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
+    void maybeExpectProjectConventionDeprecationWarning(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION, action)
     }
 
-    void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
-        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
+    void expectAndroidConventionTypeDeprecationWarning(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION, action)
     }
 
-    void maybeExpectAndroidConventionTypeDeprecationWarning(String agpVersion) {
-        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
+    void maybeExpectAndroidConventionTypeDeprecationWarning(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION, action)
     }
 
-    void maybeExpectBasePluginConventionDeprecation(String agpVersion) {
-        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    void maybeExpectBasePluginConventionDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.maybeExpectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION, action)
     }
 
-    void expectBasePluginConventionDeprecation(String agpVersion) {
-        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION)
+    void expectBasePluginConventionDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), BASE_PLUGIN_CONVENTION_DEPRECATION, action)
     }
 
     void expectConfigUtilDeprecationWarning(String agpVersion) {
@@ -85,19 +85,25 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
     }
 
-    void maybeExpectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion) {
+    void maybeExpectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.maybeExpectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("8.0.0-rc01"),
-            getBuildIdentifierIsCurrentBuildDeprecationMessage()
+            getBuildIdentifierIsCurrentBuildDeprecationMessage(),
+            action
         )
     }
 
-    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion = '8.0.0') {
+    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion, "8.0.0", action)
+    }
+
+    void expectBuildIdentifierIsCurrentBuildDeprecation(String agpVersion, String fixedVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber.baseVersion < VersionNumber.parse(fixedVersion),
-            getBuildIdentifierIsCurrentBuildDeprecationMessage()
+            getBuildIdentifierIsCurrentBuildDeprecationMessage(),
+            action
         )
     }
 
@@ -113,10 +119,11 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
         )
     }
 
-    void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion) {
+    void maybeExpectOrgGradleUtilGUtilDeprecation(String agpVersion, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.maybeExpectLegacyDeprecationWarningIf(
             VersionNumber.parse(agpVersion) < VersionNumber.parse("7.5"),
-            GUTIL_DEPRECATION
+            GUTIL_DEPRECATION,
+            action
         )
     }
 

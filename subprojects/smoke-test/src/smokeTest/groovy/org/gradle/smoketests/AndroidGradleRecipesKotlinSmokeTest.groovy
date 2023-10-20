@@ -199,14 +199,26 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
             if (GradleContextualExecuter.configCache) {
                 expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
             }
-            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber) {
+                cause = "plugin 'org.jetbrains.kotlin.android'"
+            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion) {
+                cause = "plugin 'com.android.internal.application'"
+            }
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectProjectConventionDeprecationWarning(agpVersion)
-            maybeExpectConventionTypeDeprecation(kotlinVersionNumber)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
+            expectProjectConventionDeprecationWarning(agpVersion) {
+                cause = "plugin 'com.android.internal.application'"
+            }
+            maybeExpectConventionTypeDeprecation(kotlinVersionNumber) {
+                cause = "plugin 'org.jetbrains.kotlin.android'"
+            }
+            expectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                cause = "plugin 'com.android.internal.application'"
+            }
             expectBasePluginConventionDeprecation(agpVersion)
-            expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion))
+            expectBasePluginConventionDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion)) {
+                cause = "plugin 'com.android.internal.application'"
+            }
         }
     }
 }

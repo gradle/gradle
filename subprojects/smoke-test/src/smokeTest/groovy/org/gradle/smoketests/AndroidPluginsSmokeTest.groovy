@@ -66,10 +66,30 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         and:
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
         runner.deprecations(AndroidDeprecations) {
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-            maybeExpectProjectConventionDeprecationWarning(agpVersion)
-            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
-            maybeExpectBasePluginConventionDeprecation(agpVersion)
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectProjectConventionDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectBasePluginConventionDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
             expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber.parse(agpVersion))
         }
 
@@ -108,13 +128,40 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner.deprecations(AbstractAndroidSantaTrackerSmokeTest.SantaTrackerDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectReportDestinationPropertyDeprecation(agpVersion)
-            expectProjectConventionDeprecationWarning(agpVersion)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            expectBasePluginConventionDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectProjectConventionDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectBasePluginConventionDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
             expectBuildIdentifierNameDeprecation(agpVersion)
-            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion) {
+                cause = "plugin 'com.android.internal.application'"
+            }
             expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
         }.build()
 
@@ -133,11 +180,36 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-            maybeExpectProjectConventionDeprecationWarning(agpVersion)
-            maybeExpectReportDestinationPropertyDeprecation(agpVersion)
-            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion)
-            maybeExpectBasePluginConventionDeprecation(agpVersion)
-            maybeExpectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+            maybeExpectProjectConventionDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectReportDestinationPropertyDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectBasePluginConventionDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            maybeExpectBuildIdentifierIsCurrentBuildDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
             }
@@ -159,11 +231,36 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
-                expectReportDestinationPropertyDeprecation(agpVersion)
-                expectProjectConventionDeprecationWarning(agpVersion)
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectReportDestinationPropertyDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectProjectConventionDeprecationWarning(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectBasePluginConventionDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
             }
         }.build()
@@ -180,10 +277,30 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         def smokeTestRunner = this.runner('clean')
         useAgpVersion(agpVersion, smokeTestRunner).deprecations(AndroidDeprecations) {
-            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
-            expectProjectConventionDeprecationWarning(agpVersion)
-            expectAndroidConventionTypeDeprecationWarning(agpVersion)
-            expectBasePluginConventionDeprecation(agpVersion)
+            maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectProjectConventionDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
+            expectBasePluginConventionDeprecation(agpVersion) {
+                causes = [
+                    "plugin 'com.android.internal.application'",
+                    "plugin 'com.android.internal.library'"
+                ]
+            }
             expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
         }.build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
@@ -192,11 +309,36 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectBuildIdentifierNameDeprecation(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
-                expectReportDestinationPropertyDeprecation(agpVersion)
-                expectProjectConventionDeprecationWarning(agpVersion)
-                expectAndroidConventionTypeDeprecationWarning(agpVersion)
-                expectBasePluginConventionDeprecation(agpVersion)
-                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion)
+                expectReportDestinationPropertyDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectProjectConventionDeprecationWarning(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectAndroidConventionTypeDeprecationWarning(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectBasePluginConventionDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
+                expectBuildIdentifierIsCurrentBuildDeprecation(agpVersion) {
+                    causes = [
+                        "plugin 'com.android.internal.application'",
+                        "plugin 'com.android.internal.library'"
+                    ]
+                }
                 expectAndroidBasePluginExtensionArchivesBaseNameDeprecation(agpVersionNumber)
             }
         }.build()
@@ -211,7 +353,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         where:
         [agpVersion, ide] << [
-            TestedVersions.androidGradle.toList(),
+            TestedVersions.androidGradle.versions,
             [false]
         ].combinations()
     }

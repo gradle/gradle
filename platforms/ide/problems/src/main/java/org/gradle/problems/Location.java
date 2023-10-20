@@ -51,6 +51,6 @@ public class Location {
     }
 
     public String getFormatted() {
-        return sourceLongDisplayName.getCapitalizedDisplayName() + ": line " + lineNumber;
+        return sourceLongDisplayName.getDisplayName() + ": line " + lineNumber;
     }
 }

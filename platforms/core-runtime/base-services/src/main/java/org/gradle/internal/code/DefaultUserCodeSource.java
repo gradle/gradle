@@ -18,19 +18,17 @@ package org.gradle.internal.code;
 
 import org.gradle.internal.DisplayName;
 
-import javax.annotation.Nullable;
-
 /**
  * Default implementation of {@link UserCodeSource}.
  */
 public class DefaultUserCodeSource implements UserCodeSource {
 
     private final DisplayName displayName;
-    private final String pluginId;
+    private final boolean isPlugin;
 
-    public DefaultUserCodeSource(DisplayName displayName, @Nullable String pluginId) {
+    public DefaultUserCodeSource(DisplayName displayName, boolean isPlugin) {
         this.displayName = displayName;
-        this.pluginId = pluginId;
+        this.isPlugin = isPlugin;
     }
 
     @Override
@@ -38,9 +36,8 @@ public class DefaultUserCodeSource implements UserCodeSource {
         return displayName;
     }
 
-    @Nullable
     @Override
-    public String getPluginId() {
-        return pluginId;
+    public boolean isPlugin() {
+        return isPlugin;
     }
 }
