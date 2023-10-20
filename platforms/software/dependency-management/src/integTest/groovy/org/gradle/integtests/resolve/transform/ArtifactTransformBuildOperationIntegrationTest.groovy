@@ -1140,7 +1140,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def "project transform execution can be up-to-date or from build cache"() {
+    def "incremental project transform execution can be up-to-date or from build cache"() {
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1152,6 +1152,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 @InputArtifact
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
