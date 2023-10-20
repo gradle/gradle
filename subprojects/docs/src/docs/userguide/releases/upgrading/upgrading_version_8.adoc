@@ -52,7 +52,7 @@ In general, the `groovy-base` plugin should be applied whenever working with Gro
 [[org_gradle_util_reports_deprecations]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
-These members will be removed in Gradle 9.0.
+These members will be removed in Gradle 9.0:
 
 * `VersionNumber.parse(String)`
 * `VersionNumber.compareTo(VersionNumber)`
