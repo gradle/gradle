@@ -78,8 +78,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public CollectionPropertyConfigurer<T> value() {
-        if (isExplicit())
+        if (isExplicit()) {
             return getExplicitValue();
+        }
         return getConventionValue();
     }
 
