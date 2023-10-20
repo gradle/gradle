@@ -61,13 +61,13 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
     }
 
     public static TransformWorkspaceIdentity createMutable(
-        String inputArtifactAbsolutePath,
+        String normalizedInputArtifactPath,
         String producerBuildTreePath,
         ValueSnapshot secondaryInputsSnapshot,
         HashCode dependenciesHash
     ) {
         Hasher hasher = Hashing.newHasher();
-        hasher.putString(inputArtifactAbsolutePath);
+        hasher.putString(normalizedInputArtifactPath);
         hasher.putString(producerBuildTreePath);
         secondaryInputsSnapshot.appendToHasher(hasher);
         hasher.putHash(dependenciesHash);
