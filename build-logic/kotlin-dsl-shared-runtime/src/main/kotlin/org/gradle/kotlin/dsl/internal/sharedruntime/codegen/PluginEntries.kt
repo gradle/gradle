@@ -27,15 +27,26 @@ data class PluginEntry(val pluginId: String, val implementationClass: String)
 
 
 fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
-    JarFile(jar, false).use { jarFile ->
-        jarFile.entries().asSequence().filter {
+    if (jar.isDirectory) {
+        jar.walkBottomUp().asSequence().filter {
             isGradlePluginPropertiesFile(it)
         }.map { pluginEntry ->
-            val pluginProperties = jarFile.getInputStream(pluginEntry).use { Properties().apply { load(it) } }
-            val id = pluginEntry.name.substringAfterLast("/").substringBeforeLast(".properties")
+            val pluginProperties = pluginEntry.inputStream().use { Properties().apply { load(it) } }
+            val id = pluginEntry.name.substringBeforeLast(".properties")
             val implementationClass = pluginProperties.getProperty("implementation-class")
             PluginEntry(id, implementationClass)
         }.toList()
+    } else {
+        JarFile(jar, false).use { jarFile ->
+            jarFile.entries().asSequence().filter {
+                isGradlePluginPropertiesFile(it)
+            }.map { pluginEntry ->
+                val pluginProperties = jarFile.getInputStream(pluginEntry).use { Properties().apply { load(it) } }
+                val id = pluginEntry.name.substringAfterLast("/").substringBeforeLast(".properties")
+                val implementationClass = pluginProperties.getProperty("implementation-class")
+                PluginEntry(id, implementationClass)
+            }.toList()
+        }
     }
 } catch (cause: IOException) {
     throw IllegalArgumentException(
@@ -48,4 +59,10 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
 private
 fun isGradlePluginPropertiesFile(entry: JarEntry) = entry.run {
     !isDirectory && name.run { startsWith("META-INF/gradle-plugins/") && endsWith(".properties") }
+}
+
+
+private
+fun isGradlePluginPropertiesFile(entry: File): Boolean = entry.run {
+    !isDirectory && name.endsWith(".properties") && parentFile?.name == "gradle-plugins" && parentFile?.parentFile?.name == "META-INF"
 }

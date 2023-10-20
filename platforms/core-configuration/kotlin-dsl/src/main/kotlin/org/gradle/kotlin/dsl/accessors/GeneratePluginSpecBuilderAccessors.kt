@@ -371,7 +371,7 @@ fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Sequence<PluginTree.
     pluginDescriptorsClassPath
         .asFiles
         .asSequence()
-        .filter { it.isFile && it.extension.equals("jar", true) }
+        .filter { it.isFile && it.extension.equals("jar", true) || it.isDirectory && it.extension.equals("dir", true) }
         .flatMap { pluginEntriesFrom(it).asSequence() }
         .map { PluginTree.PluginSpec(it.pluginId, it.implementationClass) }
 
