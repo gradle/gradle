@@ -17,9 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
-import spock.lang.Ignore
 
-@Ignore("Doesn't temporarily work, because we have the embedded test runner disabled, see the unittest-and-compile internal plugin")
 class GradleBuildCrossVersionTestConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
     def "can run Gradle cross-version tests with configuration cache enabled"() {
 

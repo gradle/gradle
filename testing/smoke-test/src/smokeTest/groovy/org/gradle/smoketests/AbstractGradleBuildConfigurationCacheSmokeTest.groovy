@@ -25,6 +25,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
@@ -36,6 +37,10 @@ import org.gradle.test.preconditions.UnitTestPreconditions
     IntegTestPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
+@Ignore(
+    value = "Doesn't temporarily work, because we have the embedded test runner disabled, see the unittest-and-compile internal plugin",
+    inherited = true
+)
 abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
     def setup() {
         // Generate Kotlin DSL sources once so they are included as :kotlin-dsl:compileKotlin inputs.
