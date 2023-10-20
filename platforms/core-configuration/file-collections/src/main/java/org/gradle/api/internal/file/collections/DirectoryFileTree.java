@@ -36,6 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -114,46 +117,42 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     /**
      * Process the specified file or directory.  If it is a directory, then its contents
-     * (but not the directory itself) will be checked with {@link #isAllowed(FileTreeElement, Spec)} and notified to
+     * (but not the directory itself) will be checked with spec and notified to
      * the listener.  If it is a file, the file will be checked and notified.
      */
     public void visitFrom(FileVisitor visitor, File fileOrDirectory, RelativePath path, AtomicBoolean stopFlag) {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
-        if (fileOrDirectory.exists()) {
-            if (fileOrDirectory.isFile()) {
-                processSingleFile(fileOrDirectory, visitor, spec, stopFlag);
+        Path fileOrDirectoryPath = fileOrDirectory.toPath();
+        if (Files.exists(fileOrDirectoryPath, LinkOption.NOFOLLOW_LINKS)) {
+            LinksStrategy linksStrategy = visitor.linksStrategy();
+            FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(fileOrDirectoryPath, path, stopFlag, fileSystem, linksStrategy);
+            if (details.isSymbolicLink()) {
+                processSingleFile(fileOrDirectoryPath, details, linksStrategy, visitor, spec);
+            } else if (details.isDirectory()) {
+                walkDir(fileOrDirectoryPath, path, visitor, spec, stopFlag);
             } else {
-                walkDir(fileOrDirectory, path, visitor, spec, stopFlag);
+                processSingleFile(fileOrDirectoryPath, details, linksStrategy, visitor, spec);
             }
         } else {
             LOGGER.info("file or directory '{}', not found", fileOrDirectory);
         }
     }
 
-    //TODO: cover with test for links
-    private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
-        LinksStrategy linksStrategy = visitor.linksStrategy();
-
-        RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = AttributeBasedFileVisitDetailsFactory.getRootFileVisitDetails(file.toPath(), path, stopFlag, fileSystem, linksStrategy);
-        if (isAllowed(details, spec)) {
+    private void processSingleFile(Path file, FileVisitDetails details, LinksStrategy linksStrategy, FileVisitor visitor, Spec<FileTreeElement> spec) {
+        if (spec.isSatisfiedBy(details)) {
             linksStrategy.maybeThrowOnBrokenLink(details.getSymbolicLinkDetails(), file.toString());
             visitor.visitFile(details);
         }
     }
 
-    private void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
+    private void walkDir(Path dir, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         DirectoryWalker directoryWalker;
         if (visitor instanceof ReproducibleFileVisitor && ((ReproducibleFileVisitor) visitor).isReproducibleFileOrder()) {
             directoryWalker = REPRODUCIBLE_DIRECTORY_WALKER;
         } else {
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
-        directoryWalker.walkDir(file.toPath(), path, visitor, spec, stopFlag, postfix);
-    }
-
-    static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
-        return spec.isSatisfiedBy(element);
+        directoryWalker.walkDir(dir, path, visitor, spec, stopFlag, postfix);
     }
 
     /**

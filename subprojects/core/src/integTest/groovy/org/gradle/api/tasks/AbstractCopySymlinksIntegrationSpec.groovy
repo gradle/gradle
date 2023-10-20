@@ -441,6 +441,76 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         linksStrategy << [LinksStrategy.FOLLOW, null]
     }
 
+    def "when root is a link to #rootLinkTarget, it should be #expectedOutcome if linksStrategy=#linksStrategy"() {
+        given:
+        def externalFile = inputDirectory.createFile("file") << "external text"
+        def rootDir = inputDirectory.createDir("dir")
+        def rootFile = rootDir.createFile("root.txt") << "root text"
+        def link = inputDirectory.file("link").createLink(rootLinkTarget)
+
+        when:
+        buildKotlinFile << constructBuildScript(
+            """
+            ${configureStrategy(linksStrategy)}
+            from("${inputDirectory.name}/${link.name}")
+            """
+        )
+
+        then:
+        if (expectedOutcome.contains("error")) {
+            fails(mainTask)
+        } else {
+            succeeds(mainTask)
+        }
+        def output = getResultDir()
+        switch (expectedOutcome) {
+            case "copied as link":
+                assert isBrokenSymlink(output.file(link.name), output.file(rootLinkTarget))
+                break
+            case "copied as file":
+                def outputFile = output.file(link.name)
+                assert Files.isRegularFile(outputFile.toPath(), NOFOLLOW_LINKS)
+                assert isCopy(outputFile, externalFile)
+                break
+            case "copied as dir":
+                assert Files.isDirectory(output.toPath(), NOFOLLOW_LINKS)
+                assert isCopy(output.file("root.txt"), rootFile)
+                break
+            case "treated as error":
+                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink was visited: . pointing to $rootLinkTarget")
+                break
+            case "treated as broken link error":
+                assert failure.assertHasCause("Couldn't follow symbolic link '${link}'")
+                break
+            case "treated as relativeness error":
+                assert failure.assertHasCause("Links strategy is set to ${linksStrategy}, but a symlink pointing outside was visited: . pointing to $rootLinkTarget")
+                break
+            case "ignored":
+                assert !output.exists()
+                break
+        }
+
+        where:
+        rootLinkTarget      | linksStrategy                   | expectedOutcome
+        "dir"               | null                            | "copied as dir"
+        "dir"               | LinksStrategy.FOLLOW            | "copied as dir"
+        "dir"               | LinksStrategy.PRESERVE_ALL      | "copied as link" // it would be inside output dir, but that's consistent with file behavior
+        "dir"               | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
+        "dir"               | LinksStrategy.ERROR             | "treated as error"
+
+        "file"              | null                            | "copied as file"
+        "file"              | LinksStrategy.FOLLOW            | "copied as file"
+        "file"              | LinksStrategy.PRESERVE_ALL      | "copied as link"
+        "file"              | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
+        "file"              | LinksStrategy.ERROR             | "treated as error"
+
+        "non-existent-file" | null                            | "treated as broken link error"
+        "non-existent-file" | LinksStrategy.FOLLOW            | "treated as broken link error"
+        "non-existent-file" | LinksStrategy.PRESERVE_ALL      | "copied as link"
+        "non-existent-file" | LinksStrategy.PRESERVE_RELATIVE | "treated as relativeness error"
+        "non-existent-file" | LinksStrategy.ERROR             | "treated as error"
+    }
+
     def "nested spec should be processed properly with parent linksStrategy=#linksStrategyParent and child linksStrategy=#linksStrategyChild"() {
         given:
         def inputWithChildSpec = inputDirectory.createDir("input-child")
@@ -515,7 +585,7 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         null                            | "isCopy"
     }
 
-    def "symlinks are not processed by filter with #linksStrategy"() {
+    def "symlinks are not processed by expand with #linksStrategy"() {
         given:
         def originalFile = inputDirectory.createFile("original.txt") << "some text"
         def link = inputDirectory.file("link").createLink(originalFile.getRelativePathFromBase())
@@ -547,8 +617,6 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         LinksStrategy.FOLLOW            | "isCopy"
         null                            | "isCopy"
     }
-
-    //TODO: test a case when root is a symlink
 
     def "symlinks should respect inclusions and similar transformations for #linksStrategy"() {
         given:
@@ -665,9 +733,10 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
 
     @SuppressWarnings('unused')
     protected boolean isBrokenSymlink(File link, File target) {
-        Files.exists(link.toPath(), NOFOLLOW_LINKS) &&
-            Files.isSymbolicLink(link.toPath()) &&
-            !Files.readSymbolicLink(link.toPath()).toFile().exists()
+        Path linkPath = link.toPath()
+        Files.exists(linkPath, NOFOLLOW_LINKS) &&
+            Files.isSymbolicLink(linkPath) &&
+            !Files.exists(Files.readSymbolicLink(linkPath))
     }
 
     protected boolean isNotASymlink(File link) {

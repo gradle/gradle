@@ -24,7 +24,7 @@ class CopySymlinksIntegrationSpec extends AbstractCopySymlinksIntegrationSpec {
 
     @Override
     String constructBuildScript(String inputConfig) {
-        outputDir = createDir("output")
+        outputDir = file("output")
 
         """
         tasks.register<Copy>("$mainTask") {

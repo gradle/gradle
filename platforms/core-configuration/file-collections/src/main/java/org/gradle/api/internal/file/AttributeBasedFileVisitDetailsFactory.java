@@ -64,10 +64,17 @@ public class AttributeBasedFileVisitDetailsFactory {
         } else {
             SymbolicLinkDetails linkDetails = null;
             boolean preserveLink = false;
-            if (Files.isSymbolicLink(path)) {
+            if (Files.isSymbolicLink(path)) { //FIXME: optimize
                 linkDetails = new DefaultSymbolicLinkDetails(path, relativePath);
                 preserveLink = linksStrategy.shouldBePreserved(linkDetails, relativePath.getPathString());
+                if (relativePath.getSegments().length == 0 && (preserveLink || attrs.isRegularFile())) {
+                    relativePath = new RelativePath(true, file.getName());
+                    linkDetails = new DefaultSymbolicLinkDetails(path, relativePath);
+                }
+            } else if (relativePath.getSegments().length == 0 && attrs.isRegularFile()) {
+                relativePath = new RelativePath(true, file.getName());
             }
+
             if (attrs.isDirectory() && OperatingSystem.current() == OperatingSystem.WINDOWS) {
                 // Workaround for https://github.com/gradle/gradle/issues/11577
                 return new DefaultFileVisitDetails(file, relativePath, stopFlag, fileSystem, fileSystem, linkDetails, preserveLink);

@@ -54,7 +54,7 @@ public interface LinksStrategy extends Serializable {
                 return false;
             }
             if (!linkDetails.isRelative()) {
-                throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: %s pointing to %s.", this, originalPath, linkDetails.getTarget()));
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink pointing outside was visited: %s pointing to %s.", this, pathHint(originalPath), linkDetails.getTarget()));
             }
             return true;
         }
@@ -92,7 +92,7 @@ public interface LinksStrategy extends Serializable {
         @Override
         public boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
             if (linkDetails != null) {
-                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: %s pointing to %s.", this, originalPath, linkDetails.getTarget()));
+                throw new GradleException(String.format("Links strategy is set to %s, but a symlink was visited: %s pointing to %s.", this, pathHint(originalPath), linkDetails.getTarget()));
             }
             return false;
         }
@@ -103,13 +103,17 @@ public interface LinksStrategy extends Serializable {
         }
     };
 
+    static String pathHint(String originalPath) {
+        return originalPath.equals("") ? "." : originalPath;
+    }
+
     default boolean shouldBePreserved(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
         return false;
     }
 
     default void maybeThrowOnBrokenLink(@Nullable SymbolicLinkDetails linkDetails, String originalPath) {
         if (linkDetails != null && !linkDetails.targetExists()) {
-            throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", originalPath));
+            throw new GradleException(String.format("Couldn't follow symbolic link '%s'.", pathHint(originalPath)));
         }
     }
 

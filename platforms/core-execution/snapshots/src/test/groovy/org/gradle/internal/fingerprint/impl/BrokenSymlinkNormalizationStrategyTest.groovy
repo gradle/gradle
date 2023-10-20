@@ -40,7 +40,7 @@ class BrokenSymlinkNormalizationStrategyTest extends Specification {
 
     def fileSystemAccess = TestFiles.fileSystemAccess()
 
-    def "root broken symlink is ignored for #strategyName"() {
+    def "root broken symlink #hint fingerprinted for #strategyName"() {
         given:
         def root = file('root')
         root.createLink(file('non-existing'))
@@ -49,11 +49,17 @@ class BrokenSymlinkNormalizationStrategyTest extends Specification {
         def fingerprints = strategy.collectFingerprints(snapshot(root))
 
         then:
-        fingerprints.isEmpty()
+        if (fingerprinted) {
+            fingerprints[root.absolutePath].type == FileType.Missing
+        } else {
+            fingerprints.isEmpty()
+        }
 
         where:
         strategy << allFingerprintingStrategies
+        fingerprinted = strategy instanceof RelativePathFingerprintingStrategy
         strategyName = getStrategyName(strategy)
+        hint = fingerprinted ? "is" : "is not"
     }
 
     def "non-root broken symlink is fingerprinted as missing for #strategyName"() {
