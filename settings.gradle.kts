@@ -143,6 +143,7 @@ platform("software") {
     subproject("antlr")
     subproject("build-init")
     subproject("dependency-management")
+    subproject("plugins-distribution")
     subproject("distributions-publishing")
     subproject("ivy")
     subproject("maven")
