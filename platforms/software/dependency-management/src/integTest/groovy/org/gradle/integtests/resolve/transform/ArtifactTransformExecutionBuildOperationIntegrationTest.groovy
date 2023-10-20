@@ -216,6 +216,10 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
+                // We need an incremental transform to have a project-bound workspace
+                @Inject
+                abstract InputChanges getInputChanges()
+
                 @Classpath
                 @InputArtifactDependencies
                 abstract FileCollection getInputArtifactDependencies()

@@ -889,8 +889,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
         failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
         failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        def outputDir1 = projectOutputDir("lib1.jar", "lib1.jar.txt")
-        def outputDir2 = projectOutputDir("lib2.jar", "lib2.jar.txt")
+        def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
         def outputDir4 = gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt")
 
@@ -905,8 +905,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("lib2.jar", "lib2.jar.txt")
         isTransformed("lib3.jar", "lib3.jar.txt")
         isTransformed("lib4-1.0.jar", "lib4-1.0.jar.txt")
-        projectOutputDir("lib1.jar", "lib1.jar.txt") == outputDir1
-        projectOutputDir("lib2.jar", "lib2.jar.txt") == outputDir2
+        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") == outputDir1
+        gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt") == outputDir2
         gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") == outputDir3
         gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") == outputDir4
 
@@ -931,7 +931,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     include 'util'
                     include 'app'
                 """
-                buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
+                buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(incremental: true) << withJarTasks()
             }
         }
 
@@ -950,7 +950,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     def "workspace id of project transforms is unique per build"() {
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(incremental: true)
         file("project-artifact.jar").text = "project artifact"
         buildFile << """
             project(':lib') {
@@ -1004,7 +1004,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 include 'lib'
             """
             file("project-artifact.jar").text = "project artifact"
-            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform() << """
+            buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(incremental: true) << """
                 project(':lib-project:producer') {
                     artifacts {
                         compile rootProject.file("project-artifact.jar")
@@ -1034,7 +1034,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "transform is re-executed when input file content changes between builds"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withFileLibDependency()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(incremental: true) << withClassesSizeTransform() << withFileLibDependency()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1084,7 +1084,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
-        buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
+        buildFile << declareAttributes() << withJarTasks() << duplicatorTransform(incremental: true) << """
             project(':util') {
                 dependencies {
                     compile project(':lib')
@@ -1148,7 +1148,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "long transformation chain works"() {
         given:
-        buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4") << duplicatorTransform << """
+        buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4") << duplicatorTransform() << """
             project(':util') {
                 dependencies {
                     compile project(':lib')
@@ -1217,7 +1217,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         Closure<String> possiblyFailingTransform = { index ->
             index == failingTransform ? "FailingDuplicator" : "Duplicator"
         }
-        buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4-1.0.jar") << duplicatorTransform << """
+        buildFile << declareAttributes() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4-1.0.jar") << duplicatorTransform() << """
             abstract class FailingDuplicator extends Duplicator {
 
                 @Override
@@ -1291,7 +1291,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
 
-        buildFile << declareAttributes() << duplicatorTransform << """
+        buildFile << declareAttributes() << duplicatorTransform() << """
             project(':app') {
                 dependencies {
                     compile project(':lib')
@@ -1364,7 +1364,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         scheduled << [true, false]
     }
 
-    String duplicatorTransform = """
+    String duplicatorTransform(Map options = [:]) {
+        boolean incremental = options.incremental ?: false
+        """
             import java.nio.file.Files
 
             abstract class Duplicator implements TransformAction<Parameters> {
@@ -1373,6 +1375,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     Property<Integer> getNumberOfOutputFiles()
                     @Input
                     Property<Boolean> getDifferentOutputFileNames()
+                }
+
+                ${incremental
+                    ? "@Inject abstract InputChanges getInputChanges()"
+                    : ""
                 }
 
                 @InputArtifact
@@ -1390,7 +1397,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
                 }
             }
-    """
+        """
+    }
 
     def "transform is rerun when output is #action between builds"() {
         given:
@@ -2018,11 +2026,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
+        def incremental = options.incremental ?: false
 
         """
             ext.paramValue = $paramValue
 
-            ${registerFileSizer(fileValue)}
+            ${registerFileSizer(fileValue, incremental)}
 
             project(':util') {
                 dependencies {
@@ -2038,7 +2047,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    String registerFileSizer(String fileValue) {
+    String registerFileSizer(String fileValue, boolean incremental = false) {
         """
             abstract class FileSizer implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -2047,11 +2056,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     void setValue(Number value)
                 }
 
+                @Classpath
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
                 private File getInput() {
                     inputArtifact.get().asFile
+                }
+
+                ${incremental
+                    ? "@Inject abstract InputChanges getInputChanges()"
+                    : ""
                 }
 
                 void transform(TransformOutputs outputs) {
@@ -2065,7 +2080,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         output.text = ${fileValue}
                     } else {
                         output = outputs.dir(input.name + ".dir")
-                        assert output.directory && output.list().length == 0
+                        ${
+                            // Do not check for an empty output for incremental transforms
+                            incremental
+                                ? ""
+                                : "assert output.directory && output.list().length == 0"
+                        }
                         new File(output, "child.txt").text = "transformed"
                     }
                     def outputDirectory = output.parentFile
