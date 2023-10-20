@@ -675,7 +675,7 @@
     "name": "plugins-distribution",
     "path": "platforms/software/plugins-distribution",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

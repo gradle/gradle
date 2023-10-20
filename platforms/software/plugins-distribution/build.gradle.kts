@@ -32,6 +32,10 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.inject)
+
+    testImplementation(testFixtures(project(":core")))
+
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 integTest.usesJavadocCodeSnippets = true
