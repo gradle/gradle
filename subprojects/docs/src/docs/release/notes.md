@@ -195,6 +195,17 @@ Gradle enters interactive mode and prompts the user when required information fo
 In order to support generating Java projects non-interactively, the `--java-version` parameter was added to the `init` task.
 This parameter allows you to specify the major version of Java to use in the generated project when launching the `init` task, in order to avoid Gradle later prompting you for it.
 
+<a name="better-diagnostics-unable-to-delete"></a>
+### Better diagnostics when unable to delete files
+
+When failing to delete files, Gradle will now provide extended diagnostics.
+This helps troubleshoot issues with locked files, concurrent writes, etc. 
+
+The list of files that failed to be deleted is reported.
+If new files appear under a directory during deletion, their paths will be reported separately.
+The root cause exceptions for each file deletion failure will also be attached to the stacktrace.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
