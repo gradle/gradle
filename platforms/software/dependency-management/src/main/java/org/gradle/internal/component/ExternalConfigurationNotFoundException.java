@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 /**
  * This exception is used to indicate that a named configuration for an <strong>Ivy</strong> or <strong>Maven</strong>
  * dependency wasn't found when resolving a Graph.
- *
- * For Maven, the configuration is always the single variant that uses the name "default".
  */
 public class ExternalConfigurationNotFoundException extends ConfigurationNotFoundException {
     public ExternalConfigurationNotFoundException(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {

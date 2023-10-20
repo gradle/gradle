@@ -25,7 +25,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.SelectionFailureHandler;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 
@@ -36,10 +35,6 @@ import java.util.List;
 
 /**
  * Information about a locally resolved dependency.
- *
- * An instance of {@link SelectionFailureHandler} is supplied to {@link #selectVariants(GraphVariantSelector, ImmutableAttributes, ComponentGraphResolveState, AttributesSchemaInternal, Collection)},
- * any failures during selection should be routed through that handler. This is done to keep all failure handling done
- * in a consistent manner.  See {@link GraphVariantSelector} for comparison.
  */
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;

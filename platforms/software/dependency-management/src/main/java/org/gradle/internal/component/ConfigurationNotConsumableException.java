@@ -17,8 +17,8 @@
 package org.gradle.internal.component;
 
 /**
- * This exception is thrown during variant aware dependency resolution
- * when a specific configuration of a dependency is requested by name
+ * This exception is thrown during variant aware dependency resolution when a dependency
+ * explicitly requests a specific configuration of a component by name
  * and it is found in the component but it is not consumable.
  */
 public class ConfigurationNotConsumableException extends AbstractNamedConfigurationException {

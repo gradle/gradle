@@ -19,8 +19,8 @@ package org.gradle.internal.component;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * This exception is thrown during variant aware dependency resolution
- * when a specific configuration of a dependency is requested by name
+ * This exception is thrown during variant aware dependency resolution when a dependency
+ * explicitly requests a specific configuration of a component by name
  * and it doesn't exist in that component.
  */
 public class ConfigurationNotFoundException extends AbstractNamedConfigurationException {
