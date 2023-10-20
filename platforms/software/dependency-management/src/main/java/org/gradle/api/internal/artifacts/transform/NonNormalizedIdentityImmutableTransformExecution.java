@@ -28,12 +28,11 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.io.File;
 import java.util.Map;
 
-class ImmutableTransformExecution extends AbstractTransformExecution {
+class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution {
     private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
-
     private final FileSystemAccess fileSystemAccess;
 
-    public ImmutableTransformExecution(
+    public NonNormalizedIdentityImmutableTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
@@ -55,23 +54,28 @@ class ImmutableTransformExecution extends AbstractTransformExecution {
     }
 
     @Override
-    public void visitIdentityInputs(InputVisitor visitor) {
-        super.visitIdentityInputs(visitor);
-        // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
-        // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity
-        FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
-        visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
-    }
-
-    @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        ImmutableTransformWorkspaceIdentity transformWorkspaceIdentity = new ImmutableTransformWorkspaceIdentity(
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        return TransformWorkspaceIdentity.createNonNormalizedImmutable(
             identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
             identityInputs.get(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME),
             identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
             identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
-        emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
-        return transformWorkspaceIdentity;
+    }
+
+    @Override
+    public void visitIdentityInputs(InputVisitor visitor) {
+        super.visitIdentityInputs(visitor);
+        // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
+        // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity.
+        // We do this because external artifact transforms typically need to identify themselves redundantly many times during a build.
+        // Once we migrate to all-scheduled transforms we won't need this optimization.
+        FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
+        visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
+    }
+
+    @Override
+    public void visitRegularInputs(InputVisitor visitor) {
+        visitInputArtifact(visitor);
     }
 }

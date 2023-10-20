@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -27,16 +26,12 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Map;
 
-class MutableTransformExecution extends AbstractTransformExecution {
-    private final String rootProjectLocation;
-    private final String producerBuildTreePath;
-
-    public MutableTransformExecution(
+class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution {
+    public NormalizedIdentityImmutableTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
         TransformStepSubject subject,
-        ProjectInternal producerProject,
 
         TransformExecutionListener transformExecutionListener,
         BuildOperationExecutor buildOperationExecutor,
@@ -49,30 +44,21 @@ class MutableTransformExecution extends AbstractTransformExecution {
             transform, inputArtifact, dependencies, subject,
             transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
         );
-        this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
-        this.producerBuildTreePath = producerProject.getBuildTreePath();
     }
 
     @Override
     protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        return TransformWorkspaceIdentity.createMutable(
-            normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
-            producerBuildTreePath,
-            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
+        return TransformWorkspaceIdentity.createNormalizedImmutable(
+            identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+            identityFileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),
+            identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitIdentityInputs(InputVisitor visitor) {
+        super.visitIdentityInputs(visitor);
         visitInputArtifact(visitor);
-    }
-
-    private String normalizeAbsolutePath(String path) {
-        // We try to normalize the absolute path, so the workspace id is stable between machines for cacheable transforms.
-        if (path.startsWith(rootProjectLocation)) {
-            return path.substring(rootProjectLocation.length());
-        }
-        return path;
     }
 }

@@ -77,9 +77,12 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         TransformWorkspaceServices workspaceServices;
         UnitOfWork execution;
-        if (producerProject == null || !transform.requiresInputChanges()) {
+        if (producerProject == null) {
+            // Non-project-bound transforms run in a global immutable workspace,
+            // and are identified by a non-normalized identity
+            // See comments on NonNormalizedIdentityImmutableTransformExecution
             workspaceServices = immutableWorkspaceProvider;
-            execution = new ImmutableTransformExecution(
+            execution = new NonNormalizedIdentityImmutableTransformExecution(
                 transform,
                 inputArtifact,
                 dependencies,
@@ -93,7 +96,24 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 fileSystemAccess,
                 workspaceServices
             );
+        } else if (!transform.requiresInputChanges()) {
+            // Non-incremental project artifact transforms also run in an immutable workspace
+            workspaceServices = immutableWorkspaceProvider;
+            execution = new NormalizedIdentityImmutableTransformExecution(
+                transform,
+                inputArtifact,
+                dependencies,
+                subject,
+
+                transformExecutionListener,
+                buildOperationExecutor,
+                progressEventEmitter,
+                fileCollectionFactory,
+                inputFingerprinter,
+                workspaceServices
+            );
         } else {
+            // Incremental project artifact transforms run in project-bound mutable workspace
             workspaceServices = producerProject.getServices().get(TransformWorkspaceServices.class);
             execution = new MutableTransformExecution(
                 transform,
