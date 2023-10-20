@@ -94,12 +94,16 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
         when:
         previousExecution()
-        executer.withArguments("-DbContent=changed")
+        withProjectConfig("b") {
+            outputFileContent = "changed"
+        }
         then:
         executesIncrementally("ext.modified=['b']")
 
         when:
-        executer.withArguments('-DbNames=first,second,third')
+        withProjectConfig("b") {
+            names = ["first", "second", "third"]
+        }
         then:
         executesIncrementally("""
             ext.removed = ['b']
@@ -107,7 +111,10 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         """)
 
         when:
-        executer.withArguments("-DbNames=first,second", "-DbContent=different")
+        withProjectConfig("b") {
+            names = ["first", "second"]
+            outputFileContent = "different"
+        }
         then:
         executesIncrementally("""
             ext.removed = ['third']

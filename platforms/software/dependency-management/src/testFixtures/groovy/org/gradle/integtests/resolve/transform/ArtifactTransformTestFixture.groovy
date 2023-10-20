@@ -411,7 +411,7 @@ allprojects { p ->
             executer.withArgument("-D${projectName}Timestamp=${timestamp}")
         }
 
-        void setNames(String... names) {
+        void setNames(List<String> names) {
             executer.withArgument("-D${projectName}Names=${names.join(',')}")
         }
 
