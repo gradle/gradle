@@ -41,7 +41,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.management.ManagementFactory;
 import java.util.function.Function;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
@@ -164,7 +163,6 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        System.out.println("Locking workspace " + baseDirectory.getName() + " with " + "DefaultImmutableWorkspaceProvider::" + System.identityHashCode(this) + "::" + ManagementFactory.getRuntimeMXBean().getName());
         return cache.withFileLock(() -> {
             System.out.println("Locking workspace: " + path);
             File workspace = new File(baseDirectory, path);

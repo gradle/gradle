@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Condition;
@@ -102,6 +103,10 @@ public class DefaultFileLockManager implements FileLockManager {
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended) {
         if (options.getMode().isOnDemand()) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
+        }
+        if (target.getName().equals("transforms-4-dev")) {
+            System.out.println("Getting lock for: " + target);
+            System.out.println("Locking workspace " + target.getName() + " with " + "DefaultFileLockManager::" + System.identityHashCode(this) + "::" + ManagementFactory.getRuntimeMXBean().getName());
         }
         File canonicalTarget = FileUtils.canonicalize(target);
         if (!lockedFiles.add(canonicalTarget)) {
@@ -289,7 +294,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private LockState lock(LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
+            LOGGER.info("Waiting to acquire {} lock on {} on {}.", lockMode.toString().toLowerCase(), displayName, target);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);
@@ -322,7 +327,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // Just read the state region
                     lockState = lockFileAccess.readLockState();
                 }
-                LOGGER.debug("Lock acquired on {}.", displayName);
+                LOGGER.info("Lock acquired on {} on {}.", displayName, target);
                 lock = stateRegionLock;
                 return lockState;
             } catch (Throwable t) {
