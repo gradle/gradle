@@ -124,7 +124,7 @@ The Gradle Daemon reduces build times by:
 
 Gradle enables the Daemon by default, but some builds override this preference.
 If your build disables the Daemon, you could see a significant performance improvement
-from enabling the daeomon.
+from enabling the daemon.
 
 You can enable the Daemon at build time with the `daemon` flag:
 
