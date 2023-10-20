@@ -25,7 +25,7 @@ All this means that it’s worth investing some time and effort into making your
 This section offers several ways to make a build faster. Additionally, you'll find details about what leads to
 build performance degradation, and how you can avoid it.
 
-TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
+TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Develocity can speed up builds by up to 90%.
 
 == Inspect your build
 
@@ -260,7 +260,7 @@ org.gradle.caching=true
 
 You can use a local build cache to speed up repeated builds on a single machine.
 You can also use a shared build cache to speed up repeated builds across multiple machines.
-Gradle Enterprise https://gradle.com/build-cache/[provides one].
+Develocity https://gradle.com/build-cache/[provides one].
 Shared build caches can decrease build times for both CI and developer builds.
 
 For more information about the build cache, check out the

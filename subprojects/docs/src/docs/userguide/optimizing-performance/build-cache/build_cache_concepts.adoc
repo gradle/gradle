@@ -175,7 +175,7 @@ Having two tasks in the same build that do the same might sound like a problem t
 For example, the Android plugin creates several tasks for each variant of the project; some of those tasks will potentially do the same thing.
 These tasks can safely reuse each other's outputs.
 
-As <<build_cache_use_cases.adoc#share_results_between_ci_builds,discussed previously>>, you can use Gradle Enterprise to diagnose the source build of these unexpected cache-hits.
+As <<build_cache_use_cases.adoc#share_results_between_ci_builds,discussed previously>>, you can use Develocity to diagnose the source build of these unexpected cache-hits.
 
 == Non-cacheable tasks
 

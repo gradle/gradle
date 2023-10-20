@@ -210,7 +210,7 @@ Build cache key for task ':compileJava' is 8ebf682168823f662b9be34d27afdf77
 The log shows e.g. which source files constitute the `stableSources` for the `compileJava` task.
 To find the actual differences between two builds you need to resort to matching up and comparing those hashes yourself.
 
-TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[Gradle Enterprise] already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan(TM) Comparison tool.
+TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[Develocity] already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan(TM) Comparison tool.
 
 [[diagnosing_cache_miss]]
 == Diagnosing the reasons for a cache miss
