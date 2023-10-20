@@ -190,7 +190,7 @@ Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-d
 <a name="better-diagnostics-unable-to-delete"></a>
 ### Better diagnostics when unable to delete files
 
-When failing to delete files Gradle will now provide extended diagnostics.
+When failing to delete files, Gradle will now provide extended diagnostics.
 This helps troubleshoot issues with locked files, concurrent writes etc... 
 
 The list of files that failed to delete are reported.
