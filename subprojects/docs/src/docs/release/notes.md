@@ -195,7 +195,7 @@ This helps troubleshoot issues with locked files, concurrent writes, etc.
 
 The list of files that failed to be deleted is reported.
 If new files appear under a directory during deletion, their paths will be reported separately.
-Last but not least, the root cause exceptions for each file deletion failure will be attached to the stacktrace.
+The root cause exceptions for each file deletion failure will also be attached to the stacktrace.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
