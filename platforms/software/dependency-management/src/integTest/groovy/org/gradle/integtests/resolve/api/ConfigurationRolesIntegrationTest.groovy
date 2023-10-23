@@ -121,6 +121,17 @@ This method is only meant to be called on configurations which allow the (non-de
 \tDeclarable - this configuration can have dependencies added to it
 This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
             }
+        } else if (method.contains('getIncoming()')) {
+            if (role == 'canBeResolved = false') {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            } else {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            }
         }
         fails 'checkState'
 

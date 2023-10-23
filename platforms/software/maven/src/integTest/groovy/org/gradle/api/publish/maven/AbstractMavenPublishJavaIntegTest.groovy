@@ -613,8 +613,8 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -635,8 +635,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
       - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
         outputContains '''
   - Variant runtimeElements:
-      - Declares capability org:bar:1.0 which cannot be mapped to Maven
-      - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
+      - Declares capability org:bar:1.0 which cannot be mapped to Maven'''
 
         for (def feature : features().findAll { it != MavenJavaModule.MAIN_FEATURE }) {
             outputContains """
@@ -653,7 +652,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
 
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
-            capability('org', 'foo', '1.0')
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
         }
@@ -711,8 +709,8 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     def "does not warn for the default capability if it was declared explicitly"() {
         given:
         createBuildScripts("""
-            configurations.api.outgoing.capability 'org.gradle.test:publishTest:1.9'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org.gradle.test:publishTest:1.9'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -746,7 +744,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
 
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
-            capability('org.gradle.test', 'publishTest', '1.9')
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
         }
@@ -757,8 +754,8 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         def silenceMethod = "suppressPomMetadataWarningsFor"
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -786,8 +783,8 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         given:
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {

@@ -86,26 +86,14 @@ public final class ConfigurationReportModelFactory {
             .sorted(Comparator.comparing(ReportAttribute::getName))
             .collect(Collectors.toList());
 
-        final List<ReportCapability> explicitCapabilities = configuration.getOutgoing().getCapabilities().stream()
-            .map(this::convertCapability)
-            .sorted(Comparator.comparing(ReportCapability::toGAV))
-            .collect(Collectors.toList());
-        final List<ReportCapability> capabilities;
-        if (explicitCapabilities.isEmpty()) {
-            capabilities = Collections.singletonList(convertDefaultCapability(project));
-        } else {
-            capabilities = explicitCapabilities;
-        }
+        final List<ReportCapability> capabilities = getConfigurationCapabilities(configuration, project);
 
         final List<ReportArtifact> artifacts = configuration.getAllArtifacts().stream()
             .map(a -> convertPublishArtifact(a, fileResolver))
             .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
             .collect(Collectors.toList());
 
-        final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
-            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
-            .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-            .collect(Collectors.toList());
+        final List<ReportSecondaryVariant> variants = getConfigurationArtifactVariants(configuration, project, fileResolver);
 
         final ReportConfiguration.Type type;
         if (configuration.isCanBeConsumed() && configuration.isCanBeResolved()) {
@@ -120,6 +108,34 @@ public final class ConfigurationReportModelFactory {
 
         return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(lenientErrors),
             attributes, capabilities, artifacts, variants, extendedConfigurations);
+    }
+
+    private List<ReportCapability> getConfigurationCapabilities(ConfigurationInternal configuration, Project project) {
+        if (!configuration.isCanBeConsumed()) {
+            return Collections.emptyList();
+        }
+
+        final List<ReportCapability> explicitCapabilities = configuration.getCapabilitiesInternal().stream()
+            .map(this::convertCapability)
+            .sorted(Comparator.comparing(ReportCapability::toGAV))
+            .collect(Collectors.toList());
+
+        if (explicitCapabilities.isEmpty()) {
+            return Collections.singletonList(convertDefaultCapability(project));
+        } else {
+            return explicitCapabilities;
+        }
+    }
+
+    private List<ReportSecondaryVariant> getConfigurationArtifactVariants(ConfigurationInternal configuration, Project project, FileResolver fileResolver) {
+        if (!configuration.isCanBeConsumed()) {
+            return Collections.emptyList();
+        }
+
+        return configuration.getOutgoing().getVariants().stream()
+            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
+            .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
+            .collect(Collectors.toList());
     }
 
     private ReportArtifact convertPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {

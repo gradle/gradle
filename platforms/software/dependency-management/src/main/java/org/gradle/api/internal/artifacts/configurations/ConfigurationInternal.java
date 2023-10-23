@@ -68,6 +68,15 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     boolean isCanBeMutated();
 
     /**
+     * Equivalent to {@code getOutgoing().getCapabilities()}, but does not warn if the configuration is deprecated for consumption.
+     *
+     * <p>Intended for building configuration metadata and publication variants since capabilities
+     * still need to be retrieved from configurations deprecated for consumption or non-consumable configurations
+     * that users are still able to add capabilities to.</p>
+     */
+    Collection<? extends Capability> getCapabilitiesInternal();
+
+    /**
      * Locks the configuration for mutation
      * <p>
      * Any invalid state at this point will be added to the returned list of exceptions.

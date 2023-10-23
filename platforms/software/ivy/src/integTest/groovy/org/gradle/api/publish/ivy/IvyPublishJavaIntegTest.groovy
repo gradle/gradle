@@ -925,8 +925,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -952,7 +952,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
-            capability('org', 'foo', '1.0')
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
         }
@@ -963,8 +962,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         def silenceMethod = "suppressIvyMetadataWarningsFor"
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -982,7 +981,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         then:
         outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
         outputContains("$silenceMethod(variant)")
-        outputContains('Declares capability org:foo:1.0')
+        outputContains('Declares capability org:bar:1.0')
         outputContains("Variant runtimeElements")
         outputDoesNotContain("Variant apiElements")
         javaLibrary.assertPublished()
@@ -993,8 +992,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         def silenceMethod = "suppressIvyMetadataWarningsFor"
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {
@@ -1021,8 +1020,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
 
-            configurations.api.outgoing.capability 'org:foo:1.0'
-            configurations.implementation.outgoing.capability 'org:bar:1.0'
+            configurations.apiElements.outgoing.capability 'org:foo:1.0'
+            configurations.runtimeElements.outgoing.capability 'org:bar:1.0'
 
             publishing {
                 publications {

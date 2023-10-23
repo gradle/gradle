@@ -416,6 +416,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
             getOutgoing() >> outgoing
             getExtendsFrom() >> extendsFrom
             getArtifacts() >> artifacts
+            getCapabilitiesInternal() >> {outgoing.capabilities}
         }
         conf.getHierarchy() >> [conf] + extendsFrom
         return conf

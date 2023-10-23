@@ -124,16 +124,12 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             apply plugin: 'java-library'
 
-            configurations.api.outgoing {
-                capability 'org:capability:1.0'
-            }
-
             dependencies {
                 conf 'org:test:1.0'
             }
 
-            configurations {
-                conf.extendsFrom(api)
+            configurations.conf.outgoing {
+                capability 'org:capability:1.0'
             }
         """
 

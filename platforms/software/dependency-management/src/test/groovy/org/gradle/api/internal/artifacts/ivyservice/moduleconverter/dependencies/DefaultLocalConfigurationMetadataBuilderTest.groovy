@@ -63,6 +63,7 @@ class DefaultLocalConfigurationMetadataBuilderTest extends Specification {
         configuration.extendsFrom >> []
         configuration.hierarchy >> [configuration]
         configuration.outgoing >> outgoing
+        configuration.getCapabilitiesInternal() >> { configuration.outgoing.capabilities }
         configuration.dependencies >> dependencySet
         configuration.dependencyConstraints >> dependencyConstraintSet
         configuration.attributes >> Stub(AttributeContainerInternal)

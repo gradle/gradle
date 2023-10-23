@@ -40,7 +40,7 @@ public class Configurations {
 
     public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
         if (visited.add(configuration)) {
-            out.addAll(configuration.getOutgoing().getCapabilities());
+            out.addAll(((ConfigurationInternal) configuration).getCapabilitiesInternal());
             for (Configuration parent : configuration.getExtendsFrom()) {
                 collectCapabilities(parent, out, visited);
             }

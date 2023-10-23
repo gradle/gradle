@@ -144,7 +144,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 from "artifact.txt"
             }
 
-            detached.outgoing.artifact(tasks.makeArtifact)
+            def dummy = configurations.consumable("dummy").get()
+            dummy.outgoing.artifact(tasks.makeArtifact)
+            def artifact = dummy.outgoing.artifacts.first()
+
+            detached.artifacts.add(artifact)
 
             task checkDependencies {
                 def result = detached.incoming.resolutionResult.rootComponent

@@ -460,6 +460,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration setTransitive(boolean transitive) {
+        warnOnDeprecatedUsage("setTransitive(boolean)", ProperMethodUsage.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         this.transitive = transitive;
         return this;
@@ -498,7 +499,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
-        warnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
+        warnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DEPENDENCY_SCOPE);
         validateMutation(MutationType.DEPENDENCIES);
         defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
             if (dependencies.isEmpty()) {
@@ -549,6 +550,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Iterator<File> iterator() {
+        warnOnDeprecatedUsage("iterator()", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.iterator();
     }
 
@@ -576,6 +578,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean isEmpty() {
+        warnOnDeprecatedUsage("isEmpty()", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.isEmpty();
     }
 
@@ -706,8 +709,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
-                performPreResolveActions(incoming);
+                performPreResolveActions(resolvableDependencies);
                 ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
@@ -723,7 +725,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // TODO: Currently afterResolve runs if there is not an non-unresolved-dependency failure
                 //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
                 if (!newState.getCachedResolverResults().getVisitedGraph().getResolutionFailure().isPresent()) {
-                    dependencyResolutionListeners.getSource().afterResolve(incoming);
+                    dependencyResolutionListeners.getSource().afterResolve(resolvableDependencies);
 
                     // Use the current state, which may have changed if the listener queried the result
                     newState = currentResolveState.get();
@@ -1060,7 +1062,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * @param excludeRules the exclude rules to add.
      */
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
-        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
+        warnOnInvalidInternalAPIUsage("setExcludeRules(Set)", ProperMethodUsage.DEPENDENCY_SCOPE, ProperMethodUsage.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         this.excludeRules.clear();
@@ -1093,12 +1095,25 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolvableDependencies getIncoming() {
+        warnOnDeprecatedUsage("getIncoming()", ProperMethodUsage.RESOLVABLE);
         return resolvableDependencies;
     }
 
     @Override
     public ConfigurationPublications getOutgoing() {
+        warnOnDeprecatedUsage("getOutgoing()", ProperMethodUsage.CONSUMABLE);
         return outgoing;
+    }
+
+    @Override
+    public void outgoing(Action<? super ConfigurationPublications> action) {
+        warnOnDeprecatedUsage("outgoing(Action)", ProperMethodUsage.CONSUMABLE);
+        action.execute(outgoing);
+    }
+
+    @Override
+    public Collection<? extends Capability> getCapabilitiesInternal() {
+        return outgoing.getCapabilities();
     }
 
     @Override
@@ -1207,11 +1222,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void outgoing(Action<? super ConfigurationPublications> action) {
-        action.execute(outgoing);
-    }
-
-    @Override
     public ConfigurationInternal copy() {
         warnOnDeprecatedUsage("copy()", ProperMethodUsage.RESOLVABLE);
         return createCopy(getDependencies(), getDependencyConstraints());
@@ -1255,7 +1265,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             true, true, true,
             deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst
         );
-
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -2334,7 +2343,7 @@ since users cannot create non-legacy configurations and there is no current publ
                 return configuration.isDeprecatedForResolution();
             }
         },
-        DECLARABLE_AGAINST {
+        DEPENDENCY_SCOPE {
             @Override
             boolean isAllowed(ConfigurationInternal configuration) {
                 return configuration.isCanBeDeclared();

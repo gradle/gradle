@@ -69,8 +69,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         where:
         methodName                                     | role              | methodCall                                                     || allowed
         'attributes(Action)'                           | 'dependencyScope' | "attributes { attribute(Attribute.of('foo', String), 'bar') }" || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
-        'defaultDependencies(Action)'                  | 'consumable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
-        'defaultDependencies(Action)'                  | 'resolvable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'defaultDependencies(Action)'                  | 'consumable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DEPENDENCY_SCOPE]
+        'defaultDependencies(Action)'                  | 'resolvable'      | 'defaultDependencies { }'                                      || [ProperMethodUsage.DEPENDENCY_SCOPE]
         'shouldResolveConsistentlyWith(Configuration)' | 'consumable'      | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
         'shouldResolveConsistentlyWith(Configuration)' | 'dependencyScope' | 'shouldResolveConsistentlyWith(null)'                          || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                | 'consumable'      | 'disableConsistentResolution()'                                || [ProperMethodUsage.RESOLVABLE]
@@ -101,7 +101,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
 
         where:
         methodName                         | role              | methodCall                         || allowed
-        'setExcludeRules(Set)'             | 'consumable'      | "setExcludeRules([] as Set)"       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
+        'setExcludeRules(Set)'             | 'consumable'      | "setExcludeRules([] as Set)"       || [ProperMethodUsage.DEPENDENCY_SCOPE, ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'  | 'consumable'      | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
         'getConsistentResolutionSource()'  | 'dependencyScope' | "getConsistentResolutionSource()"  || [ProperMethodUsage.RESOLVABLE]
         'getDependenciesResolverFactory()' | 'consumable'      | "getDependenciesResolverFactory()" || [ProperMethodUsage.RESOLVABLE]

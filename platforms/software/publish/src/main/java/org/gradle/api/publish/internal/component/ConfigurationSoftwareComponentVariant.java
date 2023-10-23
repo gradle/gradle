@@ -62,7 +62,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<ModuleDependency> getDependencies() {
         if (dependencies == null) {
-            dependencies = configuration.getIncoming().getDependencies().withType(ModuleDependency.class);
+            ((ConfigurationInternal) configuration).runDependencyActions();
+            dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
         }
         return dependencies;
     }
@@ -70,7 +71,8 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<? extends DependencyConstraint> getDependencyConstraints() {
         if (dependencyConstraints == null) {
-            dependencyConstraints = configuration.getIncoming().getDependencyConstraints();
+            ((ConfigurationInternal) configuration).runDependencyActions();
+            dependencyConstraints = configuration.getAllDependencyConstraints();
         }
         return dependencyConstraints;
     }
