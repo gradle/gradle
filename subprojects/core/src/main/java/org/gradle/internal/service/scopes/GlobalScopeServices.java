@@ -165,10 +165,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-    protected Problems createProblemsService(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
-    }
-
     GradleBuildEnvironment createGradleBuildEnvironment() {
         return environment;
     }
@@ -177,6 +173,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return CachingServiceLocator.of(
             new DefaultServiceLocator(registry.getPluginsClassLoader())
         );
+    }
+
+    Problems createProblemsService(
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
+//        List<ProblemTransformer> transformers,
+//        ProblemDiagnosticsFactory problemDiagnosticsFactory
+    ) {
+        return new DefaultProblems(buildOperationProgressEventEmitter);
     }
 
     JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {

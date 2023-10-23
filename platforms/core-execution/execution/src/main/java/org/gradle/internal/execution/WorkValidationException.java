@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.internal.RenderingUtils.oxfordJoin;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**

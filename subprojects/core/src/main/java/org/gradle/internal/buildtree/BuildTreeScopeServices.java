@@ -96,6 +96,23 @@ public class BuildTreeScopeServices {
         modelServices.applyServicesTo(registration);
     }
 
+//    BuildTreeObjectFactory createObjectFactory(
+//        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+//        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
+//        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
+//    ) {
+//        return new DefaultObjectFactory(
+//            instantiatorFactory.decorate(buildTree.getServices()),
+//            instantiator,
+//            directoryFileTreeFactory,
+//            patternSetFactory,
+//            propertyFactory,
+//            filePropertyFactory,
+//            taskDependencyFactory,
+//            fileCollectionFactory,
+//            domainObjectCollectionFactory);
+//    }
+
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }

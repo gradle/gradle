@@ -730,6 +730,13 @@
   {
     "name": "problems",
     "path": "platforms/ide/problems",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-api",
+    "path": "platforms/ide/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

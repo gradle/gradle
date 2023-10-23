@@ -16,13 +16,13 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.base.Supplier
 import org.gradle.api.InvalidUserCodeException
-import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
-import java.util.function.Supplier
 
 
 class DefaultProblemFactory(
