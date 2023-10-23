@@ -216,7 +216,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest {
                 cause = "plugin 'com.android.internal.application'"
             }
             expectBasePluginConventionDeprecation(agpVersion)
-            expectBasePluginConventionDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion)) {
+            expectAndroidBasePluginConventionDeprecation(kotlinVersionNumber, VersionNumber.parse(agpVersion)) {
                 cause = "plugin 'com.android.internal.application'"
             }
         }

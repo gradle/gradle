@@ -65,6 +65,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                     ]
                 }
                 if (GradleContextualExecuter.isConfigCache()) {
+                    expectProjectConventionDeprecation(versionNumber)
+                    expectConventionTypeDeprecation(versionNumber)
                     expectBasePluginConventionDeprecation(versionNumber)
                     expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
@@ -131,30 +133,28 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectKotlinParallelTasksDeprecation(versionNumber, parallelTasksInProject)
                 expectKotlin2JsPluginDeprecation(versionNumber)
                 expectKotlinCompileDestinationDirPropertyDeprecation(versionNumber)
-                expectKotlinCompileDestinationDirPropertyDeprecation(versionNumber) { // TODO: This one does not occur for 1.6.21
+                maybeExpectKotlinCompileDestinationDirPropertyDeprecation(versionNumber) {
                     cause = "plugin 'kotlin2js'"
                 }
                 expectKotlinArchiveNameDeprecation(versionNumber)
                 expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
                     cause = "plugin 'kotlin2js'"
                 }
-                expectProjectConventionDeprecation(versionNumber)
                 expectProjectConventionDeprecation(versionNumber) {
-                    cause = "plugin 'kotlin2js'"
+                    causes = [null, "plugin 'kotlin2js'"]
                 }
-                expectConventionTypeDeprecation(versionNumber)
                 expectConventionTypeDeprecation(versionNumber) {
-                    cause = "plugin 'kotlin2js'"
+                    causes = [null, "plugin 'kotlin2js'"]
                 }
-                expectJavaPluginConventionDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber) {
-                    cause = "plugin 'kotlin2js'"
+                    causes = [null, "plugin 'kotlin2js'"]
                 }
-                expectBasePluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber) {
-                    cause = "plugin 'kotlin2js'"
+                    causes = [null, "plugin 'kotlin2js'"]
                 }
-                expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
+                expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber) {
+                    causes = [null, "plugin 'kotlin2js'"]
+                }
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }

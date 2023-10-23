@@ -133,15 +133,45 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         // This project is a Kotlin JVM project that consumes a Kotlin Multiplatform JVM project, so can't just use default KMP deprecations
         testRunner.deprecations(KotlinDeprecations) {
             expectAbstractCompileDestinationDirDeprecation(kotlinVersionNumber)
-            expectConventionTypeDeprecation(kotlinVersionNumber)
-            2.times { expectProjectConventionDeprecation(kotlinVersionNumber) }
-            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
+            expectProjectConventionDeprecation(kotlinVersionNumber)  {
+                causes = [
+                    null,
+                    null,
+                    "plugin 'org.jetbrains.kotlin.jvm'",
+                    "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                ]
+            }
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber) {
+                causes = [
+                    null,
+                    "plugin 'org.jetbrains.kotlin.jvm'",
+                    "plugin 'org.jetbrains.kotlin.multiplatform'"
+                ]
+            }
             expectConfigureUtilDeprecation(kotlinVersionNumber)
-            expectConventionTypeDeprecation(kotlinVersionNumber)
-            2.times { expectJavaPluginConventionDeprecation(kotlinVersionNumber) }
-            expectBuildIdentifierNameDeprecation(kotlinVersionNumber)
+            expectConventionTypeDeprecation(kotlinVersionNumber) {
+                causes = [
+                    null,
+                    null,
+                    "plugin 'org.jetbrains.kotlin.jvm'",
+                    "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                ]
+            }
+            expectJavaPluginConventionDeprecation(kotlinVersionNumber) {
+                causes = [
+                    null,
+                    null,
+                    "plugin 'org.jetbrains.kotlin.jvm'",
+                    "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
+                ]
+            }
+            expectBuildIdentifierNameDeprecation(kotlinVersionNumber) {
+                cause = "plugin 'org.jetbrains.kotlin.multiplatform'"
+            }
             if (GradleContextualExecuter.configCache || kotlinVersionNumber == VersionNumber.parse("1.7.22")) {
-                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
+                expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber) {
+                    cause = "plugin 'org.jetbrains.kotlin.multiplatform'"
+                }
             }
         }
         testRunner.expectLegacyDeprecationWarningIf(

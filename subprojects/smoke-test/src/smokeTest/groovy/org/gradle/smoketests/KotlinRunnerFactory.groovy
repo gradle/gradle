@@ -28,10 +28,28 @@ trait KotlinRunnerFactory {
     SmokeTestGradleRunner createRunner(ParallelTasksInProject parallelTasksInProject, VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, String... tasks) {
         return runnerFor(this, parallelTasksInProject, kotlinVersionNumber, tasks)
                 .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
-                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber)
-                    expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
-                    expectProjectConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
-                    expectConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber)
+                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersionNumber) {
+                        cause = "plugin 'kotlin-android'"
+                    }
+                    expectAndroidBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber) {
+                        causes = [
+                            null,
+                            "plugin 'com.android.internal.application'"
+                        ]
+                    }
+                    expectAndroidProjectConventionDeprecation(kotlinVersionNumber, agpVersionNumber) {
+                        causes = [
+                            null,
+                            "plugin 'com.android.internal.application'"
+                        ]
+                    }
+                    expectAndroidConventionTypeDeprecation(kotlinVersionNumber, agpVersionNumber) {
+                        causes = [
+                            null,
+                            "plugin 'kotlin-android'",
+                            "plugin 'com.android.internal.application'",
+                        ]
+                    }
                 }
     }
 

@@ -50,6 +50,14 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
+    void maybeExpectKotlinCompileDestinationDirPropertyDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.21'),
+            ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION,
+            action
+        )
+    }
+
     void expectKotlinArchiveNameDeprecation(VersionNumber versionNumber) {
         runner.expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION)
     }
@@ -124,7 +132,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectBasePluginConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+    void expectAndroidBasePluginConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("7.4.0") || kotlinVersionNumber < VersionNumber.parse("1.7.0"),
             BASE_PLUGIN_CONVENTION_DEPRECATION,
@@ -140,10 +148,11 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectProjectConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
+    void expectAndroidProjectConventionDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.0")),
-            PROJECT_CONVENTION_DEPRECATION
+            PROJECT_CONVENTION_DEPRECATION,
+            action
         )
     }
 
@@ -167,10 +176,11 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         versionNumber < VersionNumber.parse("1.7.22")
     }
 
-    void expectConventionTypeDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber) {
+    void expectAndroidConventionTypeDeprecation(VersionNumber kotlinVersionNumber, VersionNumber agpVersionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.22")),
-            CONVENTION_TYPE_DEPRECATION
+            CONVENTION_TYPE_DEPRECATION,
+            action
         )
     }
 
@@ -184,19 +194,29 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         )
     }
 
-    void expectForUseAtConfigurationTimeDeprecation(VersionNumber versionNumber) {
+    void expectForUseAtConfigurationTimeDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse("1.8.0"),
-            FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION
+            FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
+            action
         )
     }
 
-    void expectBuildIdentifierNameDeprecation(VersionNumber versionNumber) {
+    void maybeExpectForUseAtConfigurationTimeDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
+        runner.maybeExpectLegacyDeprecationWarningIf(
+            versionNumber < VersionNumber.parse("1.8.0"),
+            FOR_USE_AT_CONFIGURATION_TIME_DEPRECATION,
+            action
+        )
+    }
+
+    void expectBuildIdentifierNameDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse("1.8.20") && versionNumber.baseVersion < VersionNumber.parse('1.9.20'),
             "The BuildIdentifier.getName() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use getBuildPath() to get a unique identifier for the build. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation",
+            action
         )
     }
 
@@ -206,7 +226,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
             expectAbstractCompileDestinationDirDeprecation(versionNumber)
         }
         expectOrgGradleUtilWrapUtilDeprecation(versionNumber) {
-            cause = "plugin 'org.jetbrains.kotlin.multiplatform'"
+            causes = [null, "plugin 'org.jetbrains.kotlin.multiplatform'"]
         }
         expectConventionTypeDeprecation(versionNumber) {
             cause = "plugin class 'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin'"
@@ -219,19 +239,24 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         }
         expectTestReportReportOnDeprecation(versionNumber)
         expectTestReportDestinationDirOnDeprecation(versionNumber)
-        expectBuildIdentifierNameDeprecation(versionNumber)
+        expectBuildIdentifierNameDeprecation(versionNumber) {
+            cause = "plugin 'org.jetbrains.kotlin.multiplatform'"
+        }
         if (GradleContextualExecuter.configCache || versionNumber == VersionNumber.parse("1.7.22")) {
-            expectForUseAtConfigurationTimeDeprecation(versionNumber)
+            maybeExpectForUseAtConfigurationTimeDeprecation(versionNumber) {
+                causes = [null, "plugin 'org.jetbrains.kotlin.multiplatform'"]
+            }
         }
     }
 
-    void expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber versionNumber) {
+    void expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber versionNumber, @DelegatesTo(SmokeTestGradleRunner.DeprecationOptions) Closure<?> action = null) {
         runner.expectLegacyDeprecationWarningIf(
             versionNumber < VersionNumber.parse('1.7.0'),
             "The BasePluginExtension.archivesBaseName property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Please use the archivesName property instead. " +
-                "For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
+                "For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation.",
+            action
         )
     }
 

@@ -57,18 +57,27 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                 .deprecations(KotlinAndroidDeprecations) {
                     expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersionNumber)
                     expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersionNumber, parallelTasksInProject, kotlinPluginVersionNumber)
-                    expectReportDestinationPropertyDeprecation(androidPluginVersion)
+                    expectReportDestinationPropertyDeprecation(androidPluginVersion) {
+                        cause = "plugin 'com.android.internal.application'"
+                    }
                     expectKotlinCompileDestinationDirPropertyDeprecation(kotlinPluginVersionNumber)
                     if (GradleContextualExecuter.configCache || kotlinPluginVersionNumber >= VersionNumber.parse("1.8.0")) {
-                        expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion)
+                        expectBuildIdentifierIsCurrentBuildDeprecation(androidPluginVersion) {
+                            cause = "plugin 'com.android.internal.application'"
+                        }
                     }
-                    2.times {
-                        maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion)
+                    maybeExpectOrgGradleUtilGUtilDeprecation(androidPluginVersion) {
+                        cause = "plugin 'com.android.internal.application'"
                     }
                     if (GradleContextualExecuter.configCache) {
                         expectForUseAtConfigurationTimeDeprecation(kotlinPluginVersionNumber)
                     }
-                    expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber)
+                    expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinPluginVersionNumber, androidPluginVersionNumber) {
+                        causes = [
+                            null,
+                            "plugin 'com.android.internal.application'"
+                        ]
+                    }
                 }.build()
 
         then:
