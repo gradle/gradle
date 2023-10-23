@@ -47,9 +47,10 @@ import java.util.stream.Stream;
 
 @Nonnull
 public class ValidationProblemSerialization {
+    private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
+
     public static List<? extends ReportableProblem> parseMessageList(String lines, InternalProblems problemService) {
-        GsonBuilder gsonBuilder = createGsonBuilder();
-        Gson gson = gsonBuilder.create();
+        Gson gson = GSON_BUILDER.create();
         Type type = new TypeToken<List<DefaultReportableProblem>>() {}.getType();
         List<DefaultReportableProblem> reportableProblems = gson.fromJson(lines, type);
         reportableProblems.forEach(problem -> problem.setProblemService(problemService));
