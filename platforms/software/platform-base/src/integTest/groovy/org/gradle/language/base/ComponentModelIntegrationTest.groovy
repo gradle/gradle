@@ -222,11 +222,11 @@ model {
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach CustomComponent 'main'
-afterEach CustomComponent 'main'
-beforeEach CustomComponent 'newComponent'
-creating CustomComponent 'newComponent'
-afterEach CustomComponent 'newComponent'"""
+        output.matches """(?s).*beforeEach CustomComponent 'main'.*
+afterEach CustomComponent 'main'.*
+beforeEach CustomComponent 'newComponent'.*
+creating CustomComponent 'newComponent'.*
+afterEach CustomComponent 'newComponent'.*"""
 
     }
 
@@ -347,11 +347,11 @@ afterEach CustomComponent 'newComponent'"""
         succeeds "tasks"
 
         and:
-        output.contains """beforeEach CustomComponent 'main'
-afterEach CustomComponent 'main'
-beforeEach CustomComponent 'newComponent'
-creating CustomComponent 'newComponent'
-afterEach CustomComponent 'newComponent'"""
+        output.matches """(?s).*beforeEach CustomComponent 'main'.*
+afterEach CustomComponent 'main'.*
+beforeEach CustomComponent 'newComponent'.*
+creating CustomComponent 'newComponent'.*
+afterEach CustomComponent 'newComponent'.*"""
 
     }
 
