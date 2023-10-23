@@ -584,8 +584,6 @@ Enable the configuration cache by default, configure CI to disable it, and if re
 [[config_cache:adoption:reacting]]
 === Reacting to the configuration cache in the build
 
-There are additional ways to streamline the migration process for the configuration cache compatibility.
-
 Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
 The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
 You can access it by <<custom_gradle_types#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
