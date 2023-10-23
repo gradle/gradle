@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -24,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
+@NonNullApi
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     private final Class<? extends Scope> scope;
