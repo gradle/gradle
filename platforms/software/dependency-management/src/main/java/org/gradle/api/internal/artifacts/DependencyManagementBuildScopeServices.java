@@ -82,8 +82,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.model.BuildObjectFactory;
-import org.gradle.api.model.BuildTreeObjectFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -195,7 +194,7 @@ class DependencyManagementBuildScopeServices {
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         DependencyMetaDataProvider dependencyMetaDataProvider,
-        BuildObjectFactory objects,
+        ObjectFactory objects,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
@@ -454,7 +453,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
-        BuildTreeObjectFactory objectFactory,
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,

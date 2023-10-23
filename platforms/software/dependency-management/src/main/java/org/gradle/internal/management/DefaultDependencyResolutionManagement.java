@@ -87,7 +87,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
-        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, dependencyResolutionServices, context);
+        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);
     }
 
     @Override
