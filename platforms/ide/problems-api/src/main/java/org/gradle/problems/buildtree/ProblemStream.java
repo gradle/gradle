@@ -16,11 +16,11 @@
 
 package org.gradle.problems.buildtree;
 
-import com.google.common.base.Supplier;
 import org.gradle.problems.ProblemDiagnostics;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface ProblemStream {
     /**

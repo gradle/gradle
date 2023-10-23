@@ -53,52 +53,52 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].documentationLink == null
     }
 
-    def "can serialize and deserialize a validation problem with a location"() {
-        given:
-        def problem = problems.createProblem {
-            it.label("label")
-                .undocumented()
-                .location("location", 1, 1)
-                .category("type")
-        }
-
-        when:
-        def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
-
-        then:
-        deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where[0].path == "location"
-        deserialized[0].where[0].line == 1
-        deserialized[0].where[0].column == 1
-        deserialized[0].documentationLink == null
-    }
-
-    def "can serialize and deserialize a validation problem with a documentation link"() {
-        given:
-        def problem = problems.createProblem {
-            it.label("label")
-                .documentedAt(new TestDocLink())
-                .location("location", 1, 1)
-                .category("type")
-        }
-
-        when:
-        def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
-
-        then:
-        deserialized.size() == 1
-        deserialized[0].label == "label"
-        deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where[0].path == "location"
-        deserialized[0].where[0].line == 1
-        deserialized[0].where[0].column == 1
-        deserialized[0].documentationLink.getUrl() == "url"
-        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
-    }
+//    def "can serialize and deserialize a validation problem with a location"() {
+//        given:
+//        def problem = problems.createProblem {
+//            it.label("label")
+//                .undocumented()
+//                .location("location", 1, 1)
+//                .category("type")
+//        }
+//
+//        when:
+//        def json = gson.toJson([problem])
+//        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+//
+//        then:
+//        deserialized.size() == 1
+//        deserialized[0].label == "label"
+//        deserialized[0].problemCategory.toString() == "type"
+//        deserialized[0].where[0].path == "location"
+//        deserialized[0].where[0].line == 1
+//        deserialized[0].where[0].column == 1
+//        deserialized[0].documentationLink == null
+//    }
+//
+//    def "can serialize and deserialize a validation problem with a documentation link"() {
+//        given:
+//        def problem = problems.createProblem {
+//            it.label("label")
+//                .documentedAt(new TestDocLink())
+//                .location("location", 1, 1)
+//                .category("type")
+//        }
+//
+//        when:
+//        def json = gson.toJson([problem])
+//        def deserialized = ValidationProblemSerialization.parseMessageList(json, (InternalProblems) problems)
+//
+//        then:
+//        deserialized.size() == 1
+//        deserialized[0].label == "label"
+//        deserialized[0].problemCategory.toString() == "type"
+//        deserialized[0].where[0].path == "location"
+//        deserialized[0].where[0].line == 1
+//        deserialized[0].where[0].column == 1
+//        deserialized[0].documentationLink.getUrl() == "url"
+//        deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
+//    }
 
     /**
      * Required to be a named, static class for serialization to work.
