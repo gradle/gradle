@@ -44,8 +44,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive;
-import static org.gradle.cache.FileLockManager.LockMode.OnDemandShared;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -142,7 +142,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(OnDemandShared))
+            .withLockOptions(mode(None))
             .open();
         this.fileLockManager = fileLockManager;
         this.cache = cache;
@@ -170,14 +170,12 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     @Override
     @SuppressWarnings("try")
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        return cache.withFileLock(() -> {
-            File workspace = new File(baseDirectory, path);
-            GFileUtils.mkdirs(workspace);
-            try (FileLock ignored = fileLockManager.lock(workspace, mode(Exclusive), "")) {
-                fileAccessTracker.markAccessed(workspace);
-                return action.executeInWorkspace(workspace, executionHistoryStore);
-            }
-        });
+        File workspace = new File(baseDirectory, path);
+        GFileUtils.mkdirs(workspace);
+        try (FileLock ignored = fileLockManager.lock(workspace, mode(Exclusive), "")) {
+            fileAccessTracker.markAccessed(workspace);
+            return action.executeInWorkspace(workspace, executionHistoryStore);
+        }
     }
 
     @Override
