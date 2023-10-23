@@ -27,7 +27,6 @@ import java.util.Objects;
 
 public class PluginIdLocationTransformer extends BaseLocationTransformer {
 
-
     public PluginIdLocationTransformer(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
         OperationListener operationListener

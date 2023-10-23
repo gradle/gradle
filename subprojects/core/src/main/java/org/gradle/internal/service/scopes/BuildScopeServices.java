@@ -258,24 +258,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new OrdinalGroupFactory();
     }
 
-//    BuildObjectFactory createObjectFactory(
-//        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-//        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-//        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
-//    ) {
-//        return new DefaultObjectFactory(
-//            instantiatorFactory.decorate(this),
-//            instantiator,
-//            directoryFileTreeFactory,
-//            patternSetFactory,
-//            propertyFactory,
-//            filePropertyFactory,
-//            taskDependencyFactory,
-//            fileCollectionFactory,
-//            domainObjectCollectionFactory);
-//    }
-
-
     ExecutionPlanFactory createExecutionPlanFactory(
         BuildState build,
         TaskNodeFactory taskNodeFactory,
