@@ -24,6 +24,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
@@ -565,11 +566,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         String name = leafNodeForAlias(alias);
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + name + " (" + coordinatesDescriptorFor(dependency) + ")");
-        if (dependency.getVersionRef() != null) {
-            writeLn(" * with versionRef '" + dependency.getVersionRef() + "'.");
-        } else {
-            writeLn(" * with version '" + dependency.getVersion().getDisplayName() + "'.");
-        }
+        writeVersionInformation(dependency.getVersionRef(), dependency.getVersion());
         String context = dependency.getContext();
         if (context != null) {
             writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
@@ -583,6 +580,19 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("        return create(\"" + alias + "\");");
         writeLn("}");
         writeLn();
+    }
+
+    private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version) throws IOException {
+        if (versionRef != null) {
+            writeLn(" * with versionRef '" + versionRef + "'.");
+        } else {
+            String versionDisplay = version.getDisplayName();
+            if (versionDisplay.isEmpty()) {
+                writeLn(" * with no version specified");
+            } else {
+                writeLn(" * with version '" + versionDisplay + "'.");
+            }
+        }
     }
 
     private static String leafNodeForAlias(String alias) {
@@ -662,11 +672,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeLn("/**");
             writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + plugin.getId() + "'");
-            if (plugin.getVersionRef() != null) {
-                writeLn(" * with versionRef '" + plugin.getVersionRef() + "'.");
-            } else {
-                writeLn(" * with version '" + plugin.getVersion().getDisplayName() + "'.");
-            }
+            writeVersionInformation(plugin.getVersionRef(), plugin.getVersion());
             String context = plugin.getContext();
             if (context != null) {
                 writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));

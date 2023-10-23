@@ -159,17 +159,21 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
                 it.strictly('[1.0, 2.0[')
             }
             library('bar', 'group', 'bar').versionRef('barVersion')
+            library('boo', 'group', 'boo').withoutVersion()
             plugin('fooPlugin', 'org.foo.plugin').version('1.0')
             plugin('barPlugin', 'org.bar.plugin').versionRef('barVersion')
+            plugin('bazPlugin', 'org.baz.plugin').version('')
         }
 
         then:
         sources.hasDependencyAlias('foo', 'getFoo', "with version '1.0'")
         sources.hasDependencyAlias('fooBaz', 'getFooBaz', "with version '{strictly [1.0, 2.0[; prefer 1.2}'")
         sources.hasDependencyAlias('bar', 'getBar', "with versionRef 'barVersion'")
+        sources.hasDependencyAlias('boo', 'getBoo', "with no version specified")
 
         sources.hasPlugin('fooPlugin', 'getFooPlugin', "with version '1.0'")
         sources.hasPlugin('barPlugin', 'getBarPlugin', "with versionRef 'barVersion'")
+        sources.hasPlugin('bazPlugin', 'getBazPlugin', "with no version specified")
     }
 
     @VersionCatalogProblemTestFor(
