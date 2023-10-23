@@ -109,6 +109,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformWorkspaceServices(
+            artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
             unscopedCacheBuilderFactory
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
@@ -27,19 +29,28 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
+import java.io.File;
+import java.lang.management.ManagementFactory;
 
 @NotThreadSafe
 public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
+
+    private static final Logger LOGGER = Logging.getLogger(ImmutableTransformWorkspaceServices.class);
+
     private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
     private final DefaultImmutableWorkspaceProvider workspaceProvider;
+    private final File cacheDir;
 
     public ImmutableTransformWorkspaceServices(
+        File cacheDir,
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
         CacheConfigurationsInternal cacheConfigurations
     ) {
+        this.cacheDir = cacheDir;
+        LOGGER.warn("Creating new ImmutableTransformWorkspaceServices in UserHomeScope for process: {} with cache dir: {}", ManagementFactory.getRuntimeMXBean().getName(), cacheDir);
         this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
         this.identityCache = identityCache;
     }
@@ -56,6 +67,7 @@ public class ImmutableTransformWorkspaceServices implements TransformWorkspaceSe
 
     @Override
     public void close() {
+        LOGGER.warn("Closing ImmutableTransformWorkspaceServices in UserHomeScope for process: {} with cache dir: {}", ManagementFactory.getRuntimeMXBean().getName(), cacheDir);
         workspaceProvider.close();
     }
 }

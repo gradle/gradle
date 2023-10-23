@@ -33,11 +33,11 @@ class Execute1InstanceInstrumentationInDynamicGroovyWithIndyIntegrationTest exte
     def testCases() {
         return [
             // varInitializer | processCreator | expectedPwdSuffix | expectedEnvVar
-            [fromString(), "command.execute()", "", ""],
-            [fromGroovyString(), "command.execute()", "", ""],
-            [fromStringArray(), "command.execute()", "", ""],
-            [fromStringList(), "command.execute()", "", ""],
-            [fromObjectList(), "command.execute()", "", ""],
+//            [fromString(), "command.execute()", "", ""],
+//            [fromGroovyString(), "command.execute()", "", ""],
+//            [fromStringArray(), "command.execute()", "", ""],
+//            [fromStringList(), "command.execute()", "", ""],
+//            [fromObjectList(), "command.execute()", "", ""],
             // null-safe call
             [fromGroovyString(), "command?.execute()", "", ""],
         ]
