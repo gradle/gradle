@@ -23,8 +23,7 @@ import org.gradle.exemplar.test.normalizer.OutputNormalizer
 class ProgressLoggingOutputNormalizer implements OutputNormalizer {
     public static final String PROGRESS_LOG_LINE_PREFIX = "> Progress:";
 
-    @Override
-    String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
+    static String normalize(String commandOutput) {
         List<String> result = new ArrayList<>();
         final List<String> lines = Arrays.asList(commandOutput.split("\\r?\\n", -1));
         int i = 0;
@@ -37,5 +36,10 @@ class ProgressLoggingOutputNormalizer implements OutputNormalizer {
         }
 
         return StringUtils.join(result, "\n");
+    }
+
+    @Override
+    String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
+        return normalize(commandOutput);
     }
 }

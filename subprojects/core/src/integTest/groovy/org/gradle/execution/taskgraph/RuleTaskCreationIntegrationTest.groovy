@@ -409,13 +409,14 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         succeeds "bar", "foo"
 
         then:
-        output.matches """(?s).*tasks defined.*
-bar created.*
-bar initialized.*
-bar configured.*
-foo created.*
-foo initialized.*
-foo configured.*"""
+        output.contains """tasks defined
+bar created
+bar initialized
+bar configured
+foo created
+foo initialized
+foo configured
+"""
     }
 
     def "two rules attempt to create task"() {

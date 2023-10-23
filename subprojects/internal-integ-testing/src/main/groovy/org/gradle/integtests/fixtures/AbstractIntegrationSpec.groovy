@@ -33,6 +33,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.logging.ProgressLoggingOutputNormalizer
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -556,7 +557,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     String getOutput() {
-        result.output
+        ProgressLoggingOutputNormalizer.normalize(result.output)
     }
 
     String getErrorOutput() {
