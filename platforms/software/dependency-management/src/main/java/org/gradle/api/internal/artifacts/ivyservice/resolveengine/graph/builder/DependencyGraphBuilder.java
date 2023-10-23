@@ -484,9 +484,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleArtifactVariantsException variantsSelectionException = new IncompatibleArtifactVariantsException(
-                IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
-            );
+            IncompatibleArtifactVariantsException variantsSelectionException = variantSelector.getFailureProcessor().incompatibleArtifactVariantsFailure(selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

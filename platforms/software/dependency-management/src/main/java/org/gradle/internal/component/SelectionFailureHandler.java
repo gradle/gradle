@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -27,6 +28,8 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
@@ -47,6 +50,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -143,6 +147,15 @@ public class SelectionFailureHandler {
         return unknownArtifactVariantSelectionFailure(schema, ArtifactVariantSelectionException.selectionFailed(producer, t));
     }
 
+    public IncompatibleArtifactVariantsException incompatibleArtifactVariantsFailure(ComponentState selected, Set<NodeState> incompatibleNodes) {
+        String message = buildIncompatibleArtifactVariantsFailureMsg(selected, incompatibleNodes);
+        IncompatibleArtifactVariantsException e = new IncompatibleArtifactVariantsException(message);
+
+        // TODO: Register failure with Problems API
+
+        return e;
+    }
+
     private String buildNoMatchingVariantsFailureMsg(
         String producerDisplayName,
         AttributeContainerInternal consumer,
@@ -226,6 +239,36 @@ public class SelectionFailureHandler {
             formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
         }
         formatter.endChildren();
+    }
+
+    private String buildIncompatibleArtifactVariantsFailureMsg(ComponentState selected, Set<NodeState> incompatibleNodes) {
+        StringBuilder sb = new StringBuilder("Multiple incompatible variants of ")
+            .append(selected.getId())
+            .append(" were selected:\n");
+        ArrayList<NodeState> sorted = Lists.newArrayList(incompatibleNodes);
+        sorted.sort(Comparator.comparing(NodeState::getNameWithVariant));
+        for (NodeState node : sorted) {
+            sb.append("   - Variant ").append(node.getNameWithVariant()).append(" has attributes ");
+            formatAttributes(sb, node.getMetadata().getAttributes());
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private void formatAttributes(StringBuilder sb, ImmutableAttributes attributes) {
+        ImmutableSet<Attribute<?>> keySet = attributes.keySet();
+        List<Attribute<?>> sorted = Lists.newArrayList(keySet);
+        sorted.sort(Comparator.comparing(Attribute::getName));
+        boolean space = false;
+        sb.append("{");
+        for (Attribute<?> attribute : sorted) {
+            if (space) {
+                sb.append(", ");
+            }
+            sb.append(attribute.getName()).append("=").append(attributes.getAttribute(attribute));
+            space = true;
+        }
+        sb.append("}");
     }
     // endregion Artifact Variant Selection Failures
 
