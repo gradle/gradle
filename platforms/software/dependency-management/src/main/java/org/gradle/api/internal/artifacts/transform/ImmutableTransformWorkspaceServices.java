@@ -28,6 +28,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
+import java.util.function.Function;
 
 @NotThreadSafe
 public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
@@ -36,13 +37,21 @@ public class ImmutableTransformWorkspaceServices implements TransformWorkspaceSe
 
     public ImmutableTransformWorkspaceServices(
         CacheBuilder cacheBuilder,
+        Function<String, CacheBuilder> finnerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
         CacheConfigurationsInternal cacheConfigurations,
         FileLockManager fileLockManager
     ) {
-        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations, fileLockManager);
+        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(
+            cacheBuilder,
+            finnerCacheFactory,
+            fileAccessTimeJournal,
+            executionHistoryStore,
+            cacheConfigurations,
+            fileLockManager
+        );
         this.identityCache = identityCache;
     }
 

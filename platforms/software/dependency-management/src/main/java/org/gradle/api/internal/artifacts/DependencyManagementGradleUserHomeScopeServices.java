@@ -42,6 +42,9 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
+import java.io.File;
+import java.util.function.Function;
+
 public class DependencyManagementGradleUserHomeScopeServices {
 
     ToPlannedNodeConverter createToPlannedTransformStepConverter() {
@@ -110,11 +113,16 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheConfigurationsInternal cacheConfigurations,
         FileLockManager fileLockManager
     ) {
+        Function<String, CacheBuilder> finnerCacheFactory = path -> unscopedCacheBuilderFactory
+            .cache(new File(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), path))
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName("Artifact transforms cache finner cache");
         return new ImmutableTransformWorkspaceServices(
             unscopedCacheBuilderFactory
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),
+            finnerCacheFactory,
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
