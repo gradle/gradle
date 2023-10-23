@@ -237,8 +237,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             }
 
             if (spec.isPublished()) {
-                adhocComponent.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
-                adhocComponent.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+                adhocComponent.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true, feature.getCompileClasspathConfiguration()));
+                adhocComponent.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true, feature.getRuntimeClasspathConfiguration()));
             }
         }
     }

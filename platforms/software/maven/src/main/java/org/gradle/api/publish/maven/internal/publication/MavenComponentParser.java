@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -141,7 +140,7 @@ public class MavenComponentParser {
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(
             LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
 
-        Set<PublishedDependency> seenDependencies = Sets.newHashSet();
+        Set<MavenDependencyKey> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
 
         List<MavenDependency> dependencies = new ArrayList<>();
@@ -166,22 +165,26 @@ public class MavenComponentParser {
                 globalExcludes
             );
 
+            Consumer<MavenDependency> dependencyAdder = dep -> {
+                if (seenDependencies.add(MavenDependencyKey.of(dep))) {
+                    dependencies.add(dep);
+                }
+            };
+
             for (ModuleDependency dependency : variant.getDependencies()) {
-                if (seenDependencies.add(PublishedDependency.of(dependency))) {
-                    if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
-                        // We skip all self referencing dependency declarations, unless they have custom artifact information
-                        continue;
-                    }
-                    if (platformSupport.isTargetingPlatform(dependency)) {
-                        dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
-                    } else {
-                        dependencyFactory.convertDependency(dependency, dependencies::add);
-                    }
+                if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
+                    // We skip all self referencing dependency declarations, unless they have custom artifact information
+                    continue;
+                }
+                if (platformSupport.isTargetingPlatform(dependency)) {
+                    dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
+                } else {
+                    dependencyFactory.convertDependency(dependency, dependencyAdder);
                 }
             }
 
             for (DependencyConstraint dependency : variant.getDependencyConstraints()) {
-                if (seenConstraints.add(dependency)) { // TODO: Why do we not use PublishedDependency here?
+                if (seenConstraints.add(dependency)) { // TODO: De-duplicate constraints like we do with MavenDependencyKey
                     if (dependency instanceof DefaultProjectDependencyConstraint || dependency.getVersion() != null) {
                         dependencyFactory.convertDependencyConstraint(dependency, constraints::add);
                     } else {
@@ -267,6 +270,10 @@ public class MavenComponentParser {
 
         private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
 
+            // TODO: These warnings are not very useful. There are cases where a dependency declared
+            // with attributes or capabilities is correctly converted to maven coordinates -- even
+            // when dependency mapping is disabled.
+            // At the very least, we do not want these warnings when dependency mapping is enabled.
             if (!dependency.getAttributes().isEmpty()) {
                 warnings.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
             }
@@ -284,7 +291,7 @@ public class MavenComponentParser {
 
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
-                if (!artifact.getName().equals(coordinates.getName())) {
+                if (!artifact.getName().equals(dependency.getName())) {
                     // TODO: We should not allow the artifact name to change the coordinates.
                     //  Artifacts with name different from the coordinate name is not supported in Maven.
                     //  This behavior should be deprecated.
@@ -438,36 +445,32 @@ public class MavenComponentParser {
 
     /**
      * This is used to de-duplicate dependencies based on relevant contents.
-     * In particular, versions are ignored.
+     * In particular, version, scope, and optional are ignored.
      */
-    private static class PublishedDependency {
+    private static class MavenDependencyKey {
         private final String group;
         private final String name;
-        private final String targetConfiguration;
-        private final AttributeContainer attributes;
-        private final Set<DependencyArtifact> artifacts;
-        private final Set<ExcludeRule> excludeRules;
-        private final List<Capability> requestedCapabilities;
+        private final String type;
+        private final String classifier;
 
-        private PublishedDependency(String group, String name, String targetConfiguration, AttributeContainer attributes, Set<DependencyArtifact> artifacts, Set<ExcludeRule> excludeRules, List<Capability> requestedCapabilities) {
+        private MavenDependencyKey(
+            String group,
+            String name,
+            @Nullable String type,
+            @Nullable String classifier
+        ) {
             this.group = group;
             this.name = name;
-            this.targetConfiguration = targetConfiguration;
-            this.attributes = attributes;
-            this.artifacts = artifacts;
-            this.excludeRules = excludeRules;
-            this.requestedCapabilities = requestedCapabilities;
+            this.type = type;
+            this.classifier = classifier;
         }
 
-        static PublishedDependency of(ModuleDependency dep) {
-            return new PublishedDependency(
-                dep.getGroup(),
-                dep.getName(),
-                dep.getTargetConfiguration(),
-                dep.getAttributes(),
-                dep.getArtifacts(),
-                dep.getExcludeRules(),
-                dep.getRequestedCapabilities()
+        static MavenDependencyKey of(MavenDependency dep) {
+            return new MavenDependencyKey(
+                dep.getGroupId(),
+                dep.getArtifactId(),
+                dep.getType(),
+                dep.getClassifier()
             );
         }
 
@@ -479,19 +482,16 @@ public class MavenComponentParser {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            PublishedDependency that = (PublishedDependency) o;
+            MavenDependencyKey that = (MavenDependencyKey) o;
             return Objects.equals(group, that.group) &&
                 Objects.equals(name, that.name) &&
-                Objects.equals(targetConfiguration, that.targetConfiguration) &&
-                Objects.equals(attributes, that.attributes) &&
-                Objects.equals(artifacts, that.artifacts) &&
-                Objects.equals(excludeRules, that.excludeRules) &&
-                Objects.equals(requestedCapabilities, that.requestedCapabilities);
+                Objects.equals(type, that.type) &&
+                Objects.equals(classifier, that.classifier);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(group, name, targetConfiguration, attributes, artifacts, excludeRules, requestedCapabilities);
+            return Objects.hash(group, name, type, classifier);
         }
     }
 }

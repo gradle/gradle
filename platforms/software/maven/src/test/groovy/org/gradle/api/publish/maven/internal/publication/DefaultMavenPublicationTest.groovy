@@ -430,7 +430,7 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
-        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -461,7 +461,7 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "group"
         projectDependency.getName() >> "name"
-        projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:
         publication.from(componentWithDependency(projectDependency))

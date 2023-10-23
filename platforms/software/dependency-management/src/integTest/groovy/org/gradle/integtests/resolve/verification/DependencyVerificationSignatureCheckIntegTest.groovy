@@ -143,8 +143,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -185,8 +185,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
@@ -277,7 +277,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -363,7 +363,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -420,7 +420,7 @@ One artifact failed verification: parent-1.0.pom (org:parent:1.0) from repositor
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
+  - On artifact parent-1.0.pom (org:parent:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -549,8 +549,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -674,8 +674,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -692,8 +692,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -736,8 +736,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         assertVerificationError(false) {
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -749,8 +749,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         assertVerificationError(false) {
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
@@ -788,8 +788,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         assertConfigCacheDiscarded()
@@ -819,8 +819,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
 """
         assertConfigCacheDiscarded()
         when: "ignore key only for artifact"
@@ -833,7 +833,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
@@ -888,7 +888,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) but signature didn't match"""
         }
 
         where:
@@ -939,7 +939,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
         }
@@ -1119,7 +1119,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata.
@@ -1170,7 +1170,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven"""
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata.
@@ -1295,10 +1295,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Multiple signature verification errors found:
-      - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+      - Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Multiple signature verification errors found:
-      - Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
+      - Artifact was signed with key '14F53F0824875D73' but it wasn't found in any key server so it couldn't be verified
       - Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file. ${docsUrl}"""
@@ -1563,7 +1563,7 @@ ${verifFile.getText('us-ascii')}""", 'us-ascii')
         then:
         failure.assertHasDescription terse ? """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven""" : """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'D7BF96A169F77B28C934AB1614F53F0824875D73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 """
         where:
         terse << [true, false]
@@ -1867,6 +1867,68 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
         where:
         terse << [true, false]
+    }
+
+    def "ignores case for trusted keys"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString.toLowerCase().capitalize())
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        succeeds ":compileJava"
+    }
+
+    def "ignores case for ignored keys"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyIgnoredKey(getValidPublicKeyLongIdHexString().toLowerCase().capitalize())
+        }
+
+        given:
+        terseConsoleOutput(false)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact was signed but all keys were ignored
+      - in repository 'maven': checksum is missing from verification metadata.
+  - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
+      - in repository 'maven': artifact was signed but all keys were ignored
+      - in repository 'maven': checksum is missing from verification metadata."""
     }
 
     private static void tamperWithFile(File file) {

@@ -27,6 +27,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -250,7 +251,7 @@ public class DependencyVerificationConfiguration {
             if (keyId.getBytes(StandardCharsets.US_ASCII).length < 40) {
                 throw new InvalidGpgKeyIdsException(Collections.singletonList(keyId));
             } else {
-                this.keyId = keyId;
+                this.keyId = keyId.toUpperCase(Locale.ROOT);
             }
         }
 

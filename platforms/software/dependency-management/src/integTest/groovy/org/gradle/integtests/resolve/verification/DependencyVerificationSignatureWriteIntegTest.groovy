@@ -105,7 +105,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
       <ignored-keys>
-         <ignored-key id="14f53f0824875d73" reason="Key couldn't be downloaded from any key server"/>
+         <ignored-key id="14F53F0824875D73" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
    </configuration>
    <components>

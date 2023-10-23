@@ -304,8 +304,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
         component.getFeatures().add(mainFeature);
 
         // TODO: This process of manually adding variants to the component should be handled automatically when adding the feature to the component.
-        component.addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false));
-        component.addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false));
+        component.addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false, mainFeature.getCompileClasspathConfiguration()));
+        component.addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false, mainFeature.getRuntimeClasspathConfiguration()));
 
         // Create the default test suite
         JvmTestSuite defaultTestSuite = createDefaultTestSuite(mainFeature, project.getConfigurations(), project.getTasks(), project.getExtensions(), project.getObjects());

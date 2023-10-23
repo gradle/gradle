@@ -18,12 +18,31 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
+/**
+ * Given project coordinates, and optionally the name of a variant in that project,
+ * determine the coordinates which should be used in other published metadata to reference
+ * the project component or its variant.
+ *
+ * TODO: This data should instead be exposed by dependency-management via a ResolutionResult.
+ */
 public interface ProjectDependencyPublicationResolver {
     /**
-     * Determines the coordinates of the given type that should be used to reference the
+     * Determines the coordinates of the given type for the root component of the
      * project identified by {@code identityPath}.
      *
      * @throws UnsupportedOperationException if the project cannot be resolved.
      */
-    <T> T resolve(Class<T> coordsType, Path identityPath);
+    <T> T resolveComponent(Class<T> coordsType, Path identityPath);
+
+    /**
+     * Determines the coordinates of the given type that should be used to reference the
+     * variant with name {@code variantName}, contained in the root component of the
+     * project identified by {@code identityPath}.
+     *
+     * @return null if the {@code variantName} does not exist in the target project.
+     */
+    @Nullable
+    <T> T resolveVariant(Class<T> coordsType, Path identityPath, String variantName);
 }

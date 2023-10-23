@@ -47,6 +47,17 @@ The `groovy-base` plugin is now responsible for configuring source and target co
 If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
+=== Deprecations
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0:
+
+* `VersionNumber.parse(String)`
+* `VersionNumber.compareTo(VersionNumber)`
+
+
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 

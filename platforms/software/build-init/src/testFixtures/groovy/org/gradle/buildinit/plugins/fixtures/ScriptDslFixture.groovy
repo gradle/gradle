@@ -75,6 +75,10 @@ class ScriptDslFixture {
         parentFolder.file(settingsFileName)
     }
 
+    TestFile getVersionCatalogFile() {
+        rootDir.file("gradle/libs.versions.toml")
+    }
+
     TestFile scriptFile(String filePathWithoutExtension, TestFile parentFolder = rootDir) {
         def fileWithoutExtension = parentFolder.file(filePathWithoutExtension)
         new TestFile(fileWithoutExtension.parentFile, fileNameFor(fileWithoutExtension.name))
@@ -85,6 +89,7 @@ class ScriptDslFixture {
         assert getSettingsFile(parentFolder).exists()
         def gradleVersion = GradleVersion.current().version
         new WrapperTestFixture(parentFolder).generated(gradleVersion)
+        assert getVersionCatalogFile().exists()
     }
 
     void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {
@@ -100,16 +105,12 @@ class ScriptDslFixture {
         }
     }
 
-    Matcher<String> containsConfigurationDependencyNotation(String configuration, String notation, boolean useKotlinAccessors = true) {
+    Matcher<String> containsConfigurationDependencyNotation(String configuration, String notation) {
         switch (scriptDsl) {
             case KOTLIN:
-                if (useKotlinAccessors) {
-                    return containsString("$configuration(\"$notation")
-                } else {
-                    return containsString("\"$configuration\"(\"$notation")
-                }
+                return containsString("$configuration($notation")
             default:
-                return containsString("$configuration '$notation")
+                return containsString("$configuration $notation")
         }
     }
 

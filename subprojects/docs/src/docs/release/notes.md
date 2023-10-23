@@ -12,6 +12,8 @@ We would like to thank the following community members for their contributions t
 [Leonardo Silveira](https://github.com/sombriks),
 [Philipp Schneider](https://github.com/p-schneider)
 
+Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -148,6 +150,7 @@ The warnings and errors will help you identify and resolve these situations.
 See [authoring maintainable builds](userguide/authoring_maintainable_builds.html#sec:dont_anticipate_configuration_creation) for more information.
 <a name="dependency-verification"></a>
 
+<a name="dependency-verification-improvements"></a>
 ### Dependency verification improvements
 
 By default, Gradle searches for trusted keys first in binary `.gpg` files and then in ASCII-armored `.keys` file.
@@ -171,6 +174,47 @@ To do so, edit `verification-metadata.xml` by adding the `keyring-format` settin
 
 We've also updated the XML validation schema for `verification-metadata.xml`.
 Previous versions of the schema had minor issues that prevented strict XML validators from accepting the file.
+
+Trusted and ignored keys in `verification-metadata.xml` are now case-insensitive.
+By default, they are written in upper-case to match the ASCII-armored format of `verification-keyring.keys`.
+
+<a name="build-init"></a>
+### Build Init improvements
+
+#### Build Init utilizing version Catalogs
+Version catalogs are the recommended way to centrally define dependency modules, plugins and their versions.
+The [build init plugin](userguide/build_init_plugin.html) now generates projects utilizing version catalogs in the conventional location `gradle/libs.versions.toml`.
+This was done to encourage version catalog usage since it became a stable feature in Gradle 8.0.
+
+Refer to the [user manual](userguide/platforms.html#sub:central-declaration-of-dependencies) and the [TOML file format](userguide/platforms.html#sub::toml-dependencies-format) for information on the topic.
+
+#### New `--java-version` Parameter
+
+Gradle enters interactive mode and prompts the user when required information for the selected project type is missing.
+
+In order to support generating Java projects non-interactively, the `--java-version` parameter was added to the `init` task.
+This parameter allows you to specify the major version of Java to use in the generated project when launching the `init` task, in order to avoid Gradle later prompting you for it.
+
+<a name="better-diagnostics-unable-to-delete"></a>
+### Better diagnostics when unable to delete files
+
+When failing to delete files, Gradle will now provide extended diagnostics.
+This helps troubleshoot issues with locked files, concurrent writes, etc. 
+
+The list of files that failed to be deleted is reported.
+If new files appear under a directory during deletion, their paths will be reported separately.
+The root cause exceptions for each file deletion failure will also be attached to the stacktrace.
+
+<a name="other-improvements"></a>
+### Other improvements
+
+#### Build-wide locations available to Settings scripts and plugins via `Settings.layout`
+
+Settings scripts and plugins can now access standard build-wide file system locations as lazily computed values via [`Settings.layout`](javadoc/org/gradle/api/initialization/Settings.html#getLayout--). That is analogous to what [`Project.layout`](javadoc/org/gradle/api/Project.html#getLayout--) offers for project-specific locations. 
+These API are currently incubating, but eventually should replace existing accessors in `Settings` which return eagerly computed locations: 
+
+* `Settings.rootDir` -> `Settings.layout.rootDirectory`
+* `Settings.settingsDir` -> `Settings.layout.settingsDirectory`
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

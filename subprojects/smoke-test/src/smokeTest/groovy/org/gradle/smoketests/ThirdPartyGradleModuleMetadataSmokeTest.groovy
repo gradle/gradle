@@ -156,6 +156,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             expectJavaPluginConventionDeprecation(kotlinVersionNumber)
             expectBasePluginConventionDeprecation(kotlinVersionNumber, agpVersionNumber)
             maybeExpectOrgGradleUtilGUtilDeprecation(agpVersion)
+            expectBasePluginExtensionArchivesBaseNameDeprecation(kotlinVersionNumber, agpVersionNumber)
             if (GradleContextualExecuter.isConfigCache()) {
                 expectForUseAtConfigurationTimeDeprecation(kotlinVersionNumber)
             }

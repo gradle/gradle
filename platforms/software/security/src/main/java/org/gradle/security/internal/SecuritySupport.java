@@ -97,7 +97,7 @@ public class SecuritySupport {
     }
 
     public static String toLongIdHexString(long key) {
-        return String.format("%016x", key).trim();
+        return String.format("%016X", key).trim();
     }
 
     public static String toHexString(byte[] fingerprint) {

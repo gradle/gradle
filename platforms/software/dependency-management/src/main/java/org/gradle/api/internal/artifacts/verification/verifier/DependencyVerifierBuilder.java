@@ -39,6 +39,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -242,7 +243,7 @@ public class DependencyVerifierBuilder {
         }
 
         public void addTrustedKey(String key) {
-            pgpKeys.add(key);
+            pgpKeys.add(key.toUpperCase(Locale.ROOT));
         }
 
         public void addIgnoredKey(IgnoredKey key) {

@@ -20,7 +20,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import java.util.Arrays;
 
 public class Fingerprint {
-    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
+    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
     private final byte[] fingerprint;
     private final int hashCode;
