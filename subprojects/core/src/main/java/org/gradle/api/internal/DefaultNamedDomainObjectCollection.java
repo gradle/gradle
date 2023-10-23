@@ -307,13 +307,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return index.get(name) != null || index.getPending(name) != null;
     }
 
-    @Nullable
-    protected T findByNameWithoutRules(String name) {
+    protected @Nullable T findByNameWithoutRules(String name) {
         return index.get(name);
     }
 
-    @Nullable
-    protected ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
+    protected @Nullable ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
         return index.getPending(name);
     }
 
@@ -553,8 +551,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected interface Index<T> {
         void put(String name, T value);
 
-        @Nullable
-        T get(String name);
+        @Nullable T get(String name);
 
         void remove(String name);
 
@@ -564,8 +561,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         <S extends T> Index<S> filter(CollectionFilter<S> filter);
 
-        @Nullable
-        ProviderInternal<? extends T> getPending(String name);
+        @Nullable ProviderInternal<? extends T> getPending(String name);
 
         void putPending(String name, ProviderInternal<? extends T> provider);
 
@@ -611,9 +607,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return new FilteredIndex<S>(this, filter);
         }
 
-        @Nullable
         @Override
-        public ProviderInternal<? extends T> getPending(String name) {
+        public @Nullable ProviderInternal<? extends T> getPending(String name) {
             return pendingMap.get(name);
         }
 
@@ -688,9 +683,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return new FilteredIndex<S>(delegate, this.filter.and(filter));
         }
 
-        @Nullable
         @Override
-        public ProviderInternal<? extends T> getPending(String name) {
+        public @Nullable ProviderInternal<? extends T> getPending(String name) {
             ProviderInternal<?> provider = delegate.getPending(name);
             if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
                 return Cast.uncheckedNonnullCast(provider);
@@ -775,8 +769,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    @Nullable
-    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+    private @Nullable NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
         NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
         // Run the rules and try to find something again.
         if (provider == null) {
@@ -788,8 +781,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return provider;
     }
 
-    @Nullable
-    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
+    private @Nullable NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
         // Look for a realized object
         T object = findByNameWithoutRules(name);
         if (object != null) {
@@ -820,9 +812,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             this.type = type;
         }
 
-        @Nullable
         @Override
-        public Class<I> getType() {
+        public @Nullable Class<I> getType() {
             return type;
         }
 

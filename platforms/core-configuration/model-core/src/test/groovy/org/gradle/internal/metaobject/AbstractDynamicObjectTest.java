@@ -29,8 +29,7 @@ import static org.junit.Assert.fail;
 
 public class AbstractDynamicObjectTest {
     private final AbstractDynamicObject object = new AbstractDynamicObject() {
-        @Nonnull
-        public String getDisplayName() {
+        public @Nonnull String getDisplayName() {
             return "<display-name>";
         }
     };

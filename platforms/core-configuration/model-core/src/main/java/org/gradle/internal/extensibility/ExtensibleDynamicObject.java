@@ -107,9 +107,8 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         return dynamicDelegate.getDisplayName();
     }
 
-    @Nullable
     @Override
-    public Class<?> getPublicType() {
+    public @Nullable Class<?> getPublicType() {
         return dynamicDelegate.getPublicType();
     }
 

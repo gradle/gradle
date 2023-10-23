@@ -46,8 +46,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         return DynamicInvokeResult.notFound();
     }
 
-    @Nullable
-    public Class<?> getPublicType() {
+    public @Nullable Class<?> getPublicType() {
         return null;
     }
 
