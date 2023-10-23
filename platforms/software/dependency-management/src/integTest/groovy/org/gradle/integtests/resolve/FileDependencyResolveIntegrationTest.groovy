@@ -154,7 +154,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         settingsFile << "include 'sub'; rootProject.name='main'"
         buildFile << '''
             allprojects {
-                configurations { compile }
+                configurations { conf }
                 task jar {
                     def outputFile = file("${project.name}.jar")
                     outputs.file outputFile
@@ -163,20 +163,23 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                     }
                 }
             }
-            dependencies {
-                compile project(path: ':sub', configuration: 'compile')
-                compile jar.outputs.files
+            configurations {
+                compile
             }
-'''
+            dependencies {
+                compile project(path: ':sub', configuration: 'conf')
+                conf project(path: ':sub', configuration: 'conf')
+                conf jar.outputs.files
+            }
+        '''
         file("sub/build.gradle") << '''
             dependencies {
-                compile jar.outputs.files
-                compile project(path: ':', configuration: 'compile')
+                conf jar.outputs.files
+                conf project(path: ':', configuration: 'conf')
             }
-'''
+        '''
 
         when:
-        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'compile' has been consumed as a variant, resulting in a circular dependency graph. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
         run ":checkDeps"
 
         then:

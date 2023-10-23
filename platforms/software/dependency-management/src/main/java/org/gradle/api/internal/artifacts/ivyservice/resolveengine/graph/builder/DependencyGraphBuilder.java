@@ -397,11 +397,11 @@ public class DependencyGraphBuilder {
             String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
             DeprecationLogger.deprecate(
                 String.format(
-                    "The resolved configuration '%s' has been consumed as a variant, resulting in a circular dependency graph. " +
+                    "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
                     "Depending on the resolved configuration in this manner",
                     rootNodeName
                 ))
-                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method.")
+                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")
                 .nagUser();

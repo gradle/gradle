@@ -21,11 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        settingsFile << """
-            include 'child'
-            rootProject.name = 'root'
-        """
-
+        settingsFile << "include 'child'"
         buildFile << """
             allprojects {
                 configurations {
@@ -132,25 +128,28 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             allprojects {
                 task jar
                 task lib
+                configurations {
+                    conf
+                }
                 artifacts {
-                    compile file: file("\${project.name}.jar"), builtBy: jar
+                    conf file: file("\${project.name}.jar"), builtBy: jar
                 }
                 dependencies {
-                    compile files("\${project.name}-lib.jar") { builtBy lib }
+                    conf files("\${project.name}-lib.jar") { builtBy lib }
                 }
             }
             dependencies {
-                compile project(':child')
+                compile project(path: ':child', configuration: 'conf')
+                conf project(path: ':child', configuration: 'conf')
             }
             project(':child') {
                 dependencies {
-                    compile project(path: ':', configuration: 'compile')
+                    conf project(path: ':', configuration: 'conf')
                 }
             }
 """
 
         when:
-        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'compile' has been consumed as a variant, resulting in a circular dependency graph. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
         run("useCompileConfiguration")
 
         then:

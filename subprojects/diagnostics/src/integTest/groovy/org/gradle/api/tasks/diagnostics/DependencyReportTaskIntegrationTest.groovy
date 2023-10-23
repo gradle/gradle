@@ -34,6 +34,8 @@ allprojects {
     version = 1.0
 }
 
+dependencies { compile project(":c") }
+
 project(":a") {
     dependencies { compile project(":b") }
     dependencies { compile project(":c") }
@@ -49,16 +51,16 @@ project(":c") {
 """
 
         when:
-        executer.expectDocumentedDeprecationWarning("""The resolved configuration 'default' has been consumed as a variant, resulting in a circular dependency graph. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false, or use the 'resolvable(String)' configuration factory method. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration""")
-        run ":c:dependencies"
+        run ":dependencies"
 
         then:
         output.contains """
 compile
-\\--- project :a
-     +--- project :b
-     |    \\--- project :c (*)
-     \\--- project :c (*)
+\\--- project :c
+     \\--- project :a
+          +--- project :b
+          |    \\--- project :c (*)
+          \\--- project :c (*)
 """
         output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
