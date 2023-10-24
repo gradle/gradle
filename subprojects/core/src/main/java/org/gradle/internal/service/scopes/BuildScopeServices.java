@@ -41,7 +41,9 @@ import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
@@ -50,6 +52,8 @@ import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -68,6 +72,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
@@ -84,6 +89,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -159,6 +165,7 @@ import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -258,22 +265,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new OrdinalGroupFactory();
     }
 
-//    BuildObjectFactory createObjectFactory(
-//        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-//        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-//        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
-//    ) {
-//        return new DefaultObjectFactory(
-//            instantiatorFactory.decorate(this),
-//            instantiator,
-//            directoryFileTreeFactory,
-//            patternSetFactory,
-//            propertyFactory,
-//            filePropertyFactory,
-//            taskDependencyFactory,
-//            fileCollectionFactory,
-//            domainObjectCollectionFactory);
-//    }
+    ObjectFactory createObjectFactory(
+        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
+    ) {
+        return new DefaultObjectFactory(
+            instantiatorFactory.decorate(this),
+            instantiator,
+            directoryFileTreeFactory,
+            patternSetFactory,
+            propertyFactory,
+            filePropertyFactory,
+            taskDependencyFactory,
+            fileCollectionFactory,
+            domainObjectCollectionFactory);
+    }
 
 
     ExecutionPlanFactory createExecutionPlanFactory(
