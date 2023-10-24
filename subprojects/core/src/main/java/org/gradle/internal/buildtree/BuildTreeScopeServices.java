@@ -35,6 +35,8 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.DecompressionCacheFactory;
@@ -63,12 +65,15 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
 import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -105,6 +110,15 @@ public class BuildTreeScopeServices {
         registration.add(TaskIdentityFactory.class);
         modelServices.applyServicesTo(registration);
     }
+
+        Problems createProblemsService(
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+//        List<ProblemTransformer> transformers,
+        ProblemDiagnosticsFactory problemDiagnosticsFactory
+    ) {
+        return new DefaultProblems(buildOperationProgressEventEmitter, Collections.emptyList(), problemDiagnosticsFactory.newStream());
+    }
+
 
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
