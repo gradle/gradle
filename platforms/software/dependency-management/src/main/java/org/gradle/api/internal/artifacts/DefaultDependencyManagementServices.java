@@ -115,7 +115,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -492,12 +492,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-            return new SelectionFailureHandler(problems);
+        ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+            return new ResolutionFailureHandler(problems);
         }
 
-        GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
-            return new GraphVariantSelector(selectionFailureHandler);
+        GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
+            return new GraphVariantSelector(resolutionFailureHandler);
         }
 
         ConfigurationResolver createDependencyResolver(

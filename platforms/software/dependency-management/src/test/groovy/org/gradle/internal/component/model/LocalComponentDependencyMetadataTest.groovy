@@ -35,7 +35,7 @@ import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.ConfigurationNotFoundException
 import org.gradle.internal.component.IncompatibleGraphVariantsException
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
@@ -55,7 +55,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
-        variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
     }
 
     def "returns this when same target requested"() {

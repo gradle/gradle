@@ -62,8 +62,8 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.exceptions.StyledException.style;
 
 /**
- * Provides a central location for logging and reporting variant selection failures appearing during
- * each stage of the selection process.
+ * Provides a central location for logging and reporting failures appearing during
+ * each stage of resolution, including during the variant selection process.
  *
  * All variant selection failures encountered during selection by the {@link GraphVariantSelector} or
  * {@link AttributeMatchingArtifactVariantSelector}
@@ -73,11 +73,11 @@ import static org.gradle.internal.exceptions.StyledException.style;
  * Gradle managed type, and so it can serve as an injection point for any types wishing to be notified or respond
  * to the variant selection process.
  */
-public class SelectionFailureHandler {
+public class ResolutionFailureHandler {
     private static final String FAILURE_TYPE = "Variant Selection Failure";
     private final Problems problemsService;
 
-    public SelectionFailureHandler(Problems problemsService) {
+    public ResolutionFailureHandler(Problems problemsService) {
         this.problemsService = problemsService;
     }
 
