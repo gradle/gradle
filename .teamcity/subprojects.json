@@ -99,7 +99,7 @@
   },
   {
     "name": "build-operations",
-    "path": "subprojects/build-operations",
+    "path": "platforms/core-runtime/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
