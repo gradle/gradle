@@ -216,6 +216,13 @@ These API are currently incubating, but eventually should replace existing acces
 * `Settings.rootDir` -> `Settings.layout.rootDirectory`
 * `Settings.settingsDir` -> `Settings.layout.settingsDirectory`
 
+#### Improvements to Javadoc of generated version catalog accessors
+
+The Javadoc for generated accessors for plugins and libraries from a [version catalog](userguide/platforms.html#sub:mapping-aliases-to-accessors) now includes information about the version of the plugin or library.
+This version information can be either a value, a version reference or the indication that no version was provided.
+
+TODO include image, will be done as late as possible as images in this file make it a mess right now
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
