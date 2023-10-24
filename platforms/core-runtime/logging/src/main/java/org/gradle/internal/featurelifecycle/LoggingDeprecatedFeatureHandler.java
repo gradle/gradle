@@ -19,11 +19,8 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningCategory;
-import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
@@ -42,9 +39,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
-import static org.gradle.api.problems.Severity.WARNING;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -87,19 +81,19 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
             }
         }
-        if (problemsService != null) {
-            problemsService.createProblem(new ProblemBuilderSpec() {
-                    @Override
-                    public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
-                        ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
-                            .documentedAt(usage.getDocumentationUrl());
-                        return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
-                            .category(DEPRECATION, "generic_deprecation")
-                            .severity(WARNING);
-                    }
-                })
-                .report();
-        }
+//        if (problemsService != null) {
+//            problemsService.createProblem(new ProblemBuilderSpec() {
+//                    @Override
+//                    public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+//                        ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
+//                            .documentedAt(usage.getDocumentationUrl());
+//                        return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
+//                            .category(DEPRECATION, "generic_deprecation")
+//                            .severity(WARNING);
+//                    }
+//                })
+//                .report();
+//        }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
