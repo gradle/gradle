@@ -549,7 +549,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+            return arguments.length == 1 && arguments[0] instanceof Closure && hasProperty(name);
         }
     }
 
@@ -611,7 +611,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(this, filter);
+            return new FilteredIndex<S>(this, filter, null);
         }
 
         @Override
@@ -643,11 +643,17 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private static class FilteredIndex<T> implements Index<T> {
 
         private final Index<? super T> delegate;
-        private final CollectionFilter<T> filter;
 
-        FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+        @Nullable
+        private final CollectionFilter<T> collectionFilter;
+
+        @Nullable
+        private final Spec<String> nameFilter;
+
+        FilteredIndex(Index<? super T> delegate, @Nullable CollectionFilter<T> collectionFilter, @Nullable Spec<String> nameFilter) {
             this.delegate = delegate;
-            this.filter = filter;
+            this.collectionFilter = collectionFilter;
+            this.nameFilter = nameFilter;
         }
 
         @Override
@@ -657,7 +663,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public T get(String name) {
-            return filter.filter(delegate.get(name));
+            if (!isNameFilterSatisfied(name)) {
+                return null;
+            }
+            Object value = delegate.get(name);
+            return collectionFilter == null ? Cast.uncheckedCast(value) : collectionFilter.filter(value);
         }
 
         @Override
@@ -674,11 +684,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         public NavigableMap<String, T> asMap() {
             NavigableMap<String, ? super T> delegateMap = delegate.asMap();
 
-            NavigableMap<String, T> filtered = new TreeMap<String, T>();
+            NavigableMap<String, T> filtered = new TreeMap<>();
             for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
-                T obj = filter.filter(entry.getValue());
-                if (obj != null) {
-                    filtered.put(entry.getKey(), obj);
+                String name = entry.getKey();
+                if (!isNameFilterSatisfied(name)) {
+                    continue;
+                }
+                Object value = entry.getValue();
+                if (collectionFilter != null) {
+                    T obj = collectionFilter.filter(value);
+                    if (obj != null) {
+                        filtered.put(name, obj);
+                    }
+                } else {
+                    filtered.put(name, Cast.uncheckedCast(value));
                 }
             }
 
@@ -686,18 +705,17 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
-            return new FilteredIndex<S>(delegate, this.filter.and(filter));
+        public <S extends T> Index<S> filter(CollectionFilter<S> collectionFilter) {
+            return new FilteredIndex<>(delegate, this.collectionFilter == null ? collectionFilter : this.collectionFilter.and(collectionFilter), nameFilter);
         }
 
         @Override
         public @Nullable ProviderInternal<? extends T> getPending(String name) {
             ProviderInternal<?> provider = delegate.getPending(name);
-            if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
-                return Cast.uncheckedNonnullCast(provider);
-            } else {
-                return null;
+            if (isPendingSatisfyingFilters(name, provider)) {
+                return Cast.uncheckedCast(provider);
             }
+            return null;
         }
 
         @Override
@@ -721,12 +739,27 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
             Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
-                if (entry.getValue().getType() != null && filter.getType().isAssignableFrom(entry.getValue().getType())) {
-                    ProviderInternal<? extends T> typedValue = Cast.uncheckedCast(entry.getValue());
-                    filteredMap.put(entry.getKey(), typedValue);
+                String name = entry.getKey();
+                ProviderInternal<?> provider = entry.getValue();
+                if (isPendingSatisfyingFilters(name, provider)) {
+                    filteredMap.put(entry.getKey(), Cast.uncheckedCast(provider));
                 }
             }
             return filteredMap;
+        }
+
+        private boolean isNameFilterSatisfied(String name) {
+            return nameFilter == null || nameFilter.isSatisfiedBy(name);
+        }
+
+        private boolean isPendingSatisfyingFilters(String name, @Nullable ProviderInternal<?> provider) {
+            if (!isNameFilterSatisfied(name)) {
+                return false;
+            }
+            if (provider != null) {
+                return collectionFilter == null || (provider.getType() != null && collectionFilter.getType().isAssignableFrom(provider.getType()));
+            }
+            return false;
         }
     }
 
