@@ -17,19 +17,16 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemTransformer;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.internal.OperationListener;
-
-import java.util.List;
+import org.gradle.problems.internal.transformers.TaskPathLocationTransformer;
 
 public class ProblemsGlobalServices {
 
-//    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
-//        return new TaskPathLocationTransformer(buildOperationAncestryTracker, operationListener);
-//    }
+    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
+        return new TaskPathLocationTransformer(buildOperationAncestryTracker, operationListener);
+    }
 
     OperationListener createOperationListener(BuildOperationListenerManager buildOperationListenerManager) {
         OperationListener operationListener = new OperationListener();
@@ -37,12 +34,12 @@ public class ProblemsGlobalServices {
         return operationListener;
     }
 
-    Problems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        List<ProblemTransformer> transformers
-//        ProblemDiagnosticsFactory problemDiagnosticsFactory
-    ) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
-    }
+//    Problems createProblemsService(
+//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+//        List<ProblemTransformer> transformers
+////        ProblemDiagnosticsFactory problemDiagnosticsFactory
+//    ) {
+//        return new DefaultProblems(buildOperationProgressEventEmitter);
+//    }
 
 }
