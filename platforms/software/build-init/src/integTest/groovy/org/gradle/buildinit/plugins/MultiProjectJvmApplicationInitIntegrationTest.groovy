@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -37,6 +38,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         return null
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4010")
     @Unroll("creates multi-project application sample when incubating flag = #incubating")
     def "creates multi-project application sample"() {
         given:
