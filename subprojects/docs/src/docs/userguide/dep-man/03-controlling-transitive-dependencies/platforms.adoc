@@ -441,7 +441,8 @@ include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/
 include::sample[dir="snippets/dependencyManagement/catalogs-javaPlatformCatalog/groovy/consumer",files="settings.gradle[tags=dynamic_version]"]
 ====
 
-By default, Gradle caches dynamic versions for 24 hours. To change how long Gradle will cache the resolved version of the version catalog, use:
+By default, Gradle caches dynamic versions for 24 hours. 
+To change how long Gradle will cache the resolved version of the version catalog, use:
 
 .Dynamic version cache control
 ====
