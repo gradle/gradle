@@ -17,9 +17,12 @@
 package org.gradle.internal.html;
 
 import org.gradle.internal.xml.SimpleMarkupWriter;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <p>A streaming HTML writer.</p>
@@ -37,5 +40,31 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
     private void writeHtmlHeader() throws IOException {
         writeRaw("<!DOCTYPE html>");
+    }
+
+    @Override
+    public SimpleMarkupWriter startElement(String name) throws IOException {
+        if (!isValidHtmlTag(name)) {
+            throw new IllegalArgumentException(String.format("Invalid HTML tag: '%s'", name));
+        }
+        return super.startElement(name);
+    }
+
+    // All valid tags should be in lowercase
+    // Add more tags as necessary
+    private final static List<String> VALID_HTML_TAGS = Arrays.asList(
+        "html",
+        "head",
+        "meta", "title", "link", "script",
+        "body",
+        "h1", "h2", "h3", "h4", "h5",
+        "table", "thead", "tbody", "th", "td", "tr",
+        "ul", "li",
+        "a", "p",
+        "pre", "div", "span",
+        "label", "input"
+    );
+    private static boolean isValidHtmlTag(String name) {
+        return VALID_HTML_TAGS.contains(TextUtil.toLowerCaseLocaleSafe(name));
     }
 }
