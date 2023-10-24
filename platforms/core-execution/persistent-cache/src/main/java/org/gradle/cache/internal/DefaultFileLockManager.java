@@ -289,19 +289,19 @@ public class DefaultFileLockManager implements FileLockManager {
         /**
          * Lock file is {@link java.io.RandomAccessFile} that has two regions:
          * - lock state region, locked for the duration of the operation
-         * - lock info region, locked just to write the lock info or read info from it<br><br>
+         * - lock info region, locked just to write the lock info or read info from it
+         * <br><br>
          *
          * We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.
          * If we use exclusive lock, and we succeed, we acquire a exclusive lock on the information region and write our details (port and lock id)
          * there, and then we release lock of information region. That way other processes can read our details and ping us.
          * That is important for {@link org.gradle.cache.FileLockManager.LockMode.OnDemand} mode.
          * If we use shared lock, and we succeed we don't write anything to information region, and thus we currently don't have on demand shared locks.
-         * If we fail, we throw a timeout exception.<br><br>
+         * If we fail, we throw a timeout exception.
+         * <br><br>
          *
-         * What happens in {@link #lockStateRegion(LockMode)}:<br>
-         * We first try to get lock for state region, if that fails, we read information region and get the port (if present) and we send a ping request to the owner
-         * (see {@link FileLockContentionHandler#maybePingOwner(int, long, String, long, FileLockReleasedSignal)} how ping algorithm is done).
-         * We then repeat the process with exponential backoff, till we finally acquire the lock or timeout (by default in {@link DefaultFileLockManager#DEFAULT_LOCK_TIMEOUT}).<br><br>
+         * On close we remove our details from info region and release the exclusive lock on the state region.
+         * <br><br>
          *
          * Note: In the implementation we use {@link java.nio.channels.FileLock} that is tight to a JVM process, not a thread.
          */
@@ -376,6 +376,14 @@ public class DefaultFileLockManager implements FileLockManager {
             return out;
         }
 
+        /**
+         * Method that tries to acquire a lock on the state region of a lock file.
+         * <br><br>
+         *
+         * If acquiring the lock for the state region fails, we read information region and get the port (if present) and we send a ping request to the owner
+         * (see {@link FileLockContentionHandler#maybePingOwner(int, long, String, long, FileLockReleasedSignal)} how ping algorithm is done).
+         * We then repeat the process with exponential backoff, till we finally acquire the lock or timeout (by default in {@link DefaultFileLockManager#DEFAULT_LOCK_TIMEOUT}).
+         */
         private FileLockOutcome lockStateRegion(final LockMode lockMode) throws IOException, InterruptedException {
             final ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff = newExponentialBackoff(lockTimeoutMs);
             return backoff.retryUntil(new IOQuery<FileLockOutcome>() {

@@ -59,9 +59,11 @@ public interface CacheBuilder {
 
     /**
      * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
-     * <br>
+     * <br><br>
+     *
      * Note that not every combination of cache type and lock options is supported.
-     * <br>
+     * <br><br>
+     *
      * Supported LockModes:
      * <br>- Shared: Default option. Used for read-only caches, many processes can access the cache concurrently.
      *      The cache lock is created when cache is opened. To release a lock a cache has to be closed.
