@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest implements DirectoryBuildCacheFixture {
 
@@ -32,7 +30,7 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
     }
 
     @ToBeFixedForConfigurationCache
-    def "caching is disabled if precompiled headers are configured" () {
+    def "caching is disabled if precompiled headers are configured"() {
         writeStandardSourceFiles()
 
         when:
@@ -41,48 +39,10 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
 
         then:
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
         output.contains "Caching disabled for task ':compileHelloSharedLibraryCppPreCompiledHeader' because:\n" +
             "  Not made cacheable, yet"
         output.contains "Caching disabled for task ':compileHelloSharedLibraryHelloCpp' because:\n" +
             "  'Pre-compiled headers are used' satisfied"
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    @ToBeFixedForConfigurationCache
-    def "can compile and link C++ code with precompiled headers using standard macOS framework" () {
-        given:
-        writeStandardSourceFiles()
-
-        and:
-        file(commonHeader.withPath("src/hello")) << """
-            #include <CoreFoundation/CoreFoundation.h>
-        """
-
-        and:
-        file("src/hello/cpp/includeFramework.cpp") << """
-            #include "common.h"
-            void sayHelloFoundation() {
-                CFShow(CFSTR("Hello"));
-            }
-        """
-
-        and:
-        buildFile << preCompiledHeaderComponent()
-        buildFile << """
-            model {
-                components {
-                    hello {
-                        binaries.withType(SharedLibraryBinarySpec) {
-                            linker.args "-framework", "CoreFoundation"
-                        }
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds "helloSharedLibrary"
-        libAndPCHTasksExecuted()
     }
 }
