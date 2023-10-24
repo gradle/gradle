@@ -16,6 +16,10 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+
 public class ProblemsGlobalServices {
 
 //    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
@@ -28,12 +32,12 @@ public class ProblemsGlobalServices {
 //        return operationListener;
 //    }
 
-//    Problems createProblemsService(
-//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+    Problems createProblemsService(
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter
 //        List<ProblemTransformer> transformers
-////        ProblemDiagnosticsFactory problemDiagnosticsFactory
-//    ) {
-//        return new DefaultProblems(buildOperationProgressEventEmitter);
-//    }
+//        ProblemDiagnosticsFactory problemDiagnosticsFactory
+    ) {
+        return new DefaultProblems(buildOperationProgressEventEmitter);
+    }
 
 }
