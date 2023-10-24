@@ -898,7 +898,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *     <li><i>off</i>, this mode disables all verifications</li>
      * </ul>
      *
-     * @param verificationMode if true, enables lenient dependency verification
+     * @param verificationMode the verification mode to use
      * @since 6.2
      */
     public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
