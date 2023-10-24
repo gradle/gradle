@@ -75,7 +75,7 @@ public class DefaultRealizableTaskCollection<T extends Task> extends DelegatingN
 
     @Override
     public TaskCollection<T> named(Spec<String> nameFilter) {
-        throw new UnsupportedOperationException("Not yet implemented"); // TODO
+        return realizable(type, getDelegate().named(nameFilter));
     }
 
     @Override

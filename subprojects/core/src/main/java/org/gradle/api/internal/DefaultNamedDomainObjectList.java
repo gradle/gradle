@@ -27,6 +27,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,10 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator decorator) {
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
+    }
+
+    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, @Nullable Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+        super(objects, nameFilter, elementFilter, instantiator, namer);
     }
 
     @Override
@@ -134,7 +139,8 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     public NamedDomainObjectList<T> named(Spec<String> nameFilter) {
-        throw new UnsupportedOperationException("Not implemented yet"); //TODO
+        Spec<T> spec = convertNameToElementFilter(nameFilter);
+        return new DefaultNamedDomainObjectList<>(this, nameFilter, createFilter(spec), getInstantiator(), getNamer());
     }
 
     @Override

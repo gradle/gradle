@@ -356,6 +356,28 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         }
     }
 
+    def "name based filtering does not realize pending"() {
+        given:
+        container.add(new Bean("realized1"))
+        container.addLater(new TestNamedProvider("unrealized1", new Bean("unrealized1")))
+        container.add(new Bean("realized2"))
+        container.addLater(new TestNamedProvider("unrealized2", new Bean("unrealized2")))
+
+        expect: "unrealized elements remain as such"
+        container.index.asMap().size() == 2
+        container.index.pendingAsMap.size() == 2
+
+        when: "filter the list via the `named` method"
+        def filtered = container.named { it.contains("2") }
+
+        then: "unrealized elements remain as such"
+        container.index.asMap().size() == 2
+        container.index.pendingAsMap.size() == 2
+
+        filtered.index.asMap().size() == 1
+        filtered.index.pendingAsMap.size() == 1
+    }
+
     static class Bean {
         public final String name
         String beanProperty

@@ -51,7 +51,7 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
 
     @Override
     public NamedDomainObjectSet<T> named(Spec<String> nameFilter) {
-        throw new UnsupportedOperationException("Not yet implemented"); // TODO
+        return getDelegate().named(nameFilter);
     }
 
     @Override

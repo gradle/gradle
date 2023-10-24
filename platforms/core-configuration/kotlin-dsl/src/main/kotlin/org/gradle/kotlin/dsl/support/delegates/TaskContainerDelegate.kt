@@ -20,7 +20,6 @@ import groovy.lang.Closure
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
-import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectCollectionSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Namer
@@ -50,7 +49,7 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun addAll(elements: Collection<Task>): Boolean =
         delegate.addAll(elements)
 
-    override fun named(predicate: Spec<String>): NamedDomainObjectCollection<Task> =
+    override fun named(predicate: Spec<String>): TaskCollection<Task> =
         delegate.named(predicate)
 
     override fun matching(spec: Spec<in Task>): TaskCollection<Task> =
