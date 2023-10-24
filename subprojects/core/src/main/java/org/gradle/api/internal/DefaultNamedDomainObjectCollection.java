@@ -275,6 +275,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
+    public NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO
+    }
+
+    @Override
     public NamedDomainObjectCollection<T> matching(Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }

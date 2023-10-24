@@ -212,6 +212,20 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
 
     /**
+     * Returns a collection containing the objects with names matching the provided filter.
+     * The returned collection is live, so that when matching objects are added to this collection,
+     * they are also visible in the filtered collection.
+     * This method will NOT cause any pending objects in this container to be realized.
+     *
+     * @param nameFilter The specification to test names against.
+     * @return The collection of objects with names satisfying the filter. Returns an empty collection if there are no such objects in this collection.
+     *
+     * @since 8.5
+     */
+    @Incubating
+    NamedDomainObjectCollection<T> named(Spec<String> nameFilter);
+
+    /**
      * {@inheritDoc}
      */
     @Override

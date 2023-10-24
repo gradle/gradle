@@ -17,8 +17,19 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Named
 import org.gradle.api.Namer
+import org.gradle.api.Transformer
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSanitizer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.provider.Provider
+import org.gradle.internal.DisplayName
 import org.gradle.util.TestUtil
+import spock.lang.Ignore
+
+import java.util.function.BiFunction
+import java.util.function.Predicate
 
 class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollectionSpec<CharSequence> {
     final Namer<Object> toStringNamer = new Namer<Object>() {
@@ -396,6 +407,29 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         list.findAll { it != "b" } == ["a", "c"]
     }
 
+    @Ignore // TODO: remove
+    def "xxx"() { // TODO: rename
+        given:
+        list.add("realized1")
+        list.addLater(new NamedStringProvider("unrealized1"))
+        list.add("realized2")
+        list.addLater(new NamedStringProvider("unrealized2"))
+        println "something"
+
+        expect: "unrealized elements remain as such"
+        list.index.asMap().size() == 2
+        list.index.pendingAsMap.size() == 2
+
+        when:
+        def filtered = list.named { it.contains("2") }
+
+        then: "unrealized elements remain as such"
+        list.index.asMap().size() == 2
+        list.index.pendingAsMap.size() == 2
+        filtered.index.asMap().size() == 1
+        filtered.index.pendingAsMap.size() == 2
+    }
+
     def "can get filtered element by index"() {
         given:
         list.addAll(["a", "b", "c"])
@@ -475,5 +509,114 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
             "listIterator().set(T)": { def iter = container.listIterator(); iter.next(); iter.set(b) },
             "listIterator().remove()": { def iter = container.listIterator(); iter.next(); iter.remove() },
         ]
+    }
+
+    private static class NamedStringProvider implements ProviderInternal<String>, Named { // TODO: crap ...
+
+        private final String string
+
+        NamedStringProvider(String string) {
+            this.string = string
+        }
+
+        @Override
+        String getName() {
+            return string
+        }
+
+        @Override
+        String get() {
+            return string
+        }
+
+        @Override
+        String getOrNull() {
+            return string
+        }
+
+        @Override
+        String getOrElse(String defaultValue) {
+            return string == null ? string : defaultValue
+        }
+
+        @Override
+        boolean isPresent() {
+            return string != null
+        }
+
+        @Override
+        Provider<String> orElse(String value) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Provider<String> orElse(Provider<? extends String> provider) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Provider<String> forUseAtConfigurationTime() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super String, ? super U, ? extends R> combiner) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ValueProducer getProducer() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        boolean calculatePresence(ValueConsumer consumer) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Class<String> getType() {
+            return String.class
+        }
+
+        @Override
+        <S> ProviderInternal<S> map(Transformer<? extends S, ? super String> transformer) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Value<? extends String> calculateValue(ValueConsumer consumer) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ProviderInternal<String> asSupplier(DisplayName owner, Class<? super String> targetType, ValueSanitizer<? super String> sanitizer) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ProviderInternal<String> withFinalValue(ValueConsumer consumer) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ExecutionTimeValue<? extends String> calculateExecutionTimeValue() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Provider<String> filter(Predicate<? super String> predicate) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super String> transformer) {
+            throw new UnsupportedOperationException()
+        }
     }
 }

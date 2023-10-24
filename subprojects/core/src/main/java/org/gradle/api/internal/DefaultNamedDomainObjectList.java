@@ -133,6 +133,10 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         return new FilteredIndexedElementSource<T, S>(elementSource, filter);
     }
 
+    public NamedDomainObjectList<T> named(Spec<String> nameFilter) {
+        throw new UnsupportedOperationException("Not implemented yet"); //TODO
+    }
+
     @Override
     public NamedDomainObjectList<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));

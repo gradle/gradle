@@ -68,6 +68,11 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     }
 
     @Override
+    public NamedDomainObjectSet<T> named(Spec<String> nameFilter) {
+        throw new UnsupportedOperationException("Not yet implemented"); // TODO
+    }
+
+    @Override
     public NamedDomainObjectSet<T> matching(Spec<? super T> spec) {
         return filtered(createFilter(spec));
     }
