@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.internal.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class ConfigurationNotFoundException extends RuntimeException {
+/**
+ * This exception is thrown during variant aware dependency resolution when a dependency
+ * explicitly requests a specific configuration of a component by name
+ * and it doesn't exist in that component.
+ */
+public class ConfigurationNotFoundException extends AbstractNamedConfigurationException {
     public ConfigurationNotFoundException(String toConfiguration, ComponentIdentifier toComponent) {
         super(String.format("A dependency was declared on configuration '%s' which is not declared in the descriptor for %s.", toConfiguration, toComponent.getDisplayName()));
+    }
+
+    public ConfigurationNotFoundException(String message) {
+        super(message);
     }
 }

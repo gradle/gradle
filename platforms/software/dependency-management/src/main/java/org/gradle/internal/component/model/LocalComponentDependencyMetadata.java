@@ -26,7 +26,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -34,6 +33,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Information about a locally resolved dependency.
+ */
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
     private final String dependencyConfiguration;
@@ -123,14 +125,26 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         boolean useConfigurationAttributes = dependencyConfiguration == null && (consumerHasAttributes || candidates.isUseVariants());
         if (useConfigurationAttributes) {
             return variantSelector.selectVariants(consumerAttributes, explicitRequestedCapabilities, targetComponentState, consumerSchema, getArtifacts());
+        } else {
+            ConfigurationGraphResolveState toConfiguration = selectRequestedConfiguration(variantSelector, consumerAttributes, targetComponentState, consumerSchema, targetComponent, consumerHasAttributes);
+            return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);
         }
+    }
 
+    private ConfigurationGraphResolveState selectRequestedConfiguration(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, ComponentGraphResolveMetadata targetComponent, boolean consumerHasAttributes) {
         String targetConfiguration = getDependencyConfiguration();
         ConfigurationGraphResolveState toConfiguration = targetComponentState.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(targetConfiguration, targetComponent.getId());
+            throw variantSelector.getFailureProcessor().configurationNotFoundFailure(targetConfiguration, targetComponent.getId());
         }
-        verifyConsumability(targetComponent, toConfiguration);
+
+        verifyConsumability(variantSelector, targetComponent, toConfiguration);
+        verifyAttributeCompatibility(variantSelector, consumerAttributes, consumerSchema, targetComponent, consumerHasAttributes, toConfiguration);
+
+        return toConfiguration;
+    }
+
+    private void verifyAttributeCompatibility(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema, ComponentGraphResolveMetadata targetComponent, boolean consumerHasAttributes, ConfigurationGraphResolveState toConfiguration) {
         if (consumerHasAttributes && !toConfiguration.getAttributes().isEmpty()) {
             // need to validate that the selected configuration still matches the consumer attributes
             // Note that this validation only occurs when `dependencyConfiguration != null` (otherwise we would select with attribute matching)
@@ -139,13 +153,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 throw variantSelector.getFailureProcessor().incompatibleGraphVariantsFailure(consumerAttributes, consumerSchema.withProducer(producerAttributeSchema), targetComponent, toConfiguration, false, DescriberSelector.selectDescriber(consumerAttributes, consumerSchema));
             }
         }
-        return new GraphVariantSelectionResult(ImmutableList.of(toConfiguration.asVariant()), false);
     }
 
-    private void verifyConsumability(ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
+    private void verifyConsumability(GraphVariantSelector variantSelector, ComponentGraphResolveMetadata targetComponent, ConfigurationGraphResolveState toConfiguration) {
         ConfigurationGraphResolveMetadata metadata = toConfiguration.getMetadata();
         if (!metadata.isCanBeConsumed()) {
-            throw new ConfigurationNotConsumableException(targetComponent.getId().getDisplayName(), toConfiguration.getName());
+            throw variantSelector.getFailureProcessor().configurationNotConsumableFailure(targetComponent.getId().getDisplayName(), toConfiguration.getName());
         }
 
         if (metadata.isDeprecatedForConsumption()) {

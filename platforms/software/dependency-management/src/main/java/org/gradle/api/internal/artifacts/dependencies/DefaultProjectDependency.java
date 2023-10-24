@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
+import org.gradle.internal.component.ConfigurationNotConsumableException;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 

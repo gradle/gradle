@@ -33,6 +33,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousGraphVariantsException
+import org.gradle.internal.component.ConfigurationNotFoundException
 import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.SelectionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude

@@ -20,16 +20,16 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.internal.component.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ExternalConfigurationNotFoundException;
 import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

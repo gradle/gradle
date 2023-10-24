@@ -19,6 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -307,6 +308,22 @@ public class SelectionFailureHandler {
 //            .severity(Severity.ERROR)
 //            .withException(e)
 //            .build();
+
+        return e;
+    }
+
+    public ConfigurationNotFoundException configurationNotFoundFailure(String targetConfigurationName, ComponentIdentifier targetComponentId) {
+        ConfigurationNotFoundException e = new ConfigurationNotFoundException(targetConfigurationName, targetComponentId);
+
+        // TODO: Register failure with Problems API
+
+        return e;
+    }
+
+    public ConfigurationNotConsumableException configurationNotConsumableFailure(String targetComponentName, String targetConfigurationName) {
+        ConfigurationNotConsumableException e = new ConfigurationNotConsumableException(targetComponentName, targetConfigurationName);
+
+        // TODO: Register failure with Problems API
 
         return e;
     }
