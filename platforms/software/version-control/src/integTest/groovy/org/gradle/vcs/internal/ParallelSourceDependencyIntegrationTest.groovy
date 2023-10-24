@@ -69,6 +69,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "can populate into same dir in parallel"() {
         given:
+        createDirs("A", "B", "C", "D")
         settingsFile << """
             include 'A', 'B', 'C', 'D'
         """
@@ -103,6 +104,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "can populate from multiple Gradle invocations in parallel"() {
         given:
+        createDirs("A")
         settingsFile << """
             include 'A'
         """

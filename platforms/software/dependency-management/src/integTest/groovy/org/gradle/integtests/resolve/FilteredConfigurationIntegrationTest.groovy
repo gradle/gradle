@@ -27,6 +27,7 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
+        createDirs("child1", "child2")
         settingsFile << """
 rootProject.name = "main"
 include "child1", "child2"
@@ -91,6 +92,7 @@ task verify {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
+        createDirs("child1", "child2")
         settingsFile << """
 rootProject.name = "main"
 include "child1", "child2"
@@ -145,6 +147,7 @@ task verify {
 
     // Note: this captures existing behaviour (all files are built) rather than desired behaviour (only those files reachable from selected deps are built)
     def "can use filtered configuration as task input"() {
+        createDirs("child1", "child2")
         settingsFile << """
 rootProject.name = "main"
 include "child1", "child2"

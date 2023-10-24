@@ -170,6 +170,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
+        customSettings.parentFile.createDirs("child")
         customSettings << """
             include("child")
         """

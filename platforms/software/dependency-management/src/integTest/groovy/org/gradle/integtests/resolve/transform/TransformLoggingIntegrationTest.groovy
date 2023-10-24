@@ -29,6 +29,7 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
     private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
 
     def setup() {
+        createDirs("lib", "util", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'

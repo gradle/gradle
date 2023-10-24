@@ -381,6 +381,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
@@ -412,6 +413,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library when specifying multiple target machines"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
@@ -448,6 +450,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     def "fails when dependency library does not specify the same target machines"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new CppAppWithLibrary()
 
@@ -481,6 +484,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new CppAppWithLibrary()
 
@@ -557,6 +561,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library with explicit target machine defined"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
@@ -593,6 +598,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     def "fails compile and link against a library with different operating system family support"() {
+        createDirs("app", "hello")
         settingsFile << """
             rootProject.name = 'test'
             include 'app', 'hello'
@@ -635,6 +641,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a static library"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
@@ -668,6 +675,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library with both linkages defined"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
 
@@ -701,6 +709,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a library with debug and release variants"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibraryAndOptionalFeature()
 
@@ -748,6 +757,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against library with api and implementation dependencies"() {
+        createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -793,6 +803,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against a static library with api and implementation dependencies"() {
+        createDirs("app", "deck", "card", "shuffle")
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -841,6 +852,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "honors changes to library buildDir"() {
+        createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
@@ -883,6 +895,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "honors changes to library output locations"() {
+        createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
@@ -931,6 +944,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "honors changes to library public header location"() {
+        createDirs("app", "lib1", "lib2")
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 
@@ -980,6 +994,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "multiple components can share the same source directory"() {
+        createDirs("app", "greeter", "logger")
         settingsFile << "include 'app', 'greeter', 'logger'"
         def app = new CppAppWithLibraries()
 
@@ -1030,6 +1045,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against libraries in included builds"() {
+        createDirs("app", "lib1", "lib2")
         settingsFile << """
             rootProject.name = 'app'
             includeBuild 'lib1'

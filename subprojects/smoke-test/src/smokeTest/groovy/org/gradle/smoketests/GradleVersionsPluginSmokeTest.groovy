@@ -37,15 +37,15 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 ${mavenCentralRepository()}
             }
-            project(":sub1") {
-                dependencies {
-                    implementation group: 'log4j', name: 'log4j', version: '1.2.14'
-                }
+        """
+        file("sub1/build.gradle") << """
+            dependencies {
+                implementation group: 'log4j', name: 'log4j', version: '1.2.14'
             }
-            project(":sub2") {
-                dependencies {
-                    implementation group: 'junit', name: 'junit', version: '4.10'
-                }
+        """
+        file("sub2/build.gradle") << """
+            dependencies {
+                implementation group: 'junit', name: 'junit', version: '4.10'
             }
         """
         settingsFile << """

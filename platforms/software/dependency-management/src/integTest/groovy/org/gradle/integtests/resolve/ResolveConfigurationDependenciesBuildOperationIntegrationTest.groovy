@@ -53,6 +53,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
         failedResolve.prepare("compileClasspath")
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -283,6 +284,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'some-dep').publish()
 
+        createDirs("projectB", "projectB/sub1")
         file("projectB/settings.gradle") << """
         rootProject.name = 'project-b'
         include "sub1"
@@ -496,6 +498,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
         """
+        createDirs("child")
         settingsFile << "include 'child'"
 
         def verifyExpectedOperation = {
@@ -561,6 +564,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
         failedResolve.prepare("runtimeClasspath")
+        createDirs("child")
         settingsFile << "include 'child'"
 
         when:
@@ -722,6 +726,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setup:
         mavenHttpRepo.module('org.foo', 'stuff').publish().allowAll()
 
+        createDirs("fixtures")
         settingsFile << "include 'fixtures'"
         buildFile << """
             plugins {

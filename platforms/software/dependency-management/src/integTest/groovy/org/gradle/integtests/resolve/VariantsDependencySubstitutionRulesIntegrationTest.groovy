@@ -46,6 +46,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
+        createDirs("platform")
         settingsFile << """
             include 'platform'
         """
@@ -195,6 +196,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
+        createDirs("other")
         settingsFile << """
             include 'other'
         """
@@ -283,6 +285,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
+        createDirs("other")
         settingsFile << """
             include 'other'
         """

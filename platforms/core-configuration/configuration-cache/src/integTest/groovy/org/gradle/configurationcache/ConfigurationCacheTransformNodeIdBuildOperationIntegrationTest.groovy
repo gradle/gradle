@@ -32,6 +32,7 @@ class ConfigurationCacheTransformNodeIdBuildOperationIntegrationTest extends Abs
     }
 
     def "transform step node ids are stable when using load after store"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """

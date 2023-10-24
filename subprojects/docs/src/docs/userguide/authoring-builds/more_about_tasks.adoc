@@ -227,8 +227,8 @@ There are several ways you can define the dependencies of a task. In <<tutorial_
 
 .Adding dependency on task from another project
 ====
-include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="project-a/build.gradle.kts[];project-b/build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="project-a/build.gradle[];project-b/build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----

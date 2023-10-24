@@ -83,6 +83,7 @@ class CppIncrementalBuildStaleOutputsIntegrationTest extends AbstractInstalledTo
 
     @ToBeFixedForConfigurationCache
     def "removes stale installed executable and library file when all source files for executable are removed"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalCppStaleLinkOutputAppWithLib()
 

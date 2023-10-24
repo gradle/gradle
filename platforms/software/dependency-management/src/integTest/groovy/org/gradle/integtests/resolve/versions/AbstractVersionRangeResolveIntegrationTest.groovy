@@ -110,6 +110,7 @@ embedded mode
                     }
                 }
 """
+            createDirs("p${i}")
             settingsFile << """
                 include ':p${i}'
 """

@@ -24,6 +24,7 @@ class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
+        createDirs("client", "a", "b", "c")
         file("settings.gradle") << "include 'client', 'a', 'b', 'c'"
 
         buildFile << """
@@ -64,6 +65,7 @@ compile
 
     def "marks project dependency that can't be resolved as 'FAILED'"() {
         given:
+        createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'"
 
         // Fail due to missing target configurations
@@ -260,6 +262,7 @@ config
 
         mavenRepo.module("foo", "baz", "5.0").publish()
 
+        createDirs("a", "b", "c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -577,6 +580,7 @@ No dependencies
 
     def "dependencies report does not run for subprojects by default"() {
         given:
+        createDirs("a")
         file("settings.gradle") << "include 'a'"
 
         file("build.gradle") << """
@@ -671,6 +675,7 @@ conf
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "bar", "2.0").publish()
 
+        createDirs("a", "b", "a/c", "d", "e")
         file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """
@@ -740,6 +745,7 @@ compileClasspath - Compile classpath for source set 'main'.
     def "reports external dependency replaced with project dependency"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
+        createDirs("client", "api2", "impl")
         file("settings.gradle") << "include 'client', 'api2', 'impl'"
 
         buildFile << """
@@ -784,6 +790,7 @@ compile
     def "reports external dependency with version updated by resolve rule"() {
         mavenRepo.module("org.utils", "api", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -827,6 +834,7 @@ compile
         mavenRepo.module("org.utils", "api", '0.1').publish()
         mavenRepo.module("org.other", "another", '0.1').publish()
 
+        createDirs("client", "impl")
         file("settings.gradle") << "include 'client', 'impl'"
 
         buildFile << """
@@ -1032,6 +1040,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
     def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """
@@ -1056,6 +1065,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
     def "adding declarations to invalid configurations for declaration will fail"() {
         given:
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
 
         buildFile << """

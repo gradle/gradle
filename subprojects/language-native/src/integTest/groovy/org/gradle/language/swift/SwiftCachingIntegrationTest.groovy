@@ -29,6 +29,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
     def app = new SwiftAppWithLibraries()
 
     def setupProject(TestFile project = temporaryFolder.testDirectory) {
+        project.createDirs("hello", "log")
         project.file('settings.gradle') << '''
             include 'hello', 'log'
             rootProject.name = 'app'

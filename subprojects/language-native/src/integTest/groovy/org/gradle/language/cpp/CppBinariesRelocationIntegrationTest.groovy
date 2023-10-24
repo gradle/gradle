@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 
 class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     def setup() {
+        createDirs("lib")
         settingsFile << """
             rootProject.name = 'test'
             include 'lib'

@@ -37,6 +37,7 @@ project(':impl') {
     eclipse.project.name = 'gradle-impl'
 }
 '''
+        createDirs("api", "impl")
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
@@ -56,6 +57,7 @@ allprojects {
     apply plugin: 'java'
 }
 '''
+        createDirs("services", "services/api", "contrib", "contrib/api")
         file('settings.gradle').text = "include 'services:api', 'contrib:api'"
 
         when:

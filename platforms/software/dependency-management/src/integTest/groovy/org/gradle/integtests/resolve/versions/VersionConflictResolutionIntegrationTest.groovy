@@ -37,6 +37,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """
@@ -77,6 +78,7 @@ project(':tool') {
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """
@@ -117,6 +119,7 @@ project(':tool') {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << """
 include 'api', 'impl', 'tool'
 """
@@ -453,6 +456,7 @@ dependencies {
 
         mavenRepo.module("org", "foo", '1.6.0').publish()
 
+        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
         buildFile << """
@@ -2132,6 +2136,7 @@ dependencies {
         mavenRepo.module('org', 'lib', '1.0').publish()
         mavenRepo.module('org', 'other', '1.0').publish()
 
+        createDirs("sub")
         settingsFile << """
 include 'sub'
 """

@@ -58,6 +58,34 @@ These members will be removed in Gradle 9.0:
 * `VersionNumber.compareTo(VersionNumber)`
 
 
+[[deprecated_missing_project_directory]]
+==== Including projects without an existing directory
+
+Gradle will warn if a project is added to the build where the associated `projectDir` does not exist or is not writable.
+Starting with version 9.0, Gradle will not run builds if a project directory is missing or read-only.
+If you intend to dynamically synthesize projects make sure to create directories for them as well:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include("project-without-directory")
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include 'project-without-directory'
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+=====
+
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 

@@ -431,6 +431,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module('org.gradle.test', 'runtimeonly', '1.0').publish()
 
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             apply plugin: 'java'

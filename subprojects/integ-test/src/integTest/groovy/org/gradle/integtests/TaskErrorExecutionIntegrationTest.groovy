@@ -99,6 +99,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports task injected by other project fails with runtime exception"() {
+        createDirs("a", "b")
         file("settings.gradle") << "include 'a', 'b'"
         TestFile buildFile = file("b/build.gradle")
         buildFile << """
@@ -140,6 +141,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports unknown task"() {
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
             include 'a', 'b'
@@ -189,6 +191,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports ambiguous task"() {
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'test'
             include 'a', 'b'
@@ -225,6 +228,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports unknown project"() {
+        createDirs("projA", "projB")
         settingsFile << """
             rootProject.name = 'test'
             include 'projA', 'projB'
@@ -248,6 +252,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     def "reports ambiguous project"() {
+        createDirs("projA", "projB")
         settingsFile << """
             rootProject.name = 'test'
             include 'projA', 'projB'

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def "can query incremental changes"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

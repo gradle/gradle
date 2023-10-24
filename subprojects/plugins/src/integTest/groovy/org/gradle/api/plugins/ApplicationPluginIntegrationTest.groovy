@@ -314,6 +314,7 @@ application.executableDir = 'foo/bar'
                 }
             }
         """
+        createDirs("utils", "core")
         file('settings.gradle') << "include 'utils', 'core'"
         buildFile << '''
             apply plugin: 'java'
@@ -361,6 +362,7 @@ application.executableDir = 'foo/bar'
         }
         """
 
+        createDirs("utils", "core", "foo", "bar")
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'
@@ -413,6 +415,7 @@ dependencies {
             apply plugin: 'java'
         }
         """
+        createDirs("utils", "core", "foo", "bar")
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'

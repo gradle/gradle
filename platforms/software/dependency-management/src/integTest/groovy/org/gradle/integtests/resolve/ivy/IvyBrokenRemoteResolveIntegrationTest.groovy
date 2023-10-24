@@ -153,6 +153,7 @@ Required by:
 
     @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing transitive modules"() {
+        createDirs("child1")
         settingsFile << "include 'child1'"
 
         given:

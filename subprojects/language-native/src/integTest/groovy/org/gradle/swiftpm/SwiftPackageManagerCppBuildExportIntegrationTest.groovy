@@ -71,6 +71,7 @@ let package = Package(
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for multi project C++ build"() {
         given:
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         buildFile << """
             plugins {
@@ -199,6 +200,7 @@ let package = Package(
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "honors customization of component basename"() {
         given:
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         buildFile << """
             plugins {

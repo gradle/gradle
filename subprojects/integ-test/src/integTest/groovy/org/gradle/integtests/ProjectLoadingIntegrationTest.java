@@ -235,6 +235,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void buildFailsWhenNestedBuildHasNoSettingsFile() {
+        createDirs("another");
         TestFile settingsFile = testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
@@ -254,6 +255,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canTargetRootProjectDirectoryFromSubDirectory() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = getTestDirectory().file("sub");
@@ -264,6 +266,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void specifyingCustomSettingsFileIsDeprecated() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
 
         TestFile subDirectory = file("sub");
@@ -276,6 +279,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void specifyingCustomBuildFileIsDeprecated() {
+        createDirs("another");
         testFile("settings.gradle").write("include 'another'");
         TestFile renamedBuildGradle = file("renamed_build.gradle").createFile();
 
@@ -297,6 +301,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSeveralProjectsWithSameBuildFile() {
+        createDirs("child1", "child2");
         testFile("settings.gradle").writelns(
             "include 'child1', 'child2'",
             "project(':child1').buildFileName = '../child.gradle'",
@@ -334,6 +339,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void multiProjectBuildCanHaveAllProjectsAsChildrenOfSettingsDir() {
         TestFile settingsFile = testFile("settings.gradle");
+        createDirs("root", "root/sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, 'root')",
             "include 'sub'",
@@ -350,6 +356,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void usesRootProjectAsDefaultProjectWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root", "root/sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')",
             "include 'sub'",
@@ -364,6 +371,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void rootProjectDirectoryAndBuildFileDoNotHaveToExistWhenInSettingsDir() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root", "sub");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')",
             "include 'sub'",
@@ -378,6 +386,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     public void settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
+        createDirs("root");
         settingsFile.writelns(
             "rootProject.projectDir = new File(settingsDir, '../root')"
         );

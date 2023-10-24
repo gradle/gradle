@@ -54,6 +54,7 @@ import static org.hamcrest.Matchers.containsString
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
     def "transform can receive parameters, workspace and input artifact via abstract getter"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -107,6 +108,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform can receive parameter of type #type"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -164,6 +166,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @Issue("https://github.com/gradle/gradle/issues/16982")
     def "transform can set convention on parameter of type #type"() {
         given:
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -210,6 +213,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform can receive a build service as a parameter"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -264,6 +268,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform can receive Gradle provided service #serviceType via injection"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -306,6 +311,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -344,6 +350,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform parameters are validated for input output annotations"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -449,6 +456,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "cannot query parameters for transform without parameters"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -477,6 +485,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform parameters type cannot use caching annotations"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -524,6 +533,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -571,6 +581,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -616,6 +627,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform action is validated for input output annotations"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -684,6 +696,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform action type cannot use @#ann.simpleName"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -719,6 +732,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform action type cannot use annotation @#ann.simpleName"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -764,6 +778,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform can receive dependencies via abstract getter of type #targetType"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -808,6 +823,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform can receive parameter object via constructor parameter"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -848,6 +864,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform cannot use @InputArtifact to receive #propertyType"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -889,6 +906,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -926,6 +944,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     def "transform cannot use @Inject to receive input file"() {
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """

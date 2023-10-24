@@ -39,6 +39,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     void "can replace project dependency with external dependency"() {
         mavenRepo.module("org.gradle.test", "a", '1.3').publish()
 
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {

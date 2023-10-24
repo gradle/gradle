@@ -113,6 +113,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
+        createDirs("child1", "child2", "child1-2", "child1-2-2")
         settingsFile << "include 'child1', 'child2', 'child1-2', 'child1-2-2'"
         buildFile << """
             task a
@@ -130,6 +131,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
+        createDirs("child1", "child2")
         settingsFile << "include 'child1', 'child2'"
         buildFile << """
             defaultTasks 'a', 'b'
@@ -199,6 +201,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
+        createDirs("sub")
         settingsFile << """
             include 'sub'
             rootProject.name = 'root'
@@ -234,6 +237,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
+        createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile << """
             task a
@@ -281,6 +285,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
     def 'excluding a task that is a dependency of multiple tasks'() {
+        createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile << """
             task a
@@ -336,6 +341,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
 
     @Issue("https://github.com/gradle/gradle/issues/21962")
     def "honours mustRunAfter task ordering declared via dependency resolution"() {
+        createDirs("a", "b")
         settingsFile << """
             include('a')
             include('b')
@@ -627,6 +633,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
               dependsOn ":b:jar"
             }
         """
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         expect:

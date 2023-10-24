@@ -48,6 +48,7 @@ class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependenc
         m1.artifactFile.text = "1234"
 
         given:
+        createDirs("lib", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -139,6 +140,7 @@ ${artifactTransform("FileSizer")}
         m1.artifactFile.text = "1234"
 
         given:
+        createDirs("lib", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -414,6 +416,7 @@ task resolve(type: Copy) {
 
     def "disambiguation leverages schema rules before doing it size based"() {
         given:
+        createDirs("child")
         settingsFile << """
 include('child')
 """

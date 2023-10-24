@@ -152,7 +152,18 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 String suffix = buildPath == Path.ROOT ? "" : " (in build " + buildPath + ")";
                 throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
+            if (!project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite()) {
+                emitProjectDirectoryMissingWarning(project.getPath(), project.getProjectDir().toString());
+            }
         });
     }
-}
 
+    private static void emitProjectDirectoryMissingWarning(String projectPath, String projectDir) {
+        String template = "Configuring project '%s' without an existing directory is deprecated. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
+        DeprecationLogger.deprecateBehaviour(String.format(template, projectPath, projectDir))
+            .withAdvice("Make sure the project directory exists and can be written.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_missing_project_directory")
+            .nagUser();
+    }
+}

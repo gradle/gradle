@@ -47,6 +47,9 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task headers for long running tasks are printed only once when there is no output"() {
         given:
+        12.times { i ->
+            createDirs("project" + i)
+        }
         settingsFile << """
             12.times { i ->
                 include ":project\${i}"

@@ -110,6 +110,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     @Issue("https://github.com/gradle/gradle/issues/18064")
     def "can build plugin with project dependencies"() {
         given:
+        createDirs("my-lib", "my-plugin")
         settingsFile << """
             include 'my-lib'
             include 'my-plugin'
@@ -285,6 +286,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "configuration cache for multi-level projects"() {
         given:
+        createDirs("a", "a/b", "a/c")
         settingsFile << """
             include 'a:b', 'a:c'
         """
