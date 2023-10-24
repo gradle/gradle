@@ -44,6 +44,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * and an optional exclude spec. Efficient in the sense that it will only
  * exhaustively scan a directory hierarchy if, and from the point where,
  * a '**' pattern is encountered.
+ *
+ * Note that this class is only used for internal file store {@link org.gradle.internal.resource.local.FileStore} and
+ * in {@link org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory} related to it.
+ * It doesn't make sense to fully support symlinks for them, so only partial support is provided.
  */
 public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileTree, DirectoryTree {
     private final File baseDir;
@@ -56,7 +60,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
         this(baseDir, includePattern, Specs.satisfyNone());
     }
 
-    public SingleIncludePatternFileTree(File baseDir, String includePattern, Spec<FileTreeElement> excludeSpec) {
+    SingleIncludePatternFileTree(File baseDir, String includePattern, Spec<FileTreeElement> excludeSpec) {
         this.baseDir = baseDir;
         if (includePattern.endsWith("/") || includePattern.endsWith("\\")) {
             includePattern += "**";
@@ -83,10 +87,11 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
 
     @Override
     public void visit(FileVisitor visitor) {
-        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean());
+        LinksStrategy linksStrategy = visitor.linksStrategy();
+        doVisit(visitor, baseDir, new ArrayDeque<>(), 0, new AtomicBoolean(), linksStrategy);
     }
 
-    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
+    private void doVisit(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag, LinksStrategy linksStrategy) {
         if (stopFlag.get()) {
             return;
         }
@@ -116,21 +121,18 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
                 String childName = child.getName();
                 if (step.matches(childName)) {
                     pathSegments.addLast(childName);
-                    doVisitDirOrFile(visitor, child, pathSegments, segmentIndex + 1, stopFlag);
+                    doVisitDirOrFile(visitor, child, pathSegments, segmentIndex + 1, stopFlag, linksStrategy);
                     pathSegments.removeLast();
                 }
             }
         } else {
             pathSegments.addLast(segment);
-            doVisitDirOrFile(visitor, new File(file, segment), pathSegments, segmentIndex + 1, stopFlag);
+            doVisitDirOrFile(visitor, new File(file, segment), pathSegments, segmentIndex + 1, stopFlag, linksStrategy);
             pathSegments.removeLast();
         }
     }
 
-    //TODO: cover with tests for links
-    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag) {
-        LinksStrategy linksStrategy = visitor.linksStrategy();
-
+    private void doVisitDirOrFile(FileVisitor visitor, File file, Deque<String> pathSegments, int segmentIndex, AtomicBoolean stopFlag, LinksStrategy linksStrategy) {
         if (file.isFile()) {
             if (segmentIndex == patternSegments.size()) {
                 RelativePath path = new RelativePath(true, pathSegments.toArray(new String[0]));
@@ -146,7 +148,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree, LocalFileT
                 visitor.visitDir(details);
             }
             if (segmentIndex < patternSegments.size()) {
-                doVisit(visitor, file, pathSegments, segmentIndex, stopFlag);
+                doVisit(visitor, file, pathSegments, segmentIndex, stopFlag, linksStrategy);
             }
         }
     }

@@ -66,7 +66,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         return delegate.execute(action -> {
             stream.process(details -> {
-                if (details.isDirectory()) {
+                if (!details.getRelativePath().isFile()) {
                     RelativePath path = details.getRelativePath();
                     if (!visitedDirs.contains(path)) {
                         pendingDirs.put(path, details);

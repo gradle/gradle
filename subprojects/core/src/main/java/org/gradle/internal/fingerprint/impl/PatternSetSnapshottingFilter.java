@@ -161,7 +161,12 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         @Nullable
         @Override
         public SymbolicLinkDetails getSymbolicLinkDetails() {
-            return null; //FIXME
+            Path path = getFile().toPath();
+            if (Files.isSymbolicLink(path)) {
+                return new DefaultSymbolicLinkDetails(path, getRelativePath());
+            } else {
+                return null;
+            }
         }
     }
 

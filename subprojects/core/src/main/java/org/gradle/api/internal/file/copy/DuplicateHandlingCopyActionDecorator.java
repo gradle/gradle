@@ -45,7 +45,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
         final Set<RelativePath> visitedFiles = new HashSet<>();
 
         return delegate.execute(action -> stream.process(details -> {
-            if (!details.isDirectory()) {
+            if (details.getRelativePath().isFile()) {
                 DuplicatesStrategy strategy = details.getDuplicatesStrategy();
                 RelativePath relativePath = details.getRelativePath();
                 if (!visitedFiles.add(relativePath)) {

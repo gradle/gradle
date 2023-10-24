@@ -140,8 +140,9 @@ public class SingleFileTreeElementMatcher {
 
         @Nullable
         @Override
+        // NOTE: usually only the path is considered in FileTree specs, so it's ok to omit link details here.
         public SymbolicLinkDetails getSymbolicLinkDetails() {
-            return null; //FIXME
+            return null;
         }
     }
 }

@@ -102,7 +102,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public boolean contains(File file) {
-        return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
+        return file.isFile() && DirectoryTrees.contains(fileSystem, this, file);
     }
 
     @Override

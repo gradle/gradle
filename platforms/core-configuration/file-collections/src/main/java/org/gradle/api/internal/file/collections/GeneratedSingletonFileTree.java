@@ -142,8 +142,6 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
             if (file == null) {
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
-                    fileGenerationListener.execute(file);
-
                     GFileUtils.mkdirs(file.getParentFile());
                     updateFileOnlyWhenGeneratedContentChanges();
                     chmod.chmod(file, getPermissions().toUnixNumeric());
@@ -227,8 +225,9 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
 
         @Nullable
         @Override
+        // NOTE: the GeneratedSingletonFileTree is only used for Jar and Ear, it does not make sense to support symbolic links here.
         public SymbolicLinkDetails getSymbolicLinkDetails() {
-            return null; //FIXME
+            return null;
         }
 
     }
