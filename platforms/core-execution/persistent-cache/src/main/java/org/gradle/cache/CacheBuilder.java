@@ -86,7 +86,7 @@ public interface CacheBuilder {
      * <ul>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() in the exclusive mode and keep it locked until {@link PersistentCache#close()} is called.</li>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Shared} will lock the cache on open() in the shared mode and keep it locked until {@link PersistentCache#close()} is called.</li>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemandExclusive} or {@link org.gradle.cache.FileLockManager.LockMode#OnDemandShared} will <em>not</em> lock the cache on open().</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} will <em>not</em> lock the cache on open().</li>
      * </ul>
      *
      * @return The cache.

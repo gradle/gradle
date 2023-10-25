@@ -68,7 +68,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.keyringFileHash = keyringFileHash;
         store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createIndexedCache(

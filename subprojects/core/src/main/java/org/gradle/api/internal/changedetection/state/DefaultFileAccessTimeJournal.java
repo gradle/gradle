@@ -50,7 +50,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("journal cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive)) // lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand
             .open();
         store = cache.createIndexedCache(IndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
             .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));

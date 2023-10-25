@@ -64,7 +64,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemandExclusive))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }

@@ -35,7 +35,7 @@ import org.junit.Rule
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.None
-import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
@@ -67,7 +67,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -115,11 +115,11 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         0 * _._
 
         where:
-        accessType << [Exclusive, Shared, OnDemandExclusive, None]
+        accessType << [Exclusive, Shared, OnDemand, None]
     }
 
     def "cleans up on close when clean up has not already occurred"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -131,7 +131,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "does not clean up on close when clean up has already occurred"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -149,7 +149,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "can explicitly clean up multiple times"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.cleanup()
@@ -175,19 +175,19 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock)
         1 * exclusiveLock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> sharedLock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> sharedLock
         1 * initializationAction.requiresInitialization(sharedLock) >> false
         _ * sharedLock.state
         0 * _._
@@ -235,12 +235,12 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> exclusiveLock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock) >> { throw failure }
@@ -254,7 +254,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "initializes cache on open when lock mode is none"() {
         def action = Mock(Runnable)
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         def contentionAction
 
@@ -300,7 +300,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "does not acquire lock on open when initial lock mode is none"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -320,7 +320,11 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "cannot be opened more than once for mode #lockMode"() {
-        lockManager.lock(lockFile, _, "<display-name>", "", _) >> lock
+        if (lockMode == Shared) {
+            lockManager.lock(lockFile, _, "<display-name>") >> lock
+        } else {
+            lockManager.lock(lockFile, _, "<display-name>", "", _) >> lock
+        }
         def access = newAccess(lockMode)
 
         when:
@@ -331,12 +335,12 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         thrown(IllegalStateException)
 
         where:
-        lockMode << [Shared, Exclusive, OnDemandExclusive]
+        lockMode << [Shared, Exclusive, OnDemand]
     }
 
     def "with file lock operation acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -359,7 +363,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "with file lock operation reuses existing file lock"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -385,7 +389,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "nested with file lock operation does not release the lock"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -410,7 +414,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -435,7 +439,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "nested use cache operation does not release the lock"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -455,7 +459,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "use cache operation reuses existing file lock"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -481,7 +485,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(Shared)
 
         given:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         access.open()
 
         when:
@@ -492,7 +496,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "can create new cache"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         def cache = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -504,7 +508,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "contended action safely closes the lock when cache is not busy"() {
         Factory<String> action = Mock()
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         def contendedAction
 
         when:
@@ -537,7 +541,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         thrown(IllegalStateException)
 
         where:
-        mode << [Exclusive, OnDemandExclusive]
+        mode << [Exclusive, OnDemand]
     }
 
     def "file access is available when there is an owner"() {
@@ -553,7 +557,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         1 * lock.updateFile(runnable)
 
         where:
-        mode << [Exclusive, OnDemandExclusive]
+        mode << [Exclusive, OnDemand]
     }
 
     def "file access can not be accessed when there is no owner"() {
@@ -573,11 +577,11 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         thrown(IllegalStateException)
 
         where:
-        mode << [Exclusive, OnDemandExclusive]
+        mode << [Exclusive, OnDemand]
     }
 
     def "can close cache when the cache has not been used"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.open()
@@ -589,7 +593,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "can close cache when there is no owner"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
@@ -606,7 +610,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "can close cache when the lock has been released"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         def contendedAction
 
         given:
@@ -628,7 +632,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "releases lock acquired by cache decorator when contended"() {
         def decorator = Mock(CacheDecorator)
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         def contendedAction
 
         given:
@@ -665,7 +669,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
 
     def "does not acquire file lock for cleanup"() {
         given:
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         access.open()
 
         when:
@@ -677,7 +681,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "releases file lock before running cleanup"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         given:
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
@@ -697,7 +701,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "returns the same cache object when using same cache parameters"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         def cache1 = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -711,7 +715,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "throws InvalidCacheReuseException when cache value type differs"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -725,7 +729,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "throws InvalidCacheReuseException when cache key type differs"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -739,7 +743,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "throws InvalidCacheReuseException when cache decorator differs"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCacheche, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
@@ -758,7 +762,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "returns the same cache object when cache decorator match"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
@@ -778,7 +782,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "returns the same cache object when using compatible value serializer"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         def cache1 = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -793,7 +797,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     }
 
     def "returns the same cache object when using compatible key serializer"() {
-        def access = newAccess(OnDemandExclusive)
+        def access = newAccess(OnDemand)
 
         when:
         def cache1 = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))

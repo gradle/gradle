@@ -80,7 +80,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         this.timeProvider = timeProvider;
         this.cache = cacheBuilderFactory
             .createCacheBuilder(name)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive))
+            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();
         IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
         this.store = this.cache.createIndexedCache(cacheParams);

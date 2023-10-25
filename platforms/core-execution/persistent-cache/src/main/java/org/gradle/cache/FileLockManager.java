@@ -79,12 +79,7 @@ public interface FileLockManager {
          *
          * Not supported by {@link FileLockManager}.
          */
-        OnDemandExclusive,
-
-        /**
-         * Support processes asking for access for shared lock mode.
-         */
-        OnDemandShared,
+        OnDemand,
 
         /**
          * Multiple readers, no writers.
@@ -115,7 +110,7 @@ public interface FileLockManager {
         None;
 
         public boolean isOnDemand() {
-            return this == OnDemandExclusive || this == OnDemandShared;
+            return this == OnDemand;
         }
     }
 }

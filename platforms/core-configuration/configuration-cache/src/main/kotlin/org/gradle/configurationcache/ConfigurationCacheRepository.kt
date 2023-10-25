@@ -223,7 +223,7 @@ class ConfigurationCacheRepository(
 
     private
     fun CacheBuilder.withOnDemandLockMode() =
-        withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemandExclusive))
+        withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
     fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =

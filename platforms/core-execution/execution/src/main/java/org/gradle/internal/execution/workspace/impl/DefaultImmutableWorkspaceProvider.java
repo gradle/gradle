@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import static org.gradle.cache.FileLockManager.LockMode.None;
-import static org.gradle.cache.FileLockManager.LockMode.OnDemandExclusive;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -104,7 +104,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             .withDisplayName(cacheName + "/" + path);
         PersistentCache executionHistoryCache = finnerCacheFactory.apply(".executionHistory")
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(OnDemandExclusive))
+            .withLockOptions(mode(OnDemand))
             .open();
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
@@ -191,7 +191,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     private PersistentCache acquireFinnerCache(String path) {
         return finnerCacheFactory.apply(path)
-            .withLockOptions(mode(OnDemandExclusive))
+            .withLockOptions(mode(OnDemand))
             .open();
     }
 
