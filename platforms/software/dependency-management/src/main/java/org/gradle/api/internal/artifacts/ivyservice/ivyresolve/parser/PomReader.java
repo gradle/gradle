@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.AddDTDFilterInputStream;
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.getAllChilds;
@@ -735,4 +736,10 @@ public class PomReader implements PomParent {
             return IvyPatternHelper.substituteVariables(val, effectiveProperties).trim();
         }
     }
+
+    public static boolean hasUnresolvedSubstitutions(String packaging) {
+        return packaging.contains("$") && PomReader.VAR_PATTERN.matcher(packaging).matches();
+    }
+    // Copied from IvyPatternHelper
+    private static final Pattern VAR_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
 }
