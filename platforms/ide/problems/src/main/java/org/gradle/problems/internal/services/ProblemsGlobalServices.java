@@ -18,19 +18,21 @@ package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.internal.OperationListener;
 
 public class ProblemsGlobalServices {
 
 //    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
 //        return new TaskPathLocationTransformer(buildOperationAncestryTracker, operationListener);
 //    }
-//
-//    OperationListener createOperationListener(BuildOperationListenerManager buildOperationListenerManager) {
-//        OperationListener operationListener = new OperationListener();
-//        buildOperationListenerManager.addListener(operationListener);
-//        return operationListener;
-//    }
+
+    OperationListener createOperationListener(BuildOperationListenerManager buildOperationListenerManager) {
+        OperationListener operationListener = new OperationListener();
+        buildOperationListenerManager.addListener(operationListener);
+        return operationListener;
+    }
 
     Problems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
