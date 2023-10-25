@@ -51,12 +51,12 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
-    private final Map<String, PersistentCache> finnerGrainedCaches;
-    private final Function<String, CacheBuilder> finnerCacheFactory;
+    private final Map<String, PersistentCache> finerGrainedCaches;
+    private final Function<String, CacheBuilder> finerCacheFactory;
 
     private FinerGrainedImmutableWorkspaceProvider(
         CacheBuilder cacheBuilder,
-        Function<String, CacheBuilder> finnerCacheFactory,
+        Function<String, CacheBuilder> finerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore historyFactory,
         CacheConfigurationsInternal cacheConfigurations
@@ -65,8 +65,8 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP, cacheConfigurations))
             .withLockOptions(mode(None))
             .open();
-        this.finnerCacheFactory = finnerCacheFactory;
-        this.finnerGrainedCaches = new ConcurrentHashMap<>();
+        this.finerCacheFactory = finerCacheFactory;
+        this.finerGrainedCaches = new ConcurrentHashMap<>();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
@@ -93,15 +93,15 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
         File workspace = new File(baseDirectory, path);
         GFileUtils.mkdirs(workspace);
         @SuppressWarnings("resource")
-        PersistentCache finnerCache = finnerGrainedCaches.computeIfAbsent(path, this::openFinnerCache);
-        return finnerCache.withFileLock(() -> {
+        PersistentCache finerCache = finerGrainedCaches.computeIfAbsent(path, this::openFinnerCache);
+        return finerCache.withFileLock(() -> {
             fileAccessTracker.markAccessed(workspace);
             return action.executeInWorkspace(workspace, executionHistoryStore);
         });
     }
 
     private PersistentCache openFinnerCache(String path) {
-        return finnerCacheFactory.apply(path)
+        return finerCacheFactory.apply(path)
             .withLockOptions(mode(OnDemand))
             .open();
     }
@@ -109,7 +109,7 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
     @Override
     public void close() {
         try (Closer closer = Closer.create()) {
-            finnerGrainedCaches.values().forEach(closer::register);
+            finerGrainedCaches.values().forEach(closer::register);
             closer.register(cache);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -127,12 +127,12 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
         CacheBuilder cacheBuilder = cacheFactory.cache(cacheBaseDir)
             .withDisplayName(cacheDisplayName)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
-        Function<String, CacheBuilder> finnerCacheFactory = path -> cacheFactory.cache(new File(cacheBaseDir, path))
+        Function<String, CacheBuilder> finerCacheFactory = path -> cacheFactory.cache(new File(cacheBaseDir, path))
             .withDisplayName(cacheDisplayName + " for " + path)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
         return new FinerGrainedImmutableWorkspaceProvider(
             cacheBuilder,
-            finnerCacheFactory,
+            finerCacheFactory,
             fileAccessTimeJournal,
             executionHistoryStore,
             cacheConfigurations
