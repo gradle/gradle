@@ -54,24 +54,23 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.testing.base.MatrixContainer;
-import org.gradle.testing.base.MatrixDimensions;
-import org.gradle.testing.base.internal.DefaultMatrixContainer;
-import org.gradle.testing.base.internal.DefaultMatrixDimensions;
-import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
+import org.gradle.testing.base.IdentityContainer;
+import org.gradle.testing.base.IdentityDimensions;
+import org.gradle.testing.base.internal.DefaultIdentityContainer;
+import org.gradle.testing.base.internal.DefaultIdentityDimensions;
+import org.gradle.testing.base.internal.IdentityInternal;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public static final String IS_DEFAULT_TEST_TARGET = "org.gradle.jvm.isDefaultTestTarget";
-    private final DefaultMatrixDimensions<JvmTestSuiteTarget> targetDimensions;
-    private final DefaultMatrixContainer<JvmTestSuiteTarget> targets;
+    private final DefaultIdentityDimensions targetDimensions;
+    private final DefaultIdentityContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final JvmComponentDependencies dependencies;
@@ -90,12 +89,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        this.targetDimensions = Cast.uncheckedCast(getObjectFactory().newInstance(
-            DefaultMatrixDimensions.class,
-            (Function<MatrixCoordinatesInternal, DefaultJvmTestSuiteTarget>) coordinates ->
+        this.targetDimensions = getObjectFactory().newInstance(DefaultIdentityDimensions.class);
+        this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(
+            DefaultIdentityContainer.class,
+            (Function<IdentityInternal, DefaultJvmTestSuiteTarget>) coordinates ->
                 getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, name, coordinates)
         ));
-        this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultMatrixContainer.class));
+        this.targets.getIdentities().convention(this.targetDimensions.getIdentities());
 
         this.dependencies = getObjectFactory().newInstance(
                 DefaultJvmComponentDependencies.class,
@@ -174,12 +174,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public MatrixDimensions getTargetDimensions() {
+    public IdentityDimensions getTargetDimensions() {
         return targetDimensions;
     }
 
     @Override
-    public MatrixContainer<JvmTestSuiteTarget> getTargets() {
+    public IdentityContainer<JvmTestSuiteTarget> getTargets() {
         return targets;
     }
 
@@ -312,9 +312,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public TaskDependency getBuildDependencies() {
         return taskDependencyFactory.visitingDependencies(context -> {
-            Set<JvmTestSuiteTarget> values = targetDimensions.getMatrixValues();
-            targets.applyConfigurationTo(values.iterator());
-            values.forEach(target -> context.add(target.getTestTask()));
+            targets.getValues().get().forEach(target -> context.add(target.getTestTask()));
         });
     }
 

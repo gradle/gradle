@@ -25,7 +25,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
+import org.gradle.testing.base.internal.IdentityInternal;
 import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
@@ -35,7 +35,7 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String suiteName, MatrixCoordinatesInternal coords, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuiteTarget(String suiteName, IdentityInternal coords, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
         String name = coords.get(DefaultJvmTestSuite.IS_DEFAULT_TEST_TARGET, boolean.class)
             ? JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME
             : suiteName + "_" + coords.toTaskNamePart();

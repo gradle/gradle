@@ -16,9 +16,9 @@
 
 package org.gradle.testing.base.internal;
 
-import org.gradle.testing.base.MatrixCoordinates;
+import org.gradle.testing.base.Identity;
 
-public interface MatrixCoordinatesInternal extends MatrixCoordinates {
+public interface IdentityInternal extends Identity {
     /**
      * Converts the coordinates to a task name part. This essentially appends the key-value pairs to form something
      * that can be used as a task name.

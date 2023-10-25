@@ -39,7 +39,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
-import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
+import org.gradle.testing.base.internal.IdentityInternal;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 import org.gradle.util.internal.TextUtil;
 
@@ -126,7 +126,7 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
 
     private void addTestResultsVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         // TODO serialize the dimensions in a better manner (since this is not just the task name)
-        String name = ((MatrixCoordinatesInternal) target.getCoordinates()).toTaskNamePart();
+        String name = ((IdentityInternal) target.getIdentity()).toTaskNamePart();
         final Configuration variant = project.getConfigurations().consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(name)).get();
         variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + name + " target.");
         variant.setVisible(false);

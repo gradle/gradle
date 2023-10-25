@@ -30,11 +30,12 @@ public interface TestSuite extends Named {
      * Configuration for the {@link #getTargets() targets matrix} dimensions.
      *
      * @return configuration for the targets matrix dimensions
+     * @since 8.5
      */
-    MatrixDimensions getTargetDimensions();
+    IdentityDimensions getTargetDimensions();
 
     /**
      * Available targets for this test suite.
      */
-    MatrixContainer<? extends TestSuiteTarget> getTargets();
+    IdentityContainer<? extends TestSuiteTarget> getTargets();
 }

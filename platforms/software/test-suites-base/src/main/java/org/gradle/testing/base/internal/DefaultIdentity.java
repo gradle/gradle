@@ -22,29 +22,29 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultMatrixCoordinates implements MatrixCoordinatesInternal {
-    private final Map<String, Object> dimensions;
+public class DefaultIdentity implements IdentityInternal {
+    private final Map<String, Object> properties;
 
-    public DefaultMatrixCoordinates(Map<String, Object> dimensions) {
-        this.dimensions = ImmutableMap.copyOf(dimensions);
+    public DefaultIdentity(Map<String, Object> properties) {
+        this.properties = ImmutableMap.copyOf(properties);
     }
 
     @Override
-    public Set<String> keys() {
-        return dimensions.keySet();
+    public Set<String> getPropertyNames() {
+        return properties.keySet();
     }
 
     @Override
-    public Object get(String key) {
-        Object value = dimensions.get(key);
+    public Object get(String propertyName) {
+        Object value = properties.get(propertyName);
         if (value == null) {
-            throw new IllegalArgumentException("Dimension '" + key + "' is not registered.");
+            throw new IllegalArgumentException("Property '" + propertyName + "' is not known.");
         }
         return value;
     }
 
     @Override
     public String toTaskNamePart() {
-        return Joiner.on('-').withKeyValueSeparator('_').join(dimensions);
+        return Joiner.on('-').withKeyValueSeparator('_').join(properties);
     }
 }

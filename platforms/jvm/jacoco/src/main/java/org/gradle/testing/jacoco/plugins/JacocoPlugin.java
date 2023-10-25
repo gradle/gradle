@@ -48,7 +48,7 @@ import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.base.TestingExtension;
-import org.gradle.testing.base.internal.MatrixCoordinatesInternal;
+import org.gradle.testing.base.internal.IdentityInternal;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -116,7 +116,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
         // TODO serialize the dimensions in a better manner (since this is not just the task name)
-        String name = ((MatrixCoordinatesInternal) target.getCoordinates()).toTaskNamePart();
+        String name = ((IdentityInternal) target.getIdentity()).toTaskNamePart();
         @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(name), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + name + " target.");
         variant.setVisible(false);

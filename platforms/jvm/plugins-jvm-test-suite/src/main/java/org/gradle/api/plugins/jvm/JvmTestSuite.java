@@ -23,7 +23,7 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.testing.base.MatrixContainer;
+import org.gradle.testing.base.IdentityContainer;
 import org.gradle.testing.base.TestSuite;
 
 /**
@@ -45,7 +45,7 @@ import org.gradle.testing.base.TestSuite;
 @Incubating
 public interface JvmTestSuite extends TestSuite, Buildable {
     @Override
-    MatrixContainer<? extends JvmTestSuiteTarget> getTargets();
+    IdentityContainer<? extends JvmTestSuiteTarget> getTargets();
 
     // TODO: Rename to getSourceSet next time changes are made in this area.
     /**

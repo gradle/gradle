@@ -1777,6 +1777,20 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_azvf5jjaoic6lmjtz2donwlkfKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_azvf5jjaoic6lmjtz2donwlkfKt",
+            "acceptation": "New identity-based container",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_azvf5jjaoic6lmjtz2donwlkfKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_azvf5jjaoic6lmjtz2donwlkfKt.get(org.gradle.testing.base.Identity,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "New identity-based container",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt",
             "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt",
             "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",

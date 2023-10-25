@@ -26,5 +26,5 @@ import org.gradle.api.Incubating;
  * @since 7.3
  */
 @Incubating
-public interface TestSuiteTarget extends MatrixContainer.MatrixValue {
+public interface TestSuiteTarget extends IdentityContainer.Value {
 }

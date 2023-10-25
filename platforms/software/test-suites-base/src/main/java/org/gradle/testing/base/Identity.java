@@ -22,36 +22,36 @@ import org.gradle.internal.HasInternalProtocol;
 import java.util.Set;
 
 /**
- * The coordinates of a value in a matrix.
+ * The identity of a value in an {@link IdentityContainer}.
  *
  * @since 8.5
  */
 @Incubating
 @HasInternalProtocol
-public interface MatrixCoordinates {
+public interface Identity {
     /**
-     * Returns the keys for the dimensions of the matrix.
+     * Returns the property names of the identity.
      *
-     * @return the keys
+     * @return the names
      */
-    Set<String> keys();
+    Set<String> getPropertyNames();
 
     /**
-     * Returns the value for the given key.
+     * Returns the value for the given property name.
      *
-     * @param key the key
-     * @throws IllegalArgumentException if the key is not registered
+     * @param propertyName the property name
+     * @throws IllegalArgumentException if the property name is not known
      */
-    Object get(String key);
+    Object get(String propertyName);
 
     /**
-     * Returns the value for the given key, cast to the given type.
+     * Returns the value for the given property name, cast to the given type.
      *
-     * @param key the key
+     * @param propertyName the property name
      * @param type the type
-     * @throws IllegalArgumentException if the key is not registered
+     * @throws IllegalArgumentException if the property name is not known
      */
-    default <T> T get(String key, Class<T> type) {
-        return type.cast(get(key));
+    default <T> T get(String propertyName, Class<T> type) {
+        return type.cast(get(propertyName));
     }
 }
