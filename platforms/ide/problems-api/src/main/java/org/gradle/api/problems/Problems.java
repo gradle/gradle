@@ -60,5 +60,5 @@ public interface Problems {
      * <p>
      * @since 8.5
      */
-    ReportableProblem createProblem(ProblemBuilderSpec action);
+    ReportableProblem create(ProblemBuilderSpec action);
 }

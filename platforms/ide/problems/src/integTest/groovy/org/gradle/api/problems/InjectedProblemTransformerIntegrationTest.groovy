@@ -42,7 +42,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
 
                 @TaskAction
                 void run() {
-                    problems.createProblem {
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -88,7 +88,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                 protected abstract Problems getProblems();
 
                 public void apply(Project project) {
-                    getProblems().createProblem(builder ->
+                    getProblems().create(builder ->
                         builder
                             .label("label")
                             .undocumented()

@@ -41,7 +41,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .collectLocation()
@@ -89,7 +89,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(Documentation.userManual("test-id", "test-section"))
                         .noLocation()
@@ -125,7 +125,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(Documentation.upgradeGuide(8, "test-section"))
                         .noLocation()
@@ -160,7 +160,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(
                             Documentation.dslReference(Problem.class, "label")
@@ -195,7 +195,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1)
@@ -232,7 +232,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .location("test-location", 1, 1)
@@ -276,7 +276,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .pluginLocation("org.example.pluginid")
@@ -311,7 +311,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -347,7 +347,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -381,7 +381,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -414,7 +414,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
