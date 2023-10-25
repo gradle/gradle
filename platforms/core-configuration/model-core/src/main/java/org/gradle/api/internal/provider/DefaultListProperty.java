@@ -91,7 +91,7 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
      * @return this
      */
     @Override
-    public ListProperty<T> updateList(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer)  {
+    public ListProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer)  {
         set(transformer.transform(freeze()));
         return this;
     }

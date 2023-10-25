@@ -164,5 +164,5 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @since 8.5
      */
     @Incubating
-    HasMultipleValues<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer);
+    HasMultipleValues<T> updateValues(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer);
 }

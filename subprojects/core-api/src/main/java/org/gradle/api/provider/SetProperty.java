@@ -70,8 +70,8 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      */
     @Incubating
     @Override
-    default SetProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
-        return updateSet(transformer);
+    default SetProperty<T> updateValues(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
+        return update(transformer);
     }
 
     /**
@@ -83,5 +83,5 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      * @since 8.5
      */
     @Incubating
-    SetProperty<T> updateSet(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer);
+    SetProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer);
 }

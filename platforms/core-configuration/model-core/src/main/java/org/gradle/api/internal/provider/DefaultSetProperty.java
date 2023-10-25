@@ -84,7 +84,7 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
-    public SetProperty<T> updateSet(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer) {
+    public SetProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer) {
         set(transformer.transform(freeze()));
         return this;
     }

@@ -70,8 +70,8 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      */
     @Incubating
     @Override
-    default ListProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
-        return updateList(transformer);
+    default ListProperty<T> updateValues(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Iterable<? extends T>>> transformer) {
+        return update(transformer);
     }
 
     /**
@@ -83,5 +83,5 @@ public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T>
      * @since 8.5
      */
     @Incubating
-    ListProperty<T> updateList(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer);
+    ListProperty<T> update(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends List<? extends T>>> transformer);
 }
