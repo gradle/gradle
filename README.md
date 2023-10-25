@@ -132,7 +132,7 @@ Then, the resolver collects the sets of:
 
 The context of the script is a schema that contains the allowed types (along with their allowed functions and 
 properties), allowed top-level functions and properties, the default import, and the script top-level receiver type.
-See [`AnalysisSchema`](https://github.com/h0tk3y/kotlin-static-object-notation/blob/master/src/main/kotlin/analysis/AnalysisSchema.kt#L5).
+See [`AnalysisSchema`](https://github.com/h0tk3y/kotlin-static-object-notation/blob/master/src/main/kotlin/com/h0tk3y/kotlin/staticObjectNotation/analysis/AnalysisSchema.kt#L5).
 
 Functions in the schema, as well as their parameters, must specify their semantics ("adding", "configuring", etc.).
 
