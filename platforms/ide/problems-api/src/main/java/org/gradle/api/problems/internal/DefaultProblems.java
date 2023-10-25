@@ -77,7 +77,7 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public ReportableProblem createProblem(ProblemBuilderSpec action) {
+    public ReportableProblem create(ProblemBuilderSpec action) {
         DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
         return defaultProblemBuilder.build();

@@ -34,7 +34,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -55,7 +55,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .location("location", 1, 1)
@@ -78,7 +78,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .documentedAt(new TestDocLink())
                 .location("location", 1, 1)
@@ -119,7 +119,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -142,7 +142,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -168,7 +168,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -193,7 +193,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()

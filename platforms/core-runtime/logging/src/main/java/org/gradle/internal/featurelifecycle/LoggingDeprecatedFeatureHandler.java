@@ -88,7 +88,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            problemsService.createProblem(new ProblemBuilderSpec() {
+            problemsService.create(new ProblemBuilderSpec() {
                     @Override
                     public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
                         ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
