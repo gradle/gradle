@@ -82,6 +82,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -453,7 +454,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
-        ObjectFactory objectFactory,
+        BuildTreeObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,

@@ -258,7 +258,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new OrdinalGroupFactory();
     }
 
-//    ObjectFactory createObjectFactory(
+//    BuildObjectFactory createObjectFactory(
 //        InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
 //        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
 //        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
