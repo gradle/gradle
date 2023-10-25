@@ -17,7 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -36,8 +35,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             "dependencies-accessors",
@@ -46,8 +44,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
             inMemoryCacheDecoratorFactory,
             stringInterner,
             classLoaderHasher,
-            cacheConfigurations,
-            fileLockManager
+            cacheConfigurations
         );
     }
 

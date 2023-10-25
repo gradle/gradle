@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.FileLockManager;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
@@ -28,7 +27,7 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
-import java.util.function.Function;
+import java.io.File;
 
 @NotThreadSafe
 public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
@@ -36,21 +35,21 @@ public class ImmutableTransformWorkspaceServices implements TransformWorkspaceSe
     private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
     public ImmutableTransformWorkspaceServices(
-        CacheBuilder cacheBuilder,
-        Function<String, CacheBuilder> finnerCacheFactory,
+        String cacheDisplayName,
+        File cacheBaseDir,
+        UnscopedCacheBuilderFactory cacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(
-            cacheBuilder,
-            finnerCacheFactory,
+            cacheDisplayName,
+            cacheBaseDir,
+            cacheFactory,
             fileAccessTimeJournal,
             executionHistoryStore,
-            cacheConfigurations,
-            fileLockManager
+            cacheConfigurations
         );
         this.identityCache = identityCache;
     }

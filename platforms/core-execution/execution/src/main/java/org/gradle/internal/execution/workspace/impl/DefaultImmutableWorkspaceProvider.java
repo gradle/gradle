@@ -23,8 +23,8 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -56,52 +56,47 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
-    private final FileLockManager fileLockManager;
-    private final Closeable onClose;
-
-    private final Map<String, PersistentCache> finnerCacheMap;
+    private final Closeable closeExecutionHistoryAction;
+    private final Map<String, PersistentCache> finnerGrainedCaches;
     private final Function<String, CacheBuilder> finnerCacheFactory;
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
-        String cacheName,
+        String cacheDirName,
         ScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return withBuiltInHistory(
-            cacheName,
+            cacheDirName,
             cacheBuilderFactory,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
             classLoaderHasher,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheConfigurations,
-            fileLockManager
+            cacheConfigurations
         );
     }
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
-        String cacheName,
+        String cacheDirName,
         ScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
         int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         CacheBuilder cacheBuilder = cacheBuilderFactory
-            .createCacheBuilder(cacheName)
-            .withDisplayName(cacheName);
+            .createCacheBuilder(cacheDirName)
+            .withDisplayName(cacheDirName);
         Function<String, CacheBuilder> finnerCacheFactory = path -> cacheBuilderFactory
-            .createCacheBuilder(cacheName + "/" + path)
-            .withDisplayName(cacheName + "/" + path);
+            .createCacheBuilder(cacheDirName + "/" + path)
+            .withDisplayName(cacheDirName + "/" + path);
         PersistentCache executionHistoryCache = finnerCacheFactory.apply(".executionHistory")
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
             .withLockOptions(mode(OnDemand))
@@ -113,19 +108,24 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             new DefaultExecutionHistoryStore(() -> executionHistoryCache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup,
             cacheConfigurations,
-            fileLockManager,
             executionHistoryCache
         );
     }
 
     public static DefaultImmutableWorkspaceProvider withExternalHistory(
-        CacheBuilder cacheBuilder,
-        Function<String, CacheBuilder> finnerCacheFactory,
+        String cacheDisplayName,
+        File cacheBaseDir,
+        UnscopedCacheBuilderFactory cacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
+        CacheBuilder cacheBuilder = cacheFactory.cache(cacheBaseDir)
+            .withDisplayName(cacheDisplayName)
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
+        Function<String, CacheBuilder> finnerCacheFactory = path -> cacheFactory.cache(new File(cacheBaseDir, path))
+            .withDisplayName(cacheDisplayName + " for " + path)
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             finnerCacheFactory,
@@ -133,8 +133,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             executionHistoryStore,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
             cacheConfigurations,
-            fileLockManager,
-            () -> {}
+            () -> {} // External history is managed externally
         );
     }
 
@@ -145,21 +144,19 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         ExecutionHistoryStore historyFactory,
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager,
-        Closeable onClose
+        Closeable closeExecutionHistoryAction
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
             .withLockOptions(mode(None))
             .open();
         this.finnerCacheFactory = finnerCacheFactory;
-        this.finnerCacheMap = new ConcurrentHashMap<>();
-        this.fileLockManager = fileLockManager;
+        this.finnerGrainedCaches = new ConcurrentHashMap<>();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
         this.executionHistoryStore = historyFactory;
-        this.onClose = onClose;
+        this.closeExecutionHistoryAction = closeExecutionHistoryAction;
     }
 
     private static CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
@@ -182,14 +179,14 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         File workspace = new File(baseDirectory, path);
         GFileUtils.mkdirs(workspace);
         @SuppressWarnings("resource")
-        PersistentCache finnerCache = finnerCacheMap.computeIfAbsent(path, this::acquireFinnerCache);
+        PersistentCache finnerCache = finnerGrainedCaches.computeIfAbsent(path, this::openFinnerCache);
         return finnerCache.withFileLock(() -> {
             fileAccessTracker.markAccessed(workspace);
             return action.executeInWorkspace(workspace, executionHistoryStore);
         });
     }
 
-    private PersistentCache acquireFinnerCache(String path) {
+    private PersistentCache openFinnerCache(String path) {
         return finnerCacheFactory.apply(path)
             .withLockOptions(mode(OnDemand))
             .open();
@@ -198,8 +195,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     @Override
     public void close() {
         try (Closer closer = Closer.create()) {
-            finnerCacheMap.values().forEach(closer::register);
-            closer.register(onClose);
+            finnerGrainedCaches.values().forEach(closer::register);
+            closer.register(closeExecutionHistoryAction);
             closer.register(cache);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

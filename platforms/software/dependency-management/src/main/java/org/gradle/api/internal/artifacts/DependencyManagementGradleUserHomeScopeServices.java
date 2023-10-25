@@ -26,8 +26,6 @@ import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConvert
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -41,9 +39,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-
-import java.io.File;
-import java.util.function.Function;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
@@ -110,24 +105,16 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CacheConfigurationsInternal cacheConfigurations,
-        FileLockManager fileLockManager
+        CacheConfigurationsInternal cacheConfigurations
     ) {
-        Function<String, CacheBuilder> finnerCacheFactory = path -> unscopedCacheBuilderFactory
-            .cache(new File(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), path))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withDisplayName("Artifact transforms cache finner cache");
         return new ImmutableTransformWorkspaceServices(
-            unscopedCacheBuilderFactory
-                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName("Artifact transforms cache"),
-            finnerCacheFactory,
+            "Artifact transforms cache",
+            artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
+            unscopedCacheBuilderFactory,
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cacheConfigurations,
-            fileLockManager
+            cacheConfigurations
         );
     }
 }
