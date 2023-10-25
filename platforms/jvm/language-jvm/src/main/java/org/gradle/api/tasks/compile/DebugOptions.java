@@ -43,6 +43,8 @@ public class DebugOptions extends AbstractOptions {
      *     <dd>Local variable debugging information
      * </dl>
      *
+     * Also instead of those values {@code none} can be used.
+     *
      * By default, only source and line debugging information will be generated.
      */
     @Nullable
@@ -53,7 +55,20 @@ public class DebugOptions extends AbstractOptions {
     }
 
     /**
-     * Sets which debug information is to be generated.
+     * Sets which debug information is to be generated. The value is a comma-separated
+     * list of any of the following keywords (without spaces in between):
+     *
+     * <dl>
+     *     <dt>{@code source}
+     *     <dd>Source file debugging information
+     *     <dt>{@code lines}
+     *     <dd>Line number debugging information
+     *     <dt>{@code vars}
+     *     <dd>Local variable debugging information
+     * </dl>
+     *
+     * For example {@code source,lines,vars}. Alternatively {@code none} can be used
+     * to completely disable debug information.
      */
     public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;
