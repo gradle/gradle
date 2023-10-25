@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.internal.hash.HashCode
-
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import java.lang.ref.WeakReference
 
 
@@ -27,7 +27,7 @@ class ProgramId(
     parentClassLoader: ClassLoader,
     private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null,
-    val allWarningsAsErrors: Boolean = false
+    private val compilerOptions: KotlinCompilerOptions = KotlinCompilerOptions(),
 ) {
 
     private
@@ -45,7 +45,7 @@ class ProgramId(
             && sourceHash == that.sourceHash
             && accessorsClassPathHash == that.accessorsClassPathHash
             && classPathHash == that.classPathHash
-            && allWarningsAsErrors == that.allWarningsAsErrors
+            && compilerOptions == that.compilerOptions
     }
 
     override fun hashCode(): Int {
@@ -60,6 +60,6 @@ class ProgramId(
         classPathHash?.let { classPathHash ->
             result = 31 * result + classPathHash.hashCode()
         }
-        return 31 * result + allWarningsAsErrors.hashCode()
+        return 31 * result + compilerOptions.hashCode()
     }
 }

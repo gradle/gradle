@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -62,6 +61,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -148,21 +148,18 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
-    val jvmTarget: JavaVersion =
-        JavaVersion.current()
-
-    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost(gradlePropertiesController, jvmTarget))
+        Interpreter(InterpreterHost(gradlePropertiesController))
     }
 
     inner class InterpreterHost(
-        private val gradlePropertiesController: GradlePropertiesController,
-        override val jvmTarget: JavaVersion,
+        gradlePropertiesController: GradlePropertiesController,
     ) : Interpreter.Host {
 
-        override val allWarningsAsErrors: Boolean =
-            gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
+        override val compilerOptions: KotlinCompilerOptions =
+            KotlinCompilerOptions(
+                allWarningsAsErrors = gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true",
+            )
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
@@ -263,8 +260,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
-                    jvmTarget,
-                    allWarningsAsErrors,
+                    compilerOptions,
                     programId,
                     compilationClassPath,
                     accessorsClassPath,
@@ -354,8 +350,7 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
-    private val jvmTarget: JavaVersion,
-    private val allWarningsAsErrors: Boolean,
+    private val compilerOptions: KotlinCompilerOptions,
     private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
@@ -379,8 +374,8 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
-        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { allWarningsAsErrors }
+        visitor.visitInputProperty(JVM_TARGET) { compilerOptions.jvmTarget.majorVersion }
+        visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { compilerOptions.allWarningsAsErrors }
         visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
         visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
         visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)

@@ -89,24 +89,29 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
+data class KotlinCompilerOptions(
+    val jvmTarget: JavaVersion = JavaVersion.current(),
+    val allWarningsAsErrors: Boolean = false,
+)
+
+
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
-    jvmTarget: JavaVersion,
+    compilerOptions: KotlinCompilerOptions,
     moduleName: String,
     scriptFiles: Collection<String>,
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
-    allWarningsAsErrors: Boolean,
     pathTranslation: (String) -> String
 ) = compileKotlinScriptModuleTo(
     outputDirectory,
-    jvmTarget,
+    compilerOptions,
     moduleName,
     scriptFiles,
     scriptDef,
     classPath,
-    LoggingMessageCollector(logger, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
+    LoggingMessageCollector(logger, onCompilerWarningsFor(compilerOptions.allWarningsAsErrors), pathTranslation)
 )
 
 
@@ -138,23 +143,22 @@ fun scriptDefinitionFromTemplate(
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
-    jvmTarget: JavaVersion,
+    compilerOptions: KotlinCompilerOptions,
     scriptFile: File,
     scriptDef: ScriptDefinition,
     classPath: List<File>,
-    allWarningsAsErrors: Boolean,
     logger: Logger,
     pathTranslation: (String) -> String
 ): String {
 
     compileKotlinScriptModuleTo(
         outputDirectory,
-        jvmTarget,
+        compilerOptions,
         "buildscript",
         listOf(scriptFile.path),
         scriptDef,
         classPath,
-        messageCollectorFor(logger, allWarningsAsErrors, pathTranslation)
+        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
     )
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
@@ -164,7 +168,7 @@ fun compileKotlinScriptToDirectory(
 private
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
-    jvmTarget: JavaVersion,
+    compilerOptions: KotlinCompilerOptions,
     moduleName: String,
     scriptFiles: Collection<String>,
     scriptDef: ScriptDefinition,
@@ -173,7 +177,7 @@ fun compileKotlinScriptModuleTo(
 ) {
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
-            val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
+            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
@@ -224,7 +228,7 @@ object HasImplicitReceiverCompilerPlugin {
 internal
 fun compileToDirectory(
     outputDirectory: File,
-    jvmTarget: JavaVersion,
+    compilerOptions: KotlinCompilerOptions,
     moduleName: String,
     sourceFiles: Iterable<File>,
     logger: Logger,
@@ -233,7 +237,7 @@ fun compileToDirectory(
 
     withRootDisposable {
         withMessageCollectorFor(logger, EmbeddedKotlinCompilerWarning.WARN) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
+            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
@@ -358,10 +362,10 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 
 
 private
-fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: JavaVersion): CompilerConfiguration =
+fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        put(JVM_TARGET, jvmTarget.toKotlinJvmTarget())
+        put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
         put(JDK_HOME, File(System.getProperty("java.home")))
         put(IR, true)
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
