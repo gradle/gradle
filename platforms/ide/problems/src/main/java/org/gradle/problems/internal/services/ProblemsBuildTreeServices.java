@@ -16,19 +16,15 @@
 
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblems;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-
 public class ProblemsBuildTreeServices {
 
-    Problems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
-//        List<ProblemTransformer> transformers//,
-//        ProblemDiagnosticsFactory problemDiagnosticsFactory
-    ) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
-    }
+//    Problems createProblemsService(
+//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
+////        List<ProblemTransformer> transformers//,
+////        ProblemDiagnosticsFactory problemDiagnosticsFactory
+//    ) {
+//        return new DefaultProblems(buildOperationProgressEventEmitter);
+//    }
 
 //    ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
 //        return new PluginIdLocationTransformer(buildOperationAncestryTracker, operationListener);
