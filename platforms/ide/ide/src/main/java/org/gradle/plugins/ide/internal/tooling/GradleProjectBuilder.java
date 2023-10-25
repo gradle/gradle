@@ -20,13 +20,19 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultIsolatedGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +46,16 @@ import static org.gradle.util.Path.SEPARATOR;
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
 
+    private final Provider<Boolean> isolatedProjectsActive;
+
+    public GradleProjectBuilder() {
+        this(null);
+    }
+
+    public GradleProjectBuilder(@Nullable Provider<Boolean> isolatedProjectsActive) {
+        this.isolatedProjectsActive = isolatedProjectsActive != null ? isolatedProjectsActive : Providers.of(false);
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
@@ -47,11 +63,68 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return buildHierarchy(project.getRootProject());
+        return buildAll(project);
     }
 
     public DefaultGradleProject buildAll(Project project) {
-        return buildHierarchy(project.getRootProject());
+        Project rootProject = project.getRootProject();
+        String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
+        boolean skipTaskGraph = "skip_task_graph_realization".equals(projectOptions) || "omit_all_tasks".equals(projectOptions);
+
+        if (skipTaskGraph || !isolatedProjectsActive.get()) {
+            return buildHierarchy(rootProject);
+        }
+
+        return buildFromIsolatedSubprojectsOfRoot(rootProject);
+    }
+
+    private DefaultGradleProject buildFromIsolatedSubprojectsOfRoot(Project rootProject) {
+        DefaultIsolatedGradleProject rootIsolatedModel = IsolatedGradleProjectBuilder.build(rootProject);
+        return buildFromIsolatedSubprojects(rootIsolatedModel, (ProjectInternal) rootProject);
+    }
+
+    private static DefaultGradleProject buildFromIsolatedSubprojects(DefaultIsolatedGradleProject isolatedModel, ProjectInternal project) {
+        DefaultGradleProject model = buildFromIsolatedModelWithoutChildren(project, isolatedModel);
+        Collection<Project> childProjects = getChildProjectsForInternalUse(project);
+        List<DefaultIsolatedGradleProject> childIsolatedModels = mapToModels(childProjects);
+
+        List<DefaultGradleProject> childModels = new ArrayList<>();
+        int i = 0;
+        for (Project childProject : childProjects) {
+            DefaultIsolatedGradleProject childIsolatedModel = childIsolatedModels.get(i++);
+            DefaultGradleProject childModel = buildFromIsolatedSubprojects(childIsolatedModel, (ProjectInternal) childProject);
+            childModel.setParent(model);
+            childModels.add(childModel);
+        }
+        model.setChildren(childModels);
+        return model;
+    }
+
+    private static List<DefaultIsolatedGradleProject> mapToModels(Collection<Project> childProjects) {
+        return childProjects.stream()
+            .map(it -> {
+                ((ProjectInternal) it).evaluate();
+                return IsolatedGradleProjectBuilder.build(it);
+            })
+            .collect(toList());
+    }
+
+    private static DefaultGradleProject buildFromIsolatedModelWithoutChildren(ProjectInternal project, DefaultIsolatedGradleProject isolatedModel) {
+        DefaultGradleProject model = new DefaultGradleProject();
+
+        model.setProjectIdentifier(isolatedModel.getProjectIdentifier())
+            .setName(isolatedModel.getName())
+            .setDescription(isolatedModel.getDescription())
+            .setBuildDirectory(isolatedModel.getBuildDirectory())
+            .setProjectDirectory(isolatedModel.getProjectDirectory())
+            .setBuildTreePath(project.getIdentityPath().getPath());
+
+        model.getBuildScript().setSourceFile(project.getBuildFile());
+
+        List<LaunchableGradleTask> tasks = (List<LaunchableGradleTask>) isolatedModel.getTasks();
+        model.setTasks(tasks);
+
+        return model;
     }
 
     private DefaultGradleProject buildHierarchy(Project project) {
@@ -71,6 +144,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
+        // TODO: Android Studio uses "omit_all_tasks" in production
         /*
             Internal system property to investigate model loading performance in IDEA/Android Studio.
             The model loading can be altered with the following values:
@@ -98,6 +172,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             return ImmutableList.of();
         }
         if ("skip_task_graph_realization".equals(projectOptions)) {
+            // TODO: this is probably a bug, because we don't set the project on the task
             return tasks.getNames().stream()
                 .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
                     .setBuildTreePath(owner.getBuildTreePath() + SEPARATOR + taskName))
