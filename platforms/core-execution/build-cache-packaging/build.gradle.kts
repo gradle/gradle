@@ -12,9 +12,6 @@ dependencies {
     api(project(":files"))
 
     implementation(project(":base-annotations"))
-    implementation(project(":wrapper-shared")) {
-        because("We need to access the ZipSlip helper class")
-    }
     implementation(libs.guava)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
