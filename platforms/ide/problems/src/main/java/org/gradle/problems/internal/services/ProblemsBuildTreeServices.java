@@ -16,15 +16,18 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
+import java.util.List;
+
 public class ProblemsBuildTreeServices {
 
     Problems createProblemsService(
-        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
-//        List<ProblemTransformer> transformers//,
+        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+        List<ProblemTransformer> transformers//,
 //        ProblemDiagnosticsFactory problemDiagnosticsFactory
     ) {
         return new DefaultProblems(buildOperationProgressEventEmitter);
