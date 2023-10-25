@@ -38,8 +38,9 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         CacheConfigurationsInternal cacheConfigurations
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-            "dependencies-accessors",
-            cacheBuilderFactory,
+            cacheBuilderFactory
+                .createCacheBuilder("dependencies-accessors")
+                .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,

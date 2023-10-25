@@ -16,37 +16,28 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
-import com.google.common.io.Closer;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static org.gradle.cache.FileLockManager.LockMode.None;
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -56,13 +47,9 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
-    private final Closeable closeExecutionHistoryAction;
-    private final Map<String, PersistentCache> finnerGrainedCaches;
-    private final Function<String, CacheBuilder> finnerCacheFactory;
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
-        String cacheDirName,
-        ScopedCacheBuilderFactory cacheBuilderFactory,
+        CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
@@ -70,8 +57,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return withBuiltInHistory(
-            cacheDirName,
-            cacheBuilderFactory,
+            cacheBuilder,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
@@ -82,8 +68,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     }
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
-        String cacheDirName,
-        ScopedCacheBuilderFactory cacheBuilderFactory,
+        CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
@@ -91,75 +76,33 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        CacheBuilder cacheBuilder = cacheBuilderFactory
-            .createCacheBuilder(cacheDirName)
-            .withDisplayName(cacheDirName);
-        Function<String, CacheBuilder> finnerCacheFactory = path -> cacheBuilderFactory
-            .createCacheBuilder(cacheDirName + "/" + path)
-            .withDisplayName(cacheDirName + "/" + path);
-        PersistentCache executionHistoryCache = finnerCacheFactory.apply(".executionHistory")
-            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(OnDemand))
-            .open();
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
-            finnerCacheFactory,
             fileAccessTimeJournal,
-            new DefaultExecutionHistoryStore(() -> executionHistoryCache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
+            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup,
-            cacheConfigurations,
-            executionHistoryCache
-        );
-    }
-
-    public static DefaultImmutableWorkspaceProvider withExternalHistory(
-        String cacheDisplayName,
-        File cacheBaseDir,
-        UnscopedCacheBuilderFactory cacheFactory,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
-        CacheConfigurationsInternal cacheConfigurations
-    ) {
-        CacheBuilder cacheBuilder = cacheFactory.cache(cacheBaseDir)
-            .withDisplayName(cacheDisplayName)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
-        Function<String, CacheBuilder> finnerCacheFactory = path -> cacheFactory.cache(new File(cacheBaseDir, path))
-            .withDisplayName(cacheDisplayName + " for " + path)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget);
-        return new DefaultImmutableWorkspaceProvider(
-            cacheBuilder,
-            finnerCacheFactory,
-            fileAccessTimeJournal,
-            executionHistoryStore,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheConfigurations,
-            () -> {} // External history is managed externally
+            cacheConfigurations
         );
     }
 
     private DefaultImmutableWorkspaceProvider(
         CacheBuilder cacheBuilder,
-        Function<String, CacheBuilder> finnerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore historyFactory,
+        Function<PersistentCache, ExecutionHistoryStore> historyFactory,
         int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations,
-        Closeable closeExecutionHistoryAction
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(None))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
-        this.finnerCacheFactory = finnerCacheFactory;
-        this.finnerGrainedCaches = new ConcurrentHashMap<>();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-        this.executionHistoryStore = historyFactory;
-        this.closeExecutionHistoryAction = closeExecutionHistoryAction;
+        this.executionHistoryStore = historyFactory.apply(cache);
     }
 
-    private static CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
+    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
         return DefaultCacheCleanupStrategy.from(
             createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations),
             cacheConfigurations.getCleanupFrequency()::get
@@ -176,30 +119,15 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        File workspace = new File(baseDirectory, path);
-        GFileUtils.mkdirs(workspace);
-        @SuppressWarnings("resource")
-        PersistentCache finnerCache = finnerGrainedCaches.computeIfAbsent(path, this::openFinnerCache);
-        return finnerCache.withFileLock(() -> {
+        return cache.withFileLock(() -> {
+            File workspace = new File(baseDirectory, path);
             fileAccessTracker.markAccessed(workspace);
             return action.executeInWorkspace(workspace, executionHistoryStore);
         });
     }
 
-    private PersistentCache openFinnerCache(String path) {
-        return finnerCacheFactory.apply(path)
-            .withLockOptions(mode(OnDemand))
-            .open();
-    }
-
     @Override
     public void close() {
-        try (Closer closer = Closer.create()) {
-            finnerGrainedCaches.values().forEach(closer::register);
-            closer.register(closeExecutionHistoryAction);
-            closer.register(cache);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        cache.close();
     }
 }
