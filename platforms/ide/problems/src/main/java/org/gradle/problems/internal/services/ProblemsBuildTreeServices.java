@@ -35,7 +35,7 @@ public class ProblemsBuildTreeServices {
         List<ProblemTransformer> transformers,
         ProblemDiagnosticsFactory problemDiagnosticsFactory
     ) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
+        return new DefaultProblems(buildOperationProgressEventEmitter, transformers, problemDiagnosticsFactory.newStream());
     }
 
     ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
