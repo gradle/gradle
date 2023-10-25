@@ -25,8 +25,9 @@ import model.Stage
 class Gradleception(
     model: CIBuildModel,
     stage: Stage,
+    buildJvm: Jvm,
+    jvmDescription: String,
     bundleGroovy4: Boolean = false,
-    buildJvm: Jvm = BuildToolBuildJvm,
 ) : BaseGradleBuildType(stage = stage, init = {
     val idParts = mutableListOf<String>()
     val labels = mutableListOf<String>()
@@ -39,7 +40,7 @@ class Gradleception(
     val vendor = buildJvm.vendor.displayName
     val version = buildJvm.version.major
     if (buildJvm != BuildToolBuildJvm) {
-        idParts += "Java$version$vendor"
+        idParts += "Java$jvmDescription"
         descriptionParts += "with Java$version $vendor"
     }
     labels += "Java$version $vendor"
@@ -52,7 +53,8 @@ class Gradleception(
     val descriptionSuffix = if (descriptionParts.isNotEmpty()) {
         " (${descriptionParts.joinToString(separator = ", ")})"
     } else ""
-    description = "Builds Gradle with the version of Gradle which is currently under development (twice)" + descriptionSuffix
+    description =
+        "Builds Gradle with the version of Gradle which is currently under development (twice)$descriptionSuffix"
 
     requirements {
         // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents

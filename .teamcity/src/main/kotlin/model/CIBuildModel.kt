@@ -361,17 +361,17 @@ enum class SpecificBuild {
     },
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default")
         }
     },
     GradleceptionWithGroovy4 {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage, true)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
         }
     },
     GradleceptionWithMaxLtsJdk {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage, buildJvm = JvmCategory.MAX_LTS_VERSION)
+            return Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
         }
     },
     CheckLinks {
