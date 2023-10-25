@@ -1,0 +1,22 @@
+abstract class Executer extends DefaultTask {
+    @Internal
+    abstract ListProperty<String> getOptions()
+
+    Executer() {
+        options.set((Iterable) null)
+        options.value().add("--safe")
+        options.value().add("--debug")
+    }
+
+    @TaskAction
+    void generate() {
+        options.get().forEach { value ->
+            logger.quiet("${value}")
+        }
+    }
+}
+
+tasks.register('executer', Executer) {
+    options.value().addAll("--native")
+    options.value().excludeAll("--debug")
+}
