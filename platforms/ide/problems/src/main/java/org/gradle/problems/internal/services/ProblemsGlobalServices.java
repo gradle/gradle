@@ -16,14 +16,17 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.ProblemTransformer;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.problems.internal.OperationListener;
+import org.gradle.problems.internal.transformers.TaskPathLocationTransformer;
 
 public class ProblemsGlobalServices {
 
-//    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
-//        return new TaskPathLocationTransformer(buildOperationAncestryTracker, operationListener);
-//    }
+    ProblemTransformer createProblemTransfomer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
+        return new TaskPathLocationTransformer(buildOperationAncestryTracker, operationListener);
+    }
 
     OperationListener createOperationListener(BuildOperationListenerManager buildOperationListenerManager) {
         OperationListener operationListener = new OperationListener();
