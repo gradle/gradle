@@ -89,22 +89,12 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            ${compilerDaemonDebugging(enableCompilerDaemonDebugging)}
-        """
-    }
-
-    def compilerDaemonDebugging(Boolean enableDebug) {
-        if (enableDebug) {
-            return """
-                tasks {
-                    compileJava {
-                        options.forkOptions.jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006,suspend=y")
-                    }
+            tasks {
+                compileJava {
+                    options.forkOptions.jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006")
                 }
-            """
-        } else {
-            return ""
-        }
+            }
+        """
     }
 
     def runWithToolchainConfigured(Jvm jvm) {

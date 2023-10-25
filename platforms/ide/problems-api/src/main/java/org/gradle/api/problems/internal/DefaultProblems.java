@@ -38,13 +38,11 @@ public class DefaultProblems implements InternalProblems {
     private final List<ProblemTransformer> transformers;
     private final ProblemStream problemStream;
 
-    public DefaultProblems( ProblemEmitter emitter) {
-        this(emitter, Collections.emptyList(), EMPTY_STREAM);
+    public DefaultProblems(ProblemEmitter emitter) {
+        this(emitter, Collections.<ProblemTransformer>emptyList(), EMPTY_STREAM);
     }
 
-    public DefaultProblems(
-        ProblemEmitter emitter,
-        List<ProblemTransformer> transformers,
+    public DefaultProblems(ProblemEmitter emitter, List<ProblemTransformer> transformers,
         ProblemStream problemStream
     ) {
         this.emitter = emitter;

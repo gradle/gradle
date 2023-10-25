@@ -112,7 +112,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             configureLogging(loggingManager, connection, workerLogEventListener);
-            configureProblems(workerServices, connection);
+//            configureProblems(workerServices, connection);
             // start logging now that the logging manager is connected
             loggingManager.start();
             if (config.shouldPublishJvmMemoryInfo()) {
