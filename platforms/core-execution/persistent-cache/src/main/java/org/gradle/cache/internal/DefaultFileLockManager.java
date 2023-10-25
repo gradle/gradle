@@ -287,20 +287,25 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         /**
+         * This method acquires a lock on the lock file.
+         * <br><br>
+         *
          * Lock file is {@link java.io.RandomAccessFile} that has two regions:
          * - lock state region, locked for the duration of the operation
          * - lock info region, locked just to write the lock info or read info from it
          * <br><br>
          *
-         * We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.
-         * If we use exclusive lock, and we succeed, we acquire a exclusive lock on the information region and write our details (port and lock id)
-         * there, and then we release lock of information region. That way other processes can read our details and ping us.
-         * That is important for {@link org.gradle.cache.FileLockManager.LockMode.OnDemand} mode.
-         * If we use shared lock, and we succeed we don't write anything to information region, and thus we currently don't have on demand shared locks.
-         * If we fail, we throw a timeout exception.
+         * Algorithm:<br> 
+         * 1. We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.<br>
+         * 2a. If we use exclusive lock, and we succeed in step 1., then we acquire an exclusive lock
+         * on the information region and write our details (port and lock id) there, and then we release lock of information region.
+         * That way other processes can read our details and ping us. That is important for {@link org.gradle.cache.FileLockManager.LockMode.OnDemand} mode.<br>
+         * 2b. If we use shared lock, and we succeed in step 1., then we just hold the lock. We don't write anything to the information region
+         * since multiple processes can acquire shared lock (due to that we currently also don't support on demand shared locks).<br>
+         * 2.c If we fail, we throw a timeout exception.
          * <br><br>
          *
-         * On close we remove our details from info region and release the exclusive lock on the state region.
+         * On close, we remove our details from info region and release the exclusive lock on the state region.
          * <br><br>
          *
          * Note: In the implementation we use {@link java.nio.channels.FileLock} that is tight to a JVM process, not a thread.

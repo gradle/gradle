@@ -59,20 +59,8 @@ public interface CacheBuilder {
 
     /**
      * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
-     * <br><br>
      *
      * Note that not every combination of cache type and lock options is supported.
-     * <br><br>
-     *
-     * Supported LockModes:
-     * <br>- Shared: Default option. Used for read-only caches, many processes can access the cache concurrently.
-     *      The cache lock is created when cache is opened. To release a lock a cache has to be closed.
-     * <br>- Exclusive: Used for caches that are written to. Only one process can access the cache at a time.
-     *      The cache lock is created when cache is opened. To release a lock a cache has to be closed.
-     * <br>- OnDemand: Used for caches that are written to on demand. Only one process can access the cache at a time.
-     *      The cache lock is created with `useCache` or `withFiles` method. Lock is released when another process requests it via ping requests,
-     *      see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(org.gradle.cache.FileLockManager.LockMode)}.
-     * <br>- None: No locking whatsoever.
      */
     CacheBuilder withLockOptions(LockOptions lockOptions);
 
@@ -96,8 +84,9 @@ public interface CacheBuilder {
      *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
      * </p>
      * <ul>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} or {@link org.gradle.cache.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() in the exclusive mode and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Shared} will lock the cache on open() in the shared mode and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} will <em>not</em> lock the cache on open().</li>
      * </ul>
      *
      * @return The cache.
