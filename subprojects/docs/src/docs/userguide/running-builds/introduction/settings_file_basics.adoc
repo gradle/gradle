@@ -72,11 +72,11 @@ include("sub-project-a")                                    // <5>
 include("sub-project-b")
 include("sub-project-c")
 ----
-<1> Locate plugins.
-<2> Apply shared plugins.
-<3> Name the root project.
-<4> Manage dependencies.
-<5> Add subprojects to the build.
+<1> Define plugin location.
+<2> Define shared plugins.
+<3> Define the project name.
+<4> Define dependency location and components.
+<5> Define subprojects.
 =====
 
 [.multi-language-sample]
@@ -109,17 +109,19 @@ include('sub-project-a')                                    // <5>
 include('sub-project-b')
 include('sub-project-c')
 ----
-<1> Locate plugins.
-<2> Apply shared plugins.
-<3> Name the root project.
-<4> Manage dependencies and components.
-<5> Add subprojects to the build.
+<1> Define plugin location.
+<2> Define shared plugins.
+<3> Define the project name.
+<4> Define dependency location and components.
+<5> Define subprojects.
 =====
 ====
 
-=== 1. Locate plugins
+=== 1. Define plugin location
 
-The settings file can optionally define the plugins your project uses, including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
+Plugins extend Gradle's capabilities.
+
+The settings file can optionally define the plugins your build uses, including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
 
 [source]
 ----
@@ -152,7 +154,7 @@ The settings file defines your project name:
 rootProject.name = "root-project"
 ----
 
-There is only one root per project.
+There is only one root project per build.
 
 === 4. Define dependency location and components
 
@@ -163,14 +165,18 @@ The settings file can optionally define the locations of components your project
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        // google()
+        // jcenter()
     }
     includeBuild("../other-project")
 }
 ----
 
+For example, if your source code depends on a Google library, you can add `google()` to the `repositories{}` block. Then Gradle will be able to download libraries from https://maven.google.com/, the Google Maven repository.
+
 === 5. Define subprojects
 
-The settings file defines the structure of the project by including the subprojects:
+The settings file defines the structure of the project by including subprojects if there are any:
 
 [source]
 ----
@@ -178,3 +184,6 @@ include("app")
 include("business-logic")
 include("data-model")
 ----
+
+[.text-right]
+**Next Step:** <<build_file_basics.adoc#build_file_basics,Learn about the Build scripts>> >>

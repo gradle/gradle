@@ -21,7 +21,7 @@ image::gradle-basic-8.png[]
 
 == Incremental builds
 
-An _incremental build_ is a build that avoids running tasks whose inputs have not changed since the previous build, making the execution of such tasks unnecessary.
+An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build, making the execution of such tasks unnecessary.
 
 For incremental builds to work, tasks must define their inputs and outputs.
 Gradle will determine whether the input or outputs have changed at build time.
@@ -29,7 +29,7 @@ If they have changed, Gradle will execute the task.
 Otherwise, it will skip execution.
 
 Incremental builds are always enabled so the only way to see it in action is to turn on _verbose mode_.
-With verbose mode, each task is labeled during a build:
+With verbose mode, each task state is labeled during a build:
 
 [source]
 ----
@@ -58,7 +58,7 @@ BUILD SUCCESSFUL in 374ms
 When you run a task that has been previously executed and hasn't changed, then `UP-TO-DATE` is printed next to the task.
 
 === Turn on verbose mode
-Add `org.gradle.console=verbose` to your `gradle.properties` file:
+To view the state of a task, add `org.gradle.console=verbose` to your `gradle.properties` file:
 
 [source]
 ----
@@ -73,7 +73,7 @@ If a developer continuously changes a single file, there is likely no need to re
 However, what happens when the same developer switches to a new branch created last week?
 The files are rebuilt, even though the developer is building something that has been built before.
 
-This is where a _build cache_ is helpful.
+This is where a *build cache* is helpful.
 
 The build cache stores previous build results and restores them when needed.
 It prevents the redundant work and cost of regenerating time-consuming and expensive processes.
@@ -140,3 +140,6 @@ The idea of a remote cache is to share commonly built task outputs across remote
 
 When both remote and local caches are enabled, the build output is first checked in the local cache.
 If the output isn't in the local cache, it will be downloaded from the remote cache and stored in the local cache.
+
+[.text-right]
+**Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn about Multi-project Builds>> >>

@@ -77,3 +77,6 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 [[sec:authenticated_download]]
 [[sec:verification]]
 [[wrapper_checksum_verification]]
+
+[.text-right]
+**Next Step:** <<command_line_interface.adoc#command_line_interface,Learn about the Gradle CLI>> >>

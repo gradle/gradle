@@ -30,7 +30,7 @@ $ ./gradlew build
 ----
 
 == Available tasks
-All available tasks in your project come from Gradle, plugins, and build scrips.
+All available tasks in your project come from Gradle plugins and build scripts.
 
 You can list all the available tasks in the project by running the following command in the terminal:
 
@@ -89,7 +89,7 @@ include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 The `-q` option suppresses Gradle's log messages so that only the output of the tasks is shown.
 ====
 
-In the example, the build script registers a single task called `hello` and adds an action.
+In the example, the build script registers a single task called `hello` and adds an action to it.
 
 When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
 The action is simply a block containing some code to execute: `println("Hello world!")`.
@@ -170,3 +170,6 @@ Thus, `jar` should be executed before `doSomethingWithJar`.
 
 Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
 If there is no dependency between tasks, Gradle enables users to request a specific execution order.
+
+[.text-right]
+**Next Step:** <<plugin_basics.adoc#plugin_basics,Learn about Plugins>> >>

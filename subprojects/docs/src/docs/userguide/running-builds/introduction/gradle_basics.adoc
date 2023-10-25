@@ -95,8 +95,11 @@ $ gradle.bat build  // Windows
 
 === IDE
 
-Gradle is built-in to many IDEs including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 Gradle is automatically invoked when you build, clean, or run your app in the IDE.
 
 It is recommended that you consult the manual for the IDE of your choice to learn more about how Gradle is used.
+
+[.text-right]
+**Next Step:** <<gradle_wrapper.adoc#gradle_wrapper,Learn about the Gradle Wrapper>> >>

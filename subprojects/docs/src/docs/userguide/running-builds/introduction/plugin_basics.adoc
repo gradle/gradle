@@ -21,11 +21,16 @@ image::gradle-basic-6.png[]
 
 Most features, like the ability to compile Java code, are added by _plugins_.
 
-Using plugins is also the **primary mechanism for organizing build logic**.
+Using plugins is also the primary mechanism for organizing build logic.
 
 Plugins are essentially a set of all useful tasks, such as compiling tasks, setting domain objects, setting up source files, etc.
 
 *Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
+
+For example, The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
+The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs or Firebase services in your Android application.
+The Palantir Git-Version Plugin, `com.palantir.git-version`, is a plugin that generates a project version for use with Gradle by calling `git-describe`.
+
 
 == Plugin distribution
 
@@ -92,7 +97,7 @@ Gradle has a vibrant community of plugin developers who contribute plugins for v
 
 The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
 
-You could search `generate unit test` in the Gradle Plugin Portal if you wanted to generate unit tests for your project automatically.
+For example, you could search `generate unit test` in the Gradle Plugin Portal if you wanted to automatically generate unit tests for your project.
 There, you will find many plugins, including the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply as follows:
 
 [source]
@@ -104,7 +109,7 @@ plugins {
 
 == Plugin tasks
 
-Since plugins add tasks to your project when applied, you can view the `utbot` tasks by running:
+Since plugins add tasks to your project when applied, you can view the tasks added by `ubot` by running `./gradlew tasks`:
 
 [source]
 ----
@@ -115,11 +120,14 @@ $ ./gradlew tasks
 ------------------------------------------------------------
 Tasks runnable from root project 'temp'
 ------------------------------------------------------------
-....
+
 Utbot tasks
 -----------
 generateTestsAndSarifReport - Generate a SARIF report
 ....
 ----
 
-As we can see, the `generateTestsAndSarifReport` has been added to the project.
+As we can see, the `generateTestsAndSarifReport` task has been added to the project.
+
+[.text-right]
+**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Gradle optimizations>> >>

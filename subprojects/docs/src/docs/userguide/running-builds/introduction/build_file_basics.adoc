@@ -38,17 +38,16 @@ The build script is either a `build.gradle` file written in Groovy or a `build.g
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
-Let's take a look at an example of a simple Java app and break it down:
+Let's take a look at an example and break it down:
 
 ====
 [.multi-language-sample]
 =====
-.settings.gradle.kts
+.build.gradle.kts
 [source,kotlin]
 ----
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"                      // <1>
-    application
 }
 
 repositories {
@@ -70,21 +69,20 @@ tasks.named<Test>("test") {
     useJUnitPlatform()                                                  // <5>
 }
 ----
-<1> Apply the plugin to add support for Kotlin and Java (via the application).
-<2> Use Maven Central for resolving dependencies.
-<3> Use the JUnit 5 integration and a dependency from Google used by the application.
-<4> Define the main class for the application.
-<5> Use JUnit Platform for unit tests.
+<1> Add plugins.
+<2> Add dependency location.
+<3> Add dependencies.
+<4> Use convention properties.
+<5> Register or configure tasks.
 =====
 
 [.multi-language-sample]
 =====
-.settings.gradle
+.build.gradle
 [source,groovy]
 ----
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.0'                       // <1>
-    id 'application'
 }
 
 repositories {
@@ -106,15 +104,15 @@ tasks.named('test') {
     useJUnitPlatform()                                                  // <5>
 }
 ----
-<1> Apply the plugin to add support for Kotlin and Java (via the application).
-<2> Use Maven Central for resolving dependencies.
-<3> Use the JUnit 5 integration and a dependency from Google used by the application.
-<4> Define the main class for the application.
-<5> Use JUnit Platform for unit tests.
+<1> Add plugins.
+<2> Add dependency location.
+<3> Add dependencies.
+<4> Use convention properties.
+<5> Register or configure tasks.
 =====
 ====
 
-=== 1. Add extensions via plugins
+=== 1. Add plugins
 Plugins are bundled tasks used to extend Gradle.
 
 Adding a plugin to a build is called _applying_ a plugin.
@@ -123,19 +121,16 @@ Adding a plugin to a build is called _applying_ a plugin.
 ----
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    application
 }
 ----
 
-Since our example is a Java app, the `application` plugin, which is included with Gradle, has been applied, adding Java support and more.
-
-The Kotlin gradle plugin, version 1.9.0, has also been applied since our app contains Kotlin code.
+The Kotlin gradle plugin, version 1.9.0, has been applied to the project so that source code written in Kotlin can be used.
 
 === 2. Add dependency location
 A project generally has several dependencies it needs to do its work.
 Many of the dependencies will be used by the source code.
 
-In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binary plugins that Gradle will need to download to build the project.
+In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binaries that Gradle will need to download to build the project.
 
 [source]
 ----
@@ -143,6 +138,8 @@ repositories {
     mavenCentral()
 }
 ----
+
+In this example, the Kotlin JVM Plugin, `org.jetbrains.kotlin.jvm`, will be downloaded by Gradle from the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin[Maven Central Repository].
 
 === 3. Add dependencies
 Dependencies are grouped in configurations and can be retrieved and uploaded from repositories.
@@ -159,11 +156,13 @@ dependencies {
 }
 ----
 
+In this example, the source code in the project will import the Google `guava` library which will also be retrieved from the link:https://mvnrepository.com/artifact/com.google.guava/guava[Maven Central Repository] by Gradle.
+
 === 4. Use convention properties
 A plugin adds tasks to a project.
 It also adds properties and methods to a project.
 
-In the example, the `application` plugin has a method that can declare the main class of our Java application, which is required to compile and run the code.
+In the example, the `application` plugin has a method that can declare the main class of a Java application, which is required to compile and run the code.
 
 [source]
 ----
@@ -172,12 +171,12 @@ application {
 }
 ----
 
-=== 5. Create or update tasks
+=== 5. Register or configure tasks
 Tasks perform some basic work, such as compiling classes, running unit tests, or zipping up a WAR file.
 
 Tasks either come from plugins or the build script itself.
 
-In the example, the build script requires all test-related tasks to use the `junit` platform.
+In the example, the build script configures all test-related tasks to use the `JUnit` platform.
 
 [source]
 ----
@@ -185,3 +184,6 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 ----
+
+[.text-right]
+**Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>

@@ -19,7 +19,7 @@ Gradle has built-in support for dependency management.
 
 image::gradle-basic-7.png[]
 
-Gradle build script defines a process to build projects that contain some dependencies.
+Gradle build scripts defines a process to build projects that contain some dependencies.
 Dependencies refer to JARs, plugins, libraries, or source code that support building your project.
 
 The Gradle build system makes it easy to include external binaries or other library modules to your build as dependencies.
@@ -38,8 +38,6 @@ $ ./gradlew :app:dependencies
 ------------------------------------------------------------
 Project ':app'
 ------------------------------------------------------------
-
-...
 
 compileClasspath - Compile classpath for source set 'main'.
 \--- com.google.guava:guava:32.1.2-jre
@@ -121,10 +119,40 @@ implementation(group = "com.example.gradle", name = "app-helper", version = "10.
 ----
 
 == Version Catalog
-TBD
+
+<<version_catalog.adoc#version_catalog,Version catalogs>> are a way of centralizing your dependency declarations by creating a `libs.versions.toml` file.
+
+[source]
+----
+[libraries]
+gradle-helper = "com.example.gradle:app-helper:10.1.1"
+
+[plugins]
+tutorial-application = { id = "com.tutorial.application" }
+----
+
+Using a version catalog, the example would include aliases:
+
+[source]
+----
+plugins {
+    alias(libs.tutorial.application)
+}
+
+dependencies {
+    // Dependency on a local library module
+    implementation(project(":mylibrary"))
+
+    // Dependency on local binaries
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // Dependency on a remote binary
+    implementation(libs.gradle.helper)
+}
+----
 
 == Dependency Configurations
-[%header,cols="1,1"]
+[%header,cols="1,~"]
 |===
 |Configuration
 |Behavior
@@ -183,9 +211,9 @@ repositories {
 }
 ----
 
-Since the dependency location is specified in the build file of a specific project, it is only applied to that subproject and not the root project or other subprojects.
+When the dependency location is specified in the build file of a specific project, it is only applied to that subproject and not the root project or other subprojects.
 
-For shared dependency locations (among all projects), Gradle looks for repositories specified in the `dependencyResolutionManagement` block of your `settings.gradle(.kts)` file:
+For shared dependency locations, among all subprojects, Gradle looks for repositories specified in the `dependencyResolutionManagement` or `pluginManagement` block of your `settings.gradle(.kts)` file:
 
 [source]
 ----
@@ -236,7 +264,9 @@ repositories {
 ----
 
 == Local repositories
-If you want something from a local repository, use `mavenLocal()`:
+Maven local is a repository located on your local machine.
+
+The Maven Local repository allows you to manage local copies of your project's dependencies:
 
 [source]
 ----
@@ -244,3 +274,6 @@ repositories {
     mavenLocal()
 }
 ----
+
+[.text-right]
+**Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

@@ -23,7 +23,7 @@ While some small projects and monolithic applications may contain a single build
 The word "interdependent" is vital, as you typically want to link the many modules together through a single build.
 
 Gradle supports this scenario through _multi-project_ builds.
-This is sometimes referred to as multi-module projects.
+This is sometimes referred to as a multi-module project.
 
 A multi-project build consists of one root project, and one or more subprojects.
 

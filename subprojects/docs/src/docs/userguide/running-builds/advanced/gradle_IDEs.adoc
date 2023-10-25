@@ -25,6 +25,8 @@ Android Studio uses Gradle to automate and manage the build process while lettin
 
 image::android_studio.png[]
 
+You can find documentation link:https://developer.android.com/build[here].
+
 == IntelliJ IDEA
 
 IntelliJ IDEA supports a fully-functional integration with Gradle that helps you automate your building process.
@@ -32,6 +34,8 @@ IntelliJ IDEA supports a fully-functional integration with Gradle that helps you
 image::intellij_idea.png[]
 
 You can easily create a new Gradle project, open and sync an existing one, work with several linked projects simultaneously, and manage them.
+
+You can find documentation link:https://www.jetbrains.com/help/idea/gradle.html[here].
 
 == Visual Studio Code
 
@@ -41,6 +45,8 @@ image::visual_studio_code.png[]
 
 The extension provides a visual interface for your Gradle build, you can use this interface to view Gradle Tasks and Project dependencies, or run Gradle Tasks as VS Code Tasks. The extension also offers a better Gradle build file authoring experience including syntax highlighting, error reporting, and auto-completion.
 
+You can find documentation link:https://code.visualstudio.com/docs/java/java-build[here].
+
 == Eclipse
 
 The Eclipse IDE is the essential tool for any Java developer, including a Java IDE, a Git client, XML Editor, and Gradle integration.
@@ -49,8 +55,12 @@ image::eclipse.png[]
 
 link:https://marketplace.eclipse.org/content/buildship-gradle-integration[Buildship] is a set of Eclipse Plug-ins that provide a deep integration of Gradle into the Eclipse IDE.
 
+You can find documentation link:https://projects.eclipse.org/projects/tools.buildship[here].
+
 == NetBeans
 
 The Apache Software Foundation maintains NetBeans, an open-source IDE for Java, PHP, Javascript and other languages.
 
 image::netbeans.png[]
+
+You can find documentation link:https://cwiki.apache.org/confluence/display/BEAM/Gradle+Tips[here].

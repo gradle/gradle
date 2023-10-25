@@ -170,3 +170,6 @@ When executing the Gradle Wrapper from a subproject directory, reference `gradle
 [[sec:build_cycles]]
 [[sec:changes_to_symbolic_links]]
 [[sec:changes_to_build_logic_are_not_considered]]
+
+[.text-right]
+**Next Step:** <<settings_file_basics.adoc#settings_file_basics,Learn about the Settings file>> >>
