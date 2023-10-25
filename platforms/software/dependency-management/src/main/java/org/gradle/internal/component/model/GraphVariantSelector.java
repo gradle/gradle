@@ -35,7 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
@@ -50,14 +50,14 @@ import java.util.Set;
  * (in practice, this should be only contain single variant).
  *
  * This class is intentionally named similarly to {@link ArtifactVariantSelector}, as it has a
- * similar purpose.  An instance of {@link SelectionFailureHandler} is injected in the constructor
+ * similar purpose.  An instance of {@link ResolutionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
  * calls to that instance.
  */
 public class GraphVariantSelector {
-    private final SelectionFailureHandler failureProcessor;
+    private final ResolutionFailureHandler failureProcessor;
 
-    public GraphVariantSelector(SelectionFailureHandler failureProcessor) {
+    public GraphVariantSelector(ResolutionFailureHandler failureProcessor) {
         this.failureProcessor = failureProcessor;
     }
 
@@ -66,7 +66,7 @@ public class GraphVariantSelector {
      *
      * @return the failure processor
      */
-    public SelectionFailureHandler getFailureProcessor() {
+    public ResolutionFailureHandler getFailureProcessor() {
         return failureProcessor;
     }
 
