@@ -123,7 +123,7 @@ plugins {
 
 ### Resolution
 
-The resolution result operates with "object origin" (see [`ObjectOrigin`](https://github.com/h0tk3y/kotlin-static-object-notation/blob/master/src/main/kotlin/analysis/ResolutionOutput.kt#L19)), which tells
+The resolution result operates with "object origin" (see [`ObjectOrigin`](https://github.com/h0tk3y/kotlin-static-object-notation/blob/master/src/main/kotlin/com/h0tk3y/kotlin/staticObjectNotation/analysis/ResolutionOutput.kt#L14), which tells
 where an object comes from: a constant, a local variable, a receiver of a configuring lambda, a function invocation etc.
 
 Then, the resolver collects the sets of:
