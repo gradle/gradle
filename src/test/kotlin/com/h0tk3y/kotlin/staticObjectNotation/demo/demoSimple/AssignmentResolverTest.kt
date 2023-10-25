@@ -28,7 +28,7 @@ object AssignmentResolverTest {
             assertIs<AssignmentResolver.AssignmentResolutionResult.Assigned>(value)
             val valueOrigin = value.objectOrigin
             assertIs<ObjectOrigin.ConstantOrigin>(valueOrigin)
-            assertEquals("shared", valueOrigin.constant.value)
+            assertEquals("shared", valueOrigin.literal.value)
         }
     }
     

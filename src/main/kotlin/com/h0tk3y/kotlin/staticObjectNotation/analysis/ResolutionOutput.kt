@@ -1,6 +1,5 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.evaluation.DataValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 
 // TODO: report failures to resolve with potential candidates that could not work
@@ -25,11 +24,11 @@ sealed interface ObjectOrigin {
         override fun toString(): String = "(val ${localValue.name} = $assigned)"
     }
 
-    data class ConstantOrigin(val constant: DataValue.Constant<*>) : ObjectOrigin {
+    data class ConstantOrigin(val literal: Literal<*>) : ObjectOrigin {
         override val originElement: LanguageTreeElement
-            get() = constant.originElement
+            get() = literal
 
-        override fun toString(): String = "${constant.value.let { if (it is String) "\"$it\"" else it }}"
+        override fun toString(): String = "${literal.value.let { if (it is String) "\"$it\"" else it }}"
     }
     
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin

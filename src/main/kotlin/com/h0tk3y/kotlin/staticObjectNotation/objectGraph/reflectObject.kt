@@ -49,7 +49,7 @@ fun reflect(
         is ObjectOrigin.ConstantOrigin -> ObjectReflection.ConstantValue(
             type as DataType.ConstantType<*>,
             objectOrigin,
-            objectOrigin.constant.value
+            objectOrigin.literal.value
         )
 
         is ObjectOrigin.External -> ObjectReflection.External(type, objectOrigin.key)

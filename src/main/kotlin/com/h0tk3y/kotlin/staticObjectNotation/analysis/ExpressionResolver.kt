@@ -1,6 +1,5 @@
 package com.h0tk3y.kotlin.staticObjectNotation.analysis
 
-import com.h0tk3y.kotlin.staticObjectNotation.evaluation.DataValue
 import com.h0tk3y.kotlin.staticObjectNotation.language.*
 
 interface ExpressionResolver {
@@ -22,5 +21,5 @@ class ExpressionResolverImpl(
     }
 
     private fun <T : Any> literalObjectOrigin(literalExpr: Literal<T>): ObjectOrigin =
-        ObjectOrigin.ConstantOrigin(DataValue.Constant(literalExpr.type, literalExpr, literalExpr.value))
+        ObjectOrigin.ConstantOrigin(literalExpr)
 }
