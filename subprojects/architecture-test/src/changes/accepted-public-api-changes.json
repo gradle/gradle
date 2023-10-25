@@ -2275,6 +2275,46 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Iterable)",
+            "acceptation": "New `plusAssign` DSL extension is backward compatible as it's a new function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object)",
+            "acceptation": "New `plusAssign` DSL extension is backward compatible as it's a new function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,org.gradle.api.provider.Provider)",
+            "acceptation": "New `plusAssign` DSL extension is backward compatible as it's a new function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.MapProperty,java.util.Map)",
+            "acceptation": "New `plusAssign` DSL extension is backward compatible as it's a new function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.MapProperty,org.gradle.api.provider.Provider)",
+            "acceptation": "New `plusAssign` DSL extension is backward compatible as it's a new function",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }

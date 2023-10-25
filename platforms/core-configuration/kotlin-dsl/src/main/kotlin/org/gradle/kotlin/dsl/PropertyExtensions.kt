@@ -103,3 +103,53 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
 fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
     this.set(provider)
 }
+
+
+/**
+ * Adds to the value of the property the given element, appending to any existing value
+ *
+ * @since 8.5
+ */
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
+    this.add(element)
+}
+
+
+/**
+ * Adds to the value of the property the elements of the given iterable, appending to any existing value
+ *
+ * @since 8.5
+ */
+operator fun <T> HasMultipleValues<T>.plusAssign(elements: Iterable<T?>) {
+    this.addAll(elements)
+}
+
+
+/**
+ * Adds to the property the values of the given provider, appending to any existing value
+ *
+ * @since 8.5
+ */
+operator fun <T> HasMultipleValues<T>.plusAssign(provider: Provider<out Iterable<T?>>) {
+    this.addAll(provider)
+}
+
+
+/**
+ * Adds to the value of this property the entries of the given Map, appending to any existing value
+ *
+ * @since 8.5
+ */
+operator fun <K, V> MapProperty<K, V>.plusAssign(entries: Map<out K?, V?>) {
+    this.putAll(entries)
+}
+
+
+/**
+ * Adds to the property the values of the given provider, appending to any existing value
+ *
+ * @since 8.5
+ */
+operator fun <K, V> MapProperty<K, V>.plusAssign(provider: Provider<out Map<out K?, V?>>) {
+    this.putAll(provider)
+}
