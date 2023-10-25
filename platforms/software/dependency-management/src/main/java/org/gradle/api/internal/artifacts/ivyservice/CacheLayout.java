@@ -82,7 +82,10 @@ public enum CacheLayout {
 
     TRANSFORMS(null, "transforms", introducedIn("3.5-rc-1")
         .changedTo(2, "5.1")
-        .changedTo(3, "6.8-rc-1"));
+        .changedTo(3, "6.8-rc-1")
+        // Introduced finner grained caching
+        .changedTo(4, "8.5-rc-1")
+    );
 
     private final String name;
     private final CacheVersionMapping versionMapping;
