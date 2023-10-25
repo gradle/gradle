@@ -158,8 +158,13 @@ class StandardKotlinScriptEvaluator(
 
         override val compilerOptions: KotlinCompilerOptions =
             KotlinCompilerOptions(
-                allWarningsAsErrors = gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true",
+                allWarningsAsErrors = gradlePropertiesController.getBoolean("allWarningsAsErrors"),
+                skipMetadataVersionCheck = gradlePropertiesController.getBoolean("skipMetadataVersionCheck"),
             )
+
+        private
+        fun GradlePropertiesController.getBoolean(name: String): Boolean =
+            gradleProperties.find("org.gradle.kotlin.dsl.$name") == "true"
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {

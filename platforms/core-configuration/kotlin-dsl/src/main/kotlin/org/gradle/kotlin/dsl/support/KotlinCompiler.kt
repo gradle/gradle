@@ -92,6 +92,7 @@ import kotlin.script.experimental.jvm.JvmGetScriptingClass
 data class KotlinCompilerOptions(
     val jvmTarget: JavaVersion = JavaVersion.current(),
     val allWarningsAsErrors: Boolean = false,
+    val skipMetadataVersionCheck: Boolean = false,
 )
 
 
@@ -370,7 +371,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
         put(IR, true)
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
+        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
         put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
     }
 
@@ -386,11 +387,11 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 
 
 private
-val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
+fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOptions) = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_1_8,
     apiVersion = ApiVersion.KOTLIN_1_8,
     analysisFlags = mapOf(
-        AnalysisFlags.skipMetadataVersionCheck to true,
+        AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
