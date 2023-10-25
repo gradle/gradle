@@ -19,8 +19,12 @@ package org.gradle.problems.internal.services;
 import org.gradle.api.problems.ProblemTransformer;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.problems.internal.OperationListener;
+import org.gradle.problems.internal.transformers.PluginIdLocationTransformer;
+import org.gradle.problems.internal.transformers.StackLocationTransformer;
 
 import java.util.List;
 
@@ -34,11 +38,11 @@ public class ProblemsBuildTreeServices {
         return new DefaultProblems(buildOperationProgressEventEmitter);
     }
 
-//    ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
-//        return new PluginIdLocationTransformer(buildOperationAncestryTracker, operationListener);
-//    }
-//
-//    ProblemTransformer createStackLocationTransformer(ProblemDiagnosticsFactory problemDiagnosticsFactory) {
-//        return new StackLocationTransformer(problemDiagnosticsFactory.newStream());
-//    }
+    ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
+        return new PluginIdLocationTransformer(buildOperationAncestryTracker, operationListener);
+    }
+
+    ProblemTransformer createStackLocationTransformer(ProblemDiagnosticsFactory problemDiagnosticsFactory) {
+        return new StackLocationTransformer(problemDiagnosticsFactory.newStream());
+    }
 }
