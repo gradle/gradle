@@ -72,8 +72,6 @@ myData {
 
 This results in a single source of truth for a value and helps with introducing out-of-order semantics.
 
-Open question: how to avoid confusion between “add” and “access” semantics?
-
 ### External readable object and functions
 
 A schema should be able to provide objects that a script can read and invoke functions on them.
