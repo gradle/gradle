@@ -90,7 +90,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
 
     @Override
     public FilePermissions getPermissions() {
-        int unixNumeric = stat.getUnixMode(file);
+        int unixNumeric = stat.getUnixMode(file, !isSymbolicLink());
         return new DefaultFilePermissions(unixNumeric);
     }
 

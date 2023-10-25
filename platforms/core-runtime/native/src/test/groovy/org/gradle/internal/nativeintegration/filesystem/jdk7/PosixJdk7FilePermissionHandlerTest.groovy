@@ -33,7 +33,7 @@ class PosixJdk7FilePermissionHandlerTest extends Specification {
         when:
         handler.chmod(file, mode);
         then:
-        mode == handler.getUnixMode(file);
+        mode == handler.getUnixMode(file, true);
         where:
         mode << [0722, 0644, 0744, 0755]
     }

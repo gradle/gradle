@@ -58,7 +58,7 @@ class GenericFileSystemTest extends Specification {
         def file = new File("does-not-exist")
 
         given:
-        fileModeAccessor.getUnixMode(_) >> { throw failure }
+        fileModeAccessor.getUnixMode(_, true) >> { throw failure }
 
         when:
         fileSystem.getUnixMode(file)

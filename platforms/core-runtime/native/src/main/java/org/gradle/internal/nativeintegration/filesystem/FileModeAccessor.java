@@ -20,8 +20,9 @@ import java.io.File;
 
 public interface FileModeAccessor {
     /**
-     * @param f The file to get the mode for. Note that all symlinks are followed.
+     * @param f The file to get the mode for.
+     * @param followLinks Whether to follow symlinks or not
      * @return The unix mode of the file
      */
-    public int getUnixMode(File f) throws Exception;
+    public int getUnixMode(File f, boolean followLinks) throws Exception;
 }

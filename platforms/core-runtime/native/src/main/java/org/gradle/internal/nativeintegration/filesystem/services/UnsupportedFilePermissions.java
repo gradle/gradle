@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMutator {
@@ -32,9 +31,9 @@ public class UnsupportedFilePermissions implements FileModeAccessor, FileModeMut
     private final EmptyChmod chmod = new EmptyChmod();
 
     @Override
-    public int getUnixMode(File f) throws IOException {
+    public int getUnixMode(File f, boolean followLinks) throws Exception {
         maybeWarn();
-        return stat.getUnixMode(f);
+        return stat.getUnixMode(f, followLinks);
     }
 
     @Override

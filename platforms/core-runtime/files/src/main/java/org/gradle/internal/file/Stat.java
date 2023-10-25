@@ -21,5 +21,7 @@ import java.io.File;
 public interface Stat {
     int getUnixMode(File f) throws FileException;
 
+    int getUnixMode(File f, boolean followLinks) throws FileException;
+
     FileMetadata stat(File f) throws FileException;
 }

@@ -121,6 +121,12 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         }
 
         @Override
+        int getUnixMode(File f, boolean followLinks) throws FileException {
+            checkIfAllowed()
+            return delegate.getUnixMode(f, followLinks)
+        }
+
+        @Override
         FileMetadata stat(File f) throws FileException {
             checkIfAllowed()
             return delegate.stat(f)

@@ -22,6 +22,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
@@ -31,8 +32,13 @@ import static org.gradle.internal.nativeintegration.filesystem.jdk7.PosixFilePer
 public class PosixJdk7FilePermissionHandler implements FileModeAccessor, FileModeMutator {
 
     @Override
-    public int getUnixMode(File file) throws IOException {
-        final PosixFileAttributes posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class);
+    public int getUnixMode(File file, boolean followLinks) throws IOException {
+        final PosixFileAttributes posixFileAttributes;
+        if (followLinks) {
+            posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class);
+        } else {
+            posixFileAttributes = Files.readAttributes(file.toPath(), PosixFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        }
         return convertToInt(posixFileAttributes.permissions());
     }
 

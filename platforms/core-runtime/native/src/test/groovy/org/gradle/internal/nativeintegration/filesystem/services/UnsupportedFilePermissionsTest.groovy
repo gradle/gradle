@@ -32,8 +32,8 @@ class UnsupportedFilePermissionsTest extends Specification {
 
     def "warns on first attempt to stat a file"() {
         when:
-        permissions.getUnixMode(tmpDir.createFile("file"))
-        permissions.getUnixMode(tmpDir.createDir("dir"))
+        permissions.getUnixMode(tmpDir.createFile("file"), true)
+        permissions.getUnixMode(tmpDir.createDir("dir"), true)
 
         then:
         outputEventListener.toString() == WARN_MESSAGE
@@ -51,8 +51,8 @@ class UnsupportedFilePermissionsTest extends Specification {
     def "warns at most once"() {
         when:
         permissions.chmod(tmpDir.createFile("file"), 0644)
-        permissions.getUnixMode(tmpDir.createDir("dir"))
-        permissions.getUnixMode(tmpDir.createFile("file"))
+        permissions.getUnixMode(tmpDir.createDir("dir"), true)
+        permissions.getUnixMode(tmpDir.createFile("file"), true)
 
         then:
         outputEventListener.toString() == WARN_MESSAGE

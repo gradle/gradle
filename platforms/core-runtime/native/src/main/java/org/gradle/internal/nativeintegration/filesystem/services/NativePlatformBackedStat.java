@@ -29,7 +29,7 @@ class NativePlatformBackedStat implements FileModeAccessor {
     }
 
     @Override
-    public int getUnixMode(File f) {
-        return posixFiles.getMode(f, true);
+    public int getUnixMode(File f, boolean followLinks) {
+        return posixFiles.getMode(f, followLinks);
     }
 }

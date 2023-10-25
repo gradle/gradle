@@ -25,7 +25,7 @@ import java.io.IOException;
 
 class FallbackStat implements FileModeAccessor {
     @Override
-    public int getUnixMode(File f) throws IOException {
+    public int getUnixMode(File f, boolean followLinks) throws IOException {
         if (f.isDirectory()) {
             return FileSystem.DEFAULT_DIR_MODE;
         } else if (f.exists()) {

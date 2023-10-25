@@ -93,9 +93,14 @@ class GenericFileSystem implements FileSystem {
 
     @Override
     public int getUnixMode(File f) {
+        return getUnixMode(f, true);
+    }
+
+    @Override
+    public int getUnixMode(File f, boolean followLinks) {
         statisticsCollector.reportUnixModeQueried();
         try {
-            return stat.getUnixMode(f);
+            return stat.getUnixMode(f, followLinks);
         } catch (Exception e) {
             throw new FileException(String.format("Could not get file mode for '%s'.", f), e);
         }
