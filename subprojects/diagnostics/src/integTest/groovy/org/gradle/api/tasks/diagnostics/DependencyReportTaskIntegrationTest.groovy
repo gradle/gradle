@@ -35,6 +35,8 @@ allprojects {
     version = 1.0
 }
 
+dependencies { compile project(":c") }
+
 project(":a") {
     dependencies { compile project(":b") }
     dependencies { compile project(":c") }
@@ -50,15 +52,16 @@ project(":c") {
 """
 
         when:
-        run ":c:dependencies"
+        run ":dependencies"
 
         then:
         output.contains """
 compile
-\\--- project :a
-     +--- project :b
-     |    \\--- project :c (*)
-     \\--- project :c (*)
+\\--- project :c
+     \\--- project :a
+          +--- project :b
+          |    \\--- project :c (*)
+          \\--- project :c (*)
 """
         output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }

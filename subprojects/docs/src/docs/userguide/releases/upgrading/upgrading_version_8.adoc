@@ -57,6 +57,17 @@ These members will be removed in Gradle 9.0:
 * `VersionNumber.parse(String)`
 * `VersionNumber.compareTo(VersionNumber)`
 
+[[depending_on_root_configuration]]
+==== Deprecated depending on resolved configuration
+
+When resolving a `Configuration`, it is sometimes possible to select that same configuration as a variant.
+Configurations should be used for one purpose (resolution, consumption or dependency declarations), so this can only occur when a configuration is marked as both consumable and resolvable.
+
+This can lead to confusing circular dependency graphs, as the configuration being resolved is used for two different purposes.
+
+To avoid this problem, plugins should mark all resolvable configurations as `canBeConsumed=false` or use the `resolvable(String)` configuration factory method when creating configurations meant for resolution.
+
+In Gradle 9.0, consuming configurations in this manner will no longer be allowed and will result in an error.
 
 [[deprecated_missing_project_directory]]
 ==== Including projects without an existing directory

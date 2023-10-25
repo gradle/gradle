@@ -52,6 +52,7 @@ import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -390,6 +391,20 @@ public class DependencyGraphBuilder {
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
+        }
+        List<EdgeState> incomingRootEdges = resolveState.getRoot().getIncomingEdges();
+        if (!incomingRootEdges.isEmpty()) {
+            String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
+            DeprecationLogger.deprecate(
+                String.format(
+                    "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
+                    "Depending on the resolved configuration in this manner",
+                    rootNodeName
+                ))
+                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "depending_on_root_configuration")
+                .nagUser();
         }
     }
 
