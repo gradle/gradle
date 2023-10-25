@@ -59,7 +59,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
@@ -715,11 +714,12 @@ class ResidualProgramCompiler(
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                messageCollectorFor(logger, allWarningsAsErrors) { path ->
-                    if (path == scriptFile.path) originalPath
-                    else path
-                }
-            )
+                allWarningsAsErrors,
+                logger
+            ) { path ->
+                if (path == scriptFile.path) originalPath
+                else path
+            }
         }.let { compiledScriptClassName ->
             packageName
                 ?.let { "$it.$compiledScriptClassName" }

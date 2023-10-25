@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
@@ -141,7 +142,9 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: ScriptDefinition,
     classPath: List<File>,
-    messageCollector: LoggingMessageCollector
+    allWarningsAsErrors: Boolean,
+    logger: Logger,
+    pathTranslation: (String) -> String
 ): String {
 
     compileKotlinScriptModuleTo(
@@ -151,7 +154,7 @@ fun compileKotlinScriptToDirectory(
         listOf(scriptFile.path),
         scriptDef,
         classPath,
-        messageCollector
+        messageCollectorFor(logger, allWarningsAsErrors, pathTranslation)
     )
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
@@ -217,6 +220,7 @@ object HasImplicitReceiverCompilerPlugin {
 }
 
 
+@VisibleForTesting
 internal
 fun compileToDirectory(
     outputDirectory: File,
@@ -225,11 +229,10 @@ fun compileToDirectory(
     sourceFiles: Iterable<File>,
     logger: Logger,
     classPath: Iterable<File>,
-    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
 ): Boolean {
 
     withRootDisposable {
-        withMessageCollectorFor(logger, onCompilerWarning) { messageCollector ->
+        withMessageCollectorFor(logger, EmbeddedKotlinCompilerWarning.WARN) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
@@ -368,6 +371,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: Java
     }
 
 
+@VisibleForTesting
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
     // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 20
@@ -438,7 +442,7 @@ fun disposeKotlinCompilerContext() =
     KotlinCoreEnvironment.disposeApplicationEnvironment()
 
 
-internal
+private
 fun messageCollectorFor(
     log: Logger,
     allWarningsAsErrors: Boolean,
@@ -447,7 +451,7 @@ fun messageCollectorFor(
     messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
 
 
-internal
+private
 fun messageCollectorFor(
     log: Logger,
     onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
@@ -526,7 +530,7 @@ private
 const val indent = "  "
 
 
-internal
+private
 enum class EmbeddedKotlinCompilerWarning {
     FAIL, WARN, DEBUG
 }
@@ -538,9 +542,9 @@ fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
     else EmbeddedKotlinCompilerWarning.WARN
 
 
-internal
+private
 class LoggingMessageCollector(
-    internal val log: Logger,
+    val log: Logger,
     private val onCompilerWarning: EmbeddedKotlinCompilerWarning,
     private val pathTranslation: (String) -> String,
 ) : MessageCollector {
