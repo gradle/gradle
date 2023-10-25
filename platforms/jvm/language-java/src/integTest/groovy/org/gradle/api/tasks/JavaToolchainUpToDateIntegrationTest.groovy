@@ -25,7 +25,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test reacting to toolchains are up-to-date without changes"() {
         def someJdk = AvailableJavaHomes.differentJdk
-        buildscriptWithToolchain(someJdk)
+        buildscriptWithToolchain(someJdk, true)
 
         file("src/main/java/Foo.java") << "public class Foo {}"
         file("src/test/java/FooTest.java") << testClass("FooTest")
@@ -74,7 +74,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("UnsupportedClassVersionError")
     }
 
-    private TestFile buildscriptWithToolchain(Jvm someJdk) {
+    private TestFile buildscriptWithToolchain(Jvm someJdk, Boolean enableCompilerDaemonDebugging = false) {
         buildFile << """
             apply plugin: "java"
 
@@ -88,7 +88,23 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
                     languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
                 }
             }
+
+            ${compilerDaemonDebugging(enableCompilerDaemonDebugging)}
         """
+    }
+
+    def compilerDaemonDebugging(Boolean enableDebug) {
+        if (enableDebug) {
+            return """
+                tasks {
+                    compileJava {
+                        options.forkOptions.jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006,suspend=y")
+                    }
+                }
+            """
+        } else {
+            return ""
+        }
     }
 
     def runWithToolchainConfigured(Jvm jvm) {

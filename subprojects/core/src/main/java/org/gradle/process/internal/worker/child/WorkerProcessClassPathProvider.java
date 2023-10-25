@@ -91,6 +91,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-dependency-management",
         "gradle-workers",
         "gradle-worker-processes",
+        "gradle-problems-api",
         "gradle-process-services",
         "gradle-persistent-cache",
         "gradle-model-core",
@@ -192,6 +193,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-instrumentation-declarations").getAllRequiredModulesClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-api").getAllRequiredModulesClasspath());
             return classpath;
         }
 
