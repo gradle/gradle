@@ -16,9 +16,14 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Incubating;
+
 /**
  * Interface for emitting problems.
+ *
+ * @since 8.5
  */
+@Incubating
 public interface ProblemEmitter {
 
     void emit(Problem problem);
