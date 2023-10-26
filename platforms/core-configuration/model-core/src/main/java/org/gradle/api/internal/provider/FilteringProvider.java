@@ -17,24 +17,24 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 /**
- * A filtering provider that uses a predicate to filter the value of another provider.
+ * A filtering provider that uses a spec to filter the value of another provider.
  **/
 public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     protected final ProviderInternal<T> provider;
-    protected final Predicate<? super T> predicate;
+    protected final Spec<? super T> spec;
 
     public FilteringProvider(
         ProviderInternal<T> provider,
-        Predicate<? super T> predicate
+        Spec<? super T> spec
     ) {
-        this.predicate = predicate;
+        this.spec = spec;
         this.provider = provider;
     }
 
@@ -58,7 +58,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         if (value.hasChangingContent()) {
             // Need the value contents in order to transform it to produce the value of this provider,
             // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-            return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), predicate));
+            return ExecutionTimeValue.changingValue(new FilteringProvider<>(value.toProvider(), spec));
         }
 
         return ExecutionTimeValue.value(filterValue(value.toValue()));
@@ -77,7 +77,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
             return value.asType();
         }
         T unpackedValue = value.getWithoutSideEffect();
-        if (predicate.test(unpackedValue)) {
+        if (spec.isSatisfiedBy(unpackedValue)) {
             return value;
         } else {
             return Value.missing();
