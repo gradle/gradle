@@ -34,6 +34,11 @@ trait MavenResolveTestFixture {
      * Get a resolver that can be used to perform a Maven resolution.
      */
     ApiMavenResolver getMavenResolver() {
+        // We intentionally use a different m2 directory than the one defined in AbstractIntegrationSpec
+        // since we want to resolve artifacts independently from the build being tested.
+        // The m2 installation on the integ spec is intended to verify the way Gradle interacts
+        // with the system's local m2 repo, however the resolutions performed by this fixture
+        // should be isolated from the build.
         def localRepoDir = temporaryFolder.testDirectory.file("maven-resolver-test-fixture-m2")
         return new ApiMavenResolver(localRepoDir, mavenRepo.uri)
     }

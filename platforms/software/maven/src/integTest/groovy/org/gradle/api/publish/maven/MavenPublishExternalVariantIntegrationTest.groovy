@@ -1057,16 +1057,18 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             task print${name.capitalize()}RuntimeClasspath {
                 def artifacts = configurations.${runtimeElements}.outgoing.artifacts.files
                 def classpath = configurations.${runtimeClasspath}.incoming.files
+                def outputFile = layout.buildDir.file("${name}-classpath.txt")
+                outputs.file(outputFile)
                 doLast {
                     def allFiles = classpath.files + artifacts.files
-                    println "'${name}' classpath: " + allFiles*.name.join(",")
+                    outputFile.get().getAsFile().text = allFiles*.name.join("\\n")
                 }
             }
         """
     }
 
     Set<String> readClasspath(String name = "") {
-        output.readLines().find { it.startsWith("'${name}' classpath: ") }.split(":")[1].substring(1).split(",") as Set
+        file("build/${name}-classpath.txt").readLines() as Set
     }
 
     // endregion

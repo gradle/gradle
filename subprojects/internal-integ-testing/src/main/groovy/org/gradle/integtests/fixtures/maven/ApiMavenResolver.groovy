@@ -50,13 +50,13 @@ class ApiMavenResolver {
      * The local repository used for caching resolved artifacts.
      * This is the the repository usually located at ~/.m2/repository.
      */
-    File localRepoDir
+    private final File localRepoDir
 
     /**
      * The URI of the repository to resolve artifacts from.
      * This repository should contain the artifacts under test.
      */
-    URI testRepoUri
+    private final URI testRepoUri
 
     ApiMavenResolver(File localRepoDir, URI testRepoUri) {
         this.localRepoDir = localRepoDir
@@ -108,7 +108,7 @@ class ApiMavenResolver {
         def graphResolutionRequest = new CollectRequest()
             .setRepositories([
                 new RemoteRepository.Builder("test-repo", "default", testRepoUri.toString()).build(),
-                new RemoteRepository.Builder("central", "default", RepoScriptBlockUtil.MirroredRepository.MAVEN_CENTRAL.mirrorUrl).build()
+                new RemoteRepository.Builder("central", "default", RepoScriptBlockUtil.mavenCentralMirrorUrl).build()
             ])
             .addDependency(new Dependency(
                 new DefaultArtifact(group, module, null, "jar", version),

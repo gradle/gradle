@@ -47,7 +47,7 @@ class RepoScriptBlockUtil {
         }
     }
 
-    static enum MirroredRepository {
+    private static enum MirroredRepository {
         JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
         GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
@@ -98,6 +98,10 @@ class RepoScriptBlockUtil {
                 ${jcenterRepositoryDefinition(dsl)}
             }
         """
+    }
+
+    static String getMavenCentralMirrorUrl() {
+        MirroredRepository.MAVEN_CENTRAL.mirrorUrl
     }
 
     static void configureMavenCentral(RepositoryHandler repositories) {
