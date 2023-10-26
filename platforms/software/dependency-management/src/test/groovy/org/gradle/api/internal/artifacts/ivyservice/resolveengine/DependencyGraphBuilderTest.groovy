@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
@@ -1181,10 +1180,6 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitSelector(DependencyGraphSelector configurationSelector) {
-        }
-
-        @Override
         void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
@@ -1206,10 +1201,6 @@ class DependencyGraphBuilderTest extends Specification {
             throw new ResolveException("config", failures.values().collect {
                 it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
             })
-        }
-
-        @Override
-        void finish(DependencyGraphNode root) {
         }
 
         static class FailureDetails {

@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -53,10 +52,6 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-    }
-
-    @Override
     public void visitNode(DependencyGraphNode node) {
         for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
             ModuleVersionResolveException failure = dependency.getFailure();
@@ -64,14 +59,6 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
                 addUnresolvedDependency(dependency, dependency.getRequested(), failure);
             }
         }
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
     }
 
     public Set<UnresolvedDependency> complete(Set<UnresolvedDependency> extraFailures) {

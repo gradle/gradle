@@ -101,7 +101,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     }
 
     @Override
-    public void finish(final DependencyGraphNode root) {
+    public void finish(final RootGraphNode root) {
         store.write(encoder -> {
             encoder.writeByte(ROOT);
             encoder.writeSmallLong(root.getOwner().getResultId());
