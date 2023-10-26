@@ -15,15 +15,13 @@
 [[writing_plugins]]
 = Writing Plugins
 
-Many Gradle features, like the ability to compile Java code, are added by _plugins_.
-
-Plugins add new tasks (e.g., link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]), domain objects (e.g., link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet]), conventions (e.g., Java source is located at `src/main/java`), and extend core objects or objects from other plugins.
+Writing custom plugins is the best way to customize your builds and organize your build logic.
 
 == Sample plugin
 
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
-The example below is the most straightforward plugin, a "hello world" *script plugin*:
+The example below is the most straightforward plugin, a "hello world" *plugin*:
 
 .build.gradle.kts
 [source,kotlin]
@@ -42,10 +40,14 @@ class SamplePlugin : Plugin<Project> {
 
 == Script plugin
 
+The simplest plugin is a script plugin which is coded in the build script.
+
+Let's take a look at an example:
+
 .build.gradle.kts
 [source,kotlin]
 ----
-abstract class CreateFileTask : DefaultTask() {
+abstract class CreateFileTask : DefaultTask() {                                     // <1>
     @get:Input
     abstract val fileText: Property<String>
 
@@ -62,7 +64,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-class MyPlugin : Plugin<Project> {
+class MyPlugin : Plugin<Project> {                                                  // <2>
     override fun apply(project: Project) {
         project.run {
             tasks {
@@ -76,5 +78,38 @@ class MyPlugin : Plugin<Project> {
     }
 }
 
+apply<MyPlugin>()                                                                   // <3>
+----
+<1> Subclass `DefaultTask()`.
+<2> Extend the `org.gradle.api.Plugin` interface.
+<3> Apply the script plugin.
+
+=== Subclass `DefaultTask()`
+First, build a task by subclassing `DefaultTask()`.
+
+[source]
+----
+abstract class CreateFileTask : DefaultTask() { }
+----
+
+This is a simple task that adds a file to our application’s root directory.
+
+=== Extend the `org.gradle.api.Plugin` interface
+Next, create a new class that extends the `org.gradle.api.Plugin` interface.
+
+[source]
+----
+class MyPlugin : Plugin<Project> { }
+----
+
+This interface has a single `apply` method which uses the `CreateFileTask` task
+
+=== Apply the script plugin
+Finally, apply the plugin in the build script.
+
+[source]
+----
 apply<MyPlugin>()
 ----
+
+This makes the plugin available to the application.

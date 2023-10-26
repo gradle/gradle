@@ -28,7 +28,7 @@ If users want to extend the capabilities of Gradle and their build script, they 
 
 The simplest and quickest way to create a *custom* task is in a build script:
 
-To create a task, inherit from the `DefaultTask` class and implement an `@TaskAction` handler:
+To create a task, inherit from the `DefaultTask` class and implement a `@TaskAction` handler:
 
 .build.gradle.kts
 [source,kotlin]
@@ -160,3 +160,6 @@ tasks.named<CreateFileTask>("createFileTask") {
 ----
 
 In the `named()` method, we find the `createFileTask` task and set the text that will be written to the file.
+
+[.text-right]
+**Next Step:** <<plugins.adoc#plugins,Learn how to use Plugins>> >>

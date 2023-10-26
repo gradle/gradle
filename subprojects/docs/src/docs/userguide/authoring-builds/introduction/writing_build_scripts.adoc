@@ -19,14 +19,14 @@ In the Gradle Build lifecycle, the initialization phase finds the root project a
 
 image::author-gradle-4.png[Build,500,63,align="center"]
 
-Then, for each project included in the settings file, Gradle creates a `Project()` instance.
+Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
 
 Gradle then looks for a corresponding build script file which is used in the configuration phase.
 
 [[tutorial_using_tasks]]
 == Build Scripts
 
-Every Gradle build is made up of one or more _projects_; a root project and subprojects.
+Every Gradle build is made up of one or more *projects*; a _root_ project and _subprojects_.
 
 A project typically corresponds to a software component that needs to be built, like a library or an application.
 It might represent a library JAR, a web application, or a distribution ZIP assembled from the JARs produced by other projects.
@@ -35,7 +35,7 @@ On the other hand, it might represent a thing to be done, such as deploying your
 
 Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific language).
 
-A build script configures a _project_ and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
+A *build script* configures a *project* and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
 
 As the build script executes, it configures `Project`.
 
@@ -135,14 +135,16 @@ The following table lists a few commonly used methods:
 [[sec:the_script_api]]
 == The Script API
 
-When Gradle executes a Groovy build script (`.gradle`), it compiles the script into a class that
+When Gradle executes a Groovy build script (`build.gradle`), it compiles the script into a class that
 implements link:{groovyDslPath}/org.gradle.api.Script.html[Script].
 
 As a result, builds scripts have access to all properties and methods declared by the `Script` interface.
 
-When Gradle executes a Kotlin build script (`.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-project-script-template/index.html[KotlinProjectScriptTemplate].
+When Gradle executes a Kotlin build script (`build.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-project-script-template/index.html[KotlinProjectScriptTemplate].
 
 As a result, builds scripts have access to all visible properties and functions declared by the `KotlinProjectScriptTemplate` type.
+
+The Script API is particularly useful for working with files and paths; it provides useful methods such as `copy()`, `delete()`, `exec()` and `uri()` that are not available via the `Project` object.
 
 == Build Script structure
 
@@ -151,83 +153,78 @@ Let's take a look at an example and break it down:
 ====
 [.multi-language-sample]
 =====
-.settings.gradle.kts
+.build.gradle.kts
 [source,kotlin]
 ----
-plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"                      // <1>
-    application                                                         // <2>
+plugins {                                                               // <1>
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    application
 }
 
-repositories {
-    mavenCentral()                                                      // <3>
+repositories {                                                          // <2>
+    mavenCentral()
 }
 
-dependencies {
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")       // <4>
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")  // <4>
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")       // <4>
-    implementation("com.google.guava:guava:32.1.1-jre")                 // <5>
+dependencies {                                                          // <3>
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")
 }
 
-application {
-    mainClass.set("main")                                               // <6>
+application {                                                           // <4>
+    mainClass.set("main")
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()                                                  // <7>
+tasks.named<Test>("test") {                                             // <5>
+    useJUnitPlatform()
 }
 ----
-<1> Apply the org.jetbrains.kotlin.jvm plugin to add support for Kotlin.
-<2> Apply the application plugin to add support for building a CLI application in Java.
-<3> Use Maven Central for resolving dependencies.
-<4> Use the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit5[Kotlin JUnit 5] integration, link:https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine[JUnit engine], and link:https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher[JUnit 5] integration for testing code.
-<5> Use the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] dependency from Google for the application.
-<6> Define the main class for the application.
-<7> Use JUnit Platform, a JVM testing framework, when running the test task.
+<1> Add Gradle extensions via plugins.
+<2> Define dependency location.
+<3> Add dependencies.
+<4> Use convention properties.
+<5> Register and configure tasks.
 =====
 
 [.multi-language-sample]
 =====
-.settings.gradle
+.build.gradle
 [source,groovy]
 ----
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.9.0'                       // <1>
-    id 'application'                                                    // <2>
+plugins {                                                               // <1>
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'
+    id 'application'
 }
 
-repositories {
-    mavenCentral()                                                      // <3>
+repositories {                                                          // <2>
+    mavenCentral()
 }
 
-dependencies {
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'        // <4>
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'   // <4>
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'        // <4>
-    implementation 'com.google.guava:guava:32.1.1-jre'                  // <5>
+dependencies {                                                          // <3>
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.1-jre'
 }
 
-application {
-    mainClass = 'main'                                                  // <6>
+application {                                                           // <4>
+    mainClass = 'main'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()                                                  // <7>
+tasks.named('test') {                                                   // <5>
+    useJUnitPlatform()
 }
 ----
-<1> Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-<2> Apply the application plugin to add support for building a CLI application in Java.
-<3> Use Maven Central for resolving dependencies.
-<4> Use the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit5[Kotlin JUnit 5] integration, link:https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine[JUnit engine], and link:https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher[JUnit 5] integration for testing code.
-<5> Use the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] dependency from Google for the application.
-<6> Define the main class for the application.
-<7> Use JUnit Platform, a JVM testing framework, when running the test task.
+<1> Add Gradle extensions via plugins.
+<2> Define dependency location.
+<3> Add dependencies.
+<4> Use convention properties.
+<5> Register and configure tasks.
 =====
 ====
 
-=== Add extensions via plugins
-
+=== Add Gradle extensions via plugins
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configuration.
 
 Plugins can be applied using the `PluginAware.apply(java.util.Map)` method or by using the `PluginDependenciesSpec` plugins script block.
@@ -247,21 +244,33 @@ In the example, the `application` plugin, which is included with Gradle, has bee
 The Kotlin gradle plugin, version 1.9.0 has also been applied.
 This plugin is not included with Gradle and therefore has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
 
-=== Add dependencies and dependency location
+=== Define dependency location
 
 A project generally has a number of dependencies it needs in order to do its work.
-
-Those dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
-
-Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
-Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
+Dependencies include plugins, libraries or components which Gradle must download for the build to succeed.
+The locations of the binaries for the dependencies must be described.
 
 [source]
 ----
 repositories {
     mavenCentral()
 }
+----
 
+In the example, the `guava` library and the JetBrains kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
+
+=== Add dependencies
+
+A project generally has a number of dependencies it needs in order to do its work.
+These dependencies are typically imports in the source code.
+
+Dependencies are grouped in configurations, and can be retrieved and uploaded from repositories.
+
+Use the `DependencyHandler` returned by `Project.getDependencies()` method to manage the dependencies.
+Use the `RepositoryHandler` returned by `Project.getRepositories()` method to manage the repositories.
+
+[source]
+----
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
@@ -318,7 +327,7 @@ tasks.create<Zip>("zip-reports") {
 }
 ----
 
-TIP: `register`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create`.
+TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create()`.
 
 You can acquire a reference to a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
@@ -545,3 +554,6 @@ include::default-imports.txt[]
 ----
 
 [[sec:build_script_external_dependencies]]
+
+[.text-right]
+**Next Step:** <<using_tasks.adoc#tutorial_using_tasks,Learn how to use Tasks>> >>

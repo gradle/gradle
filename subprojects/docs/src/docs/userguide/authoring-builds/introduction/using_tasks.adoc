@@ -87,11 +87,11 @@ compileJava - Compiles main Java source.
 ...
 ----
 
-Many of these tasks, such as `assemble`, `build`, and `clean`, should be familiar to a developer.
+Many of these tasks, such as `assemble`, `build`, and `run`, should be familiar to a developer.
 
 == Task classification
 
-Two classes of tasks can be executed:
+There are two classes of tasks can be executed:
 
 1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
 2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
@@ -121,8 +121,6 @@ $ ./gradlew app:tasks --all
 ------------------------------------------------------------
 Tasks runnable from project ':app'
 ------------------------------------------------------------
-
-....
 
 Other tasks
 -----------
@@ -390,3 +388,6 @@ There are many task types developers can take advantage of, including `GroovyDoc
 [[sec:using_methods]]
 [[sec:default_tasks]]
 [[sec:build_script_external_dependencies]]
+
+[.text-right]
+**Next Step:** <<writing_tasks.adoc#writing_tasks,Learn how to write Tasks>> >>

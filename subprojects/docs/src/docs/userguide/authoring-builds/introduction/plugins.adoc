@@ -40,7 +40,7 @@ There are many advantages to applying plugins over adding logic to the project b
 Plugins are available in three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
-2. **Community plugins** - Gradle plugins shared in a remote repository such as Maven, Google, or the https://plugins.gradle.org[Gradle Plugin Portal].
+2. **Community plugins** - Gradle plugins shared in a remote repository such as Maven or the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Local plugins** - Gradle enables users to create *custom* plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
 [[sec:types_of_plugins]]
@@ -102,7 +102,7 @@ plugins {
 |
 
 |<<#sec:buildsrc_plugins_dsl,2>>
-|<<#sec:buildsrc_plugins_dsl,Using the `buildSrc` block>>
+|<<#sec:buildsrc_plugins_dsl,Using the `buildSrc` directory>>
 |Applying *community* or *local* plugins to multiple subprojects.
 |Build script
 
@@ -574,3 +574,6 @@ plugins {
     alias(libs.plugins.jetbrains.intellij)
 }
 ----
+
+[.text-right]
+**Next Step:** <<writing_plugins.adoc#writing_plugins,Learn how to write Plugins>> >>

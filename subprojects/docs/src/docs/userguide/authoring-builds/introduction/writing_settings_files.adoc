@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[writing_setting_files]]
+[[writing_settings_files]]
 = Writing Settings Files
 
 The settings file is the entry point of every Gradle project.
@@ -109,13 +109,15 @@ The following table lists a few commonly used methods:
 [[sec:the_script_api]]
 == The Script API
 
-When Gradle executes a Groovy settings script (`settings.gradle`), it compiles the script into a class that implements link:{groovyDslPath}/org.gradle.api.Script.html[Script].
+When Gradle executes a Groovy settings script (`settings.gradle`), it compiles the script into a class that implements link:{groovyDslPath}/org.gradle.api.Script.html[`Script`].
 
-As a result, settings scripts have access to all properties and methods declared by the `Script` interface.
+As a result, settings scripts have access to all properties and methods declared by the link:{groovyDslPath}/org.gradle.api.Script.html[`Script`] interface.
 
-When Gradle executes a Kotlin settings script (`settings.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[KotlinSettingsScript].
+When Gradle executes a Kotlin settings script (`settings.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[`KotlinSettingsScript`].
 
-As a result, settings scripts have access to all visible properties and functions declared by the `KotlinSettingsScript` type.
+As a result, settings scripts have access to all visible properties and functions declared by the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[`KotlinSettingsScript`] type.
+
+The Script API is particularly useful for working with files and paths; it provides useful methods such as `copy()`, `delete()`, `exec()` and `uri()` that are not available via the `Settings` object.
 
 == Settings Script structure
 
@@ -152,11 +154,11 @@ include("sub-project-a")                                    // <5>
 include("sub-project-b")
 include("sub-project-c")
 ----
-<1> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-settings-script-api/plugin-management.html[`pluginManagement()`] method from `KotlinSettingsScript` to locate plugins.
-<2> Uses the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/plugins.html[`plugins()`] method from `KotlinSettingsScript` to apply plugins.
-<3> There is always a root project included in a build.
-<4> Add components to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.dependencyResolutionManagement()`] method.
-<5> Add projects to the build using the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[`Settings.include()`] method.
+<1> Define shared plugins, included builds, and their location.
+<2> Apply shared plugins.
+<3> Define the root project name.
+<4> Add components and dependencies.
+<5> Add subprojects to the build.
 =====
 
 [.multi-language-sample]
@@ -189,40 +191,15 @@ include('sub-project-a')                                    // <5>
 include('sub-project-b')
 include('sub-project-c')
 ----
-<1> Uses the link:{javadocPath}/org/gradle/api/initialization/Settings.html#pluginManagement-org.gradle.api.Action-[`pluginManagement`] block to locate plugins.
-<2> Uses the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:plugins[`plugins()`] method to apply plugins.
-<3> There is always a root project included in a build.
-<4> Add components to the build using the link:{javadocPath}/org/gradle/api/initialization/Settings.html#dependencyResolutionManagement-org.gradle.api.Action-[`dependencyResolutionManagement`] block.
-<5> Add projects to the build using the link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[`include()`] method.
+<1> Define shared plugins, included builds, and their location.
+<2> Apply shared plugins.
+<3> Define the root project name.
+<4> Add components and dependencies.
+<5> Add subprojects to the build.
 =====
 ====
 
-=== Define the name
-
-The settings file defines your project name using the `rootProject.name` property:
-
-[source]
-----
-rootProject.name = "root-project" // settings.rootProject.name = "root-project"
-----
-
-There is only one root per project.
-
-=== Define dependency locations
-
-The settings file can optionally define the locations of components your project relies on using `repositories` such as binary repositories like Maven Central and/or other Gradle builds using `includeBuild`:
-
-[source]
-----
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
-    includeBuild("../other-project")
-}
-----
-
-=== Define shared plugins
+=== Define shared plugins, included builds, and their location
 
 The settings file can optionally define the plugins your project uses with `pluginManagement`, including binary repositories such as the Gradle Plugin Portal or other Gradle builds using `includeBuild`:
 
@@ -237,7 +214,49 @@ pluginManagement {
 }
 ----
 
-=== Define project structure
+You can also include plugins and plugin dependency strategies in this block.
+
+=== Apply shared plugins
+
+The settings file can optionally define the plugins which are used as shared configurations among several builds / subprojects:
+
+[source]
+----
+plugins {
+    id("org.gradle.toolchains.fake") version "0.6.0"
+}
+----
+
+This is typically used to ensure that all subprojects use the same version of a plugin.
+
+=== Define the root project name
+
+The settings file defines your project name using the `rootProject.name` property:
+
+[source]
+----
+rootProject.name = "root-project" // settings.rootProject.name = "root-project"
+----
+
+There is only one root per project.
+
+=== Add components and dependencies
+
+The settings file can optionally define the locations of components your project relies on using `repositories` such as binary repositories like Maven Central and/or other Gradle builds using `includeBuild`:
+
+[source]
+----
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    includeBuild("../other-project")
+}
+----
+
+You can also include version catalogs in this section.
+
+=== Add subprojects to the build
 
 The settings file defines the structure of the project by adding all the subprojects using the `include` statement:
 
@@ -248,16 +267,6 @@ include("business-logic")
 include("data-model")
 ----
 
-=== Define shared plugins
-
-The settings file can optionally define the plugins which are used as shared configurations among several builds:
-
-[source]
-----
-plugins {
-    id("org.gradle.toolchains.fake") version "0.6.0"
-}
-----
 
 === Additional settings
 
@@ -287,3 +296,6 @@ rootDir.listFiles().filter { it.isDirectory && !it.isHidden }.forEach {
     include{it.name}
 }
 ----
+
+[.text-right]
+**Next Step:** <<writing_build_scripts.adoc#writing_build_scripts,Learn how to write Build scripts>> >>
