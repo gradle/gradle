@@ -16,11 +16,8 @@
 
 package org.gradle.internal.shareddata;
 
-import com.github.javaparser.ast.DataKey;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -31,14 +28,13 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @NonNullApi
-class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjectState {
+public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjectState {
     private final ProjectStateRegistry projectStateRegistry;
 
     @Inject
@@ -51,38 +47,44 @@ class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjectState 
     private final Map<Path, Map<DataKey, Provider<?>>> dataByProjectPathAndKey = new LinkedHashMap<>();
 
     @Override
-    public Map<DataKey, Provider<?>> getProjectData(Path sourceProjectIdentitityPath) {
+    public ProjectProducedSharedData getProjectDataResolver(Path sourceProjectIdentitityPath) {
         Lock readLock = modificationLock.readLock();
-        readLock.lock();
-        try {
-            @Nullable Map<DataKey, Provider<?>> mapFromStorage = dataByProjectPathAndKey.get(sourceProjectIdentitityPath);
-            return mapFromStorage != null ? Collections.unmodifiableMap(new LinkedHashMap<>(mapFromStorage)) : Collections.emptyMap();
-        } finally {
-            readLock.unlock();
-        }
+        return new ProjectProducedSharedData() {
+            @Nullable
+            @Override
+            public Provider<?> get(DataKey dataKey) {
+                readLock.lock();
+                try {
+                    @Nullable Map<DataKey, Provider<?>> mapFromStorage = dataByProjectPathAndKey.get(sourceProjectIdentitityPath);
+                    return mapFromStorage != null ? mapFromStorage.get(dataKey) : null;
+                } finally {
+                    readLock.unlock();
+                }
+            }
+
+            @Override
+            public Map<DataKey, Provider<?>> getAllData() {
+                readLock.lock();
+                try {
+                    @Nullable Map<DataKey, Provider<?>> mapFromStorage = dataByProjectPathAndKey.get(sourceProjectIdentitityPath);
+                    return mapFromStorage != null ? new LinkedHashMap<>(mapFromStorage) : Collections.emptyMap();
+                } finally {
+                    readLock.unlock();
+                }
+            }
+        };
     }
 
     @Nullable
     public <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier) {
-        Lock readLock = modificationLock.readLock();
-        readLock.lock();
-        try {
-            @Nullable Map<DataKey, Provider<?>> dataWithKey = dataByProjectPathAndKey.get(sourceProjectIdentityPath);
-            if (dataWithKey == null) {
-                return null;
-            }
-            // Unchecked cast is OK since the calls to the code putting the items is type-checked with the same constraints
-            return Cast.uncheckedCast(dataWithKey.get(new DataKey(type, identifier)));
-        } finally {
-            readLock.unlock();
-        }
+        return Cast.uncheckedCast(getProjectDataResolver(sourceProjectIdentityPath).get(new DataKey(type, identifier)));
     }
 
-    public <T> void put(Project sourceProject, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
+    public <T> void put(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
         Lock writeLock = modificationLock.writeLock();
         writeLock.lock();
         try {
-            dataByProjectPathAndKey.computeIfAbsent(projectStateRegistry.stateFor(sourceProject).getIdentityPath(), key -> new ConcurrentHashMap<>()).compute(
+            dataByProjectPathAndKey.computeIfAbsent(projectStateRegistry.stateFor(sourceProjectIdentityPath).getIdentityPath(), key -> new ConcurrentHashMap<>()).compute(
                 new DataKey(type, identifier),
                 (key, oldValue) -> {
                     if (oldValue != null) {

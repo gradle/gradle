@@ -138,7 +138,10 @@ class DefaultConfigurationCacheIO internal constructor(
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
-            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
+            val sharedData = buildMap<Path, BlockAddress> {
+                readCollection { put(Path.path(readString()), addressSerializer.read(this@readConfigurationCacheState)) }
+            }
+            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects, sharedData)
         }
     }
 

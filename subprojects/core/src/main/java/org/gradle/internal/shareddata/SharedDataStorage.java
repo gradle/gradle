@@ -17,28 +17,24 @@
 package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
 public interface SharedDataStorage extends HoldsProjectState {
-    @Nullable
-    <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier);
+    <T> void put(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier, Provider<T> dataProvider);
 
-    <T> void put(Project sourceProject, Class<T> type, @Nullable String identifier, Provider<T> dataProvider);
+    ProjectProducedSharedData getProjectDataResolver(Path sourceProjectIdentitityPath);
 
-    Map<DataKey, Provider<?>> getProjectData(Path sourceProjectIdentitityPath);
+    interface ProjectProducedSharedData {
+        @Nullable Provider<?> get(DataKey dataKey);
+        Map<DataKey, Provider<?>> getAllData();
+    }
 
     class DataKey {
         public final Class<?> type;

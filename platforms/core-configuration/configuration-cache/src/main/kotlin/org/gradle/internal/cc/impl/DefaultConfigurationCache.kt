@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.LoadResult
 import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.shareddata.SharedDataController
 import org.gradle.configurationcache.withLoadOperation
 import org.gradle.configurationcache.withStoreOperation
 import org.gradle.initialization.GradlePropertiesController
@@ -58,6 +59,7 @@ import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
+import org.gradle.internal.shareddata.SharedDataStorage.ProjectProducedSharedData
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -122,6 +124,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+
+    private
+    val sharedData = lazy { SharedDataController(store) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
@@ -222,6 +227,10 @@ class DefaultConfigurationCache internal constructor(
         // to ensure project artifacts are actually created the first time around.
         // When the value is loaded from the store, the dependency information is lost.
         return projectMetadata.loadOrCreateOriginalValue(identityPath, creator)
+    }
+
+    override fun loadOrCreateProjectSharedData(identityPath: Path, creator: () -> ProjectProducedSharedData): ProjectProducedSharedData {
+        return sharedData.value.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
@@ -564,6 +573,7 @@ class DefaultConfigurationCache internal constructor(
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+            sharedData.value.restoreFromCacheEntry(entryDetails.sharedData, projectResult)
         }
 
         if (projectResult is CheckedFingerprint.Valid) {
