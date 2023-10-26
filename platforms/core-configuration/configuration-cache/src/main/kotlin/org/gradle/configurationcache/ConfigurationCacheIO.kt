@@ -121,7 +121,10 @@ class ConfigurationCacheIO internal constructor(
                 val address = addressSerializer.read(this)
                 metadata[path] = address
             }
-            EntryDetails(rootDirs, intermediateModels, metadata)
+            val sharedData = buildMap<Path, BlockAddress> {
+                readCollection { put(Path.path(readString()), addressSerializer.read(this@readConfigurationCacheState)) }
+            }
+            EntryDetails(rootDirs, intermediateModels, metadata, sharedData)
         }
     }
 
