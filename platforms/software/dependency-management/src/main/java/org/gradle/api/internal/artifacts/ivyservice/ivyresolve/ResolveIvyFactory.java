@@ -132,11 +132,11 @@ public class ResolveIvyFactory {
 
             ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository;
             if (baseRepository.isLocal()) {
-                moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
+                moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP, cacheProvider.getGuard());
                 moduleComponentRepository = new LocalModuleComponentRepository<>(moduleComponentRepository);
             } else {
                 ModuleComponentRepository<ModuleComponentResolveMetadata> overrideRepository = startParameterResolutionOverride.overrideModuleVersionRepository(baseRepository);
-                moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, listener);
+                moduleComponentRepository = new CachingModuleComponentRepository(overrideRepository, cacheProvider.getPersistentCaches(), moduleResolveStateFactory, cachePolicy, timeProvider, componentMetadataProcessor, listener, cacheProvider.getGuard());
             }
             moduleComponentRepository = cacheProvider.getResolvedArtifactCaches().provideResolvedArtifactCache(moduleComponentRepository, resolutionStrategy.isDependencyVerificationEnabled());
 

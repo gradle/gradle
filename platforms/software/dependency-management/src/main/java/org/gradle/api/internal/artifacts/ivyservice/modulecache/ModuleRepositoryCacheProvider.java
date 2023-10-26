@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.cache.internal.ProducerGuard;
+
 public class ModuleRepositoryCacheProvider {
     private final ModuleRepositoryCaches caches;
     private final ModuleRepositoryCaches inMemoryCaches;
     private final ResolvedArtifactCaches resolvedArtifactCaches = new ResolvedArtifactCaches();
+    private final ProducerGuard<ModuleComponentIdentifier> guard = ProducerGuard.adaptive();
 
     public ModuleRepositoryCacheProvider(ModuleRepositoryCaches caches, ModuleRepositoryCaches inMemoryCaches) {
         this.caches = caches;
@@ -42,5 +46,9 @@ public class ModuleRepositoryCacheProvider {
 
     public ResolvedArtifactCaches getResolvedArtifactCaches() {
         return resolvedArtifactCaches;
+    }
+
+    public ProducerGuard<ModuleComponentIdentifier> getGuard() {
+        return guard;
     }
 }

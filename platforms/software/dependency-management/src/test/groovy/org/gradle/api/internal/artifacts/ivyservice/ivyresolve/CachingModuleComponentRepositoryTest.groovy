@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost
 import org.gradle.api.internal.component.ArtifactType
+import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
@@ -66,7 +67,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
-    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
+    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener, ProducerGuard.serial())
 
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:

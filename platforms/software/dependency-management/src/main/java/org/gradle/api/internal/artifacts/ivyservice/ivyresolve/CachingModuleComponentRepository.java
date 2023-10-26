@@ -93,7 +93,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ChangingValueDependencyResolutionListener listener;
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
-    private final ProducerGuard<ModuleComponentIdentifier> metadataGuard = ProducerGuard.adaptive();
+    private final ProducerGuard<ModuleComponentIdentifier> metadataGuard;
 
     public CachingModuleComponentRepository(
         ModuleComponentRepository<ModuleComponentResolveMetadata> delegate,
@@ -102,7 +102,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         CachePolicy cachePolicy,
         BuildCommencedTimeProvider timeProvider,
         ComponentMetadataProcessor metadataProcessor,
-        ChangingValueDependencyResolutionListener listener
+        ChangingValueDependencyResolutionListener listener,
+        ProducerGuard<ModuleComponentIdentifier> metadataGuard
     ) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
@@ -114,6 +115,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
         this.listener = listener;
+        this.metadataGuard = metadataGuard;
     }
 
     @Override
