@@ -23,12 +23,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultIsolatedGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,13 +48,16 @@ import static org.gradle.util.Path.SEPARATOR;
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
 
+    private final IntermediateToolingModelProvider intermediateToolingModelProvider;
     private final Provider<Boolean> isolatedProjectsActive;
 
     public GradleProjectBuilder() {
-        this(null);
+        intermediateToolingModelProvider = null;
+        isolatedProjectsActive = null;
     }
 
-    public GradleProjectBuilder(@Nullable Provider<Boolean> isolatedProjectsActive) {
+    public GradleProjectBuilder(IntermediateToolingModelProvider intermediateToolingModelProvider, @Nullable Provider<Boolean> isolatedProjectsActive) {
+        this.intermediateToolingModelProvider = intermediateToolingModelProvider;
         this.isolatedProjectsActive = isolatedProjectsActive != null ? isolatedProjectsActive : Providers.of(false);
     }
 
@@ -83,7 +88,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return buildFromIsolatedSubprojects(rootIsolatedModel, (ProjectInternal) rootProject);
     }
 
-    private static DefaultGradleProject buildFromIsolatedSubprojects(DefaultIsolatedGradleProject isolatedModel, ProjectInternal project) {
+    private DefaultGradleProject buildFromIsolatedSubprojects(DefaultIsolatedGradleProject isolatedModel, ProjectInternal project) {
         DefaultGradleProject model = buildFromIsolatedModelWithoutChildren(project, isolatedModel);
         Collection<Project> childProjects = getChildProjectsForInternalUse(project);
         List<DefaultIsolatedGradleProject> childIsolatedModels = mapToModels(childProjects);
@@ -100,13 +105,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return model;
     }
 
-    private static List<DefaultIsolatedGradleProject> mapToModels(Collection<Project> childProjects) {
-        return childProjects.stream()
-            .map(it -> {
-                ((ProjectInternal) it).evaluate();
-                return IsolatedGradleProjectBuilder.build(it);
-            })
-            .collect(toList());
+    private List<DefaultIsolatedGradleProject> mapToModels(Collection<Project> childProjects) {
+        List<Object> models = intermediateToolingModelProvider.getModels(new ArrayList<>(childProjects), "org.gradle.tooling.model.gradle.IsolatedGradleProject");
+        return models.stream().map(Cast::<DefaultIsolatedGradleProject>uncheckedCast).collect(toList());
     }
 
     private static DefaultGradleProject buildFromIsolatedModelWithoutChildren(ProjectInternal project, DefaultIsolatedGradleProject isolatedModel) {

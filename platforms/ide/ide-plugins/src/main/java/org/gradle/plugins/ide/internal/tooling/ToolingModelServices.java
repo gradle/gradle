@@ -28,6 +28,7 @@ import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvid
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
 public class ToolingModelServices extends AbstractPluginServiceRegistry {
     @Override
@@ -47,14 +48,15 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             final FileCollectionFactory fileCollectionFactory,
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
-            BuildFeatures buildFeatures
+            BuildFeatures buildFeatures,
+            IntermediateToolingModelProvider intermediateToolingModelProvider
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
                     IsolatedGradleProjectBuilder isolatedGradleProjectBuilder = new IsolatedGradleProjectBuilder();
-                    GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder(buildFeatures.getIsolatedProjects().getActive());
+                    GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder(intermediateToolingModelProvider, buildFeatures.getIsolatedProjects().getActive());
                     IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
                     registry.register(new RunEclipseTasksBuilder());
@@ -69,6 +71,10 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(isolatedGradleProjectBuilder);
                 }
             };
+        }
+
+        protected IntermediateToolingModelProvider createIntermediateToolingProvider(BuildStateRegistry buildStateRegistry) {
+            return new DefaultIntermediateToolingModelProvider(buildStateRegistry);
         }
     }
 }
