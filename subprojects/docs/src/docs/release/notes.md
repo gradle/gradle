@@ -223,6 +223,17 @@ This version information can be either a value, a version reference or the indic
 
 TODO include image, will be done as late as possible as images in this file make it a mess right now
 
+<a name="build-features"></a>
+### Build Features API
+
+The new incubating Build Features API allows plugins to access the status of build features during build time.
+It is designed to help plugin authors and build engineers adopt Gradle features incrementally.
+
+In the initial release, the API provides information about the Configuration Cache and Isolated Projects features.
+For each build feature, it is possible to determine whether the user requested it and if it is active in the current build.
+
+Check the [BuildFeatures](javadoc/org/gradle/api/configuration/BuildFeatures.html) for more information.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
