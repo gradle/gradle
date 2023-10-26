@@ -214,6 +214,7 @@ dependencies {
         attribute << ["groupId", "artifactId"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23208")
     @Issue("https://github.com/gradle/gradle/issues/3065")
     def "handles broken packaging type gracefully"() {
         given:
@@ -251,7 +252,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("group:projectA:1.2") {
-                    artifact(fileName: "projectA-1.2.jar", type: "\${package.type}")
+                    artifact(fileName: "projectA-1.2.jar", type: "jar")
                 }
             }
         }
