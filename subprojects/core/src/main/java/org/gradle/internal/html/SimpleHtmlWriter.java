@@ -22,7 +22,9 @@ import org.gradle.util.internal.TextUtil;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * <p>A streaming HTML writer.</p>
@@ -52,7 +54,7 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
     // All valid tags should be in lowercase
     // Add more tags as necessary
-    private final static List<String> VALID_HTML_TAGS = Arrays.asList(
+    private final static Set<String> VALID_HTML_TAGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         "html",
         "head",
         "meta", "title", "link", "script",
@@ -63,7 +65,8 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         "a", "p",
         "pre", "div", "span",
         "label", "input"
-    );
+    )));
+
     private static boolean isValidHtmlTag(String name) {
         return VALID_HTML_TAGS.contains(TextUtil.toLowerCaseLocaleSafe(name));
     }
