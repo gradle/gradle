@@ -22,6 +22,7 @@ import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
@@ -37,6 +38,7 @@ import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
+import org.gradle.configurationcache.shareddata.ConfigurationCacheAwareSharedDataStorage
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
@@ -52,6 +54,8 @@ import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.internal.shareddata.InMemorySharedDataStorage
+import org.gradle.internal.shareddata.SharedDataStorage
 import org.gradle.util.internal.IncubationLogger
 
 
@@ -240,12 +244,24 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
             return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
         }
+
+        fun createSharedDataStorage(
+            projectStateRegistry: ProjectStateRegistry,
+            cache: BuildTreeConfigurationCache
+        ): SharedDataStorage {
+            val inMemoryStorage = VintageBuildTreeProvider().createSharedDataStorage(projectStateRegistry)
+            return ConfigurationCacheAwareSharedDataStorage(inMemoryStorage, cache)
+        }
     }
 
     private
     class VintageBuildTreeProvider {
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+        }
+
+        fun createSharedDataStorage(projectStateRegistry: ProjectStateRegistry) : SharedDataStorage {
+            return InMemorySharedDataStorage(projectStateRegistry)
         }
     }
 }

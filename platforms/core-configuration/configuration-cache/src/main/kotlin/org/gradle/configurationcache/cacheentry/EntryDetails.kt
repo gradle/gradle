@@ -28,5 +28,6 @@ internal
 class EntryDetails(
     val rootDirs: List<File>,
     val intermediateModels: Map<ModelKey, BlockAddress>,
-    val projectMetadata: Map<Path, BlockAddress>
+    val projectMetadata: Map<Path, BlockAddress>,
+    val sharedData: Map<Path, BlockAddress>
 )

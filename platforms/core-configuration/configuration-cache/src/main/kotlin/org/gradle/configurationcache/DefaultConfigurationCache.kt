@@ -34,6 +34,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.configurationcache.shareddata.SharedDataController
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
@@ -45,6 +46,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.shareddata.SharedDataStorage.ProjectProducedSharedData
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -106,6 +108,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
+
+    private
+    val sharedData = lazy { SharedDataController(store) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
@@ -181,6 +186,10 @@ class DefaultConfigurationCache internal constructor(
 
     override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
         return projectMetadata.value.loadOrCreateValue(identityPath, creator)
+    }
+
+    override fun loadOrCreateProjectSharedData(identityPath: Path, creator: () -> ProjectProducedSharedData): ProjectProducedSharedData {
+        return sharedData.value.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
@@ -491,6 +500,7 @@ class DefaultConfigurationCache internal constructor(
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.value.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.value.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
+            sharedData.value.restoreFromCacheEntry(entryDetails.sharedData, projectResult)
         }
 
         return projectResult

@@ -17,17 +17,17 @@
 package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.shareddata.ProjectSharedData;
+import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
-public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProjectState {
+public class DefaultSharedDataRegistry implements SharedDataRegistry {
 
     private final SharedDataStorage storage;
 
@@ -37,18 +37,13 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
 
     @Override
     public <T> void registerSharedDataProducer(ProjectInternal providerProject, Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider) {
-        storage.put(providerProject, dataType, dataIdentifier, dataProvider);
+        storage.put(providerProject.getIdentityPath(), dataType, dataIdentifier, dataProvider);
     }
 
     @Override
     public <T> Provider<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier) {
         Path sourceProjectIdentitiyPath = dataSourceIdentifier.getSourceProjectIdentitiyPath();
         return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, dataType, dataIdentifier);
-    }
-
-    @Override
-    public void discardAll() {
-        storage.discardAll();
     }
 
     // TODO: does it make sense to record project dependencies based on the providers used in tasks?
@@ -96,7 +91,8 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry, HoldsProje
         // TODO: cache the result? once we get a present provider in the storage, it should not change anymore
         @Nullable
         private Provider<T> findProviderInStorage() {
-            return storage.get(sourceProjectIdentityPath, dataType, dataIdentifier);
+            SharedDataStorage.DataKey dataKey = new SharedDataStorage.DataKey(dataType, dataIdentifier);
+            return Cast.uncheckedCast(storage.getProjectDataResolver(sourceProjectIdentityPath).get(dataKey));
         }
     }
 }
