@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.util.internal.VersionNumber
@@ -327,13 +326,6 @@ class IntegTestPreconditions {
         boolean isSatisfied() {
             // The S3 publish tests require the following
             return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
-        }
-    }
-
-    static final class AgentInstrumentationDisabled implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AbstractGradleExecuter.isAgentInstrumentationEnabled()
         }
     }
 
