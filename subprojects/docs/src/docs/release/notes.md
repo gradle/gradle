@@ -135,12 +135,14 @@ Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.
 
 #### Control skipping Kotlin metadata version check for script compilation
 
-You can now control if Kotlin DSL script compilation should skip Kotlin metadata version check.
-Skipping Kotlin metadata version check in Kotlin DSL script compilation is now deprecated.
+Skipping [Kotlin metadata](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-metadata/) version check in Kotlin DSL script compilation is now deprecated.
 
-To opt in to the future-proof behaviour Today, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+You can control if Kotlin DSL script compilation should skip Kotlin metadata version check with the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property.
 
-This can be achieved persistently in the `gradle.properties` file in your build root directory:
+To opt-in early to this future-proof behavior, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+This will enable the metadata check.
+
+To enable the check persistently, set the property in the `gradle.properties` file of your build root directory:
 
 [source,properties]
 ----
