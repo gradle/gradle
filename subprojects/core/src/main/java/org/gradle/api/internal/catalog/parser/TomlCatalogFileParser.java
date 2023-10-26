@@ -61,7 +61,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.T
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.RenderingUtils.oxfordListOf;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 public class TomlCatalogFileParser {
@@ -151,7 +151,7 @@ public class TomlCatalogFileParser {
             List<TomlParseError> errors = result.errors();
             throw throwVersionCatalogProblemException(problemServiceSupplier.get().createProblem(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR)
-                    .details(getErrorText(catalogFilePath, errors))
+                    .details(getErrorText(catalogFilePath, errors)) //TODO provide the location information to the problemBuilder
                     .solution("Fix the TOML file according to the syntax described at https://toml.io")));
         }
     }

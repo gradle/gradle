@@ -4930,7 +4930,6 @@ Class <org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvid
 Class <org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurableSignatoryProvider.java:0)
 Class <org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GnupgSignatoryProvider.java:0)
 Class <org.gradle.plugins.signing.signatory.internal.pgp.InMemoryPgpSignatoryProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InMemoryPgpSignatoryProvider.java:0)
-Class <org.gradle.problems.internal.RenderingUtils> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (RenderingUtils.java:0)
 Class <org.gradle.process.internal.AbstractExecHandleBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractExecHandleBuilder.java:0)
 Class <org.gradle.process.internal.BadExitCodeException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BadExitCodeException.java:0)
 Class <org.gradle.process.internal.CurrentProcess> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CurrentProcess.java:0)

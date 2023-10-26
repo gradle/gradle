@@ -134,6 +134,7 @@ platform("ide") {
     subproject("ide-native")
     subproject("ide-plugins")
     subproject("problems")
+    subproject("problems-api")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }

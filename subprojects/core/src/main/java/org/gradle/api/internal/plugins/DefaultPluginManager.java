@@ -305,7 +305,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
+    public static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
 
         private final PluginImplementation<?> pluginImplementation;
         private final ConfigurationTargetIdentifier targetIdentifier;

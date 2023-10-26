@@ -83,7 +83,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.RenderingUtils.oxfordListOf;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 

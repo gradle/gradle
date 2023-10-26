@@ -40,7 +40,7 @@ dependencies {
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":problems"))
+    implementation(project(":problems-api"))
     implementation(project(":resources"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
@@ -151,6 +151,7 @@ dependencies {
         because("test fixtures expose file snapshot related functionality")
     }
     testFixturesImplementation(project(":build-option"))
+    testFixturesImplementation(project(":functional"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
