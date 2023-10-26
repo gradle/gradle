@@ -41,6 +41,10 @@ public class DefaultProblems implements InternalProblems {
         this(buildOperationProgressEventEmitter, Collections.<ProblemTransformer>emptyList(), EMPTY_STREAM);
     }
 
+    public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, List<ProblemTransformer> transformers) {
+        this(buildOperationProgressEventEmitter, transformers, EMPTY_STREAM);
+    }
+
     public DefaultProblems(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         List<ProblemTransformer> transformers,

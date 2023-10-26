@@ -64,10 +64,9 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         def taskPathLocations = problem["where"].findAll {
             it["type"] == "task"
         }
-        taskPathLocations.size() == 0
-
-//        def taskPathLocation = taskPathLocations[0]
-//        taskPathLocation["identityPath"]["path"] == ":reportProblem"
+        taskPathLocations.size() == 1
+        def taskPathLocation = taskPathLocations[0]
+        taskPathLocation["identityPath"]["path"] == ":reportProblem"
     }
 
     def "plugin id is going to be implicitly added to the problem"() {
