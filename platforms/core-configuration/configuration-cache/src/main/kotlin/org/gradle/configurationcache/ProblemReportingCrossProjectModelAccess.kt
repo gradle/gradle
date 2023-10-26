@@ -145,14 +145,14 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory)
+            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory)
         }
     }
 
     private
     class ProblemReportingProject(
-        val delegate: ProjectInternal,
-        val referrer: ProjectInternal,
+        val delegate: DefaultProject,
+        val referrer: DefaultProject,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory
@@ -186,7 +186,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
             onAccess()
 
-            return (delegate as DefaultProject).getProperty(propertyName)
+            return delegate.getProperty(propertyName)
         }
 
         override fun invokeMethod(name: String, args: Any): Any? {
@@ -199,7 +199,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
             onAccess()
 
-            return (delegate as DefaultProject).invokeMethod(name, args)
+            return delegate.invokeMethod(name, args)
         }
 
         override fun compareTo(other: Project?): Int {

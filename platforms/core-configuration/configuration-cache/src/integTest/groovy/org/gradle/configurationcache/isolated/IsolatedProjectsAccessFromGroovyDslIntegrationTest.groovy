@@ -789,6 +789,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         then:
         failure.assertHasErrorOutput(expectedOutput)
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file 'a/build.gradle': line 3: Cannot access project ':b' from project ':a'")
+            withProblem("Build file 'a/build.gradle': line 3: Project ':b' cannot dynamically look up a $type in the parent project ':'")
+        }
 
         where:
         type       | referentConfiguration                           | referrerConfiguration                   | expectedOutput
