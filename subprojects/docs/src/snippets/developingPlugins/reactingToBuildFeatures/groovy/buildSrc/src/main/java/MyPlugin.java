@@ -7,8 +7,6 @@ import javax.inject.Inject;
 // tag::my-plugin[]
 public abstract class MyPlugin implements Plugin<Project> {
 
-    private final MyReport myReport = new MyReport();
-
     @Inject
     protected abstract BuildFeatures getBuildFeatures(); // <1>
 
@@ -19,6 +17,7 @@ public abstract class MyPlugin implements Plugin<Project> {
         Boolean configCacheRequested = buildFeatures.getConfigurationCache().getRequested() // <2>
             .getOrNull(); // could be null if user did not opt in nor opt out
         String configCacheUsage = describeFeatureUsage(configCacheRequested);
+        MyReport myReport = new MyReport();
         myReport.setConfigurationCacheUsage(configCacheUsage);
 
         boolean isolatedProjectsActive = buildFeatures.getIsolatedProjects().getActive() // <3>
