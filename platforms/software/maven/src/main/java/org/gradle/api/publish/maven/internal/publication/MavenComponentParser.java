@@ -282,13 +282,17 @@ public class MavenComponentParser {
             }
 
             Set<ExcludeRule> allExcludeRules = getExcludeRules(globalExcludes, dependency);
-            ResolvedCoordinates coordinates = resolveDependency(dependency);
 
             if (dependency.getArtifacts().isEmpty()) {
+                ResolvedCoordinates coordinates = resolveDependency(dependency);
                 collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
                 return;
             }
 
+            // If the dependency has artifacts, do not map the coordinates.
+            // This is so we match the Gradle behavior where an explicit artifact on a dependency
+            // that would otherwise map to different coordinates resolves to the declared coordinates.
+            ResolvedCoordinates coordinates = convertDeclaredCoordinates(dependency.getGroup(), dependency.getName(), dependency.getVersion());
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
                 ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {

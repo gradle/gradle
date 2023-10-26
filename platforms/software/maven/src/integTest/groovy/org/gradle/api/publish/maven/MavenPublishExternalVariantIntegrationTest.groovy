@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import groovy.test.NotYetImplemented
+import org.gradle.integtests.fixtures.maven.MavenResolveTestFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 /**
@@ -28,7 +29,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
  * {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver}
  * are exercised.
  */
-class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishIntegTest implements MavenResolveTestFixture {
 
     def setup() {
         settingsFile << """
@@ -43,6 +44,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 id 'java-library'
                 id 'maven-publish'
             }
+
+            version = "1.0"
 
             ${mavenCentralRepository()}
             dependencies {
@@ -62,14 +65,14 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 publications {
                     maven(MavenPublication) {
                         groupId = "org"
-                        artifactId = "pub"
-                        version = "1.0"
                         from components.java
                     }
                 }
             }
+
+            ${printClasspathTask()}
         """
-        def repoModule = javaLibrary(mavenRepo.module('org', "pub", '1.0'))
+        def repoModule = javaLibrary(mavenRepo.module('org', "root", '1.0'))
 
         when:
         succeeds "publish"
@@ -90,6 +93,18 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         gmmDependency.group == "org.jetbrains.kotlinx"
         gmmDependency.module == "kotlinx-coroutines-core"
         gmmDependency.version == "1.7.2"
+
+        when:
+        def result = mavenResolver.resolveDependency("org", "root", "1.0")
+
+        then:
+        result.firstLevelDependencies == ["org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:jar:1.7.2"]
+
+        when:
+        succeeds "printRuntimeClasspath"
+
+        then:
+        readClasspath() == result.artifactFileNames
     }
 
     def "publishes resolved non-jvm coordinates for multi-coordinate external module dependency"() {
@@ -133,9 +148,17 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         gmmDependency.group == "org.jetbrains.kotlinx"
         gmmDependency.module == "kotlinx-coroutines-core"
         gmmDependency.version == "1.7.2"
+
+        when:
+        mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        def e = thrown(Exception)
+        // We fail to publish <type>klib</type>
+        e.message.contains("Could not find artifact org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:jar:1.7.2")
     }
 
-    def "preserves artifacts and excludes when publishing multi-coordinate external module dependencies"() {
+    def "preserves artifacts but does not map coordinates when publishing multi-coordinate external module dependencies"() {
         given:
         buildFile << """
             ${header()}
@@ -148,25 +171,14 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                         attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
                     """
                 }
-                compilation("second") {
-                    attributes = """
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
-                        attribute(Attribute.of("org.jetbrains.kotlin.js.compiler", String), "ir")
-                        attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "js")
-                    """
-                }
             }}
             ${mavenCentralRepository()}
             dependencies {
                 firstImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2") {
                     artifact {
-                        classifier = "foo"
-                        type = "something"
+                        classifier = "kotlin-tooling-metadata"
+                        type = "json"
                     }
-                }
-                secondImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2") {
-                    exclude group: "group", module: "module"
                 }
             }
         """
@@ -176,7 +188,62 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
         then:
         def first = javaLibrary(mavenRepo.module('org', "root-first", '1.0'))
-        def second = javaLibrary(mavenRepo.module('org', "root-second", '1.0'))
+
+        def firstDependencies = first.parsedPom.scopes.runtime.dependencies
+        firstDependencies.size() == 1
+        with(firstDependencies.values().first()) {
+            groupId == "org.jetbrains.kotlinx"
+            artifactId == "kotlinx-coroutines-core"
+            version == "1.7.2"
+            classifier == "kotlin-tooling-metadata"
+            type == "json"
+            exclusions.isEmpty()
+        }
+
+        when:
+        def firstResolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        firstResolution.firstLevelDependencies == ["org.jetbrains.kotlinx:kotlinx-coroutines-core:json:kotlin-tooling-metadata:1.7.2"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        firstResolution.artifactFileNames.contains("kotlinx-coroutines-core-1.7.2-kotlin-tooling-metadata.json")
+        // We expect these to be different. Since we are publishing a type/classifier, we the POM depends
+        // on different artifacts without also including their transitive dependencies. Instead, maven
+        // uses the dependencies of the root component and resolves the JDK variant dependencies instead.
+        readClasspath("first") != firstResolution.artifactFileNames
+    }
+
+    def "preserves excludes when publishing multi-coordinate external module dependencies"() {
+        given:
+        buildFile << """
+            ${header()}
+            ${multiCoordinateComponent {
+                compilation("first") {
+                    attributes = """
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
+                        attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
+                        attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
+                    """
+                }
+            }}
+            ${mavenCentralRepository()}
+            dependencies {
+                firstImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2") {
+                    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-common"
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        def first = javaLibrary(mavenRepo.module('org', "root-first", '1.0'))
 
         def firstDependencies = first.parsedPom.scopes.runtime.dependencies
         firstDependencies.size() == 1
@@ -184,24 +251,21 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             groupId == "org.jetbrains.kotlinx"
             artifactId == "kotlinx-coroutines-core-iosx64"
             version == "1.7.2"
-            classifier == "foo"
-            type == "something"
-            exclusions.isEmpty()
-        }
-
-        def secondDependencies = second.parsedPom.scopes.runtime.dependencies
-        secondDependencies.size() == 1
-        with(secondDependencies.values().first()) {
-            groupId == "org.jetbrains.kotlinx"
-            artifactId == "kotlinx-coroutines-core-js"
-            version == "1.7.2"
             classifier == null
             type == null
             exclusions.size() == 1
             def exclusion = exclusions.first()
-            exclusion.groupId == "group"
-            exclusion.artifactId == "module"
+            exclusion.groupId == "org.jetbrains.kotlin"
+            exclusion.artifactId == "kotlin-stdlib-common"
         }
+
+        when:
+        mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        def e = thrown(Exception)
+        // We fail to publish <type>klib</type>
+        e.message.contains("Could not find artifact org.jetbrains.kotlinx:kotlinx-coroutines-core-iosx64:jar:1.7.2")
     }
 
     def "publishes resolved child coordinates for multi-coordinate project dependency"() {
@@ -219,7 +283,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def root = javaLibrary(mavenRepo.module('org', 'root', '1.0'))
@@ -242,6 +306,21 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         secondDep.groupId == "org"
         secondDep.artifactId == "other-second"
         secondDep.version == "1.0"
+
+        when:
+        def firstResolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+        def secondResolution = mavenResolver.resolveDependency("org", "root-second", "1.0")
+
+        then:
+        firstResolution.firstLevelDependencies == ["org:other-first:jar:1.0"]
+        secondResolution.firstLevelDependencies == ["org:other-second:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath", ":printSecondRuntimeClasspath"
+
+        then:
+        readClasspath("first") == firstResolution.artifactFileNames
+        readClasspath("second") == secondResolution.artifactFileNames
     }
 
     def "publishes resolved coordinates when using explicit dependency attributes"() {
@@ -262,12 +341,24 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
         resolved*.artifactId == ["other-second"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-second:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "publishes resolved coordinates when using explicit dependency capabilities"() {
@@ -291,12 +382,24 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
         resolved*.artifactId == ["other-second"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-second:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "publishes resolved coordinates when using targetConfiguration"() {
@@ -315,12 +418,24 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
         resolved*.artifactId == ["other-second"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-second:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "publishes coordinates for multiple dependencies"() {
@@ -357,12 +472,24 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
         resolved*.artifactId == ["other-first", "other-second", "other-third"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-first:jar:1.0", "org:other-second:jar:1.0", "org:other-third:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "publishes resolved coordinates when two dependencies map to the same coordinates"() {
@@ -392,25 +519,45 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
         resolved*.artifactId == ["other-first"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-first:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "preserves excludes when publishing multi-coordinate project dependencies"() {
         given:
+        mavenRepo.module("com", "example", "2.0").publish()
         publishes(multiCoordinateComponent {
             compilation("first")
             compilation("second")
         })
 
+        file("other/build.gradle") << """
+            repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies {
+                firstImplementation "com:example:2.0"
+            }
+        """
+
         buildFile << """
             dependencies {
                 firstImplementation create(project(':other')) {
-                    exclude group: "group", module: "module"
+                    exclude group: "com", module: "example"
                 }
             }
         """
@@ -430,9 +577,21 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             type == null
             exclusions.size() == 1
             def exclusion = exclusions.first()
-            exclusion.groupId == "group"
-            exclusion.artifactId == "module"
+            exclusion.groupId == "com"
+            exclusion.artifactId == "example"
         }
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["org:other-first:jar:1.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "resolves single-coordinate components"() {
@@ -444,10 +603,15 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         file("other/build.gradle") << """
             ${header()}
 
+            file("other-2.0.jar").createNewFile()
+
             configurations {
                 consumable("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "first"))
+                    }
+                    outgoing {
+                        artifact(file("other-2.0.jar"))
                     }
                 }
             }
@@ -484,7 +648,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
@@ -492,6 +656,18 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         resolved*.groupId == ["com", "org"]
         resolved*.artifactId == ["other", "foo"]
         resolved*.version == ["2.0", "3.0"]
+
+        when:
+        def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
+
+        then:
+        resolution.firstLevelDependencies == ["com:other:jar:2.0", "org:foo:jar:3.0"]
+
+        when:
+        succeeds ":printFirstRuntimeClasspath"
+
+        then:
+        readClasspath("first") == resolution.artifactFileNames
     }
 
     def "warns when when two dependencies are ambiguous"() {
@@ -511,7 +687,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         outputContains("""Maven publication 'firstPub' pom metadata warnings (silence with 'suppressPomMetadataWarningsFor(variant)'):
@@ -548,7 +724,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         outputContains("""Maven publication 'firstPub' pom metadata warnings (silence with 'suppressPomMetadataWarningsFor(variant)'):
@@ -586,7 +762,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         outputContains("""Maven publication 'firstPub' pom metadata warnings (silence with 'suppressPomMetadataWarningsFor(variant)'):
@@ -647,7 +823,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         when:
-        succeeds(":publish")
+        succeeds "publish"
 
         then:
         def root = javaLibrary(mavenRepo.module('org', 'root', '1.0'))
@@ -683,6 +859,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         boolean withSeparatePublishedConfiguration = false
         String attributes
         String capabilities = ""
+        String outputFile
     }
 
     class RootComponentDetails {
@@ -692,6 +869,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             compilationDetails.attributes = """
                 attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "${name}"))
             """
+            compilationDetails.outputFile = "\${project.name}-${name}-1.0.jar"
 
             spec.delegate = compilationDetails
             spec.call(compilationDetails)
@@ -793,6 +971,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         def runtimeElements = "${name}RuntimeElements"
 
         def output = """
+            file("${details.outputFile}").createNewFile()
+
             configurations {
                 dependencyScope("${implementation}")
                 consumable("${runtimeElements}") {
@@ -802,6 +982,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                     }
                     outgoing {
                         ${details.capabilities}
+                        artifact(file("${details.outputFile}"))
                     }
                 }
                 resolvable("${runtimeClasspath}") {
@@ -811,6 +992,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                     }
                 }
             }
+
+            ${printClasspathTask(name)}
         """
 
         def publicationConf = runtimeElements
@@ -859,6 +1042,33 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
 
         output
+    }
+
+    /**
+     * Prints the classpath for a compilation with the given name, including the compilation's own artifacts.
+     * {@link #readClasspath(String)} will read the output of this task into a set, which should match the
+     * classpath resolved by Maven.
+     */
+    def printClasspathTask(String name = "") {
+        String runtimeClasspath = name.isEmpty() ? "runtimeClasspath" : "${name}RuntimeClasspath"
+        String runtimeElements = name.isEmpty() ? "runtimeElements" : "${name}RuntimeElements"
+
+        """
+            task print${name.capitalize()}RuntimeClasspath {
+                def artifacts = configurations.${runtimeElements}.outgoing.artifacts.files
+                def classpath = configurations.${runtimeClasspath}.incoming.files
+                def outputFile = layout.buildDir.file("${name}-classpath.txt")
+                outputs.file(outputFile)
+                doLast {
+                    def allFiles = classpath.files + artifacts.files
+                    outputFile.get().getAsFile().text = allFiles*.name.join("\\n")
+                }
+            }
+        """
+    }
+
+    Set<String> readClasspath(String name = "") {
+        file("build/${name}-classpath.txt").readLines() as Set
     }
 
     // endregion

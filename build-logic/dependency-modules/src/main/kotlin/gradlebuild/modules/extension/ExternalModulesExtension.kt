@@ -110,9 +110,16 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
     val maven3BuilderSupport = "org.apache.maven:maven-builder-support"
     val maven3Model = "org.apache.maven:maven-model"
+    val maven3ResolverProvider = "org.apache.maven:maven-resolver-provider"
     val maven3RepositoryMetadata = "org.apache.maven:maven-repository-metadata"
     val maven3Settings = "org.apache.maven:maven-settings"
     val maven3SettingsBuilder = "org.apache.maven:maven-settings-builder"
+    val mavenResolverApi = "org.apache.maven.resolver:maven-resolver-api"
+    val mavenResolverConnectorBasic = "org.apache.maven.resolver:maven-resolver-connector-basic"
+    val mavenResolverImpl = "org.apache.maven.resolver:maven-resolver-impl"
+    val mavenResolverSupplier = "org.apache.maven.resolver:maven-resolver-supplier"
+    val mavenResolverTransportFile = "org.apache.maven.resolver:maven-resolver-transport-file"
+    val mavenResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
     val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
@@ -253,9 +260,16 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         log4jToSlf4j to License.MIT,
         maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
+        maven3ResolverProvider to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
+        mavenResolverApi to License.Apache2,
+        mavenResolverConnectorBasic to License.Apache2,
+        mavenResolverImpl to License.Apache2,
+        mavenResolverSupplier to License.Apache2,
+        mavenResolverTransportFile to License.Apache2,
+        mavenResolverTransportHttp to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
         nativePlatformFileEvents to License.Apache2,
