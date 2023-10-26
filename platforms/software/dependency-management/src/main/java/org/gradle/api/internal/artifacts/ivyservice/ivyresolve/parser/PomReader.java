@@ -39,6 +39,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -341,6 +342,7 @@ public class PomReader implements PomParent {
         return replaceProps(val);
     }
 
+    @Nonnull
     public String getPackaging() {
         String val = getFirstChildText(projectElement, PACKAGING);
         if (val == null) {
@@ -737,9 +739,16 @@ public class PomReader implements PomParent {
         }
     }
 
-    public static boolean hasUnresolvedSubstitutions(String packaging) {
-        return packaging.contains("$") && PomReader.VAR_PATTERN.matcher(packaging).matches();
+    /**
+     * Checks if the given value contains variable substitutions.
+     *
+     * @param value value to check
+     * @return true if the value contains substitutions, false otherwise.
+     */
+    public static boolean hasUnresolvedSubstitutions(String value) {
+        return value.contains("$") && PomReader.VAR_PATTERN.matcher(value).matches();
     }
+
     // Copied from IvyPatternHelper
     private static final Pattern VAR_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
 }
