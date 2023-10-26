@@ -34,11 +34,13 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import javax.inject.Inject
 
@@ -50,7 +52,10 @@ import javax.inject.Inject
 abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
     private
-    val implicitImports: ImplicitImports
+    val implicitImports: ImplicitImports,
+
+    private
+    val gradleProperties: GradlePropertiesController
 
 ) : DefaultTask(), SharedAccessorsPackageAware {
 
@@ -88,6 +93,12 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     internal
     abstract val jvmTarget: Property<JavaVersion>
 
+    @get:Input
+    protected
+    val compilerOptions: KotlinCompilerOptions by lazy {
+        kotlinCompilerOptions(gradleProperties).copy(jvmTarget = resolveJvmTarget())
+    }
+
     @TaskAction
     fun compile() {
         outputDir.withOutputDirectory { outputDir ->
@@ -95,9 +106,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
             if (scriptFiles.isNotEmpty())
                 compileKotlinScriptModuleTo(
                     outputDir,
-                    KotlinCompilerOptions(
-                        jvmTarget = resolveJvmTarget()
-                    ),
+                    compilerOptions,
                     kotlinModuleName,
                     scriptFiles,
                     scriptDefinitionFromTemplate(

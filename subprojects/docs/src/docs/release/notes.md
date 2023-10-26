@@ -133,6 +133,22 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
+#### Control skipping Kotlin metadata version check for script compilation
+
+You can now control if Kotlin DSL script compilation should skip Kotlin metadata version check.
+Skipping Kotlin metadata version check in Kotlin DSL script compilation is now deprecated.
+
+To opt in to the future-proof behaviour Today, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+
+This can be achieved persistently in the `gradle.properties` file in your build root directory:
+
+[source,properties]
+----
+org.gradle.kotlin.dsl.skipMetadataVersionCheck=false
+----
+
+Please see the dedicated [upgrade guide section](userguide/upgrading_version_8.html#kotlin_dsl_skip_metadata_version_check) for more information.
+
 <a name="error-reporting"></a>
 ### Error and Warning Reporting Improvements
 

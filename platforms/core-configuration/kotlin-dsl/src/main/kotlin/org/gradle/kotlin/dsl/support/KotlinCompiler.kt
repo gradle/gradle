@@ -89,13 +89,6 @@ import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
 
 
-data class KotlinCompilerOptions(
-    val jvmTarget: JavaVersion = JavaVersion.current(),
-    val allWarningsAsErrors: Boolean = false,
-    val skipMetadataVersionCheck: Boolean = false,
-)
-
-
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,

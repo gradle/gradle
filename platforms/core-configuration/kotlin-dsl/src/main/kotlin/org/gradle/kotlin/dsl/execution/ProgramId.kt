@@ -27,7 +27,7 @@ class ProgramId(
     parentClassLoader: ClassLoader,
     private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null,
-    private val compilerOptions: KotlinCompilerOptions = KotlinCompilerOptions(),
+    val compilerOptions: KotlinCompilerOptions = KotlinCompilerOptions(),
 ) {
 
     private
