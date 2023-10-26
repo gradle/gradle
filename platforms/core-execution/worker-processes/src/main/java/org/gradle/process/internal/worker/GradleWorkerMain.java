@@ -19,19 +19,14 @@ package org.gradle.process.internal.worker;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.stream.EncodedStream;
 
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 /**
  * The main entry point for a worker process that is using the system ClassLoader strategy. Reads worker configuration and a serialized worker action from stdin,
