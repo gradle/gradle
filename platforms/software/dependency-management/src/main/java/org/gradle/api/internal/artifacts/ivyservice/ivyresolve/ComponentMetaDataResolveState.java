@@ -44,23 +44,29 @@ class ComponentMetaDataResolveState {
     }
 
     BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> resolve() {
-        if (!searchedLocally) {
-            searchedLocally = true;
-            process(repository.getLocalAccess());
-            if (resolveResult.hasResult()) {
-                if (resolveResult.isAuthoritative()) {
-                    // Don't bother searching remotely
-                    searchedRemotely = true;
+        String oldName = Thread.currentThread().getName();
+        try {
+            Thread.currentThread().setName("Resolving " + componentIdentifier.getDisplayName() +  " from " + repository.getName());
+            if (!searchedLocally) {
+                searchedLocally = true;
+                process(repository.getLocalAccess());
+                if (resolveResult.hasResult()) {
+                    if (resolveResult.isAuthoritative()) {
+                        // Don't bother searching remotely
+                        searchedRemotely = true;
+                    }
+                    return resolveResult;
                 }
+                // If unknown, try a remote search
+            }
+
+            if (!searchedRemotely) {
+                searchedRemotely = true;
+                process(repository.getRemoteAccess());
                 return resolveResult;
             }
-            // If unknown, try a remote search
-        }
-
-        if (!searchedRemotely) {
-            searchedRemotely = true;
-            process(repository.getRemoteAccess());
-            return resolveResult;
+        } finally {
+            Thread.currentThread().setName(oldName);
         }
 
         throw new IllegalStateException();
