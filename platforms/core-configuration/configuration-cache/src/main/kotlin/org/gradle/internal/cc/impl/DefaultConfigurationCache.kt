@@ -126,7 +126,7 @@ class DefaultConfigurationCache internal constructor(
     val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
-    val sharedData = lazy { SharedDataController(store) }
+    val sharedData = lazy { SharedDataController(host, cacheIO, store) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
@@ -256,6 +256,7 @@ class DefaultConfigurationCache internal constructor(
         val updatedProjects = mutableSetOf<Path>()
         intermediateModels.visitProjects(reusedProjects::add, updatedProjects::add)
         projectMetadata.visitProjects(reusedProjects::add) { }
+        sharedData.value.visitProjects(reusedProjects::add, updatedProjects::add)
         return ProjectUsage(reusedProjects, updatedProjects)
     }
 
@@ -361,6 +362,9 @@ class DefaultConfigurationCache internal constructor(
         stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
+        if (sharedData.isInitialized()) {
+            stoppable.add(sharedData.value)
+        }
         stoppable.addIfInitialized(storeDelegate)
         stoppable.stop()
     }
