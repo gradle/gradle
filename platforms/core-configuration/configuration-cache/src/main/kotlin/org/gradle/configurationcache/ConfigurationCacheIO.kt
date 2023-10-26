@@ -27,6 +27,7 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.LoggingTracer
+import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
@@ -77,20 +78,39 @@ class ConfigurationCacheIO internal constructor(
         buildStateRegistry: BuildStateRegistry,
         intermediateModels: Map<ModelKey, BlockAddress>,
         projectMetadata: Map<Path, BlockAddress>,
+        sharedData: Map<Path, BlockAddress>,
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
         writeConfigurationCacheState(stateFile) {
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
-            writeCollection(intermediateModels.entries) { entry ->
-                writeModelKey(entry.key)
-                addressSerializer.write(this, entry.value)
-            }
-            writeCollection(projectMetadata.entries) { entry ->
-                writeString(entry.key.path)
-                addressSerializer.write(this, entry.value)
-            }
+            writeIntermediateModelAddresses(intermediateModels, addressSerializer)
+            writeBlockAddresses(projectMetadata, addressSerializer)
+            writeBlockAddresses(sharedData, addressSerializer)
+        }
+    }
+
+    private
+    fun DefaultWriteContext.writeBlockAddresses(
+        projectMetadata: Map<Path, BlockAddress>,
+        addressSerializer: BlockAddressSerializer
+    ) {
+        writeCollection(projectMetadata.entries) { entry ->
+            writeString(entry.key.path)
+            addressSerializer.write(this, entry.value)
+        }
+    }
+
+    private
+    fun DefaultWriteContext.writeIntermediateModelAddresses(
+        intermediateModels: Map<ModelKey, BlockAddress>,
+        addressSerializer: BlockAddressSerializer
+    ) {
+        writeCollection(intermediateModels.entries) { entry ->
+            writeNullableString(entry.key.identityPath?.path)
+            writeString(entry.key.modelName)
+            addressSerializer.write(this, entry.value)
         }
     }
 
@@ -115,15 +135,13 @@ class ConfigurationCacheIO internal constructor(
                 val address = addressSerializer.read(this)
                 intermediateModels[modelKey] = address
             }
-            val metadata = mutableMapOf<Path, BlockAddress>()
-            readCollection {
-                val path = Path.path(readString())
-                val address = addressSerializer.read(this)
-                metadata[path] = address
+
+            fun ReadContext.readBlockAddressMap(): Map<Path, BlockAddress> = buildMap {
+                readCollection { put(Path.path(readString()), addressSerializer.read(this@readBlockAddressMap)) }
             }
-            val sharedData = buildMap<Path, BlockAddress> {
-                readCollection { put(Path.path(readString()), addressSerializer.read(this@readConfigurationCacheState)) }
-            }
+
+            val metadata = readBlockAddressMap()
+            val sharedData = readBlockAddressMap()
             EntryDetails(rootDirs, intermediateModels, metadata, sharedData)
         }
     }

@@ -110,7 +110,7 @@ class DefaultConfigurationCache internal constructor(
     val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
 
     private
-    val sharedData = lazy { SharedDataController(store) }
+    val sharedData = lazy { SharedDataController(host, cacheIO, store) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
@@ -203,9 +203,10 @@ class DefaultConfigurationCache internal constructor(
             val updatedProjects = mutableSetOf<Path>()
             intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
             projectMetadata.value.visitProjects(reusedProjects::add) { }
+            sharedData.value.visitProjects(reusedProjects::add, updatedProjects::add)
             store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout, reusedProjects)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, sharedData.value.values, layout.fileFor(StateType.Entry))
             }
             problems.projectStateStats(reusedProjects.size, updatedProjects.size)
             cacheEntryRequiresCommit = false
@@ -293,6 +294,9 @@ class DefaultConfigurationCache internal constructor(
         }
         if (projectMetadata.isInitialized()) {
             stoppable.add(projectMetadata.value)
+        }
+        if (sharedData.isInitialized()) {
+            stoppable.add(sharedData.value)
         }
         stoppable.add(store)
         stoppable.stop()
