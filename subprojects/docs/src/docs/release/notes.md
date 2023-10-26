@@ -10,7 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Leonardo Silveira](https://github.com/sombriks),
-[Philipp Schneider](https://github.com/p-schneider)
+[Philipp Schneider](https://github.com/p-schneider),
+[Nik Clayton](https://github.com/nikclayton)
 
 Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
