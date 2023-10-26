@@ -18,10 +18,10 @@ package org.gradle.integtests.internal.component
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
- * These tests demonstrate the behavior of the [SelectionFailureHandler] when a project has various
+ * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
  */
-class SelectionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
+class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     def "demonstrate project ambiguous variant selection failure #dsl"() {
         buildKotlinFile << """
             ${setupAmbiguousVariantSelectionFailureForProject()}

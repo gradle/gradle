@@ -47,6 +47,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleArtifactVariantsException;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -369,6 +370,7 @@ public class DependencyGraphBuilder {
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
+                ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureProcessor();
                 if (selected.isRejected()) {
                     GradleException error = new GradleException(selected.getRejectedErrorMessage());
                     attachFailureToEdges(error, module.getIncomingEdges());
@@ -379,7 +381,7 @@ public class DependencyGraphBuilder {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
-                        validateMultipleNodeSelection(module, selected);
+                        validateMultipleNodeSelection(module, selected, resolutionFailureHandler);
                     }
                     if (denyDynamicSelectors) {
                         validateDynamicSelectors(selected);
@@ -483,7 +485,7 @@ public class DependencyGraphBuilder {
      * Validates that all selected nodes of a single component have compatible attributes,
      * when using variant aware resolution.
      */
-    private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected) {
+    private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected, ResolutionFailureHandler resolutionFailureHandler) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
             .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
             .collect(Collectors.toSet());
@@ -499,9 +501,7 @@ public class DependencyGraphBuilder {
             assertCompatibleAttributes(first, second, incompatibleNodes);
         }
         if (!incompatibleNodes.isEmpty()) {
-            IncompatibleArtifactVariantsException variantsSelectionException = new IncompatibleArtifactVariantsException(
-                IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
-            );
+            IncompatibleArtifactVariantsException variantsSelectionException = resolutionFailureHandler.incompatibleArtifactVariantsFailure(selected, incompatibleNodes);
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);
             }

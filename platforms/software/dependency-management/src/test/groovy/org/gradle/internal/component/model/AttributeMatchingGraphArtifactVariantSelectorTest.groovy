@@ -30,7 +30,7 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.NoMatchingGraphVariantsException
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
@@ -463,7 +463,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
