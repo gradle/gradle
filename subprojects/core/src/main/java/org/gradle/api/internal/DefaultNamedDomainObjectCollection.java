@@ -551,7 +551,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected interface Index<T> {
         void put(String name, T value);
 
-        @Nullable T get(String name);
+        @Nullable
+        T get(String name);
 
         void remove(String name);
 
@@ -561,7 +562,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         <S extends T> Index<S> filter(CollectionFilter<S> filter);
 
-        @Nullable ProviderInternal<? extends T> getPending(String name);
+        @Nullable
+        ProviderInternal<? extends T> getPending(String name);
 
         void putPending(String name, ProviderInternal<? extends T> provider);
 

@@ -46,7 +46,8 @@ public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**
      * Don't use this method. Use the overload {@link #tryGetProperty(String)} instead.
      */
-    @Nullable Object getProperty(String name) throws MissingPropertyException;
+    @Nullable
+    Object getProperty(String name) throws MissingPropertyException;
 
     /**
      * Don't use this method. Use the overload {@link #trySetProperty(String, Object)} instead.
@@ -56,5 +57,6 @@ public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**
      * Don't use this method. Use the overload {@link MethodAccess#tryInvokeMethod(String, Object...)} instead.
      */
-    @Nullable Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException;
+    @Nullable
+    Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException;
 }
