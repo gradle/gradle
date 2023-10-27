@@ -34,6 +34,9 @@ dependencies {
     implementation(libs.futureKotlin("assignment"))
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(project(":kotlin-dsl")))
+    testImplementation(libs.slf4jApi)
+    testImplementation(libs.mockitoKotlin)
 
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
@@ -48,9 +51,6 @@ dependencies {
     integTestImplementation(testFixtures(project(":kotlin-dsl")))
 
     integTestImplementation(libs.futureKotlin("compiler-embeddable"))
-
-    integTestImplementation(libs.slf4jApi)
-    integTestImplementation(libs.mockitoKotlin)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("KotlinDslPluginTest tests against TestKit")
