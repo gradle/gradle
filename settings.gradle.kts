@@ -68,7 +68,6 @@ unassigned {
     subproject("composite-builds")
     subproject("core-api")
     subproject("build-profile")
-    subproject("build-operations")
     subproject("instrumentation-declarations")
 }
 
@@ -77,6 +76,7 @@ platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
     subproject("bootstrap")
+    subproject("build-operations")
     subproject("build-option")
     subproject("cli")
     subproject("file-temp")
@@ -143,6 +143,7 @@ platform("software") {
     subproject("antlr")
     subproject("build-init")
     subproject("dependency-management")
+    subproject("plugins-distribution")
     subproject("distributions-publishing")
     subproject("ivy")
     subproject("maven")

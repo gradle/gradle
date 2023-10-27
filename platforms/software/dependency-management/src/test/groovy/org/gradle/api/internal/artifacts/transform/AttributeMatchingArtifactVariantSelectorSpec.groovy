@@ -24,7 +24,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousArtifactVariantsException
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
@@ -58,7 +58,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def failureProcessor = new SelectionFailureHandler(createTestProblems())
+    def failureProcessor = new ResolutionFailureHandler(createTestProblems())
 
     def 'direct match on variant means no finder interaction'() {
         given:

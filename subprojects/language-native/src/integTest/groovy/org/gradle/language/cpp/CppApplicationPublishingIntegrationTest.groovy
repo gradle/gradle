@@ -168,6 +168,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         def app = new CppAppWithLibrary()
 
         given:
+        createDirs("greeter", "app")
         settingsFile << "include 'greeter', 'app'"
         buildFile << """
             subprojects {
@@ -250,6 +251,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         def logger = new CppLogger().asLib()
 
         given:
+        createDirs("greeter", "app", "logger")
         settingsFile << "include 'greeter', 'app', 'logger'"
         buildFile << """
             subprojects {
@@ -343,6 +345,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         def app = new CppAppWithLibrary()
 
         given:
+        createDirs("greeter", "app")
         settingsFile << "include 'greeter', 'app'"
         buildFile << """
             subprojects {

@@ -657,6 +657,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         root.create(cl)
     }
 
+    List<TestFile> createDirs(String... names) {
+        names.collect { name ->
+            createDir(name)
+        }
+    }
+
     /**
      * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
      */

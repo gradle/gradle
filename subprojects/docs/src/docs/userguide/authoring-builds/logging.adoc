@@ -82,7 +82,7 @@ This information can include but is not limited to:
 
 - Environment variables
 - Private repository credentials
-- Build cache & Gradle Enterprise Credentials
+- Build cache & Develocity Credentials
 - https://plugins.gradle.org/[Plugin Portal] publishing credentials
 
 The DEBUG log level should *not* be used when running on public Continuous Integration services.

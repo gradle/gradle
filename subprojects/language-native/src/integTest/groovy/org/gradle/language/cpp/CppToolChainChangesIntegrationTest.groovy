@@ -45,6 +45,7 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        createDirs("library", "app")
         settingsFile << """
             rootProject.name = 'test'
             include 'library', 'app'

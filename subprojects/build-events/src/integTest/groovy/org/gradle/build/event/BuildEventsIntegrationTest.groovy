@@ -88,6 +88,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "plugin applied to multiple projects can register a shared listener"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

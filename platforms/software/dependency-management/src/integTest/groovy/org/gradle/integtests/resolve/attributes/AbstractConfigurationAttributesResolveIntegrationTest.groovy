@@ -51,6 +51,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
 
     def "selects configuration in target project which matches the configuration attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -108,6 +109,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')
 
         given:
+        createDirs("a", "b")
         file('settings.gradle') << """rootProject.name='test'
 include 'a', 'b'
 """
@@ -180,6 +182,7 @@ include 'a', 'b'
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -239,6 +242,7 @@ include 'a', 'b'
 
     def "explicit configuration selection should take precedence"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -308,6 +312,7 @@ include 'a', 'b'
 
     def "explicit configuration selection can be used when no configurations in target have attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -357,6 +362,7 @@ include 'a', 'b'
 
     def "fails when explicitly selected configuration is not compatible with requested"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -418,6 +424,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
     def "selects default configuration when it matches configuration attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -455,6 +462,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
     def "selects default configuration when target has no configurations with attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -504,6 +512,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
     def "does not select default configuration when no match is found and configurations with attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -553,6 +562,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
 
     def "does not select default configuration when consumer has no attributes and configurations with attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -602,6 +612,7 @@ All of them match the consumer attributes:
 
     def "does not select default configuration when no configurations with attributes and default configuration is not consumable"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -654,6 +665,7 @@ All of them match the consumer attributes:
 
     def "does not select explicit configuration when it's not consumable"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -694,6 +706,7 @@ All of them match the consumer attributes:
 
     def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -739,6 +752,7 @@ All of them match the consumer attributes:
 
     def "chooses a configuration when partial match is found"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -798,6 +812,7 @@ All of them match the consumer attributes:
 
     def "cannot choose a configuration when multiple partial matches are found"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -866,6 +881,7 @@ All of them match the consumer attributes:
 
     def "selects configuration when it has more attributes than the resolved configuration"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -919,6 +935,7 @@ All of them match the consumer attributes:
      */
     def "should fail with reasonable error message if more than one configuration matches the attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -955,6 +972,7 @@ All of them match the consumer attributes:
 
     def "fails when multiple configurations match but have more attributes than requested"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1027,6 +1045,7 @@ All of them match the consumer attributes:
      */
     def "attributes of parent configurations should not be used when matching"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1085,6 +1104,7 @@ All of them match the consumer attributes:
 
     def "transitive dependencies of selected configuration are included"() {
         given:
+        createDirs("a", "b", "c", "d")
         file('settings.gradle') << "include 'a', 'b', 'c', 'd'"
         buildFile << """
             $typeDefs
@@ -1164,6 +1184,7 @@ All of them match the consumer attributes:
 
     def "context travels down to transitive dependencies"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
@@ -1245,6 +1266,7 @@ All of them match the consumer attributes:
 
     def "context travels down to transitive dependencies with dependency substitution"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
@@ -1331,6 +1353,7 @@ All of them match the consumer attributes:
 
     def "transitive dependencies selection uses the source configuration attributes"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
@@ -1444,6 +1467,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "context travels down to transitive dependencies with external dependencies in graph"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
@@ -1532,6 +1556,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "two configurations can have the same attributes but for different roles"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1621,6 +1646,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "Library project with flavors depends on a library project that does not"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1664,6 +1690,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "Library project without flavors depends on a library project with flavors"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1708,6 +1735,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             $typeDefs
@@ -1782,6 +1810,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "selects configuration with superset of matching attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs

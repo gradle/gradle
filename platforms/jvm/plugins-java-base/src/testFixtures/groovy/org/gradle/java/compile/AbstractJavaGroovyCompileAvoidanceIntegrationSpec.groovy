@@ -29,6 +29,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     abstract CompiledLanguage getLanguage()
 
     def setup() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

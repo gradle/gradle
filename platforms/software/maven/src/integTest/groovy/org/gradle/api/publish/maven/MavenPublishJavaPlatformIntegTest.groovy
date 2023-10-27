@@ -90,7 +90,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can define a platform with local projects"() {
         given:
-
+        createDirs("core", "utils")
         settingsFile << """
             include "core"
             include "utils"
@@ -135,7 +135,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can define a platform with local projects with customized artifacts"() {
         given:
-
+        createDirs("core", "utils")
         settingsFile << """
             include "core"
             include "utils"

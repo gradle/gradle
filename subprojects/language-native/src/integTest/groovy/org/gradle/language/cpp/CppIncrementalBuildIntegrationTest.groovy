@@ -59,6 +59,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
                 }
             }
         """
+        createDirs("library", "app")
         settingsFile << """
             rootProject.name = 'test'
             include 'library', 'app'

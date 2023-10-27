@@ -63,6 +63,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "relinks when an upstream dependency changes in ABI compatible way"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -97,6 +98,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "recompiles when an upstream dependency changes in non-ABI compatible way"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -389,6 +391,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a library"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -419,6 +422,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a library specifying target machines"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -455,6 +459,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "fails when dependency library does not specify the same target machines"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -488,6 +493,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a static library"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -520,6 +526,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a library with both linkage defined"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
 
@@ -552,6 +559,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against library with API dependencies"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -603,6 +611,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against static library with API dependencies"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -657,6 +666,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against static library with API dependencies to shared library"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -711,6 +721,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against shared library with API dependencies to static library"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -765,6 +776,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a library with debug and release variants"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
 
@@ -811,6 +823,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against a static library with debug and release variants"() {
+        createDirs("app", "hello")
         settingsFile << "include 'app', 'hello'"
         def app = new SwiftAppWithLibraryAndOptionalFeature()
 
@@ -856,6 +869,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "honors changes to library buildDir"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -896,6 +910,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "multiple components can share the same source directory"() {
+        createDirs("app", "hello", "log")
         settingsFile << "include 'app', 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -942,6 +957,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
     }
 
     def "can compile and link against libraries in included builds"() {
+        createDirs("hello", "log")
         settingsFile << """
             rootProject.name = 'app'
             includeBuild 'hello'

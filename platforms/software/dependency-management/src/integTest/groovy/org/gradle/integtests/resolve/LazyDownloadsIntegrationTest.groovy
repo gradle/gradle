@@ -23,6 +23,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
     def module2 = mavenHttpRepo.module("test", "test2", "1.0").publish()
 
     def setup() {
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile << """
             allprojects {

@@ -209,6 +209,16 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         }
     }
 
+    void expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(VersionNumber versionNumber) {
+        runner.expectLegacyDeprecationWarningIf(
+            versionNumber < VersionNumber.parse('1.7.0'),
+            "The BasePluginExtension.archivesBaseName property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the archivesName property instead. " +
+                "For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
+        )
+    }
+
     protected static enum ProjectTypes {
         JVM,
         JS;

@@ -28,7 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousArtifactVariantsException
 import org.gradle.internal.component.NoMatchingArtifactVariantsException
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
@@ -48,7 +48,7 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def variantSelectionFailureProcessor = new SelectionFailureHandler(createTestProblems())
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(createTestProblems())
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {

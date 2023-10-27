@@ -460,6 +460,7 @@ ear {
 
     def "ear contains runtime classpath of upstream java project"() {
         given:
+        createDirs("a", "b", "c", "d", "e")
         file("settings.gradle") << """
             include "a", "b", "c", "d", "e"
         """
@@ -506,6 +507,7 @@ ear {
 
     def "ear contains runtime classpath of upstream java-library project"() {
         given:
+        createDirs("a", "b", "c", "d", "e")
         file("settings.gradle") << """
             include "a", "b", "c", "d", "e"
         """

@@ -155,6 +155,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
 
         given:
         def repoDir = file("repo")
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -276,6 +277,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         given:
         def repoDir = file("repo")
         def producer = file("producer")
+        producer.createDirs("card", "shuffle")
         def producerSettings = producer.file("settings.gradle") << "include 'card', 'shuffle'"
         producer.file("build.gradle") << """
             subprojects {
@@ -389,6 +391,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
 
         given:
         def repoDir = file("repo")
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -586,6 +589,7 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
         def repoDir = file("repo")
 
         given:
+        createDirs("greeter", "logger")
         settingsFile << "include 'greeter', 'logger'"
         buildFile << """
             subprojects {
@@ -703,6 +707,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -755,6 +760,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -825,6 +831,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -894,6 +901,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {

@@ -61,6 +61,7 @@ task verify {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
+        createDirs("child1", "child2", "child3")
         settingsFile << """
 rootProject.name = "main"
 include "child1", "child2", "child3"

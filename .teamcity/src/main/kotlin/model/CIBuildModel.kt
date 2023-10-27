@@ -114,7 +114,8 @@ data class CIBuildModel(
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
                 SpecificBuild.FlakyTestQuarantineMacOsM1,
-                SpecificBuild.FlakyTestQuarantineWindows
+                SpecificBuild.FlakyTestQuarantineWindows,
+                SpecificBuild.GradleceptionWithMaxLtsJdk,
             ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -360,12 +361,17 @@ enum class SpecificBuild {
     },
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default")
         }
     },
     GradleceptionWithGroovy4 {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage, true)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
+        }
+    },
+    GradleceptionWithMaxLtsJdk {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
         }
     },
     CheckLinks {

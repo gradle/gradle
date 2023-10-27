@@ -168,24 +168,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         failureHasCause("Boom")
     }
 
-    def "root project dir does not need to exist"() {
-        def settingsDir = file("gradle")
-        def settingsFile = settingsDir.file("settings.gradle")
-        settingsFile << """
-            rootProject.projectDir = new File(settingsDir, '../root')
-            include 'sub'
-            project(':sub').projectDir = new File(settingsDir, '../sub')
-        """
-        file("sub/build.gradle") << "task thing"
-
-        when:
-        inDirectory(settingsDir)
-        withWatchFs().run("thing")
-        then:
-        executed ":sub:thing"
-
-    }
-
     def "detects when a task removes the build directory #buildDir"() {
         buildFile << """
             apply plugin: 'base'

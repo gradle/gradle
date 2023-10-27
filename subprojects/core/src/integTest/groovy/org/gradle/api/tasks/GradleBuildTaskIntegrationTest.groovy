@@ -215,6 +215,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
                 tasks = ['resolve']
             }
         """
+        createDirs("other", "other/a", "other/b")
         file("other/settings.gradle") << """
             include 'a', 'b'
         """
@@ -246,7 +247,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         /**
          * Setup a build where a `GradleBuild` task while another `GradleBuild` is currently running another build but has not yet finished running the settings file for that build.
          */
-
+        createDirs("1", "2")
         settingsFile << """
             rootProject.name = 'root'
             include '1', '2'

@@ -44,6 +44,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
       */
 
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")
         settingsFile << """
 rootProject.name = 'root'
 include 'api'
@@ -112,6 +113,7 @@ project(':services:utilities') {
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
         def settingsFile = file("settings.gradle")
+        createDirs("api", "shared", "shared/model", "nonEclipse")
         settingsFile << """
             rootProject.name = "master"
             include 'api', 'shared:model', 'nonEclipse'
@@ -155,6 +157,7 @@ project(':services:utilities') {
     @Test
     @ToBeFixedForConfigurationCache
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
+        createDirs("api", "shared", "shared/model")
         file("settings.gradle") << """
             rootProject.name = "master"
             include 'api', 'shared:model'

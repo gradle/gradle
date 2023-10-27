@@ -136,9 +136,10 @@ fun applyDefaults(
     extraParameters: String = "",
     timeout: Int = 90,
     daemon: Boolean = true,
+    buildJvm: Jvm = BuildToolBuildJvm,
     extraSteps: BuildSteps.() -> Unit = {}
 ) {
-    buildType.applyDefaultSettings(os, timeout = timeout)
+    buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
     buildType.steps.cleanUpReadOnlyDir(os)

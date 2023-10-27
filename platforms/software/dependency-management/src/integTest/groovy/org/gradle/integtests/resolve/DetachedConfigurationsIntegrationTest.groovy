@@ -28,6 +28,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2889")
     def "detached configurations may have separate dependencies"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -79,6 +80,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     def "detached configurations may have dependencies on other projects"() {
         given:
+        createDirs("other")
         settingsFile << "include 'other'"
         buildFile << """
             plugins {
@@ -163,6 +165,8 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("The detachedConfiguration1 configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("While resolving configuration 'detachedConfiguration1', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
+
         run "checkDependencies"
     }
 

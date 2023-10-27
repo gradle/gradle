@@ -31,7 +31,7 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass
 import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
-import org.gradle.kotlin.dsl.support.EmbeddedKotlinCompilerWarning
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -438,12 +438,13 @@ fun compileKotlinApiExtensionsTo(
 
     val success = compileToDirectory(
         outputDirectory,
-        GradleJvmVersion.minimalJavaVersion,
+        KotlinCompilerOptions(
+            jvmTarget = GradleJvmVersion.minimalJavaVersion
+        ),
         "gradle-api-extensions",
         sourceFiles,
         logger,
-        classPath = classPath,
-        onCompilerWarning = EmbeddedKotlinCompilerWarning.DEBUG
+        classPath = classPath
     )
 
     if (!success) {

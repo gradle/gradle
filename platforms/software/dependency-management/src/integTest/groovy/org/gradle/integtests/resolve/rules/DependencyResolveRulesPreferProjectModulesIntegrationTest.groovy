@@ -34,6 +34,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
     }
 
     def "preferProjectModules() only influence dependency declarations in the subproject it is used in"() {
+        createDirs("ModuleC", "Subproject_with_preferProjectModules", "Subproject_without_preferProjectModules")
         settingsFile << 'include "ModuleC", "Subproject_with_preferProjectModules", "Subproject_without_preferProjectModules"'
 
         buildFile << """
@@ -116,6 +117,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
     }
 
     def "preferProjectModules() does not propagate to extending configurations"() {
+        createDirs("ModuleC", "ProjectA")
         settingsFile << 'include "ModuleC", "ProjectA"'
 
         buildFile << """

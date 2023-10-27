@@ -24,6 +24,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * ensuring the configuration can select other variants in the same component.
  */
 class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        settingsFile << "rootProject.name = 'root'"
+    }
+
     def "buildscript configuration can select itself"() {
         buildFile << """
             buildscript {
@@ -50,6 +54,8 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
+        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
 
         expect:
         succeeds("resolve")
@@ -191,6 +197,8 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
+
         expect:
         succeeds("resolve")
     }
@@ -233,12 +241,13 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
+
         expect:
         succeeds("resolve")
     }
 
     def "buildscript resolvable configuration and consumable configuration from same project live in same resolved component"() {
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             buildscript {
                 configurations {
@@ -280,7 +289,6 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "resolvable configuration and consumable configuration from same project live in same resolved component"() {
-        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             configurations {
                 conf {

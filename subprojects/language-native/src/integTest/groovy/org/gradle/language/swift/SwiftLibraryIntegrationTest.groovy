@@ -264,6 +264,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can compile and link against another library"() {
+        createDirs("hello", "log")
         settingsFile << "include 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
 
@@ -299,6 +300,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     def "can change default module name and successfully link against library"() {
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         def app = new SwiftAppWithLibraries()
 

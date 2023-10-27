@@ -27,6 +27,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "configuration in another project can not be resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
+        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"
@@ -241,6 +242,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
+        createDirs("bar", "baz")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar", ":baz"
@@ -275,6 +277,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "no deprecation warning when configuration is resolved while evaluating same project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
+        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"

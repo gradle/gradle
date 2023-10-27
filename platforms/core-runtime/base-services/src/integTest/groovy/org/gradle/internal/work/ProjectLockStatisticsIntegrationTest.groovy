@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProjectLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
     def "displays project lock statistics after build finishes"() {
+        createDirs("child")
         settingsFile << """
             include ':child'
         """

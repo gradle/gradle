@@ -48,6 +48,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def setup() {
         expectReindentedValidationMessage()
+        createDirs("lib", "util", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -177,6 +178,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
             }
         """ << withFileLibDependency("lib1.jar", projectDir)
+        projectDir.createDirs("lib", "util", "app")
         projectDir.file("settings.gradle") << """
             rootProject.name = 'root'
             include 'lib'
@@ -233,6 +235,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "scheduled transformation is only invoked once per subject"() {
         given:
+        createDirs("util2")
         settingsFile << """
             include 'util2'
         """
@@ -255,6 +258,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "scheduled chained transformation is only invoked once per subject"() {
         given:
+        createDirs("app1", "app2")
         settingsFile << """
             include 'app1'
             include 'app2'
@@ -925,6 +929,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         [projectDir1, projectDir2].each { dir ->
             def project = new BuildTestFile(dir, "root")
             project.with {
+                dir.createDirs("lib", "util", "app")
                 settingsFile << """
                     rootProject.name = 'root'
                     include 'lib'
@@ -982,6 +987,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // a transform workspace.
         def includedBuild = new BuildTestFile(file("lib-project"), "lib-project")
         includedBuild.with {
+            it.createDir("producer")
             settingsFile << """
                 include(":producer")
             """
@@ -997,6 +1003,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         }
         def consumerIncludedBuild = new BuildTestFile(file("consumer-included-build"), "consumer-included-build")
         consumerIncludedBuild.with {
+            it.createDirs("lib-project/producer", "app", "util", "lib")
             settingsFile << """
                 include(":lib-project:producer")
                 include 'app'

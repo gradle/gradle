@@ -35,6 +35,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for dependency resolve failures when #expression is used"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -85,6 +86,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves strictly for artifact resolve failures when #expression is used"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
@@ -138,6 +140,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolves leniently for dependency resolve failures"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -283,6 +286,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient for both dependency and artifact resolve and download failures"() {
+        createDirs("child")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')

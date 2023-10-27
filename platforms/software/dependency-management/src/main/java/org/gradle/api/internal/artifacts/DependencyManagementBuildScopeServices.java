@@ -99,7 +99,7 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -381,12 +381,12 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-        return new SelectionFailureHandler(problems);
+    ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+        return new ResolutionFailureHandler(problems);
     }
 
-    GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
-        return new GraphVariantSelector(selectionFailureHandler);
+    GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
+        return new GraphVariantSelector(resolutionFailureHandler);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {

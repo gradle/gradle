@@ -136,6 +136,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
     def "transformations are applied in parallel for project artifacts"() {
         given:
+        createDirs("lib1", "lib2", "lib3")
         settingsFile << """
             include "lib1", "lib2", "lib3"
         """
@@ -376,6 +377,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
     def "only one transformer execution per workspace"() {
 
+        createDirs("lib", "app1", "app2")
         settingsFile << """
             include "lib", "app1", "app2"
         """

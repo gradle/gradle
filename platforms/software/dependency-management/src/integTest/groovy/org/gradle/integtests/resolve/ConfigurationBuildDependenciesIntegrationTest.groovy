@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
+        createDirs("child")
         settingsFile << "include 'child'"
         buildFile << """
             allprojects {
@@ -128,19 +129,23 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             allprojects {
                 task jar
                 task lib
+                configurations {
+                    conf
+                }
                 artifacts {
-                    compile file: file("\${project.name}.jar"), builtBy: jar
+                    conf file: file("\${project.name}.jar"), builtBy: jar
                 }
                 dependencies {
-                    compile files("\${project.name}-lib.jar") { builtBy lib }
+                    conf files("\${project.name}-lib.jar") { builtBy lib }
                 }
             }
             dependencies {
-                compile project(':child')
+                compile project(path: ':child', configuration: 'conf')
+                conf project(path: ':child', configuration: 'conf')
             }
             project(':child') {
                 dependencies {
-                    compile project(path: ':', configuration: 'compile')
+                    conf project(path: ':', configuration: 'conf')
                 }
             }
 """

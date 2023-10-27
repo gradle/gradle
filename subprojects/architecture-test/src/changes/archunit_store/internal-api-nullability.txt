@@ -2133,7 +2133,6 @@ Class <org.gradle.internal.event.ListenerBroadcast> is not annotated (directly o
 Class <org.gradle.internal.event.ListenerManager> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ListenerManager.java:0)
 Class <org.gradle.internal.event.ListenerNotificationException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ListenerNotificationException.java:0)
 Class <org.gradle.internal.exceptions.CompilationFailedIndicator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompilationFailedIndicator.java:0)
-Class <org.gradle.internal.exceptions.ConfigurationNotConsumableException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ConfigurationNotConsumableException.java:0)
 Class <org.gradle.internal.exceptions.ContextAwareException$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ContextAwareException.java:0)
 Class <org.gradle.internal.exceptions.ContextAwareException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ContextAwareException.java:0)
 Class <org.gradle.internal.exceptions.Contextual> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Contextual.java:0)

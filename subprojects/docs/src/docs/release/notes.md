@@ -10,7 +10,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Leonardo Silveira](https://github.com/sombriks),
-[Philipp Schneider](https://github.com/p-schneider)
+[Philipp Schneider](https://github.com/p-schneider),
+[Nik Clayton](https://github.com/nikclayton)
 
 Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -132,6 +133,24 @@ versionCatalogs.named("libs").findLibrary("assertj-core").ifPresent { assertjCor
 
 Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.html) for all supported methods.
 
+#### Control skipping Kotlin metadata version check for script compilation
+
+Skipping [Kotlin metadata](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-metadata/) version check in Kotlin DSL script compilation is now deprecated.
+
+You can control if Kotlin DSL script compilation should skip Kotlin metadata version check with the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property.
+
+To opt-in early to this future-proof behavior, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+This will enable the metadata check.
+
+To enable the check persistently, set the property in the `gradle.properties` file of your build root directory:
+
+[source,properties]
+----
+org.gradle.kotlin.dsl.skipMetadataVersionCheck=false
+----
+
+Please see the dedicated [upgrade guide section](userguide/upgrading_version_8.html#kotlin_dsl_skip_metadata_version_check) for more information.
+
 <a name="error-reporting"></a>
 ### Error and Warning Reporting Improvements
 
@@ -215,6 +234,24 @@ These API are currently incubating, but eventually should replace existing acces
 
 * `Settings.rootDir` -> `Settings.layout.rootDirectory`
 * `Settings.settingsDir` -> `Settings.layout.settingsDirectory`
+
+#### Improvements to Javadoc of generated version catalog accessors
+
+The Javadoc for generated accessors for plugins and libraries from a [version catalog](userguide/platforms.html#sub:mapping-aliases-to-accessors) now includes information about the version of the plugin or library.
+This version information can be either a value, a version reference or the indication that no version was provided.
+
+TODO include image, will be done as late as possible as images in this file make it a mess right now
+
+<a name="build-features"></a>
+### Build Features API
+
+The new incubating Build Features API allows plugins to access the status of build features during build time.
+It is designed to help plugin authors and build engineers adopt Gradle features incrementally.
+
+In the initial release, the API provides information about the Configuration Cache and Isolated Projects features.
+For each build feature, it is possible to determine whether the user requested it and if it is active in the current build.
+
+Check the [BuildFeatures](javadoc/org/gradle/api/configuration/BuildFeatures.html) for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

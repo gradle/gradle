@@ -99,7 +99,7 @@
   },
   {
     "name": "build-operations",
-    "path": "subprojects/build-operations",
+    "path": "platforms/core-runtime/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -668,6 +668,13 @@
     "name": "plugins",
     "path": "subprojects/plugins",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "plugins-distribution",
+    "path": "platforms/software/plugins-distribution",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

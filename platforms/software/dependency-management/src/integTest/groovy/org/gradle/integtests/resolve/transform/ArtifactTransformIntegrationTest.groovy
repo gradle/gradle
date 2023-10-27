@@ -30,6 +30,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
     def setup() {
+        createDirs("lib", "app")
         settingsFile << """
             rootProject.name = 'root'
             include 'lib'
@@ -280,6 +281,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
     def "can map artifact extension to implicit attributes"() {
         given:
+        createDirs("app2")
         settingsFile << """
             include 'app2'
         """
@@ -2447,6 +2449,7 @@ Found the following transforms:
         m2.artifactFile.text = "12345"
 
         given:
+        createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"
@@ -2502,6 +2505,7 @@ Found the following transforms:
 
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
+        createDirs("app2")
         settingsFile << """
             include 'app2'
         """

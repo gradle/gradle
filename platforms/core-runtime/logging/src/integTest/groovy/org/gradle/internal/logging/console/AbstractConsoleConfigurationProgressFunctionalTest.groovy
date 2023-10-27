@@ -37,6 +37,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
     abstract ConsoleOutput getConsoleType()
 
     def "shows work in progress as projects are configured"() {
+        createDirs("a", "b", "c", "d")
         settingsFile << """
             include "a", "b", "c", "d"
         """
@@ -68,6 +69,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
     }
 
     def "shows work in progress with included build"() {
+        createDirs("child")
         settingsFile << """
             includeBuild "child"
         """
@@ -77,6 +79,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
                 dependsOn gradle.includedBuild("child").task(":hello")
             }
         """
+        createDirs("child/a", "child/b")
         file("child/settings.gradle") << """
             include 'a', 'b'
         """
@@ -119,6 +122,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
             ${server.callFromBuild('root-build-script')}
             task hello
         """
+        createDirs("buildSrc", "buildSrc/a", "buildSrc/b")
         file("buildSrc/settings.gradle") << """
             include 'a', 'b'
         """

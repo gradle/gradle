@@ -86,6 +86,7 @@ task checkDeps {
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands project notations"() {
         when:
+        createDirs("otherProject")
         settingsFile << "include 'otherProject'"
 
         buildFile <<  """

@@ -39,6 +39,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         given:
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDepXCTest(cppGreeter)
+        createDirs("cppGreeter")
         settingsFile << """
             rootProject.name = '${lib.projectName}'
             include ':cppGreeter'
@@ -85,6 +86,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
 
         given:
+        createDirs("greeter", "cppGreeter")
         settingsFile << """
             rootProject.name = 'app'
             include 'greeter', 'cppGreeter'

@@ -493,6 +493,7 @@ task retrieve(type: Sync) {
         def module = publishModule("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT")
 
         and:
+        createDirs("a", "b")
         settingsFile << """
 include 'a', 'b'
 """

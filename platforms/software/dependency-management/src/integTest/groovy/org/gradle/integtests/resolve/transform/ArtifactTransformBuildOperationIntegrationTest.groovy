@@ -139,6 +139,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -204,6 +205,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -287,6 +289,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "transform output used as another transform input operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -371,6 +374,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform with upstream dependencies operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -441,6 +445,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform with upstream dependencies operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -526,6 +531,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "chained transform producing multiple artifacts operations are captured"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -654,6 +660,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform consuming multiple artifacts from task"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -784,6 +791,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "single transform used by multiple consumers creates a node per consumer"() {
+        createDirs("producer", "consumer1", "consumer2")
         settingsFile << """
             include 'producer', 'consumer1', 'consumer2'
         """
@@ -875,6 +883,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "failing transform"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -959,6 +968,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "planned transform for external dependency substituted by included build"() {
+        createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """
@@ -972,6 +982,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
         """
 
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1060,6 +1071,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "included build transform operations are captured"() {
+        createDirs("included/producer", "included/consumer")
         file("included/settings.gradle") << """
             include 'producer', 'consumer'
         """
@@ -1141,6 +1153,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "incremental project transform execution can be up-to-date or from build cache"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1213,6 +1226,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "non-incremental project transform execution can be up-to-date"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1274,6 +1288,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def "build operation for planned steps executed non-planned"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
         """
@@ -1385,6 +1400,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     private void setupProjectTransformInBuildScriptBlock(boolean inExternalScript) {
         setupBuildWithChainedColorTransform()
 
+        createDirs("included/nested-producer")
         file("included/settings.gradle") << """
             include 'nested-producer'
         """

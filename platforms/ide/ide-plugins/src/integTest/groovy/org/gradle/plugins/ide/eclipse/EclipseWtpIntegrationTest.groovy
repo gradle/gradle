@@ -74,6 +74,7 @@ dependencies {
         mavenRepo.module("gradle", "baz").publish()
 
         // when:
+        createDirs("sub")
         runEclipseTask "include 'sub'",
         """apply plugin: 'java'
            apply plugin: 'war'

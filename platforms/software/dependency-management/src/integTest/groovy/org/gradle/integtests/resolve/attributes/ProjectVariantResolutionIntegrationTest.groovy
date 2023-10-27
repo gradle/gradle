@@ -22,6 +22,7 @@ import org.gradle.integtests.resolve.VariantAwareDependencyResolutionTestFixture
 
 class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec implements VariantAwareDependencyResolutionTestFixture, TasksWithInputsAndOutputs {
     def "does not realize tasks that produce outgoing artifacts that are not required"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -82,6 +83,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
     }
 
     def "reports failure to realize tasks that produce outgoing artifacts"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

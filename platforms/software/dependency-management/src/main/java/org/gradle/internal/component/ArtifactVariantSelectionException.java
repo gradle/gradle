@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVari
 import org.gradle.internal.exceptions.Contextual;
 
 /**
- * Base class of exceptions thrown by the {@link SelectionFailureHandler} when a variant of a component cannot be selected
+ * Base class of exceptions thrown by the {@link ResolutionFailureHandler} when a variant of a component cannot be selected
  * by the {@link AttributeMatchingArtifactVariantSelector AttributeMatchingArtifactVariantSelector}.
  *
  * Throwing a more specific subclass of this type should be preferred when possible.

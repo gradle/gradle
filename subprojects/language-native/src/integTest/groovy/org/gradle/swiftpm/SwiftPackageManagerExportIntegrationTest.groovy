@@ -24,6 +24,7 @@ class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManag
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for build with no native components"() {
         given:
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         buildFile << """
             plugins {
@@ -80,6 +81,7 @@ let package = Package(
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can exclude certain products from the generated file"() {
         given:
+        createDirs("lib1", "lib2", "app")
         settingsFile << "include 'lib1', 'lib2', 'app'"
         buildFile << """
             plugins {

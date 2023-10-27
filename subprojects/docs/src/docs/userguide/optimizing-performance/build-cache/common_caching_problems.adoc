@@ -204,7 +204,7 @@ You already saw that <<build_cache_concepts.adoc#concepts_overlapping_outputs,ov
 When you add new tasks to your build or re-configure built-in tasks make sure you do not create overlapping outputs for cacheable tasks.
 If you must you can add a `Sync` task which then would sync the merged outputs into the target directory while the original tasks remain cacheable.
 
-Gradle Enterprise will show tasks where caching was disabled for overlapping outputs in the timeline and in the task input comparison:
+Develocity will show tasks where caching was disabled for overlapping outputs in the timeline and in the task input comparison:
 
 [.screenshot]
 image::build-cache/overlapping-outputs-input-comparison.png[]
