@@ -27,7 +27,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -54,10 +53,10 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     }
 
     public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
-        this(collection, null, filter, instantiator, namer, parentMutationGuard);
+        this(collection, Specs.satisfyAll(), filter, instantiator, namer, parentMutationGuard);
     }
 
-    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, @Nullable Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
+    public DefaultNamedDomainObjectSet(DefaultNamedDomainObjectSet<? super T> collection, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer, MutationGuard parentMutationGuard) {
         super(collection, nameFilter, elementFilter, instantiator, namer);
         this.parentMutationGuard = parentMutationGuard;
     }

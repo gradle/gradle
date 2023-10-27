@@ -376,6 +376,9 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
 
         filtered.index.asMap().size() == 1
         filtered.index.pendingAsMap.size() == 1
+
+        and:
+        filtered.asList()*.name == ["realized2", "unrealized2"]
     }
 
     static class Bean {

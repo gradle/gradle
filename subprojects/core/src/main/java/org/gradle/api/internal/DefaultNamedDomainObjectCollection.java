@@ -104,12 +104,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     // should be protected, but use of the class generator forces it to be public
     public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
-        this(collection, null, elementFilter, instantiator, namer);
+        this(collection, Specs.satisfyAll(), elementFilter, instantiator, namer);
     }
 
     protected DefaultNamedDomainObjectCollection(
         DefaultNamedDomainObjectCollection<? super T> collection,
-        @Nullable Spec<String> nameFilter,
+        Spec<String> nameFilter,
         CollectionFilter<T> elementFilter,
         Instantiator instantiator,
         Namer<? super T> namer
@@ -241,7 +241,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return instantiator;
     }
 
-    private <S extends T> Index<S> filteredIndex(@Nullable Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+    private <S extends T> Index<S> filteredIndex(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
         return index.filter(nameFilter, elementFilter);
     }
 
@@ -587,7 +587,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         NavigableMap<String, T> asMap();
 
-        <S extends T> Index<S> filter(@Nullable Spec<String> nameFilter, CollectionFilter<S> elementFilter);
+        <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> elementFilter);
 
         @Nullable
         ProviderInternal<? extends T> getPending(String name);
@@ -632,7 +632,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public <S extends T> Index<S> filter(@Nullable Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        public <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
             return new FilteredIndex<>(this, nameFilter, elementFilter);
         }
 
@@ -666,12 +666,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         private final Index<? super T> delegate;
 
-        @Nullable
         private final Spec<String> nameFilter;
 
         private final CollectionFilter<T> elementFilter;
 
-        FilteredIndex(Index<? super T> delegate, @Nullable Spec<String> nameFilter, CollectionFilter<T> elementFilter) {
+        FilteredIndex(Index<? super T> delegate, Spec<String> nameFilter, CollectionFilter<T> elementFilter) {
             this.delegate = delegate;
             this.nameFilter = nameFilter;
             this.elementFilter = elementFilter;
@@ -684,7 +683,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public T get(String name) {
-            if (!isNameFilterSatisfied(name)) {
+            if (!nameFilter.isSatisfiedBy(name)) {
                 return null;
             }
             Object value = delegate.get(name);
@@ -708,7 +707,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             NavigableMap<String, T> filtered = new TreeMap<>();
             for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
                 String name = entry.getKey();
-                if (!isNameFilterSatisfied(name)) {
+                if (!nameFilter.isSatisfiedBy(name)) {
                     continue;
                 }
                 Object value = entry.getValue();
@@ -722,10 +721,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public <S extends T> Index<S> filter(@Nullable Spec<String> nameFilter, CollectionFilter<S> collectionFilter) {
+        public <S extends T> Index<S> filter(Spec<String> nameFilter, CollectionFilter<S> collectionFilter) {
             return new FilteredIndex<>(
                 delegate,
-                and(this.nameFilter, nameFilter),
+                Specs.intersect(this.nameFilter, nameFilter),
                 this.elementFilter.and(collectionFilter)
             );
         }
@@ -769,12 +768,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return filteredMap;
         }
 
-        private boolean isNameFilterSatisfied(String name) {
-            return nameFilter == null || nameFilter.isSatisfiedBy(name);
-        }
-
         private boolean isPendingSatisfyingFilters(String name, @Nullable ProviderInternal<?> provider) {
-            if (!isNameFilterSatisfied(name)) {
+            if (!nameFilter.isSatisfiedBy(name)) {
                 return false;
             }
             if (provider != null) {
@@ -783,16 +778,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return false;
         }
 
-        @Nullable
-        private Spec<String> and(@Nullable Spec<String> spec1, @Nullable Spec<String> spec2) {
-            if (spec1 == null) {
-                return spec2;
-            }
-            if (spec2 == null) {
-                return spec1;
-            }
-            return Specs.intersect(spec1, spec2);
-        }
     }
 
     public interface ElementInfo<T> {

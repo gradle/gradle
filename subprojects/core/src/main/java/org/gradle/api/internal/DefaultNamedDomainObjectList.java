@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +42,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
         super(type, new ListElementSource<T>(), instantiator, namer, decorator);
     }
 
-    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, @Nullable Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
+    private DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, Spec<String> nameFilter, CollectionFilter<T> elementFilter, Instantiator instantiator, Namer<? super T> namer) {
         super(objects, nameFilter, elementFilter, instantiator, namer);
     }
 
