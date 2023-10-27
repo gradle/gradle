@@ -27,6 +27,7 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
     @Test
     @ToBeFixedForConfigurationCache
     void "external dependency substituted with project dependency"() {
+        createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
 allprojects {
     apply plugin: "java"
@@ -57,6 +58,7 @@ project(":project2") {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
 
+        createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
 allprojects {
     apply plugin: "java"
@@ -89,6 +91,7 @@ project(":project2") {
     @Test
     @ToBeFixedForConfigurationCache
     void "project dependency substituted with external dependency"() {
+        createDirs("project1", "project2")
         runEclipseTask("include 'project1', 'project2'", """
  allprojects {
     apply plugin: "java"

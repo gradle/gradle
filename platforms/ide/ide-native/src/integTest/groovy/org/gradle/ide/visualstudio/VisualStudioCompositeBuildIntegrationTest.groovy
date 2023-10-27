@@ -26,6 +26,7 @@ class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioInte
     @ToBeFixedForConfigurationCache
     def "includes a visual studio project for every project in build with a C++ component"() {
         when:
+        createDirs("one", "two", "three", "util", "other")
         settingsFile << """
             rootProject.name = 'app'
             include 'one', 'two', 'three'

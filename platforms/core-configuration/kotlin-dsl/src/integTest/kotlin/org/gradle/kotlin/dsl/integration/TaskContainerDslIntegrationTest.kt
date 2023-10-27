@@ -19,21 +19,16 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
-import org.gradle.internal.SystemProperties
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
-import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import java.io.File
 import kotlin.reflect.KClass
 
 
@@ -45,7 +40,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container api`() {
 
         testTaskContainerVia(
@@ -120,7 +114,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope api`() {
 
         testTaskContainerVia(
@@ -196,7 +189,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container delegated properties`() {
 
         testTaskContainerVia(
@@ -260,7 +252,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope delegated properties`() {
 
         testTaskContainerVia(
@@ -340,7 +331,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `polymorphic named domain object container scope string invoke`() {
 
         testTaskContainerVia(
@@ -378,7 +368,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
     ) {
         val projectDir = newDir(name)
-        @Suppress("DEPRECATION") val tmpDir = File(SystemProperties.getInstance().javaIoTmpDir, "test-" + name + "-tmp")
         runWithProjectBuilderProject(projectDir) {
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
@@ -389,7 +378,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             dslTestFixture.evalScript(
                 script,
                 target = this,
-                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir, tmpDir)
+                scriptCompilationClassPath = testRuntimeClassPath
             )
 
             tasksAssertions.forEach { taskAssertion ->

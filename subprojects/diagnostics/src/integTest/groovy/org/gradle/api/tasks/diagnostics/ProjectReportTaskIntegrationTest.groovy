@@ -21,6 +21,7 @@ class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports project structure with single composite"() {
         given:
+        createDirs("p1", "p2", "p2/p22", "another")
         file("settings.gradle") << """rootProject.name = 'my-root-project'
 include('p1')
 include('p2')
@@ -45,6 +46,7 @@ Included builds
 
     def "reports project structure with transitive composite"() {
         given:
+        createDirs("third", "third/t1")
         file("settings.gradle") << """rootProject.name = 'my-root-project'
 includeBuild('another')"""
         file('another/settings.gradle') << "includeBuild('../third')"
@@ -65,6 +67,7 @@ Included builds
 
     def "included builds are only shown in the context of the root project"() {
         given:
+        createDirs("p1", "p1/p11", "another")
         file("settings.gradle") << """rootProject.name = 'my-root-project'
 include('p1')
 include('p1:p11')

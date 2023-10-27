@@ -204,7 +204,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                 if (dependency instanceof ProjectDependency) {
                     ProjectDependency projectDependency = (ProjectDependency) dependency;
                     Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
-                    SwiftPmTarget identifier = publicationResolver.resolve(SwiftPmTarget.class, identityPath);
+                    SwiftPmTarget identifier = publicationResolver.resolveComponent(SwiftPmTarget.class, identityPath);
                     target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;

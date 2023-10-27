@@ -160,6 +160,7 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def setupBuild() {
+        createDirs("a", "b")
         settingsFile << """
             println("$settingsMessage")
             include("a")

@@ -31,10 +31,14 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.InsecureProtocolOption;
+import org.gradle.buildinit.plugins.internal.BuildContentGenerationContext;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
+import org.gradle.buildinit.plugins.internal.BuildInitDependency;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
+import org.gradle.buildinit.plugins.internal.VersionCatalogDependencyRegistry;
+import org.gradle.buildinit.plugins.internal.VersionCatalogGenerator;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.util.internal.RelativePathUtil;
 
@@ -80,6 +84,7 @@ public class Maven2Gradle {
     }
 
     public void convert() {
+        BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(true));
         boolean multimodule = !rootProject.getModules().isEmpty();
 
         if (multimodule) {
@@ -90,13 +95,16 @@ public class Maven2Gradle {
                 buildLocation = "build-logic";
             }
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildLocation + "/build", useIncubatingAPIs, insecureProtocolOption);
+            BuildScriptBuilder buildSrcSettingsScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, buildLocation + "/settings", useIncubatingAPIs, insecureProtocolOption);
+            buildSrcSettingsScriptBuilder.useVersionCatalogFromOuterBuild("Reuse version catalog from the main build.");
+
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, buildLocation + "/build", useIncubatingAPIs, insecureProtocolOption);
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.scriptForMavenConversionWithoutVersionCatalog(dsl, buildContentGenerationContext, buildLocation + "/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", useIncubatingAPIs, insecureProtocolOption);
 
-            generateSettings(rootProject.getArtifactId(), allProjects);
+            generateSettings(rootProject.getArtifactId(), allProjects, buildContentGenerationContext);
 
             Map<String, List<Dependency>> dependencies = new LinkedHashMap<>();
             for (MavenProject project : allProjects) {
@@ -122,7 +130,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build", useIncubatingAPIs, insecureProtocolOption);
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build", useIncubatingAPIs, insecureProtocolOption);
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
@@ -156,8 +164,8 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create(workingDir).generate();
             }
         } else {
-            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "build", useIncubatingAPIs, insecureProtocolOption);
-            generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, "build", useIncubatingAPIs, insecureProtocolOption);
+            generateSettings(this.rootProject.getArtifactId(), Collections.emptySet(), buildContentGenerationContext);
 
             scriptBuilder.plugin(null, "java-library");
             scriptBuilder.plugin(null, "maven-publish");
@@ -181,6 +189,7 @@ public class Maven2Gradle {
 
             scriptBuilder.create(workingDir).generate();
         }
+        VersionCatalogGenerator.create(workingDir).generate(buildContentGenerationContext);
     }
 
     private void configurePublishing(BuildScriptBuilder builder, boolean publishesSources, boolean testsJarTaskGenerated, boolean publishesJavadoc) {
@@ -209,7 +218,7 @@ public class Maven2Gradle {
                 dependenciesBuilder.projectDependency(dep.getConfiguration(), null, ((ProjectDependency) dep).getProjectPath());
             } else {
                 ExternalDependency extDep = (ExternalDependency) dep;
-                dependenciesBuilder.dependency(dep.getConfiguration(), null, extDep.getGroupId() + ":" + extDep.getModule() + ":" + extDep.getVersion());
+                dependenciesBuilder.dependency(dep.getConfiguration(), null, BuildInitDependency.of(extDep.getGroupId(), extDep.getModule(), extDep.getVersion()));
             }
         }
     }
@@ -496,8 +505,8 @@ public class Maven2Gradle {
         return new File(project.getBuild().getDirectory()).getParentFile();
     }
 
-    private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, "settings", useIncubatingAPIs, insecureProtocolOption);
+    private void generateSettings(String mvnProjectName, Set<MavenProject> projects, BuildContentGenerationContext buildContentGenerationContext) {
+        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, "settings", useIncubatingAPIs, insecureProtocolOption);
 
         if (useIncubatingAPIs) {
             scriptBuilder.block(null, "pluginManagement").methodInvocation(

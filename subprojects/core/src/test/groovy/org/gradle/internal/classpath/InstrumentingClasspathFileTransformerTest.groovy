@@ -22,7 +22,10 @@ import org.gradle.cache.FileLockManager
 import org.gradle.internal.Pair
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource
-import org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.Policy
+import org.gradle.internal.classpath.transforms.ClassTransform
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent
+import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.hash.Hasher
@@ -36,11 +39,16 @@ import spock.lang.Specification
 import java.nio.charset.StandardCharsets
 import java.util.jar.JarFile
 
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader
+import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformerTest.TransformFactoryType.AGENT
+import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformerTest.TransformFactoryType.LEGACY
 import static org.gradle.util.JarUtils.jar
 
 class InstrumentingClasspathFileTransformerTest extends Specification {
+
+    enum TransformFactoryType {
+        AGENT, LEGACY
+    }
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     def testDir = testDirectoryProvider.testDirectory
@@ -55,6 +63,8 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         getUpgradedPropertiesHash() >> Optional.empty()
     }
     def typeRegistry = Stub(InstrumentingTypeRegistry)
+    def transformTransformFactoryForAgent = new ClasspathElementTransformFactoryForAgent(classpathBuilder, classpathWalker)
+    def jarTransformFactoryForLegacy = new ClasspathElementTransformFactoryForLegacy(classpathBuilder, classpathWalker)
 
     def "instrumentation with #policy preserves classes"() {
         given:
@@ -64,14 +74,15 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(policy)), expectManifest)) {
+        def jarTransformFactory = classpathElementTransformFactory(policy)
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactory)), expectManifest)) {
             assertContainsFile("Foo.class")
         }
 
         where:
-        policy                                | expectManifest
-        instrumentForLoadingWithAgent()       | false
-        instrumentForLoadingWithClassLoader() | true
+        policy | expectManifest
+        AGENT  | false
+        LEGACY | true
     }
 
     def "agent instrumentation removes non multi-release manifest"() {
@@ -84,7 +95,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)), false)) {
             assertNotContainsFile(JarFile.MANIFEST_NAME)
         }
     }
@@ -99,7 +110,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())), true)) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactoryForLegacy)), true)) {
             assertContainsFile(JarFile.MANIFEST_NAME)
 
             assert manifest.mainAttributes.getValue("Some-Value") == "theValue"
@@ -118,14 +129,15 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(policy)))) {
+        def jarTransformFactory = classpathElementTransformFactory(policy)
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactory)))) {
             assertIsMultiRelease()
             assertContainsFile("Foo.class")
             assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "Foo.class")
         }
 
         where:
-        policy << [instrumentForLoadingWithAgent(), instrumentForLoadingWithClassLoader()]
+        policy << [AGENT, LEGACY]
     }
 
     def "instrumentation with #policy removes unsupported versioned directories from multi-release jar"() {
@@ -140,13 +152,14 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(policy)))) {
+        def jarTransformFactory = classpathElementTransformFactory(policy)
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactory)))) {
             assertContainsFile("Foo.class")
             assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "Foo.class")
         }
 
         where:
-        policy << [instrumentForLoadingWithAgent(), instrumentForLoadingWithClassLoader()]
+        policy << [AGENT, LEGACY]
     }
 
     def "agent instrumentation removes resources from transformed jar"() {
@@ -159,7 +172,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)), false)) {
             assertNotContainsFile("resource.txt")
         }
     }
@@ -174,7 +187,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactoryForLegacy)))) {
             assertFileContent("resource.txt", "resource body")
         }
     }
@@ -193,7 +206,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactoryForLegacy)))) {
             assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION, "resource.txt")
             assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "resource.txt")
         }
@@ -211,7 +224,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithClassLoader())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(jarTransformFactoryForLegacy)))) {
             assertContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, "Foo.class")
         }
     }
@@ -227,7 +240,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())), false)) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)), false)) {
             assertNotContainsFile(MarkerResource.RESOURCE_NAME)
         }
     }
@@ -244,7 +257,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)))) {
             assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
 
             9..AsmConstants.MAX_SUPPORTED_JAVA_VERSION.each {
@@ -266,7 +279,7 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)))) {
             assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
             assertVersionedContent(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME, notInstrumentedMarker())
 
@@ -286,9 +299,19 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         }
 
         expect:
-        with(jarFixture(transform(testFile, transformerWithPolicy(instrumentForLoadingWithAgent())))) {
+        with(jarFixture(transform(testFile, instrumentingClassPathTransformer(transformTransformFactoryForAgent)))) {
             assertFileContent(MarkerResource.RESOURCE_NAME, instrumentedMarker())
             assertNotContainsVersioned(AsmConstants.MAX_SUPPORTED_JAVA_VERSION + 1, MarkerResource.RESOURCE_NAME)
+        }
+    }
+
+    private ClasspathElementTransformFactory classpathElementTransformFactory(TransformFactoryType type) {
+        if (type == AGENT) {
+            return transformTransformFactoryForAgent
+        } else if (type == LEGACY) {
+            return jarTransformFactoryForLegacy
+        } else {
+            throw new RuntimeException("Unknown transform factory type: $type")
         }
     }
 
@@ -296,11 +319,11 @@ class InstrumentingClasspathFileTransformerTest extends Specification {
         return transformer.transform(file, fileSystemAccess.read(file.path), cacheDir, typeRegistry)
     }
 
-    private InstrumentingClasspathFileTransformer transformerWithPolicy(Policy policy) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, FileSystemLocationSnapshot::getHash, policy, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
+    private InstrumentingClasspathFileTransformer instrumentingClassPathTransformer(ClasspathElementTransformFactory jarTransformFactory) {
+        return new InstrumentingClasspathFileTransformer(fileLockManager, FileSystemLocationSnapshot::getHash, jarTransformFactory, new NoOpTransformer(), gradleCoreInstrumentingRegistry)
     }
 
-    private static class NoOpTransformer implements CachedClasspathTransformer.Transform {
+    private static class NoOpTransformer implements ClassTransform {
         @Override
         void applyConfigurationTo(Hasher hasher) {
         }

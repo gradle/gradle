@@ -201,6 +201,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
+        createDirs("unused")
         settingsFile << """
             rootProject.name = 'app'
             include 'unused'

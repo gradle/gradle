@@ -37,7 +37,10 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
     private final BuildLayoutValidator buildLayoutValidator;
 
-    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices, BuildLayoutValidator buildLayoutValidator) {
+    public BuildTreeLifecycleBuildActionExecutor(
+        BuildTreeModelControllerServices buildTreeModelControllerServices,
+        BuildLayoutValidator buildLayoutValidator
+    ) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
         this.buildLayoutValidator = buildLayoutValidator;
     }
@@ -48,17 +51,7 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
         try {
             buildLayoutValidator.validate(action.getStartParameter());
 
-            BuildActionModelRequirements actionRequirements;
-            if (action instanceof BuildModelAction && action.isCreateModel()) {
-                BuildModelAction buildModelAction = (BuildModelAction) action;
-                actionRequirements = new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
-            } else if (action instanceof ClientProvidedBuildAction) {
-                actionRequirements = new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else if (action instanceof ClientProvidedPhasedAction) {
-                actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
-            } else {
-                actionRequirements = new RunTasksRequirements(action.getStartParameter());
-            }
+            BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
             BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
             BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), modelServices);
             try {
@@ -80,5 +73,18 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             }
         }
         return result;
+    }
+
+    private static BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
+        if (action instanceof BuildModelAction && action.isCreateModel()) {
+            BuildModelAction buildModelAction = (BuildModelAction) action;
+            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
+        } else if (action instanceof ClientProvidedBuildAction) {
+            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else if (action instanceof ClientProvidedPhasedAction) {
+            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else {
+            return new RunTasksRequirements(action.getStartParameter());
+        }
     }
 }

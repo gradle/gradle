@@ -50,7 +50,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.classpath.InstrumentingClasspathFileTransformer.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
+import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupportedMrJarVersionedDirectory;
 
 /**
  * Collects the direct super types of all classes for given files and also caches values in cache.

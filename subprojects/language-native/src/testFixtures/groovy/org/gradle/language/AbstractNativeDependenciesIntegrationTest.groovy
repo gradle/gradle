@@ -34,6 +34,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
     ])
     def "can define implementation dependencies on component"() {
         given:
+        createDirs("lib")
         settingsFile << 'include "lib"'
         makeComponentWithLibrary()
         buildFile << """
@@ -58,6 +59,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
     ])
     def "can define implementation dependencies on each binary"() {
         given:
+        createDirs("lib")
         settingsFile << 'include "lib"'
         makeComponentWithLibrary()
         buildFile << """

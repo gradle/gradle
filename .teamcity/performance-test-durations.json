@@ -58,6 +58,9 @@
   }, {
     "testProject" : "santaTrackerAndroidBuild",
     "linux" : 2037000
+  }, {
+    "testProject" : "nowInAndroidBuild",
+    "linux" : 2037000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
@@ -79,6 +82,9 @@
   }, {
     "testProject" : "santaTrackerAndroidBuild",
     "linux" : 428000
+  }, {
+    "testProject" : "nowInAndroidBuild",
+    "linux" : 428000
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run clean phthalic:assembleDebug",
@@ -99,6 +105,9 @@
     "linux" : 1395000
   }, {
     "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 522000
+  }, {
+    "testProject" : "nowInAndroidBuild",
     "linux" : 522000
   } ]
 }, {

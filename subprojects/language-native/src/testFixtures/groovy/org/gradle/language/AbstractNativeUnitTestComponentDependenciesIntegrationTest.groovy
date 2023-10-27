@@ -30,6 +30,7 @@ abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extend
     @ToBeFixedForConfigurationCache
     def "can define implementation dependencies on production component"() {
         given:
+        createDirs("lib")
         settingsFile << 'include "lib"'
         makeTestSuiteAndComponentWithLibrary()
         buildFile << """

@@ -2,6 +2,7 @@ package org.myorg;
 
 import org.gradle.api.provider.Property;
 
+// tag::snippet[]
 abstract public class ServerEnvironment {
     private final String name;
 
@@ -16,3 +17,4 @@ abstract public class ServerEnvironment {
 
     abstract public Property<String> getUrl();
 }
+// end::snippet[]

@@ -17,9 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.GradleException
+import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
+import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
@@ -103,10 +105,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             IncubationLogger.incubatingFeatureUsed("Configuration on demand")
         }
 
+        val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
+
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
-            registerServices(registration, modelParameters, requirements)
+            registerServices(registration, modelParameters, buildFeatures, requirements)
         }
     }
 
@@ -115,14 +119,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
             val buildModelParameters = BuildModelParameters(startParameter.isParallelProjectExecutionEnabled, startParameter.isConfigureOnDemand, false, false, true, false, false, false, LogLevel.LIFECYCLE)
+            val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
-            registerServices(registration, buildModelParameters, requirements)
+            registerServices(registration, buildModelParameters, buildFeatures, requirements)
         }
     }
 
     private
-    fun registerServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, requirements: BuildActionModelRequirements) {
+    fun registerServices(registration: ServiceRegistration, modelParameters: BuildModelParameters, buildFeatures: DefaultBuildFeatures, requirements: BuildActionModelRequirements) {
         registration.add(BuildModelParameters::class.java, modelParameters)
+        registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         if (modelParameters.isConfigurationCache) {
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)

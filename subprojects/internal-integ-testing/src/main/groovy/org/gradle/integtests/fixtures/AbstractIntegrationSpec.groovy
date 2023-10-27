@@ -226,9 +226,20 @@ abstract class AbstractIntegrationSpec extends Specification {
         settingsFile
     }
 
+    protected TestFile initScript(@GroovyBuildScriptLanguage String script) {
+        initScriptFile.text = script
+        initScriptFile
+    }
+
+
     protected TestFile getSettingsFile() {
         testDirectory.file(settingsFileName)
     }
+
+    protected TestFile getInitScriptFile() {
+        testDirectory.file(initScriptFileName)
+    }
+
 
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file(settingsKotlinFileName)
@@ -244,6 +255,10 @@ abstract class AbstractIntegrationSpec extends Specification {
 
     protected static String getSettingsKotlinFileName() {
         return 'settings.gradle.kts'
+    }
+
+    protected static String getInitScriptFileName() {
+        return 'init.gradle'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
@@ -640,6 +655,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    List<TestFile> createDirs(String... names) {
+        names.collect { name ->
+            createDir(name)
+        }
     }
 
     /**

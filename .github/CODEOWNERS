@@ -14,17 +14,14 @@
 * @gradle/bt-unassigned-maintainers
 
 # Core automation platform (core/execution)
-subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/                   @gradle/bt-configuration
-subprojects/instrumentation-agent/              @gradle/bt-configuration
-subprojects/internal-instrumentation-api/       @gradle/bt-configuration
-subprojects/internal-instrumentation-processor/ @gradle/bt-configuration
 
 # Core automation platform (Kotlin DSL)
 build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
+build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
 platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
@@ -136,6 +133,7 @@ subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.ado
 
 # Core Runtime
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+platforms/core-runtime/build-operations/                    @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
 

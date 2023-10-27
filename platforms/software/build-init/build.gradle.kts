@@ -59,6 +59,7 @@ dependencies {
     testFixturesImplementation(project(":plugins"))
     testFixturesImplementation(project(":plugins-java"))
     testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(project(":test-suites-base"))
     testFixturesImplementation(project(":plugins-jvm-test-suite"))
 
     integTestImplementation(project(":native"))

@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -67,7 +68,7 @@ public abstract class InitBuild extends DefaultTask {
     private String projectName;
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
-
+    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -126,6 +127,27 @@ public abstract class InitBuild extends DefaultTask {
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
+
+    /**
+     * Java version to be used by generated Java projects.
+     *
+     * When set, Gradle will and use the provided value as the target major Java version
+     * for all relevant generated projects.  Gradle will validate the number to ensure
+     * it is a valid and supported major version.
+     *
+     * @return the java version number supplied by the user
+     *
+     * @since 8.5
+     */
+    @Input
+    @Optional
+    @Incubating
+    @Option(option = "java-version", description = "Provides java version to use in the project.")
+    public Property<String> getJavaVersion() {
+        return javaVersion;
+    }
+
+
 
     /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
@@ -237,7 +259,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        String version = inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        String version = javaVersion.getOrElse(inputHandler.askQuestion("Enter target version of Java (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString()));
         try {
             int parsedVersion = Integer.parseInt(version);
             if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {

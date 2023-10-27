@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":platform-base"))
     implementation(project(":process-services"))
+    implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":enterprise-operations"))
 
@@ -41,6 +42,8 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":platform-native")))
+
+    integTestImplementation(project(":internal-integ-testing"))
 
     integTestImplementation(libs.slf4jApi)
 

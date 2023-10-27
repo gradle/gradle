@@ -5,9 +5,10 @@ plugins {
 description = "Provides plugins to configure conventions used by Kotlin, Java and Groovy projects to build Gradle"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
+
     implementation(project(":dependency-modules"))
-    implementation(project(":module-identity"))
 
     implementation("org.eclipse.jgit:org.eclipse.jgit")
     implementation("org.jsoup:jsoup")

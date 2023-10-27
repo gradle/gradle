@@ -5,11 +5,14 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
+// tag::snippet[]
 public class InhouseStrongOpinionConventionJavaPlugin implements Plugin<Project> {
     public void apply(Project project) {
+        // Careful! Eagerly appyling plugins has downsides, and is not always recommended.
         project.getPlugins().apply(JavaPlugin.class);
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         SourceSet main = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         main.getJava().setSrcDirs(Arrays.asList("src"));
     }
 }
+// end::snippet[]

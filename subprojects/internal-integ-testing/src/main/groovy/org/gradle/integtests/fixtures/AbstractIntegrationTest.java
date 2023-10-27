@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 
 import java.io.File;
+import java.util.List;
 
 @IntegrationTest
 @Category(IntegrationTest.class)
@@ -97,6 +98,10 @@ public abstract class AbstractIntegrationTest {
 
     public TestFile testFile(String name) {
         return file(name);
+    }
+
+    public List<TestFile> createDirs(String... names) {
+        return getTestDirectory().createDirs(names);
     }
 
     protected GradleExecuter inTestDirectory() {

@@ -24,7 +24,7 @@ import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SU
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
 import static org.hamcrest.CoreMatchers.*
 
-public class TestNGXmlResultAndHtmlReportIntegrationTest extends
+class TestNGXmlResultAndHtmlReportIntegrationTest extends
         AbstractIntegrationSpec {
 
     static class Mode {

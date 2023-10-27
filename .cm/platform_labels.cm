@@ -89,7 +89,7 @@ platforms:
       - 'platforms/core-execution/build-cache-base/'
       - 'platforms/core-execution/build-cache-http/'
       - 'platforms/core-execution/build-cache-packaging/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
       - 'platforms/core-execution/snapshots/'
@@ -113,14 +113,11 @@ platforms:
     name: 'core_configuration'
     subprojects:
       - 'platforms/core-configuration/'
-      - 'subprojects/instrumentation-agent/'
-      - 'subprojects/internal-instrumentation-api/'
-      - 'subprojects/internal-instrumentation-processor/'
   - core_execution:
     name: 'core_execution'
     subprojects:
       - 'platforms/core-execution/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'
@@ -177,20 +174,6 @@ platforms:
     name: 'software'
     subprojects:
       - 'platforms/software/'
-      - 'subprojects/dependency-management/'
-      - 'subprojects/ivy/'
-      - 'subprojects/maven/'
-      - 'subprojects/platform-base/'
-      - 'subprojects/publish/'
-      - 'subprojects/reporting/'
-      - 'subprojects/resources/'
-      - 'subprojects/resources-gcs/'
-      - 'subprojects/resources-http/'
-      - 'subprojects/resources-s3/'
-      - 'subprojects/resources-sftp/'
-      - 'subprojects/security/'
-      - 'subprojects/signing/'
-      - 'subprojects/version-control/'
 
 author:
   using_gitstream: {{ (pr.author | match(list=teams.build_scan.members) | some) or (pr.author | match(list=teams.configuration.members) | some) or (pr.author | match(list=teams.dev_prod.members) | some) or (pr.author | match(list=teams.execution.members) | some) or (pr.author | match(list=teams.ide.members) | some) or (pr.author | match(list=teams.jvm.members) | some) }}
@@ -209,7 +192,6 @@ teams:
     members:
       - 'asodja-DISABLED'
       - 'lptr-DISABLED'
-      - 'FrauBoes-DISABLED'
   ide:
     members:
       - 'hegyibalint'

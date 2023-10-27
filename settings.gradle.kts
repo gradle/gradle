@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.15") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.15.1") // Sync with `build-logic-commons/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.7.0")
 }
@@ -54,21 +54,9 @@ unassigned {
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("dependency-management")
-    subproject("resources")
-    subproject("resources-http")
-    subproject("resources-gcs")
-    subproject("resources-s3")
-    subproject("resources-sftp")
     subproject("plugins")
-    subproject("maven")
     subproject("build-events")
-    subproject("signing")
-    subproject("reporting")
     subproject("diagnostics")
-    subproject("publish")
-    subproject("ivy")
-    subproject("platform-base")
     subproject("platform-native")
     subproject("language-native")
     subproject("tooling-native")
@@ -79,11 +67,7 @@ unassigned {
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
-    subproject("version-control")
     subproject("build-profile")
-    subproject("security")
-    subproject("build-operations")
-    subproject("instrumentation-agent")
     subproject("instrumentation-declarations")
 }
 
@@ -92,11 +76,15 @@ platform("core-runtime") {
     subproject("base-annotations")
     subproject("base-services")
     subproject("bootstrap")
+    subproject("build-operations")
     subproject("build-option")
     subproject("cli")
     subproject("file-temp")
     subproject("files")
     subproject("functional")
+    subproject("instrumentation-agent")
+    subproject("internal-instrumentation-api")
+    subproject("internal-instrumentation-processor")
     subproject("launcher")
     subproject("logging")
     subproject("logging-api")
@@ -154,8 +142,25 @@ platform("ide") {
 platform("software") {
     subproject("antlr")
     subproject("build-init")
+    subproject("dependency-management")
+    subproject("plugins-distribution")
     subproject("distributions-publishing")
+    subproject("ivy")
+    subproject("maven")
+    subproject("platform-base")
+    subproject("plugins-version-catalog")
+    subproject("publish")
+    subproject("resources")
+    subproject("resources-http")
+    subproject("resources-gcs")
+    subproject("resources-s3")
+    subproject("resources-sftp")
+    subproject("reporting")
+    subproject("security")
+    subproject("signing")
     subproject("testing-base")
+    subproject("test-suites-base")
+    subproject("version-control")
 }
 
 // JVM Platform
@@ -176,7 +181,9 @@ platform("jvm") {
     subproject("plugins-groovy")
     subproject("plugins-java")
     subproject("plugins-java-base")
+    subproject("plugins-jvm-test-fixtures")
     subproject("plugins-jvm-test-suite")
+    subproject("plugins-test-report-aggregation")
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
@@ -195,8 +202,6 @@ platform("enterprise") {
 
 // Internal utility and verification projects
 unassigned {
-    subproject("internal-instrumentation-api")
-    subproject("internal-instrumentation-processor")
     subproject("docs")
     subproject("docs-asciidoctor-extensions-base")
     subproject("docs-asciidoctor-extensions")

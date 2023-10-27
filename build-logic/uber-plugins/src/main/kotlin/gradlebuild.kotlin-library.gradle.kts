@@ -28,7 +28,7 @@ plugins {
 
 configurations.transitiveSourcesElements {
     val main = sourceSets.main.get()
-    main.kotlin.srcDirs.forEach {
+    (main.kotlin.srcDirs + main.resources.srcDirs).forEach {
         outgoing.artifact(it)
     }
 }
@@ -52,19 +52,7 @@ tasks {
         configureKotlinCompilerForGradleBuild()
     }
 
-    codeQuality {
-        dependsOn(ktlintCheck)
-    }
-
-    runKtlintCheckOverKotlinScripts {
-        // Only check the build files, not all *.kts files in the project
-        includes += listOf("*.gradle.kts")
-    }
-
     withType<Test>().configureEach {
-
-        shouldRunAfter(ktlintCheck)
-
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,

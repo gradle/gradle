@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -28,22 +29,24 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-import org.gradle.kotlin.dsl.codegen.fileHeader
-import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.kotlinDslPackagePath
+import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
 import org.gradle.kotlin.dsl.support.PluginDependenciesSpecScopeInternal
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
-import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
+import org.gradle.kotlin.dsl.support.bytecode.addKmProperty
 import org.gradle.kotlin.dsl.support.bytecode.internalName
+import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
 import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
@@ -54,9 +57,6 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File
 import kotlin.reflect.KClass
-import kotlinx.metadata.jvm.JvmMethodSignature
-import org.gradle.kotlin.dsl.support.bytecode.addKmProperty
-import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 
 
 internal

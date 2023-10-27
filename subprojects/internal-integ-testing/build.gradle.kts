@@ -97,6 +97,28 @@ dependencies {
     }
     implementation(testFixtures(project(":core")))
 
+    implementation(libs.mavenResolverApi) {
+        because("For ApiMavenResolver. API we interact with to resolve Maven graphs & artifacts")
+    }
+    implementation(libs.mavenResolverSupplier) {
+        because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
+    }
+    implementation(libs.maven3ResolverProvider) {
+        because("For ApiMavenResolver. Provides MavenRepositorySystemUtils")
+    }
+    runtimeOnly(libs.mavenResolverImpl) {
+        because("For ApiMavenResolver. Implements maven-resolver-api")
+    }
+    runtimeOnly(libs.mavenResolverConnectorBasic) {
+        because("For ApiMavenResolver. To use resolver transporters")
+    }
+    runtimeOnly(libs.mavenResolverTransportFile) {
+        because("For ApiMavenResolver. To resolve file:// URLs")
+    }
+    runtimeOnly(libs.mavenResolverTransportHttp) {
+        because("For ApiMavenResolver. To resolve http:// URLs")
+    }
+
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }

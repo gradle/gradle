@@ -542,7 +542,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         def compileTask = project.tasks.named("compileCustomJava", JavaCompile).get()
         def configuredToolchain = compileTask.javaCompiler.get().javaToolchain
-        configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
+        configuredToolchain.javaVersion.toString().contains(someJdk.javaVersion.getMajorVersion())
     }
 
     def "source and target compatibility are configured if toolchain is configured"() {
@@ -569,7 +569,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def configuredJavaLauncher = testTask.javaLauncher.get()
 
         then:
-        configuredJavaLauncher.executablePath.toString().contains(someJdk.javaVersion.getMajorVersion())
+        configuredJavaLauncher.metadata.languageVersion.toString().contains(someJdk.javaVersion.getMajorVersion())
     }
 
     def "wires toolchain for javadoc if toolchain is configured"() {

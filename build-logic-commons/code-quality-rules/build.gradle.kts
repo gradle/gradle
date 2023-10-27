@@ -1,6 +1,3 @@
-import groovy.lang.GroovySystem
-import org.gradle.util.internal.VersionNumber
-
 /*
  * Copyright 2022 the original author or authors.
  *
@@ -31,13 +28,10 @@ java {
 
 group = "gradlebuild"
 
-val groovyVersion = GroovySystem.getVersion()
-val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
-
 dependencies {
+    api(platform(project(":build-platform")))
     compileOnly(localGroovy())
-    compileOnly("org.codenarc:CodeNarc:$codenarcVersion") {
+    compileOnly("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }

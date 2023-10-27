@@ -5,6 +5,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 
+// tag::snippet[]
 public class ServerEnvironmentPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
@@ -22,3 +23,4 @@ public class ServerEnvironmentPlugin implements Plugin<Project> {
         });
     }
 }
+// end::snippet[]

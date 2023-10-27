@@ -28,6 +28,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
     @ToBeFixedForConfigurationCache
     def "relinks but does not recompile when c++ sources change"() {
         def app = new IncrementalSwiftModifyCppDepApp()
+        createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:
@@ -77,6 +78,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
     @ToBeFixedForConfigurationCache
     def "recompiles when c++ headers change"() {
         def app = new IncrementalSwiftModifyCppDepHeadersApp()
+        createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:
@@ -126,6 +128,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
     @ToBeFixedForConfigurationCache
     def "regenerates module map and recompiles swift app when headers change"() {
         def app = new IncrementalSwiftModifyCppDepModuleMapApp()
+        createDirs("app", "cppGreeter")
         settingsFile << "include ':app', ':cppGreeter'"
 
         given:

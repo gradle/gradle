@@ -145,8 +145,59 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
             val bar by configurations.dependencyScope { }
             
             dependencies {
-                foo.name("in-block:accessor:1.0")
-                bar.name("in-block:accessor:1.0")
+                foo("in-block:accessor:1.0")
+                bar("in-block:accessor:1.0")
+            }
+            
+            repositories {
+                ivy {
+                    url = uri("${existing("repo").normalisedPath}")
+                    patternLayout {
+                        artifact("[organisation]/[module]-[revision].[ext]")
+                    }
+                }
+            }
+            """
+        )
+
+        build("dependencies", "--configuration", "foo").apply {
+            assertThat(
+                output,
+                containsMultiLineString(
+                    """
+                foo (n)
+                \--- in-block:accessor:1.0 (n)
+                """
+                )
+            )
+        }
+        build("dependencies", "--configuration", "bar").apply {
+            assertThat(
+                output,
+                containsMultiLineString(
+                    """
+                bar (n)
+                \--- in-block:accessor:1.0 (n)
+                """
+                )
+            )
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/26602")
+    fun `can use dependencyScope configuration provider in dependencies block`() {
+
+        withFile("repo/in-block/accessor-1.0.jar")
+
+        withBuildScript(
+            """
+            val foo = configurations.dependencyScope("foo")
+            val bar = configurations.dependencyScope("bar") { }
+            
+            dependencies {
+                foo("in-block:accessor:1.0")
+                bar("in-block:accessor:1.0")
             }
             
             repositories {

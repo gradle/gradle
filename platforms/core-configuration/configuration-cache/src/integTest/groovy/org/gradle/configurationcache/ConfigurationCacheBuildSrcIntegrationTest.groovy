@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskAction
 class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "can use task types defined in buildSrc"() {
         given:
+        createDirs("buildSrc/ignored")
         file("buildSrc/settings.gradle") << """
             include 'ignored' // include some content
         """

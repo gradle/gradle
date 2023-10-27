@@ -79,6 +79,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
     def "events passed to any task execution listener are synchronised"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         buildFile """
             def listener = new MyListener()

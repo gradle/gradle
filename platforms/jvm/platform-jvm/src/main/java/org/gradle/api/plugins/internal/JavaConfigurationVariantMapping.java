@@ -17,12 +17,15 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {
@@ -39,10 +42,16 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
 
     private final String scope;
     private final boolean optional;
+    private final Configuration resolutionConfiguration;
 
     public JavaConfigurationVariantMapping(String scope, boolean optional) {
+        this(scope, optional, null);
+    }
+
+    public JavaConfigurationVariantMapping(String scope, boolean optional, @Nullable Configuration resolutionConfiguration) {
         this.scope = scope;
         this.optional = optional;
+        this.resolutionConfiguration = resolutionConfiguration;
     }
 
     @Override
@@ -54,6 +63,11 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
             details.mapToMavenScope(scope);
             if (optional) {
                 details.mapToOptional();
+            }
+            if (resolutionConfiguration != null) {
+                ((ConfigurationVariantDetailsInternal) details).dependencyMapping(dependencyMapping -> {
+                    dependencyMapping.fromResolutionOf(resolutionConfiguration);
+                });
             }
         }
     }

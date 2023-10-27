@@ -28,7 +28,7 @@ public class ClassData implements InstrumentationMetadata {
     private final InstrumentingTypeRegistry typeRegistry;
     private final Lazy<ClassNode> lazyClassNode;
 
-    ClassData(ClassReader reader, InstrumentingTypeRegistry typeRegistry) {
+    public ClassData(ClassReader reader, InstrumentingTypeRegistry typeRegistry) {
         lazyClassNode = Lazy.unsafe().of(() -> {
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);

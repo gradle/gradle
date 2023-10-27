@@ -17,37 +17,23 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
-
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
-
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
-import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
-import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
-import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import org.gradle.util.internal.GFileUtils.moveFile
-
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
-
 import java.io.File
-
 import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
-
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -76,18 +62,6 @@ fun kotlinScriptClassPathProviderOf(project: Project) =
 
 
 internal
-typealias JarCache = (String, JarGenerator) -> File
-
-
-internal
-typealias JarGenerator = (File) -> Unit
-
-
-private
-typealias JarGeneratorWithProgress = (File, () -> Unit) -> Unit
-
-
-internal
 typealias JarsProvider = () -> Collection<File>
 
 
@@ -96,9 +70,6 @@ class KotlinScriptClassPathProvider(
     private val classPathRegistry: ClassPathRegistry,
     private val coreAndPluginsScope: ClassLoaderScope,
     private val gradleApiJarsProvider: JarsProvider,
-    private val jarCache: JarCache,
-    private val temporaryFileProvider: TemporaryFileProvider,
-    private val progressMonitorProvider: JarGenerationProgressMonitorProvider
 ) {
 
     /**
@@ -119,7 +90,7 @@ class KotlinScriptClassPathProvider(
      */
     private
     val gradleApiExtensions: ClassPath by lazy {
-        DefaultClassPath.of(gradleKotlinDslExtensions())
+        moduleRegistry.getModule("gradle-kotlin-dsl-extensions").classpath
     }
 
     /**
@@ -157,38 +128,6 @@ class KotlinScriptClassPathProvider(
     }
 
     private
-    fun gradleKotlinDslExtensions(): File =
-        produceFrom("kotlin-dsl-extensions") { outputFile, onProgress ->
-            generateApiExtensionsJar(temporaryFileProvider, outputFile, gradleJars, gradleApiMetadataJar, onProgress)
-        }
-
-    private
-    fun produceFrom(id: String, generate: JarGeneratorWithProgress): File =
-        jarCache(id) { outputFile ->
-            progressMonitorFor(outputFile, 3).use { progressMonitor ->
-                generateAtomically(outputFile) { generate(it, progressMonitor::onProgress) }
-            }
-        }
-
-    private
-    fun generateAtomically(outputFile: File, generate: JarGenerator) {
-        val tempFile = tempFileFor(outputFile)
-        generate(tempFile)
-        moveFile(tempFile, outputFile)
-    }
-
-    private
-    fun progressMonitorFor(outputFile: File, totalWork: Int): ProgressMonitor =
-        progressMonitorProvider.progressMonitorFor(outputFile, totalWork)
-
-    private
-    fun tempFileFor(outputFile: File): File =
-        temporaryFileProvider.createTemporaryFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
-            // This is here as a safety measure in case the process stops before moving this file to it's destination.
-            deleteOnExit()
-        }
-
-    private
     fun gradleKotlinDslJars(): List<File> =
         gradleJars.filter { file ->
             file.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
@@ -197,11 +136,6 @@ class KotlinScriptClassPathProvider(
     private
     val gradleJars by lazy {
         classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
-    }
-
-    private
-    val gradleApiMetadataJar by lazy {
-        moduleRegistry.getExternalModule(gradleApiMetadataModuleName).classpath.asFiles.single()
     }
 
     private

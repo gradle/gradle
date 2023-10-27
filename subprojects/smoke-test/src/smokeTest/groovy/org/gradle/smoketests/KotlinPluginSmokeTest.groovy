@@ -49,6 +49,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()
@@ -102,6 +103,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectConventionTypeDeprecation(versionNumber)
                 expectJavaPluginConventionDeprecation(versionNumber)
                 expectBasePluginConventionDeprecation(versionNumber)
+                expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
@@ -162,6 +164,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 expectJavaPluginConventionDeprecation(versionNumber)
                 if (GradleContextualExecuter.isConfigCache()) {
                     expectBasePluginConventionDeprecation(versionNumber)
+                    expectKotlinBasePluginExtensionArchivesBaseNameDeprecation(versionNumber)
                     expectForUseAtConfigurationTimeDeprecation(versionNumber)
                 }
             }.build()

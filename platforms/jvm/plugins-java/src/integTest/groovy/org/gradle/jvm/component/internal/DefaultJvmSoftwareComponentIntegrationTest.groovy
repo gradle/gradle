@@ -23,41 +23,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec {
 
-    def "cannot instantiate component instances without the java base plugin applied"() {
+    def "can instantiate component instances in Groovy DSL"() {
         given:
         buildFile << """
-            ${factoryRegistrationGroovy()}
-
-            components {
-                comp(JvmSoftwareComponentInternal)
-            }
-        """
-
-        expect:
-        fails "help"
-        result.assertHasErrorOutput("The java-base plugin must be applied in order to create instances of DefaultJvmSoftwareComponent.")
-    }
-
-    def "can instantiate component instances with java-base plugin applied in Groovy DSL"() {
-        given:
-        buildFile << """
-            plugins {
-                id('java-base')
-            }
-
             ${factoryRegistrationGroovy()}
 
             components {
                 thing(JvmSoftwareComponentInternal)
-                feature(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponentInternal)
             }
 
             task verify {
                 assert components.thing instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.thing
-
-                assert components.feature instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.feature
+                assert components.comp instanceof DefaultJvmSoftwareComponent
             }
         """
 
@@ -65,26 +43,19 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
-    def "can instantiate component instances with java-base plugin applied in Kotlin DSL"() {
+    def "can instantiate component instances in Kotlin DSL"() {
         given:
         buildKotlinFile << """
-            plugins {
-                id("java-base")
-            }
-
             ${factoryRegistrationKotlin()}
 
             components {
                 create<JvmSoftwareComponentInternal>("thing")
-                create<JvmSoftwareComponentInternal>("feature")
+                create<JvmSoftwareComponentInternal>("comp")
             }
 
             tasks.register("verify") {
                 assert(components.named("thing").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("thing").isPresent())
-
-                assert(components.named("feature").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("feature").isPresent())
+                assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
             }
         """
 
@@ -107,10 +78,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             task verify {
                 assert components.java instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.main
-
                 assert components.comp instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.comp
             }
         """
 
@@ -133,10 +101,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             tasks.register("verify") {
                 assert(components.named("java").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("main").isPresent())
-
                 assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("comp").isPresent())
             }
         """
 
@@ -224,8 +189,8 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        fails "tasks"
-        result.assertHasErrorOutput("Cannot register feature 'myFeature' because multiple JVM components are present.  These components were found: module, thing.")
+        fails("tasks")
+        failure.assertHasErrorOutput("Cannot register feature because multiple JVM components are present. The following components were found: module, thing")
     }
 
     private static final String factoryRegistrationGroovy() {
@@ -233,9 +198,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                registerFactory(JvmSoftwareComponentInternal) {
-                    objects.newInstance(DefaultJvmSoftwareComponent, it, it)
-                }
+                registerBinding(JvmSoftwareComponentInternal, DefaultJvmSoftwareComponent)
             }
         """
     }
@@ -245,9 +208,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                registerFactory(JvmSoftwareComponentInternal::class.java) {
-                    objects.newInstance(DefaultJvmSoftwareComponent::class.java, it, it)
-                }
+                registerBinding(JvmSoftwareComponentInternal::class.java, DefaultJvmSoftwareComponent::class.java)
             }
         """
     }

@@ -29,6 +29,7 @@ class ProfilingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can generate profiling report"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << 'include "a", "b", "c"'
         buildFile << '''
 allprojects {
@@ -70,7 +71,7 @@ allprojects {
         def pluginJar = file("plugin.jar")
         pluginBuilder.publishTo(executer, pluginJar)
 
-        file("init.gradle") << """
+        initScript """
             initscript {
                 dependencies {
                     classpath files("${pluginJar.name}")
@@ -81,9 +82,9 @@ allprojects {
             }
         """
 
-        file("settings.gradle").touch()
+        settingsFile.touch()
 
-        executer.usingInitScript(file('init.gradle'))
+        executer.usingInitScript(initScriptFile)
         executer.withArgument("--profile")
 
         when:

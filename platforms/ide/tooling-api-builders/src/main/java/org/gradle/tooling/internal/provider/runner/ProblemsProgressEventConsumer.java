@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problem;
@@ -35,7 +33,6 @@ import org.gradle.internal.operations.OperationProgressEvent;
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final BuildOperationIdFactory idFactory;
-    private final BiMap<Throwable, OperationIdentifier> seenProblems = HashBiMap.create(10);
 
     public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
         super(progressEventConsumer);
@@ -47,11 +44,6 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         Object details = progressEvent.getDetails();
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            Throwable problemCause = problem.getException();
-            if (seenProblems.containsKey(problemCause)) {
-                return;
-            }
-            seenProblems.put(problemCause, buildOperationId);
             eventConsumer.progress(
                 new DefaultProblemEvent(
                     new DefaultProblemDescriptor(

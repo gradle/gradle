@@ -122,7 +122,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
             fileWatcher.startWatching(hierarchiesToStartWatching);
         }
 
-        LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+        LOGGER.debug("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
     @Override

@@ -48,6 +48,7 @@ project(':api') {
     apply plugin: 'eclipse'
 }
 '''
+        createDirs("api", "impl")
         file('settings.gradle').text = "include 'api', 'impl'"
 
         when:

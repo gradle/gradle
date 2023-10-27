@@ -35,8 +35,10 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
+    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
     def "subproject names must not contain forbidden characters"() {
         given:
+        createDirs("folder", "folder/name|with|pipes")
         settingsFile << "include 'folder:name|with|pipes'"
 
         when:

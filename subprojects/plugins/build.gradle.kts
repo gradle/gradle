@@ -19,12 +19,14 @@ dependencies {
     implementation(project(":language-jvm"))
     implementation(project(":language-java"))
     implementation(project(":language-groovy"))
+    implementation(project(":plugins-distribution"))
     implementation(project(":plugins-groovy"))
     implementation(project(":plugins-java"))
     implementation(project(":plugins-java-base"))
     implementation(project(":diagnostics"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
+    implementation(project(":test-suites-base"))
     implementation(project(":snapshots"))
     implementation(project(":publish"))
     implementation(project(":ivy"))
@@ -88,4 +90,4 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
-description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""
+description = """Provides core Gradle plugins, as well as many JVM-related plugins for building different types of Java and Groovy projects."""
