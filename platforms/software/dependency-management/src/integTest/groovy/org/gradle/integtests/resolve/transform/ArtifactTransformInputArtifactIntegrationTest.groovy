@@ -374,10 +374,16 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         where:
-        [sensitivity, incremental] << [
-            [null, PathSensitivity.ABSOLUTE, PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY],
-            [true, false]
-        ].combinations()
+        incremental | sensitivity
+        true        | null
+        true        | PathSensitivity.ABSOLUTE
+        true        | PathSensitivity.RELATIVE
+        true        | PathSensitivity.NAME_ONLY
+        false       | null
+        false       | PathSensitivity.ABSOLUTE
+        false       | PathSensitivity.RELATIVE
+        false       | PathSensitivity.NAME_ONLY
+
         normalization = (sensitivity?.name()?.toLowerCase()?.replaceAll("_", " ") ?: "no") + " path sensitivity"
         type = (incremental ? "incremental" : "non-incremental")
     }
