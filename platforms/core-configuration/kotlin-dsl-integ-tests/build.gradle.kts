@@ -13,7 +13,11 @@ dependencies {
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
+    integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":platform-jvm"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
+    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
+    integTestImplementation(libs.mockitoKotlin)
 
     integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
         because("Tests require 'future-plugin-versions.properties' on the test classpath")
