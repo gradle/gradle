@@ -27,6 +27,7 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.vfs.UnitOfWorkVfsChangesProvider;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -49,6 +50,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super BeforeExecutionContext, ? extends R> delegate;
+    private final UnitOfWorkVfsChangesProvider unitOfWorkVfsChangesProvider;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
@@ -57,7 +59,19 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
+        this(null, buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate);
+    }
+
+    public CaptureStateBeforeExecutionStep(
+        @Nullable UnitOfWorkVfsChangesProvider unitOfWorkVfsChangesProvider,
+        BuildOperationExecutor buildOperationExecutor,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        OutputSnapshotter outputSnapshotter,
+        OverlappingOutputDetector overlappingOutputDetector,
+        Step<? super BeforeExecutionContext, ? extends R> delegate
+    ) {
         super(buildOperationExecutor);
+        this.unitOfWorkVfsChangesProvider = unitOfWorkVfsChangesProvider;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.outputSnapshotter = outputSnapshotter;
         this.overlappingOutputDetector = overlappingOutputDetector;
@@ -66,8 +80,13 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
 
     @Override
     public R execute(UnitOfWork work, C context) {
+        if (unitOfWorkVfsChangesProvider != null) {
+            System.out.println("Has unit of work '" + context.getIdentity().getUniqueId() + "' changed? " + unitOfWorkVfsChangesProvider.hasAnyFileInputChanged(context.getIdentity()));
+        }
+
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(history -> captureExecutionState(work, context));
+
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState.orElse(null)));
     }
 

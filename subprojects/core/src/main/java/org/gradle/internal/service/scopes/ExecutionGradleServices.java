@@ -68,12 +68,18 @@ import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.execution.vfs.AccumulateUnitOfWorkInputsListener;
+import org.gradle.internal.execution.vfs.UnitOfWorkVfsChangesProvider;
+import org.gradle.internal.execution.vfs.UnitOfWorkVfsChangesRegistry;
+import org.gradle.internal.execution.vfs.UnitOfWorkVfsFileChangeListener;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.util.GradleVersion;
 
 import java.util.Collections;
@@ -115,6 +121,10 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
+    UnitOfWorkVfsChangesProvider createUnitOfWorkVfsChangesProvider(UnitOfWorkVfsChangesRegistry unitOfWorkVfsChangesRegistry) {
+        return new UnitOfWorkVfsChangesProvider(unitOfWorkVfsChangesRegistry);
+    }
+
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -134,8 +144,14 @@ public class ExecutionGradleServices {
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
         DocumentationRegistry documentationRegistry,
-        Problems problems
+        Problems problems,
+        ServiceRegistry serviceRegistry,
+        FileChangeListeners fileChangeListeners,
+        UnitOfWorkVfsChangesRegistry unitOfWorkVfsChangesRegistry,
+        UnitOfWorkVfsChangesProvider unitOfWorkVfsChangesProvider
     ) {
+        workInputListeners.addListener(new AccumulateUnitOfWorkInputsListener(unitOfWorkVfsChangesRegistry));
+        fileChangeListeners.addListener(new UnitOfWorkVfsFileChangeListener(unitOfWorkVfsChangesRegistry));
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
         return new DefaultExecutionEngine(problems,
@@ -148,7 +164,7 @@ public class ExecutionGradleServices {
             new MarkSnapshottingInputsStartedStep<>(
             new RemoveUntrackedExecutionStateStep<>(
             new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(unitOfWorkVfsChangesProvider, buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(

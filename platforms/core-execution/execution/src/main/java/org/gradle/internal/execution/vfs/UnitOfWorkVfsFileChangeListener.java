@@ -21,10 +21,17 @@ import org.gradle.internal.watch.vfs.FileChangeListener;
 
 import java.nio.file.Path;
 
-public class UpToDateFileChangeListener implements FileChangeListener {
+public class UnitOfWorkVfsFileChangeListener implements FileChangeListener {
+
+    private final UnitOfWorkVfsChangesRegistry changesRegistry;
+
+    public UnitOfWorkVfsFileChangeListener(UnitOfWorkVfsChangesRegistry changesRegistry) {
+        this.changesRegistry = changesRegistry;
+    }
+
     @Override
     public void handleChange(FileWatcherRegistry.Type type, Path path) {
-        
+        changesRegistry.registerChange(type, path);
     }
 
     @Override

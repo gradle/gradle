@@ -16,10 +16,14 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":persistent-cache"))
     implementation(project(":snapshots"))
-    implementation(project(":file-watching"))
+    implementation(project(":file-collections"))
     implementation(projects.enterpriseOperations) {
         because("Adds generic build operations for the execution engine")
     }
+    // TODO: Currently needed `api`, otherwise Groovy for other modules compilation fails with
+    //  java.lang.NoClassDefFoundError: org.gradle.internal.watch.vfs.FileChangeListeners.
+    //  Maybe hide this via some decorator class?
+    api(project(":file-watching"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

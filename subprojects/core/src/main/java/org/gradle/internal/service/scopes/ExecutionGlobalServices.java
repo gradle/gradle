@@ -75,6 +75,7 @@ import org.gradle.internal.execution.model.annotations.InputFilesPropertyAnnotat
 import org.gradle.internal.execution.model.annotations.InputPropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
+import org.gradle.internal.execution.vfs.UnitOfWorkVfsChangesRegistry;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -305,6 +306,10 @@ public class ExecutionGlobalServices {
 
     WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
         return new DefaultWorkInputListeners(listenerManager);
+    }
+
+    UnitOfWorkVfsChangesRegistry createUnitOfWorkVfsChangesRegistry() {
+        return new UnitOfWorkVfsChangesRegistry();
     }
 
     public interface AnnotationHandlerRegistration {
