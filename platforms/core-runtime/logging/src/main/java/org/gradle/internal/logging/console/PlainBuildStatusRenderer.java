@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @NonNullApi
 public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
@@ -39,6 +41,7 @@ public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
     private Phase lastPhase;
     private int lastRenderedProgressPct = -1;
     private boolean lastFailing = false;
+    private ExecutorService deadlockPreventer;
 
 
     public PlainBuildStatusRenderer(OutputEventListener listener) {
@@ -87,7 +90,12 @@ public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
         currentProgress++;
 
         if (currentProgress > totalProgress) {
-            LOGGER.warn("More progress was logged than there should be ({} > {})", currentProgress, totalProgress);
+            if (deadlockPreventer == null) {
+                deadlockPreventer = Executors.newSingleThreadExecutor();
+            }
+            // do not do this directly or a deadlock happens
+            // to prevent that deadlock, execute it separately in another thread
+            deadlockPreventer.submit(new OverflowedProgressLogger());
         }
     }
 
@@ -95,5 +103,17 @@ public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
     protected void buildEnded() {
         currentProgress = 0;
         totalProgress = 0;
+    }
+
+    @NonNullApi
+    private final class OverflowedProgressLogger implements Runnable {
+        // Save these properties so that they do not change before the thread runs
+        private final int savedCurrentProgress = currentProgress;
+        private final int savedTotalProgress = totalProgress;
+
+        @Override
+        public void run() {
+            LOGGER.warn("More progress was logged than there should be ({} > {})", savedCurrentProgress, savedTotalProgress);
+        }
     }
 }
