@@ -217,10 +217,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
-                ${incremental
-                    ? "@Inject abstract InputChanges getInputChanges()"
-                    : ""
-                }
+                $inputChanges
 
                 @Classpath
                 @InputArtifactDependencies
@@ -289,8 +286,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         withBuildCache().run ':consumer:resolve'
         then:
         with(findTransformExecution(producerTransformSpec).result) {
-            // Non-incremental transforms can reuse thier workspace, while incrementals need to be loaded from cache
-            skipMessage == (incremental ? 'FROM-CACHE' : 'UP-TO-DATE')
+            // Non-incremental transforms can reuse their workspace, while incremental ones need to be loaded from cache
+            skipMessage == expectedSkipMessage
             originExecutionTime > 0
             originBuildInvocationId != null
             executionReasons.every { it ==~ 'Output property .* has been removed\\.'}
@@ -299,9 +296,9 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
 
         where:
-        type              | incremental
-        "incremental"     | true
-        "non-incremental" | false
+        type              | inputChanges                                      | expectedSkipMessage
+        "incremental"     | "@Inject abstract InputChanges getInputChanges()" | "FROM-CACHE"
+        "non-incremental" | ""                                                | "UP-TO-DATE"
     }
 
     def "captures all information on failure"() {

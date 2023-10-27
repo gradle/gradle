@@ -220,10 +220,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
-                ${incremental
-                    ? "@Inject abstract InputChanges getInputChanges()"
-                    : ""
-                }
+                $inputChanges
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -384,6 +381,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         false       | PathSensitivity.RELATIVE
         false       | PathSensitivity.NAME_ONLY
 
+        inputChanges = incremental ? "@Inject abstract InputChanges getInputChanges()" : ""
         normalization = (sensitivity?.name()?.toLowerCase()?.replaceAll("_", " ") ?: "no") + " path sensitivity"
         type = (incremental ? "incremental" : "non-incremental")
     }
