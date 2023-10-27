@@ -140,6 +140,84 @@ $ gradle taskName
 When executing the Gradle Wrapper from a subproject directory, reference `gradlew` relatively. For example: `../gradlew taskName`.
 ====
 
+[[sec:command_line_logging]]
+== Logging options
+
+=== Setting log level
+You can customize the <<logging.adoc#logging,verbosity>> of Gradle logging with the following options, ordered from least verbose to most verbose.
+
+`-Dorg.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
+Set logging level via Gradle properties.
+
+`-q`, `--quiet`::
+Log errors only.
+
+`-w`, `--warn`::
+Set log level to warn.
+
+`-i`, `--info`::
+Set log level to info.
+
+`-d`, `--debug`::
+Log in debug mode (includes normal stacktrace).
+
+_Lifecycle_ is the default log level.
+
+[[sec:command_line_customizing_log_format]]
+=== Customizing log format
+You can control the use of rich output (colors and font variants) by specifying the console mode in the following ways:
+
+`-Dorg.gradle.console=(auto,plain,rich,verbose)`::
+Specify console mode via Gradle properties. Different modes are described immediately below.
+
+`--console=(auto,plain,rich,verbose)`::
+Specifies which type of console output to generate.
++
+Set to `plain` to generate plain text only. This option disables all color and other rich output in the console output. This is the default when Gradle is _not_ attached to a terminal.
++
+Set to `auto` (the default) to enable color and other rich output in the console output when the build process is attached to a console or to generate plain text only when not attached to a console. _This is the default when Gradle is attached to a terminal._
++
+Set to `rich` to enable color and other rich output in the console output, regardless of whether the build process is not attached to a console. When not attached to a console, the build output will use ANSI control characters to generate the rich output.
++
+Set to `verbose` to enable color and other rich output like `rich` with output task names and outcomes at the lifecycle log level, (as is done by default in Gradle 3.5 and earlier).
+
+[[sec:command_line_warnings]]
+=== Showing or hiding warnings
+By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
+
+----
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 5.0.
+----
+
+You can control the verbosity of warnings on the console with the following options:
+
+`-Dorg.gradle.warning.mode=(all,fail,none,summary)`::
+Specify warning mode via <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>>. Different modes are described immediately below.
+
+`--warning-mode=(all,fail,none,summary)`::
+Specifies how to log warnings. Default is `summary`.
++
+Set to `all` to log all warnings.
++
+Set to `fail` to log all warnings and fail the build if there are any warnings.
++
+Set to `summary` to suppress all warnings and log a summary at the end of the build.
++
+Set to `none` to suppress all warnings, including the summary at the end of the build.
+
+[[sec:rich_console]]
+=== Rich console
+Gradle's rich console displays extra information while builds are running.
+
+image::rich-cli.png[alt="Gradle Rich Console"]
+
+Features:
+
+* Progress bar and timer visually describe the overall status
+* Parallel work-in-progress lines below describe what is happening now
+* Colors and fonts are used to highlight significant output and errors
+
+
 [[sec:excluding_tasks_from_the_command_line]]
 [[sec:rerun_tasks]]
 [[sec:continue_build_on_failure]]
@@ -152,10 +230,6 @@ When executing the Gradle Wrapper from a subproject directory, reference `gradle
 [[sec:command_line_completion]]
 [[sec:command_line_debugging]]
 [[sec:command_line_performance]]
-[[sec:command_line_logging]]
-[[sec:command_line_customizing_log_format]]
-[[sec:command_line_warnings]]
-[[sec:rich_console]]
 [[sec:command_line_execution_options]]
 [[sec:dependency_verification_options]]
 [[sec:environment_options]]
