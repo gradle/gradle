@@ -21,10 +21,10 @@ Learn the basics of authoring Gradle by first creating a Java app using Gradle i
 **In this section you will:**
 
 - Initialize a Java project
+- Review the directory layout
 - Run a Java application
 - Produce a Build Scan
 - Bundle the application in an archive
-- Review the directory layout
 ****
 
 [[part1_begin]]
@@ -122,6 +122,13 @@ When you are done with Gradle `init`, the directory should look as follows:
 <5> Default Java source folder
 <6> Default Java test source folder
 
+The `tutorial` folder is the *root project directory*.
+Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
+
+While the Gradle Wrapper is local to the root project, the Gradle executable is found in the `GRADLE_USER_HOME`.
+
+The `GRADLE_USER_HOME`, which defaults to `USER_HOME/.gradle`, is also where Gradle stores its global configuration properties, initialization scripts, caches, log files and more.
+
 == Step 3. Review the Gradle Files
 
 The `settings.gradle.kts` file has two interesting lines:
@@ -134,12 +141,12 @@ include("app")
 ----
 
 - `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it’s in.
-It’s recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
 
-- `include("app")` defines that the build consists of one subproject called app that contains the actual code and build logic.
+- `include("app")` defines that the build consists of one subproject called `app` that contains the source code and build logic.
+
 More subprojects can be added by additional `include()` statements.
 
-Our build contains one subproject called app that represents the Java application we are building.
+Our build contains one subproject called `app` that represents the Java application we are building.
 It is configured in the `app/build.gradle(.kts)` file:
 
 .build.gradle.kts
@@ -174,6 +181,8 @@ tasks.named<Test>("test") {
 <5> Define the main class for the application.
 <6> Use JUnit Platform for unit tests.
 
+The build script in the `app` subproject directory includes the dependencies and components the `app` code will need to be assembled, tested, and published.
+
 == Step 4. Review the Code
 
 The file `src/main/java/demo/App.java` contains the main class and source code:
@@ -194,7 +203,9 @@ public class App {
 }
 ----
 
-The generated test, `src/test/java/demo/App.java`:
+The code prints out a simple "Hello World" greeting to the screen.
+
+The generated test is available at `src/test/java/demo/App.java`:
 
 .App.java
 [source, java]
@@ -217,6 +228,17 @@ The test instantiates the `App` class, invokes a method on it, and checks that i
 
 == Step 5. Run the App
 
+The Application plugin, which was automatically added by `gradle init`, facilitates creating an executable JVM application:
+
+[source, kotlin]
+----
+plugins {
+    application
+}
+----
+
+Applying the Application plugin implicitly applies the Java plugin and adds tasks like `assemble`, `build`, or `run` to our project.
+
 Thanks to the `application` plugin, you can run the application directly from the command line.
 The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
 
@@ -236,6 +258,8 @@ BUILD SUCCESSFUL in 998ms
 The `application` plugin also bundles the application, with all its dependencies, for you.
 The archive will also contain a script to start the application with a single command.
 
+Run `./gradlew build`:
+
 [source]
 ----
 $ ./gradlew build
@@ -244,12 +268,12 @@ BUILD SUCCESSFUL in 876ms
 7 actionable tasks: 6 executed, 1 up-to-date
 ----
 
-If you run a full build as shown above, Gradle will have produced the archive in two formats for you: app/build/distributions/app.tar and app/build/distributions/app.zip.
+If you run a full build as shown above, Gradle will have produced the archive in two formats for you: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
 
 == Step 6. Publish a Build Scan
 
-The best way to learn more about what your build is doing behind the scenes, is to publish a link:https://scans.gradle.com[build scan].
-To do so, run Gradle with the `--scan` flag.
+The best way to learn more about what your build is doing behind the scenes, is to publish a link:https://scans.gradle.com[Build Scan].
+To do so, run the `build` task again with the `--scan` flag.
 
 [source]
 ----
@@ -267,7 +291,7 @@ Publishing build scan...
 https://gradle.com/s/5h7b7gi77dg7q
 ----
 
-Click the link and explore which tasks where executed, which dependencies where downloaded and many more details:
+Click the link and explore which tasks where executed, which dependencies where downloaded, and many more details:
 
 image::build-scan-3.png[]
 

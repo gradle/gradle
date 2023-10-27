@@ -99,7 +99,9 @@ Next, create a new class that extends the `org.gradle.api.Plugin` interface.
 
 [source]
 ----
-class MyPlugin : Plugin<Project> { }
+class MyPlugin : Plugin<Project> {
+    override fun apply() {}
+}
 ----
 
 This interface has a single `apply` method which uses the `CreateFileTask` task
