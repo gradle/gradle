@@ -163,8 +163,8 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             documentationUrl,
             description,
             solution,
-//            exception == null && collectLocation ? new Exception() : //TODO: don't create exception if already reported often
-                exception,
+            exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
+//                exception,
             problemCategory,
             additionalMetadata,
             problemsService);
