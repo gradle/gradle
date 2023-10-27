@@ -1106,7 +1106,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "green")
                         parameters {
                             numberOfOutputFiles = 2
-                            differentOutputFileNames = false
                             suffix = "green"
                         }
                     }
@@ -1115,7 +1114,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "blue")
                         parameters {
                             numberOfOutputFiles = 2
-                            differentOutputFileNames = false
                             suffix = "blue"
                         }
                     }
@@ -1176,7 +1174,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "green")
                         parameters {
                             numberOfOutputFiles = 2
-                            differentOutputFileNames = false
                             suffix = "green"
                         }
                     }
@@ -1185,7 +1182,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "blue")
                         parameters {
                             numberOfOutputFiles = 2
-                            differentOutputFileNames = false
                             suffix = "blue"
                         }
                     }
@@ -1252,8 +1248,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles = 1
-                            differentOutputFileNames = false
                             suffix = "blue"
                         }
                     }
@@ -1270,8 +1264,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "yellow")
                         to.attribute(artifactType, "orange")
                         parameters {
-                            numberOfOutputFiles = 1
-                            differentOutputFileNames = false
                             suffix = "orange"
                         }
                     }
@@ -1327,7 +1319,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "green")
                         parameters {
                             numberOfOutputFiles = 2
-                            differentOutputFileNames = true
                             suffix = "green"
                         }
                     }
@@ -1335,8 +1326,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles = 1
-                            differentOutputFileNames = false
                             suffix = "blue"
                         }
                     }
@@ -1345,7 +1334,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "yellow")
                         parameters {
                             numberOfOutputFiles = 3
-                            differentOutputFileNames = false
                             suffix = "yellow"
                         }
                     }
@@ -1353,8 +1341,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "yellow")
                         to.attribute(artifactType, "orange")
                         parameters {
-                            numberOfOutputFiles = 1
-                            differentOutputFileNames = true
                             suffix = "orange"
                         }
                     }
@@ -1414,7 +1400,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "green")
                         parameters {
                             numberOfOutputFiles= 2
-                            differentOutputFileNames= true
                             suffix = "green"
                         }
                     }
@@ -1423,7 +1408,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "blue")
                         parameters {
                             numberOfOutputFiles= 1
-                            differentOutputFileNames= false
                             suffix = "blue"
                         }
                     }
@@ -1432,7 +1416,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         to.attribute(artifactType, "yellow")
                         parameters {
                             numberOfOutputFiles= 3
-                            differentOutputFileNames= false
                             suffix = "yellow"
                         }
                     }
@@ -1467,12 +1450,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
             abstract class Duplicator implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
+                    @Optional
                     @Input
                     Property<Integer> getNumberOfOutputFiles()
 
                     @Input
                     Property<String> getSuffix()
 
+                    @Optional
                     @Input
                     Property<Boolean> getDifferentOutputFileNames()
                 }
@@ -1490,9 +1475,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println("Transforming \${input.name}")
-                    for (int i = 0; i < parameters.numberOfOutputFiles.get(); i++) {
+                    def numberOfOutputFiles = parameters.numberOfOutputFiles.getOrElse(1)
+                    for (int i = 0; i < numberOfOutputFiles; i++) {
                         def suffix = parameters.suffix.map { "-\$it" }.get()
-                        suffix += parameters.differentOutputFileNames.get() ? "-\$i" : ""
+                        suffix += parameters.differentOutputFileNames.getOrElse(false) ? "-\$i" : ""
                         def periodIndex = input.name.lastIndexOf(".")
                         def outputName = input.name.substring(0, periodIndex) + suffix + input.name.substring(periodIndex)
                         def output = outputs.file("\$i/\$outputName")
