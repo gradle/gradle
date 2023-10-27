@@ -71,6 +71,6 @@ fun nagAboutUnsetSkipMetadataVersionCheckProperty() {
         .withContext("Skipping the check may lead to hard to troubleshoot errors when libraries built with Kotlin versions unsupported by the Kotlin embedded in Gradle are used in build logic.")
         .withAdvice("To opt in to the future behaviour, set the '$skipMetadataVersionCheckPropertyName' System property to `false`.")
         .startingWithGradle9("the Kotlin metadata version check will be enabled by default")
-        .withUpgradeGuideSection(8, "kotlin_skip_metadata_version_check")
+        .withUpgradeGuideSection(8, "kotlin_dsl_skip_metadata_version_check")
         .nagUser()
 }
