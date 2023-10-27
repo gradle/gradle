@@ -186,7 +186,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/26602")
-    fun `can use dependencyScope configuration provider in dependencies block`() {
+    fun `can use dependencyScope configuration invoke in dependencies block`() {
 
         withFile("repo/in-block/accessor-1.0.jar")
 
