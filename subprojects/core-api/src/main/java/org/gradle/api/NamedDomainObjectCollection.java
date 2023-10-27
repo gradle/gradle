@@ -223,7 +223,11 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 8.5
      */
     @Incubating
-    NamedDomainObjectCollection<T> named(Spec<String> nameFilter);
+    default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
+        throw new UnsupportedOperationException("Method not implemented at this level"); // todo: put the actual type into the message, check out what it prints for KGP
+        // todo: undecorate decorated actual types: GeneratedSubclasses.unpackType(this)
+        // workaround for KGP having their own custom collection definition which causes failures when we simply add a method to this interface //todo: better comment, not KGP specific
+    } // todo: test that checks all OUR CONCRETE implementations if this method has been owerwritten? (arch test, architecture-test project)
 
     /**
      * {@inheritDoc}
