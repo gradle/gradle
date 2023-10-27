@@ -34,5 +34,5 @@ public interface WorkInputListener {
      * @param work the identity of the unit of work to be executed
      * @param relevantBehaviors the file system inputs relevant to the task execution
      */
-    void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors);
+    void onExecute(UnitOfWork.Identity identity, UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors);
 }

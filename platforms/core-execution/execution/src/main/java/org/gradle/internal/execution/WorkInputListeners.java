@@ -34,5 +34,5 @@ public interface WorkInputListeners {
 
     void removeListener(WorkInputListener listener);
 
-    void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors);
+    void broadcastFileSystemInputsOf(UnitOfWork.Identity identity, UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors);
 }

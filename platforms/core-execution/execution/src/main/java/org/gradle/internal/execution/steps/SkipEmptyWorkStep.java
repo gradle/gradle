@@ -156,7 +156,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
-        broadcastWorkInputs(work, true);
+        broadcastWorkInputs(context.getIdentity(), work, true);
 
         Try<Execution> execution = Try.successful(new Execution() {
             @Override
@@ -173,12 +173,12 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private CachingResult executeWithNonEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        broadcastWorkInputs(work, false);
+        broadcastWorkInputs(context.getIdentity(), work, false);
         return delegate.execute(work, context);
     }
 
-    private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
-        workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
+    private void broadcastWorkInputs(UnitOfWork.Identity identity, UnitOfWork work, boolean onlyPrimaryInputs) {
+        workInputListeners.broadcastFileSystemInputsOf(identity, work, onlyPrimaryInputs
             ? EnumSet.of(InputBehavior.PRIMARY)
             : EnumSet.allOf(InputBehavior.class));
     }

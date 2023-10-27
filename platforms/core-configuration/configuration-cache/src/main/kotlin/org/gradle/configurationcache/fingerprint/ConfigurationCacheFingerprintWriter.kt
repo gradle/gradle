@@ -482,7 +482,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
+    override fun onExecute(identity: UnitOfWork.Identity, work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work, relevantBehaviors)
     }
 

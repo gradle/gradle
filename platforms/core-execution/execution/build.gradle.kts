@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":persistent-cache"))
     implementation(project(":snapshots"))
+    implementation(project(":file-watching"))
     implementation(projects.enterpriseOperations) {
         because("Adds generic build operations for the execution engine")
     }

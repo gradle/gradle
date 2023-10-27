@@ -42,7 +42,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     }
 
     @Override
-    public void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
+    public void onExecute(UnitOfWork.Identity identity, UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         work.visitRegularInputs(new InputVisitor() {
@@ -72,7 +72,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
                 }
             }
         });
-        buildInputHierarchy.recordInputs(taskInputs);
+        buildInputHierarchy.recordInputs(identity, taskInputs);
         filteredFileTreeTaskInputs.forEach(fileTree -> buildInputHierarchy.recordFilteredInput(fileTree.getRoot(), fileTree.getPatterns().getAsSpec()));
     }
 

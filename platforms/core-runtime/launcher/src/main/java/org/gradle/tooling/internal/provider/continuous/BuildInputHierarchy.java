@@ -22,6 +22,7 @@ import org.gradle.execution.plan.SingleFileTreeElementMatcher;
 import org.gradle.execution.plan.ValuedVfsHierarchy;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
 import org.gradle.internal.collect.PersistentList;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
@@ -57,7 +58,7 @@ public class BuildInputHierarchy {
     /**
      * Records that some locations are an input to the build.
      */
-    public synchronized void recordInputs(Iterable<String> inputLocations) {
+    public synchronized void recordInputs(UnitOfWork.Identity identity, Iterable<String> inputLocations) {
         for (String location : inputLocations) {
             VfsRelativePath relativePath = VfsRelativePath.of(location);
             root = root.recordValue(relativePath, ALL_CHILDREN_ARE_INPUTS);

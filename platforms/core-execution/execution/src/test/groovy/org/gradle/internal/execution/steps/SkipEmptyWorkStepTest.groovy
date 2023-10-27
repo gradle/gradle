@@ -89,7 +89,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             it.inputProperties as Map == ["known": knownSnapshot]
             it.inputFileProperties as Map == ["known-file": knownFileFingerprint]
         }) >> delegateResult
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
+        1 * workInputListeners.broadcastFileSystemInputsOf(identity, work, allFileInputs)
         0 * _
 
         result == delegateResult
@@ -124,7 +124,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         1 * delegate.execute(work, delegateContext) >> delegateResult
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
+        1 * workInputListeners.broadcastFileSystemInputsOf(identity, work, allFileInputs)
         0 * _
 
         then:
@@ -154,7 +154,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         1 * sourceFileFingerprint.empty >> true
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
+        1 * workInputListeners.broadcastFileSystemInputsOf(identity, work, primaryFileInputs)
 
         then:
         result.execution.get().outcome == SHORT_CIRCUITED
@@ -181,7 +181,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         and:
         1 * outputsCleaner.didWork >> didWork
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
+        1 * workInputListeners.broadcastFileSystemInputsOf(identity, work, primaryFileInputs)
         0 * _
 
         then:

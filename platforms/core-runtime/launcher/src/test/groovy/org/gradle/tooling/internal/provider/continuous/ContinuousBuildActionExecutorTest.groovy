@@ -388,7 +388,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
         def valueSupplier = Stub(UnitOfWork.InputFileValueSupplier) {
             getFiles() >> TestFiles.fixed(file)
         }
-        inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
+        inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork.Identity), Stub(UnitOfWork) {
             visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
                 visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
