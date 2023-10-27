@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -224,9 +225,8 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Incubating
     default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
-        throw new UnsupportedOperationException("Method not implemented at this level"); // todo: put the actual type into the message, check out what it prints for KGP
-        // todo: undecorate decorated actual types: GeneratedSubclasses.unpackType(this)
-        // workaround for KGP having their own custom collection definition which causes failures when we simply add a method to this interface //todo: better comment, not KGP specific
+        // default implementation is a workaround for plugins having their own custom collection implementation, based on an older interface (i.e. missing an implementation for this method)
+        throw new UnsupportedOperationException("Method not implemented in " + GeneratedSubclasses.unpack(this.getClass()).getName()); // todo: check out what it prints for KGP
     } // todo: test that checks all OUR CONCRETE implementations if this method has been owerwritten? (arch test, architecture-test project)
 
     /**
