@@ -204,7 +204,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    def "cacheability information for artifact transform executions is captured"() {
+    def "cacheability information for #type artifact transform executions is captured"() {
         setupBuildWithColorTransform()
         setupExternalDependency()
         buildFile << """
@@ -216,9 +216,10 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
-                // We need an incremental transform to have a project-bound workspace
-                @Inject
-                abstract InputChanges getInputChanges()
+                ${incremental
+                    ? "@Inject abstract InputChanges getInputChanges()"
+                    : ""
+                }
 
                 @Classpath
                 @InputArtifactDependencies
@@ -287,13 +288,19 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         withBuildCache().run ':consumer:resolve'
         then:
         with(findTransformExecution(producerTransformSpec).result) {
-            skipMessage == 'FROM-CACHE'
+            // Non-incremental transforms can reuse thier workspace, while incrementals need to be loaded from cache
+            skipMessage == (incremental ? 'FROM-CACHE' : 'UP-TO-DATE')
             originExecutionTime > 0
             originBuildInvocationId != null
             executionReasons.every { it ==~ 'Output property .* has been removed\\.'}
             cachingDisabledReasonMessage == null
             cachingDisabledReasonCategory == null
         }
+
+        where:
+        type              | incremental
+        "incremental"     | true
+        "non-incremental" | false
     }
 
     def "captures all information on failure"() {
