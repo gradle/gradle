@@ -54,7 +54,8 @@ public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
         if (getCurrentPhase() == null) {
             return;
         }
-        int progressPct = totalProgress == 0 ? 0 : (int) (currentProgress * 100.0 / totalProgress);
+
+        int progressPct = calculateDisplayProgress();
 
         if (getCurrentPhase().equals(lastPhase) && progressPct == lastRenderedProgressPct && isFailing == lastFailing) {
             return;
@@ -103,6 +104,18 @@ public final class PlainBuildStatusRenderer extends BuildStatusRenderer {
     protected void buildEnded() {
         currentProgress = 0;
         totalProgress = 0;
+    }
+
+    private int calculateDisplayProgress() {
+        if (currentProgress > totalProgress) {
+            // progress was reported excessively,
+            // we do not know how much work really is left
+            return 99;
+        }
+        if (totalProgress == 0) {
+            return 0;
+        }
+        return (int) (currentProgress * 100.0 / totalProgress);
     }
 
     @NonNullApi
