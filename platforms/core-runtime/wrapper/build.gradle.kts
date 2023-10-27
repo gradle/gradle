@@ -19,6 +19,8 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(testFixtures(project(":core")))
 
+    integTestImplementation(project(":build-option"))
+    integTestImplementation(project(":launcher"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":core-api"))
     integTestImplementation(libs.commonsIo)

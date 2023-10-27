@@ -98,9 +98,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         loopNumber << (1..6).toList()
     }
 
-    // Agent-based instrumentation doesn't expose cached JARs
-    @Requires(IntegTestPreconditions.AgentInstrumentationDisabled)
-    def "build script classloader copies jar files to cache"() {
+    def "build script classloader copies only non-cached jar files to cache"() {
         given:
         createBuildFileThatPrintsClasspathURLs("""
             classpath name: 'test', version: '1.3-BUILD-SNAPSHOT'
@@ -120,8 +118,12 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
         then:
         succeeds("showBuildscript")
+        // A jar coming from some file repo is copied into the transformation cache and served from there.
         inJarCache("test-1.3-BUILD-SNAPSHOT.jar")
-        inJarCache("commons-io-1.4.jar")
+        // A jar coming from remote repo is cached in the global modules cache and served from there.
+        // It isn't copied into the transformation cache.
+        // The transformed counterparts are not visible when printing classpath data.
+        notInJarCache("commons-io-1.4.jar")
     }
 
     private void createBuildFileThatPrintsClasspathURLs(String dependencies = '') {
