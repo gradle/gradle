@@ -196,7 +196,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         "@PathSensitive(PathSensitivity.NONE)"      | "@PathSensitive(PathSensitivity.NONE)"
     }
 
-    def "can attach #description to input artifact property with incrementally transformed artifact directory but it has no effect when not caching"() {
+    def "can attach #normalization to input artifact property with #type transformed artifact directory but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransform {
             produceDirs()
@@ -210,11 +210,17 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
-                @InputArtifact ${annotation}
+                @InputArtifact
+                ${sensitivity
+                    ? "@PathSensitive(PathSensitivity.$sensitivity)"
+                    : ""
+                }
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
-                @Inject
-                abstract InputChanges getInputChanges()
+                ${incremental
+                    ? "@Inject abstract InputChanges getInputChanges()"
+                    : ""
+                }
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -328,7 +334,12 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then: // directory path has changed
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed("b-blue")
+        if (incremental || sensitivity == null || sensitivity == PathSensitivity.ABSOLUTE) {
+            transformed("b-blue")
+        } else {
+            // Inputs have been normlaized and results are up-to-date
+            transformed()
+        }
 
         when:
         withProjectConfig("b") {
@@ -347,17 +358,25 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before, but the transform outputs have been overwritten
+        then:
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed("b-dir")
+        // have already seen these artifacts before...
+        if (incremental) {
+            // ...but the transform outputs have been overwritten
+            transformed("b-dir")
+        } else {
+            // ...and they are up-to-date
+            transformed()
+        }
         outputContains("result = [b-dir.green, c-dir.green]")
 
         where:
-        description                                 | annotation
-        "no sensitivity"                            | ""
-        "@PathSensitive(PathSensitivity.ABSOLUTE)"  | "@PathSensitive(PathSensitivity.ABSOLUTE)"
-        "@PathSensitive(PathSensitivity.RELATIVE)"  | "@PathSensitive(PathSensitivity.RELATIVE)"
-        "@PathSensitive(PathSensitivity.NAME_ONLY)" | "@PathSensitive(PathSensitivity.NAME_ONLY)"
+        [sensitivity, incremental] << [
+            [null, PathSensitivity.ABSOLUTE, PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY],
+            [true, false]
+        ].combinations()
+        normalization = (sensitivity?.name()?.toLowerCase()?.replaceAll("_", " ") ?: "no") + " path sensitivity"
+        type = (incremental ? "incremental" : "non-incremental")
     }
 
     def "re-runs incremental transform when input artifact file changes from file to missing"() {
