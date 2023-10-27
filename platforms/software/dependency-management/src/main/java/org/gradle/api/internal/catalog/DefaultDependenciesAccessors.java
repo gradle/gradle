@@ -103,7 +103,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final InputFingerprinter inputFingerprinter;
     private final ImmutableAttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
-
     private final List<DefaultVersionCatalog> models = Lists.newArrayList();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 

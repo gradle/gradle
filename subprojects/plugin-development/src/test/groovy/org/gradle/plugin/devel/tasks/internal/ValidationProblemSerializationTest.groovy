@@ -49,7 +49,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where.isEmpty()
         deserialized[0].documentationLink == null
     }
 
@@ -70,9 +70,9 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where.path == "location"
-        deserialized[0].where.line == 1
-        deserialized[0].where.column == 1
+        deserialized[0].where[0].path == "location"
+        deserialized[0].where[0].line == 1
+        deserialized[0].where[0].column == 1
         deserialized[0].documentationLink == null
     }
 
@@ -93,9 +93,9 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where.path == "location"
-        deserialized[0].where.line == 1
-        deserialized[0].where.column == 1
+        deserialized[0].where[0].path == "location"
+        deserialized[0].where[0].line == 1
+        deserialized[0].where[0].column == 1
         deserialized[0].documentationLink.getUrl() == "url"
         deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
     }
@@ -135,7 +135,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].exception.message == "cause"
     }
@@ -158,7 +158,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
 
@@ -185,7 +185,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
         deserialized[0].solutions[1] == "solution 1"
@@ -210,7 +210,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == null
+        deserialized[0].where == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"

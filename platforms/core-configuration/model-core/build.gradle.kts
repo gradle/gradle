@@ -6,7 +6,7 @@ description = "Implementation of configuration model types and annotation metada
 
 dependencies {
     api(project(":core-api"))
-    api(project(":problems"))
+    api(project(":problems-api"))
 
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
