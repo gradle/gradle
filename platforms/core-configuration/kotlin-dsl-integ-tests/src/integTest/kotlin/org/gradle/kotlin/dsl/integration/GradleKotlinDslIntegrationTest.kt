@@ -338,6 +338,91 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/26732")
+    fun `can pass a configuration provider to configuration extendsFrom`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+        withClassJar("buildSrc/fixture.jar", DeepThought::class.java)
+
+        withDefaultSettingsIn("buildSrc")
+        withBuildScriptIn("buildSrc", """
+           plugins {
+             `kotlin-dsl`
+           }
+           
+           $repositoriesBlock
+           
+           dependencies {
+               compileOnly(files("fixture.jar"))
+           }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/FooTask.kt",
+            //language=kotlin
+            """
+            import javax.inject.Inject
+            import org.gradle.workers.WorkerExecutor
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.tasks.InputFiles
+            import org.gradle.api.tasks.Classpath
+            import org.gradle.api.file.ConfigurableFileCollection
+            
+            abstract class FooTask : DefaultTask() {
+                @get:InputFiles
+                @get:Classpath
+                abstract val fooClasspath: ConfigurableFileCollection
+                
+                @get:Inject
+                abstract val executor: WorkerExecutor
+                
+                @TaskAction
+                fun action() {
+                    executor.classLoaderIsolation {
+                        classpath.from(fooClasspath)
+                    }.submit(FooAction::class.java) {
+            
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/FooAction.kt",
+            //language=kotlin
+            """
+            import org.gradle.workers.WorkAction
+            import org.gradle.workers.WorkParameters
+            
+            abstract class FooAction : WorkAction<WorkParameters.None> {
+                override fun execute() {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        withBuildScript(
+            //language=kotlin
+            """
+            val foo = configurations.dependencyScope("foo")
+            val fooClasspath = configurations.resolvable("fooClasspath") {
+                extendsFrom(foo)
+            }
+            dependencies {
+                foo(files("fixture.jar"))
+            }
+                        
+            tasks.register("compute", FooTask::class)
+            """
+        )
+
+        assert(
+            build("compute").output.contains("*42*")
+        )
+    }
+
+    @Test
     @ToBeFixedForConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
