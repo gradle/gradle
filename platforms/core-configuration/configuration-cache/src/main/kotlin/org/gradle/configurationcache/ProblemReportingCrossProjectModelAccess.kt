@@ -77,6 +77,7 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
@@ -103,7 +104,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
-    private val dynamicCallProblemReporting: DynamicCallProblemReporting
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting,
+    private val buildModelParameters: BuildModelParameters
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -145,7 +147,7 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory)
+            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory, buildModelParameters)
         }
     }
 
@@ -155,7 +157,8 @@ class ProblemReportingCrossProjectModelAccess(
         val referrer: DefaultProject,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
-        val problemFactory: ProblemFactory
+        val problemFactory: ProblemFactory,
+        val buildModelParameters: BuildModelParameters,
     ) : ProjectInternal, GroovyObjectSupport() {
 
         override fun toString(): String {
@@ -186,7 +189,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
             onAccess()
 
-            return delegate.getProperty(propertyName)
+            return delegate.withEvaluationOrderCheck { getProperty(propertyName) }
         }
 
         override fun invokeMethod(name: String, args: Any): Any? {
@@ -199,7 +202,7 @@ class ProblemReportingCrossProjectModelAccess(
             }
             onAccess()
 
-            return delegate.invokeMethod(name, args)
+            return delegate.withEvaluationOrderCheck { invokeMethod(name, args) }
         }
 
         override fun compareTo(other: Project?): Int {
@@ -1037,9 +1040,67 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(problem)
             coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
-            if (delegate.compareTo(referrer) < 0 && delegate.parent != null) {
+            if (delegate < referrer && delegate.parent != null && buildModelParameters.isInvalidateCoupledProjects) {
                 delegate.owner.ensureConfigured()
             }
+        }
+
+        private fun <T> DefaultProject.withEvaluationOrderCheck(action: DefaultProject.() -> T?): T? {
+            // Attempt to get a result, since plugin might to contribute to DynamicObject properties
+            var failure: Throwable? = null
+            val result =
+                try {
+                    action()
+                } catch (e: Throwable) {
+                    failure = e
+                    null
+                }
+            if (failure == null) return result
+
+            return when {
+                // Referrer is configuring before the referent
+                this > referrer -> {
+                    reportEvaluationOrderProblem()
+                    null
+                }
+
+                // Referent is not configured and wasn't invalidated
+                // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
+                // but referent wasn't changed and since wasn't configured.
+                state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
+                    reportMissedConfigurationProblem()
+                    null
+                }
+
+                else -> {
+                    throw failure
+                }
+            }
+        }
+
+        private fun reportMissedConfigurationProblem() {
+            val problem = problemFactory.problem {
+                reference("org.gradle.internal.invalidate-coupled-projects=false")
+                text(" is preventing configuration of project ")
+                reference(delegate.identityPath.toString())
+            }
+                .exception()
+                .build()
+            problems.onProblem(problem)
+        }
+
+        private fun reportEvaluationOrderProblem() {
+            val problem = problemFactory.problem {
+                reference("Project.evaluationDependsOn")
+                text(" must be used to establish a dependency between project ")
+                reference(delegate.identityPath.toString())
+                text(" and project ")
+                reference(referrer.identityPath.toString())
+                text(" evaluation")
+            }
+                .exception()
+                .build()
+            problems.onProblem(problem)
         }
     }
 }
