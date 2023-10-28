@@ -1045,7 +1045,8 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
-        private fun <T> DefaultProject.withEvaluationOrderCheck(action: DefaultProject.() -> T?): T? {
+        private
+        fun <T> DefaultProject.withEvaluationOrderCheck(action: DefaultProject.() -> T?): T? {
             // Attempt to get a result, since plugin might to contribute to DynamicObject properties
             var failure: Throwable? = null
             val result =
@@ -1078,7 +1079,8 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
-        private fun reportMissedConfigurationProblem() {
+        private
+        fun reportMissedConfigurationProblem() {
             val problem = problemFactory.problem {
                 reference("org.gradle.internal.invalidate-coupled-projects=false")
                 text(" is preventing configuration of project ")
@@ -1089,7 +1091,8 @@ class ProblemReportingCrossProjectModelAccess(
             problems.onProblem(problem)
         }
 
-        private fun reportEvaluationOrderProblem() {
+        private
+        fun reportEvaluationOrderProblem() {
             val problem = problemFactory.problem {
                 reference("Project.evaluationDependsOn")
                 text(" must be used to establish a dependency between project ")
