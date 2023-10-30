@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -67,6 +68,6 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         if (dependencyConfiguration != null) {
             dependencyProject.configurations.create(dependencyConfiguration)
         }
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DocumentationRegistry())
     }
 }

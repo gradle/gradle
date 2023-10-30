@@ -16,6 +16,7 @@
 package org.gradle.internal.buildevents;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -203,8 +204,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-            renderStyledError(node, output);
+            if (StringUtils.isNotBlank(node.getMessage())) {
+                LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+                renderStyledError(node, output);
+            }
         }
 
         @Override

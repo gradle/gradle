@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -48,7 +49,8 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(createTestProblems())
+    def documentationRegistry = new DocumentationRegistry()
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry)
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {

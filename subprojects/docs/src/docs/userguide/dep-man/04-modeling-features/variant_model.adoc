@@ -256,6 +256,11 @@ All _compatible_ candidate variants are displayed with their attributes.
 
 Similar to the ambiguous variant error, the goal is to understand which variant should be selected. In some cases, there may not be any compatible variants from the producer (e.g., trying to run on Java 8 with a library built for Java 11).
 
+[[sub:variant-incompatible]]
+=== Dealing with incompatible variant errors
+
+Something is incompatible here.
+
 [[sec:variant-visual]]
 == Visualizing variant information
 

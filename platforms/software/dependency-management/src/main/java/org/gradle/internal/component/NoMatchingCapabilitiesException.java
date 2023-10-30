@@ -15,8 +15,33 @@
  */
 package org.gradle.internal.component;
 
-public class NoMatchingCapabilitiesException extends RuntimeException {
-    public NoMatchingCapabilitiesException(String message) {
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.exceptions.ResolutionProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class NoMatchingCapabilitiesException extends RuntimeException implements ResolutionProvider {
+    private final List<String> resolutions = new ArrayList<>(2); // usually only one resolution
+
+    public NoMatchingCapabilitiesException(String message, DocumentationRegistry documentationRegistry) {
         super(message);
+        addResolution("Review the variant matching algorithm documentation at " + documentationRegistry.getDocumentationFor("variant_attributes", "abm_algorithm"));
+    }
+
+    /**
+     * Adds a resolution to the list of resolutions.
+     *
+     * Meant to be called during subclass construction, so <strong>must</strong> remain safe to do so by only accessing fields on this type.
+     * @param resolution The resolution (suggestion message) to add
+     */
+    public void addResolution(String resolution) {
+        resolutions.add(resolution);
+    }
+
+    @Override
+    public ImmutableList<String> getResolutions() {
+        return ImmutableList.copyOf(resolutions);
     }
 }

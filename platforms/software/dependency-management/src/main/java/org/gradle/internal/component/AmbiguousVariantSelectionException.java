@@ -20,16 +20,12 @@ package org.gradle.internal.component;
  * This type is {@code deprecated} and will be removed in Gradle 9.0.
  *
  * This is temporarily available for migration only.
- * This exception class is internal and has been replaced by {@link AmbiguousArtifactVariantsException}, which is also internal. 
+ * This exception class is internal and has been replaced by {@link AmbiguousArtifactVariantsException}, which is also internal.
  * If possible, catch a {@link RuntimeException} instead to avoid depending on Gradle internal classes.
  */
 @Deprecated
 public abstract class AmbiguousVariantSelectionException extends ArtifactVariantSelectionException {
     public AmbiguousVariantSelectionException(String message) {
         super(message);
-    }
-
-    public AmbiguousVariantSelectionException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

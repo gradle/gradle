@@ -3,6 +3,7 @@
 com.google.code.gson:gson:2.8.5 FAILED
    Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5.
+        Review the variant matching algorithm documentation at https://docs.gradle.org/0.0.0/userguide/variant_attributes.html#abm_algorithm:
           - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:
                - Variant compile provides com.google.code.gson:gson:2.8.5
                - Variant runtime provides com.google.code.gson:gson:2.8.5
@@ -12,6 +13,8 @@ com.google.code.gson:gson:2.8.5 FAILED
                - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
                - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
                - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
+
+          - Review the variant matching algorithm documentation at https://docs.gradle.org/0.0.0/userguide/variant_attributes.html#abm_algorithm
 
 com.google.code.gson:gson:2.8.5 FAILED
 \--- functionalTestClasspath

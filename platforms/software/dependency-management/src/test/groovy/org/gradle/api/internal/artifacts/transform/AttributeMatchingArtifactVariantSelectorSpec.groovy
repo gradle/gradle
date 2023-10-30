@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -58,7 +59,8 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
     }
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
-    def failureProcessor = new ResolutionFailureHandler(createTestProblems())
+    def documentationRegistry = new DocumentationRegistry()
+    def failureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry)
 
     def 'direct match on variant means no finder interaction'() {
         given:

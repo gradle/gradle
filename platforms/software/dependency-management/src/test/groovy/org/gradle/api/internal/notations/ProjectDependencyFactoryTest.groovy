@@ -16,6 +16,7 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -31,13 +32,13 @@ class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
-    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory())
+    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory(), new DocumentationRegistry())
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {
         given:
         boolean expectedTransitive = false;
-        final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
+        final Map<Object, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
 
         and:
         projectFinder.getProject(':foo:bar') >> projectDummy
