@@ -62,9 +62,6 @@ public class ValidationProblemSerialization {
 
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemLocation.class, new LocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(FileLocation.class, new FileLocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(PluginIdLocation.class, new PluginIdLocationAdapter());
-//        gsonBuilder.registerTypeHierarchyAdapter(TaskPathLocation.class, new TaskLocationAdapter());
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
