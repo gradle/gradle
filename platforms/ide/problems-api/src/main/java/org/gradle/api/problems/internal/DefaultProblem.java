@@ -74,7 +74,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public List<ProblemLocation> getWhere() {
+    public List<ProblemLocation> getLocations() {
         return where;
     }
 
