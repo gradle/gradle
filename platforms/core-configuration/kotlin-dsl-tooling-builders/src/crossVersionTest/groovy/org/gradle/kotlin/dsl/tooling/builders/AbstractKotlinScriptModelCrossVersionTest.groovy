@@ -61,6 +61,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         if (GradleVersion.version(releasedGradleVersion) == GradleVersion.version("6.5.1")) {
             toolingApi.requireIsolatedUserHome()
         }
+        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // TODO remove - see https://github.com/gradle/gradle/issues/26810
+        file('gradle.properties') << 'org.gradle.kotlin.dsl.skipMetadataVersionCheck=false'
     }
 
     private String targetKotlinVersion

@@ -18,9 +18,12 @@ package org.gradle.internal.enterprise.impl.legacy;
 
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 
+@ServiceScope(Scopes.BuildTree.class)
 public class DefaultBuildScanBuildStartedTime implements BuildScanBuildStartedTime {
 
     private final BuildStartedTime buildStartedTime;

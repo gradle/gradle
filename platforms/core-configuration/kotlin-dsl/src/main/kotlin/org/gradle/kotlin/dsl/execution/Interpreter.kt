@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.execution
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleScriptException
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -32,6 +31,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -139,9 +139,7 @@ class Interpreter(val host: Host) {
 
         val implicitImports: List<String>
 
-        val jvmTarget: JavaVersion
-
-        val allWarningsAsErrors: Boolean
+        val compilerOptions: KotlinCompilerOptions
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
@@ -179,7 +177,7 @@ class Interpreter(val host: Host) {
                 templateId,
                 sourceHash,
                 parentClassLoader,
-                allWarningsAsErrors = host.allWarningsAsErrors
+                compilerOptions = host.compilerOptions
             )
 
         val cachedProgram =
@@ -323,8 +321,7 @@ class Interpreter(val host: Host) {
             scriptSource.withLocationAwareExceptionHandling {
                 ResidualProgramCompiler(
                     outputDir = cachedDir,
-                    jvmTarget = host.jvmTarget,
-                    allWarningsAsErrors = host.allWarningsAsErrors,
+                    compilerOptions = host.compilerOptions,
                     classPath = compilationClassPath,
                     originalSourceHash = programId.sourceHash,
                     programKind = programKind,
@@ -421,7 +418,7 @@ class Interpreter(val host: Host) {
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
                 host.hashOf(compileClassPath),
-                host.allWarningsAsErrors
+                host.compilerOptions
             )
 
             val cachedProgram = host.cachedClassFor(programId)
@@ -482,8 +479,7 @@ class Interpreter(val host: Host) {
 
                                 ResidualProgramCompiler(
                                     outputDir,
-                                    host.jvmTarget,
-                                    host.allWarningsAsErrors,
+                                    host.compilerOptions,
                                     compilationClassPath,
                                     sourceHash,
                                     programKind,

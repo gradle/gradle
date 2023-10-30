@@ -1,10 +1,10 @@
-// Copyright 2018 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -121,6 +121,50 @@ You'll learn more about source sets and the features they provide in:
 
  * <<#sec:custom_java_source_set_paths,Customizing file and directory locations>>
  * <<java_testing.adoc#sec:configuring_java_integration_tests,Configuring Java integration tests>>
+
+[[sec:implicit_sourceset_configurations]]
+=== Source set configurations
+
+When a source set is created, it also creates a number of configurations as described above.
+Build logic should **not** attempt to create or access these configurations until they are first created by the source set.
+
+When creating a source set, if one of these automatically created configurations already exists, Gradle will emit a deprecation warning.
+If the existing configuration's role is different than the role that the source set would have assigned, its role will be mutated to the correct value and another deprecation warning will be emitted.
+
+The build below demonstrates this unwanted behavior.
+
+.Configurations created prior to their associated source sets
+====
+include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.gradle.kts[tags=create-configurations]"]
+include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=create-configurations]"]
+====
+
+In this case, the following deprecation warning is emitted:
+
+```
+When creating configurations during sourceSet custom setup, Gradle found that configuration customCompileClasspath already exists with permitted usage(s):
+	Consumable - this configuration can be selected by another project as a dependency
+	Resolvable - this configuration can be resolved by this project to a set of files
+	Declarable - this configuration can have dependencies added to it
+Yet Gradle expected to create it with the usage(s):
+	Resolvable - this configuration can be resolved by this project to a set of files
+```
+
+Following two simple best practices will avoid this problem:
+
+1. Don't create configurations with names that will be used by source sets, such as names ending in `Api`, `Implementation`, `ApiElements`, `CompileOnly`, `CompileOnlyApi`, `RuntimeOnly`, `RuntimeClasspath` or `RuntimeElements`.
+(This list is not exhaustive.)
+1. Create any custom source sets prior to any custom configurations.
+
+Remember that any time you reference a configuration within the `configurations` container - with or without supplying an initialization action - Gradle will create the configuration.
+Sometimes when using the Groovy DSL this creation is not obvious, as in the example below, where `myCustomConfiguration` is created prior to the call to `extendsFrom`.
+
+.Custom Configuration creation in Groovy
+====
+include::sample[dir="snippets/java/customConfs-creation/groovy",files="build.gradle[tags=create-configurations]"]
+====
+
+For more information see <<authoring_maintainable_build_scripts.adoc#sec:dont_anticipate_configuration_creation, Don't anticipate configuration creation>>.
 
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies

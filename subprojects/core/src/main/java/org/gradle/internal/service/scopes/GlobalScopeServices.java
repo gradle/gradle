@@ -39,8 +39,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -165,10 +163,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-    protected Problems createProblemsService(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        return new DefaultProblems(buildOperationProgressEventEmitter);
-    }
-
     GradleBuildEnvironment createGradleBuildEnvironment() {
         return environment;
     }
@@ -178,6 +172,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             new DefaultServiceLocator(registry.getPluginsClassLoader())
         );
     }
+
+//    Problems createProblemsService(
+//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
+////        List<ProblemTransformer> transformers,
+////        ProblemDiagnosticsFactory problemDiagnosticsFactory
+//    ) {
+//        return new DefaultProblems(buildOperationProgressEventEmitter);
+//    }
 
     JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
         return new DefaultJdkToolsInitializer(classLoaderFactory);

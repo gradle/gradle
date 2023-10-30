@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -258,6 +259,11 @@ public class TestFile extends File {
     public void unzipTo(File target) {
         assertIsFile();
         new TestFileHelper(this).unzipTo(target, useNativeTools);
+    }
+
+    public void unzipToWithoutCheckingParentDirs(File target) {
+        assertIsFile();
+        new TestFileHelper(this).unzipTo(target, useNativeTools, false);
     }
 
     public void untarTo(File target) {
@@ -665,6 +671,10 @@ public class TestFile extends File {
 
     public TestFile createDir(Object... pathSegments) {
         return new TestFile(this, pathSegments).createDir();
+    }
+
+    public List<TestFile> createDirs(String... paths) {
+        return Arrays.stream(paths).map(this::createDir).collect(Collectors.toList());
     }
 
     public TestFile deleteDir() {

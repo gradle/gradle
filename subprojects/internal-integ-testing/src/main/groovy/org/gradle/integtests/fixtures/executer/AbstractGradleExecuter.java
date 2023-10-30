@@ -88,7 +88,6 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
-import static org.gradle.caching.internal.controller.NextGenBuildCacheController.NEXT_GEN_CACHE_SYSTEM_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
@@ -1183,6 +1182,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
+        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
+        // TODO remove - see https://github.com/gradle/gradle/issues/26810
+        properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
+
         return properties;
     }
 
@@ -1304,12 +1307,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withBuildCacheEnabled() {
         return withArgument("--build-cache");
-    }
-
-    @Override
-    public GradleExecuter withBuildCacheNgEnabled() {
-        return withBuildCacheEnabled()
-            .withArgument("-D" + NEXT_GEN_CACHE_SYSTEM_PROPERTY + "=true");
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

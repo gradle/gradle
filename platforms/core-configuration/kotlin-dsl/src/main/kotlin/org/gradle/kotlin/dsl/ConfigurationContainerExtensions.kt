@@ -53,7 +53,6 @@ inline operator fun ConfigurationContainer.invoke(
  *
  * @since 8.4
  */
-@Incubating
 class ConfigurationContainerScope
 private constructor(
     override val delegate: ConfigurationContainer
@@ -64,7 +63,7 @@ private constructor(
             ConfigurationContainerScope(container)
     }
 
-    override fun detachedConfiguration(vararg dependencies: Dependency?): Configuration =
+    override fun detachedConfiguration(vararg dependencies: Dependency): Configuration =
         delegate.detachedConfiguration(*dependencies)
 
     override fun resolvable(name: String): NamedDomainObjectProvider<ResolvableConfiguration> =

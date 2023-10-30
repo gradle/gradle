@@ -256,7 +256,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         val movedPluginJar = file("plugin.jar")
         pluginJar.renameTo(movedPluginJar)
 
-        withSettings(
+        withDefaultSettings().appendText(
             """
             buildscript {
                 dependencies {

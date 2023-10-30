@@ -15,28 +15,36 @@
  */
 
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
-import gradlebuild.instrumentation.tasks.FindInstrumentedSuperTypesTask
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform
-import gradlebuild.instrumentation.transforms.CollectDirectClassSuperTypesTransform.Companion.INSTRUMENTATION_METADATA
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_METADATA_EXTENSION
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.INSTRUMENTED_SUPER_TYPES_MERGE_TASK
+import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension.Companion.UPGRADED_PROPERTIES_MERGE_TASK
+import gradlebuild.instrumentation.tasks.InstrumentedSuperTypesMergeTask
+import gradlebuild.instrumentation.tasks.UpgradedPropertiesMergeTask
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform
+import gradlebuild.instrumentation.transforms.InstrumentationMetadataTransform.Companion.INSTRUMENTATION_METADATA
+import org.gradle.api.internal.GradleInternal
 
 /**
  * A plugin that configures tasks and transforms to generate metadata that is needed for code instrumentation.
  */
 dependencies {
-    registerTransform(CollectDirectClassSuperTypesTransform::class) {
+    registerTransform(InstrumentationMetadataTransform::class) {
         from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JVM_CLASS_DIRECTORY)
         to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, INSTRUMENTATION_METADATA)
     }
 }
 
-val extension = extensions.create<InstrumentationMetadataExtension>("instrumentationMetadata").apply {
-    classpathToInspect = files()
-    superTypesOutputFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types.properties"))
-    superTypesHashFile.convention(layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt"))
-}
+val extension = extensions.create<InstrumentationMetadataExtension>(
+    INSTRUMENTED_METADATA_EXTENSION,
+    (gradle as GradleInternal).owner.buildIdentifier,
+)
 
-tasks.register<FindInstrumentedSuperTypesTask>("findInstrumentedSuperTypes") {
+tasks.register<InstrumentedSuperTypesMergeTask>(INSTRUMENTED_SUPER_TYPES_MERGE_TASK) {
     instrumentationMetadataDirs = extension.classpathToInspect
     instrumentedSuperTypes = extension.superTypesOutputFile
-    instrumentedSuperTypesHash = extension.superTypesHashFile
+}
+
+tasks.register<UpgradedPropertiesMergeTask>(UPGRADED_PROPERTIES_MERGE_TASK) {
+    instrumentationMetadataDirs = extension.classpathToInspect
+    upgradedProperties = extension.upgradedPropertiesFile
 }

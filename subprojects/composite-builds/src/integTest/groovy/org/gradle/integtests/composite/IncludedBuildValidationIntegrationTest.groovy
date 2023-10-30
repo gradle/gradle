@@ -86,6 +86,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
 
     def "reports failure for included build name that conflicts with subproject name"() {
         given:
+        createDirs("buildA", "buildA/buildB")
         buildA.settingsFile << """
             include 'buildB'
 """
@@ -111,6 +112,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
 
     def "allows to rename included build that conflicts with subproject name"() {
         given:
+        createDirs("buildA", "buildA/buildB")
         buildA.settingsFile << """
             include 'buildB'
         """

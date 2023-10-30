@@ -1,10 +1,10 @@
-// Copyright 2017 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -227,8 +227,8 @@ There are several ways you can define the dependencies of a task. In <<tutorial_
 
 .Adding dependency on task from another project
 ====
-include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="project-a/build.gradle.kts[];project-b/build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="project-a/build.gradle[];project-b/build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----

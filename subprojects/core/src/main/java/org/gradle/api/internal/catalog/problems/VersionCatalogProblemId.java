@@ -22,6 +22,7 @@ package org.gradle.api.internal.catalog.problems;
  * Always change version_catalog_problems.adoc accordingly when renaming an ID.
  */
 public enum VersionCatalogProblemId {
+
     ACCESSOR_NAME_CLASH,
     CATALOG_FILE_DOES_NOT_EXIST,
     INVALID_ALIAS_NOTATION,
@@ -38,5 +39,5 @@ public enum VersionCatalogProblemId {
     UNDEFINED_VERSION_REFERENCE,
     UNSUPPORTED_FILE_FORMAT,
     UNSUPPORTED_FORMAT_VERSION,
-    ALIAS_NOT_FINISHED,
+    ALIAS_NOT_FINISHED
 }

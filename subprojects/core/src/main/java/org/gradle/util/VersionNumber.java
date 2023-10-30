@@ -109,7 +109,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber other) {
-        // TODO log deprecation once intellij/studio are fixed
+        logDeprecation(8);
         if (major != other.major) {
             return major - other.major;
         }
@@ -171,7 +171,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public static VersionNumber parse(String versionString) {
-        // TODO log deprecation once intellij/studio are fixed
+        logDeprecation(8);
         return DEFAULT_SCHEME.parse(versionString);
     }
 

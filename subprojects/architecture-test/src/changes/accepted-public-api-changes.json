@@ -1,51 +1,2383 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
-            "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
-            "acceptation": "Removed a static internal-only method",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
-            ]
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
         },
         {
-            "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
-            "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
-            "acceptation": "Removed a static internal-only method",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.PmdPlugin",
-            "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
-            "acceptation": "Removed a static internal-only method",
-            "changes": [
-                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs(org.gradle.jvm.toolchain.JavaLauncher,org.gradle.workers.ForkingWorkerSpec)"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
-            "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerScope(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.internal.DefaultConstructorMarker)",
-            "acceptation": "Private constructor changed to internal. This constructor was synthetically added by Kotlin to allow the private constructor to be called from companion object. It could not be called by Kotlin code.",
-            "changes": [
-                "Constructor has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.configurations(org.gradle.api.Action)",
-            "acceptation": "@since cannot be added since method is implemented via Kotlin delegation",
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getAntlr(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
             "changes": [
                 "Method added to public class"
             ]
         },
         {
-            "type": "org.gradle.util.SingleMessageLogger",
-            "member": "Class org.gradle.util.SingleMessageLogger",
-            "acceptation": "use Problems class for reporting warnings to TAPI",
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getApplication(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
             "changes": [
-                "org.gradle.internal.deprecation.DeprecationLogger.init(org.gradle.problems.buildtree.ProblemDiagnosticsFactory,org.gradle.api.logging.configuration.WarningMode,org.gradle.internal.operations.BuildOperationProgressEventEmitter)"
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getAssembler(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getAssembler-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getBase(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getBinary-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getBuild-dashboard(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getBuild-init(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getC(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getC-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCheckstyle(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getClang-compiler(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCodenarc(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getComponent-model-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp-application(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp-library(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCpp-unit-test(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCunit(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getCunit-test-suite(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getDistribution(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getEar(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getEclipse(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getEclipse-wtp(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGcc-compiler(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGoogle-test(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGoogle-test-test-suite(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGroovy(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGroovy-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getGroovy-gradle-plugin(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getHelp-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getIdea(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getIvy-publish(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJacoco(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJacoco-report-aggregation(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-gradle-plugin(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-library(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-library-distribution(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-platform(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJava-test-fixtures(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJdk-toolchains(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJvm-ecosystem(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJvm-test-suite(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJvm-toolchain-management(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getJvm-toolchains(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getLanguage-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getLifecycle-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getMaven-publish(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getMicrosoft-visual-cpp-compiler(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getNative-component(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getNative-component-model(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-c(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-c-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-cpp(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getObjective-cpp-lang(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getPmd(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getProject-report(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getProject-reports(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getPublishing(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getReporting-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getScala(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getScala-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSigning(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getStandard-tool-chains(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSwift-application(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSwift-library(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSwiftpm-export(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getTest-report-aggregation(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getTest-suite-base(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getVersion-catalog(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getVisual-studio(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWar(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWindows-resource-script(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWindows-resources(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getWrapper(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getXcode(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getXctest(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyConstraintHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyConstraintHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope$default(org.gradle.kotlin.dsl.DependencyHandlerScope,org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1,int,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.Object)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.artifacts.ModuleDependency,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.Provider)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.Provider,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.ProviderConvertible)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.DependencyHandlerScope.invokeDependencyScope(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.provider.ProviderConvertible,kotlin.jvm.functions.Function1)",
+            "acceptation": "false-positive, Kotlin name invoke is marked correctly, but uses @JvmName",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.domainObjectContainer(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.domainObjectContainer(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass,org.gradle.api.NamedDomainObjectFactory)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.domainObjectSet(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.listProperty(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.mapProperty(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.named(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass,java.lang.String)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.namedDomainObjectList(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.namedDomainObjectSet(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.newInstance(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.polymorphicDomainObjectContainer(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.property(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1cbh1oqkvm762j10e96dawuh5Kt.setProperty(org.gradle.api.model.ObjectFactory,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt.credentials(org.gradle.api.artifacts.repositories.AuthenticationSupported,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt.credentials(org.gradle.api.artifacts.repositories.AuthenticationSupported,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1f8te1iwfyue2ug9e4la8t8peKt.getCredentials(org.gradle.api.artifacts.repositories.AuthenticationSupported,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt.apply(org.gradle.api.plugins.PluginContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt.findPlugin(org.gradle.api.plugins.PluginContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt.getAt(org.gradle.api.plugins.PluginContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt.getPlugin(org.gradle.api.plugins.PluginContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1j20ljs9xowlw6c963ek286ggKt.hasPlugin(org.gradle.api.plugins.PluginContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt.environment(org.gradle.api.tasks.testing.Test,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_1o8ms31elr0oj4cvxysxgs6e7Kt.systemProperties(org.gradle.api.tasks.testing.Test,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt.getModel(org.gradle.tooling.ProjectConnection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt.getModel(org.gradle.tooling.ProjectConnection,kotlin.reflect.KClass,org.gradle.tooling.ResultHandler)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_23j3y7znoq6yp04k00flaam5eKt.model(org.gradle.tooling.ProjectConnection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2ljgydcyecwzbllqfsk3k6ny4Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2ljgydcyecwzbllqfsk3k6ny4Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2ljgydcyecwzbllqfsk3k6ny4Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2ljgydcyecwzbllqfsk3k6ny4Kt.withType(org.gradle.api.NamedDomainObjectSet,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt.withArtifacts(org.gradle.api.artifacts.query.ArtifactResolutionQuery,kotlin.reflect.KClass,java.util.Collection)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_2nkzfp9vk1w8kpccqdrc12q9pKt.withArtifacts(org.gradle.api.artifacts.query.ArtifactResolutionQuery,kotlin.reflect.KClass,kotlin.reflect.KClass[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt.registerBuildCacheService(org.gradle.caching.configuration.BuildCacheConfiguration,kotlin.reflect.KClass,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt.remote(org.gradle.caching.configuration.BuildCacheConfiguration,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_36fbvlrwm7xvqsifh8exjkbr0Kt.remote(org.gradle.caching.configuration.BuildCacheConfiguration,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3ccx9qt1rxl3wzrx6gavdju4rKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3ccx9qt1rxl3wzrx6gavdju4rKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3ccx9qt1rxl3wzrx6gavdju4rKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3ccx9qt1rxl3wzrx6gavdju4rKt.fork(org.gradle.api.tasks.compile.GroovyCompileOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3gtk3jjp57s0ohxa87x3kbgqaKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3gtk3jjp57s0ohxa87x3kbgqaKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3gtk3jjp57s0ohxa87x3kbgqaKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3gtk3jjp57s0ohxa87x3kbgqaKt.register(org.gradle.jvm.toolchain.JavaToolchainResolverRegistry,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt.apply(org.gradle.api.Script,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3junz439hluumqhrib3vuxslyKt.fileTree(org.gradle.api.Script,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3nmb2qjzin72lydud9myfmci6Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3nmb2qjzin72lydud9myfmci6Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3nmb2qjzin72lydud9myfmci6Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3nmb2qjzin72lydud9myfmci6Kt.setConfigProperties(org.gradle.api.plugins.quality.CheckstyleExtension,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt.named(org.gradle.api.tasks.TaskCollection,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt.named(org.gradle.api.tasks.TaskCollection,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3sx1g6kmdmnb8jxwpxvm4pxs0Kt.withType(org.gradle.api.tasks.TaskCollection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4bjyvck275dm80nsvunexs63sKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4bjyvck275dm80nsvunexs63sKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4bjyvck275dm80nsvunexs63sKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4bjyvck275dm80nsvunexs63sKt.apply(org.gradle.api.plugins.PluginManager,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt.credentials(org.gradle.api.provider.ProviderFactory,kotlin.reflect.KClass,java.lang.String)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt.credentials(org.gradle.api.provider.ProviderFactory,kotlin.reflect.KClass,org.gradle.api.provider.Provider)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4eu6i08rw85sthowmqs31rom6Kt.of(org.gradle.api.provider.ProviderFactory,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt.environment(org.gradle.process.ProcessForkOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt.setEnvironment(org.gradle.process.ProcessForkOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4q8db0fju46ujraxcpjzpivn1Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4q8db0fju46ujraxcpjzpivn1Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4q8db0fju46ujraxcpjzpivn1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4q8db0fju46ujraxcpjzpivn1Kt.define(org.gradle.api.tasks.compile.AbstractOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4vqe7vkwi3h45wskb54l2vuiuKt.systemProperties(org.gradle.process.JavaForkOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt.add(org.gradle.api.attributes.CompatibilityRuleChain,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_51cz05pnhwbpe4qj0tu5dam2yKt.add(org.gradle.api.attributes.CompatibilityRuleChain,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_52mdecp60lwofxsvx7jrdkfqqKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_52mdecp60lwofxsvx7jrdkfqqKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_52mdecp60lwofxsvx7jrdkfqqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_52mdecp60lwofxsvx7jrdkfqqKt.environment(org.gradle.api.tasks.AbstractExecTask,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_58bgdnjpk5naazxhjmq6sqxtkKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_58bgdnjpk5naazxhjmq6sqxtkKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_58bgdnjpk5naazxhjmq6sqxtkKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_58bgdnjpk5naazxhjmq6sqxtkKt.withType(org.gradle.api.DomainObjectSet,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt.all(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt.all(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_5grgf5iwqsk9k9dctivlytlbpKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_609zmbhp659gljyhrd1j6b82iKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_609zmbhp659gljyhrd1j6b82iKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_609zmbhp659gljyhrd1j6b82iKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_609zmbhp659gljyhrd1j6b82iKt.withType(org.gradle.api.plugins.PluginCollection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6d88jwat8i57xhkcwv0mltqfyKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6d88jwat8i57xhkcwv0mltqfyKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6d88jwat8i57xhkcwv0mltqfyKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6d88jwat8i57xhkcwv0mltqfyKt.withNormalizer(org.gradle.api.tasks.TaskInputFilePropertyBuilder,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6em2cyhahj71o8uu9vwswmumyKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6em2cyhahj71o8uu9vwswmumyKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6em2cyhahj71o8uu9vwswmumyKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6em2cyhahj71o8uu9vwswmumyKt.always(org.gradle.api.flow.FlowScope,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt.project(org.gradle.api.artifacts.dsl.DependencyHandler,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_6r8qmvh9gjcwpnl2oja3f2vx9Kt.registerTransform(org.gradle.api.artifacts.dsl.DependencyHandler,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7f4z1hymswj2v00z0evxlagpvKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7f4z1hymswj2v00z0evxlagpvKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7f4z1hymswj2v00z0evxlagpvKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7f4z1hymswj2v00z0evxlagpvKt.registerBinding(org.gradle.api.ExtensiblePolymorphicDomainObjectContainer,kotlin.reflect.KClass,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt.expand(org.gradle.api.file.CopySpec,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt.expand(org.gradle.api.file.CopySpec,kotlin.Pair[],org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt.filter(org.gradle.api.file.CopySpec,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7nkz7sz02wy68crw98onupqumKt.filter(org.gradle.api.file.CopySpec,kotlin.reflect.KClass,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt.named(org.gradle.api.NamedDomainObjectCollection,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt.named(org.gradle.api.NamedDomainObjectCollection,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7s4dflt5i20ylta59womvz4i0Kt.withType(org.gradle.api.NamedDomainObjectCollection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt.expand(org.gradle.api.tasks.AbstractCopyTask,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt.expand(org.gradle.api.tasks.AbstractCopyTask,kotlin.Pair[],org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt.filter(org.gradle.api.tasks.AbstractCopyTask,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_7sgaa1m4fcct5e6hhka0oifs7Kt.filter(org.gradle.api.tasks.AbstractCopyTask,kotlin.reflect.KClass,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt.debug(org.gradle.api.tasks.compile.CompileOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_87iiq4r8d2anat7cruxlw9c13Kt.fork(org.gradle.api.tasks.compile.CompileOptions,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_88qk23aqx4tr7j0dbqh8lpcg5Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_88qk23aqx4tr7j0dbqh8lpcg5Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_88qk23aqx4tr7j0dbqh8lpcg5Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_88qk23aqx4tr7j0dbqh8lpcg5Kt.properties(org.gradle.api.tasks.TaskInputs,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt.configureEach(org.gradle.language.BinaryCollection,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt.get(org.gradle.language.BinaryCollection,kotlin.reflect.KClass,org.gradle.api.specs.Spec)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt.whenElementFinalized(org.gradle.language.BinaryCollection,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_890tuy1y2y3ik43ikq7k8x4e8Kt.whenElementKnown(org.gradle.language.BinaryCollection,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt.properties(org.gradle.api.tasks.WriteProperties,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8tlt3ezu4cu8d6afi709nfjgnKt.setProperties(org.gradle.api.tasks.WriteProperties,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.findModel(org.gradle.tooling.BuildController,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.findModel(org.gradle.tooling.BuildController,kotlin.reflect.KClass,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.findModel(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.findModel(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.getCanQueryProjectModelInParallel(org.gradle.tooling.BuildController,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.getModel(org.gradle.tooling.BuildController,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.getModel(org.gradle.tooling.BuildController,kotlin.reflect.KClass,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.getModel(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.getModel(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_913w5ajggwmo37gebhdmau77qKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_913w5ajggwmo37gebhdmau77qKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_913w5ajggwmo37gebhdmau77qKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_913w5ajggwmo37gebhdmau77qKt.submit(org.gradle.workers.WorkQueue,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt.attributes(org.gradle.api.java.archives.Manifest,java.lang.String,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_9e88t8txwba297cni0pn13atxKt.attributes(org.gradle.api.java.archives.Manifest,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_a7pwanwto8dellniw7mgcqeu1Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_a7pwanwto8dellniw7mgcqeu1Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_a7pwanwto8dellniw7mgcqeu1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_a7pwanwto8dellniw7mgcqeu1Kt.getDescriptor(org.gradle.api.artifacts.ComponentMetadataContext,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt.environment(org.gradle.api.tasks.JavaExec,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ah6taj10ozq1dsj87aah4t726Kt.systemProperties(org.gradle.api.tasks.JavaExec,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt.setComponentVersionsLister(org.gradle.api.artifacts.repositories.MetadataSupplierAware,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt.setComponentVersionsLister(org.gradle.api.artifacts.repositories.MetadataSupplierAware,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt.setMetadataSupplier(org.gradle.api.artifacts.repositories.MetadataSupplierAware,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_alnsdum5fytm58sus4e9h7p4qKt.setMetadataSupplier(org.gradle.api.artifacts.repositories.MetadataSupplierAware,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.containerWithType(org.gradle.api.PolymorphicDomainObjectContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.create(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.create(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.maybeCreate(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.register(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_aqc1prcup7wqxn1mei06ppzojKt.register(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_atax470l3ngupolpii62aprgeKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_atax470l3ngupolpii62aprgeKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_atax470l3ngupolpii62aprgeKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_atax470l3ngupolpii62aprgeKt.apply(org.gradle.api.plugins.PluginAware,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b2kx09idck9f7urqomra9sskmKt.from(org.gradle.vcs.VcsMapping,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt.expand(org.gradle.api.file.ContentFilterable,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt.expand(org.gradle.api.file.ContentFilterable,kotlin.Pair[],org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt.filter(org.gradle.api.file.ContentFilterable,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b5t6md6hfpth5cttuqdhnoz9Kt.filter(org.gradle.api.file.ContentFilterable,kotlin.reflect.KClass,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt.withType(org.gradle.api.DomainObjectCollection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_b6hreilpcqjozdnfv1zukrpxKt.withType(org.gradle.api.DomainObjectCollection,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_betq8docbf37kdss0ee5bdszkKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_betq8docbf37kdss0ee5bdszkKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_betq8docbf37kdss0ee5bdszkKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_betq8docbf37kdss0ee5bdszkKt.withType(org.gradle.api.NamedDomainObjectList,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt.container(org.gradle.api.Project,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt.container(org.gradle.api.Project,kotlin.reflect.KClass,org.gradle.api.NamedDomainObjectFactory)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt.fileTree(org.gradle.api.Project,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bladuokkh8vcvynu9pi0fqdxbKt.task(org.gradle.api.Project,java.lang.String,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bvszmnv75ifin1wbtzzexd0v2Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bvszmnv75ifin1wbtzzexd0v2Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bvszmnv75ifin1wbtzzexd0v2Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_bvszmnv75ifin1wbtzzexd0v2Kt.getDescriptor(org.gradle.api.artifacts.ComponentSelection,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_c6cekefx2p4w6y6mn9j6ksou4Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_c6cekefx2p4w6y6mn9j6ksou4Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_c6cekefx2p4w6y6mn9j6ksou4Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_c6cekefx2p4w6y6mn9j6ksou4Kt.dir(org.gradle.api.tasks.SourceSetOutput,java.lang.Object,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ceyhl8hlyqnij91nybkngzfkjKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ceyhl8hlyqnij91nybkngzfkjKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ceyhl8hlyqnij91nybkngzfkjKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ceyhl8hlyqnij91nybkngzfkjKt.create(org.gradle.platform.base.BinaryTasksCollection,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt.defaultImplementation(org.gradle.platform.base.TypeBuilder,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cgmwxekq82whdgdahlr0cj8iiKt.internalView(org.gradle.platform.base.TypeBuilder,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cj6ec4ip9e6sve0k0dav2xdgtKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cj6ec4ip9e6sve0k0dav2xdgtKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cj6ec4ip9e6sve0k0dav2xdgtKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cj6ec4ip9e6sve0k0dav2xdgtKt.getArtifacts(org.gradle.api.artifacts.result.ComponentArtifactsResult,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt.flatDir(org.gradle.api.artifacts.dsl.RepositoryHandler,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt.mavenCentral(org.gradle.api.artifacts.dsl.RepositoryHandler,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt.plugin(org.gradle.api.plugins.ObjectConfigurationAction,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cz5lmjfeaj6a5jylq0xwhv49wKt.type(org.gradle.api.plugins.ObjectConfigurationAction,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.add(org.gradle.api.plugins.ExtensionContainer,kotlin.reflect.KClass,java.lang.String,java.lang.Object)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.configure(org.gradle.api.plugins.ExtensionContainer,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.create(org.gradle.api.plugins.ExtensionContainer,java.lang.String,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.create(org.gradle.api.plugins.ExtensionContainer,kotlin.reflect.KClass,java.lang.String,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.create(org.gradle.api.plugins.ExtensionContainer,org.gradle.api.reflect.TypeOf,java.lang.String,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.findByType(org.gradle.api.plugins.ExtensionContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_dg8bak0kaqsdqqhi7xetmyiplKt.getByType(org.gradle.api.plugins.ExtensionContainer,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.create(org.gradle.api.tasks.TaskContainer,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.register(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.register(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass,java.lang.Object[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.register(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_e5rk2x8o7f6mxp6bdlb58f4hrKt.replace(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.afterEach(org.gradle.model.ModelMap,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.beforeEach(org.gradle.model.ModelMap,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.create(org.gradle.model.ModelMap,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.create(org.gradle.model.ModelMap,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.named(org.gradle.model.ModelMap,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.withType(org.gradle.model.ModelMap,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.withType(org.gradle.model.ModelMap,kotlin.reflect.KClass,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_ecvwrfyw4eb7wwtzo3bpdp6qpKt.withType(org.gradle.model.ModelMap,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt.add(org.gradle.api.attributes.DisambiguationRuleChain,kotlin.reflect.KClass)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_eq8wgy9q40hmvcm6t8p19hgobKt.add(org.gradle.api.attributes.DisambiguationRuleChain,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_erf2xhrqr36mq5qab8vprh3ecKt.setConfigProperties(org.gradle.api.plugins.quality.Checkstyle,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_rfwghowjhqxm22skenwjx9cKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_rfwghowjhqxm22skenwjx9cKt",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_rfwghowjhqxm22skenwjx9cKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_rfwghowjhqxm22skenwjx9cKt.facet(org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet,kotlin.Pair[])",
+            "acceptation": "Adding generated Kotlin DSL extensions for Gradle API to the binary compatibility check",
+            "changes": [
+                "Method added to public class"
             ]
         }
     ]

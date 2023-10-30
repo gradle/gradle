@@ -32,7 +32,7 @@ pluginManagement {
         id "biz.aQute.bnd.builder" version "${TestedVersions.bnd}"
     }
 }
-    
+
 rootProject.name = 'bnd-smoke-test'
 """
     }
@@ -368,9 +368,6 @@ public class MyUtil {
         def pathToBndbnd = "bnd.bnd"
         def pathToBndrun = "my.bndrun"
 
-        settingsFile << """
-include "direct"
-"""
         buildFile << """
 ${addBNDBuilderPlugin()}
 

@@ -75,6 +75,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "evaluates only project referenced in the task list"() {
+        createDirs("api", "impl", "util", "util/impl")
         settingsFile << "include 'api', 'impl', 'util', 'util:impl'"
         buildFile << "allprojects { task foo }"
 
@@ -95,6 +96,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "test expects configuration phase")
     def "follows java project dependencies"() {
+        createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << "allprojects { apply plugin: 'java-library' } "
 
@@ -141,6 +143,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can have cycles in project dependencies"() {
+        createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << """
 allprojects { apply plugin: 'java-library' }
@@ -161,6 +164,7 @@ project(':api') {
     }
 
     def "follows project dependencies when run in subproject"() {
+        createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
 
         file("api/build.gradle") << "configurations { api }"
@@ -179,6 +183,7 @@ project(':api') {
     }
 
     def "name matching execution from root evaluates all projects"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         buildFile << "task foo"
 
@@ -196,6 +201,7 @@ project(':api') {
     }
 
     def "name matching execution from subproject evaluates only the subproject recursively"() {
+        createDirs("api", "impl", "impl/one", "impl/two", "impl/two/abc")
         settingsFile << "include 'api', 'impl:one', 'impl:two', 'impl:two:abc'"
         file("impl/build.gradle") << "task foo"
 
@@ -208,6 +214,7 @@ project(':api') {
     }
 
     def "may run implicit tasks from root"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
 
         when:
@@ -218,6 +225,7 @@ project(':api') {
     }
 
     def "may run implicit tasks for subproject"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
 
         when:
@@ -228,6 +236,7 @@ project(':api') {
     }
 
     def "respects default tasks"() {
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'"
         file("api/build.gradle") << """
             task foo
@@ -244,6 +253,7 @@ project(':api') {
     }
 
     def "respects evaluationDependsOn"() {
+        createDirs("api", "impl", "other")
         settingsFile << "include 'api', 'impl', 'other'"
         file("api/build.gradle") << """
             evaluationDependsOn(":impl")
@@ -258,6 +268,7 @@ project(':api') {
 
     @ToBeFixedForConfigurationCache(because = "test expects configuration phase")
     def "respects buildProjectDependencies setting"() {
+        createDirs("api", "impl", "other")
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
             apply plugin: 'java-library'
@@ -285,6 +296,7 @@ project(':api') {
     }
 
     def "respects external task dependencies"() {
+        createDirs("api", "impl", "other")
         settingsFile << "include 'api', 'impl', 'other'"
         file("build.gradle") << "allprojects { task foo }"
         file("impl/build.gradle") << """
@@ -320,6 +332,7 @@ project(':api') {
     }
 
     def "may configure project at execution time"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         file('a/build.gradle') << """
             configurations { conf }
@@ -344,6 +357,7 @@ project(':api') {
     }
 
     def "handles buildNeeded"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """ apply plugin: 'java' """
         file("b/build.gradle") << """
@@ -362,6 +376,7 @@ project(':api') {
     }
 
     def "handles buildDependents"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """ apply plugin: 'java' """
         file("b/build.gradle") << """
@@ -381,6 +396,7 @@ project(':api') {
     }
 
     def "task command-line argument may look like a task path"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         file("a/build.gradle") << """
 task one(type: SomeTask)
@@ -402,6 +418,7 @@ class SomeTask extends DefaultTask {
     }
 
     def "does not configure all projects when excluded task path is not qualified and is exact match for task in default project"() {
+        createDirs("a", "a/child", "b", "b/child", "c")
         settingsFile << "include 'a', 'a:child', 'b', 'b:child', 'c'"
         file('a').mkdirs()
         file('b').mkdirs()
@@ -438,6 +455,7 @@ allprojects {
     }
 
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
+        createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
         buildFile << """
@@ -466,6 +484,7 @@ project(':b') {
     }
 
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
+        createDirs("a", "b", "c", "c/child")
         settingsFile << "include 'a', 'b', 'c', 'c:child'"
         file('c').mkdirs()
         buildFile << """
@@ -492,6 +511,7 @@ allprojects {
     }
 
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
+        createDirs("a", "b", "b/child", "c")
         settingsFile << "include 'a', 'b', 'b:child', 'c'"
         file('b').mkdirs()
         buildFile << """
@@ -518,6 +538,7 @@ allprojects {
     }
 
     def "extra properties defined in parent project are accessible to child"() {
+        createDirs("a", "a/child")
         settingsFile << "include 'a', 'a:child'"
         file('a/build.gradle') << """
 ext.foo = "Moo!!!"

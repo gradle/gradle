@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 = Debugging and diagnosing cache misses
 
 To make the most of task output caching, it is important that any necessary inputs to your tasks are specified correctly, while at the same time avoiding unneeded inputs.
@@ -196,7 +210,7 @@ Build cache key for task ':compileJava' is 8ebf682168823f662b9be34d27afdf77
 The log shows e.g. which source files constitute the `stableSources` for the `compileJava` task.
 To find the actual differences between two builds you need to resort to matching up and comparing those hashes yourself.
 
-TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[Gradle Enterprise] already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan(TM) Comparison tool.
+TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[Develocity] already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan(TM) Comparison tool.
 
 [[diagnosing_cache_miss]]
 == Diagnosing the reasons for a cache miss

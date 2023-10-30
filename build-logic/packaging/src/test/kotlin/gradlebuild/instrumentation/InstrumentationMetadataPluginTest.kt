@@ -16,16 +16,15 @@
 
 package gradlebuild.instrumentation
 
-import org.gradle.internal.hash.HashCode
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.util.Properties
 
 
 class InstrumentationMetadataPluginTest {
+
     @TempDir
     private
     lateinit var temporaryFolder: File
@@ -40,39 +39,50 @@ class InstrumentationMetadataPluginTest {
     }
 
     @Test
-    fun `should output instrumented-super-types properties with instrumented org-gradle super types`() {
+    fun `should output instrumented-super-types properties with instrumented org-gradle super types with stable order`() {
         // When
         assertSucceeds()
 
         // Then
-        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
-        val instrumentedSuperTypesHash = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types-hash.txt")
-        val expectedSuperTypes = mapOf(
-            "org/gradle/api/AbstractTask" to "org/gradle/api/Task",
-            "org/gradle/api/DefaultTask" to "org/gradle/api/DefaultTask,org/gradle/api/Task",
-            "org/gradle/api/Task" to "org/gradle/api/Task",
-            "org/gradle/quality/Checkstyle" to "org/gradle/api/DefaultTask,org/gradle/api/Task",
-            "org/gradle/quality/SourceTask" to "org/gradle/api/DefaultTask,org/gradle/api/Task"
-        ).toSortedMap()
+        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readLines()
+        val expectedSuperTypes = listOf(
+            "org/gradle/api/AbstractTask=org/gradle/api/Task",
+            "org/gradle/api/DefaultTask=org/gradle/api/DefaultTask,org/gradle/api/Task",
+            "org/gradle/api/Task=org/gradle/api/Task",
+            "org/gradle/quality/Checkstyle=org/gradle/api/DefaultTask,org/gradle/api/Task",
+            "org/gradle/quality/SourceTask=org/gradle/api/DefaultTask,org/gradle/api/Task"
+        )
         assert(instrumentedSuperTypes == expectedSuperTypes) {
-            "Expected instrumented-super-types.properties to be equal to:\n$expectedSuperTypes but was:\n$instrumentedSuperTypes"
-        }
-        val hashBytes = instrumentedSuperTypesHash.readBytes()
-        assert(hashBytes.isNotEmpty()) {
-            "Expected instrumented-super-types-hash.txt to not be empty"
-        }
-        assert(HashCode.fromBytes(hashBytes).toString() == "013efe852ca15532a60e3e133c783a81") {
-            "Expected instrumented-super-types-hash.txt hash code to be: 013efe852ca15532a60e3e133c783a81, but was ${HashCode.fromBytes(hashBytes)}"
+            "Expected instrumented-super-types.properties is not equal to expected:\nExpected:\n$expectedSuperTypes,\nActual:\n$instrumentedSuperTypes"
         }
     }
 
     @Test
-    fun `should output empty instrumented-super-types properties file and empty hash file if none of types is instrumented`() {
+    fun `should output merged upgraded properties json file in stable order`() {
+        // When
+        assertSucceeds()
+
+        // Then
+        val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
+        upgradedProperties.assertHasContentEqualTo("[{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"maxErrors\"},{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"minErrors\"}," +
+            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"enabled\"},{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"dependencies\"}]")
+    }
+
+    @Test
+    fun `should not output files if none of types is instrumented`() {
         // Given
-        // Override the build.gradle file to not write instrumented-classes.txt file
+        // Override the build.gradle files to not write instrumented-classes.txt or upgraded-properties.json file
         File(projectRoot, "core/build.gradle").writeText("""
             plugins {
                 id("java-library")
+            }
+        """)
+        File(projectRoot, "code-quality/build.gradle").writeText("""
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(":core"))
             }
         """)
 
@@ -80,29 +90,76 @@ class InstrumentationMetadataPluginTest {
         assertSucceeds()
 
         // Then
-        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties").readPropertiesFileToSorterMap()
-        val instrumentedSuperTypesHash = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types-hash.txt")
-        assert(instrumentedSuperTypes.isEmpty()) {
-            "Expected instrumented-super-types.properties to be empty but contained $instrumentedSuperTypes"
-        }
-        assert(instrumentedSuperTypesHash.length() == 0L) {
-            "Expected instrumented-super-types-hash.txt to be empty but had length ${instrumentedSuperTypesHash.length()}"
+        val instrumentedSuperTypes = File(projectRoot, "distribution/build/instrumentation/instrumented-super-types.properties")
+        val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
+        instrumentedSuperTypes.assertDoesNotExist()
+        upgradedProperties.assertDoesNotExist()
+    }
+
+    @Test
+    fun `should not fail if metadata is not changed`() {
+        // Given
+        val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
+
+        // When
+        assertSucceeds()
+
+        // Then, assert content from both project's metadata is in final metadata
+        upgradedProperties.assertContentContains("org.gradle.api.Task")
+        upgradedProperties.assertContentContains("org.gradle.api.plugins.quality.Checkstyle")
+
+        // Given, change only some classes but not metadata
+        File(projectRoot, "core/src/main/java/org/gradle/api/TaskAction.java").writeText("""
+            package org.gradle.api;
+            public interface TaskAction {}
+        """)
+
+        // When
+        assertSucceeds()
+
+        // Then, assert content from both project's metadata is still in final metadata
+        upgradedProperties.assertContentContains("org.gradle.api.Task")
+        upgradedProperties.assertContentContains("org.gradle.api.plugins.quality.Checkstyle")
+    }
+
+    private
+    fun File.assertDoesNotExist() {
+        assert(!this.exists()) {
+            "Expected ${this.name} to not exist, but it did"
         }
     }
 
     private
-    fun File.readPropertiesFileToSorterMap() = this.inputStream()
-        .use { Properties().apply { load(it) } }
-        .map { it.key as String to it.value as String }
-        .toMap()
-        .toSortedMap()
+    fun File.assertIsNotEmpty() {
+        assert(this.exists()) {
+            "Expected ${this.name} to exist, but it didn't"
+        }
+        assert(this.length() != 0L) {
+            "Expected ${this.name} to not be empty but was"
+        }
+    }
+
+    private
+    fun File.assertHasContentEqualTo(content: String) {
+        assert(this.readText() == content) {
+            "Expected ${this.name} content:\nExpected:\n'$content',\nActual:\n'${this.readText()}'"
+        }
+    }
+
+    private
+    fun File.assertContentContains(text: String) {
+        val fullContent = this.readText()
+        assert(fullContent.contains(text)) {
+            "Expected ${this.name} content to contain text: '$text', but it didn't. Full content:\n$fullContent"
+        }
+    }
 
     private
     fun runner() = GradleRunner.create()
         .withProjectDir(projectRoot)
         .withPluginClasspath()
         .forwardOutput()
-        .withArguments(":distribution:findInstrumentedSuperTypes")
+        .withArguments(":distribution:mergeInstrumentedSuperTypes", ":distribution:mergeUpgradedProperties", "--stacktrace")
 
     private
     fun assertSucceeds() {
@@ -133,7 +190,15 @@ class InstrumentationMetadataPluginTest {
                 doLast {
                     // Simulate annotation processor output
                     file("build/classes/java/main/org/gradle/internal/instrumentation").mkdirs()
-                    file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt") << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
+                    def instrumentedClassesFile = file("build/classes/java/main/org/gradle/internal/instrumentation/instrumented-classes.txt")
+                    if (!instrumentedClassesFile.exists()) {
+                        instrumentedClassesFile << "org/gradle/api/Task\norg/gradle/api/DefaultTask"
+                    }
+                    file("build/classes/java/main/META-INF/upgrades").mkdirs()
+                    def upgradedPropertiesFile = file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json")
+                    if (!upgradedPropertiesFile.exists()) {
+                        upgradedPropertiesFile << '[{"containingType":"org.gradle.api.Task","propertyName":"enabled"},{"containingType":"org.gradle.api.Task","propertyName":"dependencies"}]'
+                    }
                 }
             }
         """)
@@ -160,6 +225,16 @@ class InstrumentationMetadataPluginTest {
             }
             dependencies {
                 implementation(project(":core"))
+            }
+            tasks.named("compileJava") {
+                doLast {
+                    // Simulate annotation processor output
+                    file("build/classes/java/main/META-INF/upgrades").mkdirs()
+                    def upgradedPropertiesFile = file("build/classes/java/main/META-INF/upgrades/upgraded-properties.json")
+                    if (!upgradedPropertiesFile.exists()) {
+                        upgradedPropertiesFile << '[{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"maxErrors"},{"containingType":"org.gradle.api.plugins.quality.Checkstyle","propertyName":"minErrors"}]'
+                    }
+                }
             }
         """)
         File(codeQualityDir, "src/main/java/org/gradle/quality").mkdirs()
@@ -192,7 +267,7 @@ class InstrumentationMetadataPluginTest {
             instrumentationMetadata {
                 classpathToInspect = createInstrumentationMetadataViewOf(configurations.runtimeClasspath)
                 superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
-                superTypesHashFile = layout.buildDirectory.file("instrumentation/instrumented-super-types-hash.txt")
+                upgradedPropertiesFile = layout.buildDirectory.file("instrumentation/upgraded-properties.json")
             }
         """)
     }

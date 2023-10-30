@@ -22,6 +22,7 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
     @ToBeFixedForConfigurationCache(bottomSpecs = ['CppLibraryDependenciesIntegrationTest', 'CppApplicationDependenciesIntegrationTest'])
     def "can define different implementation dependencies on each binary"() {
         given:
+        createDirs("lib")
         settingsFile << 'include "lib"'
         makeComponentWithLibrary()
         buildFile << """

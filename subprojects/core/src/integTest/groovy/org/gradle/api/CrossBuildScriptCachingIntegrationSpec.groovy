@@ -712,6 +712,7 @@ task fastTask { }
     }
 
     String settings(String... projects) {
+        createDirs(projects)
         String includes = "include ${projects.collect { "'$it'" }.join(', ')}"
         """
             ${instrument("'settings'")}
@@ -720,6 +721,7 @@ task fastTask { }
     }
 
     String settingsWithBuildScriptsUseProjectName(String... projects) {
+        createDirs(projects)
         String includes = "include ${projects.collect { "'$it'" }.join(', ')}"
         """
             ${instrument("'settings'")}

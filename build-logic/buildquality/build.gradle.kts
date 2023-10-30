@@ -5,7 +5,8 @@ plugins {
 description = "Provides plugins to configure quality checks (incubating report, CodeNarc, et al)"
 
 dependencies {
-    implementation(project(":basics"))
+    implementation("gradlebuild:basics")
+
     implementation(project(":cleanup"))
     implementation(project(":documentation"))
     implementation(project(":integration-testing"))

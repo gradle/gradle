@@ -16,15 +16,17 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Test
 
 
-class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractPluginIntegrationTest() {
+class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can configure custom kotlin options on a kotlin-dsl project`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
         val buildSrcBuildScript = withKotlinDslPluginIn("buildSrc")

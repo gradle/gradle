@@ -69,12 +69,18 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
     /**
      * Common method for handling annotations.
      */
-    void visitAnnotation(Requires annotation, SpecElementInfo feature) {
-        def predicateClassNames = annotation.value() as List
+    void visitAnnotation(Requires annotation, SpecElementInfo specOfFeature) {
+        List<Class> predicateClassNames = annotation.value() as List<Class>
+
+        if (specOfFeature.parent instanceof SpecInfo) {
+            predicateClassNames += (specOfFeature.parent as SpecInfo).getAnnotationsByType(Requires)
+                .collect { (it as Requires).value() }
+                .flatten() as List<Class>
+        }
 
         PredicatesFile.checkValidCombinations(predicateClassNames, acceptedCombinations)
         // If all preconditions are met, we DON'T skip the tests
-        feature.skipped |= !TestPrecondition.allSatisfied(annotation.value())
+        specOfFeature.skipped |= !TestPrecondition.allSatisfied(annotation.value())
     }
 
 }

@@ -13,7 +13,6 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
-import configurations.CompileAllBuildCacheNG
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
@@ -59,7 +58,7 @@ data class CIBuildModel(
         Stage(
             StageName.QUICK_FEEDBACK_LINUX_ONLY,
             specificBuilds = listOf(
-                SpecificBuild.CompileAll, SpecificBuild.SanityCheck, SpecificBuild.CompileAllBuildCacheNG, SpecificBuild.CompileAllWithNGRemote
+                SpecificBuild.CompileAll, SpecificBuild.SanityCheck
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
@@ -115,7 +114,8 @@ data class CIBuildModel(
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
                 SpecificBuild.FlakyTestQuarantineMacOsM1,
-                SpecificBuild.FlakyTestQuarantineWindows
+                SpecificBuild.FlakyTestQuarantineWindows,
+                SpecificBuild.GradleceptionWithMaxLtsJdk,
             ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -349,16 +349,6 @@ enum class SpecificBuild {
             return CompileAll(model, stage)
         }
     },
-    CompileAllBuildCacheNG {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllBuildCacheNG(model, stage)
-        }
-    },
-    CompileAllWithNGRemote {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllBuildCacheNG(model, stage, oldCacheWithNgRemote = true)
-        }
-    },
     SanityCheck {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SanityCheck(model, stage)
@@ -371,12 +361,17 @@ enum class SpecificBuild {
     },
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default")
         }
     },
     GradleceptionWithGroovy4 {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return Gradleception(model, stage, true)
+            return Gradleception(model, stage, BuildToolBuildJvm, "Default", bundleGroovy4 = true)
+        }
+    },
+    GradleceptionWithMaxLtsJdk {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
         }
     },
     CheckLinks {

@@ -77,6 +77,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not automatically apply plugin to subprojects"() {
         when:
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
             assert pluginManager.hasPlugin('$fixture.id')

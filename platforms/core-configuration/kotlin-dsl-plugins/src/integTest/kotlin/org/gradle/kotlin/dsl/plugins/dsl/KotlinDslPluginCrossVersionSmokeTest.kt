@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -31,13 +33,14 @@ import org.junit.Test
  */
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
+    override val forceLocallyBuiltKotlinDslPlugins = false
+
     // Previous versions depend on Kotlin that is not supported with Gradle >= 8.0
     val oldestSupportedKotlinDslPluginVersion = "3.2.4"
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can run with first version of kotlin-dsl plugin supporting Gradle 8_0`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion)).appendText(
@@ -73,10 +76,29 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `can build plugin for oldest supported Kotlin language version`() {
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Kotlin version leaks on the classpath when running embedded"
+    )
+    fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
 
-        // Kotlin version leaks on the classpath when running embedded
-        assumeNonEmbeddedGradleExecuter()
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Kotlin version leaks on the classpath when running embedded"
+    )
+    fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
+
+        doForceLocallyBuiltKotlinDslPlugins()
+
+        `can build plugin for oldest supported Kotlin language version`()
+    }
+
+    private
+    fun `can build plugin for oldest supported Kotlin language version`() {
 
         val oldestKotlinLanguageVersion = KotlinGradlePluginVersions.getLANGUAGE_VERSIONS().first()
 
@@ -104,15 +126,17 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(
+        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        reason = "Kotlin version leaks on the classpath when running embedded"
+    )
     fun `can build plugin for previous unsupported Kotlin language version`() {
-
-        // Kotlin version leaks on the classpath when running embedded
-        assumeNonEmbeddedGradleExecuter()
 
         val previousKotlinLanguageVersion = "1.2"
 
         withDefaultSettingsIn("producer")
-        withBuildScriptIn("producer",
+        withBuildScriptIn(
+            "producer",
             """
             plugins {
                 `kotlin-dsl` version "$oldestSupportedKotlinDslPluginVersion"
@@ -150,9 +174,9 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `can run first version of kotlin-dsl plugin supporting lazy property assignment with deprecation warning`() {
 
-        assumeNonEmbeddedGradleExecuter()
         val testedVersion = "4.0.2"
 
         withDefaultSettingsIn("buildSrc")

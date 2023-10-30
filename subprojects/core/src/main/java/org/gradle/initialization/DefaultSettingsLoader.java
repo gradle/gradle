@@ -25,7 +25,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLocations;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -112,7 +112,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         );
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
+        BuildLocations layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
         SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 
         // Set explicit build file, if required
@@ -152,7 +152,18 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 String suffix = buildPath == Path.ROOT ? "" : " (in build " + buildPath + ")";
                 throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
+            if (!project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite()) {
+                emitProjectDirectoryMissingWarning(project.getPath(), project.getProjectDir().toString());
+            }
         });
     }
-}
 
+    private static void emitProjectDirectoryMissingWarning(String projectPath, String projectDir) {
+        String template = "Configuring project '%s' without an existing directory is deprecated. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
+        DeprecationLogger.deprecateBehaviour(String.format(template, projectPath, projectDir))
+            .withAdvice("Make sure the project directory exists and can be written.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_missing_project_directory")
+            .nagUser();
+    }
+}

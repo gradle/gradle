@@ -22,12 +22,17 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import spock.lang.Issue
+
+import java.util.regex.Matcher
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -36,15 +41,18 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
+    String agpVersion
+    String kgpVersion
+
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "run assembleDebug"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
         // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
@@ -56,6 +64,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            configureRunnerSpecificallyForNowInAndroid()
+        }
         applyEnterprisePlugin()
 
         when:
@@ -73,7 +84,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
     def "clean #tasks with clean transforms cache"() {
@@ -92,6 +103,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            configureRunnerSpecificallyForNowInAndroid()
         }
         applyEnterprisePlugin()
 
@@ -114,7 +128,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         AndroidTestProject testProject = androidTestProject
         testProject.configure(runner)
         runner.setMinimumBaseVersion('8.3')
-        runner.addBuildMutator {invocation -> new TestFinalizerMutator(invocation) }
+        runner.addBuildMutator { invocation -> new TestFinalizerMutator(invocation) }
         runner.tasksToRun = [':phthalic:test', '--dry-run']
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = 2
@@ -126,6 +140,23 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    private void configureRunnerSpecificallyForNowInAndroid() {
+        runner.gradleOpts.addAll([
+            "--add-opens",
+            "java.base/java.util=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens",
+            "java.base/java.net=ALL-UNNAMED"
+        ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
+        runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
+        runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
     }
 
     private class TestFinalizerMutator implements BuildMutator {
@@ -149,6 +180,66 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
                     }
                 }
             """.stripIndent()
+        }
+    }
+
+    private static class AgpAndKgpVersionMutator extends AbstractFileChangeMutator {
+
+        private final def agpVersion
+        private final def kgpVersion
+
+        protected AgpAndKgpVersionMutator(InvocationSettings invocationSettings, String agpVersion, String kgpVersion) {
+            super(new File(new File(invocationSettings.projectDir, "gradle"), "libs.versions.toml"))
+            this.agpVersion = agpVersion
+            this.kgpVersion = kgpVersion
+        }
+
+        @Override
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+            replaceVersion(text, "androidGradlePlugin", "$agpVersion")
+            replaceVersion(text, "kotlin", "$kgpVersion")
+
+            // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
+            replaceVersion(text, "androidxComposeCompiler", "1.5.4-dev-k1.9.20-RC-1edce5fd625")
+
+            // See https://github.com/google/ksp/tags
+            replaceVersion(text, "ksp", "1.9.20-RC-1.0.13")
+        }
+
+        private static void replaceVersion(StringBuilder text, String target, String version) {
+            Matcher matcher = text =~ /(${target}.*)\n/
+            if (matcher.find()) {
+                def result = matcher.toMatchResult()
+                text.replace(result.start(0), result.end(0), "${target} = \"${version}\"\n")
+            } else {
+                throw new IllegalStateException("Unable to replace version catalog entry 'target'.")
+            }
+        }
+    }
+
+    private static class SupplementaryRepositoriesMutator extends AbstractFileChangeMutator {
+
+        SupplementaryRepositoriesMutator(InvocationSettings is) {
+            super(new File(is.projectDir, "settings.gradle.kts"))
+        }
+
+        @Override
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+            Matcher matcher = text =~ /(mavenCentral\(\))/
+            boolean matched = false
+            matcher.find() // skip first match in pluginManagement {}
+            if (matcher.find()) {
+                matched = true // matched dependencyResolutionManagement {}
+                def result = matcher.toMatchResult()
+                text.replace(
+                    result.start(0),
+                    result.end(0),
+                    "mavenCentral()\n        maven(url = uri(\"https://androidx.dev/storage/compose-compiler/repository/\"))"
+                )
+            }
+            if (!matched) {
+                throw new IllegalStateException("Unable to add supplementary repositories to '$sourceFile'.")
+            }
         }
     }
 }

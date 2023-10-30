@@ -3,6 +3,7 @@ package org.myorg;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
+// tag::snippet[]
 public class BinaryRepositoryVersionPlugin implements Plugin<Project> {
     public void apply(Project project) {
         BinaryRepositoryExtension extension =
@@ -14,3 +15,4 @@ public class BinaryRepositoryVersionPlugin implements Plugin<Project> {
         });
     }
 }
+// end::snippet[]

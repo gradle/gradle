@@ -78,6 +78,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def "rebuilds application when a single source file in library changes"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
 
@@ -237,6 +238,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def "removes stale installed executable and library file when all source files for executable are removed"() {
+        createDirs("app", "greeter")
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalSwiftStaleLinkOutputAppWithLib()
         def outputDirectory = file("greeter/build/obj/main/debug")

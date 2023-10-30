@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 = Important concepts
 
 How much of your build gets loaded from the cache depends on many factors.
@@ -161,7 +175,7 @@ Having two tasks in the same build that do the same might sound like a problem t
 For example, the Android plugin creates several tasks for each variant of the project; some of those tasks will potentially do the same thing.
 These tasks can safely reuse each other's outputs.
 
-As <<build_cache_use_cases.adoc#share_results_between_ci_builds,discussed previously>>, you can use Gradle Enterprise to diagnose the source build of these unexpected cache-hits.
+As <<build_cache_use_cases.adoc#share_results_between_ci_builds,discussed previously>>, you can use Develocity to diagnose the source build of these unexpected cache-hits.
 
 == Non-cacheable tasks
 

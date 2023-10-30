@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
 [[config_cache]]
@@ -567,6 +581,16 @@ Let your team know they can opt-in by, for example, enabling the configuration c
 Later on, when more workflows are working, you can flip this around.
 Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
 
+[[config_cache:adoption:reacting]]
+=== Reacting to the configuration cache in the build
+
+Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+You can access it by <<custom_gradle_types#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+
+You can use this information to configure features of your plugin differently or to disable an optional feature that is not yet compatible.
+Another example involves providing additional guidance for your users, should they need to adjust their setup or be informed of temporary limitations.
+
 [[config_cache:adoption:changes_in_behavior]]
 === Adopting changes in the configuration cache behavior
 
@@ -846,7 +870,7 @@ The following table shows what APIs or injected service should be used as a repl
 | A task input or output property or a script variable to capture the result of using `project.resource` to calculate the actual parameter.
 
 | `project.copySpec {}`
-| A task input or output property or a script variable to capture the result of using `project.copySpec {}` to calculate the actual parameter.
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copySpec--[FileSystemOperations.copySpec {}]
 
 | `project.copy {}`
 | link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy {}]

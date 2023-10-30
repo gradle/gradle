@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[common-problems]]
 = Solving common problems
 
@@ -190,7 +204,7 @@ You already saw that <<build_cache_concepts.adoc#concepts_overlapping_outputs,ov
 When you add new tasks to your build or re-configure built-in tasks make sure you do not create overlapping outputs for cacheable tasks.
 If you must you can add a `Sync` task which then would sync the merged outputs into the target directory while the original tasks remain cacheable.
 
-Gradle Enterprise will show tasks where caching was disabled for overlapping outputs in the timeline and in the task input comparison:
+Develocity will show tasks where caching was disabled for overlapping outputs in the timeline and in the task input comparison:
 
 [.screenshot]
 image::build-cache/overlapping-outputs-input-comparison.png[]

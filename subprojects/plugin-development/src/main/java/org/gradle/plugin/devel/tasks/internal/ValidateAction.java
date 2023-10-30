@@ -30,16 +30,14 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
@@ -168,8 +166,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                         .label("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                         .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                         .noLocation()
-                        .type(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON.name())
-                        .group(ProblemGroup.TYPE_VALIDATION_ID)
+                        .category(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON)
                         .severity(WARNING)
                         .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                         .solution("Add " + disableCachingAnnotation + "(because = ...)")

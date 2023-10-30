@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[implemention_plugins]]
 = Implementing Gradle plugins
 
@@ -42,7 +56,7 @@ The custom task is provided by a plugin that takes care of communicating via HTT
 .LatestArtifactVersion.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
 ----
 
 The end user of the task can now easily create multiple tasks of that type with different configuration.
@@ -72,7 +86,7 @@ The text written to those files is provided by a String property.
 .Generate.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[]
+include::{snippetsPath}/developingPlugins/incrementalTask/groovy/buildSrc/src/main/java/Generate.java[tags=snippet]
 ----
 
 The first section of this guide talks about the <<plugin-development-plugin,Plugin Development plugin>>.
@@ -105,7 +119,7 @@ First of all, you'll need to introduce a new data object for managing the proper
 .CustomData.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[]
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/CustomData.java[tags=snippet]
 ----
 
 In the extension, you'll need to create an instance of the `CustomData` class and a method that can delegate the captured values to the data instance.
@@ -115,7 +129,7 @@ The following example demonstrates the use of `Action` in an extension definitio
 .SiteExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[]
+include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
 [[capturing_user_input_to_configure_plugin_runtime_behavior]]
@@ -147,7 +161,7 @@ The plugin creates the extension of type `BinaryRepositoryExtension` and maps th
 .BinaryRepositoryVersionPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryVersionPlugin.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryVersionPlugin.java[tags=snippet]
 ----
 
 Instead of using a plain `String` type, the extension defines the properties `coordinates` and `serverUrl` with type `Property<String>`.
@@ -160,7 +174,7 @@ It allows developers to simplify code like `obj.prop.set 'foo'` to `obj.prop = '
 .BinaryRepositoryExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryExtension.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/BinaryRepositoryExtension.java[tags=snippet]
 ----
 
 The task property also defines the `serverUrl` with type `Property`.
@@ -169,7 +183,7 @@ It allows for mapping the state of the property without actually accessing its v
 .LatestArtifactVersion.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[]
+include::{snippetsPath}/developingPlugins/customTask/groovy/buildSrc/src/main/java/org/myorg/LatestArtifactVersion.java[tags=snippet]
 ----
 
 NOTE: We encourage plugin developers to migrate their plugins to the public property API as soon as possible.
@@ -198,7 +212,7 @@ The POJO `ServerEnvironment` shown below fulfills those requirements.
 .ServerEnvironment.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
 ----
 
 Gradle exposes the factory method
@@ -210,7 +224,7 @@ The created instance of type link:{javadocPath}/org/gradle/api/NamedDomainObject
 .ServerEnvironmentPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
 ----
 
 It's very common for a plugin to post-process the captured values within the plugin implementation e.g. to configure tasks.
@@ -225,7 +239,7 @@ For example a plugin could assume that it is applied to a Java-based project and
 .InhouseStrongOpinionConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
 ----
 
 The drawback to this approach is that it automatically forces the project to apply the Java plugin and therefore imposes a strong opinion on it.
@@ -236,7 +250,7 @@ Only if that is the case then certain configuration is applied.
 .InhouseConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
 ----
 
 Reacting to plugins should be preferred over blindly applying other plugins if there is not a good reason for assuming that the consuming project has the expected setup.
@@ -245,8 +259,55 @@ The same concept applies to task types.
 .InhouseConventionWarPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[]
+include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
 ----
+
+== Reacting to build features
+
+Plugins can access the status of build features in the build.
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[Build Features API] allows checking whether the user requested a particular Gradle feature and if it is active in the current build.
+An example of a build feature is the <<configuration_cache.adoc#config_cache,configuration cache>>.
+
+There are two main use cases:
+
+- Using the status of build features in reports or statistics.
+- Incrementally adopting experimental Gradle features by disabling incompatible plugin functionality.
+
+Below is an example of a plugin that utilizes both of the cases.
+
+.Reacting to build features
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
+----
+<1> The `BuildFeatures` service can be injected into plugins, tasks, and other managed types.
+<2> Accessing the `requested` status of a feature for reporting.
+<3> Using the `active` status of a feature to disable incompatible functionality.
+
+=== Build feature properties
+
+The status properties of a `BuildFeature` are represented with `Provider<Boolean>` types.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getRequested--[`BuildFeature.getRequested()`] status of a build feature determines if the user requested to enable or disable the feature.
+If the user did neither, then the *value of the provider is undefined*.
+
+When the `requested` provider value is:
+
+- not present (undefined) -- the user neither opted in nor opted out from using the feature;
+- `true` -- the user opted in for using the feature, e.g., using a build option;
+- `false` -- the user opted out from using the feature, e.g., by setting a Gradle property to `false`.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[`BuildFeature.getActive()`] status of a build feature is always defined.
+It represents the effective state of the feature in the build.
+
+When the `active` provider value is:
+
+- `true` -- the feature _may_ affect the build behavior in a way specific to the feature;
+- `false` -- the feature will not affect the build behavior.
+
+Note that the `active` status does not depend on the `requested` status.
+Even if the user requested a feature, it may still not be active due to other build options used in the build.
+Gradle can also activate a feature by default, even if the user did not specify a preference.
 
 == Providing default dependencies for plugins
 
@@ -261,13 +322,13 @@ The plugin implementation declares a custom configuration that allows for <<decl
 .DataProcessingPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[]
+include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
 ----
 
 .DataProcessing.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[]
+include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
 ----
 
 Now, this approach is very convenient for the end user as there’s no need to actively declare a dependency.

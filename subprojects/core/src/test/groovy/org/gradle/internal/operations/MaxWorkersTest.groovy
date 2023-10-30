@@ -16,7 +16,6 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -75,7 +74,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), new DefaultParallelismConfiguration(true, maxWorkers),
-            new DefaultBuildOperationIdFactory(), new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
+            new DefaultBuildOperationIdFactory())
     }
 
     def "BuildOperationWorkerRegistry operation start blocks when there are no leases available, taken by BuildOperationExecutor"() {
@@ -122,7 +121,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         given:
         def maxWorkers = 1
         def workerLeaseService = this.workerLeaseService(maxWorkers)
-        def processor =  createProcessor(workerLeaseService, maxWorkers)
+        def processor = createProcessor(workerLeaseService, maxWorkers)
         def processorWorker = new SimpleWorker()
         def spec = this
         when:

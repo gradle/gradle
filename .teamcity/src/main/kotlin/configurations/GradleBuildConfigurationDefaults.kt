@@ -136,9 +136,10 @@ fun applyDefaults(
     extraParameters: String = "",
     timeout: Int = 90,
     daemon: Boolean = true,
+    buildJvm: Jvm = BuildToolBuildJvm,
     extraSteps: BuildSteps.() -> Unit = {}
 ) {
-    buildType.applyDefaultSettings(os, timeout = timeout)
+    buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
     buildType.steps.cleanUpReadOnlyDir(os)
@@ -210,7 +211,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsO
             dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
-    if (buildType !is CompileAll && buildType !is CompileAllBuildCacheNG) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))
         }

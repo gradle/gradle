@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[performance_gradle]]
 = Improve the Performance of Gradle Builds
 
@@ -11,7 +25,7 @@ All this means that it’s worth investing some time and effort into making your
 This section offers several ways to make a build faster. Additionally, you'll find details about what leads to
 build performance degradation, and how you can avoid it.
 
-TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
+TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Develocity can speed up builds by up to 90%.
 
 == Inspect your build
 
@@ -110,7 +124,7 @@ The Gradle Daemon reduces build times by:
 
 Gradle enables the Daemon by default, but some builds override this preference.
 If your build disables the Daemon, you could see a significant performance improvement
-from enabling the daeomon.
+from enabling the daemon.
 
 You can enable the Daemon at build time with the `daemon` flag:
 
@@ -246,7 +260,7 @@ org.gradle.caching=true
 
 You can use a local build cache to speed up repeated builds on a single machine.
 You can also use a shared build cache to speed up repeated builds across multiple machines.
-Gradle Enterprise https://gradle.com/build-cache/[provides one].
+Develocity https://gradle.com/build-cache/[provides one].
 Shared build caches can decrease build times for both CI and developer builds.
 
 For more information about the build cache, check out the

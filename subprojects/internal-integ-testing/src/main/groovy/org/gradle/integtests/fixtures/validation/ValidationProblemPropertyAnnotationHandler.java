@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
@@ -24,7 +23,6 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -41,6 +39,8 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 
+    public static final String TEST_PROBLEM = "TEST_PROBLEM";
+
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validationContext.visitPropertyProblem(problem ->
@@ -49,8 +49,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
                 .label("test problem")
                 .documentedAt(Documentation.userManual("id", "section"))
                 .noLocation()
-                .type(ValidationProblemId.TEST_PROBLEM.name())
-                .group(ProblemGroup.TYPE_VALIDATION_ID)
+                .category(TEST_PROBLEM)
                 .severity(annotationValue(propertyMetadata))
                 .details("this is a test")
         );

@@ -21,9 +21,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -468,9 +466,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.VALUE_NOT_SET
-    )
     def "null on nested bean is validated #description"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -785,7 +780,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
-    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
     def "nested map with #type key is validated without warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -830,7 +824,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
-    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
     def "nested map with unsupported key type is validated with warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -872,7 +865,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested #type#parameterType is validated with warning"() {
         buildFile << """
             abstract class CustomTask extends DefaultTask {
@@ -909,7 +901,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested Provider<Boolean> is validated with warning"() {
         buildFile << """
             abstract class CustomTask extends DefaultTask {
@@ -934,7 +925,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested #type#parameterType is validated without warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -965,7 +955,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested Provider<NestedBean> is validated without warning"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -985,7 +974,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested Kotlin #type is validated with warning"() {
         buildKotlinFile << """
             abstract class CustomTask : DefaultTask() {
@@ -1016,7 +1004,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26018")
-    @ValidationTestFor(ValidationProblemId.NESTED_TYPE_UNSUPPORTED)
     def "nested Kotlin #type from kotlinx package is validated without warning"() {
         testDirectory.file("buildSrc/src/main/java/kotlinx/NestedBean.java") << """
             import org.gradle.api.provider.*;
@@ -1045,9 +1032,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds("customTask")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()

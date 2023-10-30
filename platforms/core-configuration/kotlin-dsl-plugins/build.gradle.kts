@@ -1,12 +1,13 @@
 plugins {
     id("gradlebuild.portalplugin.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-extensions")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.1.3"
+version = "4.1.4"
 
 base.archivesName = "plugins"
 
@@ -20,6 +21,8 @@ dependencies {
     compileOnly(project(":language-java"))
     compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
+    compileOnly(project(":plugins-java-base"))
+    compileOnly(project(":toolchains-jvm"))
     compileOnly(project(":kotlin-dsl"))
 
     compileOnly(libs.slf4jApi)
@@ -37,7 +40,7 @@ dependencies {
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":core"))
-    integTestImplementation(project(":plugins"))
+    integTestImplementation(project(":plugins-java"))
 
     integTestImplementation(project(":platform-jvm"))
     integTestImplementation(project(":kotlin-dsl"))
@@ -52,7 +55,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("KotlinDslPluginTest tests against TestKit")
     }
-    integTestLocalRepository(project)
 }
 
 packageCycles {

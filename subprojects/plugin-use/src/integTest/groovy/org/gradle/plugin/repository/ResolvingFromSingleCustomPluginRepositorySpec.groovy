@@ -132,6 +132,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         and:
         useCustomRepository(PathType.ABSOLUTE)
+        createDirs("sub")
         settingsFile << """
             include 'sub'
         """
@@ -206,6 +207,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         useCustomRepository(PathType.RELATIVE)
 
         and:
+        createDirs("subproject")
         settingsFile << """
           include 'subproject'
         """

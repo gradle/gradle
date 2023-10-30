@@ -1,10 +1,10 @@
-// Copyright 2018 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -305,7 +305,7 @@ If the test does not succeed (i.e. it fails for every retry), it will be indicat
 
 When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
-If you are using link:https://scans.gradle.com[build scans] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Gradle Enterprise],
+If you are using link:https://scans.gradle.com[build scans] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Develocity],
 flaky tests will be detected regardless of this setting.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,
@@ -351,7 +351,7 @@ With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `incl
 [[sec:test_logging]]
 == Test logging
 
-Gradle allows fine-tuned control over events that are logged to the console.  
+Gradle allows fine-tuned control over events that are logged to the console.
 Logging is configurable on a per-log-level basis and by default, the following events are logged:
 
 [cols="1,1,1"]

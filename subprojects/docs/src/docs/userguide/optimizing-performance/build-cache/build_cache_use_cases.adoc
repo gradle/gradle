@@ -1,3 +1,17 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 [[use_cases_cache]]
 = Use cases for the build cache
 
@@ -17,7 +31,7 @@ The local cache can also be useful when working with a project that has multiple
 == Share results between CI builds
 
 The build cache can do more than go back-and-forth in time: it can also bridge physical distance between computers, allowing results generated on one machine to be re-used by another.
-A typical first step when introducing the build cache within a team is to enable it for builds running as part of _continuous integration_ only. Using a shared HTTP build cache backend (such as https://gradle.com/build-cache/[the one provided by Gradle Enterprise]) can significantly reduce the work CI agents need to do.
+A typical first step when introducing the build cache within a team is to enable it for builds running as part of _continuous integration_ only. Using a shared HTTP build cache backend (such as https://gradle.com/build-cache/[the one provided by Develocity]) can significantly reduce the work CI agents need to do.
 This translates into faster feedback for developers, and less money spent on the CI resources.
 Faster builds also mean fewer commits being part of each build, which makes debugging issues more efficient.
 
@@ -25,7 +39,7 @@ Beginning with the build cache on CI is a good first step as the environment on 
 This helps to identify any possible issues with the build that may affect cacheability.
 
 If you are subject to audit requirements regarding the artifacts you ship to your customers you may need to disable the build cache for certain builds.
-Gradle Enterprise may help you with fulfilling these requirements while still using the build cache for all your builds.
+Develocity may help you with fulfilling these requirements while still using the build cache for all your builds.
 It allows you to easily find out which build produced an artifact coming from the build cache via build scans.
 
 [.screenshot]

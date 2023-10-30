@@ -1,10 +1,10 @@
-// Copyright 2022 the original author or authors.
+// Copyright (C) 2023 Gradle, Inc.
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,6 +34,97 @@ The previous step will help you identify potential problems by issuing deprecati
 +
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_8.5]]
+== Upgrading from 8.4 and earlier
+
+=== Potential breaking changes
+
+==== Changes to Groovy task conventions
+
+The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
+
+If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
+
+==== Provider.filter
+
+The type of the argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
+This change should not affect anyone using `Provider.filter` with a lambda expression.
+However, this might affect plugin authors if they don't use SAM conversions to create a lambda.
+
+=== Deprecations
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0:
+
+* `VersionNumber.parse(String)`
+* `VersionNumber.compareTo(VersionNumber)`
+
+[[depending_on_root_configuration]]
+==== Deprecated depending on resolved configuration
+
+When resolving a `Configuration`, it is sometimes possible to select that same configuration as a variant.
+Configurations should be used for one purpose (resolution, consumption or dependency declarations), so this can only occur when a configuration is marked as both consumable and resolvable.
+
+This can lead to confusing circular dependency graphs, as the configuration being resolved is used for two different purposes.
+
+To avoid this problem, plugins should mark all resolvable configurations as `canBeConsumed=false` or use the `resolvable(String)` configuration factory method when creating configurations meant for resolution.
+
+In Gradle 9.0, consuming configurations in this manner will no longer be allowed and will result in an error.
+
+[[deprecated_missing_project_directory]]
+==== Including projects without an existing directory
+
+Gradle will warn if a project is added to the build where the associated `projectDir` does not exist or is not writable.
+Starting with version 9.0, Gradle will not run builds if a project directory is missing or read-only.
+If you intend to dynamically synthesize projects make sure to create directories for them as well:
+
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
+[source,kotlin]
+----
+include("project-without-directory")
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+[.multi-language-sample]
+======
+.settings.gradle
+[source,groovy]
+----
+include 'project-without-directory'
+project(":project-without-directory").projectDir.mkdirs()
+----
+======
+=====
+
+[[kotlin_dsl_skip_metadata_version_check]]
+==== Skipping Kotlin metadata version check for Kotlin DSL scripts
+
+Skipping link:https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-metadata/[Kotlin metadata] version check in Kotlin DSL script compilation is now deprecated.
+Skipping the check may lead to hard-to-troubleshoot errors when libraries built with Kotlin versions unsupported by the Kotlin embedded in Gradle are used in build logic.
+
+Kotlin/JVM metadata is backward-compatible with all Kotlin releases and forward-compatible with one Kotlin release.
+For example, Kotlin 1.9 supports Kotlin metadata from Kotlin 1.0 up to Kotlin 2.0, but not Kotlin 2.1.
+
+Because skipping this check is the current default behaviour in Kotlin DSL script compilation, a warning will be emitted for every build using `.gradle.kts` scripts.
+Starting with Gradle 9.0, the Kotlin metadata version check will be enabled by default.
+
+To enable the check, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+
+To persistently enable the check, set the property in the `gradle.properties` file in your build root directory:
+
+[source,properties]
+----
+org.gradle.kotlin.dsl.skipMetadataVersionCheck=false
+----
+
+To skip the Kotlin metadata check, you can set that property to `true` to disable the warning.
 
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
@@ -1169,20 +1260,20 @@ dependencies {
 ----
 dependencies {
     // If using JUnit Jupiter
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit Vintage
-    testCompileOnly("junit:junit:4.13.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testCompileOnly 'junit:junit:4.13.2'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // If using JUnit 4
-    testImplementation("junit:junit:4.13.2")
+    testImplementation 'junit:junit:4.13.2'
 
     // If using JUnit 3
-    testCompileOnly("junit:junit:3.8.2")
-    testRuntimeOnly("junit:junit:4.13.2")
+    testCompileOnly 'junit:junit:3.8.2'
+    testRuntimeOnly 'junit:junit:4.13.2'
 }
 ----
 ======

@@ -23,6 +23,7 @@ import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.ApiChange
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepository
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepositorySetupRule
+import gradlebuild.binarycompatibility.upgrades.UpgradedProperties
 import groovy.transform.CompileStatic
 import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiClass
@@ -37,6 +38,9 @@ import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
 
 import javax.inject.Inject
+
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperties.SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES
+import static gradlebuild.binarycompatibility.upgrades.UpgradedProperty.UpgradedMethodKey
 
 @CompileStatic
 abstract class AbstractGradleViolationRule extends AbstractContextAwareViolationRule {
@@ -132,6 +136,9 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
 
     Violation acceptOrReject(JApiCompatibility member, List<String> changes, Violation rejection) {
         Set<ApiChange> seenApiChanges = (Set<ApiChange>) context.userData["seenApiChanges"]
+        Set<UpgradedMethodKey> seenOldMethodsOfUpgradedProperties = (Set<UpgradedMethodKey>) context.userData[SEEN_OLD_METHODS_OF_UPGRADED_PROPERTIES]
+        UpgradedProperties.maybeGetKeyOfOldMethodOfUpgradedProperty(member, context).ifPresent { seenOldMethodsOfUpgradedProperties.add(it) }
+
         def change = new ApiChange(
             context.className,
             Violation.describe(member),
@@ -141,7 +148,11 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         if (acceptationReason != null) {
             seenApiChanges.add(change)
             return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>$acceptationReason</b>")
+        } else if (member instanceof JApiMethod && UpgradedProperties.shouldAcceptForUpgradedProperty(member, rejection, context)) {
+            seenApiChanges.add(change)
+            return Violation.accept(member, "${rejection.getHumanExplanation()}. Reason for accepting this: <b>Upgraded property</b>")
         }
+
         def acceptanceJson = new AcceptedApiChange(
             change.type,
             change.member,

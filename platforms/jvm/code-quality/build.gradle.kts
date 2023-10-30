@@ -28,7 +28,9 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":plugins"))
+    implementation(project(":language-jvm"))
+    implementation(project(":plugins-groovy"))
+    implementation(project(":plugins-java-base"))
     implementation(project(":workers"))
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
@@ -44,6 +46,7 @@ dependencies {
     implementation(libs.ant)
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":plugins-java"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":model-core")))
 

@@ -32,7 +32,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v3
       - id: setup-matrix
-        run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)"
+        run: echo "matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)" >> $GITHUB_OUTPUT
       - name: setup java
         uses: actions/setup-java@v3
         with:
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: build-receipt.properties
-          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+          path: platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}

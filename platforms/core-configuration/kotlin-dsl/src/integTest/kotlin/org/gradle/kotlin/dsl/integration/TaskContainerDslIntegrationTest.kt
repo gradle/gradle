@@ -19,29 +19,20 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
-import org.gradle.internal.SystemProperties
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
-import org.gradle.kotlin.dsl.fixtures.testInstallationGradleApiExtensionsClasspathFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Before
 import org.junit.Test
-import java.io.File
 import kotlin.reflect.KClass
 
 
 class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
-
-    @Before
-    fun doNotRunEmbedded() {
-        assumeNonEmbeddedGradleExecuter() // Due to testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir)
-    }
 
     private
     val dslTestFixture: DslTestFixture by lazy {
@@ -377,7 +368,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
     ) {
         val projectDir = newDir(name)
-        @Suppress("DEPRECATION") val tmpDir = File(SystemProperties.getInstance().javaIoTmpDir, "test-" + name + "-tmp")
         runWithProjectBuilderProject(projectDir) {
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
@@ -388,7 +378,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             dslTestFixture.evalScript(
                 script,
                 target = this,
-                scriptCompilationClassPath = testRuntimeClassPath + testInstallationGradleApiExtensionsClasspathFor(distribution.gradleHomeDir, tmpDir)
+                scriptCompilationClassPath = testRuntimeClassPath
             )
 
             tasksAssertions.forEach { taskAssertion ->

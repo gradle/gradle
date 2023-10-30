@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Provider"
@@ -33,6 +34,8 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+
+    implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)

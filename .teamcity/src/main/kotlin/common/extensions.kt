@@ -103,7 +103,7 @@ const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
         *.psoutput => $hiddenArtifactDestination
-        build/*.threaddump => $hiddenArtifactDestination
+        *.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
         build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
@@ -160,7 +160,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")

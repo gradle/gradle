@@ -16,8 +16,8 @@
 
 package gradlebuild.samples
 
-import gradlebuild.toLowerCase
-import gradlebuild.toUpperCase
+import gradlebuild.basics.toLowerCase
+import gradlebuild.basics.toUpperCase
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.InitSettings

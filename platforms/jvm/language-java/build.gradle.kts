@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":build-events"))
     implementation(project(":tooling-api"))
     implementation(project(":toolchains-jvm"))
+    implementation(project(":test-suites-base"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -47,6 +48,7 @@ dependencies {
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platform-base")))
+    testImplementation(testFixtures(project(":toolchains-jvm")))
     testImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }

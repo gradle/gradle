@@ -35,7 +35,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     fun init() {
         cacheBuster = UUID.randomUUID()
 
-        withSettings(
+        withDefaultSettings().appendText(
             """
             rootProject.name = "test-project"
             """

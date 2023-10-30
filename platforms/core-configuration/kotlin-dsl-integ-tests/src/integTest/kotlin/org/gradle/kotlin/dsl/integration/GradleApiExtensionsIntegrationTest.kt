@@ -23,8 +23,11 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -35,7 +38,7 @@ import java.io.File
 import java.util.jar.JarFile
 
 
-class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
+class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @ToBeFixedForConfigurationCache(because = "test captures script reference")
@@ -201,18 +204,14 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `generated jar contains Gradle API extensions sources and byte code and is reproducible`() {
-
-        val guh = newDir("guh")
 
         withBuildScript("")
 
-        executer.withGradleUserHomeDir(guh)
-        executer.requireIsolatedDaemons()
-
         build("help")
 
-        val generatedJar = generatedExtensionsJarFromGradleUserHome(guh)
+        val generatedJar = generatedExtensionsJarFromGradleInstallation(buildContext.gradleHomeDir!!)
 
         val (generatedSources, generatedClasses) = JarFile(generatedJar)
             .use { it.entries().toList().map { entry -> entry.name } }
@@ -265,13 +264,8 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     private
-    fun generatedExtensionsJarFromGradleUserHome(guh: File): File =
-        Regex("^\\d.*").let { startsWithDigit ->
-            guh.resolve("caches")
-                .listFiles { f -> f.isDirectory && f.name.matches(startsWithDigit) }
-                .single()
-                .resolve("generated-gradle-jars")
-                .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }
-                .single()
-        }
+    fun generatedExtensionsJarFromGradleInstallation(gradleHomeDir: File): File =
+        gradleHomeDir.resolve("lib")
+            .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }!!
+            .single()
 }

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import gradlebuild.capitalize
+import gradlebuild.basics.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
     `maven-publish`
+    signing
     `java-gradle-plugin`
     id("com.gradle.plugin-publish")
 }
@@ -146,4 +147,19 @@ configurations.create("localLibsRepositoryElements") {
 // Workaround for https://github.com/gradle/gradlecom/issues/627
 configurations.archives.get().allArtifacts.removeIf {
     it.name != "plugins"
+}
+
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val pgpSigningPassPhrase: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE")
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+signing {
+    useInMemoryPgpKeys(pgpSigningKey.orNull, pgpSigningPassPhrase.orNull)
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
+        }
+    }
 }
