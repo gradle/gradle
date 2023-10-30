@@ -281,6 +281,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
+    }
+
     TestFile getTestDirectory() {
         if (testDirOverride != null) {
             return testDirOverride

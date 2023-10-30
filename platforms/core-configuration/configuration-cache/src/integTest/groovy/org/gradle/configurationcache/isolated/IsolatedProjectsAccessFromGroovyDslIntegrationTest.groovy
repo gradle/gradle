@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.api.provider.Property
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -759,5 +760,43 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStored {
             projectsConfigured(":", ":a", ":b")
         }
+    }
+
+    def "fails on access #type of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            $referrerConfiguration
+        """
+
+        file("b/build.gradle") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> bar()
+            }
+
+            $referentConfiguration
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput(expectedOutput)
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':b' cannot dynamically look up a $type in the parent project ':'")
+        }
+
+        where:
+        type       | referentConfiguration                           | referrerConfiguration                   | expectedOutput
+        "property" | "extensions.create('myExtension', MyExtension)" | "unconfiguredProject.myExtension.bar()" | "Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project."
+        "method"   | "def foo(){}"                                   | "unconfiguredProject.foo()"             | "Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project."
     }
 }
