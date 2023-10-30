@@ -15,7 +15,6 @@
  */
 package org.gradle.api.file;
 
-import com.google.common.collect.Iterables;
 import org.gradle.internal.file.FilePathUtil;
 
 import javax.annotation.Nullable;
@@ -49,18 +48,18 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     private RelativePath(boolean endsWithFile, @Nullable RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
         final int expectedLength;
-        final Iterable<String> sourceSegments;
         if (parentPath != null) {
             expectedLength = parentPath.segments.length + childSegments.length;
-            sourceSegments = Iterables.concat(Arrays.asList(parentPath.segments),
-                Arrays.asList(childSegments));
         } else {
             expectedLength = childSegments.length;
-            sourceSegments = Arrays.asList(childSegments);
         }
         String[] newSegments = new String[expectedLength];
         int nextIndex = 0;
-        for (String segment : sourceSegments) {
+        if (parentPath != null) {
+            System.arraycopy(parentPath.segments, 0, newSegments, 0, parentPath.segments.length);
+            nextIndex = parentPath.segments.length;
+        }
+        for (String segment : childSegments) {
             if (segment.equals(".")) {
                 continue;
             }
