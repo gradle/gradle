@@ -27,6 +27,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     def "model block can be used in nested context in build script - #code"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         when:
@@ -81,6 +82,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     def "model block rules in nested context cannot reference inputs using dollar method expressions - #code"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         when:
@@ -113,6 +115,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     def "model block rules in nested context cannot reference inputs using dollar path expressions - #code"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         when:

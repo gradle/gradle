@@ -28,6 +28,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
     @ToBeFixedForConfigurationCache
     def "can depend on both swift and cpp libraries from VCS"() {
         given:
+        createDirs("app")
         settingsFile << """
             include 'app'
 

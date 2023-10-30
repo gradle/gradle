@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
@@ -25,8 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5XCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest implements SwiftTaskNames {
@@ -49,22 +47,6 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
 
         and:
         outputContains("'${componentName}' component in project ':' does not target this operating system.")
-    }
-
-    @Requires(UnitTestPreconditions.MacOs)
-    @ToBeFixedForConfigurationCache
-    def "does not compile and link LinuxMain.swift on macOS"() {
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-        settingsFile << "rootProject.name = '${componentUnderTest.projectName}'"
-
-        and:
-        file("src/test/swift/LinuxMain.swift") << "broken!"
-
-        expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @Override

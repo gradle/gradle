@@ -38,6 +38,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         remoteRepo.module("group", "lib1", "6500").publish().allowAll()
 
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b'"""
@@ -165,6 +166,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         taskTypeWithOutputFileProperty()
         taskTypeWithInputListProperty()
 
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'"""
 
@@ -219,6 +221,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def setupBuildWithArtifactTransformOfProjectDependencies() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -477,6 +480,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs() {
+        createDirs("a")
         settingsFile << """
             rootProject.name = 'root'
             include 'a'
@@ -565,6 +569,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -611,6 +616,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include the output of artifact transform of project dependencies which takes the output of another transform as input parameter"() {
         def configurationCache = newConfigurationCacheFixture()
 
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -664,6 +670,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include output of artifact transform of project dependencies when transform takes upstream artifacts"() {
         def configurationCache = newConfigurationCacheFixture()
 
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -795,6 +802,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include output of artifact transform of project dependencies when transform takes transformed upstream artifacts"() {
         def configurationCache = newConfigurationCacheFixture()
 
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -1038,6 +1046,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "buildSrc output may require transform output"() {
         withColorVariants(mavenRepo.module("test", "test", "12")).publish()
 
+        createDirs("buildSrc/producer")
         file("buildSrc/settings.gradle") << """
             include 'producer'
         """
@@ -1083,6 +1092,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "reports failure to transform prebuilt file dependency"() {
+        createDirs("a")
         settingsFile << """
             include 'a'
         """
@@ -1152,6 +1162,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "reports failure to transform project dependency"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

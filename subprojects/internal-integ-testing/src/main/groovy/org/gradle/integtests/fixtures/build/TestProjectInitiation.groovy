@@ -294,4 +294,11 @@ trait TestProjectInitiation {
         "build.gradle.kts"
     }
 
+    List<TestFile> createDirs(String... dirs) {
+        dirs.collect({ name ->
+            TestFile tf = file(name)
+            tf.mkdirs()
+            return tf
+        })
+    }
 }

@@ -27,6 +27,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     CppAppWithLibraries app = new CppAppWithLibraries()
 
     def setupProject(TestFile project = temporaryFolder.testDirectory) {
+        project.createDirs("lib1", "lib2")
         project.file('settings.gradle') << "include 'lib1', 'lib2'"
         project.file('settings.gradle') << localCacheConfiguration()
         project.file('build.gradle').text = """

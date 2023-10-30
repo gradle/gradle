@@ -17,7 +17,6 @@
 package gradlebuild.basics.kotlindsl
 
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -44,7 +43,6 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
             "-Xjsr305=strict",
             "-java-parameters",
             "-Xsam-conversions=class",
-            "-Xskip-metadata-version-check",
         )
     }
 }
@@ -61,7 +59,6 @@ fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
                 JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
                     Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)
                 ) { ReportLevel.STRICT },
-                AnalysisFlags.skipMetadataVersionCheck to true,
             )
         )
     )

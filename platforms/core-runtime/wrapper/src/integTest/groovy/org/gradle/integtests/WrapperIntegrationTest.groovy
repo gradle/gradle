@@ -16,13 +16,14 @@
 package org.gradle.integtests
 
 import groovy.io.FileType
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+import java.nio.file.Files
+
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @Requires(IntegTestPreconditions.AgentInstrumentationDisabled)
-    // TODO(mlopatkin) fails because of race between daemon shutdown and deleting the file, as --no-daemon still spawns the single-use daemon
     def "can recover from a broken distribution"() {
         buildFile << "task hello"
         prepareWrapper()
@@ -30,7 +31,13 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         when:
         def executer = wrapperExecuter.withGradleUserHomeDir(null)
         // We can't use a daemon since on Windows the distribution jars will be kept open by the daemon
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
+        executer.withArguments(
+            "-Dgradle.user.home=$gradleUserHome.absolutePath",
+            // TODO(https://github.com/gradle/gradle/issues/24057) having agent enabled forces the single-use daemon to spawn,
+            //  because the wrapper process has no agent applied. Even the short-lived daemon causes a race between its shutdown and
+            //  the deletion code below.
+            "-D${DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=false",
+            "--no-daemon")
         result = executer.withTasks("hello").run()
         then:
         result.assertTaskExecuted(":hello")
@@ -40,8 +47,9 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         boolean deletedSomething = false
         gradleUserHome.eachFileRecurse(FileType.FILES) { file ->
             if (file.name.startsWith("gradle-launcher")) {
-                deletedSomething |= file.delete()
+                Files.delete(file.toPath())
                 println("Deleting " + file)
+                deletedSomething = true
             }
         }
         and:

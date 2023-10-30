@@ -128,7 +128,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         AndroidTestProject testProject = androidTestProject
         testProject.configure(runner)
         runner.setMinimumBaseVersion('8.3')
-        runner.addBuildMutator {invocation -> new TestFinalizerMutator(invocation) }
+        runner.addBuildMutator { invocation -> new TestFinalizerMutator(invocation) }
         runner.tasksToRun = [':phthalic:test', '--dry-run']
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = 2
@@ -155,7 +155,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             "--add-opens",
             "java.base/java.net=ALL-UNNAMED"
         ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
-        runner.addBuildMutator {is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
+        runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
+        runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
     }
 
     private class TestFinalizerMutator implements BuildMutator {
@@ -197,8 +198,12 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
             replaceVersion(text, "androidGradlePlugin", "$agpVersion")
             replaceVersion(text, "kotlin", "$kgpVersion")
-            replaceVersion(text, "androidxComposeCompiler", "1.5.3")
-            replaceVersion(text, "ksp", "1.9.10-1.0.13")
+
+            // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
+            replaceVersion(text, "androidxComposeCompiler", "1.5.4-dev-k1.9.20-RC-1edce5fd625")
+
+            // See https://github.com/google/ksp/tags
+            replaceVersion(text, "ksp", "1.9.20-RC-1.0.13")
         }
 
         private static void replaceVersion(StringBuilder text, String target, String version) {
@@ -206,6 +211,34 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             if (matcher.find()) {
                 def result = matcher.toMatchResult()
                 text.replace(result.start(0), result.end(0), "${target} = \"${version}\"\n")
+            } else {
+                throw new IllegalStateException("Unable to replace version catalog entry 'target'.")
+            }
+        }
+    }
+
+    private static class SupplementaryRepositoriesMutator extends AbstractFileChangeMutator {
+
+        SupplementaryRepositoriesMutator(InvocationSettings is) {
+            super(new File(is.projectDir, "settings.gradle.kts"))
+        }
+
+        @Override
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+            Matcher matcher = text =~ /(mavenCentral\(\))/
+            boolean matched = false
+            matcher.find() // skip first match in pluginManagement {}
+            if (matcher.find()) {
+                matched = true // matched dependencyResolutionManagement {}
+                def result = matcher.toMatchResult()
+                text.replace(
+                    result.start(0),
+                    result.end(0),
+                    "mavenCentral()\n        maven(url = uri(\"https://androidx.dev/storage/compose-compiler/repository/\"))"
+                )
+            }
+            if (!matched) {
+                throw new IllegalStateException("Unable to add supplementary repositories to '$sourceFile'.")
             }
         }
     }

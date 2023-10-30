@@ -147,7 +147,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             }
         });
 
-        LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+        LOGGER.debug("Watching {} directories to track changes", watchedDirectories.entrySet().size());
 
         try {
             if (!directoriesToStopWatching.isEmpty()) {

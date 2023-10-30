@@ -73,12 +73,12 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         problems[0].label.contains('The RepositoryHandler.jcenter() method has been deprecated.')
         problems[0].severity == Severity.WARNING.name()
-        problems[0].where.path.endsWith("'$buildFile.absolutePath'")
-        problems[0].where.line == 5
+        problems[0].where[0].path.endsWith("'$buildFile.absolutePath'")
+        problems[0].where[0].line == 5
         problems[1].label.contains("Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project")
         problems[1].severity == Severity.ERROR.name()
-        problems[1].where.path == 'ba'
-        problems[1].where.line == -1
+        problems[1].where[0].path == 'ba'
+        problems[1].where[0].line == -1
         problems[1].problemCategory == 'task_selection'
     }
 }

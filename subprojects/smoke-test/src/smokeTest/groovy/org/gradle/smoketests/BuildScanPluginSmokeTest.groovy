@@ -136,6 +136,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.14",
         "3.14.1",
         "3.15",
+        "3.15.1",
     ]
 
     // Current injection scripts support Gradle Enterprise plugin 3.3 and above

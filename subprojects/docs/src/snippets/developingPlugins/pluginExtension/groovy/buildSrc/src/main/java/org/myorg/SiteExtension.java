@@ -5,6 +5,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
 
+// tag::snippet[]
 abstract public class SiteExtension {
 
     abstract public RegularFileProperty getOutputDir();
@@ -16,3 +17,4 @@ abstract public class SiteExtension {
         action.execute(getCustomData());
     }
 }
+// end::snippet[]

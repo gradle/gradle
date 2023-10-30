@@ -80,6 +80,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         }
 
         void writeFiles() {
+            buildDir.createDirs(projects.keySet().collect { it.tokenize(':').join('/') } as String[])
             buildDir.file('settings.gradle') << """
                 rootProject.name = ${quote(name)}
                 include ${projects.keySet().collect { quote(it) }.join(', ')}

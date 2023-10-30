@@ -35,9 +35,6 @@ dependencies {
     testImplementation(testFixtures(project(":internal-integ-testing"))) {
         because("Integration testing preconditions are coming from here")
     }
-    testImplementation(testFixtures(project(":plugins"))) {
-        because("Plugin testing preconditions are coming from here")
-    }
     testImplementation(testFixtures(project(":signing"))) {
         because("Signing preconditions are coming from here")
     }

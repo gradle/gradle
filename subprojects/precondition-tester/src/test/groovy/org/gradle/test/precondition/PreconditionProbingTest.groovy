@@ -44,7 +44,7 @@ abstract class PreconditionProbingTest extends Specification {
             return Class.forName(className) as Class<? extends TestPrecondition>
         } catch (ClassNotFoundException ex) {
             final String message = String.format(
-                "Class '%s' cannot be found. You might have a missing the dependency in 'subprojects/predicate-tester/builds.gradle.kts'?",
+                "Class '%s' cannot be found. You might be missing a dependency in 'subprojects/predicate-tester/builds.gradle.kts'?",
                 className
             )
             throw new RuntimeException(message, ex)

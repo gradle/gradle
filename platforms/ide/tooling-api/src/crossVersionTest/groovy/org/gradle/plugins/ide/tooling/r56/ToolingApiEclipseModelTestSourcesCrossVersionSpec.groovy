@@ -72,6 +72,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
 
     def "can use compile classpath for API and implementation separation"() {
         given:
+        createDirs("a", "b", "c", "d")
         settingsFile << "include('a', 'b', 'c', 'd')"
         buildFile << """
             subprojects {
@@ -153,6 +154,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
     @TargetGradleVersion(">=7.5")
     def "Project dependencies can have test attributes"() {
         setup:
+        createDirs("a", "b", "c", "d")
         settingsFile << """
             include 'a', 'b', 'c', 'd'
         """

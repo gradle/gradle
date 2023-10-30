@@ -32,6 +32,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
     @ToBeFixedForConfigurationCache
     def "can combine C++ builds in a composite"() {
         given:
+        createDirs("app", "hello", "log")
         settingsFile << """
             include 'app'
             includeBuild 'hello'
@@ -60,6 +61,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
     @ToBeFixedForConfigurationCache
     def "from VCS"() {
         given:
+        createDirs("app")
         settingsFile << """
             include 'app'
 

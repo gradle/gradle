@@ -27,6 +27,7 @@ internal
 fun writeGradleApiKotlinDslExtensionsTo(
     asmLevel: Int,
     platformClassLoader: ClassLoader,
+    hashTypeSourceName: (String) -> String,
     incubatingAnnotationTypeDescriptor: String,
     outputDirectory: File,
     gradleJars: Collection<File>,
@@ -44,6 +45,7 @@ fun writeGradleApiKotlinDslExtensionsTo(
         outputDirectory,
         "org.gradle.kotlin.dsl",
         "GradleApiKotlinDslExtensions",
+        hashTypeSourceName,
         gradleApiJars,
         gradleJars - gradleApiJars.toSet(),
         gradleApiMetadata.apiSpec,

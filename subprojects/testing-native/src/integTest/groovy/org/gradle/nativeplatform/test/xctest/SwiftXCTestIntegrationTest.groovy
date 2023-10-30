@@ -172,6 +172,7 @@ apply plugin: 'xctest'
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
 
         given:
+        createDirs("greeter")
         settingsFile << """
 rootProject.name = 'app'
 include 'greeter'
@@ -433,6 +434,7 @@ apply plugin: 'swift-library'
     def 'can build xctest bundle which transitively depends on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
+        createDirs("hello", "log")
         settingsFile << """
             rootProject.name = 'app'
             include 'hello', 'log'
@@ -473,6 +475,7 @@ apply plugin: 'swift-library'
     def 'can run xctest in swift package manager layout'() {
         given:
         def app = new SwiftAppWithLibraries()
+        createDirs("hello", "log")
         settingsFile << """
             rootProject.name = 'app'
             include 'hello', 'log'

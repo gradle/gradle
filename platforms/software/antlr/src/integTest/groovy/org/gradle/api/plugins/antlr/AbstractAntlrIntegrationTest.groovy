@@ -45,6 +45,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 """
+        createDirs("grammar-builder", "grammar-user")
         settingsFile << """
             include 'grammar-builder'
             include 'grammar-user'

@@ -34,6 +34,7 @@ abstract class AbstractCrossTaskIncrementalCompilationSupport extends AbstractJa
             }
             $projectDependencyBlock
         """
+        createDirs("api", "impl")
         settingsFile << "include 'api', 'impl'\n"
 
         if (language == CompiledLanguage.GROOVY) {

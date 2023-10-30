@@ -26,7 +26,7 @@ import java.io.PrintWriter;
 public class GradlePropertiesGenerator implements BuildContentGenerator {
 
     @Override
-    public void generate(InitSettings settings) {
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         if (!settings.isUseIncubatingAPIs()) {
             return;
         }

@@ -170,6 +170,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
+        customSettings.parentFile.createDirs("child")
         customSettings << """
             include("child")
         """
@@ -307,6 +308,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   FAIL
                                   UPGRADE
                                   WARN
+
+     --java-version     Provides java version to use in the project.
 
      --package     Set the package for source files.
 

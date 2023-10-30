@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Initializes a Gradle build.
  */
-public interface BuildInitializer extends BuildContentGenerator {
+public interface BuildInitializer {
     String getId();
 
     /**
@@ -81,4 +81,8 @@ public interface BuildInitializer extends BuildContentGenerator {
      * Returns a collection of further reading related to this type of build (may be empty).
      */
     Optional<String> getFurtherReading(InitSettings settings);
+    /**
+     * Generates content for the given build.
+     */
+    void generate(InitSettings settings);
 }

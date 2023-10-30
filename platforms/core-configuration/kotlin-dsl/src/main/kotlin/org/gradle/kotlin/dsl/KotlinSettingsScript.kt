@@ -42,7 +42,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
-        "-Xskip-metadata-version-check",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",

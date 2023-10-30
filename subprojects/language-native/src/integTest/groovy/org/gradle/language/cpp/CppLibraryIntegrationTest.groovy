@@ -364,6 +364,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against implementation and api libraries"() {
+        createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -409,6 +410,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
     @ToBeFixedForConfigurationCache
     def "can compile and link against static implementation and api libraries"() {
+        createDirs("lib1", "lib2", "lib3")
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -457,6 +459,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         def lib = new CppLib()
 
         given:
+        createDirs("greeter", "consumer")
         settingsFile << "include 'greeter', 'consumer'"
         buildFile << """
             subprojects {
@@ -497,6 +500,7 @@ project(':greeter') {
         def app = new CppAppWithLibraries()
 
         given:
+        createDirs("greeter", "logger", "consumer")
         settingsFile << "include 'greeter', 'logger', 'consumer'"
         buildFile << """
             subprojects {
@@ -531,6 +535,7 @@ project(':greeter') {
 
     @ToBeFixedForConfigurationCache
     def "can change default base name and successfully link against library"() {
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
 

@@ -73,7 +73,7 @@ This file minimally consists of the following:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -214,7 +214,7 @@ If you understand the risks of doing so, set the `<verify-metadata>` flag to `fa
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -255,7 +255,7 @@ As a consequence, you need to declare the checksums for both of them (unless you
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
@@ -366,7 +366,7 @@ Enabling it requires you to change the configuration option in the `verification
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-signatures>true</verify-signatures>
    </configuration>
@@ -442,7 +442,7 @@ If this is the case, you can move the trusted key from the artifact level to the
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -491,7 +491,7 @@ You can explicitly set the list of key servers that you want to use by adding th
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -515,7 +515,7 @@ In this case, you can ignore a key in the configuration block:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
@@ -537,14 +537,31 @@ To avoid this, Gradle offers the ability to use a local keyring file containing 
 Note that only public key packets and a single userId per key are stored and used.
 All other information (user attributes, signatures, etc.) is stripped from downloaded or exported keys.
 
-Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`).
+Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`), also known as ASCII-armored format.
 
 There are pros and cons for each of the formats: the binary format is more compact and can be updated directly via GPG commands, but is completely opaque (binary).
-On the opposite, the plain text format is human-readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
+On the opposite, the ASCII-armored format is human-readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
 
-If the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
+You can configure which file type would be used by adding the `keyring-format` configuration option:
 
-Note that the plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <keyring-format>armored</keyring-format>
+   </configuration>
+</verification-metadata>
+----
+
+Available options for keyring format are `armored` and `binary`.
+
+Without `keyring-format`, if the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
+The plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
 
 You can generate the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
 
@@ -565,7 +582,7 @@ gpg:               imported: 1
 ----
 
 The plain text version, on the other hand, can be updated manually.
-The file must be formatted with the `US-ASCII` encoding and consists of a list of keys in ASCII armored format.
+The file must be formatted with the `US-ASCII` encoding and consists of a list of keys in ASCII-armored format.
 
 In the example above, you could amend an existing KEYS file by issuing the following commands:
 
@@ -581,7 +598,7 @@ gpg:               imported: 1
 # First let's add a header so that we can recognize the added key
 $ gpg --keyring /tmp/keyring.gpg --list-sigs 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 
-# Then write its ASCII armored version
+# Then write its ASCII-armored version
 $ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 ----
 
@@ -593,7 +610,8 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 
 [NOTE]
 ====
-This command will generate *both* the binary version and the ASCII armored file.
+Unless `keyring-format` is specified, this command will generate *both* the binary version and the ASCII-armored file.
+Use this option to choose the preferred format.
 You should only pick one for your project.
 
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
@@ -615,7 +633,6 @@ You can also ask Gradle to export all trusted keys without updating the verifica
 ====
 This command will not report verification errors, only export keys.
 ====
-
 [[sec:bootstrapping-signature-verification]]
 === Bootstrapping and signature verification
 
@@ -664,7 +681,7 @@ To enable this mode, you need to disable key servers in the configuration file:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <key-servers enabled="false"/>
       ...
@@ -948,7 +965,7 @@ You can trust all artifacts in a group by adding this to your configuration:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
@@ -977,7 +994,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 <?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
       <trusted-artifacts>
          <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>

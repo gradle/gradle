@@ -66,6 +66,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
     def "worker-based task completes as soon as work items are finished (while another task is executing in parallel)"() {
         when:
+        createDirs("childProject")
         settingsFile << """
             include ':childProject'
         """

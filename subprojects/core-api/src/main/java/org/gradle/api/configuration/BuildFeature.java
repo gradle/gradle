@@ -25,6 +25,9 @@ import org.gradle.api.provider.Provider;
  * <p>
  * It is possible to check if the feature is {@link #getActive() active} in the current build.
  * The {@link #getRequested() requested} property shows whether the user opted in or opted out from the feature.
+ * <p>
+ * An instance of this type can be injected into a task, plugin or other object by annotating
+ * a public constructor or property getter method with {@code javax.inject.Inject}.
  *
  * @see BuildFeatures
  * @since 8.5

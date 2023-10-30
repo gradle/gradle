@@ -93,6 +93,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     }
 
     def setupBuildWithToolchainsResolution() {
+        createDirs("a", "b")
         settingsFile << """
             ${applyToolchainResolverPlugin()}
 

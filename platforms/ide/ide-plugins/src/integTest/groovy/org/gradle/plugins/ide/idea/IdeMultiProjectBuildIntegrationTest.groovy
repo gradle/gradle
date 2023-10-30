@@ -26,6 +26,7 @@ class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "includes module for each project in build"() {
         given:
+        createDirs("api", "shared", "shared/api", "shared/model")
         settingsFile << """
             include 'api'
             include 'shared:api', 'shared:model'

@@ -21,6 +21,7 @@ import spock.lang.Issue
 class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
 
     def setup() {
+        createDirs("sub", "included", "included/sub")
         settingsFile << """
             rootProject.name = 'root'
             include('sub')
