@@ -164,7 +164,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             description,
             solution,
             exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
-//                exception,
             problemCategory,
             additionalMetadata,
             problemsService);

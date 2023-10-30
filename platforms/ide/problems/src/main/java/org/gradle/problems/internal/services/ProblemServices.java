@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
  * Service registration entry point for the Problems API.
  * <p>
  * This class is responsible registering all service providers for the Problems API.
- * See the {@code META-INF.services} directory to find the respective metadata file triggering the DI framework to load this class.
+ * See the {@code META-INF/services} directory to find the respective metadata file triggering the DI framework to load this class.
  */
 public class ProblemServices extends AbstractPluginServiceRegistry {
     @Override

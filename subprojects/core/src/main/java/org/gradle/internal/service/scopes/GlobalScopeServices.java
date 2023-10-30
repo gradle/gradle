@@ -173,14 +173,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-//    Problems createProblemsService(
-//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
-////        List<ProblemTransformer> transformers,
-////        ProblemDiagnosticsFactory problemDiagnosticsFactory
-//    ) {
-//        return new DefaultProblems(buildOperationProgressEventEmitter);
-//    }
-
     JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
         return new DefaultJdkToolsInitializer(classLoaderFactory);
     }

@@ -124,15 +124,6 @@ public class BuildTreeScopeServices {
             domainObjectCollectionFactory);
     }
 
-//    Problems createProblemsService(
-//        BuildOperationProgressEventEmitter buildOperationProgressEventEmitter//,
-////        List<ProblemTransformer> transformers//,
-////        ProblemDiagnosticsFactory problemDiagnosticsFactory
-//    ) {
-//        return new DefaultProblems(buildOperationProgressEventEmitter);
-//    }
-
-
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
