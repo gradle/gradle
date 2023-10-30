@@ -35,6 +35,15 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.6]]
+== Upgrading from 8.5 and earlier
+
+=== Deprecations
+
+[[deprecated_artifact_identifier]]
+==== Deprecated `ArtifactIdentifier`
+The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
+
 [[changes_8.5]]
 == Upgrading from 8.4 and earlier
 

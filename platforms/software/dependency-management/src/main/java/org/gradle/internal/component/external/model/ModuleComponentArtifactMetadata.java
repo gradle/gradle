@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 /**
@@ -25,10 +24,4 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 public interface ModuleComponentArtifactMetadata extends ComponentArtifactMetadata {
     @Override
     ModuleComponentArtifactIdentifier getId();
-
-    /**
-     * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
-     * TODO:ADAM - remove this
-     */
-    ArtifactIdentifier toArtifactIdentifier();
 }

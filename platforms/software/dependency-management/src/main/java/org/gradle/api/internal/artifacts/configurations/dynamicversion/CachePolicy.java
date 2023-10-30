@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.configurations.dynamicversion;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -37,9 +37,9 @@ public interface CachePolicy {
 
     Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
 
-    Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
-    Expiry artifactExpiry(ArtifactIdentifier artifactIdentifier, @Nullable File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, @Nullable File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
     void setOffline();
 
