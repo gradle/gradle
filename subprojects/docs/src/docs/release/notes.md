@@ -242,6 +242,11 @@ This version information can be either a value, a version reference or the indic
 
 TODO include image, will be done as late as possible as images in this file make it a mess right now
 
+#### Relative path canonicalization
+
+Paths in Copy and Sync tasks are canonicalized so that `.` is not used and `..` only appears at the beginning of a path. 
+In previous versions of Gradle, the absence of this canonicalization could lead to unexpected behaviors.
+
 <a name="build-features"></a>
 ### Build Features API
 
