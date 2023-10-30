@@ -61,7 +61,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
 
-        def taskPathLocations = problem["where"].findAll {
+        def taskPathLocations = problem["locations"].findAll {
             it["type"] == "task"
         }
         taskPathLocations.size() == 1
@@ -129,7 +129,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
 
-        def pluginIdLocations = problem["where"].findAll {
+        def pluginIdLocations = problem["locations"].findAll {
             it["type"] == "pluginId"
         }
         pluginIdLocations.size() == 1
