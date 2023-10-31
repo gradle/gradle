@@ -56,13 +56,13 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
     private final OutputChangeListener outputChangeListener;
     private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
-    private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
+    private final Step<? super WorkDeterminedContext, ? extends CachingResult> delegate;
 
     public SkipEmptyWorkStep(
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
-        Step<? super WorkspaceContext, ? extends CachingResult> delegate
+        Step<? super WorkDeterminedContext, ? extends CachingResult> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.workInputListeners = workInputListeners;
@@ -77,18 +77,22 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
-        if (sourceFileProperties.isEmpty()) {
-            return executeWithNonEmptySources(work, context);
+        if (hasNoSkipWhenEmptyProperties(sourceFileProperties)) {
+            return executeWithContext(work, new WorkDeterminedContext(context, work));
         } else {
-            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
+            if (hasOnlyEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
-                return executeWithNonEmptySources(work, context.withInputFiles(newInputs.getAllFileFingerprints()));
+                return executeWithContext(work, new WorkDeterminedContext(context, newInputs.getAllFileFingerprints(), work));
             }
         }
     }
 
-    private boolean hasEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
+    private static boolean hasNoSkipWhenEmptyProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+        return sourceFileProperties.isEmpty();
+    }
+
+    private static boolean hasOnlyEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
         if (propertiesRequiringIsEmptyCheck.isEmpty()) {
             return sourceFileProperties.values().stream()
                 .allMatch(CurrentFileCollectionFingerprint::isEmpty);
@@ -96,19 +100,19 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
             // We need to check the underlying file collections for properties in propertiesRequiringIsEmptyCheck,
             // since those are backed by files which may be empty archives.
             // And being empty archives is not reflected in the fingerprint.
-            return hasEmptyFingerprints(sourceFileProperties, propertyName -> !propertiesRequiringIsEmptyCheck.contains(propertyName))
-                && hasEmptyInputFileCollections(work, propertiesRequiringIsEmptyCheck::contains);
+            return hasOnlyEmptyFingerprints(sourceFileProperties, propertyName -> !propertiesRequiringIsEmptyCheck.contains(propertyName))
+                && hasOnlyEmptyInputFileCollections(work, propertiesRequiringIsEmptyCheck::contains);
         }
     }
 
-    private boolean hasEmptyFingerprints(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, Predicate<String> propertyNameFilter) {
+    private static boolean hasOnlyEmptyFingerprints(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, Predicate<String> propertyNameFilter) {
         return sourceFileProperties.entrySet().stream()
             .filter(entry -> propertyNameFilter.test(entry.getKey()))
             .map(Map.Entry::getValue)
             .allMatch(CurrentFileCollectionFingerprint::isEmpty);
     }
 
-    private boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
+    private static boolean hasOnlyEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
         EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
         work.visitRegularInputs(visitor);
         return visitor.isAllEmpty();
@@ -136,6 +140,8 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
 
     @Nonnull
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, WorkspaceContext context) {
+        broadcastWorkInputs(work, true);
+
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
@@ -156,8 +162,6 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
-        broadcastWorkInputs(work, true);
-
         Try<Execution> execution = Try.successful(new Execution() {
             @Override
             public ExecutionOutcome getOutcome() {
@@ -172,7 +176,7 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
         return new CachingResult(duration, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
     }
 
-    private CachingResult executeWithNonEmptySources(UnitOfWork work, WorkspaceContext context) {
+    private CachingResult executeWithContext(UnitOfWork work, WorkDeterminedContext context) {
         broadcastWorkInputs(work, false);
         return delegate.execute(work, context);
     }

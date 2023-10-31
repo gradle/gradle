@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+public class CaptureStateBeforeExecutionStep<C extends WorkDeterminedContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;

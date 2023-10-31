@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
@@ -54,7 +55,6 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
     def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot> of()
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
@@ -97,10 +97,8 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
 
     def "delegates when work has sources"() {
         def delegateResult = Mock(CachingResult)
-        def delegateContext = Stub(WorkspaceContext)
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
-        context.withInputFiles(ImmutableSortedMap.copyOf("known-file": knownFileFingerprint, "source-file": sourceFileFingerprint)) >> delegateContext
 
         when:
         def result = step.execute(work, context)
@@ -123,7 +121,10 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
         1 * sourceFileFingerprint.empty >> false
 
         then:
-        1 * delegate.execute(work, delegateContext) >> delegateResult
+        1 * delegate.execute(work, _) >> { UnitOfWork work, WorkDeterminedContext delegateContext ->
+            assert delegateContext.inputFileProperties == ImmutableSortedMap.copyOf(["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint])
+            return delegateResult
+        }
         1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 

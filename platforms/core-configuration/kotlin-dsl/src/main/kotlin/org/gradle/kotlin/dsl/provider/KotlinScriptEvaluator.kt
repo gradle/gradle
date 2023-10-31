@@ -34,10 +34,13 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ExecutionOutput
+import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -406,16 +409,16 @@ class CompileKotlinScript(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: ExecutionRequest): ExecutionOutput {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
         return workOutputFor(workspace)
     }
 
     private
-    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
-        object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+    fun workOutputFor(workspace: File): ExecutionOutput =
+        object : ExecutionOutput {
+            override fun getDidWork() = WorkResult.DID_WORK
             override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
 

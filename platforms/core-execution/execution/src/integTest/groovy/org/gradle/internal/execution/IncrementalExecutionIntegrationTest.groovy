@@ -37,6 +37,7 @@ import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
+import org.gradle.internal.execution.steps.CachingResult
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
@@ -49,8 +50,11 @@ import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
+import org.gradle.internal.execution.steps.Step
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.execution.steps.WorkDeterminedContext
+import org.gradle.internal.execution.steps.WorkspaceContext
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -140,6 +144,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new IdentityCacheStep<>(
             new LoadPreviousExecutionStateStep<>(
             new AssignWorkspaceStep<>(
+            new AlwaysExecuteWorkStep(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
             new ResolveCachingStateStep<>(buildCacheController, false,
@@ -151,7 +156,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new CreateOutputsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))
+        )))))))))))))))))
         // @formatter:on
     }
 
@@ -163,7 +168,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             "file1": file("parent1/outFile"),
             "file2": file("parent2/outFile")
         ).withWork { ->
-            UnitOfWork.WorkResult.DID_WORK
+            WorkResult.DID_WORK
         }.build()
 
         when:
@@ -713,5 +718,19 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             createFiles,
             inputFingerprinter,
             executionHistoryStore)
+    }
+
+
+    private static class AlwaysExecuteWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
+        private final Step<WorkDeterminedContext, CachingResult> delegate
+
+        AlwaysExecuteWorkStep(Step<WorkDeterminedContext, CachingResult> delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        CachingResult execute(UnitOfWork work, C context) {
+            return delegate.execute(work, new WorkDeterminedContext(context, work))
+        }
     }
 }

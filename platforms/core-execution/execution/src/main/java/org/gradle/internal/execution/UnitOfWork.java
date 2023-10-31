@@ -16,13 +16,11 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -30,7 +28,6 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -42,7 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface UnitOfWork extends Describable {
+public interface UnitOfWork extends Describable, Executable {
 
     /**
      * Identifier of the type of the work used in build operations.
@@ -70,61 +67,8 @@ public interface UnitOfWork extends Describable {
     /**
      * Executes the work synchronously.
      */
-    WorkOutput execute(ExecutionRequest executionRequest);
-
-    /**
-     * Parameter object for {@link #execute(ExecutionRequest)}.
-     */
-    interface ExecutionRequest {
-        /**
-         * The directory to produce outputs into.
-         * <p>
-         * Note: it's {@code null} for tasks as they don't currently have their own workspace.
-         */
-        File getWorkspace();
-
-        /**
-         * For work capable of incremental execution this is the object to query per-property changes through;
-         * {@link Optional#empty()} for non-incremental-capable work.
-         */
-        Optional<InputChangesInternal> getInputChanges();
-
-        /**
-         * Output snapshots indexed by property from the previous execution;
-         * {@link Optional#empty()} is information about a previous execution is not available.
-         */
-        Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
-    }
-
-    /**
-     * The result of executing the user code.
-     */
-    interface WorkOutput {
-        /**
-         * Whether any significant amount of work has happened while executing the user code.
-         * <p>
-         * What amounts to "significant work" is up to the type of work implementation.
-         */
-        WorkResult getDidWork();
-
-        /**
-         * Implementation-specific output of executing the user code.
-         */
-        @Nullable
-        Object getOutput();
-
-        /**
-         * Whether this output should be stored in the build cache.
-         */
-        default boolean canStoreInCache() {
-            return true;
-        }
-    }
-
-    enum WorkResult {
-        DID_WORK,
-        DID_NO_WORK
-    }
+    @Override
+    ExecutionOutput execute(ExecutionRequest executionRequest);
 
     /**
      * Loads output not produced during the current execution.

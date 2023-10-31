@@ -49,8 +49,11 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionOutput;
+import org.gradle.internal.execution.ExecutionRequest;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
@@ -362,13 +365,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         protected abstract List<ClassSource> getClassSources();
 
         @Override
-        public WorkOutput execute(ExecutionRequest executionRequest) {
+        public ExecutionOutput execute(ExecutionRequest executionRequest) {
             File workspace = executionRequest.getWorkspace();
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             List<ClassSource> sources = getClassSources();
             SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
-            return new WorkOutput() {
+            return new ExecutionOutput() {
                 @Override
                 public WorkResult getDidWork() {
                     return WorkResult.DID_WORK;

@@ -24,11 +24,14 @@ import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ExecutionOutput
+import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -123,7 +126,7 @@ class GenerateProjectAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: ExecutionRequest): ExecutionOutput {
         val workspace = executionRequest.workspace
         withAsynchronousIO(project) {
             buildAccessorsFor(
@@ -133,8 +136,8 @@ class GenerateProjectAccessors(
                 binDir = getClassesOutputDir(workspace)
             )
         }
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+        return object : ExecutionOutput {
+            override fun getDidWork() = WorkResult.DID_WORK
 
             override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }

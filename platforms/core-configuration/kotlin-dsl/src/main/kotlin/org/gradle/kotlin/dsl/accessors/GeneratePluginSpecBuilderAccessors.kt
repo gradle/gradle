@@ -21,8 +21,10 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.execution.ExecutionOutput
+import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.concurrent.IO
@@ -105,7 +107,7 @@ class GeneratePluginSpecBuilderAccessors(
 
     override val identitySuffix: String = "PS"
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: ExecutionRequest): ExecutionOutput {
         val workspace = executionRequest.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
@@ -116,8 +118,8 @@ class GeneratePluginSpecBuilderAccessors(
                 )
             }
         }
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+        return object : ExecutionOutput {
+            override fun getDidWork() = WorkResult.DID_WORK
 
             override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }

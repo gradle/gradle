@@ -48,9 +48,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.ExecutionOutput;
+import org.gradle.internal.execution.ExecutionRequest;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -156,7 +159,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
+    public ExecutionOutput execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
             .orElseGet(FileCollectionFactory::empty);
@@ -165,7 +168,7 @@ public class TaskExecution implements UnitOfWork {
         try {
             WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
-            return new WorkOutput() {
+            return new ExecutionOutput() {
                 @Override
                 public WorkResult getDidWork() {
                     return didWork;

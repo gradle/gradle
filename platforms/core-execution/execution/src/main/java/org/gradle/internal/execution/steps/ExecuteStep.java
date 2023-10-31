@@ -20,6 +20,8 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionOutput;
+import org.gradle.internal.execution.ExecutionRequest;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -56,7 +58,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
-                Result result = executeInternal(work, context);
+                Result result = executeInternal(context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return result;
             }
@@ -80,8 +82,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         });
     }
 
-    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
-        UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
+    private static Result executeInternal(InputChangesContext context) {
+        ExecutionRequest executionRequest = new ExecutionRequest() {
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
@@ -98,11 +100,11 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
                     .map(PreviousExecutionState::getOutputFilesProducedByWork);
             }
         };
-        UnitOfWork.WorkOutput workOutput;
+        ExecutionOutput workOutput;
 
         Timer timer = Time.startTimer();
         try {
-            workOutput = work.execute(executionRequest);
+            workOutput = context.getExecutable().execute(executionRequest);
         } catch (Throwable t) {
             return Result.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
         }
@@ -110,10 +112,10 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
         ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return Result.success(duration, new ExecutionResultImpl(mode, workOutput));
+        return Result.success(duration, new ExecutionImpl(mode, workOutput));
     }
 
-    private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
+    private static ExecutionOutcome determineOutcome(InputChangesContext context, ExecutionOutput workOutput) {
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
                 return UP_TO_DATE;
@@ -142,28 +144,28 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
     }
 
-    private static final class ExecutionResultImpl implements Execution {
-        private final ExecutionOutcome mode;
-        private final UnitOfWork.WorkOutput workOutput;
+    private static final class ExecutionImpl implements Execution {
+        private final ExecutionOutcome outcome;
+        private final ExecutionOutput output;
 
-        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput workOutput) {
-            this.mode = mode;
-            this.workOutput = workOutput;
+        public ExecutionImpl(ExecutionOutcome outcome, ExecutionOutput output) {
+            this.outcome = outcome;
+            this.output = output;
         }
 
         @Override
         public ExecutionOutcome getOutcome() {
-            return mode;
+            return outcome;
         }
 
         @Override
         public Object getOutput() {
-            return workOutput.getOutput();
+            return output.getOutput();
         }
 
         @Override
         public boolean canStoreOutputsInCache() {
-            return workOutput.canStoreInCache();
+            return output.canStoreInCache();
         }
     }
 }

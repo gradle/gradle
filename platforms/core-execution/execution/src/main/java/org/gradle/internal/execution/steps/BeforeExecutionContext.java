@@ -24,10 +24,10 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class BeforeExecutionContext extends WorkspaceContext {
+public class BeforeExecutionContext extends WorkDeterminedContext {
     private final BeforeExecutionState beforeExecutionState;
 
-    public BeforeExecutionContext(WorkspaceContext parent, @Nullable BeforeExecutionState beforeExecutionState) {
+    public BeforeExecutionContext(WorkDeterminedContext parent, @Nullable BeforeExecutionState beforeExecutionState) {
         super(parent);
         this.beforeExecutionState = beforeExecutionState;
     }
