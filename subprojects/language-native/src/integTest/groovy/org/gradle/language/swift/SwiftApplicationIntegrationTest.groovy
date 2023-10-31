@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -481,6 +481,8 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         app.library.writeToProject(file("greeter"))
         app.executable.writeToProject(file("app"))
 

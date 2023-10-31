@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile)
@@ -686,6 +687,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('includedBuild/settings.gradle') << '''
             rootProject.name = 'external'
         '''
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ':a:checkFree'

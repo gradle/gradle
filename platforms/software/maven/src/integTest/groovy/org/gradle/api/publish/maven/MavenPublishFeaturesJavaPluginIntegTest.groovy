@@ -16,7 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.internal.component.ResolutionFailureHandler
+
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
+    def setup() {
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+    }
+
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 

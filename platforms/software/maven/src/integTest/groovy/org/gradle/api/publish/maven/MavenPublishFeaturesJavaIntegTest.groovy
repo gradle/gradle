@@ -16,9 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Unroll
 
 class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
+    def setup() {
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+    }
 
     def "can publish java-library with a feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()

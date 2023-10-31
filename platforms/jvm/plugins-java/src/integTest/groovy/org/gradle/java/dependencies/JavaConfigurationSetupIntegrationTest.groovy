@@ -17,6 +17,7 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -48,6 +49,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 $configuration 'some:module:1.0'
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         if (deprecated(alternatives)) {
@@ -107,6 +109,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         if (deprecated(alternatives)) {
             executer.expectDeprecationWarning()
         }
@@ -159,6 +163,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         executer.withStacktraceEnabled()
