@@ -230,7 +230,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         outputContains(basicOutput)
         if (fullErrorMsg) {
-            result.assertOutputContains(fullOutput)
+            outputContains(fullOutput)
         } else {
             result.assertNotOutput(fullOutput)
         }
