@@ -46,8 +46,8 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit test framework.
-    testImplementation("junit:junit:4.13.2")
+    // Use JUnit Jupiter for testing.
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.1")
 
     // This dependency is used by the application.
     implementation("com.google.guava:guava:32.1.2-jre")
@@ -61,29 +61,29 @@ Some key concepts in Gradle dependency management include:
 https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
 It is the de-facto public artifact store for Java and is used by many build systems.
 
-*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/junit/junit[`junit`] and https://mvnrepository.com/artifact/com.google.guava/guava[`guava`] +
+*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api[`junit`] and https://mvnrepository.com/artifact/com.google.guava/guava[`guava`] +
 
 Gradle needs specific information to find a dependency.
-Let's look at `com.google.guava:guava:32.1.2-jre` and `junit:junit:4.13.2`; they are broken down as follows:
+Let's look at `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-jupiter-api:5.9.1`; they are broken down as follows:
 
 [cols="10h,30,40,20"]
 |===
-| |Description | com.google.guava:guava:32.1.2-jre | junit:junit:4.13.2
+| |Description | com.google.guava:guava:32.1.2-jre | org.junit.jupiter:junit-jupiter-api:5.9.1
 
 |Group
 |identifier of an organization
 |`com.google.guava`
-|`junit`
+|`org.junit.jupiter`
 
 |Name
 |dependency identifier
 |`guava`
-|`junit`
+|`junit-jupiter-api`
 
 |Version
 |version # to import
 |`32.1.2-jre`
-|`4.13.2`
+|`5.9.1`
 |===
 
 == Step 2. Understanding Transitive Dependencies
@@ -227,6 +227,8 @@ dependencies {
     implementation(libs.guava)
 }
 ----
+
+Run `./gradlew build` to make sure the changes take effect.
 
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
 ----
