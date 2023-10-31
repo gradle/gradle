@@ -29,15 +29,19 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def isolatedProjects = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
+        def projectModels = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
 
         then:
         outputContains("Running build action to fetch isolated project models")
 
         and:
-        isolatedProjects.size() == 2
-        isolatedProjects[0].name == "root"
-        isolatedProjects[1].name == "lib1"
+        projectModels.size() == 2
+        projectModels[0].name == "root"
+        projectModels[1].name == "lib1"
+
+        projectModels.forEach {
+            assert it.tasks.size() > 0
+        }
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -57,15 +61,16 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def rootGradleProject = fetchModel(GradleProject)
+        def projectModel = fetchModel(GradleProject)
 
         then:
-        rootGradleProject.name == "root"
-        rootGradleProject.children.size() == 1
-        with(rootGradleProject.children[0]) {
-            name == "lib1"
-            it.children.size() == 1
-            it.children[0].name == "lib11"
+        projectModel.name == "root"
+        projectModel.children.size() == 1
+        projectModel.children[0].name == "lib1"
+        projectModel.children[0].children.name == ["lib11"]
+
+        projectModel.tasks.forEach {
+            assert it.project == projectModel
         }
     }
 
@@ -80,15 +85,15 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def model = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
 
         then:
-        model != null
+        projectModel != null
 
         and: "GradleProject model is always returned for the root regardless of the target"
-        model.name == "root"
-        model.children.size() == 1
-        model.children[0].name == "lib1"
+        projectModel.name == "root"
+        projectModel.children.size() == 1
+        projectModel.children[0].name == "lib1"
     }
 
     def "can fetch GradleProject model for an included build project"() {
@@ -105,15 +110,15 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def model = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+        def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
 
         then:
-        model != null
+        projectModel != null
 
         and:
-        model.name == "included1"
-        model.children.size() == 1
-        model.children[0].name == "lib2"
+        projectModel.name == "included1"
+        projectModel.children.size() == 1
+        projectModel.children[0].name == "lib2"
     }
 
 }

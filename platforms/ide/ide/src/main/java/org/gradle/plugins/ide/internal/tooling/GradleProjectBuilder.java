@@ -39,6 +39,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTaskModel;
 import static org.gradle.util.Path.SEPARATOR;
 
 /**
@@ -134,7 +135,12 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         model.getBuildScript().setSourceFile(isolatedModel.getBuildScript().getSourceFile());
 
-        List<LaunchableGradleTask> tasks = (List<LaunchableGradleTask>) isolatedModel.getTasks();
+        List<LaunchableGradleProjectTask> tasks = new ArrayList<>();
+
+        for (LaunchableGradleTask taskModel : isolatedModel.getTasks()) {
+            tasks.add(buildFromTaskModel(new LaunchableGradleProjectTask(), taskModel)
+                .setProject(model));
+        }
         model.setTasks(tasks);
 
         return model;
@@ -157,7 +163,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
-        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), builderOptions);
+        List<LaunchableGradleProjectTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), builderOptions);
 
         if (!SKIP_TASK_GRAPH_SERIALIZATION.equals(builderOptions)) {
             gradleProject.setTasks(tasks);
@@ -170,14 +176,14 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
+    private static List<LaunchableGradleProjectTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
         if (OMIT_ALL_TASKS.equals(projectOptions)) {
             return ImmutableList.of();
         }
         if (SKIP_TASK_GRAPH_REALIZATION.equals(projectOptions)) {
-            // TODO: this is probably a bug, because we don't set the project on the task
             return tasks.getNames().stream()
-                .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
+                .map(taskName -> (LaunchableGradleProjectTask) buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
+                    .setProject(owner)
                     .setBuildTreePath(owner.getBuildTreePath() + SEPARATOR + taskName))
                 .collect(toList());
         }
@@ -188,7 +194,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
-            .map(task -> buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task)
+            .map(task -> (LaunchableGradleProjectTask) buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task)
                 .setProject(owner)
                 .setBuildTreePath(getBuildTreePath(owner, task))).collect(toList());
     }

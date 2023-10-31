@@ -31,4 +31,16 @@ public abstract class ToolingModelBuilderSupport {
                 .setProjectIdentifier(projectIdentifier);
         return target;
     }
+
+    public static <T extends LaunchableGradleTask> T buildFromTaskModel(T target, LaunchableGradleTask model) {
+        target.setPath(model.getPath())
+            .setName(model.getName())
+            .setGroup(model.getGroup())
+            .setDisplayName(model.getDisplayName())
+            .setDescription(model.getDescription())
+            .setPublic(model.isPublic())
+            .setProjectIdentifier(model.getProjectIdentifier())
+            .setBuildTreePath(model.getBuildTreePath());
+        return target;
+    }
 }
