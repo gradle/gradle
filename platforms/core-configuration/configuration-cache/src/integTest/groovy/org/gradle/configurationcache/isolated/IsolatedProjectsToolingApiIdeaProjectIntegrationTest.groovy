@@ -27,50 +27,24 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             include("lib1")
         """
 
-        file("lib1/build.gradle") << """
-            plugins {
-                id 'java'
-            }
-        """
-
         when:
         executer.withArguments(ENABLE_CLI)
-        def isolatedProjects = runBuildAction(new IsolatedGradleProjectModelBuildAction())
+        def isolatedProjects = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
 
         then:
         outputContains("Running build action to fetch isolated project models")
+
+        and:
         isolatedProjects.size() == 2
         isolatedProjects[0].name == "root"
         isolatedProjects[1].name == "lib1"
 
         when:
         executer.withArguments(ENABLE_CLI)
-        runBuildAction(new IsolatedGradleProjectModelBuildAction())
+        runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
 
-        then:
+        then: "build action is cache and not re-executed"
         outputDoesNotContain("Running build action to fetch isolated project models")
-    }
-
-    def "can fetch GradleProject for non-root project"() {
-        settingsFile << """
-            rootProject.name = 'root'
-
-            include(":lib1")
-        """
-
-        file("lib1/build.gradle") << """plugins { id 'java' }"""
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def model = runBuildAction(new FetchGradleProjectForNonRoot(":lib1"))
-
-        then:
-        model != null
-
-        and: "GradleProject model is always returned for the root regardless of the target"
-        model.name == "root"
-        model.children.size() == 1
-        model.children[0].name == "lib1"
     }
 
     def "can fetch GradleProject model"() {
@@ -80,9 +54,6 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             include(":lib1")
             include(":lib1:lib11")
         """
-
-        file("lib1/build.gradle") << """plugins { id 'java' }"""
-        file("lib1/lib11/build.gradle") << """plugins { id 'java' }"""
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -96,6 +67,53 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
             it.children.size() == 1
             it.children[0].name == "lib11"
         }
+    }
+
+    def "can fetch GradleProject model for non-root project"() {
+        settingsFile << """
+            rootProject.name = 'root'
+
+            include(":lib1")
+        """
+
+        file("lib1/build.gradle") << """plugins { id 'java' }"""
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+
+        then:
+        model != null
+
+        and: "GradleProject model is always returned for the root regardless of the target"
+        model.name == "root"
+        model.children.size() == 1
+        model.children[0].name == "lib1"
+    }
+
+    def "can fetch GradleProject model for an included build project"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            includeBuild("included1")
+            include("lib1")
+        """
+
+        file("included1/settings.gradle") << """
+            rootProject.name = 'included1'
+            include("lib2")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+
+        then:
+        model != null
+
+        and:
+        model.name == "included1"
+        model.children.size() == 1
+        model.children[0].name == "lib2"
     }
 
 }

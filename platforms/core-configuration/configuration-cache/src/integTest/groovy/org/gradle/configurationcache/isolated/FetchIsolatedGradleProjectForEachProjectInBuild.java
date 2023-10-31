@@ -25,7 +25,8 @@ import org.gradle.tooling.model.gradle.IsolatedGradleProject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IsolatedGradleProjectModelBuildAction implements BuildAction<List<IsolatedGradleProject>> {
+public class FetchIsolatedGradleProjectForEachProjectInBuild implements BuildAction<List<IsolatedGradleProject>> {
+
     @Override
     public List<IsolatedGradleProject> execute(BuildController controller) {
         System.out.println("Running build action to fetch isolated project models");
@@ -38,4 +39,5 @@ public class IsolatedGradleProjectModelBuildAction implements BuildAction<List<I
 
         return collected;
     }
+
 }

@@ -22,11 +22,11 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-public class FetchGradleProjectForNonRoot implements BuildAction<GradleProject> {
+public class FetchGradleProjectForTarget implements BuildAction<GradleProject> {
 
     private final String targetProject;
 
-    public FetchGradleProjectForNonRoot(String targetProject) {
+    public FetchGradleProjectForTarget(String targetProject) {
         this.targetProject = targetProject;
     }
 
@@ -36,6 +36,13 @@ public class FetchGradleProjectForNonRoot implements BuildAction<GradleProject> 
         for (BasicGradleProject project : buildModel.getProjects()) {
             if (targetProject.equals(project.getBuildTreePath())) {
                 return controller.getModel(project, GradleProject.class);
+            }
+        }
+        for (GradleBuild editableBuild : buildModel.getEditableBuilds()) {
+            for (BasicGradleProject project : editableBuild.getProjects()) {
+                if (targetProject.equals(project.getBuildTreePath())) {
+                    return controller.getModel(project, GradleProject.class);
+                }
             }
         }
         return null;
