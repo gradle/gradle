@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -77,8 +76,6 @@ import org.gradle.work.InputChanges
 import java.util.function.BiFunction
 
 class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
-    private DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
@@ -153,7 +150,6 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         Mock(TimeoutHandler),
         validationWarningRecorder,
         virtualFileSystem,
-        documentationRegistry,
         new DefaultProblems(Mock(BuildOperationProgressEventEmitter))
     )
 
