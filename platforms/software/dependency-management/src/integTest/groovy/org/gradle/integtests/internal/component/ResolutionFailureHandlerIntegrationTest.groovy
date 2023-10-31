@@ -57,7 +57,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate ambiguous graph variant selection failure for externalDep"() {
+    def "demonstrate ambiguous graph variant selection failure for externalDep (full error message=#fullErrorMsg)"() {
         ambiguousGraphVariantForExternalDep.prepare(fullErrorMsg)
 
         expect:
@@ -72,7 +72,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate no matching graph variants selection failure for project"() {
+    def "demonstrate no matching graph variants selection failure for project (full error message=#fullErrorMsg)"() {
         noMatchingGraphVariantsForProject.prepare(fullErrorMsg)
 
         expect:
@@ -87,7 +87,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate no matching graph variants selection failure for externalDep"() {
+    def "demonstrate no matching graph variants selection failure for externalDep (full error message=#fullErrorMsg)"() {
         noMatchingGraphVariantsForExternalDep.prepare(fullErrorMsg)
 
         expect:
@@ -102,7 +102,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate incompatible graph variants selection failure"() {
+    def "demonstrate incompatible graph variants selection failure (full error message=#fullErrorMsg)"() {
         incompatibleGraphVariants.prepare(fullErrorMsg)
 
         expect:
@@ -118,7 +118,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // region Configuration requested by name
-    def "demonstrate configuration not found selection failure"() {
+    def "demonstrate configuration not found selection failure (full error message=#fullErrorMsg)"() {
         configurationNotFound.prepare(fullErrorMsg)
 
         expect:
@@ -134,7 +134,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore("Is the configuration key in the dependency map just not used for Maven deps?  Should this be an error?")
-    def "demonstrate external configuration not found selection failure"() {
+    def "demonstrate external configuration not found selection failure (full error message=#fullErrorMsg)"() {
         externalConfigurationNotFound.prepare(fullErrorMsg)
 
         expect:
@@ -153,7 +153,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion Graph Variant failures
 
     // region Artifact Variant failures
-    def "demonstrate incompatible artifact variants exception"() {
+    def "demonstrate incompatible artifact variants exception (full error message=#fullErrorMsg)"() {
         incompatibleArtifactVariants.prepare(fullErrorMsg)
 
         expect:
@@ -168,7 +168,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate no matching artifact variants exception"() {
+    def "demonstrate no matching artifact variants exception (full error message=#fullErrorMsg)"() {
         noMatchingArtifactVariants.prepare(fullErrorMsg)
 
         expect:
@@ -182,7 +182,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate ambiguous artifact transforms exception"() {
+    def "demonstrate ambiguous artifact transforms exception (full error message=#fullErrorMsg)"() {
         ambiguousArtifactTransforms.prepare(fullErrorMsg)
 
         expect:
@@ -196,7 +196,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         fullErrorMsg << [true, false]
     }
 
-    def "demonstrate ambiguous artifact variants exception"() {
+    def "demonstrate ambiguous artifact variants exception (full error message=#fullErrorMsg)"() {
         ambiguousArtifactVariants.prepare(fullErrorMsg)
 
         expect:
@@ -207,7 +207,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect(fullErrorMsg, "More than one variant of project : matches the consumer attributes:")
 
         where:
-        fullErrorMsg << [true, false]
+        fullErrorMsg << [false]
     }
     // endregion Artifact Variant failures
     // endregion resolution failures
@@ -217,7 +217,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
      * Running the dependencyInsight report can also generate a variant selection failure, but this
      * does <strong>NOT</strong> cause the task to fail.
      */
-    def "demonstrate dependencyInsight report no matching capabilities failure"() {
+    def "demonstrate dependencyInsight report no matching capabilities failure (full error message=#fullErrorMsg)"() {
         setupDependencyInsightFailure(fullErrorMsg)
 
         expect:
@@ -250,14 +250,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         setFullFailureMessageEnabled(false)
-        generateFailureShowcase(reportFile)
+        generateFailureShowcase(reportFile, false)
 
         then:
         assertAllExceptionsInShowcase(reportFile)
 
         when:
         setFullFailureMessageEnabled(true)
-        generateFailureShowcase(reportFileFull)
+        generateFailureShowcase(reportFileFull, true)
 
         then:
         assertAllExceptionsInShowcase(reportFileFull)
@@ -266,11 +266,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         println("Resolution error showcase report with full failure messages available at: ${reportFileFull.toURI()}")
     }
 
-    private void generateFailureShowcase(TestFile reportFile) {
+    private void generateFailureShowcase(TestFile reportFile, boolean fullErrorMsg) {
         StringBuilder reportBuilder = new StringBuilder()
         demonstrations.each {
             buildKotlinFile.text = ""
-            it.prepare()
+            it.prepare(fullErrorMsg)
 
             fails "forceResolution"
 

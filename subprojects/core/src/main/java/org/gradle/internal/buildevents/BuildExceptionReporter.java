@@ -63,6 +63,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * Reports the build exception, if any.
  */
 public class BuildExceptionReporter implements Action<Throwable> {
+    private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
@@ -204,7 +205,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            if (StringUtils.isNotBlank(getMessage(node))) {
+            String message = getMessage(node);
+            if (StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR)) {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 renderStyledError(node, output);
             }
@@ -328,7 +330,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             if (GUtil.isTrue(message)) {
                 return message;
             }
-            return String.format("%s (no error message)", throwable.getClass().getName());
+            return String.format("%s %s", throwable.getClass().getName(), NO_ERROR_MESSAGE_INDICATOR);
         } catch (Throwable t) {
             return String.format("Unable to get message for failure of type %s due to %s", throwable.getClass().getSimpleName(), t.getMessage());
         }
