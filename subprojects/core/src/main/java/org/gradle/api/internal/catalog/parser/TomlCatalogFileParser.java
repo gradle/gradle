@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.catalog.parser;
 
+import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +26,9 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
 import org.tomlj.Toml;
@@ -60,8 +63,8 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.I
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOML_SYNTAX_ERROR;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 public class TomlCatalogFileParser {
@@ -138,10 +141,15 @@ public class TomlCatalogFileParser {
 
     @Nonnull
     private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder
+        return configureVersionCatalogError(builder, message, catalogProblemId, ProblemBuilderDefiningLocation::noLocation);
+    }
+
+    private static ProblemBuilder configureVersionCatalogError(ProblemBuilderDefiningLabel builder, String message, VersionCatalogProblemId catalogProblemId, Function<ProblemBuilderDefiningLocation, ProblemBuilderDefiningCategory> locationDefiner) {
+        ProblemBuilderDefiningLocation definingLocation = builder
             .label(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
-            .noLocation()
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()));
+        ProblemBuilderDefiningCategory definingCategory = locationDefiner.apply(definingLocation);
+        return definingCategory
             .category(catalogProblemId.name())
             .severity(ERROR);
     }
@@ -150,7 +158,11 @@ public class TomlCatalogFileParser {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throw throwVersionCatalogProblemException(problemServiceSupplier.get().createProblem(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR, definingLocation -> {
+                    errors.forEach(error ->
+                        definingLocation.location(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column()));
+                    return definingLocation.noLocation();
+                })
                     .details(getErrorText(catalogFilePath, errors)) //TODO provide the location information to the problemBuilder
                     .solution("Fix the TOML file according to the syntax described at https://toml.io")));
         }
