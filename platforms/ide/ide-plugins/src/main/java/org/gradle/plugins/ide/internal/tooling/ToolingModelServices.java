@@ -73,8 +73,8 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             };
         }
 
-        protected IntermediateToolingModelProvider createIntermediateToolingProvider(BuildStateRegistry buildStateRegistry) {
-            return new DefaultIntermediateToolingModelProvider(buildStateRegistry);
+        protected IntermediateToolingModelProvider createIntermediateToolingProvider() {
+            return new DefaultIntermediateToolingModelProvider();
         }
     }
 }
