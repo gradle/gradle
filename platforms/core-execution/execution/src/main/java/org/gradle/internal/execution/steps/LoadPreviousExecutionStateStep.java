@@ -30,7 +30,7 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
     @Override
     public R execute(UnitOfWork work, C context) {
         Identity identity = context.getIdentity();
-        PreviousExecutionState previousExecutionState = context.getHistory()
+        PreviousExecutionState previousExecutionState = work.getWorkspaceProvider().getHistory()
             .flatMap(history -> history.load(identity.getUniqueId()))
             .orElse(null);
         return delegate.execute(work, new PreviousExecutionContext(context, previousExecutionState));

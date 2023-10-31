@@ -30,7 +30,7 @@ public class RemoveUntrackedExecutionStateStep<C extends WorkspaceContext, R ext
     @Override
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        context.getHistory()
+        work.getWorkspaceProvider().getHistory()
             .ifPresent(history -> {
                 if (!result.getAfterExecutionState().isPresent()) {
                     history.remove(context.getIdentity().getUniqueId());

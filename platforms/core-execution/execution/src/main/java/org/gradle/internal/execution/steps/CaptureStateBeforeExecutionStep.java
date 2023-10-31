@@ -66,7 +66,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
+        Optional<BeforeExecutionState> beforeExecutionState = work.getWorkspaceProvider().getHistory()
             .map(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState.orElse(null)));
     }

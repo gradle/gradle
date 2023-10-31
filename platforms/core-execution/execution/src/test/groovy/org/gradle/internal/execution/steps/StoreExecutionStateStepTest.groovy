@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -49,7 +50,9 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
 
     def setup() {
-        _ * context.history >> Optional.of(executionHistoryStore)
+        _ * work.workspaceProvider >> Stub(WorkspaceProvider) {
+            history >> Optional.of(executionHistoryStore)
+        }
     }
 
     def "output snapshots are stored after successful execution"() {

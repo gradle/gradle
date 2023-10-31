@@ -25,6 +25,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -228,7 +229,9 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
-        _ * context.history >> Optional.of(executionHistoryStore)
+        _ * work.workspaceProvider >> Stub(WorkspaceProvider) {
+            history >> Optional.of(executionHistoryStore)
+        }
     }
 
     private void assertOperation(Throwable expectedFailure = null) {

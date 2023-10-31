@@ -34,7 +34,7 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
     @Override
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        context.getHistory()
+        work.getWorkspaceProvider().getHistory()
             .ifPresent(history -> result.getAfterExecutionState()
                 .ifPresent(
                     afterExecutionState -> {
