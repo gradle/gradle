@@ -188,6 +188,39 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }
 
+    def "does not emit deprecation warning about no tests executed when groups are specified"() {
+        buildFile << """
+            test {
+                useTestNG {
+                    ${configureIncludeOrExcludeGroups}
+                }
+                filter.failOnNoMatchingTests = false
+            }
+        """.stripIndent()
+        file('src/test/java/org/gradle/groups/SomeTest.java') << '''
+            package org.gradle.groups;
+            import org.testng.annotations.Test;
+
+            public class SomeTest {
+                @Test(groups = "database")
+                public void databaseTest() {}
+
+                @Test(groups = {"database", "slow"})
+                public void slowDatabaseTest() {}
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'test'
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertNoTestClassesExecuted()
+
+        where:
+        configureIncludeOrExcludeGroups << ["includeGroups 'notDatabase'", "excludeGroups 'database'"]
+    }
+
     def "supports test factory"() {
         given:
         file('src/test/java/org/gradle/factory/FactoryTest.java') << '''
