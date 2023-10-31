@@ -1279,29 +1279,29 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     @Override
-    boolean testsAreFiltered() {
-        return super.testsAreFiltered()
-            || hasCategoryOrTagOrGroup();
+    boolean testsAreNotFiltered() {
+        return super.testsAreNotFiltered()
+            && noCategoryOrTagOrGroupSpecified();
     }
 
-    private boolean hasCategoryOrTagOrGroup() {
+    private boolean noCategoryOrTagOrGroupSpecified() {
         TestFrameworkOptions frameworkOptions = getTestFramework().getOptions();
         if (frameworkOptions == null) {
-            return false;
+            return true;
         }
 
         if (JUnitOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitOptions junitOptions = (JUnitOptions) frameworkOptions;
-            return !junitOptions.getIncludeCategories().isEmpty()
-                || !junitOptions.getExcludeCategories().isEmpty();
+            return junitOptions.getIncludeCategories().isEmpty()
+                && junitOptions.getExcludeCategories().isEmpty();
         } else if (JUnitPlatformOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             JUnitPlatformOptions junitPlatformOptions = (JUnitPlatformOptions) frameworkOptions;
-            return !junitPlatformOptions.getIncludeTags().isEmpty()
-                || !junitPlatformOptions.getExcludeTags().isEmpty();
+            return junitPlatformOptions.getIncludeTags().isEmpty()
+                && junitPlatformOptions.getExcludeTags().isEmpty();
         } else if (TestNGOptions.class.isAssignableFrom(frameworkOptions.getClass())) {
             TestNGOptions testNGOptions = (TestNGOptions) frameworkOptions;
-            return !testNGOptions.getIncludeGroups().isEmpty()
-                || !testNGOptions.getExcludeGroups().isEmpty();
+            return testNGOptions.getIncludeGroups().isEmpty()
+                && testNGOptions.getExcludeGroups().isEmpty();
         } else {
             throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
         }

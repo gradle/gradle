@@ -532,9 +532,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
-            if (!testsAreFiltered()) {
+            if (testsAreNotFiltered()) {
                 emitDeprecationMessage();
-            } else if (shouldFailOnNoMatchingTests()) {
+            } else if (filter.isFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
@@ -548,14 +548,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             .nagUser();
     }
 
-    private boolean shouldFailOnNoMatchingTests() {
-        return filter.isFailOnNoMatchingTests() && testsAreFiltered();
-    }
-
-    boolean testsAreFiltered() {
-        return !filter.getIncludePatterns().isEmpty()
-            || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty();
+    boolean testsAreNotFiltered() {
+        return filter.getIncludePatterns().isEmpty()
+            && filter.getCommandLineIncludePatterns().isEmpty()
+            && filter.getExcludePatterns().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {
