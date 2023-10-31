@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def "caches BuildAction that queries model that performs dependency resolution"() {
         given:
