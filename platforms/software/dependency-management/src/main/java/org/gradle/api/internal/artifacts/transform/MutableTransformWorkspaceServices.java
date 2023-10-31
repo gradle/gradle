@@ -29,6 +29,7 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
+import java.util.Optional;
 
 @NotThreadSafe
 public class MutableTransformWorkspaceServices implements TransformWorkspaceServices, ReservedFileSystemLocation {
@@ -61,9 +62,14 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
 
     private class MutableTransformWorkspaceProvider implements WorkspaceProvider {
         @Override
+        public Optional<ExecutionHistoryStore> getHistory() {
+            return Optional.of(executionHistoryStore);
+        }
+
+        @Override
         public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
             File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
-            return action.executeInWorkspace(workspaceDir, executionHistoryStore);
+            return action.executeInWorkspace(workspaceDir);
         }
     }
 }

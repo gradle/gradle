@@ -16,15 +16,17 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import java.io.Closeable
+import java.util.Optional
 
 
 internal
@@ -59,6 +61,9 @@ class KotlinDslWorkspaceProvider(
 
     private
     fun subWorkspace(prefix: String): WorkspaceProvider = object : WorkspaceProvider {
+        override fun getHistory(): Optional<ExecutionHistoryStore> =
+            kotlinDslWorkspace.history
+
         override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
             kotlinDslWorkspace.withWorkspace("$prefix/$path", action)
     }

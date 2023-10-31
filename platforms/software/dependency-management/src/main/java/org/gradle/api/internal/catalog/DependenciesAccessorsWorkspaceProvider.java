@@ -19,12 +19,14 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
+import java.util.Optional;
 
 public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
@@ -47,6 +49,11 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
             classLoaderHasher,
             cacheConfigurations
         );
+    }
+
+    @Override
+    public Optional<ExecutionHistoryStore> getHistory() {
+        return delegate.getHistory();
     }
 
     @Override

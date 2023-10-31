@@ -36,6 +36,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -133,11 +134,16 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     }
 
     @Override
+    public Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.of(executionHistoryStore);
+    }
+
+    @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         return cache.withFileLock(() -> {
             File workspace = new File(baseDirectory, path);
             fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace, executionHistoryStore);
+            return action.executeInWorkspace(workspace);
         });
     }
 

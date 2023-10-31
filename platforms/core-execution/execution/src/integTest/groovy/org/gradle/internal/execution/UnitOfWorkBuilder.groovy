@@ -162,8 +162,13 @@ class UnitOfWorkBuilder {
             WorkspaceProvider getWorkspaceProvider() {
                 new WorkspaceProvider() {
                     @Override
+                    Optional<ExecutionHistoryStore> getHistory() {
+                        return Optional.ofNullable(executionHistoryStore)
+                    }
+
+                    @Override
                     <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
-                        return action.executeInWorkspace(null, executionHistoryStore)
+                        return action.executeInWorkspace(null)
                     }
                 }
             }

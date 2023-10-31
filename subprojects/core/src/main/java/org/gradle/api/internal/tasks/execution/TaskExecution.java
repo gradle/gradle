@@ -289,10 +289,16 @@ public class TaskExecution implements UnitOfWork {
     public WorkspaceProvider getWorkspaceProvider() {
         return new WorkspaceProvider() {
             @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return context.getTaskExecutionMode().isTaskHistoryMaintained()
+                    ? Optional.of(executionHistoryStore)
+                    : Optional.empty();
+            }
+
+            @Override
             public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()
-                    ? executionHistoryStore
-                    : null);
+                // Tasks don't as such have a workspace yet
+                return action.executeInWorkspace(null);
             }
         };
     }

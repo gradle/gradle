@@ -18,10 +18,13 @@ package org.gradle.internal.execution.workspace;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public interface WorkspaceProvider {
+
+    Optional<ExecutionHistoryStore> getHistory();
+
     /**
      * Provides a workspace and execution history store for executing the transform.
      */
@@ -29,6 +32,6 @@ public interface WorkspaceProvider {
 
     @FunctionalInterface
     interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, @Nullable ExecutionHistoryStore history);
+        T executeInWorkspace(File workspace);
     }
 }

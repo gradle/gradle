@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
+import java.util.Optional;
 
 public class TestTransformWorkspaceServices implements TransformWorkspaceServices {
     private final File transformationsStoreDirectory;
@@ -38,9 +39,14 @@ public class TestTransformWorkspaceServices implements TransformWorkspaceService
     public WorkspaceProvider getWorkspaceProvider() {
         return new WorkspaceProvider() {
             @Override
+            public Optional<ExecutionHistoryStore> getHistory() {
+                return Optional.of(executionHistoryStore);
+            }
+
+            @Override
             public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
                 File workspace = new File(transformationsStoreDirectory, path);
-                return action.executeInWorkspace(workspace, executionHistoryStore);
+                return action.executeInWorkspace(workspace);
             }
         };
     }
