@@ -30,7 +30,6 @@ import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -69,7 +68,6 @@ public class TestExecutionEngineFactory {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new RemoveUntrackedExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter, problems,
             new ResolveCachingStateStep<>(buildCacheController, false,
@@ -81,7 +79,7 @@ public class TestExecutionEngineFactory {
             new CreateOutputsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))));
+        ))))))))))))))));
         // @formatter:on
     }
 }
