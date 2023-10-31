@@ -21,6 +21,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.internal.component.ResolutionFailureHandler
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
@@ -1349,6 +1351,7 @@ org:middle:1.0 FAILED
                 configuration = configurations.conf
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         run "insight"
@@ -1472,6 +1475,7 @@ org:middle:1.0 -> 2.0+ FAILED
                 configuration = configurations.conf
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         run "insight"
@@ -1526,6 +1530,7 @@ org:leaf:[1.5,2.0] FAILED
                 dependencies.add("default", project(':C'))
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         run "dependencyInsight", "--configuration", "conf", "--dependency", ":A"
@@ -1535,6 +1540,7 @@ org:leaf:[1.5,2.0] FAILED
 project :A FAILED
    Failures:
       - Could not resolve project :A.
+        Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.
           - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :A.
 
 project :A FAILED
@@ -1549,6 +1555,7 @@ project :A FAILED
 project :C FAILED
    Failures:
       - Could not resolve project :C.
+        Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.
           - A dependency was declared on configuration 'default' which is not declared in the descriptor for project :C.
 
 project :C FAILED
