@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -20,10 +21,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
-import org.gradle.api.logging.Logger
-
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.hamcrest.CoreMatchers.containsString
@@ -32,7 +29,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class EmbeddedKotlinPluginTest : AbstractKotlinIntegrationTest() {
+class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `applies the kotlin plugin`() {
@@ -230,39 +227,6 @@ class EmbeddedKotlinPluginTest : AbstractKotlinIntegrationTest() {
         val result = build("assemble")
 
         result.assertTaskExecuted(":compileKotlin")
-    }
-
-    @Test
-    fun `emit a warning if the kotlin plugin version is not the same as embedded`() {
-
-        val logger = mock<Logger>()
-        val template = """
-            WARNING: Unsupported Kotlin plugin version.
-            The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
-        """.trimIndent()
-
-
-        logger.warnOnDifferentKotlinVersion(embeddedKotlinVersion)
-
-        inOrder(logger) {
-            verifyNoMoreInteractions()
-        }
-
-
-        logger.warnOnDifferentKotlinVersion("1.3")
-
-        inOrder(logger) {
-            verify(logger).warn(template, embeddedKotlinVersion, "1.3")
-            verifyNoMoreInteractions()
-        }
-
-
-        logger.warnOnDifferentKotlinVersion(null)
-
-        inOrder(logger) {
-            verify(logger).warn(template, embeddedKotlinVersion, null)
-            verifyNoMoreInteractions()
-        }
     }
 
     private

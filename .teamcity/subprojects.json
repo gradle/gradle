@@ -500,7 +500,7 @@
     "name": "kotlin-dsl-plugins",
     "path": "platforms/core-configuration/kotlin-dsl-plugins",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
