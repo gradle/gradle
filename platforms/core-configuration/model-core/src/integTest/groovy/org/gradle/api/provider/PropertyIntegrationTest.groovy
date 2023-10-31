@@ -135,6 +135,43 @@ task thing(type: SomeTask) {
         outputContains("prop = value")
     }
 
+
+    def "fails when input file does not exist"() {
+        enableProblemsApiCheck()
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @InputFile
+                abstract RegularFileProperty getProp()
+
+                @TaskAction
+                def noop() {}
+            }
+
+            tasks.register('thing', SomeTask) {
+                prop = layout.projectDirectory.file("non-existing.txt")
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        def fileLocation = testDirectory.file("non-existing.txt")
+        failureDescriptionContains("Reason: An input file was expected to be present but it doesn't exist.")
+        failureDescriptionContains("""- Type 'SomeTask' property 'prop' specifies file '${fileLocation.absolutePath}' which doesn't exist.""")
+        collectedProblems.size() == 1
+        def (problem) = collectedProblems
+        problem.details == "An input file was expected to be present but it doesn't exist"
+        problem.additionalData?.propertyName == "prop"
+        problem.where != null
+        def problemFileLocation = problem.where.find { it.type == 'file' }
+        problemFileLocation != null
+        problemFileLocation.line == 11
+        problemFileLocation.column == 24
+        problemFileLocation.path == testDirectory.file("build.gradle").path
+    }
+
     def "fails when property with no value is queried"() {
         given:
         buildFile << """

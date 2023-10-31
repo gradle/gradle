@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Suppliers;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.HasConfigurableValue;
@@ -66,12 +68,14 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     @Override
     public void validate(PropertyValidationContext context) {
+        // keep the "packed" value around for provenance
+        Object computedValue = value.call();
         // unnest callables without resolving deferred values (providers, factories)
-        Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
+        Object unnested = DeferredUtil.unpackNestableDeferred(computedValue);
         if (isPresent(unnested)) {
             // only resolve deferred values if actually required by some action
             Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
-            validationAction.validate(propertyName, valueSupplier, context);
+            validationAction.validate(propertyName, valueSupplier, context, () -> DefaultProperty.getProvenance(computedValue));
         } else {
             if (!optional) {
                 reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));

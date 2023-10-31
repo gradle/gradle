@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultProperty;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.file.Paths;
 
 public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
     private final URI location;
@@ -67,20 +68,16 @@ public class AssignmentProvenanceTransformer extends AbstractScriptTransformer {
                     new StaticMethodCallExpression(
                         ClassHelper.make(DefaultProperty.class),
                         "withProv",
-                        new ArgumentListExpression(
-                            new ConstantExpression(provenanceStringOf(rhs)),
-                            rhs
-                        )
+                        new ArgumentListExpression(new Expression[] {
+                            rhs,
+                            location == null ? ConstantExpression.NULL : new ConstantExpression(Paths.get(location.getPath()).toString()),
+                            new ConstantExpression(rhs.getLineNumber()),
+                            new ConstantExpression(rhs.getColumnNumber())
+                        })
                     )
                 );
             }
             super.visitBinaryExpression(expr);
-        }
-
-        private String provenanceStringOf(Expression e) {
-            int line = e.getLineNumber();
-            int column = e.getColumnNumber();
-            return (location != null ? location.getPath() : "?") + ":" + line + ":" + column;
         }
     }
 }

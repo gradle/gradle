@@ -32,12 +32,12 @@ import javax.annotation.Nullable;
  */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
 
-    private static ThreadLocal<String> nextProvenance = new ThreadLocal<>();
+    private static ThreadLocal<ValueProvenance> nextProvenance = new ThreadLocal<>();
 
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
-    private String provenance;
+    private ValueProvenance provenance;
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);
@@ -51,16 +51,47 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         return Providers.notDefined();
     }
 
-    public String getProvenance() {
+    public ValueProvenance getProvenance() {
         ProviderInternal<? extends T> provider = getProvider();
         if (provider instanceof DefaultProperty) {
-            return ((DefaultProperty<? extends T>) provider).getProvenance();
+            ValueProvenance upstreamProvenance = ((DefaultProperty<? extends T>) provider).getProvenance();
+            if (upstreamProvenance != null) {
+                return upstreamProvenance;
+            }
         }
         return provenance;
     }
 
-    public static <T> T withProv(String provenance, T value) {
-        nextProvenance.set(provenance);
+    @Nullable
+    public static ValueProvenance getProvenance(Object value) {
+        if (value instanceof DefaultProperty) {
+            return ((DefaultProperty) value).getProvenance();
+        }
+        return null;
+    }
+
+    public static <T> T withProv(T value, String sourceUnit, int lineNumber, int columnNumber) {
+        nextProvenance.set(new ValueProvenance() {
+            @Override
+            public Integer getColumn() {
+                return columnNumber == -1 ? null : columnNumber;
+            }
+
+            @Override
+            public Integer getLine() {
+                return lineNumber == -1 ? null : lineNumber;
+            }
+
+            @Override
+            public String getSourceUnit() {
+                return sourceUnit;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("%s:%d:%d", sourceUnit, getLine(), getColumn());
+            }
+        });
         return value;
     }
 
@@ -100,7 +131,8 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         } else {
             setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
-        provenance = nextProvenance.get();
+        ValueProvenance newProvenance = nextProvenance.get();
+        provenance = newProvenance;
     }
 
     @Override

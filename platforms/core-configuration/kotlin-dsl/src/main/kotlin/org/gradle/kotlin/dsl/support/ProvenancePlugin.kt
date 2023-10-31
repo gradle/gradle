@@ -25,9 +25,10 @@ import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.ir.builders.IrSingleStatementBuilder
 import org.jetbrains.kotlin.ir.builders.irCall
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.name
+import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
@@ -55,7 +56,9 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                     val provenanceOffset = originalValue!!.startOffset
                     val file = moduleFragment.files.first()
                     val fileEntry = file.fileEntry
-                    val provenance = file.name + ":" + (fileEntry.getLineNumber(provenanceOffset) + 1) + ":" + fileEntry.getColumnNumber(provenanceOffset)
+                    val sourceUnit = file.path
+                    val lineNumber = fileEntry.getLineNumber(provenanceOffset) + 1
+                    val columnNumber = fileEntry.getColumnNumber(provenanceOffset)
 
                     val targetType = pluginContext.referenceClass(FqName(DefaultProperty::class.qualifiedName!!))
                         ?: error("Class not found")
@@ -69,8 +72,10 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                         irCall(
                             targetType.getSimpleFunction("withProv")!!
                         ).apply {
-                            putValueArgument(0, irString(provenance))
-                            putValueArgument(1, originalValue)
+                            putValueArgument(0, originalValue)
+                            putValueArgument(1, irString(sourceUnit))
+                            putValueArgument(2, irInt(lineNumber))
+                            putValueArgument(3, irInt(columnNumber))
                         }
                     }
 
