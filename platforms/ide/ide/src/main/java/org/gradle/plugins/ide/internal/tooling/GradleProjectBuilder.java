@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultIsolatedGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
@@ -38,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
@@ -47,6 +47,19 @@ import static org.gradle.util.Path.SEPARATOR;
  * Builds the GradleProject that contains the project hierarchy and task information
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
+
+    /*
+        Internal system property to investigate model loading performance in IDEA/Android Studio.
+        The model loading can be altered with the following values:
+          - "omit_all_tasks": The model builder won't realize the task graph. The returned model will contain an empty task list.
+          - "skip_task_graph_realization":  The model builder won't realize the task graph. The returned model will contain artificial tasks created from the task names.
+          - "skip_task_serialization":  The model builder will realize the task graph but won't send it to the client.
+          - "unmodified" (or any other value): The model builder will run unchanged.
+     */
+    private static final String BUILDER_OPTIONS = "org.gradle.internal.GradleProjectBuilderOptions";
+    private static final String OMIT_ALL_TASKS = "omit_all_tasks";
+    private static final String SKIP_TASK_GRAPH_REALIZATION = "skip_task_graph_realization";
+    private static final String SKIP_TASK_GRAPH_SERIALIZATION = "skip_task_serialization";
 
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
     private final Provider<Boolean> isolatedProjectsActive;
@@ -66,6 +79,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
 
+    /**
+     * Builds a hierarchical model of the root project, regardless of the target project parameter.
+     */
     @Override
     public Object buildAll(String modelName, Project project) {
         return buildAll(project);
@@ -73,25 +89,28 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     public DefaultGradleProject buildAll(Project project) {
         Project rootProject = project.getRootProject();
-        String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
-        boolean skipTaskGraph = "skip_task_graph_realization".equals(projectOptions) || "omit_all_tasks".equals(projectOptions);
+
+        String builderOptions = System.getProperty(BUILDER_OPTIONS, "unmodified");
+        boolean skipTaskGraph = SKIP_TASK_GRAPH_REALIZATION.equals(builderOptions) || OMIT_ALL_TASKS.equals(builderOptions);
 
         if (skipTaskGraph || !isolatedProjectsActive.get()) {
-            return buildHierarchy(rootProject);
+            return buildHierarchy(rootProject, builderOptions);
         }
 
-        return buildFromIsolatedSubprojectsOfRoot(rootProject);
+        return buildFromIsolatedSubprojectsOfRoot((ProjectInternal) rootProject);
     }
 
-    private DefaultGradleProject buildFromIsolatedSubprojectsOfRoot(Project rootProject) {
-        DefaultIsolatedGradleProject rootIsolatedModel = IsolatedGradleProjectBuilder.build(rootProject);
-        return buildFromIsolatedSubprojects(rootIsolatedModel, (ProjectInternal) rootProject);
+    private DefaultGradleProject buildFromIsolatedSubprojectsOfRoot(ProjectInternal rootProject) {
+        // We must request isolated root model instead of building it directly,
+        // because the original target of the model may not have been a root project
+        DefaultIsolatedGradleProject rootIsolatedModel = mapToIsolatedModels(singletonList(rootProject)).get(0);
+        return buildFromIsolatedSubprojects(rootIsolatedModel, rootProject);
     }
 
     private DefaultGradleProject buildFromIsolatedSubprojects(DefaultIsolatedGradleProject isolatedModel, ProjectInternal project) {
         DefaultGradleProject model = buildFromIsolatedModelWithoutChildren(project, isolatedModel);
         Collection<Project> childProjects = getChildProjectsForInternalUse(project);
-        List<DefaultIsolatedGradleProject> childIsolatedModels = mapToModels(childProjects);
+        List<DefaultIsolatedGradleProject> childIsolatedModels = mapToIsolatedModels(childProjects);
 
         List<DefaultGradleProject> childModels = new ArrayList<>();
         int i = 0;
@@ -105,9 +124,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return model;
     }
 
-    private List<DefaultIsolatedGradleProject> mapToModels(Collection<Project> childProjects) {
+    private List<DefaultIsolatedGradleProject> mapToIsolatedModels(Collection<Project> childProjects) {
         List<Object> models = intermediateToolingModelProvider.getModels(new ArrayList<>(childProjects), "org.gradle.tooling.model.gradle.IsolatedGradleProject");
-        return models.stream().map(Cast::<DefaultIsolatedGradleProject>uncheckedCast).collect(toList());
+        return models.stream().map(it -> (DefaultIsolatedGradleProject) it).collect(toList());
     }
 
     private static DefaultGradleProject buildFromIsolatedModelWithoutChildren(ProjectInternal project, DefaultIsolatedGradleProject isolatedModel) {
@@ -120,7 +139,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             .setProjectDirectory(isolatedModel.getProjectDirectory())
             .setBuildTreePath(project.getIdentityPath().getPath());
 
-        model.getBuildScript().setSourceFile(project.getBuildFile());
+        model.getBuildScript().setSourceFile(isolatedModel.getBuildScript().getSourceFile());
 
         List<LaunchableGradleTask> tasks = (List<LaunchableGradleTask>) isolatedModel.getTasks();
         model.setTasks(tasks);
@@ -128,9 +147,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return model;
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
+    private DefaultGradleProject buildHierarchy(Project project, String builderOptions) {
         List<DefaultGradleProject> children = getChildProjectsForInternalUse(project).stream()
-            .map(this::buildHierarchy)
+            .map(it -> buildHierarchy(it, builderOptions))
             .collect(toList());
 
         String projectIdentityPath = ((ProjectInternal) project).getIdentityPath().getPath();
@@ -145,19 +164,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
-        // TODO: Android Studio uses "omit_all_tasks" in production
-        /*
-            Internal system property to investigate model loading performance in IDEA/Android Studio.
-            The model loading can be altered with the following values:
-              - "omit_all_tasks": The model builder won't realize the task graph. The returned model will contain an empty task list.
-              - "skip_task_graph_realization":  The model builder won't realize the task graph. The returned model will contain artificial tasks created from the task names.
-              - "skip_task_serialization":  The model builder will realize the task graph but won't send it to the client.
-              - "unmodified" (or any other value): The model builder will run unchanged.
-         */
-        String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
-        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions);
+        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), builderOptions);
 
-        if (!"skip_task_serialization".equals(projectOptions)) {
+        if (!SKIP_TASK_GRAPH_SERIALIZATION.equals(builderOptions)) {
             gradleProject.setTasks(tasks);
         }
 
@@ -169,10 +178,10 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
-        if ("omit_all_tasks".equals(projectOptions)) {
+        if (OMIT_ALL_TASKS.equals(projectOptions)) {
             return ImmutableList.of();
         }
-        if ("skip_task_graph_realization".equals(projectOptions)) {
+        if (SKIP_TASK_GRAPH_REALIZATION.equals(projectOptions)) {
             // TODO: this is probably a bug, because we don't set the project on the task
             return tasks.getNames().stream()
                 .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
