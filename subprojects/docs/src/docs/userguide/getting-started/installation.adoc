@@ -227,7 +227,7 @@ We recommend downloading the bin file.
 Create a new directory `C:\Gradle` with **File Explorer**.
 
 Open a second **File Explorer** window and go to the directory where the Gradle distribution was downloaded. Double-click the ZIP archive to expose the content.
-Drag the content folder `gradle-{gradleVersion}` to your newly created `C:\Gradle` folder.
+Drag the `gradle-{gradleVersion}` directory to your newly created `C:\Gradle` folder.
 
 Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using the archiver tool of your choice.
 
