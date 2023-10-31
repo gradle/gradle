@@ -310,11 +310,6 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
-
-        // TODO Temporarily disable all embedded tests until wrapper is updated with the new Kotlin
-        if (usesEmbeddedExecuter()) {
-            enabled = false
-        }
     }
 }
 
