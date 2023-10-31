@@ -20,6 +20,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
@@ -55,7 +56,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
     }
 
     @Override
-    public DynamicInvokeResult trySetProperty(String name, Object value) {
+    public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
         if (extension.has(name)) {
             extension.set(name, value);
             return DynamicInvokeResult.found();

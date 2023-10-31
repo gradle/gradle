@@ -16,6 +16,7 @@
 
 package org.gradle.internal.metaobject;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -39,7 +40,7 @@ public interface PropertyAccess {
      *
      * @return true if the property was found
      */
-    DynamicInvokeResult trySetProperty(String name, Object value);
+    DynamicInvokeResult trySetProperty(String name, @Nullable Object value);
 
     /**
      * Returns the properties known for this object.

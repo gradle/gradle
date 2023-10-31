@@ -25,6 +25,8 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 
+import javax.annotation.Nullable;
+
 /**
  * Exposes methods for those properties whose value is a closure.
  *
@@ -32,7 +34,7 @@ import org.gradle.internal.metaobject.DynamicObjectUtil;
  */
 public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends CompositeDynamicObject {
     @Override
-    public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
+    public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
         DynamicInvokeResult result = super.tryInvokeMethod(name, arguments);
         if (result.isFound()) {
             return result;
