@@ -20,7 +20,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 
-public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class LoadPreviousExecutionStateStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
     private final Step<? super PreviousExecutionContext, ? extends R> delegate;
 
     public LoadPreviousExecutionStateStep(Step<? super PreviousExecutionContext, ? extends R> delegate) {

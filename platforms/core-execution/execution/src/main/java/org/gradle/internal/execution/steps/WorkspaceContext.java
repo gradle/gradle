@@ -16,18 +16,30 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+
 import java.io.File;
 
-public class WorkspaceContext extends IdentityContext {
+public class WorkspaceContext extends PreviousExecutionContext {
     private final File workspace;
 
-    public WorkspaceContext(IdentityContext parent, File workspace) {
+    public WorkspaceContext(PreviousExecutionContext parent, File workspace) {
         super(parent);
         this.workspace = workspace;
     }
 
     protected WorkspaceContext(WorkspaceContext parent) {
         this(parent, parent.getWorkspace());
+    }
+
+    public WorkspaceContext withInputFiles(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
+        return new WorkspaceContext(this) {
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return inputFiles;
+            }
+        };
     }
 
     public File getWorkspace() {

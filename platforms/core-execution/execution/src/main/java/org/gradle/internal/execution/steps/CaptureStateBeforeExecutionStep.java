@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+public class CaptureStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -72,7 +72,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Nonnull
-    private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, WorkspaceContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
                 unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());

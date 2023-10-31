@@ -17,9 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
-public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
+public class AssignWorkspaceStep<C extends PreviousExecutionContext, R extends Result> implements Step<C, R> {
     private final Step<? super WorkspaceContext, ? extends R> delegate;
 
     public AssignWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
@@ -28,8 +27,7 @@ public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> im
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        WorkspaceProvider workspaceProvider = work.getWorkspaceProvider();
-        return workspaceProvider.withWorkspace(
+        return work.getWorkspaceProvider().withWorkspace(
             context.getIdentity().getUniqueId(),
             workspace -> delegate.execute(work, new WorkspaceContext(context, workspace)));
     }

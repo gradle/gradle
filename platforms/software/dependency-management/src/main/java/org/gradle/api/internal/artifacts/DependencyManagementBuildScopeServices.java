@@ -496,9 +496,9 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExecutionEngine(
             problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new RemoveUntrackedExecutionStateStep<>(
+            new AssignWorkspaceStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new NoOpCachingStateStep<>(

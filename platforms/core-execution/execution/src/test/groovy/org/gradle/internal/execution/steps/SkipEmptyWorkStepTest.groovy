@@ -34,7 +34,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
+class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
@@ -97,7 +97,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def "delegates when work has sources"() {
         def delegateResult = Mock(CachingResult)
-        def delegateContext = Stub(PreviousExecutionContext)
+        def delegateContext = Stub(WorkspaceContext)
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
         context.withInputFiles(ImmutableSortedMap.copyOf("known-file": knownFileFingerprint, "source-file": sourceFileFingerprint)) >> delegateContext

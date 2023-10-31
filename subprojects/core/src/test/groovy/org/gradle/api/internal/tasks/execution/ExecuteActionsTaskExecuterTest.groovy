@@ -172,8 +172,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def executionEngine = new DefaultExecutionEngine(Stub(Problems),
         new IdentifyStep<>(buildOperationExecutor,
         new IdentityCacheStep<>(
-        new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
+        new AssignWorkspaceStep<>(
         new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),

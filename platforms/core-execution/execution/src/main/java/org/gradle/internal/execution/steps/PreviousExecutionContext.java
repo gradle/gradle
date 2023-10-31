@@ -16,28 +16,17 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class PreviousExecutionContext extends WorkspaceContext {
+public class PreviousExecutionContext extends IdentityContext {
     private final PreviousExecutionState previousExecutionState;
 
-    public PreviousExecutionContext(WorkspaceContext parent, @Nullable PreviousExecutionState previousExecutionState) {
+    public PreviousExecutionContext(IdentityContext parent, @Nullable PreviousExecutionState previousExecutionState) {
         super(parent);
         this.previousExecutionState = previousExecutionState;
-    }
-
-    public PreviousExecutionContext withInputFiles(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
-        return new PreviousExecutionContext(this) {
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return inputFiles;
-            }
-        };
     }
 
     protected PreviousExecutionContext(PreviousExecutionContext parent) {

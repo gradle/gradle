@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
 
-public class RemoveUntrackedExecutionStateStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class RemoveUntrackedExecutionStateStep<C extends IdentityContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public RemoveUntrackedExecutionStateStep(

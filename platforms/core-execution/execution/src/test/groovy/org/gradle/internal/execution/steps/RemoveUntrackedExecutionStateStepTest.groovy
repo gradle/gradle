@@ -17,8 +17,9 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.workspace.WorkspaceProvider
 
-class RemoveUntrackedExecutionStateStepTest extends StepSpec<PreviousExecutionContext> {
+class RemoveUntrackedExecutionStateStepTest extends StepSpec<WorkspaceContext> {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new RemoveUntrackedExecutionStateStep(delegate)
@@ -34,7 +35,9 @@ class RemoveUntrackedExecutionStateStepTest extends StepSpec<PreviousExecutionCo
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        _ * context.history >> Optional.of(executionHistoryStore)
+        _ * work.workspaceProvider >> Stub(WorkspaceProvider) {
+            history >> Optional.of(executionHistoryStore)
+        }
         1 * executionHistoryStore.remove(identity.uniqueId)
         1 * delegateResult.afterExecutionState >> Optional.empty()
         0 * _
