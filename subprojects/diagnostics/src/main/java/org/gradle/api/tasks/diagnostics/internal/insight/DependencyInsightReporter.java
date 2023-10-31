@@ -146,11 +146,11 @@ public class DependencyInsightReporter {
     private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors) {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());
-            if(failure instanceof ResolutionProvider){
-                ((ResolutionProvider) failure).getResolutions()
-                    .forEach(formatter::node);
-            }
+
             Throwable cause = failure.getCause();
+            if (failure instanceof ResolutionProvider && cause != null && cause != failure){
+                ((ResolutionProvider) failure).getResolutions().forEach(formatter::node);
+            }
             if (alreadyReportedErrors.contains(cause)) {
                 formatter.append(" (already reported)");
             }

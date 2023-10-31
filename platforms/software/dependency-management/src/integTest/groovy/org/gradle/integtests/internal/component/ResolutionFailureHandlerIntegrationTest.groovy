@@ -222,10 +222,18 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "dependencyInsight", "--configuration", "compileClasspath", "--dependency", "gson"
-        outputContains("Could not resolve com.google.code.gson:gson:2.8.5.")
-        outputContains("""Failures:
+
+        String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5.
-        Review the variant matching algorithm documentation at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#abm_algorithm:""")
+        Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm."""
+        String fullOutput = "          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:"
+
+        outputContains(basicOutput)
+        if (fullErrorMsg) {
+            result.assertOutputContains(fullOutput)
+        } else {
+            result.assertNotOutput(fullOutput)
+        }
 
         where:
         fullErrorMsg << [true, false]

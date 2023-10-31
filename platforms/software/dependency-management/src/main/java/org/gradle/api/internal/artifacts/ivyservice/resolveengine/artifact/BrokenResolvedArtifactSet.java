@@ -21,7 +21,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
  * multiple variants matched the selected artifacts.
  */
 public class BrokenResolvedArtifactSet extends AbstractFailedResolvedArtifactSet {
-
     public BrokenResolvedArtifactSet(Throwable failure) {
         super(failure);
     }
