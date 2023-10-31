@@ -20,11 +20,8 @@ Learn the basics of authoring Gradle by developing the Settings File.
 ****
 **In this section you will:**
 
-- Initialize a Java project
-- Run a Java application
-- Produce a Build Scan
-- Bundle the application in an archive
-- Review the directory layout
+- Author a Settings file
+
 ****
 
 [[part3_begin]]
@@ -33,6 +30,17 @@ Learn the basics of authoring Gradle by developing the Settings File.
 1. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
 == Step 1.
+
+[source,settings.gradle.kts]
+----
+plugins {
+// Apply the foojay-resolver plugin to allow automatic download of JDKs
+id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+}
+
+rootProject.name = "temp"
+include("app")
+----
 
 [source,settings.gradle.kts]
 ----
