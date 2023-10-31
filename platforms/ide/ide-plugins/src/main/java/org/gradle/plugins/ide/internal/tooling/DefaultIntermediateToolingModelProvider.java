@@ -31,9 +31,6 @@ import java.util.List;
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
-    public DefaultIntermediateToolingModelProvider() {
-    }
-
     @Override
     public List<Object> getModels(List<Project> targets, String modelName) {
         if (targets.isEmpty()) {
