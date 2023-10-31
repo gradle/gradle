@@ -222,7 +222,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 return builder
                     .label(message)
                     .undocumented()
-                    .location(source.getFileName(), lineNumber)
+                    .fileLocation(source.getFileName(), lineNumber, null, null)
                     .category("script_compilation_failed")
                     .severity(Severity.ERROR)
                     .withException(new ScriptCompilationException(message, e, source, lineNumber));

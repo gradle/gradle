@@ -58,7 +58,7 @@ class ValidationProblemSerializationTest extends Specification {
         def problem = problems.create {
             it.label("label")
                 .undocumented()
-                .location("location", 1, 1)
+                .fileLocation("location", 1, 2, 3)
                 .category("type")
         }
 
@@ -72,7 +72,8 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].problemCategory.toString() == "type"
         deserialized[0].locations[0].path == "location"
         deserialized[0].locations[0].line == 1
-        deserialized[0].locations[0].column == 1
+        deserialized[0].locations[0].column == 2
+        deserialized[0].locations[0].length == 3
         deserialized[0].documentationLink == null
     }
 
@@ -81,7 +82,7 @@ class ValidationProblemSerializationTest extends Specification {
         def problem = problems.create {
             it.label("label")
                 .documentedAt(new TestDocLink())
-                .location("location", 1, 1)
+                .fileLocation("location", 1, 1, null)
                 .category("type")
         }
 

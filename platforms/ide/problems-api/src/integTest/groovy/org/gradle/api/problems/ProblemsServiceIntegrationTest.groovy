@@ -44,7 +44,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     problems.create {
                         it.label("label")
                         .undocumented()
-                        .collectLocation()
+                        .stackLocation()
                         .category("type")
                         }.report()
                 }
@@ -198,7 +198,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     problems.create {
                         it.label("label")
                         .undocumented()
-                        .location("test-location", 1)
+                        .fileLocation("test-location", null, null, null)
                         .category("type")
                         }.report()
                 }
@@ -213,9 +213,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems[0]["locations"][0] == [
             "type": "file",
             "path": "test-location",
-            "line": 1,
+            "line": null,
             "column": null,
-            "length": 0
+            "length": null
         ]
     }
 
@@ -235,7 +235,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     problems.create {
                         it.label("label")
                         .undocumented()
-                        .location("test-location", 1, 1)
+                        .fileLocation("test-location", 1, 2, 3)
                         .category("type")
                         }.report()
                 }
@@ -253,8 +253,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             "type": "file",
             "path": "test-location",
             "line": 1,
-            "column": 1,
-            "length": 0
+            "column": 2,
+            "length": 3
         ]
 
         def taskPath = problems[0]["locations"][1]

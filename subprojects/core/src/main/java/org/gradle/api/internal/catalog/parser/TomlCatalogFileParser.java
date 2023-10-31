@@ -160,7 +160,7 @@ public class TomlCatalogFileParser {
             throw throwVersionCatalogProblemException(problemServiceSupplier.get().create(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog(versionCatalogBuilder) + ", parsing failed with " + errors.size() + " error" + getPluralEnding(errors) + ".", TOML_SYNTAX_ERROR, definingLocation -> {
                     errors.forEach(error ->
-                        definingLocation.location(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column()));
+                        definingLocation.fileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column(), null));
                     return definingLocation.noLocation();
                 })
                     .details(getErrorText(catalogFilePath, errors)) //TODO provide the location information to the problemBuilder

@@ -108,7 +108,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (location == null) {
             return genericDeprecation.noLocation();
         }
-        return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        return genericDeprecation.fileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null);
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
