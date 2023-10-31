@@ -351,7 +351,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * This property can be used to configure alternate Java compilers, like the Eclipse Java Compiler. If set, the jars on this classpath with be scanned for the
      * first alternate implementation of {@link javax.tools.JavaCompiler} (not `com.sun.tools.javac.api.JavacTool`), and use the task will use that compiler instead.
      *
-     * @since 8.5
+     * @since 8.6
      */
     @Incubating
     @CompileClasspath
