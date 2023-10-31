@@ -20,7 +20,7 @@ import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
-import org.gradle.tooling.model.gradle.IsolatedGradleProject;
+import org.gradle.tooling.model.internal.gradle.IsolatedGradleProject;
 
 import java.util.ArrayList;
 import java.util.List;

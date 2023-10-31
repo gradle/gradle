@@ -41,7 +41,7 @@ public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.IsolatedGradleProject");
+        return modelName.equals("org.gradle.tooling.model.internal.gradle.IsolatedGradleProject");
     }
 
     @Override

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.gradle;
+package org.gradle.tooling.model.internal.gradle;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.model.BuildableElement;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.ProjectModel;
+import org.gradle.tooling.model.gradle.GradleScript;
 
 import java.io.File;
 
@@ -33,6 +34,8 @@ public interface IsolatedGradleProject extends BuildableElement, ProjectModel {
 
     /**
      * Returns the identifier for this Gradle project.
+     *
+     * @since 8.5
      */
     @Override
     ProjectIdentifier getProjectIdentifier();
@@ -41,6 +44,7 @@ public interface IsolatedGradleProject extends BuildableElement, ProjectModel {
      * Returns the path of this project. This is a unique identifier for this project within the build.
      *
      * @return The path.
+     * @since 8.5
      */
     String getPath();
 
@@ -48,6 +52,7 @@ public interface IsolatedGradleProject extends BuildableElement, ProjectModel {
      * Returns the build script for this project.
      *
      * @return The build script.
+     * @since 8.5
      */
     GradleScript getBuildScript();
 
@@ -55,6 +60,7 @@ public interface IsolatedGradleProject extends BuildableElement, ProjectModel {
      * Returns the build directory for this project.
      *
      * @return The build directory.
+     * @since 8.5
      */
     File getBuildDirectory();
 
@@ -62,6 +68,7 @@ public interface IsolatedGradleProject extends BuildableElement, ProjectModel {
      * Returns the project directory for this project.
      *
      * @return The project directory.
+     * @since 8.5
      */
     File getProjectDirectory();
 

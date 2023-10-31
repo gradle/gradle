@@ -125,7 +125,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     private List<DefaultIsolatedGradleProject> mapToIsolatedModels(Collection<Project> childProjects) {
-        List<Object> models = intermediateToolingModelProvider.getModels(new ArrayList<>(childProjects), "org.gradle.tooling.model.gradle.IsolatedGradleProject");
+        List<Object> models = intermediateToolingModelProvider.getModels(new ArrayList<>(childProjects), "org.gradle.tooling.model.internal.gradle.IsolatedGradleProject");
         return models.stream().map(it -> (DefaultIsolatedGradleProject) it).collect(toList());
     }
 
