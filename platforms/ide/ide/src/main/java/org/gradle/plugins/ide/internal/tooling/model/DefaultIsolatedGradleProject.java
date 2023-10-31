@@ -26,12 +26,14 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.internal.gradle.IsolatedGradleProject} model.
+ */
 @NonNullApi
 public class DefaultIsolatedGradleProject implements Serializable, GradleProjectIdentity {
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    // TODO: Document that tasks do not contain a project reference
     private List<LaunchableGradleTask> tasks = new LinkedList<>();
     private String name;
     private String description;
@@ -81,7 +83,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
 
     public String toString() {
         return "IsolatedGradleProject{"
-            + "path='" + getPath() + '\''
+            + "buildTreePath='" + getBuildTreePath() + '\''
             + '}';
     }
 
