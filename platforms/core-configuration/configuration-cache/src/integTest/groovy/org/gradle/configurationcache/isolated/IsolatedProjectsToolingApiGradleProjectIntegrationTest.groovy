@@ -18,7 +18,7 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.tooling.model.GradleProject
 
-class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def "can fetch IsolatedGradleProject model"() {
         settingsFile << """
