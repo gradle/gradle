@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile, "conf")
@@ -374,6 +375,8 @@ dependencies {
     conf group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
 }
 """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         expect:
         fails 'checkDep'
         failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    project :")

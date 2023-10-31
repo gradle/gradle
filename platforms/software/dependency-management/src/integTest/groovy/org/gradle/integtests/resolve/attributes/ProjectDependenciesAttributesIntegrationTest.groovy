@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -66,7 +67,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         color << ['blue', 'red']
     }
 
-    def "Fails with reasonable error message when no target variant can be found"() {
+    def "fails with reasonable error message when no target variant can be found"() {
         given:
         settingsFile << "include 'dep'"
         buildFile << """
@@ -79,6 +80,8 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             }
         """
         file("dep/build.gradle") << blueAndRedVariants()
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ':checkDeps'

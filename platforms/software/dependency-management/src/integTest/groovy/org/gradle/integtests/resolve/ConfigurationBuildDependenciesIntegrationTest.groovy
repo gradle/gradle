@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -36,6 +37,8 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 doLast { }
             }
 """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
     }
 
     def "configuration views used as task input build required files"() {

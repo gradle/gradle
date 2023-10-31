@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Issue
 
 class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
@@ -163,6 +164,8 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
             }
         """
 
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         when:
         fails ':checkDeps'
 
@@ -195,6 +198,8 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
                 conf project(":other")
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         createDirs("other")
         settingsFile << """

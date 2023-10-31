@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -378,6 +379,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {
@@ -593,6 +595,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                 conf 'org:test'
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Unroll
 
@@ -32,6 +33,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
             dependencies.attributesSchema.attribute(CUSTOM2_ATTRIBUTE)
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
     }
 
     void "can select distinct variants of the same component by using different attributes if they have different capabilities"() {

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 
 @FluidDependenciesResolveTest
 class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -74,6 +75,7 @@ allprojects {
     }
 }
 """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
     }
 
     def "selects artifacts and files whose format matches the requested"() {
@@ -765,6 +767,7 @@ task show {
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         expect:
         fails "resolveView"

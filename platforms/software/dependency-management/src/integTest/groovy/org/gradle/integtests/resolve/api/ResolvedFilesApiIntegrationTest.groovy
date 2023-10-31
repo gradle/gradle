@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -39,6 +40,7 @@ allprojects {
     }
 }
 """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")

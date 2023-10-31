@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.attributes
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -45,6 +46,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
                 conf 'org.test:module:1.0'
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {
@@ -236,6 +238,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
                 conf 'org:test:[1.0,)'
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {
@@ -291,6 +294,7 @@ Versions rejected by attribute matching:
                 conf 'org:test:[1.0,)'
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {

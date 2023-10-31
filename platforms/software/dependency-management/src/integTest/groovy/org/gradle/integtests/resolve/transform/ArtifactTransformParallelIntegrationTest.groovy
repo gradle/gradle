@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -364,6 +365,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 }
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         server.expectConcurrent("a.jar", "bad-b.jar", "bad-c.jar")
 

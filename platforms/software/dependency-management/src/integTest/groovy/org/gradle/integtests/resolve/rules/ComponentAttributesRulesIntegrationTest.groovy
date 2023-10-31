@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -61,6 +62,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 conf 'org.test:module:1.0'
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {
@@ -130,6 +133,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 conf 'org.test:module:1.0'
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {
@@ -273,6 +277,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 conf 'org.test:module:1.0'
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {

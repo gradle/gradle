@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.internal.component.ResolutionFailureHandler
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -392,6 +394,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
 
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ':a:checkDebug'

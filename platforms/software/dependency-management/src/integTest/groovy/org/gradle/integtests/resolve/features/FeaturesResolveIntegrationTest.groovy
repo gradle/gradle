@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.features
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -110,6 +111,8 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
                 }
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         repositoryInteractions {

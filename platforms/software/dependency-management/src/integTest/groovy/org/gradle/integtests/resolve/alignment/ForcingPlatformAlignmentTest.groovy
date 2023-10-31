@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -47,6 +48,8 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
     def setup() {
         Assume.assumeTrue(GradleContextualExecuter.embedded)
         repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
     }
 
     def "can force a virtual platform version by forcing one of its leaves through resolutionStrategy.force"() {

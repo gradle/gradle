@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Issue
 
 class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -42,6 +43,8 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             ${pluginsBlock.replace('%repoloc%', repoLoc)}
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ':help'
@@ -85,6 +88,8 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         """
         withDummyPlugin()
         buildFile << pluginsBlock
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ':help'

@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
@@ -103,6 +104,7 @@ task retrieve(type: Sync) {
   into 'libs'
 }
 """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         expect:
         fails 'retrieve'
@@ -133,6 +135,7 @@ task retrieve(type: Sync) {
   into 'libs'
 }
 """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         expect:
         fails 'retrieve'

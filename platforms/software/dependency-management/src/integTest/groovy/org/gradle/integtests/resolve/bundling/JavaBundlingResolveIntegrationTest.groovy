@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.internal.component.ResolutionFailureHandler
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -135,6 +136,8 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                 }
             }
         """
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         boolean shouldFail = selected == null

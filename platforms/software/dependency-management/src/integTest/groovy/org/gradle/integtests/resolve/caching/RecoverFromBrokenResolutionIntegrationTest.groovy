@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.hamcrest.CoreMatchers
@@ -274,6 +275,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
                       into 'libs'
                       from configurations.compile
                   }"""
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         when:
         ivyModule.repository.directoryList('group', 'projectA').expectGet()
         ivyModule.ivy.expectGet()
