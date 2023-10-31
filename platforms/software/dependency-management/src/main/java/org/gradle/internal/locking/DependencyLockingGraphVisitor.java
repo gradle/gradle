@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
@@ -117,21 +116,6 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
             changingResolvedModules = new HashSet<>();
         }
         changingResolvedModules.add(id);
-    }
-
-    @Override
-    public void visitSelector(DependencyGraphSelector selector) {
-        // No-op
-    }
-
-    @Override
-    public void visitEdges(DependencyGraphNode node) {
-        // No-op
-    }
-
-    @Override
-    public void finish(DependencyGraphNode root) {
-
     }
 
     public void writeLocks() {

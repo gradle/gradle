@@ -16,15 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     private final List<DependencyGraphVisitor> visitors;
-
-    public CompositeDependencyGraphVisitor(DependencyGraphVisitor... visitors) {
-        this(Arrays.asList(visitors));
-    }
 
     public CompositeDependencyGraphVisitor(List<DependencyGraphVisitor> visitors) {
         this.visitors = visitors;
@@ -59,7 +54,7 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void finish(DependencyGraphNode root) {
+    public void finish(RootGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.finish(root);
         }
