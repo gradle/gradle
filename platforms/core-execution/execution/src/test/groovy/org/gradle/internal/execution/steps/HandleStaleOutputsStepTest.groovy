@@ -20,17 +20,18 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 
-class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
+class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements SnapshotterFixture {
     def cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputFilesRepository = Mock(OutputFilesRepository)
 
-    def step = new CleanupStaleOutputsStep<>(
+    def step = new HandleStaleOutputsStep<>(
         buildOperationExecutor,
         cleanupRegistry,
         deleter,
@@ -38,7 +39,13 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
         outputFilesRepository,
         delegate)
 
-    def delegateResult = Mock(Result)
+    def outputFile = file("output.txt").text = "output"
+    def outputFilesProducedByWork = snapshotsOf(output: outputFile)
+    def afterExecutionState = Stub(AfterExecutionState) {
+        getOutputFilesProducedByWork() >> outputFilesProducedByWork
+    }
+
+    def delegateResult = Mock(AfterExecutionResult)
 
     def "#description is cleaned up: #cleanedUp"() {
         def target = file("target")
@@ -68,6 +75,10 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.of(afterExecutionState)
+        1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
         0 * _
 
         where:
@@ -91,6 +102,36 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
 
         _ * work.shouldCleanupStaleOutputs() >> false
         1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.empty()
+        0 * _
+    }
+
+    def "outputs are recorded after execution"() {
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.of(afterExecutionState)
+        1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
+        0 * _
+    }
+
+    def "does not store untracked outputs"() {
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.empty()
         0 * _
     }
 }
