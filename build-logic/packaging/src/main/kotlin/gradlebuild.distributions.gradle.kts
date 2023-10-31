@@ -37,7 +37,6 @@ import gradlebuild.packaging.tasks.PluginsManifest
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
-import kotlin.reflect.full.functions
 
 /**
  * Apply this plugin to let a project build 'Gradle distributions'.
@@ -183,25 +182,8 @@ val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGr
 
 apply<KotlinBaseApiPlugin>()
 plugins.withType(KotlinBaseApiPlugin::class) {
-    registerKotlinJvmCompileTask()
+    registerKotlinJvmCompileTask("compileGradleApiKotlinExtensions", "gradle-kotlin-dsl-extensions")
 }
-
-fun KotlinBaseApiPlugin.registerKotlinJvmCompileTask() {
-    val taskName = "compileGradleApiKotlinExtensions"
-    val moduleName = "gradle-kotlin-dsl-extensions"
-
-    val kClass = KotlinBaseApiPlugin::class
-    val methodToCall = "registerKotlinJvmCompileTask"
-
-    val method = kClass.functions.firstOrNull() {
-        it.name == methodToCall && it.parameters.size == 3
-    }
-    if (method != null) {
-        kClass.java.getMethod(methodToCall, String::class.java, String::class.java).invoke(this, taskName, moduleName)
-    } else {
-        kClass.java.getMethod(methodToCall, String::class.java).invoke(this, taskName)
-    }
-} // TODO: simplify once wrapper knows about KotlinBaseApiPlugin::registerKotlinJvmCompileTask(String, String)
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
     configureKotlinCompilerForGradleBuild()
