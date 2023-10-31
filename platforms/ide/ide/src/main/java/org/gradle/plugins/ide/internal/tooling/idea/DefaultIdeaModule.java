@@ -28,6 +28,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.idea.IdeaModule} model.
+ */
 public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private String name;
     private List<DefaultIdeaContentRoot> contentRoots = new LinkedList<DefaultIdeaContentRoot>();

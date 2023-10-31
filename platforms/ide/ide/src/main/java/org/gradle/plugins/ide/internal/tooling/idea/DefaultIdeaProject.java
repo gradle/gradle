@@ -22,6 +22,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.idea.IdeaProject} model.
+ */
 public class DefaultIdeaProject implements Serializable {
     private String name;
     private String description;
