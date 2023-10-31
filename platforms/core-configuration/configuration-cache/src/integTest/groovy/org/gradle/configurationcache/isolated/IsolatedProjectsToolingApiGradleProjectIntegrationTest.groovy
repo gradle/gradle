@@ -65,13 +65,33 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         projectModel.name == "root"
+        projectModel.tasks.size() > 0
+        projectModel.tasks.forEach {
+            assert it.project == projectModel
+        }
+
         projectModel.children.size() == 1
         projectModel.children[0].name == "lib1"
         projectModel.children[0].children.name == ["lib11"]
 
-        projectModel.tasks.forEach {
-            assert it.project == projectModel
-        }
+    }
+
+    def "can fetch GradleProject model without tasks"() {
+        settingsFile << """
+            rootProject.name = 'root'
+
+            include(":lib1")
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        def projectModel = fetchModel(GradleProject)
+
+        then:
+        projectModel.name == "root"
+        projectModel.tasks.isEmpty()
+        projectModel.children[0].name == "lib1"
+        projectModel.children[0].tasks.isEmpty()
     }
 
     def "can fetch GradleProject model for non-root project"() {
