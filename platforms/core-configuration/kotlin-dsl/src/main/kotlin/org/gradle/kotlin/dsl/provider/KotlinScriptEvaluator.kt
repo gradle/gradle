@@ -33,9 +33,9 @@ import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.Executable.ExecutionRequest
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.ExecutionOutput
-import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor

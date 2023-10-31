@@ -179,7 +179,7 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            ExecutionOutput execute(ExecutionRequest executionRequest) {
+            ExecutionOutput execute(Executable.ExecutionRequest executionRequest) {
                 def didWork = work.get()
                 executed = true
                 return new ExecutionOutput() {

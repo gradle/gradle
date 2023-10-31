@@ -16,13 +16,18 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.Try
+import org.gradle.internal.execution.Executable
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListeners
+import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -31,11 +36,13 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
+import java.time.Duration
+
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
+class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
@@ -44,7 +51,7 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
     def primaryFileInputs = EnumSet.of(PRIMARY)
     def allFileInputs = EnumSet.allOf(InputBehavior)
 
-    def step = new SkipEmptyWorkStep(
+    def step = new SkipIfSourcesAreEmptyStep(
         outputChangeListener,
         workInputListeners,
         { -> outputsCleaner },
@@ -162,7 +169,7 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
         !result.afterExecutionState.present
     }
 
-    def "skips when work has empty sources and previous outputs (#description)"() {
+    def "skips when work has empty sources and previous outputs"() {
         def previousOutputFile = file("output.txt").createFile()
         def outputFileSnapshot = snapshot(previousOutputFile)
 
@@ -173,27 +180,27 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
         interaction {
             emptySourcesWithPreviousOutputs(outputFileSnapshot)
         }
-
-        and:
-        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
-
-        and:
-        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
-
-        and:
-        1 * outputsCleaner.didWork >> didWork
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
-        0 * _
-
-        then:
-        result.execution.get().outcome == outcome
         !result.afterExecutionState.present
 
-        where:
-        didWork | outcome
-        true    | EXECUTED_NON_INCREMENTALLY
-        false   | SHORT_CIRCUITED
-        description = didWork ? "removed files" : "no files removed"
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
+        1 * delegate.execute(work, _) >> { UnitOfWork work, WorkDeterminedContext delegateContext ->
+            delegateContext.executable.execute(Mock(Executable.ExecutionRequest))
+            Try<ExecutionEngine.Execution> execution = Try.successful(new ExecutionEngine.Execution() {
+                @Override
+                ExecutionEngine.ExecutionOutcome getOutcome() {
+                    return EXECUTED_NON_INCREMENTALLY
+                }
+
+                @Override
+                Object getOutput() {
+                    return work.loadAlreadyProducedOutput(context.getWorkspace())
+                }
+            })
+            return new CachingResult(Duration.ofSeconds(1), execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED)
+        }
+        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
+        0 * _
     }
 
     def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
@@ -202,7 +209,7 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
         def ioException = new IOException("Couldn't delete file")
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
         interaction {
@@ -210,15 +217,15 @@ class SkipEmptyWorkStepTest extends StepSpec<WorkspaceContext> {
         }
 
         and:
-        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
-
-        and:
-        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
+        1 * delegate.execute(work, _) >> { UnitOfWork work, WorkDeterminedContext delegateContext ->
+            Try<ExecutionEngine.Execution> execution = Try.failure(ioException)
+            return new CachingResult(Duration.ofSeconds(1), execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED)
+        }
 
         then:
-        def ex = thrown Exception
-        ex.message.contains("Couldn't delete file")
-        ex.cause == ioException
+        !result.execution.successful
+        def ex = result.execution.failure.get()
+        ex == ioException
     }
 
     private void emptySourcesWithPreviousOutputs(FileSystemSnapshot outputFileSnapshot) {

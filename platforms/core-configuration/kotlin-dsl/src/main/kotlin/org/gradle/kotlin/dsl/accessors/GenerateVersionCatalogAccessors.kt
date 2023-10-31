@@ -24,8 +24,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.TypeOf
 import org.gradle.initialization.DependenciesAccessors.IN_PLUGINS_BLOCK_FACTORIES_SUFFIX
+import org.gradle.internal.execution.Executable.ExecutionRequest
 import org.gradle.internal.execution.ExecutionOutput
-import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.hash.HashCode

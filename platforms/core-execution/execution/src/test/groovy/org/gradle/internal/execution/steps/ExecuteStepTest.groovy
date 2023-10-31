@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.Executable
 import org.gradle.internal.execution.ExecutionOutput
-import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -59,7 +58,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
-        1 * executable.execute({ ExecutionRequest executionRequest ->
+        1 * executable.execute({ Executable.ExecutionRequest executionRequest ->
             executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
         }) >> {
             sleep 200
@@ -85,7 +84,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
-        1 * executable.execute({ ExecutionRequest executionRequest ->
+        1 * executable.execute({ Executable.ExecutionRequest executionRequest ->
             executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
         }) >> {
             sleep 200
@@ -106,7 +105,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
 
         _ * context.inputChanges >> Optional.of(inputChanges)
         _ * inputChanges.incremental >> incrementalExecution
-        1 * executable.execute({ ExecutionRequest executionRequest ->
+        1 * executable.execute({ Executable.ExecutionRequest executionRequest ->
             executionRequest.workspace == workspace && executionRequest.inputChanges.get() == inputChanges && executionRequest.previouslyProducedOutputs.get() == previousOutputs
         }) >> Stub(ExecutionOutput) {
             getDidWork() >> workResult

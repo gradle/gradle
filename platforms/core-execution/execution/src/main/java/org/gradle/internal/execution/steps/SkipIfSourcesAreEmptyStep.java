@@ -22,12 +22,14 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.ExecutionOutput;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -36,12 +38,12 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -50,15 +52,15 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
+public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, CachingResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkipIfSourcesAreEmptyStep.class);
 
     private final OutputChangeListener outputChangeListener;
     private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
     private final Step<? super WorkDeterminedContext, ? extends CachingResult> delegate;
 
-    public SkipEmptyWorkStep(
+    public SkipIfSourcesAreEmptyStep(
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
@@ -72,23 +74,27 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
 
     @Override
     public CachingResult execute(UnitOfWork work, WorkspaceContext context) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
-        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
-
+        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, context.getInputFileProperties(), context.getInputProperties());
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
-        if (hasNoSkipWhenEmptyProperties(sourceFileProperties)) {
-            return executeWithContext(work, new WorkDeterminedContext(context, work));
+
+        if (hasNoSourceProperties(sourceFileProperties)) {
+            broadcastWorkInputs(work, false);
+            return delegate.execute(work, new WorkDeterminedContext(context, work));
         } else {
+            // We have some source properties annotated with `@SkipWhenEmpty`
             if (hasOnlyEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
-                return skipExecutionWithEmptySources(work, context);
+                // All such properties are empty
+                broadcastWorkInputs(work, true);
+                return cleanPreviousOutputsIfNecessary(work, context, sourceFileProperties);
             } else {
-                return executeWithContext(work, new WorkDeterminedContext(context, newInputs.getAllFileFingerprints(), work));
+                // We have some actual sources
+                broadcastWorkInputs(work, false);
+                return delegate.execute(work, new WorkDeterminedContext(context, newInputs.getAllFileFingerprints(), work));
             }
         }
     }
 
-    private static boolean hasNoSkipWhenEmptyProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+    private static boolean hasNoSourceProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
         return sourceFileProperties.isEmpty();
     }
 
@@ -139,46 +145,33 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
     }
 
     @Nonnull
-    private CachingResult skipExecutionWithEmptySources(UnitOfWork work, WorkspaceContext context) {
-        broadcastWorkInputs(work, true);
-
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getPreviousExecutionState()
+    private CachingResult cleanPreviousOutputsIfNecessary(UnitOfWork work, WorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+        return context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
-            .orElse(ImmutableSortedMap.of());
+            .map(outputFilesAfterPreviousExecution -> {
+                LOGGER.info("Cleaning previous output of {} as it has no source files.", work.getDisplayName());
+                WorkDeterminedContext delegateContext = new WorkDeterminedContext(
+                    context,
+                    sourceFileProperties,
+                    request -> cleanPreviousOutputs(work, context.getWorkspace(), outputFilesAfterPreviousExecution));
+                return (CachingResult) delegate.execute(work, delegateContext);
+            })
+            .orElseGet(() -> {
+                LOGGER.info("Skipping {} as it has no source files and no previous output files.", work.getDisplayName());
 
-        ExecutionOutcome skipOutcome;
-        Timer timer = Time.startTimer();
-        if (outputFilesAfterPreviousExecution.isEmpty()) {
-            LOGGER.info("Skipping {} as it has no source files and no previous output files.", work.getDisplayName());
-            skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
-        } else {
-            boolean didWork = cleanPreviousTaskOutputs(outputFilesAfterPreviousExecution);
-            if (didWork) {
-                LOGGER.info("Cleaned previous output of {} as it has no source files.", work.getDisplayName());
-                skipOutcome = ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-            } else {
-                skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
-            }
-        }
-        Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
+                Try<Execution> execution = Try.successful(new Execution() {
+                    @Override
+                    public ExecutionOutcome getOutcome() {
+                        return ExecutionOutcome.SHORT_CIRCUITED;
+                    }
 
-        Try<Execution> execution = Try.successful(new Execution() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return skipOutcome;
-            }
-
-            @Override
-            public Object getOutput() {
-                return work.loadAlreadyProducedOutput(context.getWorkspace());
-            }
-        });
-        return new CachingResult(duration, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
-    }
-
-    private CachingResult executeWithContext(UnitOfWork work, WorkDeterminedContext context) {
-        broadcastWorkInputs(work, false);
-        return delegate.execute(work, context);
+                    @Override
+                    public Object getOutput() {
+                        return work.loadAlreadyProducedOutput(context.getWorkspace());
+                    }
+                });
+                return new CachingResult(Duration.ZERO, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
+            });
     }
 
     private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
@@ -187,7 +180,7 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
             : EnumSet.allOf(InputBehavior.class));
     }
 
-    private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
+    private ExecutionOutput cleanPreviousOutputs(UnitOfWork work, File workspace, Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {
@@ -197,7 +190,20 @@ public class SkipEmptyWorkStep implements Step<WorkspaceContext, CachingResult> 
                 throw new UncheckedIOException(e);
             }
         }
-        return outputsCleaner.getDidWork();
+        return new ExecutionOutput() {
+            @Override
+            public WorkResult getDidWork() {
+                return outputsCleaner.getDidWork()
+                    ? WorkResult.DID_WORK
+                    : WorkResult.DID_NO_WORK;
+            }
+
+            @Nullable
+            @Override
+            public Object getOutput() {
+                return work.loadAlreadyProducedOutput(workspace);
+            }
+        };
     }
 
     private static class EmptyCheckingVisitor implements InputVisitor {

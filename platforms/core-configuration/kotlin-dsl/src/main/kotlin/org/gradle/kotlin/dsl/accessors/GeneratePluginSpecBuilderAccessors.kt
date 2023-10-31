@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.execution.Executable.ExecutionRequest
 import org.gradle.internal.execution.ExecutionOutput
-import org.gradle.internal.execution.ExecutionRequest
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.hash.HashCode

@@ -68,7 +68,7 @@ import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
-import org.gradle.internal.execution.steps.SkipEmptyWorkStep
+import org.gradle.internal.execution.steps.SkipIfSourcesAreEmptyStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.PathToFileResolver
@@ -175,7 +175,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new LoadPreviousExecutionStateStep<>(
         new AssignWorkspaceStep<>(
-        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
+        new SkipIfSourcesAreEmptyStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
         new ResolveCachingStateStep<>(buildCacheController, false,

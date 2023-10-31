@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.Executable;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionOutput;
-import org.gradle.internal.execution.ExecutionRequest;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -83,7 +83,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     }
 
     private static Result executeInternal(InputChangesContext context) {
-        ExecutionRequest executionRequest = new ExecutionRequest() {
+        Executable.ExecutionRequest executionRequest = new Executable.ExecutionRequest() {
             @Override
             public File getWorkspace() {
                 return context.getWorkspace();
@@ -110,9 +110,9 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
-        ExecutionOutcome mode = determineOutcome(context, workOutput);
+        ExecutionOutcome outcome = determineOutcome(context, workOutput);
 
-        return Result.success(duration, new ExecutionImpl(mode, workOutput));
+        return Result.success(duration, new ExecutionImpl(outcome, workOutput));
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, ExecutionOutput workOutput) {

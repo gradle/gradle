@@ -16,9 +16,37 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.io.File;
+import java.util.Optional;
+
 /**
  * The user code to be executed as part of the unit of work.
  */
 public interface Executable {
     ExecutionOutput execute(ExecutionRequest executionRequest);
+
+    interface ExecutionRequest {
+        /**
+         * The directory to produce outputs into.
+         * <p>
+         * Note: it's {@code null} for tasks as they don't currently have their own workspace.
+         */
+        File getWorkspace();
+
+        /**
+         * For work capable of incremental execution this is the object to query per-property changes through;
+         * {@link Optional#empty()} for non-incremental-capable work.
+         */
+        Optional<InputChangesInternal> getInputChanges();
+
+        /**
+         * Output snapshots indexed by property from the previous execution;
+         * {@link Optional#empty()} is information about a previous execution is not available.
+         */
+        Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
+    }
 }
