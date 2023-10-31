@@ -62,14 +62,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningCategory location(String path, Integer line) {
-        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line);
-        return validateDelegate(newDelegate);
-    }
-
-    @Override
-    public ProblemBuilderDefiningCategory location(String path, Integer line, Integer column) {
-        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line, column);
+    public ProblemBuilderDefiningCategory fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).fileLocation(path, line, column, length);
         return validateDelegate(newDelegate);
     }
 
@@ -87,8 +81,8 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public ProblemBuilderDefiningCategory collectLocation() {
-        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).collectLocation();
+    public ProblemBuilderDefiningCategory stackLocation() {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).stackLocation();
         return validateDelegate(newDelegate);
     }
 

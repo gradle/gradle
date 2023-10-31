@@ -43,7 +43,7 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
                     ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(id, ExecuteTaskBuildOperationDetails.class);
                     Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
-                    problem.getWhere().add(new TaskPathLocation(taskPath));
+                    problem.getLocations().add(new TaskPathLocation(taskPath));
                 } catch (Exception ex) {
                     throw new GradleException("Problem meanwhile reporting problem", ex);
                 }

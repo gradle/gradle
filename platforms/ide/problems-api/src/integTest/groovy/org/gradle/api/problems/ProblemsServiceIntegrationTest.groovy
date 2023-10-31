@@ -41,10 +41,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
-                        .collectLocation()
+                        .stackLocation()
                         .category("type")
                         }.report()
                 }
@@ -59,8 +59,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         problems.size() == 1
         problems[0]["label"] == "label"
         problems[0]["problemCategory"]["category"] == "type"
-        problems[0]["where"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
-        problems[0]["where"][1] == [
+        problems[0]["locations"][0] == [type:"file", length:null, column:null, line:14, path: "build file '$buildFile.absolutePath'"]
+        problems[0]["locations"][1] == [
             type:"task",
             identityPath:
                 [absolute:true,
@@ -89,7 +89,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(Documentation.userManual("test-id", "test-section"))
                         .noLocation()
@@ -125,7 +125,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(Documentation.upgradeGuide(8, "test-section"))
                         .noLocation()
@@ -160,7 +160,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .documentedAt(
                             Documentation.dslReference(Problem.class, "label")
@@ -195,10 +195,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
-                        .location("test-location", 1)
+                        .fileLocation("test-location", null, null, null)
                         .category("type")
                         }.report()
                 }
@@ -210,12 +210,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         this.collectedProblems.size() == 1
-        this.collectedProblems[0]["where"][0] == [
+        this.collectedProblems[0]["locations"][0] == [
             "type": "file",
             "path": "test-location",
-            "line": 1,
+            "line": null,
             "column": null,
-            "length": 0
+            "length": null
         ]
     }
 
@@ -232,10 +232,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
-                        .location("test-location", 1, 1)
+                        .fileLocation("test-location", 1, 2, 3)
                         .category("type")
                         }.report()
                 }
@@ -249,15 +249,15 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         def problems = this.collectedProblems
         then:
         problems.size() == 1
-        problems[0]["where"][0] == [
+        problems[0]["locations"][0] == [
             "type": "file",
             "path": "test-location",
             "line": 1,
-            "column": 1,
-            "length": 0
+            "column": 2,
+            "length": 3
         ]
 
-        def taskPath = problems[0]["where"][1]
+        def taskPath = problems[0]["locations"][1]
         taskPath["type"] == "task"
         taskPath["identityPath"]["absolute"] == true
         taskPath["identityPath"]["path"] == ":reportProblem"
@@ -276,7 +276,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .pluginLocation("org.example.pluginid")
@@ -293,7 +293,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         this.collectedProblems.size() == 1
         def problem = this.collectedProblems[0]
 
-        def fileLocation = problem["where"][0]
+        def fileLocation = problem["locations"][0]
         fileLocation["type"] == "pluginId"
         fileLocation["pluginId"] == "org.example.pluginid"
     }
@@ -311,7 +311,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -347,7 +347,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -381,7 +381,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -414,7 +414,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    problems.createProblem{
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()

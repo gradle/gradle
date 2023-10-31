@@ -34,7 +34,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -49,16 +49,16 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where.isEmpty()
+        deserialized[0].locations.isEmpty()
         deserialized[0].documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
-                .location("location", 1, 1)
+                .fileLocation("location", 1, 2, 3)
                 .category("type")
         }
 
@@ -70,18 +70,19 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where[0].path == "location"
-        deserialized[0].where[0].line == 1
-        deserialized[0].where[0].column == 1
+        deserialized[0].locations[0].path == "location"
+        deserialized[0].locations[0].line == 1
+        deserialized[0].locations[0].column == 2
+        deserialized[0].locations[0].length == 3
         deserialized[0].documentationLink == null
     }
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .documentedAt(new TestDocLink())
-                .location("location", 1, 1)
+                .fileLocation("location", 1, 1, null)
                 .category("type")
         }
 
@@ -93,9 +94,9 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where[0].path == "location"
-        deserialized[0].where[0].line == 1
-        deserialized[0].where[0].column == 1
+        deserialized[0].locations[0].path == "location"
+        deserialized[0].locations[0].line == 1
+        deserialized[0].locations[0].column == 1
         deserialized[0].documentationLink.getUrl() == "url"
         deserialized[0].documentationLink.getConsultDocumentationMessage() == "consult"
     }
@@ -119,7 +120,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -135,14 +136,14 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as List
+        deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].exception.message == "cause"
     }
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -158,7 +159,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as List
+        deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].severity == severity
 
@@ -168,7 +169,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -185,7 +186,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as List
+        deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
         deserialized[0].solutions[1] == "solution 1"
@@ -193,7 +194,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problems.createProblem {
+        def problem = problems.create {
             it.label("label")
                 .undocumented()
                 .noLocation()
@@ -210,7 +211,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].label == "label"
         deserialized[0].problemCategory.toString() == "type"
-        deserialized[0].where == [] as List
+        deserialized[0].locations == [] as List
         deserialized[0].documentationLink == null
         deserialized[0].additionalData["key 1"] == "value 1"
         deserialized[0].additionalData["key 2"] == "value 2"

@@ -88,6 +88,11 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
+    public ProblemBuilderDefiningCategory fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+        this.locations.add(new FileLocation(path, line, column, length));
+        return this;
+    }
+
     @Override
     public ProblemBuilderDefiningCategory pluginLocation(String pluginId) {
         this.locations.add(new PluginIdLocation(pluginId));
@@ -95,7 +100,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     }
 
     @Override
-    public ProblemBuilderDefiningCategory collectLocation() {
+    public ProblemBuilderDefiningCategory stackLocation() {
         this.collectLocation = true;
         return this;
     }
@@ -164,7 +169,6 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             description,
             solution,
             exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
-//                exception,
             problemCategory,
             additionalMetadata,
             problemsService);

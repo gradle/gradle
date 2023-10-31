@@ -25,7 +25,6 @@ import org.gradle.api.Incubating;
  *
  * @since 8.5
  */
-@FunctionalInterface
 @Incubating
 public interface ProblemTransformer {
 

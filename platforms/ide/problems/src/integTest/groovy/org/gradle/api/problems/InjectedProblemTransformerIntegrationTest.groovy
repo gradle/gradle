@@ -42,7 +42,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
 
                 @TaskAction
                 void run() {
-                    problems.createProblem {
+                    problems.create {
                         it.label("label")
                         .undocumented()
                         .noLocation()
@@ -61,7 +61,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
 
-        def taskPathLocations = problem["where"].findAll {
+        def taskPathLocations = problem["locations"].findAll {
             it["type"] == "task"
         }
         taskPathLocations.size() == 1
@@ -88,7 +88,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
                 protected abstract Problems getProblems();
 
                 public void apply(Project project) {
-                    getProblems().createProblem(builder ->
+                    getProblems().create(builder ->
                         builder
                             .label("label")
                             .undocumented()
@@ -129,7 +129,7 @@ class InjectedProblemTransformerIntegrationTest extends AbstractIntegrationSpec 
         collectedProblems.size() == 1
         def problem = collectedProblems[0]
 
-        def pluginIdLocations = problem["where"].findAll {
+        def pluginIdLocations = problem["locations"].findAll {
             it["type"] == "pluginId"
         }
         pluginIdLocations.size() == 1

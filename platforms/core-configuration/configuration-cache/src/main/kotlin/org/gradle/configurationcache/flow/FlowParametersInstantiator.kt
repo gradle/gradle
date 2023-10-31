@@ -75,7 +75,7 @@ class FlowParametersInstantiator(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 problems.add(
-                                    problemsService.createProblem { builder ->
+                                    problemsService.create { builder ->
                                         builder
                                             .label("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                             .undocumented()
