@@ -262,9 +262,9 @@ class VariantFilesMetadataRulesTest extends Specification {
         then:
         println(artifacts)
         artifacts.size() == 3
-        artifacts[0].id.toString() == 'producer-1.0.jar (org.test:producer:1.0)'
-        artifacts[1].id.toString() == 'added1.zip (org.test:producer:1.0)'
-        artifacts[2].id.toString() == 'added2 (org.test:producer:1.0)'
+        artifacts[0].id.displayName == 'producer-1.0.jar (org.test:producer:1.0)'
+        artifacts[1].id.displayName == 'added1.zip (org.test:producer:1.0)'
+        artifacts[2].id.displayName == 'added2 (org.test:producer:1.0)'
 
         artifacts[1].relativeUrl == 'added1.zip'
         artifacts[2].relativeUrl == '../path.jar'
@@ -296,7 +296,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         then:
         println(artifacts)
         artifacts.size() == 1
-        artifacts[0].id.toString() == 'added2 (org.test:producer:1.0)'
+        artifacts[0].id.displayName == 'added2 (org.test:producer:1.0)'
         artifacts[0].relativeUrl == '../path.jar'
         artifacts[0] instanceof UrlBackedArtifactMetadata
 

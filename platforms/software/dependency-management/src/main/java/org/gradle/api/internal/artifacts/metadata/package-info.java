@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
-
-import javax.annotation.Nullable;
-
-/**
- * Represents the 'name' part of an Ivy artifact, independent of which module version the artifact might belong to.
- */
-public interface IvyArtifactName {
-    String getName();
-
-    String getType();
-
-    @Nullable
-    String getExtension();
-
-    @Nullable
-    String getClassifier();
-
-    String getDisplayName();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.internal.artifacts.metadata;

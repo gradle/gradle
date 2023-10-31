@@ -240,7 +240,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     }
                 },
                 failure -> visitor.visitFailure(
-                    new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId(), target), failure))
+                    new TransformException(String.format("Failed to transform %s to match attributes %s.", artifact.getId().getDisplayName(), target), failure))
             );
         }
     }

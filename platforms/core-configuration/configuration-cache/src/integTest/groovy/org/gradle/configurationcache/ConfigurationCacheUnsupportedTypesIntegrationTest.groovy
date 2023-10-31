@@ -55,8 +55,8 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
-import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -299,7 +299,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultExternalModuleDependency       | Dependency                     | "project.dependencies.create('junit:junit:4.13')"
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
         DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
-        PreResolvedResolvableArtifact         | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
+        DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
         ConfigurationArtifactView             | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
         DefaultComponentArtifactsResult       | ComponentArtifactsResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
