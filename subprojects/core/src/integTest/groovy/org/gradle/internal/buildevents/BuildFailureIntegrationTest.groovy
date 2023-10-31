@@ -33,8 +33,9 @@ class BadException extends Exception {
 
 throw new BadException()
 """
+
         when:
-        fails("help")
+        fails("help", "--stacktrace")
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Unable to get message for failure of type BadException due to null")

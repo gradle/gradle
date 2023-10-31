@@ -44,5 +44,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    integTestImplementation(project(":dependency-management"))
+
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }

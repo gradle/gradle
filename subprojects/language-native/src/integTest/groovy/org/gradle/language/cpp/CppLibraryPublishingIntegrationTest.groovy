@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -945,6 +946,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             application { targetMachines = [machines.host().x86] }
         """
         app.main.writeToProject(consumer)
+        consumer.file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         executer.inDirectory(consumer)
         fails("assemble")

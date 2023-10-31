@@ -21,6 +21,7 @@ import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.jvm.Jvm
 
 import static org.junit.Assume.assumeNotNull
@@ -148,6 +149,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         withInstallations(Jvm.current(), otherJvm).fails("testAggregateTestReport")

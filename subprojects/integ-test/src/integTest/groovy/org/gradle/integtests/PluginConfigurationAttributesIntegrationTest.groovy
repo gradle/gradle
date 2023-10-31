@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.ResolutionFailureHandler
 
 class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,6 +47,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 implementation(project(path: ":producer", configuration: "$configuration"))
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         then:
         fails("test")

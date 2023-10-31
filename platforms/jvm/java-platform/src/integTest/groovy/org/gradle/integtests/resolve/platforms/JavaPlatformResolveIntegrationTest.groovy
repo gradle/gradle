@@ -20,6 +20,7 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.hamcrest.Matchers
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -151,6 +152,8 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             }
         """
         checkConfiguration("compileClasspath")
+
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails ":checkDeps"

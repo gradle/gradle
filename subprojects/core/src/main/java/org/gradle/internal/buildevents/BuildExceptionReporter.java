@@ -204,7 +204,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            if (StringUtils.isNotBlank(node.getMessage())) {
+            if (StringUtils.isNotBlank(getMessage(node))) {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 renderStyledError(node, output);
             }

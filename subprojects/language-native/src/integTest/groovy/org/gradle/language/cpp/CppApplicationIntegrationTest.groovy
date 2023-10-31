@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -472,6 +473,8 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         app.greeter.writeToProject(file("greeter"))
         app.main.writeToProject(file("app"))
 
@@ -507,6 +510,8 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 ${configureToolChainSupport('foo')}
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         app.greeter.writeToProject(file("greeter"))
         app.main.writeToProject(file("app"))
 
@@ -623,6 +628,8 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
+
         app.greeter.writeToProject(file("hello"))
         app.main.writeToProject(file("app"))
 

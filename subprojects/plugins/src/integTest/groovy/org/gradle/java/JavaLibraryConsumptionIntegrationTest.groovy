@@ -17,6 +17,7 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.component.ResolutionFailureHandler
 import spock.lang.Issue
 
 class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
@@ -83,6 +84,7 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        file("gradle.properties").text = "${ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY}=true"
 
         when:
         fails 'resolve'
