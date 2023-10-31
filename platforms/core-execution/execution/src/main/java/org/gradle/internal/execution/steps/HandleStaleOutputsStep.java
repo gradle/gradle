@@ -38,11 +38,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
     @VisibleForTesting
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CleanupStaleOutputsStep.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandleStaleOutputsStep.class);
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildOutputCleanupRegistry cleanupRegistry;
@@ -51,7 +51,7 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
     private final OutputFilesRepository outputFilesRepository;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupStaleOutputsStep(
+    public HandleStaleOutputsStep(
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry cleanupRegistry,
         Deleter deleter,
@@ -72,7 +72,10 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
         if (work.shouldCleanupStaleOutputs()) {
             cleanupStaleOutputs(work, context);
         }
-        return delegate.execute(work, context);
+        R result = delegate.execute(work, context);
+        result.getAfterExecutionState()
+            .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
+        return result;
     }
 
     private void cleanupStaleOutputs(UnitOfWork work, C context) {
