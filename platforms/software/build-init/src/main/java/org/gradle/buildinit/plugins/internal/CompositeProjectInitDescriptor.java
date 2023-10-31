@@ -108,6 +108,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
         VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
     }
 
+    // This is used by our build-logic to generate samples, see `SamplesGenerator`
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
         BuildContentGenerationContext buildContentGenerationContext = new BuildContentGenerationContext(new VersionCatalogDependencyRegistry(false));
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {
@@ -120,6 +121,8 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
                 generator.generate(settings, buildContentGenerationContext);
             }
         }
-        return ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings, buildContentGenerationContext);
+        Map<String, List<String>> comments = ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings, buildContentGenerationContext);
+        VersionCatalogGenerator.create(settings.getTarget()).generate(buildContentGenerationContext);
+        return comments;
     }
 }
