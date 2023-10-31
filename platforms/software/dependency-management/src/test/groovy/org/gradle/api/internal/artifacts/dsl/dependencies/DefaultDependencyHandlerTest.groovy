@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.Category
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -364,9 +363,9 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependencies are endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory(), new DocumentationRegistry())
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
-        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory(), new DocumentationRegistry())
+        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep2.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
@@ -400,7 +399,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependency can be made non-endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory(), new DocumentationRegistry())
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:

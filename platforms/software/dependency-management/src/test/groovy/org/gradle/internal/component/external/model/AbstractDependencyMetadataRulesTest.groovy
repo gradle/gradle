@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
@@ -286,8 +288,15 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def documentationRegistry = Mock(DocumentationRegistry)
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry))
+        def providerFactory = createProviderFactory()
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry, providerFactory))
 
         return consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0].metadata
+    }
+
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("false")
+        }
     }
 }

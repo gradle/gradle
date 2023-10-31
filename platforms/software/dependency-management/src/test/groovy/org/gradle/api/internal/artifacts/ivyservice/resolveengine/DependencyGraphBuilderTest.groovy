@@ -50,6 +50,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
 import org.gradle.internal.component.ResolutionFailureHandler
@@ -130,7 +132,8 @@ class DependencyGraphBuilderTest extends Specification {
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
     def documentationRegistry = new DocumentationRegistry()
-    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry))
+    def providerFactory = createProviderFactory()
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry, providerFactory))
 
     DependencyGraphBuilder builder
 
@@ -1161,6 +1164,12 @@ class DependencyGraphBuilderTest extends Specification {
 
     def ids(ComponentResolveMetadata... descriptors) {
         return descriptors.collect { it.moduleVersionId } as Set
+    }
+
+    ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("false")
+        }
     }
 
     static class TestGraphVisitor implements DependencyGraphVisitor {

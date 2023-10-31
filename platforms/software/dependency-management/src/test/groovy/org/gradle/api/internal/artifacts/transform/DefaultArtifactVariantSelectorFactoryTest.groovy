@@ -26,6 +26,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousArtifactVariantsException
 import org.gradle.internal.component.NoMatchingArtifactVariantsException
@@ -50,7 +52,8 @@ class DefaultArtifactVariantSelectorFactoryTest extends Specification {
     def dependenciesResolverFactory = Stub(TransformUpstreamDependenciesResolverFactory)
     def transformedVariantFactory = Mock(TransformedVariantFactory)
     def documentationRegistry = new DocumentationRegistry()
-    def variantSelectionFailureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry)
+    def providerFactory = createProviderFactory()
+    def variantSelectionFailureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry, providerFactory)
     def variantSelectorFactory = new DefaultVariantSelectorFactory(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformedVariantFactory, variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {
@@ -237,5 +240,11 @@ Found the following transforms:
             getTargetAttributes() >> attrs
         }
         return new TransformedVariant(root, definition)
+    }
+
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("true")
+        }
     }
 }

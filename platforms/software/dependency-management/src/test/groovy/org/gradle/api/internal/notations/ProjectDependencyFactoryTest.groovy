@@ -16,7 +16,6 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -32,19 +31,19 @@ class ProjectDependencyFactoryTest extends Specification {
     def projectDummy = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
-    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory(), new DocumentationRegistry())
+    def depFactory = new DefaultProjectDependencyFactory(TestUtil.instantiatorFactory().decorateLenient(), true, capabilityNotationParser, AttributeTestUtil.attributesFactory(), TestFiles.taskDependencyFactory())
     def factory = new ProjectDependencyFactory(depFactory)
 
     def "creates project dependency with map notation"() {
         given:
-        boolean expectedTransitive = false;
-        final Map<Object, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
+        boolean expectedTransitive = false
+        final Map<Object, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive)
 
         and:
         projectFinder.getProject(':foo:bar') >> projectDummy
 
         when:
-        def projectDependency = factory.createFromMap(projectFinder, mapNotation);
+        def projectDependency = factory.createFromMap(projectFinder, mapNotation)
 
         then:
         projectDependency.getDependencyProject() == projectDummy
@@ -57,7 +56,7 @@ class ProjectDependencyFactoryTest extends Specification {
         projectFinder.getProject(':foo:bar') >> projectDummy
 
         when:
-        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"));
+        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"))
 
         then:
         def ex = thrown(InvalidUserDataException)

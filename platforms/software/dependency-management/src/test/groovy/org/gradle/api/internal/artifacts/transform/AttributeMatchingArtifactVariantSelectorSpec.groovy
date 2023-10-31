@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousArtifactVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
@@ -60,7 +62,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def factory = Mock(ArtifactVariantSelector.ResolvedArtifactTransformer)
     def documentationRegistry = new DocumentationRegistry()
-    def failureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry)
+    def failureProcessor = new ResolutionFailureHandler(createTestProblems(), documentationRegistry, createProviderFactory())
 
     def 'direct match on variant means no finder interaction'() {
         given:
@@ -170,6 +172,12 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
                 transformChain >> Mock(TransformChain)
                 targetAttributes >> ImmutableAttributes.EMPTY
             })
+        }
+    }
+
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("true")
         }
     }
 }

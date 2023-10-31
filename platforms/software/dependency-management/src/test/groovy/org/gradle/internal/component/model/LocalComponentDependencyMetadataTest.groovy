@@ -33,6 +33,8 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.ConfigurationNotFoundException
 import org.gradle.internal.component.IncompatibleGraphVariantsException
@@ -53,12 +55,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
     ImmutableAttributesFactory factory
     DocumentationRegistry documentationRegistry
     GraphVariantSelector variantSelector
+    ProviderFactory providerFactory
 
     def setup() {
         attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
         documentationRegistry = new DocumentationRegistry()
-        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry))
+        providerFactory = createProviderFactory()
+        variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry, providerFactory))
     }
 
     def "returns this when same target requested"() {
@@ -124,7 +128,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
 Configuration 'default':
   - Incompatible because this component declares attribute 'key' with value 'nothing' and the consumer needed attribute 'key' with value 'other'""")
         e.getResolutions().contains(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".")
-        e.getResolutions().contains(IncompatibleGraphVariantsException.INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-incompatible") + ".")
+        e.getResolutions().contains(ResolutionFailureHandler.INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-incompatible") + ".")
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
@@ -411,6 +415,12 @@ Configuration 'bar':
         return consumableConfiguration(component, 'default', attrs)
     }
 
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("true")
+        }
+    }
+
     enum JavaVersion {
         JAVA5,
         JAVA6,
@@ -418,5 +428,4 @@ Configuration 'bar':
         JAVA8,
         JAVA9
     }
-
 }

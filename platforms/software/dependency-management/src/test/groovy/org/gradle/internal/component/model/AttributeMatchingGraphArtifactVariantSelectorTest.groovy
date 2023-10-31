@@ -28,6 +28,8 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.NoMatchingGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
@@ -463,7 +465,7 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), Mock(DocumentationRegistry)))
+        GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), Mock(DocumentationRegistry), createProviderFactory()))
         selected = variantSelector.selectVariants(
             consumerAttributes,
             requestedCapabilities,
@@ -587,6 +589,12 @@ All of them match the consumer attributes:
         String actualMessage = TextUtil.normaliseLineSeparators(e.message)
         String expectedMessage = TextUtil.normaliseLineSeparators(message)
         assert actualMessage == expectedMessage
+    }
+
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("true")
+        }
     }
 
     private static class UsageCompatibilityRule implements AttributeCompatibilityRule<String> {

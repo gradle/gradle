@@ -28,6 +28,8 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -62,6 +64,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def adapterOnMavenMetadata = new ComponentMetadataDetailsAdapter(mavenComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, DependencyManagementTestUtil.platformSupport())
     def adapterOnIvyMetadata = new ComponentMetadataDetailsAdapter(ivyComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, DependencyManagementTestUtil.platformSupport())
     def adapterOnGradleMetadata = new ComponentMetadataDetailsAdapter(gradleComponentMetadata(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, DependencyManagementTestUtil.platformSupport())
+    def providerFactory = createProviderFactory()
 
     private ivyComponentMetadata() {
         ivyMetadataFactory.create(componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
@@ -162,9 +165,15 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def consumer = new LocalComponentDependencyMetadata(componentSelector, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
         def documentationRegistry = new DocumentationRegistry()
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry))
+        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems(), documentationRegistry, providerFactory))
 
         def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
         variant.metadata.dependencies
+    }
+
+    private ProviderFactory createProviderFactory() {
+        return Stub(ProviderFactory) {
+            gradleProperty(ResolutionFailureHandler.FULL_FAILURES_MESSAGE_PROPERTY) >> Providers.ofNullable("false")
+        }
     }
 }
