@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+@NonNullApi
 public class DefaultIsolatedGradleProject implements Serializable, GradleProjectIdentity {
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
