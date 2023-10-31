@@ -65,16 +65,6 @@ public class GradleWorkerMain {
             implementationClassLoader = getClass().getClassLoader();
         }
 
-        // Write out all URLs in implementation classpath to /tmp/worker-classpath.txt
-        OutputStreamWriter writer = new OutputStreamWriter(
-            new FileOutputStream("/tmp/worker-classpath.txt")
-        );
-        for (URL url : implementationClassPath) {
-            writer.write(url.toString() + "\n");
-        }
-        writer.flush();
-        writer.close();
-
         @SuppressWarnings("unchecked")
         Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
