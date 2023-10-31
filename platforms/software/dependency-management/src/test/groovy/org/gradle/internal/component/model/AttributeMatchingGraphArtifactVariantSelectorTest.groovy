@@ -18,7 +18,6 @@ package org.gradle.internal.component.model
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -480,7 +479,7 @@ All of them match the consumer attributes:
     private ModuleComponentArtifactMetadata artifact(String name, String classifier) {
         Stub(ModuleComponentArtifactMetadata) {
             getId() >> Stub(ModuleComponentArtifactIdentifier)
-            toArtifactIdentifier() >> Stub(ArtifactIdentifier) {
+            getName() >> Stub(IvyArtifactName) {
                 getName() >> name
                 getType() >> "jar"
                 getExtension() >> "jar"

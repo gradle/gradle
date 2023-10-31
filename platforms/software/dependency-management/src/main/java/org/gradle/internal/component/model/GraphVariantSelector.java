@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
@@ -164,8 +163,7 @@ public class GraphVariantSelector {
             if (artifacts.size() == 1) {
                 ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
                 if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
-                    ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) componentArtifactMetadata).toArtifactIdentifier();
-                    if (classifier.equals(artifactIdentifier.getClassifier())) {
+                    if (classifier.equals(componentArtifactMetadata.getName().getClassifier())) {
                         if (sameClassifier == null) {
                             sameClassifier = Collections.singletonList(match);
                         } else {

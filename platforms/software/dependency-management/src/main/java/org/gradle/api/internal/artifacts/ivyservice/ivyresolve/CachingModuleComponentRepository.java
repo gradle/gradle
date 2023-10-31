@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -333,9 +332,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - cached.getCachedAt());
                 final boolean isChangingModule = moduleSource.isChangingModule();
                 ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
-                ArtifactIdentifier artifactIdentifier = moduleComponentArtifactMetadata.toArtifactIdentifier();
                 if (cached.isMissing()) {
-                    Expiry expiry = cachePolicy.artifactExpiry(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
                         for (String location : cached.attemptedLocations()) {
@@ -345,7 +343,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
-                    Expiry expiry = cachePolicy.artifactExpiry(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
