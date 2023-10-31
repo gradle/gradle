@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
@@ -31,7 +30,6 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -64,14 +62,9 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     private final IntermediateToolingModelProvider intermediateToolingModelProvider;
     private final Provider<Boolean> isolatedProjectsActive;
 
-    public GradleProjectBuilder() {
-        intermediateToolingModelProvider = null;
-        isolatedProjectsActive = null;
-    }
-
-    public GradleProjectBuilder(IntermediateToolingModelProvider intermediateToolingModelProvider, @Nullable Provider<Boolean> isolatedProjectsActive) {
+    public GradleProjectBuilder(IntermediateToolingModelProvider intermediateToolingModelProvider, Provider<Boolean> isolatedProjectsActive) {
         this.intermediateToolingModelProvider = intermediateToolingModelProvider;
-        this.isolatedProjectsActive = isolatedProjectsActive != null ? isolatedProjectsActive : Providers.of(false);
+        this.isolatedProjectsActive = isolatedProjectsActive;
     }
 
     @Override

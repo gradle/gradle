@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -35,6 +36,7 @@ import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 
 class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
@@ -310,7 +312,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     private def createEclipseModelBuilder() {
-        def gradleProjectBuilder = new GradleProjectBuilder()
+        def gradleProjectBuilder = new GradleProjectBuilder(Stub(IntermediateToolingModelProvider), Providers.of(false))
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
             getUniqueName(_ as Project) >> { Project p -> p.getName() }
         }

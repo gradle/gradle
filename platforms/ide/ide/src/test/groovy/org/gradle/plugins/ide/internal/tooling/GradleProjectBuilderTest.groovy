@@ -16,11 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
+import org.gradle.api.internal.provider.Providers
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 
 class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
-    def builder = new GradleProjectBuilder()
+    def builder = new GradleProjectBuilder(Stub(IntermediateToolingModelProvider), Providers.of(false))
 
     def "builds basics for project"() {
         def buildFile = temporaryFolder.file("build.gradle") << "//empty"
