@@ -109,7 +109,7 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
             testContainer.register("foobar")
             testContainer.register("barfoo")
 
-            assert onlyFoo*.name == ["foo", "barfoo"]
+            assert onlyFoo*.name == ["barfoo", "foo"]
         """
         expect:
         succeeds "help"
