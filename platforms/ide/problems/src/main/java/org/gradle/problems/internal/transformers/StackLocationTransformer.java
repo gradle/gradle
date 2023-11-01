@@ -39,7 +39,7 @@ public class StackLocationTransformer implements ProblemTransformer {
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(problem.getException());
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
-            problem.getWhere().add(new FileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber(), null, null));
+            problem.getLocations().add(new FileLocation(loc.getSourceLongDisplayName().getDisplayName(), loc.getLineNumber(), null, null));
         }
         return problem;
     }

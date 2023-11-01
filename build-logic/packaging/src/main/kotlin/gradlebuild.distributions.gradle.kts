@@ -34,6 +34,7 @@ import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
+import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
 
@@ -179,9 +180,9 @@ val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGr
 }
 
 
-apply<org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin>()
-plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin::class) {
-    registerKotlinJvmCompileTask("compileGradleApiKotlinExtensions")
+apply<KotlinBaseApiPlugin>()
+plugins.withType(KotlinBaseApiPlugin::class) {
+    registerKotlinJvmCompileTask("compileGradleApiKotlinExtensions", "gradle-kotlin-dsl-extensions")
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {

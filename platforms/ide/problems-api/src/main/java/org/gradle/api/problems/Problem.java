@@ -63,7 +63,12 @@ public interface Problem {
      */
     Severity getSeverity();
 
-    List<ProblemLocation> getWhere();
+    /**
+     * Return the location data associated available for this problem.
+     *
+     * @since 8.5
+     */
+    List<ProblemLocation> getLocations();
 
     /**
      * A link to the documentation for this problem.
