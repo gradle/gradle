@@ -16,17 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,7 +32,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -47,60 +43,30 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureStateAfterExecutionStep<C extends InputChangesContext> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
-    private final OutputChangeListener outputChangeListener;
-    private final Step<? super ChangingOutputsContext, ? extends Result> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
-        OutputChangeListener outputChangeListener,
-        Step<? super ChangingOutputsContext, ? extends Result> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
-        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
-        Result result = executeDelegateBroadcastingChanges(work, context);
+        Result result = delegate.execute(work, context);
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
             .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result.getDuration()));
 
         return new AfterExecutionResult(result, afterExecutionState.orElse(null));
-    }
-
-    private Result executeDelegateBroadcastingChanges(UnitOfWork work, C context) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
-            @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                builder.add(value.getValue().getAbsolutePath());
-            }
-
-            @Override
-            public void visitLocalState(File localStateRoot) {
-                builder.add(localStateRoot.getAbsolutePath());
-            }
-
-            @Override
-            public void visitDestroyable(File destroyableRoot) {
-                builder.add(destroyableRoot.getAbsolutePath());
-            }
-        });
-        ImmutableList<String> outputsToBeChanged = builder.build();
-        outputChangeListener.invalidateCachesFor(outputsToBeChanged);
-        try {
-            return delegate.execute(work, new ChangingOutputsContext(context));
-        } finally {
-            outputChangeListener.invalidateCachesFor(outputsToBeChanged);
-        }
     }
 
     private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
