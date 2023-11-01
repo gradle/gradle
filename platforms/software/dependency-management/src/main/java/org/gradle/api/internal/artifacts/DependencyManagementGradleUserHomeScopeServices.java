@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceSe
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -35,9 +34,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -84,37 +80,21 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
-    }
-
-    ExecutionHistoryStore createExecutionHistoryStore(
-        ExecutionHistoryCacheAccess executionHistoryCacheAccess,
-        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
-    ) {
-        return new DefaultExecutionHistoryStore(
-            executionHistoryCacheAccess,
-            inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher
-        );
-    }
-
     ImmutableTransformWorkspaceServices createTransformWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         CacheBuilder cacheBuilder = unscopedCacheBuilderFactory
             .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache");
-        WorkspaceProvider workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
+        WorkspaceProvider workspaceProvider = new DefaultImmutableWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices(
             workspaceProvider,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)

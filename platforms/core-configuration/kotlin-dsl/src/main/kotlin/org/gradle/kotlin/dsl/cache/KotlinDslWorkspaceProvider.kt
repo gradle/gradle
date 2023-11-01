@@ -41,7 +41,7 @@ class KotlinDslWorkspaceProvider(
 ) : Closeable {
 
     private
-    val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
+    val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider(
         cacheBuilderFactory
             .createCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),

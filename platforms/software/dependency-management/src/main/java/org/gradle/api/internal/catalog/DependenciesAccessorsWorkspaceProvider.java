@@ -39,7 +39,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         ClassLoaderHierarchyHasher classLoaderHasher,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
+        this.delegate = new DefaultImmutableWorkspaceProvider(
             cacheBuilderFactory
                 .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
