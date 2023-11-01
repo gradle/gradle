@@ -7,7 +7,7 @@ interface FunctionCallResolver {
     fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall
-    ): ObjectOrigin.FunctionInvocationOrigin?
+    ): ObjectOrigin.FunctionOrigin?
 
     data class FunctionResolutionAndBinding(
         val receiver: ObjectOrigin?,
@@ -28,7 +28,7 @@ class FunctionCallResolverImpl(
     override fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall
-    ): ObjectOrigin.FunctionInvocationOrigin? = with(context) {
+    ): ObjectOrigin.FunctionOrigin? = with(context) {
         val argResolutions = functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>()
             .associateWith {
                 expressionResolver.doResolveExpression(this, it.expr)
@@ -112,12 +112,12 @@ class FunctionCallResolverImpl(
         
         checkBuilderSemantics(semantics, receiver, function)
 
-        val result: ObjectOrigin.FunctionInvocationOrigin = invocationResultObjectOrigin(
+        val result: ObjectOrigin.FunctionOrigin = invocationResultObjectOrigin(
             semantics, function, functionCall, valueBinding, newFunctionCallId
         )
         
         doRecordSemanticsSideEffects(semantics, receiver, result, function, argResolutions)
-        doAnalyzeConfiguringSemantics(functionCall, semantics, function, result)
+        doAnalyzeConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId)
         
         return result
     }
@@ -126,12 +126,18 @@ class FunctionCallResolverImpl(
         call: FunctionCall,
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
-        result: ObjectOrigin.FunctionInvocationOrigin
+        result: ObjectOrigin.FunctionOrigin,
+        newFunctionCallId: Long
     ) {
         call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()?.let { configuringLambda ->
             if (semantics is FunctionSemantics.ConfigureSemantics) {
                 val configureReceiver = when (semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(semantics, function, call)
+                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
+                        semantics,
+                        function,
+                        call,
+                        newFunctionCallId
+                    )
                     is FunctionSemantics.AddAndConfigure -> result
                 }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, configuringLambda)) {
@@ -146,7 +152,7 @@ class FunctionCallResolverImpl(
     private fun AnalysisContext.doRecordSemanticsSideEffects(
         semantics: FunctionSemantics,
         receiver: ObjectOrigin?,
-        result: ObjectOrigin.FunctionInvocationOrigin,
+        result: ObjectOrigin.FunctionOrigin,
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>
     ) {
@@ -198,7 +204,7 @@ class FunctionCallResolverImpl(
                 newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
 
             FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
-                configureReceiverObject(semantics, function, functionCall)
+                configureReceiverObject(semantics, function, functionCall, newFunctionCallId)
         }
 
         else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
@@ -207,11 +213,12 @@ class FunctionCallResolverImpl(
     private fun configureReceiverObject(
         semantics: FunctionSemantics.AccessAndConfigure,
         function: FunctionResolutionAndBinding,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        newFunctionCallId: Long
     ) = when (val accessor = semantics.accessor) {
         is ConfigureAccessor.Property -> {
             require(function.receiver != null)
-            ObjectOrigin.ConfigureReceiver(function.receiver, function.schemaFunction, functionCall, accessor)
+            ObjectOrigin.ConfigureReceiver(function.receiver, function.schemaFunction, functionCall, newFunctionCallId, accessor)
         }
     }
 
@@ -276,14 +283,14 @@ class FunctionCallResolverImpl(
         valueBinding: ParameterValueBinding,
         functionCall: FunctionCall,
         newFunctionCallId: Long
-    ) = ObjectOrigin.NewObjectFromFunctionInvocation(
-        function.schemaFunction,
-        function.receiver,
-        valueBinding,
-        functionCall,
-        newFunctionCallId
-    )
-
+    ) = when (function.receiver) {
+        is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
+            function.schemaFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
+        )
+        null -> ObjectOrigin.NewObjectFromTopLevelFunction(
+            function.schemaFunction, valueBinding, functionCall, newFunctionCallId
+        )
+    }
 
     private fun AnalysisContextView.findDataConstructor(
         functionCall: FunctionCall,

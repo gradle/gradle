@@ -33,7 +33,7 @@ sealed interface ObjectReflection {
 
     data class PureFunctionInvocation(
         override val type: DataType,
-        val objectOrigin: ObjectOrigin.NewObjectFromFunctionInvocation,
+        val objectOrigin: ObjectOrigin.FunctionOrigin,
         val parameterResolution: Map<DataParameter, ObjectReflection>
     ) : ObjectReflection
 }
@@ -59,7 +59,7 @@ fun reflect(
         is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass<*>, objectOrigin, context)
 
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
-        is ObjectOrigin.NewObjectFromFunctionInvocation -> context.functionCall(objectOrigin.invocationId) {
+        is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
                 is FunctionSemantics.AddAndConfigure -> reflectData(
                     objectOrigin.invocationId,
@@ -79,7 +79,6 @@ fun reflect(
             }
         }
 
-        is ObjectOrigin.BuilderReturnedReceiver,
         is ObjectOrigin.ConfigureReceiver,
         is ObjectOrigin.PropertyReference,
         is ObjectOrigin.FromLocalValue -> error("value origin needed")

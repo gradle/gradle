@@ -33,7 +33,7 @@ private class ResolverServicesContainer :
     override fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall
-    ): ObjectOrigin.FunctionInvocationOrigin? =
+    ): ObjectOrigin.FunctionOrigin? =
         functionCallResolver.doResolveFunctionCall(context, functionCall)
 
     override fun analyzeCodeInProgramOrder(context: AnalysisContext, elements: List<LanguageTreeElement>) {

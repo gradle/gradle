@@ -35,12 +35,12 @@ object LocalValueTest {
         val (rhs1, rhs2) = rhsOrigins
 
         with(rhs1.assigned) {
-            assertIs<ObjectOrigin.NewObjectFromFunctionInvocation>(this)
+            assertIs<ObjectOrigin.NewObjectFromMemberFunction>(this)
             assertEquals("my1", function.simpleName)
         }
 
         with(rhs2.assigned) {
-            assertIs<ObjectOrigin.NewObjectFromFunctionInvocation>(this)
+            assertIs<ObjectOrigin.NewObjectFromMemberFunction>(this)
             assertEquals("my2", function.simpleName)
         }
     }

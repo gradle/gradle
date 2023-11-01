@@ -12,6 +12,10 @@ data class PropertyReferenceResolution(
 
 sealed interface ObjectOrigin {
     val originElement: LanguageTreeElement
+    
+    sealed interface HasReceiver : ObjectOrigin {
+        val receiver: ObjectOrigin
+    }
 
     data class TopLevelReceiver(val type: DataType, override val originElement: LanguageTreeElement) : ObjectOrigin {
         override fun toString(): String = "(top-level-object)"
@@ -33,58 +37,60 @@ sealed interface ObjectOrigin {
     
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
     
-    sealed interface FunctionInvocationOrigin : ObjectOrigin {
+    sealed interface FunctionOrigin : ObjectOrigin {
         val function: SchemaFunction
-        val receiverObject: ObjectOrigin?
+        val invocationId: Long
+        val receiver: ObjectOrigin?
+    }
+    
+    sealed interface FunctionInvocationOrigin : FunctionOrigin {
+        val parameterBindings: ParameterValueBinding
     }
     
     data class BuilderReturnedReceiver(
         override val function: SchemaFunction,
-        override val receiverObject: ObjectOrigin,
+        override val receiver: ObjectOrigin,
         override val originElement: FunctionCall,
-        val parameterBindings: ParameterValueBinding,
-        val invocationId: Long
-    ) : FunctionInvocationOrigin {
-        override fun toString(): String = receiverObject.toString()
+        override val parameterBindings: ParameterValueBinding,
+        override val invocationId: Long
+    ) : FunctionInvocationOrigin, HasReceiver {
+        override fun toString(): String = receiver.toString()
     }
 
-    data class NewObjectFromFunctionInvocation(
+    data class NewObjectFromMemberFunction(
         override val function: SchemaFunction,
-        override val receiverObject: ObjectOrigin?,
-        val parameterBindings: ParameterValueBinding,
+        override val receiver: ObjectOrigin,
+        override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
-        val invocationId: Long
-    ) : FunctionInvocationOrigin {
+        override val invocationId: Long
+    ) : FunctionInvocationOrigin, HasReceiver {
         override fun toString(): String =
-            receiverObject?.toString()?.plus(".").orEmpty() + buildString {
-                if (function is DataConstructor) {
-                    val fqn = when (val ref = function.dataClass) {
-                        is DataTypeRef.Name -> ref.fqName.toString()
-                        is DataTypeRef.Type -> (ref.type as? DataType.DataClass<*>)?.kClass?.qualifiedName ?: ref.type.toString()
-                    }
-                    append(fqn)
-                    append(".")
-                }
-                append(function.simpleName)
-                append("#")
-                append(invocationId)
-                append("(")
-                append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" }) 
-                append(")")
-            }
+            functionInvocationString(function, receiver, invocationId, parameterBindings)
     }
     
+    data class NewObjectFromTopLevelFunction(
+        override val function: SchemaFunction,
+        override val parameterBindings: ParameterValueBinding,
+        override val originElement: FunctionCall,
+        override val invocationId: Long
+    ) : FunctionInvocationOrigin {
+        override val receiver: ObjectOrigin? get() = null
+
+        override fun toString(): String = functionInvocationString(function, null, invocationId, parameterBindings)
+    }
+
     data class ConfigureReceiver(
-        override val receiverObject: ObjectOrigin,
+        override val receiver: ObjectOrigin,
         override val function: SchemaFunction,
         override val originElement: FunctionCall,
+        override val invocationId: Long,
         val accessor: ConfigureAccessor,
-    ) : FunctionInvocationOrigin {
+    ) : FunctionOrigin {
         override fun toString(): String {
             val accessorString = when (accessor) {
                 is ConfigureAccessor.Property -> accessor.dataProperty.name 
             }
-            return "$receiverObject.$accessorString}"
+            return "$receiver.$accessorString"
         }
     }
 
@@ -127,4 +133,21 @@ sealed interface ObjectOrigin {
 
 data class ParameterValueBinding(val bindingMap: Map<DataParameter, ObjectOrigin>)
 
-
+private fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: Long, parameterBindings: ParameterValueBinding) =
+    receiver?.toString()?.plus(".").orEmpty() + buildString {
+        if (function is DataConstructor) {
+            val fqn = when (val ref = function.dataClass) {
+                is DataTypeRef.Name -> ref.fqName.toString()
+                is DataTypeRef.Type -> (ref.type as? DataType.DataClass<*>)?.kClass?.qualifiedName
+                    ?: ref.type.toString()
+            }
+            append(fqn)
+            append(".")
+        }
+        append(function.simpleName)
+        append("#")
+        append(invocationId)
+        append("(")
+        append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" })
+        append(")")
+    }

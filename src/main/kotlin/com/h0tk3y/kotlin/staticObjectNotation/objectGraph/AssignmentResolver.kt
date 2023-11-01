@@ -95,7 +95,7 @@ class AssignmentResolver {
                 resolveConfigureReceiver(objectOrigin)
             )
             is ObjectOrigin.FromLocalValue -> resolveToObjectOrPropertyReference(objectOrigin.assigned)
-            is ObjectOrigin.BuilderReturnedReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiverObject)
+            is ObjectOrigin.BuilderReturnedReceiver -> resolveToObjectOrPropertyReference(objectOrigin.receiver)
 
             is ObjectOrigin.PropertyReference -> {
                 val receiver = objectOrigin.receiver
@@ -124,17 +124,15 @@ class AssignmentResolver {
                 }
             }
 
-            is ObjectOrigin.NewObjectFromFunctionInvocation -> {
-                val receiver = objectOrigin.receiverObject
-                if (receiver == null) {
-                    Ok(objectOrigin)
-                } else {
-                    when (val receiverResolutionResult = resolveToObjectOrPropertyReference(receiver)) {
-                        is UnresolvedReceiver -> receiverResolutionResult
-                        is Ok -> Ok(objectOrigin.copy(receiverObject = receiverResolutionResult.objectOrigin))
-                    }
+            is ObjectOrigin.NewObjectFromMemberFunction -> {
+                val receiver = objectOrigin.receiver
+                when (val receiverResolutionResult = resolveToObjectOrPropertyReference(receiver)) {
+                    is UnresolvedReceiver -> receiverResolutionResult
+                    is Ok -> Ok(objectOrigin.copy(receiver = receiverResolutionResult.objectOrigin))
                 }
             }
+
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> Ok(objectOrigin)
 
             is ObjectOrigin.ConstantOrigin,
             is ObjectOrigin.External,
@@ -151,7 +149,7 @@ class AssignmentResolver {
     private fun toPropertyReference(
         objectOrigin: ObjectOrigin.ConfigureReceiver, accessor: ConfigureAccessor.Property
     ) = ObjectOrigin.PropertyReference(
-        objectOrigin.receiverObject, accessor.dataProperty, objectOrigin.originElement
+        objectOrigin.receiver, accessor.dataProperty, objectOrigin.originElement
     )
 
     sealed interface ResolutionNode {

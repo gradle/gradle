@@ -91,12 +91,13 @@ class CodeAnalyzerImpl(
     }
 
     // If we can trace the function invocation back to something that is not transient, we consider it not dangling
-    private fun isDanglingPureExpression(obj: ObjectOrigin.FunctionInvocationOrigin): Boolean {
+    private fun isDanglingPureExpression(obj: ObjectOrigin.FunctionOrigin): Boolean {
         fun isPotentiallyPersistentReceiver(objectOrigin: ObjectOrigin): Boolean = when (objectOrigin) {
             is ObjectOrigin.ConfigureReceiver -> true
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.External -> true
-            is ObjectOrigin.NewObjectFromFunctionInvocation -> {
+            is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiver)
+            is ObjectOrigin.FunctionOrigin -> {
                 val semantics = objectOrigin.function.semantics
                 when (semantics) {
                     is FunctionSemantics.Builder -> error("should be impossible?")
@@ -107,7 +108,6 @@ class CodeAnalyzerImpl(
             }
 
             is ObjectOrigin.FromLocalValue -> true // TODO: also check for unused val?
-            is ObjectOrigin.BuilderReturnedReceiver -> isPotentiallyPersistentReceiver(objectOrigin.receiverObject)
             is ObjectOrigin.NullObjectOrigin -> false
             is ObjectOrigin.PropertyReference -> true
             is ObjectOrigin.TopLevelReceiver -> true
@@ -116,7 +116,7 @@ class CodeAnalyzerImpl(
 
         return when {
             obj.function.semantics is FunctionSemantics.Pure -> true
-            obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiverObject)
+            obj is ObjectOrigin.BuilderReturnedReceiver -> !isPotentiallyPersistentReceiver(obj.receiver)
             else -> false
         }
     }
