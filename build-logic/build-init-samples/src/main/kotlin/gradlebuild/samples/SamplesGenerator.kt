@@ -196,6 +196,10 @@ Enter selection (default: JUnit 4) [1..4]
      > Task :$subprojectName:compileTestJava NO-SOURCE
 
         """.trimIndent() else ""
+        val extraKotlinCheckTask = if (descriptor.language === Language.KOTLIN) """
+     > Task :$subprojectName:checkKotlinGradlePluginConfigurationErrors
+
+        """.trimIndent() else ""
         val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
         val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
@@ -205,6 +209,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("subprojectName", subprojectName)
             .withBinding("extraCompileJava", extraCompileJava)
             .withBinding("extraCompileTestJava", extraCompileTestJava)
+            .withBinding("extraKotlinCheckTask", extraKotlinCheckTask)
             .withBinding("nativeTestTaskPrefix", nativeTestTaskPrefix)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("classesUpToDate", "" + classesUpToDate)
@@ -218,7 +223,7 @@ Enter selection (default: JUnit 4) [1..4]
     private
     fun tasksExecuted(descriptor: CompositeProjectInitDescriptor): Int {
         var tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
-        return tasksExecuted
+        return tasksExecuted + if (descriptor.language === Language.KOTLIN) 1 else 0
     }
 
     private

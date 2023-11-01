@@ -37,7 +37,7 @@ public class PluginIdLocation implements ProblemLocation {
         return "pluginId";
     }
 
-    public String getPluginId() { // TODO rename to getId()
+    public String getPluginId() {
         return pluginId;
     }
 }

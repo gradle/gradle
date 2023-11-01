@@ -18,35 +18,27 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
+
 /**
  * {@link Problem} instance builder requiring the specification of the problem location.
  *
  * @since 8.4
  */
 @Incubating
-public interface ProblemBuilderDefiningLocation {
+public interface ProblemBuilderDefiningLocation { // TODO discuss how to compose multiple explicit location information in problem builders
     /**
-     * Declares that this problem is in a file at a particular line.
-     *
-     * @param path the file location
-     * @param line the line number
-     * @return the builder for the next required property
-     */
-    ProblemBuilderDefiningCategory location(String path, Integer line); // TODO rename to fileLocation
-
-    /**
-     * Declares that this problem is in a file at a particular line.
+     * Declares that this problem is in a file with optional position and length.
      *
      * @param path the file location
      * @param line the line number
      * @param column the column number
+     * @param length the length of the text
      * @return the builder for the next required property
+     * @since 8.5
      */
-    ProblemBuilderDefiningCategory location(String path, Integer line, Integer column); // TODO rename to fileLocation
+    ProblemBuilderDefiningCategory fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
 
-    // TODO discuss how to compose multiple explicit location information in problem builders
-
-    // TODO think about use-case when plugin is applied using a class
     /**
      * Declares that this problem is emitted while applying a plugin.
      *
@@ -57,18 +49,19 @@ public interface ProblemBuilderDefiningLocation {
     ProblemBuilderDefiningCategory pluginLocation(String pluginId);
 
     /**
-     * Declares that this problem builder should automatically collect the location using an Exception.
+     * Declares that this problem should automatically collect the location information based on the current stack trace.
      *
      * @return the builder for the next required property
      * @since 8.5
      */
-    ProblemBuilderDefiningCategory collectLocation();
+    ProblemBuilderDefiningCategory stackLocation();
 
 
-    /*
+    /**
      * Declares that this problem has no associated location data.
      *
      * @return the builder for the next required property
+     * @since 8.4
      */
     ProblemBuilderDefiningCategory noLocation();
 }

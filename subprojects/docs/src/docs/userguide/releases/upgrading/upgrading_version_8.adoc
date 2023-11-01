@@ -49,6 +49,10 @@ The `ArtifactIdentifier` class has been deprecated for removal in Gradle 9.0.
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 1.9.20
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.20[Kotlin 1.9.20].
+
 ==== Changes to Groovy task conventions
 
 The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.

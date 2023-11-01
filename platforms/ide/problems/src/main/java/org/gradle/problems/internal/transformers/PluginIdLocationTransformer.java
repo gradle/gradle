@@ -43,7 +43,7 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
                     Objects.requireNonNull(operationDetails, "operationDetails should not be null");
                     String pluginId = operationDetails.getPluginId();
                     if (pluginId != null) {
-                        problem.getWhere().add(new PluginIdLocation(pluginId));
+                        problem.getLocations().add(new PluginIdLocation(pluginId));
                     }
                 } catch (Exception ex) {
                     throw new GradleException("Problem meanwhile reporting problem", ex);

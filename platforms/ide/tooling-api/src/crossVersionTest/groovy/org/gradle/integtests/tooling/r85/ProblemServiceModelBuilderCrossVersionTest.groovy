@@ -57,7 +57,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
                     return modelName == '${CustomModel.name}'
                 }
                 Object buildAll(String modelName, Project project) {
-                    problemService.createProblem { it.label("label").undocumented().noLocation().category("testcategory") }.report()
+                    problemService.create { it.label("label").undocumented().noLocation().category("testcategory") }.report()
                     return new CustomModel()
                 }
             }
