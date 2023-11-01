@@ -24,33 +24,27 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.Workspace;
-import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.execution.workspace.impl.DefaultWorkspaceLocation;
+import org.gradle.internal.execution.workspace.impl.NonLockingWorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.util.Optional;
 
 @NotThreadSafe
 public class MutableTransformWorkspaceServices implements TransformWorkspaceServices, ReservedFileSystemLocation {
 
     private final Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
     private final Provider<Directory> baseDirectory;
-    private final WorkspaceProvider workspaceProvider;
     private final ExecutionHistoryStore executionHistoryStore;
 
     public MutableTransformWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
-        this.workspaceProvider = new MutableTransformWorkspaceProvider();
         this.executionHistoryStore = executionHistoryStore;
     }
 
     @Override
     public WorkspaceProvider getWorkspaceProvider() {
-        return workspaceProvider;
+        return new NonLockingWorkspaceProvider(executionHistoryStore, baseDirectory.get().getAsFile());
     }
 
     @Override
@@ -61,24 +55,5 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
     @Override
     public Provider<? extends FileSystemLocation> getReservedFileSystemLocation() {
         return baseDirectory;
-    }
-
-    private class MutableTransformWorkspaceProvider implements WorkspaceProvider {
-        @Override
-        public Optional<ExecutionHistoryStore> getHistory() {
-            return Optional.of(executionHistoryStore);
-        }
-
-        @Override
-        public Workspace allocateWorkspace(String path) {
-            File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
-            WorkspaceLocation workspace = new DefaultWorkspaceLocation(workspaceDir);
-            return new Workspace() {
-                @Override
-                public <T> T mutate(WorkspaceAction<T> action) {
-                    return action.executeInWorkspace(workspace);
-                }
-            };
-        }
     }
 }

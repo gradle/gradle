@@ -35,7 +35,7 @@ import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
@@ -94,7 +94,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache");
-        WorkspaceProvider workspaceProvider = new DefaultImmutableWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher, cacheConfigurations);
+        WorkspaceProvider workspaceProvider = new OnDemandCacheBasedWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices(
             workspaceProvider,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)

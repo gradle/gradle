@@ -22,7 +22,7 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
@@ -39,7 +39,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         ClassLoaderHierarchyHasher classLoaderHasher,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        this.delegate = new DefaultImmutableWorkspaceProvider(
+        this.delegate = new OnDemandCacheBasedWorkspaceProvider(
             cacheBuilderFactory
                 .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),

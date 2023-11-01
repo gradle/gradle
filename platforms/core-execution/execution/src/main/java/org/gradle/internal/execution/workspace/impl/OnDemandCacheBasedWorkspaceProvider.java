@@ -42,7 +42,7 @@ import java.util.Optional;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
+public class OnDemandCacheBasedWorkspaceProvider implements WorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
@@ -50,7 +50,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public DefaultImmutableWorkspaceProvider(
+    public OnDemandCacheBasedWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
@@ -69,7 +69,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         );
     }
 
-    public DefaultImmutableWorkspaceProvider(
+    public OnDemandCacheBasedWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,

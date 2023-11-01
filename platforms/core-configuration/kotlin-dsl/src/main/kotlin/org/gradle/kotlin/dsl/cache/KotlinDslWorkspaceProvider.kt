@@ -23,7 +23,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.execution.workspace.WorkspaceProvider
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
+import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import java.io.Closeable
@@ -41,7 +41,7 @@ class KotlinDslWorkspaceProvider(
 ) : Closeable {
 
     private
-    val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider(
+    val kotlinDslWorkspace = OnDemandCacheBasedWorkspaceProvider(
         cacheBuilderFactory
             .createCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
