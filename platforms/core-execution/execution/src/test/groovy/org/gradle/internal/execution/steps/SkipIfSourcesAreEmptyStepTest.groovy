@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableList
+
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
@@ -27,7 +27,6 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -51,10 +50,12 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
     def primaryFileInputs = EnumSet.of(PRIMARY)
     def allFileInputs = EnumSet.allOf(InputBehavior)
 
+    def shortcutDelegate = Mock(DeferredExecutionAwareStep)
     def step = new SkipIfSourcesAreEmptyStep(
         outputChangeListener,
         workInputListeners,
         { -> outputsCleaner },
+        shortcutDelegate,
         delegate)
 
     def knownSnapshot = Mock(ValueSnapshot)
@@ -139,7 +140,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
         result == delegateResult
     }
 
-    def "skips when work has empty sources"() {
+    def "skips when work has empty sources and no previous outputs"() {
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
@@ -169,7 +170,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
         !result.afterExecutionState.present
     }
 
-    def "skips when work has empty sources and previous outputs"() {
+    def "delegates via shortcut when work has empty sources and previous outputs"() {
         def previousOutputFile = file("output.txt").createFile()
         def outputFileSnapshot = snapshot(previousOutputFile)
 
@@ -183,7 +184,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
         !result.afterExecutionState.present
 
         1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
-        1 * delegate.execute(work, _) >> { UnitOfWork work, WorkDeterminedContext delegateContext ->
+        1 * shortcutDelegate.execute(work, _) >> { UnitOfWork work, InputChangesContext delegateContext ->
             delegateContext.executable.execute(Mock(Executable.ExecutionRequest))
             Try<ExecutionEngine.Execution> execution = Try.successful(new ExecutionEngine.Execution() {
                 @Override
@@ -196,7 +197,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
                     return work.loadAlreadyProducedOutput(context.getWorkspace())
                 }
             })
-            return new CachingResult(Duration.ofSeconds(1), execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED)
+            return new Result(Duration.ofSeconds(1), execution)
         }
         1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
@@ -217,9 +218,8 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
         }
 
         and:
-        1 * delegate.execute(work, _) >> { UnitOfWork work, WorkDeterminedContext delegateContext ->
-            Try<ExecutionEngine.Execution> execution = Try.failure(ioException)
-            return new CachingResult(Duration.ofSeconds(1), execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED)
+        1 * shortcutDelegate.execute(work, _) >> { UnitOfWork work, InputChangesContext delegateContext ->
+            return new Result(Duration.ofSeconds(1), Try.failure(ioException))
         }
 
         then:

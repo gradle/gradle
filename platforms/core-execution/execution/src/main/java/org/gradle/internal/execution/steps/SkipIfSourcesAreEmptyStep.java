@@ -58,17 +58,20 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
     private final OutputChangeListener outputChangeListener;
     private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
+    private final Step<? super InputChangesContext, ? extends Result> shortCutDelegate;
     private final Step<? super WorkDeterminedContext, ? extends CachingResult> delegate;
 
     public SkipIfSourcesAreEmptyStep(
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
+        Step<? super InputChangesContext, ? extends Result> directExecutionDelegate,
         Step<? super WorkDeterminedContext, ? extends CachingResult> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.workInputListeners = workInputListeners;
         this.outputsCleanerSupplier = outputsCleanerSupplier;
+        this.shortCutDelegate = directExecutionDelegate;
         this.delegate = delegate;
     }
 
@@ -85,7 +88,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
             if (hasOnlyEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
                 // All such properties are empty
                 broadcastWorkInputs(work, true);
-                return cleanPreviousOutputsIfNecessary(work, context, sourceFileProperties);
+                return shortcutExecution(work, context, sourceFileProperties);
             } else {
                 // We have some actual sources
                 broadcastWorkInputs(work, false);
@@ -145,16 +148,34 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
     }
 
     @Nonnull
-    private CachingResult cleanPreviousOutputsIfNecessary(UnitOfWork work, WorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+    private CachingResult shortcutExecution(UnitOfWork work, WorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
         return context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .map(outputFilesAfterPreviousExecution -> {
                 LOGGER.info("Cleaning previous output of {} as it has no source files.", work.getDisplayName());
-                WorkDeterminedContext delegateContext = new WorkDeterminedContext(
-                    context,
-                    sourceFileProperties,
-                    request -> cleanPreviousOutputs(work, context.getWorkspace(), outputFilesAfterPreviousExecution));
-                return (CachingResult) delegate.execute(work, delegateContext);
+                InputChangesContext delegateContext = new InputChangesContext(
+                    new ValidationFinishedContext(
+                        new BeforeExecutionContext(
+                            new WorkDeterminedContext(
+                                context,
+                                sourceFileProperties,
+                                request -> cleanPreviousOutputs(work, context.getWorkspace(), outputFilesAfterPreviousExecution)),
+                            null
+                        ),
+                        ImmutableList.of()
+                    ),
+                    null
+                );
+                Result delegateResult = shortCutDelegate.execute(work, delegateContext);
+                return new CachingResult(
+                    new UpToDateResult(
+                        new AfterExecutionResult(delegateResult,
+                            null),
+                        ImmutableList.of("Previous outputs were present"),
+                        null
+                    ),
+                    CachingState.NOT_DETERMINED
+                );
             })
             .orElseGet(() -> {
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", work.getDisplayName());
