@@ -22,7 +22,9 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.Workspace;
+import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.DefaultWorkspaceLocation;
 
 import java.io.File;
 import java.util.Optional;
@@ -46,7 +48,7 @@ public class TestTransformWorkspaceServices implements TransformWorkspaceService
 
             @Override
             public Workspace allocateWorkspace(String path) {
-                File workspace = new File(transformationsStoreDirectory, path);
+                WorkspaceLocation workspace = new DefaultWorkspaceLocation(new File(transformationsStoreDirectory, path));
                 return new Workspace() {
                     @Override
                     public <T> T mutate(WorkspaceAction<T> action) {

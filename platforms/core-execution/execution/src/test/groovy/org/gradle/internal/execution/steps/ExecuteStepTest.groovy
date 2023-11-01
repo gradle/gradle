@@ -21,6 +21,7 @@ import org.gradle.internal.execution.Executable
 import org.gradle.internal.execution.ExecutionOutput
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.operations.TestBuildOperationExecutor
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY
@@ -30,7 +31,7 @@ import static org.gradle.internal.execution.WorkResult.DID_NO_WORK
 import static org.gradle.internal.execution.WorkResult.DID_WORK
 
 class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
-    def workspace = Mock(File)
+    def workspace = Mock(Workspace.WorkspaceLocation)
     def previousOutputs = ImmutableSortedMap.of()
     def previousExecutionState = Stub(PreviousExecutionState) {
         getOutputFilesProducedByWork() >> previousOutputs
@@ -43,7 +44,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
 
 
     def setup() {
-        _ * context.getMutableWorkspaceLocation() >> workspace
+        _ * context.getMutableWorkspace() >> workspace
         _ * context.getPreviousExecutionState() >> Optional.of(previousExecutionState)
         _ * context.getExecutable() >> executable
     }

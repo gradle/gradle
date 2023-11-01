@@ -33,6 +33,7 @@ import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,7 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -159,7 +159,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<MutableWorkspaceContext, 
                             new WorkDeterminedContext(
                                 context,
                                 sourceFileProperties,
-                                request -> cleanPreviousOutputs(work, context.getMutableWorkspaceLocation(), outputFilesAfterPreviousExecution)),
+                                request -> cleanPreviousOutputs(work, context.getMutableWorkspace(), outputFilesAfterPreviousExecution)),
                             null
                         ),
                         ImmutableList.of()
@@ -188,7 +188,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<MutableWorkspaceContext, 
 
                     @Override
                     public Object getOutput() {
-                        return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation());
+                        return work.loadAlreadyProducedOutput(context.getMutableWorkspace());
                     }
                 });
                 return new CachingResult(Duration.ZERO, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
@@ -201,7 +201,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<MutableWorkspaceContext, 
             : EnumSet.allOf(InputBehavior.class));
     }
 
-    private ExecutionOutput cleanPreviousOutputs(UnitOfWork work, File workspace, Map<String, FileSystemSnapshot> outputFileSnapshots) {
+    private ExecutionOutput cleanPreviousOutputs(UnitOfWork work, Workspace.WorkspaceLocation workspace, Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {

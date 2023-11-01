@@ -75,7 +75,7 @@ public class CaptureStateBeforeExecutionStep<C extends WorkDeterminedContext, R 
     private BeforeExecutionState captureExecutionState(UnitOfWork work, MutableWorkspaceContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
-                unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getMutableWorkspaceLocation());
+                unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getMutableWorkspace());
 
                 OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
 

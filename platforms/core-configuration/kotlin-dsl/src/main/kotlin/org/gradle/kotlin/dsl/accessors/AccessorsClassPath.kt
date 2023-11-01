@@ -33,6 +33,7 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.execution.WorkResult
 import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -143,7 +144,7 @@ class GenerateProjectAccessors(
         }
     }
 
-    override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
+    override fun loadAlreadyProducedOutput(workspace: WorkspaceLocation) = AccessorsClassPath(
         DefaultClassPath.of(getClassesOutputDir(workspace)),
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
@@ -176,7 +177,7 @@ class GenerateProjectAccessors(
         )
     }
 
-    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
+    override fun visitOutputs(workspace: WorkspaceLocation, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
@@ -186,11 +187,11 @@ class GenerateProjectAccessors(
 
 
 private
-fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+fun getClassesOutputDir(workspace: WorkspaceLocation) = workspace.resolve("classes")
 
 
 private
-fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
+fun getSourcesOutputDir(workspace: WorkspaceLocation): File = workspace.resolve("sources")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {

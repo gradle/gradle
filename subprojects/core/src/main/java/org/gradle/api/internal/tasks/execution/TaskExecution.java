@@ -190,7 +190,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public Object loadAlreadyProducedOutput(File workspace) {
+    public Object loadAlreadyProducedOutput(Workspace.WorkspaceLocation workspace) {
         return null;
     }
 
@@ -303,8 +303,12 @@ public class TaskExecution implements UnitOfWork {
                 return new Workspace() {
                     @Override
                     public <T> T mutate(WorkspaceAction<T> action) {
-                        // Tasks don't as such have a workspace yet
-                        return action.executeInWorkspace(null);
+                        return action.executeInWorkspace(new WorkspaceLocation() {
+                            @Override
+                            public File resolve(String relativePath) {
+                                throw new UnsupportedOperationException("Tasks don't use the concept of a workspace yet");
+                            }
+                        });
                     }
                 };
             }
@@ -355,7 +359,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void visitOutputs(File workspace, OutputVisitor visitor) {
+    public void visitOutputs(Workspace.WorkspaceLocation workspace, OutputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             try {

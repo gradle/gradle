@@ -29,6 +29,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.file.Deleter
 
 import java.time.Duration
@@ -74,7 +75,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         1 * buildCacheController.load(cacheKey, _) >> Optional.of(loadMetadata)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
+        _ * work.visitOutputs(_ as Workspace.WorkspaceLocation, _ as UnitOfWork.OutputVisitor) >> { Workspace.WorkspaceLocation workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
         1 * outputChangeListener.invalidateCachesFor([localStateFile.getAbsolutePath()])

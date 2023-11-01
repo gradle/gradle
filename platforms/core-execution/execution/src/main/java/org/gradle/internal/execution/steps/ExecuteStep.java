@@ -25,6 +25,7 @@ import org.gradle.internal.execution.ExecutionOutput;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,7 +36,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.work.InputChanges;
 
-import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -85,8 +85,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     private static Result executeInternal(InputChangesContext context) {
         Executable.ExecutionRequest executionRequest = new Executable.ExecutionRequest() {
             @Override
-            public File getWorkspace() {
-                return context.getMutableWorkspaceLocation();
+            public Workspace.WorkspaceLocation getWorkspace() {
+                return context.getMutableWorkspace();
             }
 
             @Override

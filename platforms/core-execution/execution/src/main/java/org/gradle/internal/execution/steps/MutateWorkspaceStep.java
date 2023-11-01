@@ -28,6 +28,6 @@ public class MutateWorkspaceStep<C extends WorkspaceContext, R extends Result> i
     @Override
     public R execute(UnitOfWork work, C context) {
         return context.getWorkspace()
-            .mutate(mutableWorkspaceLocation -> delegate.execute(work, new MutableWorkspaceContext(context, mutableWorkspaceLocation)));
+            .mutate(workspace -> delegate.execute(work, new MutableWorkspaceContext(context, workspace)));
     }
 }

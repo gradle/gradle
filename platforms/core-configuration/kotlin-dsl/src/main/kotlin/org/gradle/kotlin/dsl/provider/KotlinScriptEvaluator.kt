@@ -41,6 +41,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.execution.WorkResult
+import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -385,7 +386,7 @@ class CompileKotlinScript(
     }
 
     override fun visitOutputs(
-        workspace: File,
+        workspace: WorkspaceLocation,
         visitor: UnitOfWork.OutputVisitor
     ) {
         val classesDir = classesDir(workspace)
@@ -416,7 +417,7 @@ class CompileKotlinScript(
     }
 
     private
-    fun workOutputFor(workspace: File): ExecutionOutput =
+    fun workOutputFor(workspace: WorkspaceLocation): ExecutionOutput =
         object : ExecutionOutput {
             override fun getDidWork() = WorkResult.DID_WORK
             override fun getOutput() = loadAlreadyProducedOutput(workspace)
@@ -425,7 +426,7 @@ class CompileKotlinScript(
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation (${programId.templateId})"
 
-    override fun loadAlreadyProducedOutput(workspace: File): Any =
+    override fun loadAlreadyProducedOutput(workspace: WorkspaceLocation): Any =
         classesDir(workspace)
 
     override fun getWorkspaceProvider() = workspaceProvider.scripts
@@ -433,7 +434,7 @@ class CompileKotlinScript(
     override fun getInputFingerprinter() = inputFingerprinter
 
     private
-    fun classesDir(workspace: File) =
+    fun classesDir(workspace: WorkspaceLocation) =
         workspace.resolve("classes")
 
     private

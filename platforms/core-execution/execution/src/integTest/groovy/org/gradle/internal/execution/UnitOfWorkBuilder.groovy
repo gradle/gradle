@@ -202,7 +202,7 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            Object loadAlreadyProducedOutput(File workspace) {
+            Object loadAlreadyProducedOutput(Workspace.WorkspaceLocation workspace) {
                 return "output"
             }
 
@@ -233,7 +233,7 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
+            void visitOutputs(Workspace.WorkspaceLocation workspace, UnitOfWork.OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
                     visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }

@@ -31,6 +31,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -72,7 +73,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     }
 
     private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
-        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getMutableWorkspaceLocation(), work);
+        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getMutableWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
@@ -83,7 +84,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         LOGGER.info("Loaded cache entry for {} with cache key {}",
                             work.getDisplayName(), cacheKey.getHashCode());
                     }
-                    cleanLocalState(context.getMutableWorkspaceLocation(), work);
+                    cleanLocalState(context.getMutableWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
                         beforeExecutionState,
@@ -98,7 +99,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
                         @Override
                         public Object getOutput() {
-                            return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation());
+                            return work.loadAlreadyProducedOutput(context.getMutableWorkspace());
                         }
                     });
                     return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
@@ -117,7 +118,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             });
     }
 
-    private void cleanLocalState(File workspace, UnitOfWork work) {
+    private void cleanLocalState(Workspace.WorkspaceLocation workspace, UnitOfWork work) {
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitLocalState(File localStateRoot) {
@@ -181,10 +182,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
     private static class CacheableWork implements CacheableEntity {
         private final String identity;
-        private final File workspace;
+        private final Workspace.WorkspaceLocation workspace;
         private final UnitOfWork work;
 
-        public CacheableWork(String identity, File workspace, UnitOfWork work) {
+        public CacheableWork(String identity, Workspace.WorkspaceLocation workspace, UnitOfWork work) {
             this.identity = identity;
             this.workspace = workspace;
             this.work = work;

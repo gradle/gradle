@@ -74,7 +74,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
             @Override
             public Object getOutput() {
-                return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation());
+                return work.loadAlreadyProducedOutput(context.getMutableWorkspace());
             }
         });
         return new UpToDateResult(

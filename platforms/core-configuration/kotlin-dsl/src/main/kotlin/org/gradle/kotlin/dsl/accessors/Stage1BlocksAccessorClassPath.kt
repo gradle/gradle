@@ -30,6 +30,7 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -145,7 +146,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
     protected
     abstract val identitySuffix: String
 
-    override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
+    override fun loadAlreadyProducedOutput(workspace: WorkspaceLocation) = AccessorsClassPath(
         DefaultClassPath.of(getClassesOutputDir(workspace)),
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
@@ -158,7 +159,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
     }
 
-    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
+    override fun visitOutputs(workspace: WorkspaceLocation, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
@@ -166,10 +167,10 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
     }
 
     protected
-    fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+    fun getClassesOutputDir(workspace: WorkspaceLocation) = workspace.resolve("classes")
 
     protected
-    fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
+    fun getSourcesOutputDir(workspace: WorkspaceLocation): File = workspace.resolve("sources")
 }
 
 

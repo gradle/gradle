@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.workspace;
+package org.gradle.internal.execution.workspace.impl;
+
+import org.gradle.internal.execution.workspace.Workspace;
 
 import java.io.File;
 
-public interface Workspace {
+public class DefaultWorkspaceLocation implements Workspace.WorkspaceLocation {
+    private final File root;
 
-    interface WorkspaceLocation {
-        File resolve(String relativePath);
+    public DefaultWorkspaceLocation(File root) {
+        this.root = root;
     }
 
-    /**
-     * Provides a workspace and execution history store for executing the transform.
-     */
-    <T> T mutate(WorkspaceAction<T> action);
-
-    @FunctionalInterface
-    interface WorkspaceAction<T> {
-        T executeInWorkspace(WorkspaceLocation workspaceLocation);
+    @Override
+    public File resolve(String relativePath) {
+        return new File(root, relativePath);
     }
 }

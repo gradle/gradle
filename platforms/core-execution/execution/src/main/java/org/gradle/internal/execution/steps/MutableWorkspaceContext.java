@@ -16,21 +16,21 @@
 
 package org.gradle.internal.execution.steps;
 
-import java.io.File;
+import org.gradle.internal.execution.workspace.Workspace;
 
 public class MutableWorkspaceContext extends PreviousExecutionContext {
-    private final File mutableWorkspaceLocation;
+    private final Workspace.WorkspaceLocation mutableWorkspace;
 
-    public MutableWorkspaceContext(PreviousExecutionContext parent, File mutableWorkspaceLocation) {
+    public MutableWorkspaceContext(PreviousExecutionContext parent, Workspace.WorkspaceLocation mutableWorkspace) {
         super(parent);
-        this.mutableWorkspaceLocation = mutableWorkspaceLocation;
+        this.mutableWorkspace = mutableWorkspace;
     }
 
     protected MutableWorkspaceContext(MutableWorkspaceContext parent) {
-        this(parent, parent.getMutableWorkspaceLocation());
+        this(parent, parent.getMutableWorkspace());
     }
 
-    public File getMutableWorkspaceLocation() {
-        return mutableWorkspaceLocation;
+    public Workspace.WorkspaceLocation getMutableWorkspace() {
+        return mutableWorkspace;
     }
 }

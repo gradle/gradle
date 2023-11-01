@@ -54,6 +54,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkResult;
 import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -365,9 +366,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public ExecutionOutput execute(ExecutionRequest executionRequest) {
-            File workspace = executionRequest.getWorkspace();
-            File srcDir = new File(workspace, OUT_SOURCES);
-            File dstDir = new File(workspace, OUT_CLASSES);
+            Workspace.WorkspaceLocation workspace = executionRequest.getWorkspace();
+            File srcDir = workspace.resolve(OUT_SOURCES);
+            File dstDir = workspace.resolve(OUT_CLASSES);
             List<ClassSource> sources = getClassSources();
             SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
             return new ExecutionOutput() {
@@ -384,20 +385,20 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public Object loadAlreadyProducedOutput(File workspace) {
-            File srcDir = new File(workspace, OUT_SOURCES);
-            File dstDir = new File(workspace, OUT_CLASSES);
+        public Object loadAlreadyProducedOutput(Workspace.WorkspaceLocation workspace) {
+            File srcDir = workspace.resolve(OUT_SOURCES);
+            File dstDir = workspace.resolve(OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);
         }
 
         @Override
-        public void visitOutputs(File workspace, OutputVisitor visitor) {
+        public void visitOutputs(Workspace.WorkspaceLocation workspace, OutputVisitor visitor) {
             visitOutputDir(visitor, workspace, OUT_SOURCES);
             visitOutputDir(visitor, workspace, OUT_CLASSES);
         }
 
-        private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
-            File dir = new File(workspace, propertyName);
+        private void visitOutputDir(OutputVisitor visitor, Workspace.WorkspaceLocation workspace, String propertyName) {
+            File dir = workspace.resolve(propertyName);
             visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }

@@ -20,6 +20,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.workspace.Workspace
+import org.gradle.internal.execution.workspace.impl.DefaultWorkspaceLocation
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,9 +36,10 @@ class DefaultOutputSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
-    def workspace = tempDir.file("workspace")
+    def workspaceDir = tempDir.file("workspace")
+    def workspace = new DefaultWorkspaceLocation(workspaceDir)
     def contents = Mock(FileCollection)
-    def root = workspace.file("root")
+    def root = workspace.resolve("root")
 
     def "snapshots outputs"() {
         def outputSnapshot = Mock(FileSystemSnapshot)
@@ -45,7 +48,7 @@ class DefaultOutputSnapshotterTest extends Specification {
         def result = outputSnapshotter.snapshotOutputs(work, workspace)
 
         then:
-        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
+        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { Workspace.WorkspaceLocation workspace, UnitOfWork.OutputVisitor outputVisitor ->
             outputVisitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(root, contents))
         }
         1 * fileCollectionSnapshotter.snapshot(contents) >> Stub(FileCollectionSnapshotter.Result) {
@@ -64,7 +67,7 @@ class DefaultOutputSnapshotterTest extends Specification {
         outputSnapshotter.snapshotOutputs(work, workspace)
 
         then:
-        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
+        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { Workspace.WorkspaceLocation workspace, UnitOfWork.OutputVisitor outputVisitor ->
             outputVisitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(root, contents))
         }
         1 * fileCollectionSnapshotter.snapshot(contents) >> { throw failure }

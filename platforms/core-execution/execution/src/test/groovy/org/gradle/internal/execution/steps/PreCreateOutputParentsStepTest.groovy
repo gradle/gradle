@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.file.TreeType
 
 class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
@@ -34,7 +35,7 @@ class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
         step.execute(work, context)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
+        _ * work.visitOutputs(_ as Workspace.WorkspaceLocation, _ as UnitOfWork.OutputVisitor) >> { Workspace.WorkspaceLocation workspace, UnitOfWork.OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, TestFiles.fixed(outputDir)))
             visitor.visitOutputProperty("file", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(outputFile, TestFiles.fixed(outputFile)))
             visitor.visitLocalState(localStateFile)

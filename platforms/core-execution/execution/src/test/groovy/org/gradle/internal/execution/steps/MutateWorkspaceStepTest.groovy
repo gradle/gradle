@@ -18,16 +18,17 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.Workspace
+import org.gradle.internal.execution.workspace.impl.DefaultWorkspaceLocation
 
 class MutateWorkspaceStepTest extends StepSpec<WorkspaceContext> {
     def delegateResult = Mock(Result)
     def step = new MutateWorkspaceStep(delegate)
 
     def "delegates with mutable workspace"() {
-        def workspaceDir = file("workspace")
+        def workspaceLocation = new DefaultWorkspaceLocation(file("workspace"))
         def workspace = Stub(Workspace) {
             mutate(_ as Workspace.WorkspaceAction) >> { Workspace.WorkspaceAction<?> action ->
-                action.executeInWorkspace(workspaceDir)
+                action.executeInWorkspace(workspaceLocation)
             }
         }
 
@@ -38,7 +39,7 @@ class MutateWorkspaceStepTest extends StepSpec<WorkspaceContext> {
         result == delegateResult
         _ * context.workspace >> workspace
         1 * delegate.execute(work, _ as MutableWorkspaceContext) >> { UnitOfWork work, MutableWorkspaceContext context ->
-            assert context.mutableWorkspaceLocation == workspaceDir
+            assert context.mutableWorkspace == workspaceLocation
             return delegateResult
         }
     }

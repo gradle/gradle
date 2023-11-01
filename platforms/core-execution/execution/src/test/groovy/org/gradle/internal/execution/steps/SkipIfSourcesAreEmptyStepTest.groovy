@@ -194,7 +194,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<MutableWorkspaceContext> {
 
                 @Override
                 Object getOutput() {
-                    return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation())
+                    return work.loadAlreadyProducedOutput(context.getMutableWorkspace())
                 }
             })
             return new Result(Duration.ofSeconds(1), execution)

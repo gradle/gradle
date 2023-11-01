@@ -25,7 +25,9 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.Workspace;
+import org.gradle.internal.execution.workspace.Workspace.WorkspaceLocation;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.DefaultWorkspaceLocation;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,10 +72,11 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
         @Override
         public Workspace allocateWorkspace(String path) {
             File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
+            WorkspaceLocation workspace = new DefaultWorkspaceLocation(workspaceDir);
             return new Workspace() {
                 @Override
                 public <T> T mutate(WorkspaceAction<T> action) {
-                    return action.executeInWorkspace(workspaceDir);
+                    return action.executeInWorkspace(workspace);
                 }
             };
         }

@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -76,7 +77,7 @@ public interface UnitOfWork extends Describable, Executable {
      * or loaded from cache.
      */
     @Nullable
-    Object loadAlreadyProducedOutput(File workspace);
+    Object loadAlreadyProducedOutput(Workspace.WorkspaceLocation outputs);
 
     /**
      * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.
@@ -156,7 +157,7 @@ public interface UnitOfWork extends Describable, Executable {
      * <p>
      * Note: For tasks {@code workspace} is {@code null} for now.
      */
-    void visitOutputs(File workspace, OutputVisitor visitor);
+    void visitOutputs(Workspace.WorkspaceLocation workspace, OutputVisitor visitor);
 
     interface InputVisitor {
         default void visitInputProperty(

@@ -80,7 +80,7 @@ public class HandleStaleOutputsStep<C extends MutableWorkspaceContext, R extends
 
     private void cleanupStaleOutputs(UnitOfWork work, C context) {
         Set<File> filesToDelete = new HashSet<>();
-        work.visitOutputs(context.getMutableWorkspaceLocation(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getMutableWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 Streams.stream(value.getFiles())

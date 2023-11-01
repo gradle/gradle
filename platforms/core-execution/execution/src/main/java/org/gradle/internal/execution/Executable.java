@@ -18,9 +18,9 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.io.File;
 import java.util.Optional;
 
 /**
@@ -31,11 +31,11 @@ public interface Executable {
 
     interface ExecutionRequest {
         /**
-         * The directory to produce outputs into.
+         * The workspace to produce outputs into.
          * <p>
          * Note: it's {@code null} for tasks as they don't currently have their own workspace.
          */
-        File getWorkspace();
+        Workspace.WorkspaceLocation getWorkspace();
 
         /**
          * For work capable of incremental execution this is the object to query per-property changes through;

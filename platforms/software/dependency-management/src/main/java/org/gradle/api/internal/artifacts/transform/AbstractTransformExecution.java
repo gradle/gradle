@@ -35,6 +35,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -135,7 +136,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
                 try {
-                    File workspace = executionRequest.getWorkspace();
+                    Workspace.WorkspaceLocation workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
                     TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
@@ -170,7 +171,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public Object loadAlreadyProducedOutput(File workspace) {
+    public Object loadAlreadyProducedOutput(Workspace.WorkspaceLocation workspace) {
         TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
         return resultSerializer.readResultsFile(getResultsFile(workspace));
     }
@@ -185,12 +186,12 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         return inputFingerprinter;
     }
 
-    private static File getOutputDir(File workspace) {
-        return new File(workspace, "transformed");
+    private static File getOutputDir(Workspace.WorkspaceLocation workspace) {
+        return workspace.resolve("transformed");
     }
 
-    private static File getResultsFile(File workspace) {
-        return new File(workspace, "results.bin");
+    private static File getResultsFile(Workspace.WorkspaceLocation workspace) {
+        return workspace.resolve("results.bin");
     }
 
     @Override
@@ -254,7 +255,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public void visitOutputs(File workspace, OutputVisitor visitor) {
+    public void visitOutputs(Workspace.WorkspaceLocation workspace, OutputVisitor visitor) {
         File outputDir = getOutputDir(workspace);
         File resultsFile = getResultsFile(workspace);
         visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
