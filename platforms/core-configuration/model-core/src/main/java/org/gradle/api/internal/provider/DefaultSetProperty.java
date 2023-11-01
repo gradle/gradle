@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
@@ -80,12 +79,6 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     @Override
     public SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider) {
         super.convention(provider);
-        return this;
-    }
-
-    @Override
-    public SetProperty<T> updateSet(Transformer<? extends Provider<? extends Iterable<? extends T>>, ? super Provider<? extends Set<? extends T>>> transformer) {
-        set(transformer.transform(freeze()));
         return this;
     }
 }

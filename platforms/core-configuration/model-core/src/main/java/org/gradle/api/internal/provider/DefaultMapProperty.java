@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
@@ -798,11 +797,5 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private Provider<Map<K, V>> frozen() {
         return Providers.of(get());
-    }
-
-    @Override
-    public MapProperty<K, V> update(Transformer<? extends Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<? extends Map<? extends K, ? extends V>>> transformer)  {
-        set(transformer.transform(frozen()));
-        return this;
     }
 }

@@ -27,7 +27,7 @@ import java.util.function.Predicate;
  *
  * @param <K>
  * @param <V>
- * @since 8.5
+ * @since 8.6
  */
 @Incubating
 public interface MapConfigurer<K, V> {
