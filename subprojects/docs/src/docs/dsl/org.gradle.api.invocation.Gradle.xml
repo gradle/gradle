@@ -89,6 +89,9 @@
             <tr>
                 <td>includedBuild</td>
             </tr>
+            <tr>
+                <td>beforeSettings</td>
+            </tr>
         </table>
     </section>
 </section>
