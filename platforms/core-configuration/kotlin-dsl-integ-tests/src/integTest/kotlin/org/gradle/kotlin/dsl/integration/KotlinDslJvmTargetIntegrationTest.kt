@@ -184,5 +184,5 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun currentJavaVersionOrLastKotlinSupported(): JavaVersion =
-        JavaVersion.current().takeIf { it <= JavaVersion.VERSION_20 } ?: JavaVersion.VERSION_20
+        JavaVersion.current().takeIf { it <= JavaVersion.VERSION_21 } ?: JavaVersion.VERSION_21
 }
