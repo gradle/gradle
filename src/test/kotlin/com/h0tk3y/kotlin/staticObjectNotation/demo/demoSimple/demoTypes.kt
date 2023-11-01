@@ -2,11 +2,18 @@ package com.example
 
 import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 
 class Abc {
+    @Restricted
     var a: Int = 0
+    
+    @Restricted
     fun b(): Int = 1
+    
+    @Restricted
     var str: String = ""
+    
     @Adding
     fun c(x: Int, configure: C.() -> Unit = { }) =
         C().apply {
@@ -25,12 +32,18 @@ class C(var x: Int = 0) {
         return this
     }
     
+    @Restricted
     var d: D = D()
+    
+    @Restricted
     val y = "test"
+    
+    @Restricted
     fun f(y: String) = 0
 }
 
 class D {
+    @Restricted
     var id: String = "none"
 }
 

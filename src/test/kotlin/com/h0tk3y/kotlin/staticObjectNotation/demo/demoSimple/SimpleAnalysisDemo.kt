@@ -25,7 +25,7 @@ object SimpleAnalysisDemo {
                     val myD = newD("shared")
                     
                     val c1 = c(1)
-                    c1.x = c1.f1(c1.y)
+                    c1.x = c1.f(c1.y)
                     c1.d = myD
                     
                     c(2) {

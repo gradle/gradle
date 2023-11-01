@@ -62,7 +62,7 @@ fun createDataType(
     val properties = preIndex.getAllProperties(kClass)
 
     val functions = kClass.memberFunctions
-        .filter { it.visibility == KVisibility.PUBLIC && !it.isIgnored }
+        .filter { it.isIncluded && it.visibility == KVisibility.PUBLIC && !it.isIgnored }
         .map { function ->
             dataMemberFunction(kClass, function, preIndex)
         }
@@ -70,7 +70,7 @@ fun createDataType(
 }
 
 private fun constructors(kClass: KClass<*>, preIndex: PreIndex): List<DataConstructorSignature> =
-    kClass.constructors.map { constructor ->
+    kClass.constructors.filter { it.isIncluded }.map { constructor ->
         val params = constructor.parameters
         val dataParams = params.map { param ->
             dataParameter(constructor, param, kClass, FunctionSemantics.Pure(typeToRef(kClass)), preIndex)
@@ -79,7 +79,11 @@ private fun constructors(kClass: KClass<*>, preIndex: PreIndex): List<DataConstr
     }
 
 private fun dataPropertiesOf(kClass: KClass<*>) = kClass.memberProperties
-    .filter { it.visibility == KVisibility.PUBLIC }
+    .filter { property ->
+        (property.isIncluded || kClass.primaryConstructor?.parameters.orEmpty()
+            .any { it.name == property.name && it.type == property.returnType })
+                && property.visibility == KVisibility.PUBLIC
+    }
     .map { property ->
         val typeClassifier = property.returnType.classifier
             ?: error("cannot get a classifier for property return type")
@@ -285,3 +289,7 @@ fun typeToRef(kType: KClassifier): DataTypeRef = when (kType) {
     is KClass<*> -> DataTypeRef.Name(FqName.parse(kType.java.name))
     else -> error("unexpected type")
 }
+
+val KCallable<*>.isIncluded
+    get() =
+        this.annotations.any { it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue }

@@ -4,8 +4,10 @@ import com.h0tk3y.kotlin.staticObjectNotation.Adding
 import com.h0tk3y.kotlin.staticObjectNotation.Builder
 import com.h0tk3y.kotlin.staticObjectNotation.Configuring
 import com.h0tk3y.kotlin.staticObjectNotation.HasDefaultValue
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted
 
 class TopLevelScope {
+    @Restricted
     val plugins = PluginsBlock()
 
     @Configuring
@@ -22,7 +24,8 @@ class PluginsBlock {
         PluginDefinition(id).also(pluginDefinitions::add)
 }
 
-class PluginDefinition(val id: String) {
+class PluginDefinition(@Restricted val id: String) {
+    @Restricted
     var version: String = ""
     
     @HasDefaultValue
