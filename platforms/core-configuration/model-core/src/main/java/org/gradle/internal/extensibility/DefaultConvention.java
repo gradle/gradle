@@ -289,12 +289,12 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
-        public Object propertyMissing(String name) {
+        public @Nullable Object propertyMissing(String name) {
             return getProperty(name);
         }
 
         @Override
-        public DynamicInvokeResult trySetProperty(String name, Object value) {
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
             checkExtensionIsNotReassigned(name);
             if (plugins == null) {
                 return DynamicInvokeResult.notFound();
@@ -315,7 +315,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, Object... args) {
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return DynamicInvokeResult.found(configureExtension(name, args));
             }
@@ -333,12 +333,12 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
-        public Object methodMissing(String name, Object args) {
+        public @Nullable Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[]) args);
         }
 
         @Override
-        public boolean hasMethod(String name, Object... args) {
+        public boolean hasMethod(String name, @Nullable Object... args) {
             if (isConfigureExtensionMethod(name, args)) {
                 return true;
             }
@@ -375,7 +375,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
     }
 
-    private boolean isConfigureExtensionMethod(String name, Object[] args) {
+    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
         return args.length == 1 &&
             (args[0] instanceof Closure || args[0] instanceof Action) &&
             extensionsStorage.hasExtension(name);
@@ -411,9 +411,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return delegate;
         }
 
-        @Nullable
         @Override
-        public Object get(@Nullable Object key) {
+        public @Nullable Object get(@Nullable Object key) {
             logConventionDeprecation();
             return super.get(key);
         }
@@ -424,9 +423,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return super.getOrDefault(key, defaultValue);
         }
 
-        @Nullable
         @Override
-        public Object remove(@Nullable Object key) {
+        public @Nullable Object remove(@Nullable Object key) {
             logConventionDeprecation();
             return super.remove(key);
         }
@@ -443,9 +441,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             super.forEach(action);
         }
 
-        @Nullable
         @Override
-        public Object replace(String key, Object value) {
+        public @Nullable Object replace(String key, Object value) {
             logConventionDeprecation();
             return super.replace(key, value);
         }

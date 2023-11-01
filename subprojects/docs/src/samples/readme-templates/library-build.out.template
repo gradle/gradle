@@ -1,4 +1,4 @@
-${extraCompileJava.raw}> Task :${subprojectName.raw}:compile${language.raw}
+${extraKotlinCheckTask.raw}${extraCompileJava.raw}> Task :${subprojectName.raw}:compile${language.raw}
 > Task :${subprojectName.raw}:processResources NO-SOURCE
 > Task :${subprojectName.raw}:classes${classesUpToDate.raw}
 > Task :${subprojectName.raw}:jar

@@ -69,6 +69,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "resolution fails when two configurations use the same attribute name with different types"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -147,6 +148,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -234,6 +236,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "selects configuration with requested value when multiple are compatible"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -310,6 +313,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "fails when multiple candidates are still available after disambiguation rules have been applied"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -406,6 +410,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "can select best compatible match when single best matches are found on individual attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -513,6 +518,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "can select best compatible match based on requested value"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -602,6 +608,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -677,6 +684,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "consumer can veto producers view of compatibility"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -751,6 +759,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "producer can apply disambiguation for attribute known to both"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -809,6 +818,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "producer can apply disambiguation for attribute not known to consumer"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -867,6 +877,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "producer can apply disambiguation when consumer does not define any attributes"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -925,6 +936,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "both dependencies will choose the same default value"() {
         given:
+        createDirs("a", "b", "c")
         file('settings.gradle') << "include 'a', 'b', 'c'"
         buildFile << """
             enum Arch {
@@ -1018,6 +1030,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "can inject configuration into compatibility and disambiguation rules"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1111,6 +1124,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "user receives reasonable error message when compatibility rule cannot be created"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1171,6 +1185,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "user receives reasonable error message when compatibility rule fails"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1230,6 +1245,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "user receives reasonable error message when disambiguation rule cannot be created"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs
@@ -1303,6 +1319,7 @@ The following variants were also considered but didn't match the requested attri
 
     def "user receives reasonable error message when disambiguation rule fails"() {
         given:
+        createDirs("a", "b")
         file('settings.gradle') << "include 'a', 'b'"
         buildFile << """
             $typeDefs

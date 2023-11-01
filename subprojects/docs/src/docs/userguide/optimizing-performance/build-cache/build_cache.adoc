@@ -423,8 +423,8 @@ This configuration precedence does not apply to <<composite_builds.adoc#included
 [[sec:build_cache_setup_http_backend]]
 == How to set up an HTTP build cache backend
 
-Gradle provides a Docker image for a link:https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Gradle Enterprise for centralized management.
-The cache node can also be used without a Gradle Enterprise installation with restricted functionality.
+Gradle provides a Docker image for a link:https://hub.docker.com/r/gradle/build-cache-node/[build cache node], which can connect with Develocity for centralized management.
+The cache node can also be used without a Develocity installation with restricted functionality.
 
 [[sec:build_cache_implement]]
 == Implement your own Build Cache
@@ -433,4 +433,4 @@ Using a different build cache backend to store build outputs (which is not cover
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class-java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
-link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.
+link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.

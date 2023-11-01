@@ -183,6 +183,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "artifacts from a Gradle project have standard attributes defined based on their type when none defined for the outgoing variant"() {
+        createDirs("a", "b", "c")
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
@@ -390,6 +391,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "can attach attributes to an artifact provided by a Gradle project"() {
+        createDirs("a", "b", "c")
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
@@ -465,6 +467,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
             .hasType('thing')
             .publish()
 
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
 
         buildFile << """

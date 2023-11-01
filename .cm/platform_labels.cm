@@ -89,7 +89,7 @@ platforms:
       - 'platforms/core-execution/build-cache-base/'
       - 'platforms/core-execution/build-cache-http/'
       - 'platforms/core-execution/build-cache-packaging/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'platforms/core-runtime/files/'
       - 'platforms/core-execution/hashing/'
       - 'platforms/core-execution/snapshots/'
@@ -117,7 +117,7 @@ platforms:
     name: 'core_execution'
     subprojects:
       - 'platforms/core-execution/'
-      - 'subprojects/build-operations/'
+      - 'platforms/core-runtime/build-operations/'
       - 'subprojects/build-profile/'
   - core_runtime:
     name: 'core_runtime'

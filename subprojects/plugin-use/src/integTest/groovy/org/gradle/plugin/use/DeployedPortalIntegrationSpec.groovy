@@ -57,6 +57,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
     def "Can apply plugins to subprojects"() {
         when:
+        createDirs("sub")
         settingsFile << """
             include 'sub'
         """

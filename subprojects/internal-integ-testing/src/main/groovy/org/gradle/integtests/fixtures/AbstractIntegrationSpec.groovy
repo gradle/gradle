@@ -282,6 +282,10 @@ abstract class AbstractIntegrationSpec extends Specification {
         return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
+    String relativePath(String path) {
+        return path.replace('/', File.separator)
+    }
+
     TestFile getTestDirectory() {
         if (testDirOverride != null) {
             return testDirOverride
@@ -656,6 +660,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
+    }
+
+    List<TestFile> createDirs(String... names) {
+        names.collect { name ->
+            createDir(name)
+        }
     }
 
     /**

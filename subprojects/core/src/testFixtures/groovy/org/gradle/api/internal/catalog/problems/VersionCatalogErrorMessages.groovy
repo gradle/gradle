@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.catalog.problems
 
-
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 
 import static org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames
-import static org.gradle.problems.internal.RenderingUtils.oxfordListOf
+import static org.gradle.internal.RenderingUtils.oxfordListOf
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 

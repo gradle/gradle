@@ -162,7 +162,7 @@ When both remote and local caches are enabled, then the build output is first ch
 If the output isn't present in the local cache, it'll be downloaded from the remote cache and also stored in the local cache.
 
 To try out the remote Build Cache, Gradle provides a free link:https://hub.docker.com/r/gradle/build-cache-node[Docker image] for a single remote Build Cache node.
-For production grade deployments, link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Gradle Enterprise] is recommended.
+For production grade deployments, link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] is recommended.
 
 [.text-right]
 **Next Step:** <<part7_gradle_refs.adoc#part7_begin,Using Reference Materials>> >>

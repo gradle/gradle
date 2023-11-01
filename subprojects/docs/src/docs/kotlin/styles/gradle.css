@@ -32,6 +32,10 @@
     left: -72px;
 }
 
+.library-name a span::before {
+    content: 'Kotlin DSL Reference for ';
+}
+
 /* Hide the module name title on the front page */
 
 div.main-content:not([data-page-type]) h1.cover {

@@ -110,6 +110,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         server.start()
 
         given:
+        createDirs("a", "b")
         settingsFile << "include ':a', ':b'"
         buildFile << """
             project(':a') {

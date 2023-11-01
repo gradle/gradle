@@ -108,6 +108,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
     def "uses target instead of parent"() {
         when:
+        createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"

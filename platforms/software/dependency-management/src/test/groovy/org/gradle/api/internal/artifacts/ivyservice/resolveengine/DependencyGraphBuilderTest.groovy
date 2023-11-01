@@ -39,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder
@@ -51,7 +50,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
 import org.gradle.internal.Describables
-import org.gradle.internal.component.SelectionFailureHandler
+import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -128,7 +127,7 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(desugaring, new ComponentIdGenerator())
-    def variantSelector = new GraphVariantSelector(new SelectionFailureHandler(createTestProblems()))
+    def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(createTestProblems()))
 
     DependencyGraphBuilder builder
 
@@ -1181,10 +1180,6 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         @Override
-        void visitSelector(DependencyGraphSelector configurationSelector) {
-        }
-
-        @Override
         void visitEdges(DependencyGraphNode node) {
             node.outgoingEdges.each {
                 if (it.failure) {
@@ -1206,10 +1201,6 @@ class DependencyGraphBuilderTest extends Specification {
             throw new ResolveException("config", failures.values().collect {
                 it.failure.withIncomingPaths(DependencyGraphPathResolver.calculatePaths(it.requiredBy, root))
             })
-        }
-
-        @Override
-        void finish(DependencyGraphNode root) {
         }
 
         static class FailureDetails {

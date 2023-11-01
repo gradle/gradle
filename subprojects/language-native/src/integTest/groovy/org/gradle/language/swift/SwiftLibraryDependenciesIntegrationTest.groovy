@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDependenciesIntegrationTest {
     def "can compile against a library with implementation dependencies"() {
+        createDirs("lib1", "lib2")
         settingsFile << """
             include ":lib1", ":lib2"
         """
@@ -68,6 +69,7 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
     }
 
     def "can compile against a library with binary-specific implementation dependencies"() {
+        createDirs("lib1", "lib2")
         settingsFile << """
             include ":lib1", ":lib2"
         """

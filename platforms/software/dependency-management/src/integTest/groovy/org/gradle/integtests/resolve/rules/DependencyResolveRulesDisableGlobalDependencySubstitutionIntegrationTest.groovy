@@ -34,6 +34,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         mavenRepo.module("org.test", "m2", "1.0").dependsOn("org.test", "m3", "1.0").withModuleMetadata().publish()
         mavenRepo.module("org.test", "m3", '1.0').withModuleMetadata().publish()
 
+        createDirs("m1", "m2", "m3")
         settingsFile << """
             dependencyResolutionManagement {
                 repositories.maven { url "${mavenRepo.uri}" }

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 @FluidDependenciesResolveTest
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
+        createDirs("a", "b")
         settingsFile << """
 rootProject.name = 'test'
 include 'a', 'b'
@@ -911,6 +912,7 @@ Searched in the following locations:
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
+        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
 
         buildFile << """

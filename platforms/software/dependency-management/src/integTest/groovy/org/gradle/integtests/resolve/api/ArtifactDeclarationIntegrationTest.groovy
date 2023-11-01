@@ -42,6 +42,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "artifact file may have no extension"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -74,6 +75,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can define artifact using file and configure other properties using a map or closure or action"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -119,6 +121,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define outgoing artifacts for configuration"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -189,6 +192,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of artifact using String notation"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -222,6 +226,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of outgoing artifact using String notation"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -261,6 +266,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 
     def "can declare build dependency of outgoing variant artifact using String notation"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -303,6 +309,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using File provider"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -332,6 +339,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using RegularFile task output"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -365,6 +373,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using Directory task output"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -399,6 +408,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using RegularFile type"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -425,6 +435,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     }
 
     def "can define artifact using Directory type"() {
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {
@@ -453,6 +464,7 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
     // This isn't strictly supported and will be deprecated later
     def "can use a custom PublishArtifact implementation"() {
         given:
+        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         buildFile << """
             project(':a') {

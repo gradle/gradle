@@ -23,6 +23,7 @@ class ReachingAcrossProjectBoundariesIntegrationTest extends AbstractDependencyR
     // This tests current behaviour, not desired behaviour
     @UnsupportedWithConfigurationCache(because = "Task does not declare that it uses the transform outputs")
     def "can consume transform outputs produced by another project without declaring this access"() {
+        createDirs("a", "b", "sneaky")
         settingsFile << """
             include 'a', 'b', 'sneaky'
         """

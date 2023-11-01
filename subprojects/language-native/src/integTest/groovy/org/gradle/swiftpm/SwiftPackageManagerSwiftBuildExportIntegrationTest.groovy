@@ -72,6 +72,7 @@ let package = Package(
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for multi-project Swift build"() {
         given:
+        createDirs("hello", "log")
         settingsFile << "include 'hello', 'log'"
         buildFile << """
             plugins {
@@ -243,6 +244,7 @@ let package = Package(
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "honors customizations to Swift module name"() {
         given:
+        createDirs("lib1", "lib2")
         settingsFile << "include 'lib1', 'lib2'"
         buildFile << """
             plugins {

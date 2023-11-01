@@ -70,6 +70,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         given:
         def lib = ivyHttpRepo.module("org", "lib").publish()
 
+        createDirs("impl")
         file("settings.gradle") << "include 'impl'"
 
         file("build.gradle") << """
@@ -101,6 +102,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         def ivyRepo2 = new IvyFileRepository(file("ivy-repo2"))
         ivyRepo2.module("org", "lib", "2.0").publish() //different version of lib
 
+        createDirs("impl")
         file("settings.gradle") << "include 'impl'"
 
         file("build.gradle") << """

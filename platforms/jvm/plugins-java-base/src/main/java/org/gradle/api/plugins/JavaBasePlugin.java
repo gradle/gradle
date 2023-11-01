@@ -504,12 +504,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         }
 
         private String getUsageMutationAdvice() {
-            if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSetName)) {
-                // The main source set is created implicitly, so don't mention it by name
-                return "Create source sets prior to creating or accessing the configurations associated with them.";
-            } else {
-                return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);
-            }
+            return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);
         }
     }
 }

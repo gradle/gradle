@@ -138,7 +138,7 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         "MappingProvider"         | { p, m -> new MappingProvider(Integer, p, m) }
     }
 
-    def "runs the side effect when changing provider is filtered with #description and true predicate"() {
+    def "runs the side effect when changing provider is filtered with #description and spec is satisfied"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def counter = new AtomicInteger(23)
@@ -175,7 +175,7 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         "Provider.map"    | { p -> p.map { it } }
     }
 
-    def "does not run the side effect when changing provider is filtered with #description and false predicate"() {
+    def "does not run the side effect when changing provider is filtered with #description and spec is not satisfied"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def counter = new AtomicInteger(23)
@@ -199,7 +199,7 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
 
         where:
         description       | wrap
-        "Provider.filter" | { p -> p.filter({ false }) }
+        "Provider.filter" | { p -> p.filter { false } }
         "Provider.map"    | { p -> p.map { null } }
     }
 

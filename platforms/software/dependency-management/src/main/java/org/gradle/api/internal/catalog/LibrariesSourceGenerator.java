@@ -24,6 +24,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
@@ -61,7 +62,7 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.A
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.problems.internal.RenderingUtils.oxfordJoin;
+import static org.gradle.internal.RenderingUtils.oxfordJoin;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -332,13 +333,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 PluginModel plugin = config.getPlugin(path);
-                writePlugin(path, plugin.getId(), plugin.getContext(), true);
+                writePlugin(path, plugin, true);
             }
             for (String alias : aliases) {
                 String childName = leafNodeForAlias(alias);
                 if (!classNode.hasChild(childName)) {
                     PluginModel plugin = config.getPlugin(alias);
-                    writePlugin(alias, plugin.getId(), plugin.getContext(), false);
+                    writePlugin(alias, plugin, false);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -355,8 +356,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             String childName = leafNodeForAlias(alias);
             if (!classNode.hasChild(childName)) {
                 DependencyModel model = config.getDependencyData(alias);
-                String coordinates = coordinatesDescriptorFor(model);
-                writeDependencyAccessor(alias, coordinates, model.getContext(), false, deprecated);
+                writeDependencyAccessor(alias, model, false, deprecated);
             }
         }
         for (ClassNode child : classNode.getChildren()) {
@@ -402,7 +402,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             String childName = leafNodeForAlias(alias);
             if (!classNode.hasChild(childName)) {
                 PluginModel model = config.getPlugin(alias);
-                writePlugin(alias, model.getId(), model.getContext(), false);
+                writePlugin(alias, model, false);
             }
         }
         for (ClassNode child : classNode.getChildren()) {
@@ -439,14 +439,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 DependencyModel model = config.getDependencyData(path);
-                writeDependencyAccessor(path, coordinatesDescriptorFor(model), model.getContext(), true, deprecated);
+                writeDependencyAccessor(path, model, true, deprecated);
             }
             for (String alias : classNode.aliases) {
                 String childName = leafNodeForAlias(alias);
                 if (!classNode.hasChild(childName)) {
                     DependencyModel model = config.getDependencyData(alias);
-                    String coordinates = coordinatesDescriptorFor(model);
-                    writeDependencyAccessor(alias, coordinates, model.getContext(), false, deprecated);
+                    writeDependencyAccessor(alias, model, false, deprecated);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -511,7 +510,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         assertUnique(plugins, "plugins", "Plugin");
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
-            throw throwVersionCatalogProblemException(problemService.createProblem(builder ->
+            throw throwVersionCatalogProblemException(problemService.create(builder ->
                 configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
@@ -545,7 +544,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .filter(e -> e.getValue().size() > 1)
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
-                return problemService.createProblem(builder ->
+                return problemService.create(builder ->
                     configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));
@@ -563,10 +562,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
-    private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context, boolean asProvider, boolean deprecated) throws IOException {
+    private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean deprecated) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("    /**");
-        writeLn("     * Creates a dependency provider for " + name + " (" + coordinates + ")");
+        writeLn("     * Creates a dependency provider for " + name + " (" + coordinatesDescriptorFor(dependency) + ")");
+        writeVersionInformation(dependency.getVersionRef(), dependency.getVersion());
+        String context = dependency.getContext();
         if (context != null) {
             writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
         }
@@ -579,6 +580,19 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("        return create(\"" + alias + "\");");
         writeLn("}");
         writeLn();
+    }
+
+    private void writeVersionInformation(@Nullable String versionRef, ImmutableVersionConstraint version) throws IOException {
+        if (versionRef != null) {
+            writeLn(" * with versionRef '" + versionRef + "'.");
+        } else {
+            String versionDisplay = version.getDisplayName();
+            if (versionDisplay.isEmpty()) {
+                writeLn(" * with no version specified");
+            } else {
+                writeLn(" * with version '" + versionDisplay + "'.");
+            }
+        }
     }
 
     private static String leafNodeForAlias(String alias) {
@@ -654,10 +668,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writePlugin(String alias, String id, @Nullable String context, boolean asProvider) throws IOException {
+    private void writePlugin(String alias, PluginModel plugin, boolean asProvider) throws IOException {
         indent(() -> {
             writeLn("/**");
-            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + id + "'");
+            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + plugin.getId() + "'");
+            writeVersionInformation(plugin.getVersionRef(), plugin.getVersion());
+            String context = plugin.getContext();
             if (context != null) {
                 writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
             }

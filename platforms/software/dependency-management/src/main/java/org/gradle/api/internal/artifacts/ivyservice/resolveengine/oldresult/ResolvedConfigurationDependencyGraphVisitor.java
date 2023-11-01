@@ -31,7 +31,6 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
  */
 public class ResolvedConfigurationDependencyGraphVisitor implements DependencyArtifactsVisitor {
     private final ResolvedConfigurationBuilder builder;
-    private RootGraphNode root;
 
     public ResolvedConfigurationDependencyGraphVisitor(ResolvedConfigurationBuilder builder) {
         this.builder = builder;
@@ -41,18 +40,13 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     public void visitNode(DependencyGraphNode node) {
         builder.newResolvedDependency(node);
         for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
-            if (dependency.getFrom() == root) {
+            if (dependency.getFrom().isRoot()) {
                 Dependency moduleDependency = dependency.getOriginalDependency();
                 if (moduleDependency != null) {
                     builder.addFirstLevelDependency(moduleDependency, node);
                 }
             }
         }
-    }
-
-    @Override
-    public void startArtifacts(RootGraphNode root) {
-        this.root = root;
     }
 
     @Override
@@ -66,7 +60,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     }
 
     @Override
-    public void finishArtifacts() {
+    public void finishArtifacts(RootGraphNode root) {
         builder.done(root);
     }
 }

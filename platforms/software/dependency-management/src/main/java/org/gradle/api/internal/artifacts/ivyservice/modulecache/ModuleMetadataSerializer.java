@@ -127,6 +127,7 @@ public class ModuleMetadataSerializer {
             writeNullableString(metadata.getSnapshotTimestamp());
             writeMavenDependencies(metadata.getDependencies(), deduplicationDependencyCache);
             writeSharedInfo(metadata);
+            // NOTE: This looks nullable, but only non-null Strings are provided. Changing this to write a non-null string would not be backwards compatible.
             writeNullableString(metadata.getPackaging());
             writeBoolean(metadata.isRelocated());
             writeVariants(metadata);
@@ -444,6 +445,7 @@ public class ModuleMetadataSerializer {
             MutableMavenModuleResolveMetadata metadata = mavenMetadataFactory.create(id, dependencies);
             readSharedInfo(metadata);
             metadata.setSnapshotTimestamp(snapshotTimestamp);
+            // NOTE: this looks nullable, but only non-null Strings are written
             metadata.setPackaging(readNullableString());
             metadata.setRelocated(readBoolean());
             metadata.setAttributes(attributes);

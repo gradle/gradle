@@ -40,6 +40,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginBuild("buildSrc")
 
         and:
+        createDirs("a")
         withSettings("include('a')")
 
         and:
@@ -63,6 +64,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {
@@ -91,6 +93,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a", "a/b")
         withSettings """
 
             pluginManagement {
@@ -121,6 +124,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {
@@ -149,6 +153,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {
@@ -195,6 +200,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {
@@ -223,6 +229,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {
@@ -254,6 +261,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -282,6 +290,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally("my-other-local-plugins", "1.0.1")
 
         and:
+        createDirs("a")
         withSettings """
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -306,6 +315,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
+        createDirs("a")
         withSettings """
 
             pluginManagement {

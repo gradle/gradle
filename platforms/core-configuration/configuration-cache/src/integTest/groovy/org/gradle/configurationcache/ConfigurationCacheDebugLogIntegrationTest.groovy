@@ -27,6 +27,7 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
 
     def "logs categorized open/close frame events for state and fingerprint files"() {
         given:
+        createDirs("sub")
         settingsFile << """
             rootProject.name = 'root'
             include 'sub'

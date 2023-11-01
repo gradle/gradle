@@ -31,7 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.ArtifactVariantSelectionException;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
@@ -46,7 +46,7 @@ import java.util.Set;
  * If no producer variant is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
  * transforms that can produce a variant compatible with the requested attributes.
  *
- * An instance of {@link SelectionFailureHandler} is injected in the constructor
+ * An instance of {@link ResolutionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
@@ -55,7 +55,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
     private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
-    private final SelectionFailureHandler failureProcessor;
+    private final ResolutionFailureHandler failureProcessor;
 
     AttributeMatchingArtifactVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -63,7 +63,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
-        SelectionFailureHandler failureProcessor
+        ResolutionFailureHandler failureProcessor
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;

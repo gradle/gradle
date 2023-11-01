@@ -14,7 +14,6 @@
 * @gradle/bt-unassigned-maintainers
 
 # Core automation platform (core/execution)
-subprojects/build-operations/               @gradle/bt-execution @gradle/bt-ge-build-cache
 subprojects/build-profile/                  @gradle/bt-execution
 
 # Core automation platform (core/configuration)
@@ -134,6 +133,7 @@ subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.ado
 
 # Core Runtime
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
+platforms/core-runtime/build-operations/                    @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
 

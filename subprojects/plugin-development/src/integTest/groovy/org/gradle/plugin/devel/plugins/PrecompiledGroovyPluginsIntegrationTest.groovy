@@ -96,6 +96,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'foo'
             }
         """
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -127,6 +128,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 }
             """
         }
+        createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
         """

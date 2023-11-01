@@ -1,13 +1,12 @@
 plugins {
     id("gradlebuild.portalplugin.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-extensions")
-    id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.1.4"
+version = "4.2.1"
 
 base.archivesName = "plugins"
 
@@ -34,27 +33,9 @@ dependencies {
     implementation(libs.futureKotlin("assignment"))
 
     testImplementation(projects.logging)
-
-    integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":logging"))
-    integTestImplementation(project(":core-api"))
-    integTestImplementation(project(":model-core"))
-    integTestImplementation(project(":core"))
-    integTestImplementation(project(":plugins-java"))
-
-    integTestImplementation(project(":platform-jvm"))
-    integTestImplementation(project(":kotlin-dsl"))
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(testFixtures(project(":kotlin-dsl")))
-
-    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
-
-    integTestImplementation(libs.slf4jApi)
-    integTestImplementation(libs.mockitoKotlin)
-
-    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
-        because("KotlinDslPluginTest tests against TestKit")
-    }
+    testImplementation(testFixtures(project(":kotlin-dsl")))
+    testImplementation(libs.slf4jApi)
+    testImplementation(libs.mockitoKotlin)
 }
 
 packageCycles {

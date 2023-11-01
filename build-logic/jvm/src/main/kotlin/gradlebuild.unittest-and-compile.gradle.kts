@@ -96,6 +96,9 @@ fun configureSourcesVariant() {
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
         }
+        main.resources.srcDirs.forEach {
+            outgoing.artifact(it)
+        }
         pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
             main.kotlin.srcDirs.forEach {
                 outgoing.artifact(it)

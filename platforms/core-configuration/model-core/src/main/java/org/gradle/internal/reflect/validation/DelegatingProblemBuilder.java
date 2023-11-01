@@ -20,10 +20,10 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 
@@ -46,109 +46,86 @@ class DelegatingProblemBuilder implements
     @Override
     public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
         ProblemBuilderDefiningDocumentation newDelegate = ((ProblemBuilderDefiningLabel) delegate).label(label, args);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return validateDelegate(newDelegate);
     }
 
     @Override
     public ProblemBuilderDefiningLocation documentedAt(DocLink doc) {
         ProblemBuilderDefiningLocation newDelegate = ((ProblemBuilderDefiningDocumentation) delegate).documentedAt(doc);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return validateDelegate(newDelegate);
     }
 
     @Override
     public ProblemBuilderDefiningLocation undocumented() {
         ProblemBuilderDefiningLocation newDelegate = ((ProblemBuilderDefiningDocumentation) delegate).undocumented();
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return validateDelegate(newDelegate);
     }
 
     @Override
-    public ProblemBuilderDefiningCategory location(String path, Integer line) {
-        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+    public ProblemBuilderDefiningCategory fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).fileLocation(path, line, column, length);
+        return validateDelegate(newDelegate);
     }
 
     @Override
-    public ProblemBuilderDefiningCategory location(String path, Integer line, Integer column) {
-        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).location(path, line, column);
+    public ProblemBuilderDefiningCategory pluginLocation(String pluginId) {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).pluginLocation(pluginId);
+        return validateDelegate(newDelegate);
+    }
+
+    private <T> T validateDelegate(T newDelegate) {
         if (delegate != newDelegate) {
             throw new IllegalStateException("Builder pattern expected to return 'this'");
         }
-        return this;
+        return newDelegate;
+    }
+
+    @Override
+    public ProblemBuilderDefiningCategory stackLocation() {
+        ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).stackLocation();
+        return validateDelegate(newDelegate);
     }
 
     @Override
     public ProblemBuilderDefiningCategory noLocation() {
         ProblemBuilderDefiningCategory newDelegate = ((ProblemBuilderDefiningLocation) delegate).noLocation();
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return validateDelegate(newDelegate);
     }
 
     @Override
     public ProblemBuilder category(String category, String... details){
         ProblemBuilder newDelegate = ((ProblemBuilderDefiningCategory) delegate).category(category, details);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return validateDelegate(newDelegate);
     }
 
     @Override
     public BuildableProblemBuilder details(String details) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).details(details);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
     public BuildableProblemBuilder solution(@Nullable String solution) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).solution(solution);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
     public BuildableProblemBuilder additionalData(String key, String value) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).additionalData(key, value);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
     public BuildableProblemBuilder withException(RuntimeException e) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).withException(e);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
     public BuildableProblemBuilder severity(@Nullable Severity severity) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).severity(severity);
-        if (delegate != newDelegate) {
-            throw new IllegalStateException("Builder pattern expected to return 'this'");
-        }
-        return this;
+        return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override

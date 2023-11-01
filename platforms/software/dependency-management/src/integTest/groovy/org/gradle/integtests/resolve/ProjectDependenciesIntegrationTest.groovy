@@ -28,6 +28,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
     @Issue("GRADLE-2477") //this is a feature on its own but also covers one of the reported issues
     def "resolving project dependency triggers configuration of the target project"() {
+        createDirs("impl")
         settingsFile << "include 'impl'"
         buildFile << """
             apply plugin: 'java'
@@ -58,6 +59,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
     @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "configuring project dependencies by map is validated"() {
+        createDirs("impl")
         settingsFile << "include 'impl'"
         buildFile << """
             allprojects { configurations.create('conf') }

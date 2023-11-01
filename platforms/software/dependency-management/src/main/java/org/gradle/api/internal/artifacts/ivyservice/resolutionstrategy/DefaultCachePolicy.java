@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import java.io.File;
 import java.time.Duration;
@@ -235,7 +235,7 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     @Override
-    public Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts,
+    public Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts,
                                         Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
         CachedModuleResolutionControl resolutionControl = mustRefreshModule(moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), age, belongsToChangingModule);
         if (belongsToChangingModule && !moduleDescriptorInSync) {
@@ -245,8 +245,8 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     @Override
-    public Expiry artifactExpiry(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
-        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, age.toMillis(), keepChangingModulesFor, belongsToChangingModule);
+    public Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
+        CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactMetadata, cachedArtifactFile, age.toMillis(), keepChangingModulesFor, belongsToChangingModule);
 
         if (applyOfflineRule(artifactResolutionControl) || applyRefreshRule(artifactResolutionControl)) {
             return artifactResolutionControl;
@@ -368,11 +368,11 @@ public class DefaultCachePolicy implements CachePolicy {
         }
     }
 
-    private class CachedArtifactResolutionControl extends AbstractResolutionControl<ArtifactIdentifier, File> implements ArtifactResolutionControl {
+    private class CachedArtifactResolutionControl extends AbstractResolutionControl<ModuleComponentArtifactMetadata, File> implements ArtifactResolutionControl {
         private final boolean belongsToChangingModule;
 
-        private CachedArtifactResolutionControl(ArtifactIdentifier artifactIdentifier, File cachedResult, long ageMillis, long keepForMillis, boolean belongsToChangingModule) {
-            super(artifactIdentifier, cachedResult, ageMillis, keepForMillis);
+        private CachedArtifactResolutionControl(ModuleComponentArtifactMetadata artifact, File cachedResult, long ageMillis, long keepForMillis, boolean belongsToChangingModule) {
+            super(artifact, cachedResult, ageMillis, keepForMillis);
             this.belongsToChangingModule = belongsToChangingModule;
         }
 

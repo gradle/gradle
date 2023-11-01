@@ -16,13 +16,10 @@
 
 package org.gradle.internal.metaobject;
 
-import org.gradle.api.NonNullApi;
-
 /**
  * An implementation of a Groovy MetaClass that is instrumented and might need to cancel some optimizations
  * in order to get the instrumentation to work properly.
  */
-@NonNullApi
 public interface InstrumentedMetaClass {
     /**
      * Checks if accessing a property by the specified name would be intercepted by the instrumentation at this

@@ -99,7 +99,7 @@
   },
   {
     "name": "build-operations",
-    "path": "subprojects/build-operations",
+    "path": "platforms/core-runtime/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -500,7 +500,7 @@
     "name": "kotlin-dsl-plugins",
     "path": "platforms/core-configuration/kotlin-dsl-plugins",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -672,6 +672,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-distribution",
+    "path": "platforms/software/plugins-distribution",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-groovy",
     "path": "platforms/jvm/plugins-groovy",
     "unitTests": true,
@@ -730,6 +737,13 @@
   {
     "name": "problems",
     "path": "platforms/ide/problems",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-api",
+    "path": "platforms/ide/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

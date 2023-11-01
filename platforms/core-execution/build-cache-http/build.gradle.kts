@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":logging"))
-    implementation(project(":problems"))
+    implementation(project(":problems-api"))
     implementation(project(":resources"))
     implementation(project(":resources-http"))
 

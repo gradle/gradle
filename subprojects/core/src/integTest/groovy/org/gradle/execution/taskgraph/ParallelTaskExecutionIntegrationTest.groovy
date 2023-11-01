@@ -37,6 +37,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     def setup() {
         blockingServer.start()
 
+        createDirs("a", "b")
         settingsFile << 'include "a", "b"'
 
         buildFile << """

@@ -49,6 +49,7 @@ idea.project {
     @ToBeFixedForConfigurationCache
     void enablesCustomizationsOnNewModel() {
         //when
+        createDirs("someProjectThatWillBeExcluded", "api")
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
 allprojects {
     apply plugin: "java"

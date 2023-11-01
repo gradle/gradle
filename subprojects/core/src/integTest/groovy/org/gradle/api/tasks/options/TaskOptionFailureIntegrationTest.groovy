@@ -40,6 +40,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "different tasks match name but only one accepts the option"() {
         given:
+        createDirs("other")
         settingsFile << "include 'other'"
         buildFile << """
             task someTask(type: SomeTask)

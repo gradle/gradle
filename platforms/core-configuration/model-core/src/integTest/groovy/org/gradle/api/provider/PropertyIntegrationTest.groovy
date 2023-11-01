@@ -531,6 +531,7 @@ project.extensions.create("some", SomeExtension)
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer'
             include 'consumer'
@@ -586,6 +587,7 @@ project.extensions.create("some", SomeExtension)
     @Issue("https://github.com/gradle/gradle/issues/12969")
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
+        createDirs("producer", "consumer")
         settingsFile << """
             include 'producer'
             include 'consumer'

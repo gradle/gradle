@@ -19,7 +19,10 @@ import javax.annotation.Nullable;
 
 /**
  * The identifier for a module artifact.
+ *
+ * @deprecated Will be removed in Gradle 9.0.
  */
+@Deprecated
 public interface ArtifactIdentifier {
     /**
      * Returns the identifier of the module that owns this artifact.

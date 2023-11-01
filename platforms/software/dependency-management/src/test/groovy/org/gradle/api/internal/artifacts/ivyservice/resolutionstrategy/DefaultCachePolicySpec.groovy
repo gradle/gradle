@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl
@@ -26,7 +26,9 @@ import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.Actions
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
 import java.time.Duration
@@ -261,16 +263,16 @@ class DefaultCachePolicySpec extends Specification {
         expect:
         cachePolicy.eachArtifact(new Action<ArtifactResolutionControl>() {
             void execute(ArtifactResolutionControl t) {
-                assertId(t.request.moduleVersionIdentifier, 'group', 'name', 'version')
-                assert t.request.name == 'artifact'
-                assert t.request.type == 'type'
-                assert t.request.extension == 'ext'
-                assert t.request.classifier == 'classifier'
+                assertId(t.request.id.componentIdentifier, 'group', 'name', 'version')
+                assert t.request.name.name == 'artifact'
+                assert t.request.name.type == 'type'
+                assert t.request.name.extension == 'ext'
+                assert t.request.name.classifier == 'classifier'
                 assert t.cachedResult == null
                 t.refresh()
             }
         })
-        def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
+        def artifactIdentifier = new DefaultModuleComponentArtifactMetadata(moduleComponent('group', 'name', 'version'), new DefaultIvyArtifactName('artifact', 'type', 'ext', 'classifier'))
         cachePolicy.artifactExpiry(artifactIdentifier, null, Duration.ofMillis(5), true, true).mustCheck
     }
 
@@ -569,9 +571,15 @@ class DefaultCachePolicySpec extends Specification {
         }
     }
 
-    private def assertId(def moduleId, String group, String name, String version) {
+    private def assertId(ModuleVersionIdentifier moduleId, String group, String name, String version) {
         assert moduleId.group == group
         assert moduleId.name == name
+        assert moduleId.version == version
+    }
+
+    private def assertId(ModuleComponentIdentifier moduleId, String group, String name, String version) {
+        assert moduleId.group == group
+        assert moduleId.module == name
         assert moduleId.version == version
     }
 

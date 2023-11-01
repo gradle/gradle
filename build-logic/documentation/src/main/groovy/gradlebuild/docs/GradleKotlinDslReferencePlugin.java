@@ -77,7 +77,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
      * The name of the module must match the first header of {@code kotlin/Module.md} file.
      */
     private static void renameModule(Project project) {
-        getDokkatooExtension(project).getModuleName().set("Kotlin DSL Reference for Gradle");
+        getDokkatooExtension(project).getModuleName().set("gradle");
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
@@ -109,13 +109,19 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
+        String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
+        if (commitId.isBlank() || commitId.toLowerCase().contains("unknown")) {
+            // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding source links
+            return;
+        }
+
         extension.getSourceRoots().getFiles()
             .forEach(
                 file -> {
                     DokkaSourceLinkSpec sourceLinkSpec = project.getObjects().newInstance(DokkaSourceLinkSpec.class);
                     sourceLinkSpec.getLocalDirectory().set(file);
-                    String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
-                    sourceLinkSpec.getRemoteUrl().set(toUri(project.getRootDir(), file, commitId));
+                    URI uri = toUri(project.getRootDir(), file, commitId);
+                    sourceLinkSpec.getRemoteUrl().set(uri);
                     sourceLinkSpec.getRemoteLineSuffix().set("#L");
                     spec.getSourceLinks().add(sourceLinkSpec);
                 }

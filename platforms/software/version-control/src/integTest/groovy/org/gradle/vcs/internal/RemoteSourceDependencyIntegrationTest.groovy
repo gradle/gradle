@@ -149,6 +149,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repoB.createLightWeightTag('1.2')
         repoC.commit('version 1.2')
         repoC.createLightWeightTag('1.2')
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """
@@ -214,6 +215,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repoC.checkout('release')
         repoC.commit('version 1.2')
         repoC.createLightWeightTag('1.2')
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

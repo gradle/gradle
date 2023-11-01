@@ -305,7 +305,7 @@ If the test does not succeed (i.e. it fails for every retry), it will be indicat
 
 When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
-If you are using link:https://scans.gradle.com[build scans] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Gradle Enterprise],
+If you are using link:https://scans.gradle.com[build scans] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Develocity],
 flaky tests will be detected regardless of this setting.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,

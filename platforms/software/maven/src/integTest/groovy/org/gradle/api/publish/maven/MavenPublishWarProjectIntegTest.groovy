@@ -72,6 +72,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
 
     void "publishes war and meta-data for web component with project dependencies"() {
         given:
+        createDirs("projectWeb", "depProject1", "depProject2")
         settingsFile << "include 'projectWeb', 'depProject1', 'depProject2'"
 
         and:

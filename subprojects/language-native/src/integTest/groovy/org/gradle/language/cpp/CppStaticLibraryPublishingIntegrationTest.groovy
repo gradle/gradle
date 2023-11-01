@@ -36,6 +36,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {
@@ -104,6 +105,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
         given:
+        createDirs("deck", "card", "shuffle")
         settingsFile << "include 'deck', 'card', 'shuffle'"
         buildFile << """
             subprojects {

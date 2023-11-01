@@ -262,6 +262,53 @@ The same concept applies to task types.
 include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
 ----
 
+== Reacting to build features
+
+Plugins can access the status of build features in the build.
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[Build Features API] allows checking whether the user requested a particular Gradle feature and if it is active in the current build.
+An example of a build feature is the <<configuration_cache.adoc#config_cache,configuration cache>>.
+
+There are two main use cases:
+
+- Using the status of build features in reports or statistics.
+- Incrementally adopting experimental Gradle features by disabling incompatible plugin functionality.
+
+Below is an example of a plugin that utilizes both of the cases.
+
+.Reacting to build features
+[source,java]
+----
+include::{snippetsPath}/developingPlugins/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
+----
+<1> The `BuildFeatures` service can be injected into plugins, tasks, and other managed types.
+<2> Accessing the `requested` status of a feature for reporting.
+<3> Using the `active` status of a feature to disable incompatible functionality.
+
+=== Build feature properties
+
+The status properties of a `BuildFeature` are represented with `Provider<Boolean>` types.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getRequested--[`BuildFeature.getRequested()`] status of a build feature determines if the user requested to enable or disable the feature.
+If the user did neither, then the *value of the provider is undefined*.
+
+When the `requested` provider value is:
+
+- not present (undefined) -- the user neither opted in nor opted out from using the feature;
+- `true` -- the user opted in for using the feature, e.g., using a build option;
+- `false` -- the user opted out from using the feature, e.g., by setting a Gradle property to `false`.
+
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[`BuildFeature.getActive()`] status of a build feature is always defined.
+It represents the effective state of the feature in the build.
+
+When the `active` provider value is:
+
+- `true` -- the feature _may_ affect the build behavior in a way specific to the feature;
+- `false` -- the feature will not affect the build behavior.
+
+Note that the `active` status does not depend on the `requested` status.
+Even if the user requested a feature, it may still not be active due to other build options used in the build.
+Gradle can also activate a feature by default, even if the user did not specify a preference.
+
 == Providing default dependencies for plugins
 
 The implementation of a plugin sometimes requires the use of an external dependency.

@@ -41,6 +41,10 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
     def setup() {
         httpServer.start()
         buildB = new BuildTestFile(repo.workTree, "B")
+        buildB.createDirs("foo", "bar")
+        // git doesn't track directories so we need to create files in them
+        buildB.file("foo/.gitkeepdir").touch()
+        buildB.file("bar/.gitkeepdir").touch()
         buildB.settingsFile << """
             rootProject.name = 'B'
             include 'foo', 'bar'

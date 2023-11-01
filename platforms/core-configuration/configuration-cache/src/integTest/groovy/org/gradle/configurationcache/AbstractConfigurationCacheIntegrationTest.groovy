@@ -53,10 +53,6 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
         fails(ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, *tasks)
     }
 
-    String relativePath(String path) {
-        return path.replace('/', File.separator)
-    }
-
     protected void assertTestsExecuted(String testClass, String... testNames) {
         new DefaultTestExecutionResult(testDirectory)
             .testClass(testClass)

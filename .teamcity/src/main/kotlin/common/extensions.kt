@@ -160,7 +160,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")

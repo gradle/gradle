@@ -41,6 +41,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
         def handler = blockingServer.expectConcurrentAndBlock(blockingServer.get(module.pom.path).sendFile(module.pom.file), blockingServer.get('/sync'))
         blockingServer.expect(blockingServer.get(module.artifact.path).sendFile(module.artifact.file))
 
+        createDirs("query", "resolve")
         settingsFile << 'include "query", "resolve"'
         buildFile << """
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier

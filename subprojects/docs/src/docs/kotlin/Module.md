@@ -1,4 +1,4 @@
-# Module Kotlin DSL Reference for Gradle
+# Module gradle
 
 # Kotlin DSL Reference for Gradle
 

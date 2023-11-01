@@ -819,6 +819,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
     void 'finalizers are executed after the last task to be finalized'() {
+        createDirs("a", "b")
         settingsFile << """
             include "a"
             include "b"
@@ -858,6 +859,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/10549")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a'
             include 'b'
@@ -967,6 +969,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupMultipleProjects() {
+        createDirs("a", "b")
         settingsFile << """
             include 'a', 'b'
         """

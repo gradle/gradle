@@ -569,7 +569,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def configuredJavaLauncher = testTask.javaLauncher.get()
 
         then:
-        configuredJavaLauncher.executablePath.toString().contains(someJdk.javaVersion.getMajorVersion())
+        configuredJavaLauncher.metadata.languageVersion.toString().contains(someJdk.javaVersion.getMajorVersion())
     }
 
     def "wires toolchain for javadoc if toolchain is configured"() {

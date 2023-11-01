@@ -40,7 +40,6 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.SyncSpec
-import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
@@ -52,6 +51,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -145,14 +145,14 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory)
+            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory)
         }
     }
 
     private
     class ProblemReportingProject(
-        val delegate: ProjectInternal,
-        val referrer: ProjectInternal,
+        val delegate: DefaultProject,
+        val referrer: DefaultProject,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory
@@ -177,7 +177,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.hashCode()
         }
 
-        override fun getProperty(propertyName: String): Any {
+        override fun getProperty(propertyName: String): Any? {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
             val result = thisBean.tryGetProperty(propertyName)
@@ -185,15 +185,11 @@ class ProblemReportingCrossProjectModelAccess(
                 return result.value
             }
             onAccess()
-            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
-            val delegateResult = delegateBean.tryGetProperty(propertyName)
-            if (delegateResult.isFound) {
-                return delegateResult.value
-            }
-            throw thisBean.getMissingProperty(propertyName)
+
+            return delegate.getProperty(propertyName)
         }
 
-        override fun invokeMethod(name: String, args: Any): Any {
+        override fun invokeMethod(name: String, args: Any): Any? {
             // Attempt to get the property value via this instance. If not present, then attempt to lookup via the delegate
             val varargs: Array<Any?> = args.uncheckedCast()
             val thisBean = BeanDynamicObject(this).withNotImplementsMissing()
@@ -202,12 +198,8 @@ class ProblemReportingCrossProjectModelAccess(
                 return result.value
             }
             onAccess()
-            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
-            val delegateResult = delegateBean.tryInvokeMethod(name, *varargs)
-            if (delegateResult.isFound) {
-                return delegateResult.value
-            }
-            throw thisBean.methodMissingException(name, args)
+
+            return delegate.invokeMethod(name, args)
         }
 
         override fun compareTo(other: Project?): Int {

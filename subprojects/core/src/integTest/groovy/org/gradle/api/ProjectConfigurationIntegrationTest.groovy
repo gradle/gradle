@@ -55,6 +55,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b'
@@ -91,6 +92,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+        createDirs("a", "b")
         settingsFile << """
             rootProject.name = 'root'
             include 'a', 'b'
@@ -105,6 +107,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/4823")
     def "evaluationDependsOn deep project forces evaluation of parents"() {
         given:
+        createDirs("a", "b", "b/c")
         settingsFile << "include(':a', ':b:c')"
         file("a/build.gradle") << "evaluationDependsOn(':b:c')"
         file("b/build.gradle") << "plugins { id('org.gradle.hello-world') version '0.2' apply false }"

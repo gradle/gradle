@@ -43,8 +43,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
 import static org.gradle.api.problems.Severity.WARNING;
+import static org.gradle.api.problems.internal.DefaultProblemCategory.DEPRECATION;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -88,7 +88,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            problemsService.createProblem(new ProblemBuilderSpec() {
+            problemsService.create(new ProblemBuilderSpec() {
                     @Override
                     public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
                         ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
@@ -108,7 +108,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (location == null) {
             return genericDeprecation.noLocation();
         }
-        return genericDeprecation.location(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        return genericDeprecation.fileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber(), null, null);
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

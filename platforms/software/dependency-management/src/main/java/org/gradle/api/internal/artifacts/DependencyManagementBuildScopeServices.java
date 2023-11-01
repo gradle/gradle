@@ -82,9 +82,9 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -99,7 +99,7 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.component.SelectionFailureHandler;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -196,9 +196,7 @@ class DependencyManagementBuildScopeServices {
         FileCollectionFactory fileCollectionFactory,
         DependencyMetaDataProvider dependencyMetaDataProvider,
         ObjectFactory objects,
-        ProviderFactory providers,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        Problems problemService
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
@@ -207,9 +205,7 @@ class DependencyManagementBuildScopeServices {
             fileCollectionFactory,
             dependencyMetaDataProvider,
             objects,
-            providers,
-            collectionCallbackActionDecorator,
-            problemService
+            collectionCallbackActionDecorator
         );
     }
 
@@ -381,12 +377,12 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    SelectionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-        return new SelectionFailureHandler(problems);
+    ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
+        return new ResolutionFailureHandler(problems);
     }
 
-    GraphVariantSelector createGraphVariantSelector(SelectionFailureHandler selectionFailureHandler) {
-        return new GraphVariantSelector(selectionFailureHandler);
+    GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
+        return new GraphVariantSelector(resolutionFailureHandler);
     }
 
     VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
@@ -458,7 +454,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     DependenciesAccessors createDependenciesAccessorGenerator(
-        ObjectFactory objectFactory,
+        BuildTreeObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,
