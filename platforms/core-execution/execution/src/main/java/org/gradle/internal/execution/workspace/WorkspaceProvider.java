@@ -18,9 +18,10 @@ package org.gradle.internal.execution.workspace;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
+import java.io.Closeable;
 import java.util.Optional;
 
-public interface WorkspaceProvider {
+public interface WorkspaceProvider extends Closeable {
 
     Optional<ExecutionHistoryStore> getHistory();
 
@@ -28,4 +29,7 @@ public interface WorkspaceProvider {
      * Provides a workspace for executing the work.
      */
     Workspace allocateWorkspace(String path);
+
+    @Override
+    default void close() {}
 }

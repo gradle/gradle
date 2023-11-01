@@ -38,6 +38,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
@@ -108,15 +110,14 @@ public class DependencyManagementGradleUserHomeScopeServices {
         ExecutionHistoryStore executionHistoryStore,
         CacheConfigurationsInternal cacheConfigurations
     ) {
+        CacheBuilder cacheBuilder = unscopedCacheBuilderFactory
+            .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
+            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withDisplayName("Artifact transforms cache");
+        WorkspaceProvider workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices(
-            unscopedCacheBuilderFactory
-                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withDisplayName("Artifact transforms cache"),
-            fileAccessTimeJournal,
-            executionHistoryStore,
-            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cacheConfigurations
+            workspaceProvider,
+            crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful)
         );
     }
 }

@@ -16,36 +16,29 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
-import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 
 @NotThreadSafe
 public class ImmutableTransformWorkspaceServices implements TransformWorkspaceServices, Closeable {
+    private final WorkspaceProvider workspaceProvider;
     private final CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
-    private final DefaultImmutableWorkspaceProvider workspaceProvider;
 
     public ImmutableTransformWorkspaceServices(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore,
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache,
-        CacheConfigurationsInternal cacheConfigurations
+        WorkspaceProvider workspaceProvider,
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache
     ) {
-        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
+        this.workspaceProvider = workspaceProvider;
         this.identityCache = identityCache;
     }
 
     @Override
-    public DefaultImmutableWorkspaceProvider getWorkspaceProvider() {
+    public WorkspaceProvider getWorkspaceProvider() {
         return workspaceProvider;
     }
 

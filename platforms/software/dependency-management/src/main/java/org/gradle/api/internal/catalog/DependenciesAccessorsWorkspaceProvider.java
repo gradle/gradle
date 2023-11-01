@@ -26,11 +26,10 @@ import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspacePro
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
-import java.io.Closeable;
 import java.util.Optional;
 
-public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
-    private final DefaultImmutableWorkspaceProvider delegate;
+public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider {
+    private final WorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspaceProvider(
         BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,

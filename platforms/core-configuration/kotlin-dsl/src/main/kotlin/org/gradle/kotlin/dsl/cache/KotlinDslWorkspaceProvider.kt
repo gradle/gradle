@@ -67,5 +67,8 @@ class KotlinDslWorkspaceProvider(
 
         override fun allocateWorkspace(path: String): Workspace =
             kotlinDslWorkspace.allocateWorkspace("$prefix/$path")
+
+        override fun close() =
+            kotlinDslWorkspace.close()
     }
 }

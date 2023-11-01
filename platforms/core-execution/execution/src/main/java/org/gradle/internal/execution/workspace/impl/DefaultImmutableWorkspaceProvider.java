@@ -50,7 +50,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
+    public static WorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
@@ -69,7 +69,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         );
     }
 
-    public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
+    public static WorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
@@ -87,7 +87,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         );
     }
 
-    public static DefaultImmutableWorkspaceProvider withExternalHistory(
+    public static WorkspaceProvider withExternalHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
