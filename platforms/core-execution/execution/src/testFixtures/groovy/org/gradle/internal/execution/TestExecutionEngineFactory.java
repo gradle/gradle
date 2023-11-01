@@ -30,6 +30,7 @@ import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
+import org.gradle.internal.execution.steps.MutableWorkspaceContext;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
@@ -40,7 +41,6 @@ import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.WorkDeterminedContext;
-import org.gradle.internal.execution.steps.WorkspaceContext;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
@@ -90,7 +90,7 @@ public class TestExecutionEngineFactory {
         // @formatter:on
     }
 
-    private static class AlwaysExecuteWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
+    private static class AlwaysExecuteWorkStep<C extends MutableWorkspaceContext> implements Step<C, CachingResult> {
         private final Step<? super WorkDeterminedContext, ? extends CachingResult> delegate;
 
         public AlwaysExecuteWorkStep(Step<? super WorkDeterminedContext, ? extends CachingResult> delegate) {

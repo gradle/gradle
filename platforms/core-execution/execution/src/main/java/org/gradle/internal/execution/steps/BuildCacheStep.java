@@ -72,7 +72,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     }
 
     private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
-        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
+        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getMutableWorkspaceLocation(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
@@ -83,7 +83,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         LOGGER.info("Loaded cache entry for {} with cache key {}",
                             work.getDisplayName(), cacheKey.getHashCode());
                     }
-                    cleanLocalState(context.getWorkspace(), work);
+                    cleanLocalState(context.getMutableWorkspaceLocation(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
                         beforeExecutionState,
@@ -98,7 +98,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
                         @Override
                         public Object getOutput() {
-                            return work.loadAlreadyProducedOutput(context.getWorkspace());
+                            return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation());
                         }
                     });
                     return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);

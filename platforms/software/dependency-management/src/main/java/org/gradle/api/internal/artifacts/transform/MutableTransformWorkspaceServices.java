@@ -24,6 +24,7 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
@@ -67,9 +68,14 @@ public class MutableTransformWorkspaceServices implements TransformWorkspaceServ
         }
 
         @Override
-        public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+        public Workspace allocateWorkspace(String path) {
             File workspaceDir = new File(baseDirectory.get().getAsFile(), path);
-            return action.executeInWorkspace(workspaceDir);
+            return new Workspace() {
+                @Override
+                public <T> T mutate(WorkspaceAction<T> action) {
+                    return action.executeInWorkspace(workspaceDir);
+                }
+            };
         }
     }
 }

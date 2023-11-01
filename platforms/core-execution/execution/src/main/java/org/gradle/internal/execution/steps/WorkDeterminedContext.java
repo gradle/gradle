@@ -20,15 +20,15 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.Executable;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public class WorkDeterminedContext extends WorkspaceContext {
+public class WorkDeterminedContext extends MutableWorkspaceContext {
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
     private final Executable executable;
 
-    public WorkDeterminedContext(WorkspaceContext parent, Executable  executable) {
+    public WorkDeterminedContext(MutableWorkspaceContext parent, Executable  executable) {
         this(parent, parent.getInputFileProperties(), executable);
     }
 
-    public WorkDeterminedContext(WorkspaceContext parent, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, Executable  executable) {
+    public WorkDeterminedContext(MutableWorkspaceContext parent, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, Executable  executable) {
         super(parent);
         this.inputFileProperties = inputFileProperties;
         this.executable = executable;

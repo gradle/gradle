@@ -36,7 +36,7 @@ public class PreCreateOutputParentsStep<C extends ChangingOutputsContext, R exte
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getMutableWorkspaceLocation(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 ensureOutput(propertyName, value.getValue(), type);

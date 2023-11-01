@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, CachingResult> {
+public class SkipIfSourcesAreEmptyStep implements Step<MutableWorkspaceContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipIfSourcesAreEmptyStep.class);
 
     private final OutputChangeListener outputChangeListener;
@@ -76,7 +76,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, WorkspaceContext context) {
+    public CachingResult execute(UnitOfWork work, MutableWorkspaceContext context) {
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, context.getInputFileProperties(), context.getInputProperties());
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
 
@@ -127,7 +127,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
         return visitor.isAllEmpty();
     }
 
-    private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, WorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
+    private static InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, MutableWorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
         return work.getInputFingerprinter().fingerprintInputProperties(
             context.getPreviousExecutionState()
                 .map(PreviousExecutionState::getInputProperties)
@@ -148,7 +148,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
     }
 
     @Nonnull
-    private CachingResult shortcutExecution(UnitOfWork work, WorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+    private CachingResult shortcutExecution(UnitOfWork work, MutableWorkspaceContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
         return context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .map(outputFilesAfterPreviousExecution -> {
@@ -159,7 +159,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
                             new WorkDeterminedContext(
                                 context,
                                 sourceFileProperties,
-                                request -> cleanPreviousOutputs(work, context.getWorkspace(), outputFilesAfterPreviousExecution)),
+                                request -> cleanPreviousOutputs(work, context.getMutableWorkspaceLocation(), outputFilesAfterPreviousExecution)),
                             null
                         ),
                         ImmutableList.of()
@@ -188,7 +188,7 @@ public class SkipIfSourcesAreEmptyStep implements Step<WorkspaceContext, Caching
 
                     @Override
                     public Object getOutput() {
-                        return work.loadAlreadyProducedOutput(context.getWorkspace());
+                        return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation());
                     }
                 });
                 return new CachingResult(Duration.ZERO, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);

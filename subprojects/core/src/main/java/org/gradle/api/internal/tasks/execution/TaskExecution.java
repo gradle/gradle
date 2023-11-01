@@ -59,6 +59,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
@@ -298,9 +299,14 @@ public class TaskExecution implements UnitOfWork {
             }
 
             @Override
-            public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                // Tasks don't as such have a workspace yet
-                return action.executeInWorkspace(null);
+            public Workspace allocateWorkspace(String path) {
+                return new Workspace() {
+                    @Override
+                    public <T> T mutate(WorkspaceAction<T> action) {
+                        // Tasks don't as such have a workspace yet
+                        return action.executeInWorkspace(null);
+                    }
+                };
             }
         };
     }

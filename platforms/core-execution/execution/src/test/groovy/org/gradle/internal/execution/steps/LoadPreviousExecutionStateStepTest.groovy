@@ -21,7 +21,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 
-class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
+class LoadPreviousExecutionStateStepTest extends StepSpec<IdentityContext> {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new LoadPreviousExecutionStateStep(delegate)

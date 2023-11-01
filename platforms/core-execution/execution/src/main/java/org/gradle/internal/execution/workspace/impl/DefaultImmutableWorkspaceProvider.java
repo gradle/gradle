@@ -29,6 +29,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -139,12 +140,17 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     }
 
     @Override
-    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        return cache.withFileLock(() -> {
-            File workspace = new File(baseDirectory, path);
-            fileAccessTracker.markAccessed(workspace);
-            return action.executeInWorkspace(workspace);
-        });
+    public Workspace allocateWorkspace(String path) {
+        File workspace = new File(baseDirectory, path);
+        return new Workspace() {
+            @Override
+            public <T> T mutate(WorkspaceAction<T> action) {
+                return cache.withFileLock(() -> {
+                    fileAccessTracker.markAccessed(workspace);
+                    return action.executeInWorkspace(workspace);
+                });
+            }
+        };
     }
 
     @Override

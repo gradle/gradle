@@ -21,6 +21,7 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
@@ -44,9 +45,14 @@ public class TestTransformWorkspaceServices implements TransformWorkspaceService
             }
 
             @Override
-            public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+            public Workspace allocateWorkspace(String path) {
                 File workspace = new File(transformationsStoreDirectory, path);
-                return action.executeInWorkspace(workspace);
+                return new Workspace() {
+                    @Override
+                    public <T> T mutate(WorkspaceAction<T> action) {
+                        return action.executeInWorkspace(workspace);
+                    }
+                };
             }
         };
     }

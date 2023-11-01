@@ -25,7 +25,7 @@ import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 
-class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements SnapshotterFixture {
+class HandleStaleOutputsStepTest extends StepSpec<MutableWorkspaceContext> implements SnapshotterFixture {
     def cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)

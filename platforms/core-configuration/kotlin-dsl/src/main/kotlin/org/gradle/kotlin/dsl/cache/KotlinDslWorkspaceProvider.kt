@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -64,7 +65,7 @@ class KotlinDslWorkspaceProvider(
         override fun getHistory(): Optional<ExecutionHistoryStore> =
             kotlinDslWorkspace.history
 
-        override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
-            kotlinDslWorkspace.withWorkspace("$prefix/$path", action)
+        override fun allocateWorkspace(path: String): Workspace =
+            kotlinDslWorkspace.allocateWorkspace("$prefix/$path")
     }
 }

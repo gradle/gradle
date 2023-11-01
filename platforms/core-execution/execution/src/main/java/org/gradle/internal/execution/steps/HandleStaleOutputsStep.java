@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class HandleStaleOutputsStep<C extends MutableWorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
     @VisibleForTesting
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
@@ -80,7 +80,7 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
 
     private void cleanupStaleOutputs(UnitOfWork work, C context) {
         Set<File> filesToDelete = new HashSet<>();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getMutableWorkspaceLocation(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 Streams.stream(value.getFiles())

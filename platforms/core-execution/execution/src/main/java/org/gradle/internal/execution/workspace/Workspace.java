@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution.workspace;
 
 import java.io.File;
 
-public class WorkspaceContext extends PreviousExecutionContext {
-    private final File workspace;
+public interface Workspace {
+    /**
+     * Provides a workspace and execution history store for executing the transform.
+     */
+    <T> T mutate(WorkspaceAction<T> action);
 
-    public WorkspaceContext(PreviousExecutionContext parent, File workspace) {
-        super(parent);
-        this.workspace = workspace;
-    }
-
-    protected WorkspaceContext(WorkspaceContext parent) {
-        this(parent, parent.getWorkspace());
-    }
-
-    public File getWorkspace() {
-        return workspace;
+    @FunctionalInterface
+    interface WorkspaceAction<T> {
+        T executeInWorkspace(File workspace);
     }
 }

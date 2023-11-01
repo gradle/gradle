@@ -86,7 +86,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         Executable.ExecutionRequest executionRequest = new Executable.ExecutionRequest() {
             @Override
             public File getWorkspace() {
-                return context.getWorkspace();
+                return context.getMutableWorkspaceLocation();
             }
 
             @Override

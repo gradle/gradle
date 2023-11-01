@@ -22,6 +22,7 @@ import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.workspace.Workspace
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -167,8 +168,13 @@ class UnitOfWorkBuilder {
                     }
 
                     @Override
-                    <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
-                        return action.executeInWorkspace(null)
+                    Workspace allocateWorkspace(String path) {
+                        return new Workspace() {
+                            @Override
+                            def <T> T mutate(Workspace.WorkspaceAction<T> action) {
+                                return action.executeInWorkspace(null)
+                            }
+                        }
                     }
                 }
             }

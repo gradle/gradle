@@ -41,7 +41,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
+class SkipIfSourcesAreEmptyStepTest extends StepSpec<MutableWorkspaceContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
@@ -194,7 +194,7 @@ class SkipIfSourcesAreEmptyStepTest extends StepSpec<WorkspaceContext> {
 
                 @Override
                 Object getOutput() {
-                    return work.loadAlreadyProducedOutput(context.getWorkspace())
+                    return work.loadAlreadyProducedOutput(context.getMutableWorkspaceLocation())
                 }
             })
             return new Result(Duration.ofSeconds(1), execution)

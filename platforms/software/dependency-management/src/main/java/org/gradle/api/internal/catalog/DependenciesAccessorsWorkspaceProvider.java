@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.workspace.Workspace;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -57,8 +58,8 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
     }
 
     @Override
-    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        return delegate.withWorkspace(path, action);
+    public Workspace allocateWorkspace(String path) {
+        return delegate.allocateWorkspace(path);
     }
 
     @Override

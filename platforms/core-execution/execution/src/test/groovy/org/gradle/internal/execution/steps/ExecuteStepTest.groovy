@@ -43,7 +43,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
 
 
     def setup() {
-        _ * context.getWorkspace() >> workspace
+        _ * context.getMutableWorkspaceLocation() >> workspace
         _ * context.getPreviousExecutionState() >> Optional.of(previousExecutionState)
         _ * context.getExecutable() >> executable
     }

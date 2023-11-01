@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.workspace;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import java.io.File;
 
-import java.util.Optional;
+public class MutableWorkspaceContext extends PreviousExecutionContext {
+    private final File mutableWorkspaceLocation;
 
-public interface WorkspaceProvider {
+    public MutableWorkspaceContext(PreviousExecutionContext parent, File mutableWorkspaceLocation) {
+        super(parent);
+        this.mutableWorkspaceLocation = mutableWorkspaceLocation;
+    }
 
-    Optional<ExecutionHistoryStore> getHistory();
+    protected MutableWorkspaceContext(MutableWorkspaceContext parent) {
+        this(parent, parent.getMutableWorkspaceLocation());
+    }
 
-    /**
-     * Provides a workspace for executing the work.
-     */
-    Workspace allocateWorkspace(String path);
+    public File getMutableWorkspaceLocation() {
+        return mutableWorkspaceLocation;
+    }
 }

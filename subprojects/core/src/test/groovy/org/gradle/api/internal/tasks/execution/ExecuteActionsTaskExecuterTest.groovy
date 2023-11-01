@@ -51,10 +51,10 @@ import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.CachingResult
+import org.gradle.internal.execution.steps.MutableWorkspaceContext
 import org.gradle.internal.execution.steps.Step
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.steps.WorkDeterminedContext
-import org.gradle.internal.execution.steps.WorkspaceContext
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -511,7 +511,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         wrappedFailure.cause.is(failure)
     }
 
-    private static class AlwaysExecuteWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
+    private static class AlwaysExecuteWorkStep<C extends MutableWorkspaceContext> implements Step<C, CachingResult> {
         private final Step<WorkDeterminedContext, CachingResult> delegate
 
         AlwaysExecuteWorkStep(Step<WorkDeterminedContext, CachingResult> delegate) {

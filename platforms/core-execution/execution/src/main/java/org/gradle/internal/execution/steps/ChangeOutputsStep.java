@@ -39,7 +39,7 @@ public class ChangeOutputsStep<C extends InputChangesContext> implements Step<C,
     @Override
     public Result execute(UnitOfWork work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getMutableWorkspaceLocation(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 builder.add(value.getValue().getAbsolutePath());
