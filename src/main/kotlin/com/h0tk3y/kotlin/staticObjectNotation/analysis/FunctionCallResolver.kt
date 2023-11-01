@@ -105,8 +105,8 @@ class FunctionCallResolverImpl(
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
-    ): ObjectOrigin.FunctionInvocationOrigin {
-        val newFunctionCallId = nextFunctionCallId()
+    ): ObjectOrigin.FunctionOrigin {
+        val newFunctionCallId = nextInstant()
         val valueBinding = function.binding.toValueBinding(argResolutions)
         val semantics = function.schemaFunction.semantics
         

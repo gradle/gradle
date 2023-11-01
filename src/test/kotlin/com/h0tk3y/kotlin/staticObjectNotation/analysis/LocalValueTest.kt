@@ -31,7 +31,7 @@ object LocalValueTest {
             """.trimIndent()
         )
 
-        val rhsOrigins = resolution.assignments.map { it.value as ObjectOrigin.FromLocalValue }
+        val rhsOrigins = resolution.assignments.map { it.rhs as ObjectOrigin.FromLocalValue }
         val (rhs1, rhs2) = rhsOrigins
 
         with(rhs1.assigned) {

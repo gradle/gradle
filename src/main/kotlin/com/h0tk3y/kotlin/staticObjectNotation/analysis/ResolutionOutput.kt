@@ -10,6 +10,12 @@ data class PropertyReferenceResolution(
     override fun toString(): String = "$receiverObject${'.'}${property.name}"
 }
 
+data class AssignmentRecord(
+    val lhs: PropertyReferenceResolution,
+    val rhs: ObjectOrigin,
+    val assignmentOrder: Long
+)
+
 sealed interface ObjectOrigin {
     val originElement: LanguageTreeElement
     

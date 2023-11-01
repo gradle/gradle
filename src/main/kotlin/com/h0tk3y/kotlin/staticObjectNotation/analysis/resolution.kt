@@ -6,7 +6,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.language.LocalValue
 
 data class ResolutionResult(
     val topLevelReceiver: ObjectOrigin.TopLevelReceiver,
-    val assignments: Map<PropertyReferenceResolution, ObjectOrigin>,
+    val assignments: List<AssignmentRecord>,
     val additions: List<DataAddition>,
     val errors: List<ResolutionError>
 )

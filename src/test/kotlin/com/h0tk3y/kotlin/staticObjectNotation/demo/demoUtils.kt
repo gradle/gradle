@@ -42,7 +42,7 @@ fun printResolutionResults(
     result: ResolutionResult
 ) {
     println(result.errors.joinToString("\n") { "ERROR: ${it.errorReason} in ${it.element.originAst.text}\n" })
-    println("Assignments:\n" + result.assignments.entries.joinToString("\n") { (k, v) -> "$k := $v" })
+    println("Assignments:\n" + result.assignments.joinToString("\n") { (k, v) -> "$k := $v" })
     println()
     println("Additions:\n" + result.additions.joinToString("\n") { (container, obj) -> "$container += $obj" })
 }

@@ -45,7 +45,7 @@ interface AnalysisContextView : TypeRefContext {
     val schema: AnalysisSchema
     val imports: Map<String, FqName>
     val currentScopes: List<AnalysisScopeView>
-    val assignments: Map<PropertyReferenceResolution, ObjectOrigin>
+    val assignments: List<AssignmentRecord>
 }
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
@@ -63,14 +63,14 @@ class AnalysisContext(
 
     // TODO: thread safety?
     private val mutableScopes = mutableListOf<AnalysisScope>()
-    private val mutableAssignments = mutableMapOf<PropertyReferenceResolution, ObjectOrigin>()
-    private val nextFunctionCallId = AtomicLong(1)
+    private val mutableAssignments = mutableListOf<AssignmentRecord>()
+    private val nextInstant = AtomicLong(1)
     private val mutableAdditions = mutableListOf<DataAddition>()
 
     override val currentScopes: List<AnalysisScope>
         get() = mutableScopes
 
-    override val assignments: Map<PropertyReferenceResolution, ObjectOrigin>
+    override val assignments: List<AssignmentRecord>
         get() = mutableAssignments
 
     val additions: List<DataAddition> get() = mutableAdditions
@@ -84,14 +84,14 @@ class AnalysisContext(
     }
 
     fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin) {
-        mutableAssignments[resolvedTarget] = resolvedRhs
+        mutableAssignments.add(AssignmentRecord(resolvedTarget, resolvedRhs, nextInstant()))
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
         mutableAdditions += DataAddition(container, dataObject)
     }
 
-    fun nextFunctionCallId(): Long = nextFunctionCallId.incrementAndGet()
+    fun nextInstant(): Long = nextInstant.incrementAndGet()
 
     fun leaveScope(scope: AnalysisScope) {
         check(mutableScopes.last() === scope)
