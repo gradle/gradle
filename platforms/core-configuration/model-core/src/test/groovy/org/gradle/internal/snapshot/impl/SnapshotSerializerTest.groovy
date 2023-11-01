@@ -219,7 +219,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes implementation properties with untracked lambda"() {
-        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
+        def original = ImplementationSnapshot.of('someClassName$$Lambda/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
