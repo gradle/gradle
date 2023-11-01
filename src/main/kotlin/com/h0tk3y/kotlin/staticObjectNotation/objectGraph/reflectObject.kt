@@ -30,6 +30,8 @@ sealed interface ObjectReflection {
         override val type: DataType
             get() = DataType.NullType
     }
+    
+    data class DefaultValue(override val type: DataType) : ObjectReflection
 
     data class PureFunctionInvocation(
         override val type: DataType,
@@ -91,7 +93,7 @@ fun reflectDefaultValue(
 ): ObjectReflection {
     val type = context.typeRefContext.getDataType(objectOrigin)
     return when (type) {
-        is DataType.ConstantType<*> -> ObjectReflection.ConstantValue(type, objectOrigin, defaultConstantValue(type))
+        is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type)
         is DataType.DataClass<*> -> reflectData(-1L, type, objectOrigin, context)
         DataType.NullType -> ObjectReflection.Null
         DataType.UnitType -> error("Unit can't appear in property types")

@@ -133,6 +133,8 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
                     append("(...)")
                 }
             }
+
+            is ObjectReflection.DefaultValue -> append("(default value)")
         }
     }
 
