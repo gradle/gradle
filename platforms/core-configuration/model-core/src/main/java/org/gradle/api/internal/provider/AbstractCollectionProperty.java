@@ -744,14 +744,4 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             AbstractCollectionProperty.this.excludeAll(elements);
         }
     }
-
-    /**
-     * Returns the frozen view of this Property. Further updates to this Property do not affect the return provider.
-     * However, the Provider itself is live - it reflects changes to its dependencies.
-     *
-     * @return the frozen view of this Property
-     */
-    protected Provider<C> freeze() {
-        return Providers.of(get());
-    }
 }
