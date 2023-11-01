@@ -227,7 +227,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
         // default implementation is a workaround for plugins having their own custom collection implementation, based on an older interface (i.e. missing an implementation for this method)
         throw new UnsupportedOperationException("Method not implemented by " + GeneratedSubclasses.unpack(this.getClass()).getName()); // todo: check out what it prints for KGP
-    } // todo: test that checks all OUR CONCRETE implementations if this method has been owerwritten? (arch test, architecture-test project)
+    }
 
     /**
      * {@inheritDoc}
