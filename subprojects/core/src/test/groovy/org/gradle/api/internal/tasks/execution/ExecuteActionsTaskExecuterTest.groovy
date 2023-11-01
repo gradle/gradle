@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
@@ -44,10 +43,9 @@ import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.WorkInputListeners
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
@@ -56,6 +54,7 @@ import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
+import org.gradle.internal.execution.steps.CachingResult
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -68,9 +67,11 @@ import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
-import org.gradle.internal.execution.steps.SkipIfSourcesAreEmptyStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
+import org.gradle.internal.execution.steps.Step
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.execution.steps.WorkDeterminedContext
+import org.gradle.internal.execution.steps.WorkspaceContext
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -93,8 +94,6 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
 import spock.lang.Specification
 
-import java.util.function.Supplier
-
 import static java.util.Collections.emptyList
 import static org.gradle.api.internal.file.TestFiles.deleter
 import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
@@ -105,7 +104,6 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
 class ExecuteActionsTaskExecuterTest extends Specification {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
@@ -147,7 +145,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
-    def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
@@ -167,7 +164,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
-    def outputsCleanerFactory = { new OutputsCleaner(deleter, buildOutputCleanupRegistry.&isOutputOwnedByBuild, buildOutputCleanupRegistry.&isOutputOwnedByBuild) } as Supplier<OutputsCleaner>
 
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(Stub(Problems),
@@ -175,7 +171,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new LoadPreviousExecutionStateStep<>(
         new AssignWorkspaceStep<>(
-        new SkipIfSourcesAreEmptyStep(outputChangeListener, inputListeners, outputsCleanerFactory,
+        new AlwaysExecuteWorkStep<>(
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
         new ResolveCachingStateStep<>(buildCacheController, false,
@@ -538,5 +534,18 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         wrappedFailure.task == task
         wrappedFailure.message.startsWith("Execution failed for ")
         wrappedFailure.cause.is(failure)
+    }
+
+    private static class AlwaysExecuteWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
+        private final Step<WorkDeterminedContext, CachingResult> delegate
+
+        AlwaysExecuteWorkStep(Step<WorkDeterminedContext, CachingResult> delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        CachingResult execute(UnitOfWork work, C context) {
+            return delegate.execute(work, new WorkDeterminedContext(context, work))
+        }
     }
 }
