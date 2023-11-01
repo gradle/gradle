@@ -19,8 +19,7 @@ The sections below describe Gradle's compatibility with several integrations.
 Versions not listed here may or may not work.
 
 == Java
-A Java version between 8 and 20 is required to execute Gradle.
-Java 21 and later versions are not yet supported.
+A Java version between 8 and 21 is required to execute Gradle.
 
 Java 6 and 7 can be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>> but are deprecated for use with testing. Testing with Java 6 and 7 will not be supported in Gradle 9.0.
 
@@ -47,7 +46,7 @@ See the table below for the Java version supported by a specific Gradle release:
 | 18| 7.5 | 7.5
 | 19| 7.6 | 7.6
 | 20| 8.1 | 8.3
-| 21| 8.4 | N/A
+| 21| 8.4 | 8.5
 |===
 
 [[kotlin]]
