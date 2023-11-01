@@ -17,15 +17,11 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.file.FileCollection
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputSnapshotter
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.file.TreeType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
@@ -39,14 +35,13 @@ import java.time.Duration
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
-class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
+class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
     def outputSnapshotter = Mock(OutputSnapshotter)
-    def outputChangeListener = Mock(OutputChangeListener)
     def delegateResult = Stub(Result)
 
-    def step = new CaptureStateAfterExecutionStep(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputChangeListener, delegate)
+    def step = new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, delegate)
 
     def "no state is captured if before execution state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
@@ -60,12 +55,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         result.duration == delegateDuration
         assertNoOperation()
 
-        1 * outputChangeListener.invalidateCachesFor([])
-        then:
         1 * delegate.execute(work, _) >> delegateResult
-        then:
-        1 * outputChangeListener.invalidateCachesFor([])
-        then:
         0 * _
     }
 
@@ -79,16 +69,14 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
 
         when:
         step.execute(work, context)
+
         then:
         def ex = thrown RuntimeException
         ex == failure
         assertOperation(ex)
 
-        1 * outputChangeListener.invalidateCachesFor([])
-        then:
         1 * delegate.execute(work, _) >> delegateResult
-        then:
-        1 * outputChangeListener.invalidateCachesFor([])
+
         then:
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         0 * _
@@ -112,11 +100,8 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         !result.afterExecutionState.get().reused
         assertOperation()
 
-        1 * outputChangeListener.invalidateCachesFor([])
-        then:
         1 * delegate.execute(work, _) >> delegateResult
-        then:
-        1 * outputChangeListener.invalidateCachesFor([])
+
         then:
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         0 * _
@@ -165,48 +150,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         result.afterExecutionState.get().originMetadata.executionTime >= result.duration
         !result.afterExecutionState.get().reused
 
-        1 * outputChangeListener.invalidateCachesFor([])
-        then:
         1 * delegate.execute(work, _) >> delegateResult
-        then:
-        1 * outputChangeListener.invalidateCachesFor([])
+
         then:
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
         assertOperation()
-        0 * _
-    }
-
-    def "notifies listener about specific outputs changing"() {
-        def outputDir = file("output-dir")
-        def localStateDir = file("local-state-dir")
-        def destroyableDir = file("destroyable-dir")
-        def changingOutputs = [
-            outputDir.absolutePath,
-            destroyableDir.absolutePath,
-            localStateDir.absolutePath
-        ]
-
-        context.beforeExecutionState >> Optional.empty()
-        delegateResult.duration >> Duration.ofMillis(10)
-
-        when:
-        step.execute(work, context)
-
-        then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, Mock(FileCollection)))
-            visitor.visitDestroyable(destroyableDir)
-            visitor.visitLocalState(localStateDir)
-        }
-
-        then:
-        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
-
-        then:
-        1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
-        then:
-        1 * outputChangeListener.invalidateCachesFor(changingOutputs)
-        then:
         0 * _
     }
 

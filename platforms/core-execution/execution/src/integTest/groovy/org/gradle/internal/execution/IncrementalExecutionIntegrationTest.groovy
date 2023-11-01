@@ -18,7 +18,6 @@ package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
@@ -28,7 +27,6 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
@@ -40,11 +38,12 @@ import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.CachingResult
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CreateOutputsStep
+import org.gradle.internal.execution.steps.ChangeOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
+import org.gradle.internal.execution.steps.PreCreateOutputParentsStep
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -80,8 +79,6 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
@@ -103,9 +100,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         HashCode getClassLoaderHash(ClassLoader classLoader) {
             return TestHashCodes.hashCodeFrom(1234)
         }
-    }
-    def outputFilesRepository = Stub(OutputFilesRepository) {
-        isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fingerprinter)])
@@ -152,11 +146,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, outputChangeListener,
-            new CreateOutputsStep<>(
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new ChangeOutputsStep<>(outputChangeListener,
+            new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))
+        ))))))))))))))))))
         // @formatter:on
     }
 

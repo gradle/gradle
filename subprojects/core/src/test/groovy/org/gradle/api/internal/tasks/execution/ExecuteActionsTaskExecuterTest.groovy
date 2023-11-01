@@ -59,6 +59,7 @@ import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
+import org.gradle.internal.execution.steps.ChangeOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
@@ -181,11 +182,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
         new ResolveInputChangesStep<>(
-        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, outputChangeListener,
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
+        new ChangeOutputsStep<>(outputChangeListener,
         new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    ))))))))))))))))
+    )))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
