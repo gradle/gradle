@@ -174,7 +174,7 @@ BUILD SUCCESSFUL in 331ms
 
 The `publishToMavenLocal` task builds the POM file and the artifacts to be published. It then _installs_ them into the local Maven repository.
 
-You can view the POM and JSON file in the `build` directory:
+You can view the POM and GMM file in the `build` directory:
 
 image::tutorial/intellij-idea-dist.png[]
 
