@@ -232,7 +232,6 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
                     ${excludeCategoryOrTag('CategoryA')}
                     ${excludeCategoryOrTag('CategoryC')}
                 }
-                filter.failOnNoMatchingTests = false
             }
         """
 
@@ -268,7 +267,6 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
                 ${configureTestFramework} {
                     ${configureIncludeOrExclude}
                 }
-                filter.failOnNoMatchingTests = false
             }
         """
 
