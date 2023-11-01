@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 interface MapSupplier<K, V> extends ValueSupplier {
     Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer);
@@ -26,5 +27,9 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
+    MapSupplier<K, V> pruned();
+
     ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
+
+    MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter);
 }

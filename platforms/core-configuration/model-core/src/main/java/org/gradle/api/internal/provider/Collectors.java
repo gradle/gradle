@@ -21,9 +21,15 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+
+import java.util.Collection;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
@@ -114,14 +120,7 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.hasFixedValue()) {
-                // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-            } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
-            }
+            visitValue(visitor, value);
         }
 
         @Override
@@ -149,6 +148,17 @@ public class Collectors {
         @Override
         public int size() {
             return 1;
+        }
+    }
+
+    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+        } else {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
         }
     }
 
@@ -218,12 +228,7 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
-            if (value.isMissing()) {
-                return value.asType();
-            }
-
-            collector.addAll(value.getWithoutSideEffect(), collection);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
+            return collectEntriesFromValue(collector, collection, value);
         }
 
         @Override
@@ -238,7 +243,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, provider);
+            return Objects.equal(this.provider, provider);
         }
 
         @Override
@@ -266,6 +271,15 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
+    }
+
+    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        if (value.isMissing()) {
+            return value.asType();
+        }
+
+        collector.addAll(value.getWithoutSideEffect(), collection);
+        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -370,6 +384,98 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
+        }
+    }
+
+    //TODO-RC remove
+    public static class CollectionSupplierCollector<T, C extends Collection<T>> implements ProvidedCollector<T> {
+
+        private final CollectionSupplier<T, C> collectionSupplier;
+        private final Transformer<Iterable<T>, Iterable<T>> transformer;
+
+        public CollectionSupplierCollector(CollectionSupplier<T, C> supplier, Transformer<Iterable<T>, Iterable<T>> transformer) {
+            this.collectionSupplier = supplier;
+            this.transformer = transformer;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            Value<? extends Iterable<? extends T>> calculated = collectionSupplier.calculateValue(consumer);
+            return collectEntriesFromValue(collector, dest, calculated);
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            ExecutionTimeValue<? extends T> calculated = Cast.uncheckedNonnullCast(collectionSupplier.calculateExecutionTimeValue());
+            visitValue(visitor, calculated);
+        }
+
+        @Override
+        public boolean isProvidedBy(Provider<?> provider) {
+            // TODO-RC implement correctly
+            return false;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return collectionSupplier.getProducer();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return collectionSupplier.calculatePresence(consumer);
+        }
+    }
+
+    public static class FilteringCollector<T> implements Collector<T> {
+        private final Collector<T> upstream;
+        private final Predicate<T> predicate;
+        private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
+
+        @Override
+        public ValueProducer getProducer() {
+            return upstream.getProducer();
+        }
+
+        public FilteringCollector(Collector<T> upstream, Predicate<T> predicate, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
+            this.upstream = upstream;
+            this.predicate = predicate;
+            this.collectionFactory = collectionFactory;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return upstream.calculatePresence(consumer);
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            ImmutableCollection.Builder<T> baseBuilder = collectionFactory.get();
+            Value<Void> baseValue = upstream.collectEntries(consumer, collector, baseBuilder);
+            if (baseValue.isMissing()) {
+                return baseValue;
+            }
+            ImmutableCollection<T> baseElements = baseBuilder.build();
+            dest.addAll(Iterables.filter(baseElements, predicate::test));
+            return baseValue;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            ExecutionTimeValue<? extends Iterable<? extends T>>[] baseValue = Cast.uncheckedCast(new ExecutionTimeValue[1]);
+            upstream.calculateExecutionTimeValue(it -> baseValue[0] = it);
+            //TODO-RC need to filter the execution time value
+            visitor.execute(baseValue[0]);
         }
     }
 }

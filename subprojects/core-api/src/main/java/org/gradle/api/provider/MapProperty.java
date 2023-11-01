@@ -21,6 +21,7 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Represents a property whose type is a {@link Map} of keys of type {@link K} and values of type {@link V}. Retains iteration order.
@@ -188,4 +189,12 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      */
     @Override
     void finalizeValue();
+
+    /**
+     * Prunes this property so undefined entries are ignored.
+     */
+    MapProperty<K, V> prune();
+
+    MapProperty<K, V> exclude(Predicate<K> keyFilter, Predicate<V> valueFilter);
+    MapProperty<K, V> exclude(Predicate<K> keyFilter);
 }
