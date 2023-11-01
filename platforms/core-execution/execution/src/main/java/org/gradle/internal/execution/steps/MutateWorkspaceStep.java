@@ -17,18 +17,17 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.workspace.Workspace;
 
-public class AssignWorkspaceStep<C extends PreviousExecutionContext, R extends Result> implements Step<C, R> {
-    private final Step<? super WorkspaceContext, ? extends R> delegate;
+public class MutateWorkspaceStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+    private final Step<? super MutableWorkspaceContext, ? extends R> delegate;
 
-    public AssignWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
+    public MutateWorkspaceStep(Step<? super MutableWorkspaceContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        Workspace workspace = work.getWorkspaceProvider().allocateWorkspace(context.getIdentity().getUniqueId());
-        return delegate.execute(work, new WorkspaceContext(context, workspace));
+        return context.getWorkspace()
+            .mutate(mutableWorkspaceLocation -> delegate.execute(work, new MutableWorkspaceContext(context, mutableWorkspaceLocation)));
     }
 }

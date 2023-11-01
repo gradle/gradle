@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,21 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.workspace.Workspace;
 
-public class AssignWorkspaceStep<C extends PreviousExecutionContext, R extends Result> implements Step<C, R> {
-    private final Step<? super WorkspaceContext, ? extends R> delegate;
+public class WorkspaceContext extends PreviousExecutionContext {
+    private final Workspace workspace;
 
-    public AssignWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
-        this.delegate = delegate;
+    public WorkspaceContext(PreviousExecutionContext parent, Workspace workspace) {
+        super(parent);
+        this.workspace = workspace;
     }
 
-    @Override
-    public R execute(UnitOfWork work, C context) {
-        Workspace workspace = work.getWorkspaceProvider().allocateWorkspace(context.getIdentity().getUniqueId());
-        return delegate.execute(work, new WorkspaceContext(context, workspace));
+    protected WorkspaceContext(WorkspaceContext parent) {
+        this(parent, parent.getWorkspace());
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
     }
 }
