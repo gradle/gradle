@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -29,28 +28,12 @@ import org.gradle.internal.Try
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
-import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
-import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.CachingResult
-import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
-import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.ChangeOutputsStep
-import org.gradle.internal.execution.steps.ExecuteStep
-import org.gradle.internal.execution.steps.IdentifyStep
-import org.gradle.internal.execution.steps.IdentityCacheStep
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
-import org.gradle.internal.execution.steps.PreCreateOutputParentsStep
-import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
-import org.gradle.internal.execution.steps.ResolveCachingStateStep
-import org.gradle.internal.execution.steps.ResolveChangesStep
-import org.gradle.internal.execution.steps.ResolveInputChangesStep
-import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.Step
-import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.steps.WorkDeterminedContext
 import org.gradle.internal.execution.steps.WorkspaceContext
@@ -63,7 +46,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
@@ -94,7 +76,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             fileSystemAccess.write(affectedOutputPaths) {}
         }
     }
-    def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
+    def buildId = UniqueId.generate()
+    def buildInvocationScopeId = new BuildInvocationScopeId(buildId)
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
@@ -130,29 +113,23 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
+    def problems = Stub(Problems)
 
     ExecutionEngine getExecutor() {
-        // @formatter:off
-        new DefaultExecutionEngine( Stub(Problems),
-            new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
-            new LoadPreviousExecutionStateStep<>(
-            new AssignWorkspaceStep<>(
-            new AlwaysExecuteWorkStep(
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
-            new ResolveCachingStateStep<>(buildCacheController, false,
-            new ResolveChangesStep<>(changeDetector,
-            new SkipUpToDateStep<>(
-            new StoreExecutionStateStep<>(
-            new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new ChangeOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))))
-        // @formatter:on
+        return TestExecutionEngineFactory.createExecutionEngine(
+            buildId,
+            buildCacheController,
+            buildOperationExecutor,
+            classloaderHierarchyHasher,
+            deleter,
+            changeDetector,
+            outputChangeListener,
+            outputSnapshotter,
+            overlappingOutputDetector,
+            problems,
+            validationWarningReporter,
+            virtualFileSystem
+        )
     }
 
     def "outputs are created"() {

@@ -42,6 +42,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":build-cache"))
     testFixturesImplementation(project(":snapshots"))
+    testFixturesImplementation(project(":problems"))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
