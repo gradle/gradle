@@ -20,6 +20,12 @@ import com.google.common.collect.ImmutableCollection;
 
 import javax.annotation.Nullable;
 
+/**
+ * A value collector implements some condition or transformation before values can be
+ * collected into a given collection. The collector itself is meant to be stateless, values are only
+ * added to the collection provided as a parameter in the add*() methods. Implementors must add the values to
+ * the collection (potentially transforming them first), or outright reject them.
+ */
 public interface ValueCollector<T> {
     void add(@Nullable T value, ImmutableCollection.Builder<T> dest);
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 interface CollectionSupplier<T, C extends Collection<? extends T>> extends ValueSupplier {
     Value<? extends C> calculateValue(ValueConsumer consumer);
@@ -24,4 +25,8 @@ interface CollectionSupplier<T, C extends Collection<? extends T>> extends Value
     CollectionSupplier<T, C> plus(Collector<T> collector);
 
     ExecutionTimeValue<? extends C> calculateExecutionTimeValue();
+
+    CollectionSupplier<T, C> keep(Predicate<T> filter);
+
+    CollectionSupplier<T, C> pruned();
 }

@@ -17,8 +17,10 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.gradle.api.Transformer;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
@@ -77,6 +79,11 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     HasMultipleValues<T> empty();
 
+    HasMultipleValues<T> prune();
+
+    //TODO-RC what would the difference to convention([]) be?
+    HasMultipleValues<T> emptyConvention();
+
     /**
      * Adds an element to the property value.
      *
@@ -113,6 +120,9 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      */
     void addAll(Iterable<? extends T> elements);
 
+    //TODO-RC WIP
+    void addAllToConvention(Iterable<? extends T> elements);
+
     /**
      * Adds zero or more elements to the property value.
      *
@@ -122,6 +132,14 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @param provider Provider of elements
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
+
+    //TODO-RC WIP
+    void addAllToConvention(Provider<? extends Iterable<? extends T>> provider);
+
+    HasMultipleValues<T> exclude(Predicate<T> filter);
+
+    //TODO-RC WIP
+    HasMultipleValues<T> excludeFromConvention(Predicate<T> filter);
 
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
@@ -140,6 +158,9 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @since 5.1
      */
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
+
+    //TODO-RC should remove
+    void modifyValue(Transformer<Iterable<T>, Iterable<T>> newExplicit);
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.

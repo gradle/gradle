@@ -24,6 +24,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
+import java.util.function.Predicate
+
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
@@ -1064,5 +1066,64 @@ The value of this property is derived from: <source>""")
 
         then:
         0 * _
+    }
+
+    def "may exclude elements from value"() {
+        given:
+        property.value(Providers.of(["1", "2", "3", "4"]))
+        property.exclude { it.toInteger() % 2 == 1 }
+
+        expect:
+        assertValueIs(["2", "4"])
+    }
+
+    def "may exclude elements via multiple filters from value"() {
+        given:
+        property.value(Providers.of(["1", "2", "3", "4", "5", "6", "8"]))
+        property.exclude { it.toInteger() % 2 == 1 }
+        property.exclude {it.toInteger() < 4 }
+        property.exclude Predicate.isEqual("6")
+
+        expect:
+        assertValueIs(["4", "8"])
+    }
+
+    def "prune skips future absent values "() {
+        given:
+        property.prune()
+        property.addAll(Providers.of(["1", "2"]))
+        property.addAll(Providers.notDefined())
+        property.addAll(Providers.of(["4"]))
+
+        expect:
+        assertValueIs(["1", "2", "4"])
+    }
+
+    def "can prune an absent value"() {
+        given:
+        property.set((Iterable) null)
+
+        expect:
+        !property.present
+
+        when:
+        property.prune()
+
+        then:
+        property.present
+    }
+
+    def "pruning does not change the past"() {
+        given:
+        property.addAll(Providers.of(["-1"]))
+        property.addAll(Providers.notDefined())
+        property.addAll(Providers.of(["0"]))
+        property.prune()
+        property.addAll(Providers.of(["1", "2"]))
+        property.addAll(Providers.notDefined())
+        property.addAll(Providers.of(["4"]))
+
+        expect:
+        assertValueIs(["-1", "1", "2", "4"])
     }
 }
