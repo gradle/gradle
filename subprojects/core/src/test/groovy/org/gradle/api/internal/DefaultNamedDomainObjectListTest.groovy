@@ -417,8 +417,15 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         filtered.index.asMap().size() == 1
         filtered.index.pendingAsMap.size() == 1
 
-        and:
+        expect: "list contains the right elements when iterated"
         filtered.asList() == ["realized2", "unrealized2"]
+
+        and: "unrealized element get realized"
+        container.index.asMap().size() == 4
+        container.index.pendingAsMap.size() == 2
+
+        filtered.index.asMap().size() == 2
+        filtered.index.pendingAsMap.size() == 1
     }
 
     def "can get filtered element by index"() {

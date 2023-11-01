@@ -377,8 +377,15 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         filtered.index.asMap().size() == 1
         filtered.index.pendingAsMap.size() == 1
 
-        and:
+        expect: "list contains the right elements when iterated"
         filtered.asList()*.name == ["realized2", "unrealized2"]
+
+        and: "unrealized element get realized"
+        container.index.asMap().size() == 4
+        container.index.pendingAsMap.size() == 2
+
+        filtered.index.asMap().size() == 2
+        filtered.index.pendingAsMap.size() == 1
     }
 
     static class Bean {
