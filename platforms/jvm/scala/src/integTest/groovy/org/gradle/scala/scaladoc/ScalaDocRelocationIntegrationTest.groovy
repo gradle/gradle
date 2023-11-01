@@ -33,7 +33,7 @@ class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegratio
 
     @Override
     protected void setupProjectInOriginalLocation() {
-        classes.scalaVersion = '2.12.2'
+        classes.scalaVersion = '2.12.18'
         executer.beforeExecute {
             // Scaladoc leaks file handles if this is not activated: https://github.com/scala/scala/pull/5592
             // This requires Scala 2.12.2
