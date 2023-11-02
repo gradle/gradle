@@ -65,6 +65,8 @@ dependencies {
     implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
+    implementation(libs.restrictedKotlin)
+    implementation(libs.futureKotlin("reflect"))
     implementation(libs.groovyAnt)
     implementation(libs.groovyAstbuilder)
     implementation(libs.groovyConsole)

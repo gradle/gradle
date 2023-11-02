@@ -37,6 +37,7 @@ dependencies {
 
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
+    implementation(libs.restrictedKotlin)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
