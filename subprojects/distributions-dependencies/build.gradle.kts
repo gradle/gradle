@@ -92,6 +92,7 @@ dependencies {
         api(libs.groovyTemplates)       { version { strictly(libs.groovyVersion) }}
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
+        api(libs.restrictedKotlin)      { version { strictly("1.0") } }
         api(libs.gson)                  { version { strictly("2.8.9") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
