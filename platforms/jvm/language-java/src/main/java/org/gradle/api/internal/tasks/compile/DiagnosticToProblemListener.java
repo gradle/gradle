@@ -45,12 +45,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         String resourceName = diagnostic.getSource().getName();
         Integer line = Math.toIntExact(diagnostic.getLineNumber());
         Integer column = Math.toIntExact(diagnostic.getColumnNumber());
+        Integer length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());
         Severity severity = mapKindToSeverity(diagnostic.getKind());
 
-        problems.createProblem(problem -> problem
+        problems.create(problem -> problem
             .label(label)
             .undocumented()
-            .location(resourceName, line, column)
+            .fileLocation(resourceName, line, column, length)
             .category("java", "compilation")
             .severity(severity)
             .details(message)
