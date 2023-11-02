@@ -65,7 +65,7 @@ object GrammarToTree {
         val singleChild =
             ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
                 ?: error("expected a single child")
-        
+
         elementAfterBarrier {
             when (singleChild.kind) {
                 loopStatement -> failNow(singleChild.unsupported(LoopStatement))
@@ -408,10 +408,9 @@ object GrammarToTree {
     fun stringLiteral(ast: Ast): ElementResult<Expr> {
         // TODO: support or properly reject string interpolation!
         return workaround("String literals are simple to parse right away", run {
-            val textTerminal =
-                ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }
-                    ?: error("The string literal AST must have a *Text terminal")
-            Element(Literal.StringLiteral(textTerminal.text, ast))
+            val text = ast.findSingleDescendant { it.kind == lineStringText || it.kind == multiLineStringText }?.text
+                ?: ""
+            Element(Literal.StringLiteral(text, ast))
         })
     }
 
@@ -534,8 +533,8 @@ object GrammarToTree {
                         rightExprs.zip(names).fold(checked(leftExpr)) { acc, (rExp, name) ->
                             val arg = checked(rExp)
                             FunctionCall(
-                                acc, 
-                                name, 
+                                acc,
+                                name,
                                 listOf(FunctionArgument.Positional(arg, infixFunctionCall)),
                                 infixOperation
                             )
