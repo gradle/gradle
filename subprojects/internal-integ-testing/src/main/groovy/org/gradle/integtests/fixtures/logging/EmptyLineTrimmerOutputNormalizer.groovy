@@ -27,8 +27,10 @@ import java.util.regex.Pattern
  * This exists to avoid having to measure out "prefix" whitespace indentation and match it exactly in your sample output.
  */
 class EmptyLineTrimmerOutputNormalizer implements OutputNormalizer {
+    private static final Pattern EMPTY_LINES = Pattern.compile(/^\s+$/, Pattern.MULTILINE);
+
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
-        Pattern.compile(/^\s+$/, Pattern.MULTILINE).matcher(commandOutput).replaceAll("")
+        EMPTY_LINES.matcher(commandOutput).replaceAll("")
     }
 }
