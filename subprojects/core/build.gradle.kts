@@ -66,6 +66,8 @@ dependencies {
     implementation(project(":input-tracking"))
 
     implementation(libs.groovy)
+    implementation(libs.restrictedKotlin)
+    implementation(libs.futureKotlin("reflect"))
     implementation(libs.groovyAnt)
     implementation(libs.groovyAstbuilder)
     implementation(libs.groovyConsole)

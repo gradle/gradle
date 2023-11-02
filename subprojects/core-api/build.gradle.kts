@@ -15,6 +15,8 @@ dependencies {
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))
 
+    implementation(libs.restrictedKotlin)
+    implementation(libs.futureKotlin("reflect"))
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
     implementation(libs.ant)
