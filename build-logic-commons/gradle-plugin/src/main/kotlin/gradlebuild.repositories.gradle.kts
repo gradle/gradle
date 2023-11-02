@@ -39,4 +39,7 @@ repositories {
         }
     }
     mavenCentral()
+
+
+    maven("https://jitpack.io") // FIXME: it is rather unsafe to get dependencies from this repo
 }
