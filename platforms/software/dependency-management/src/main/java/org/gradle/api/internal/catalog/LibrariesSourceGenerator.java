@@ -528,7 +528,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .label(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase()))
             .noLocation()
-            .category(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase())
+            .category("dependency-version-catalog", TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()))
             .severity(ERROR);
     }
 
