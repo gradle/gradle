@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
 }
@@ -6,7 +8,12 @@ group = "com.h0tk3y"
 version = "1.0-SNAPSHOT"
 
 kotlin {
+    compilerOptions { 
+        jvmTarget.set(JvmTarget.JVM_1_8)
+    }
 }
+
+java.targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     implementation(kotlin("reflect"))
