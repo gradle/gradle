@@ -1958,7 +1958,6 @@ Class <org.gradle.internal.classpath.ClassData> is not annotated (directly or vi
 Class <org.gradle.internal.classpath.ClassPath> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassPath.java:0)
 Class <org.gradle.internal.classpath.ClasspathBuilder$Action> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathBuilder.java:0)
 Class <org.gradle.internal.classpath.ClasspathBuilder$EntryBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathBuilder.java:0)
-Class <org.gradle.internal.classpath.ClasspathBuilder$ZipEntryBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathBuilder.java:0)
 Class <org.gradle.internal.classpath.ClasspathBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathBuilder.java:0)
 Class <org.gradle.internal.classpath.ClasspathEntryVisitor$Entry$CompressionMethod> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathEntryVisitor.java:0)
 Class <org.gradle.internal.classpath.ClasspathEntryVisitor$Entry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClasspathEntryVisitor.java:0)

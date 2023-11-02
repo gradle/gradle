@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -33,8 +32,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
-import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.classpath.InPlaceClasspathBuilder;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
@@ -104,8 +103,8 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         private final ClasspathElementTransformFactoryForAgent transformFactory;
 
         @Inject
-        public InstrumentationServices(Stat stat, TemporaryFileProvider temporaryFileProvider) {
-            this.transformFactory = new ClasspathElementTransformFactoryForAgent(new ClasspathBuilder(temporaryFileProvider), new ClasspathWalker(stat));
+        public InstrumentationServices(Stat stat) {
+            this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
         }
 
         public ClasspathElementTransformFactoryForAgent getTransformFactory() {
