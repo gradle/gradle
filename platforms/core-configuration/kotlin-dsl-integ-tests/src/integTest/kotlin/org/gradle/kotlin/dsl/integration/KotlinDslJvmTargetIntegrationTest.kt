@@ -26,6 +26,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.config.JvmTarget
 import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
@@ -183,6 +184,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
 
     private
-    fun currentJavaVersionOrLastKotlinSupported(): JavaVersion =
-        JavaVersion.current().takeIf { it <= JavaVersion.VERSION_21 } ?: JavaVersion.VERSION_21
+    fun currentJavaVersionOrLastKotlinSupported(): JavaVersion {
+        val maxVersion = JavaVersion.toVersion(JvmTarget.supportedValues().last().majorVersion)
+        return JavaVersion.current().takeIf { it <= maxVersion } ?: maxVersion
+    }
 }

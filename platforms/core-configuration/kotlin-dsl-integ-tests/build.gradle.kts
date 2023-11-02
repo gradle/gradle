@@ -14,6 +14,7 @@ dependencies {
     integTestImplementation(project(":model-core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
+    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
