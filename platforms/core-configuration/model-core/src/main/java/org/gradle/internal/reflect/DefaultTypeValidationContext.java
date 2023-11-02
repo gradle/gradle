@@ -53,7 +53,9 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR + MISSING_NORMALIZATION_ANNOTATION);
+    public static final String MISSING_NORMALIZATION_CATEGORY_DETAILS = "property" + SEPARATOR + "missing-normalization-annotation";
+    public static final DefaultProblemCategory MISSING_NORMALIZATION_CATEGORY = new DefaultProblemCategory(VALIDATION + SEPARATOR  + MISSING_NORMALIZATION_CATEGORY_DETAILS);
+
     public static boolean onlyAffectsCacheableWork(ProblemCategory problemCategory) {
         return MISSING_NORMALIZATION_CATEGORY.equals(problemCategory);
     }
