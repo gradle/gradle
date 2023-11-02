@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
-import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -87,23 +86,28 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         }
 
         if (realizeTasks) {
-            List<LaunchableGradleTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
+            List<LaunchableGradleProjectTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
             gradleProject.setTasks(tasks);
         }
 
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> collectTasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
+    private static List<LaunchableGradleProjectTask> collectTasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
         tasks.discoverTasks();
         tasks.realize();
 
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
-            .map(task -> buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task)
-                .setProject(owner)
-                .setBuildTreePath(getBuildTreePath(owner, task))).collect(toList());
+            .map(task -> buildTaskModel(owner, task)).collect(toList());
+    }
+
+    private static LaunchableGradleProjectTask buildTaskModel(DefaultGradleProject owner, Task task) {
+        LaunchableGradleProjectTask model = buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task);
+        model.setProject(owner)
+            .setBuildTreePath(getBuildTreePath(owner, task));
+        return model;
     }
 
     private static String getBuildTreePath(DefaultGradleProject owner, Task task) {

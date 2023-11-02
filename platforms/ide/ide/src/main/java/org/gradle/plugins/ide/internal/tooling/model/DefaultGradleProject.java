@@ -29,7 +29,7 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<LaunchableGradleTask> tasks = new LinkedList<>();
+    private List<LaunchableGradleProjectTask> tasks = new LinkedList<>();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
@@ -116,11 +116,11 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
             + '}';
     }
 
-    public Collection<LaunchableGradleTask> getTasks() {
+    public Collection<LaunchableGradleProjectTask> getTasks() {
         return tasks;
     }
 
-    public DefaultGradleProject setTasks(List<LaunchableGradleTask> tasks) {
+    public DefaultGradleProject setTasks(List<LaunchableGradleProjectTask> tasks) {
         this.tasks = tasks;
         return this;
     }
