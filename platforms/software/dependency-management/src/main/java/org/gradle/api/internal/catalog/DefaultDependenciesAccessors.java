@@ -432,7 +432,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputFileValueSupplier(
                     classPath,
-                    InputNormalizer.RUNTIME_CLASSPATH,
+                    InputNormalizer.COMPILE_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
