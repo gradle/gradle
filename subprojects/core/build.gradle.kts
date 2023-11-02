@@ -84,6 +84,8 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
+    implementation(libs.restrictedKotlin)
+    implementation(libs.futureKotlin("reflect"))
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.groovyTemplates)

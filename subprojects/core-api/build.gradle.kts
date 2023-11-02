@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":logging"))
 
+    implementation(libs.restrictedKotlin)
+    implementation(libs.futureKotlin("reflect"))
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
