@@ -39,7 +39,7 @@ import static org.gradle.util.Path.SEPARATOR;
 public class GradleProjectBuilder implements ToolingModelBuilder {
 
     /**
-     * When true, the builder won't realize the task graph, and the task list for every project in the hierarchy will be empty.
+     * When false, the builder won't realize the task graph, and the task list for every project in the hierarchy will be empty.
      */
     private final boolean realizeTasks;
 
