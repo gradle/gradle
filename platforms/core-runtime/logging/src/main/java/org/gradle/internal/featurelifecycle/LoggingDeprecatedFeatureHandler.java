@@ -35,6 +35,7 @@ import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.internal.DefaultGradleVersion;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +95,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                         ProblemBuilderDefiningLocation problemBuilderDefiningLocation = builder.label(usage.formattedMessage())
                             .documentedAt(usage.getDocumentationUrl());
                         return addPossibleLocation(diagnostics, problemBuilderDefiningLocation)
-                            .category(DEPRECATION, "generic_deprecation")
+                            // TODO (donat) we can further categorize deprecation warnings https://github.com/gradle/gradle/issues/26928
+                            .category(DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
                             .severity(WARNING);
                     }
                 })
