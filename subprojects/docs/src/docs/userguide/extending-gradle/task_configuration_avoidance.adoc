@@ -20,7 +20,10 @@ This chapter provides an introduction to "configuration avoidance" when dealing 
 [[sec:how_does_it_work]]
 == How does the configuration avoidance API work?
 
-In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed.  For example, when running a compile task, other unrelated tasks, like code quality, testing and publishing tasks, will not be executed, so any time spent creating and configuring those tasks is unnecessary.  The configuration avoidance API avoids configuring tasks if they will not be needed during the course of a build, which can have a significant impact on total configuration time.
+In a nutshell, the API allows builds to avoid the cost of creating and configuring tasks during Gradle's configuration phase when those tasks will never be executed.
+For example, when running a `compile` task, other unrelated tasks (such as `clean`, `test`, `javadocs`) will not be executed.
+
+The configuration avoidance API avoids configuring tasks if they will not be needed during the course of a build, which can have a significant impact on total configuration time.
 
 To avoid creating and configuring tasks, we say that a task is "registered" but not created.  When a task is in this state, it is known to the build, it can be configured, and references to it can be passed around, but the task object itself has not actually been created, and none of its configuration actions have been executed.  It will remain in this state until something in the build needs the instantiated task object (for instance if the task is executed on the command line or the task is a dependency of a task executed on the command line).  If the task object is never needed, then the task will remain in the registered state, and the cost of creating and configuring the task will be avoided.
 
