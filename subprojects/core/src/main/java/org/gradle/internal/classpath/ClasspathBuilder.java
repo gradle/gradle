@@ -84,7 +84,7 @@ public class ClasspathBuilder {
         void put(String name, byte[] content, CompressionMethod compressionMethod) throws IOException;
     }
 
-        public static class ZipEntryBuilder implements EntryBuilder {
+    private static class ZipEntryBuilder implements EntryBuilder {
         private final ZipArchiveOutputStream outputStream;
         private final Set<String> dirs = new HashSet<>();
 
