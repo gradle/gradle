@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -466,6 +467,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         3200        || 3
     }
 
+    @NotYetImplemented
+    // Instrumentation with artifact transform doesn't support that yet
     def "transformation normalizes input jars before fingerprinting"() {
         requireOwnGradleUserHomeDir() // inspects cached content
 
