@@ -34,6 +34,7 @@ import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentTracer
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ObjectReflection
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.ReflectionContext
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.reflect
+import org.antlr.v4.kotlinruntime.misc.ParseCancellationException
 import org.gradle.kotlin.dsl.execution.SchemaUtils.SchemaKeys.applyProperty
 import org.gradle.kotlin.dsl.execution.SchemaUtils.SchemaKeys.genericPluginType
 import org.gradle.kotlin.dsl.execution.SchemaUtils.SchemaKeys.idProperty
@@ -46,7 +47,11 @@ import kotlin.reflect.KClass
 
 internal
 fun tryInterpretRestrictedPluginsBlock(program: Program.Plugins): PluginsBlockInterpretation? {
-    val restrictedTree = restrictedLanguageTree(program.fragment.source.text)
+    val restrictedTree = try {
+        restrictedLanguageTree(program.fragment.source.text)
+    } catch (parseCancellationException: ParseCancellationException) {
+        return null
+    }
     if (restrictedTree.results.none { it is FailingResult }) {
         val resultFromRestrictedKotlin = pluginsBlockAnalysisSchema.resolve(restrictedTree)
         if (resultFromRestrictedKotlin.errors.isEmpty()) {
