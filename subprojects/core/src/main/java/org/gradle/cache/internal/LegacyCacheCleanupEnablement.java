@@ -35,17 +35,22 @@ public class LegacyCacheCleanupEnablement {
     public boolean isDisabledByProperty() {
         File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
         File gradleProperties = new File(gradleUserHomeDirectory, "gradle.properties");
+    
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
             String cleanup = properties.getProperty(CACHE_CLEANUP_PROPERTY);
+    
             if (cleanup != null) {
                 DeprecationLogger.deprecateAction("Disabling Gradle user home cache cleanup with the '" + CACHE_CLEANUP_PROPERTY + "' property")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "disabling_user_home_cache_cleanup")
                     .nagUser();
+    
                 return cleanup.equals("false");
             }
         }
+    
         return false;
     }
+    
 }

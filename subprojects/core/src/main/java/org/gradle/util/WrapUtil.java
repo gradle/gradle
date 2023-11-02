@@ -20,6 +20,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -141,8 +142,13 @@ public class WrapUtil {
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {
         logDeprecation(7);
-        Map<K, V> map = new HashMap<K, V>();
-        map.put(key, value);
+
+        Map<K, V> map = new ConcurrentHashMap<>();
+
+        if (key != null && value != null) {
+            map.put(key, value);
+        }
+
         return map;
     }
 
