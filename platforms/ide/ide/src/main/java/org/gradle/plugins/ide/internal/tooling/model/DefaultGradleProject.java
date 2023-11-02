@@ -25,6 +25,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.GradleProject} model.
+ */
 public class DefaultGradleProject implements Serializable, GradleProjectIdentity {
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
