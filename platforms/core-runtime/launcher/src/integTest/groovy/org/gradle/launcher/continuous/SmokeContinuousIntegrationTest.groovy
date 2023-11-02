@@ -571,7 +571,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds "a"
-        output.contains("Waiting for changes to input files... (ctrl-d to exit)\n")
+        output.endsWith("(ctrl-d to exit)\n")
     }
 
     @Requires(UnitTestPreconditions.Windows)
@@ -588,7 +588,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
         then:
         succeeds "a"
-        output.contains("(ctrl-d then enter to exit)\n")
+        output.endsWith("(ctrl-d then enter to exit)\n")
     }
 
     @Issue("GRADLE-3415")

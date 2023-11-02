@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.m8
 
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.logging.GroupedOutputFixture
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -170,11 +169,9 @@ project.logger.debug("debug logging");
         // Must replace both build result formats for cross compat
         return output
             .replaceAll(/Unable to list file systems to check whether they can be watched.*\n/, '')
-            .replaceAll(/> Progress:.*\n/, '')
             .replaceFirst(/Support for .* was deprecated.*\n/, '')
             .replaceFirst(/ in [ \dms]+/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
-            .replaceAll(GroupedOutputFixture.PLAIN_PROGRESS_REPORT_PATTERN, '')
     }
 
     void shouldNotContainProviderLogging(String output) {

@@ -24,14 +24,13 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
-import org.gradle.internal.logging.console.RichBuildStatusRenderer;
+import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.FlushConsoleListener;
-import org.gradle.internal.logging.console.PlainBuildStatusRenderer;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
@@ -280,7 +279,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputEventListener getConsoleChainWithDynamicStdout(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
         return throttled(
             new UserInputConsoleRenderer(
-                new RichBuildStatusRenderer(
+                new BuildStatusRenderer(
                     new WorkInProgressRenderer(
                         new BuildLogLevelFilterRenderer(
                             new GroupingProgressLogEventGenerator(consoleListener, new PrettyPrefixedLogHeaderFormatter(), verbose)
@@ -298,16 +297,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return throttled(
             new UserInputStandardOutputRenderer(
                 new BuildLogLevelFilterRenderer(
-                    new PlainBuildStatusRenderer(
-                        new GroupingProgressLogEventGenerator(
-                            outputListener,
-                            new PrettyPrefixedLogHeaderFormatter(),
-                            verbose
-                        )
+                    new GroupingProgressLogEventGenerator(
+                        outputListener,
+                        new PrettyPrefixedLogHeaderFormatter(),
+                        verbose
                     )
                 )
-            )
-        );
+        ));
     }
 
     private OutputEventListener throttled(OutputEventListener consoleChain) {
