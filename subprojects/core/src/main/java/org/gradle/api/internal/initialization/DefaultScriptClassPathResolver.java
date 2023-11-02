@@ -39,6 +39,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.cache.GlobalCache;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -47,8 +48,12 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
@@ -66,13 +71,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("instrumented", Boolean.class);
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
+    private final List<GlobalCache> globalCaches;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
-        CachedClasspathTransformer classpathTransformer
+        CachedClasspathTransformer classpathTransformer,
+        List<GlobalCache> globalCaches
     ) {
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
+        this.globalCaches = globalCaches;
     }
 
     @Override
@@ -103,7 +111,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
     }
 
-    private static FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
         // Handle projects as files, so we cache them globally
         ArtifactView projectsView = artifactView(classpathConfiguration, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
         DefaultSelfResolvingDependency projectDependencies = new DefaultSelfResolvingDependency(
@@ -131,7 +139,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
-                spec.parameters(parameters -> parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles()));
+                spec.parameters(parameters -> {
+                    parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles());
+                    parameters.getCacheLocations().set(getSerializableGlobalCaches());
+                });
             }
         );
 
@@ -146,6 +157,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return instrumentedClasspath.plus(instrumentedProjectsOnlyClasspath);
     }
 
+    private List<GlobalCache> getSerializableGlobalCaches() {
+        return globalCaches.stream()
+            .map(SerializableGlobalCache::new)
+            .collect(Collectors.toList());
+    }
+
     private static ArtifactView artifactView(Configuration configuration, Action<? super ArtifactView.ViewConfiguration> configAction) {
         return configuration.getIncoming().artifactView(configAction);
     }
@@ -156,5 +173,20 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             return !ignoredClasspathNotations.contains(classPathNotation);
         }
         return !(componentId instanceof ProjectComponentIdentifier);
+    }
+
+    private static class SerializableGlobalCache implements GlobalCache, Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final List<File> cacheRoots;
+
+        public SerializableGlobalCache(GlobalCache other) {
+            this.cacheRoots = other.getGlobalCacheRoots();
+        }
+
+        @Override
+        public List<File> getGlobalCacheRoots() {
+            return cacheRoots;
+        }
     }
 }
