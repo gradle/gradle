@@ -18,6 +18,7 @@ package org.gradle.integtests.internal.component
 
 import org.gradle.api.internal.artifacts.transform.AmbiguousArtifactTransformException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.component.AbstractVariantSelectionException
 import org.gradle.internal.component.AmbiguousArtifactVariantsException
 import org.gradle.internal.component.AmbiguousGraphVariantsException
@@ -52,6 +53,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
     }
 
+    @ToBeFixedForConfigurationCache
     def "demonstrate ambiguous graph variant selection failure for externalDep"() {
         ambiguousGraphVariantForExternalDep.prepare()
 
@@ -76,6 +78,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         assertFullMessageCorrect("Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'")
     }
 
+    @ToBeFixedForConfigurationCache
     def "demonstrate no matching graph variants selection failure for externalDep"() {
         noMatchingGraphVariantsForExternalDep.prepare()
 
@@ -677,10 +680,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private String forceConsumerResolution() {
         return """
-            val forceResolution by tasks.registering {
-                inputs.files(configurations.getByName("resolveMe"))
+            abstract class ForceResolution : DefaultTask() {
+                @get:Input
+                abstract val resolvedFiles: ConfigurableFileCollection
+            }
+
+            val forceResolution by tasks.registering(ForceResolution::class) {
+                resolvedFiles.from(configurations.getByName("resolveMe"))
                 doLast {
-                    inputs.files.files.forEach { println(it) }
+                    resolvedFiles.forEach { println(it) }
                 }
             }
         """
