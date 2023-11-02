@@ -18,7 +18,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     implementation(kotlin("reflect"))
     
-    implementation("kotlinx.ast:parser-antlr-kotlin:0.1.0")
+    api("kotlinx.ast:parser-antlr-kotlin:0.1.0")
     implementation("kotlinx.ast:grammar-kotlin-parser-antlr-kotlin:0.1.0")
     
     testImplementation(kotlin("test-junit5"))
