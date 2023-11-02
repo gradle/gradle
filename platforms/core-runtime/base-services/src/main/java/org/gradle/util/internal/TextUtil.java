@@ -368,4 +368,8 @@ public class TextUtil {
         }
         return txt + ".";
     }
+
+    public static String screamingSnakeToKebabCase(String text) {
+        return toLowerCaseLocaleSafe(text).replaceAll("_", "-");
+    }
 }
