@@ -785,6 +785,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     from artifacts.artifactFiles
                     into "\${buildDir}/libs"
                     doLast {
+                         println "ids: " + artifacts.collect { it.id.displayName }
                         println "files: " + artifacts.collect { it.file.name }
                         println "variants: " + artifacts.collect { it.variant.attributes }
                         println "artifacts: " + artifacts.collect { it.file.name + " (" + it.id.componentIdentifier + ")" }
@@ -829,6 +830,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":app:resolve")
 
         and:
+        // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
+        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project :lib)]")
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         // Should belong to same component as the originals
         outputContains("artifacts: [lib1.jar.blue.red (project :lib)]")

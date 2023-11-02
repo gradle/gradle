@@ -25,6 +25,8 @@ import java.util.Objects;
 /**
  * Identifies the transformed artifact of a component. The original file name is tracked in order to guarantee uniqueness,
  * as artifact transformations may result in multiple artifacts with the same file name.
+ *
+ * <p>The original file name should refer to the name of the artifact at the beginning of the transform chain.</p>
  */
 public class TransformedComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentId;
@@ -57,6 +59,11 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
 
     @Override
     public String getCapitalizedDisplayName() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String toString() {
         return getDisplayName();
     }
 

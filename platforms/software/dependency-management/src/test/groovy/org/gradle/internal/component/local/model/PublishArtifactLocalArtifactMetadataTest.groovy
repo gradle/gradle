@@ -18,6 +18,9 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.publish.ImmutablePublishArtifact
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 /**
@@ -30,26 +33,20 @@ class PublishArtifactLocalArtifactMetadataTest extends Specification {
         def metadata = new PublishArtifactLocalArtifactMetadata(componentId, publishArtifact)
 
         expect:
-        metadata.getDisplayName() == "name-1234.jar (foo)"
+        metadata.getDisplayName() == "name-1234.jar (foo:foo:foo)"
     }
 
-    def "are equal when publish artifact and componentId are equal"() {
-        def publishArtifact = newPublishArtifact("name", "type", "ext", "classifier", "name-1234.jar")
-        def componentId = newComponentId("foo")
-
+    def "equals and hash code differentiate between same and different instances"() {
         when:
-        def metadata = new PublishArtifactLocalArtifactMetadata(componentId, publishArtifact)
-        def same = new PublishArtifactLocalArtifactMetadata(componentId, publishArtifact)
+        def metadata = new PublishArtifactLocalArtifactMetadata(newComponentId("foo"), newPublishArtifact("name", "type", "ext", "classifier", "name-1234.jar"))
+        def same = new PublishArtifactLocalArtifactMetadata(newComponentId("foo"), newPublishArtifact("name", "type", "ext", "classifier", "name-1234.jar"))
 
         then:
         metadata == same
 
         when:
-        def differentPublishArtifact = newPublishArtifact("name", "type", "ext", "classifier", "name-1234.jar")
-        def differentComponentId = newComponentId("bar")
-
-        def different1 = new PublishArtifactLocalArtifactMetadata(componentId, differentPublishArtifact)
-        def different2 = new PublishArtifactLocalArtifactMetadata(differentComponentId, publishArtifact)
+        def different1 = new PublishArtifactLocalArtifactMetadata(newComponentId("foo"), newPublishArtifact("name", "type", "ext", "classifier", "different"))
+        def different2 = new PublishArtifactLocalArtifactMetadata(newComponentId("bar"), newPublishArtifact("name", "type", "ext", "classifier", "name-1234.jar"))
 
         then:
         metadata != different1
@@ -59,18 +56,10 @@ class PublishArtifactLocalArtifactMetadataTest extends Specification {
     }
 
     ComponentIdentifier newComponentId(String id) {
-        Mock(ComponentIdentifier) {
-            getDisplayName() >> id
-        }
+        DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(id, id), id);
     }
 
     PublishArtifact newPublishArtifact(String name, String type, String extension, String classifier, String fileName) {
-        Mock(PublishArtifact) {
-            getName() >> name
-            getExtension() >> extension
-            getType() >> type
-            getClassifier() >> classifier
-            getFile() >> new File(fileName)
-        }
+        new ImmutablePublishArtifact(name, extension, type, classifier, new File(fileName))
     }
 }
