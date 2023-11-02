@@ -24,10 +24,15 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.cache.GlobalCache;
+import org.gradle.cache.GlobalCacheLocations;
+import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -41,6 +46,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 
 import static org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform.InstrumentArtifactTransformParameters;
 
@@ -51,6 +57,9 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
         ConfigurableFileCollection getClassHierarchy();
+
+        @Internal
+        ListProperty<GlobalCache> getCacheLocations();
     }
 
     @Inject
@@ -75,14 +84,19 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
         File outputFile = outputs.file(instrumentedJarName);
-
-        // TODO: Copy in a separate transform
-        File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
-        GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
-
         ClasspathElementTransformFactoryForAgent transformFactory = instrumentationServices.getTransformFactory();
         ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
         transform.transform(outputFile);
+
+        List<GlobalCache> globalCaches = getParameters().getCacheLocations().get();
+        GlobalCacheLocations globalCacheRoots = new DefaultGlobalCacheLocations(globalCaches);
+        if (globalCacheRoots.isInsideGlobalCache(getInputAsFile().getAbsolutePath())) {
+            // The global caches are additive only, so we can use it directly since it shouldn't be deleted or changed during the build.
+            outputs.file(getInput());
+        } else {
+            File copyOfOriginalFile = outputs.file(getInputAsFile().getName());
+            GFileUtils.copyFile(getInputAsFile(), copyOfOriginalFile);
+        }
     }
 
     static class InstrumentationServices {
