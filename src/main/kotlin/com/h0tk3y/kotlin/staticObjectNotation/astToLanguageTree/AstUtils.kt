@@ -14,14 +14,16 @@ fun Ast.child(kind: AstKind): Ast = findChild { it.kind == kind } ?: error("AST 
 fun Ast.hasChild(predicate: (Ast) -> Boolean): Boolean = findChild(predicate) != null
 fun Ast.hasChild(kind: AstKind) = hasChild { it.kind == kind }
 
-fun Ast.singleChild() = childrenOrEmpty.singleOrNull() ?: error("expected a single child")
-fun Ast.findSingleChild(predicate: (Ast) -> Boolean): Ast? = childrenOrEmpty.singleOrNull { it != this && predicate(it) }
-fun Ast.findSingleChild(kind: AstKind) = this@findSingleChild.findSingleChild { it.kind == kind }
+fun Ast.singleChild() = childrenOrEmpty.singleOrNull { !it.isWs() } ?: error("expected a single child")
+fun Ast.findSingleChild(predicate: (Ast) -> Boolean): Ast? = childrenOrEmpty.singleOrNull { it != this && !it.isWs() && predicate(it) }
+fun Ast.findSingleChild(kind: AstKind) = this@findSingleChild.findSingleChild { !it.isWs() && it.kind == kind }
 
 fun Ast.children(predicate: (Ast) -> Boolean) = childrenOrEmpty.filter(predicate)
 fun Ast.children(kind: AstKind): List<Ast> = childrenOrEmpty.filter { it.kind == kind }
 
-fun Ast.flattenTo(predicate: (Ast) -> Boolean): Ast? = 
+fun Ast.isWs() = kind == AstKind.whitespace || kind == AstKind.newline
+
+fun Ast.flattenTo(predicate: (Ast) -> Boolean): Ast? =
     traverse().find {
         when {
             it != this && predicate(it) -> true
