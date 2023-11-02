@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,14 +39,26 @@ import static org.gradle.util.Path.SEPARATOR;
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
 
+    /**
+     * When true, the builder won't realize the task graph, and the task list for every project in the hierarchy will be empty.
+     */
+    private final boolean realizeTasks;
+
+    public GradleProjectBuilder(boolean realizeTasks) {
+        this.realizeTasks = realizeTasks;
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
 
+    /**
+     * Builds a hierarchical model of the root project, regardless of the target project parameter.
+     */
     @Override
     public Object buildAll(String modelName, Project project) {
-        return buildHierarchy(project.getRootProject());
+        return buildAll(project);
     }
 
     public DefaultGradleProject buildAll(Project project) {
@@ -71,39 +82,19 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
-        /*
-            Internal system property to investigate model loading performance in IDEA/Android Studio.
-            The model loading can be altered with the following values:
-              - "omit_all_tasks": The model builder won't realize the task graph. The returned model will contain an empty task list.
-              - "skip_task_graph_realization":  The model builder won't realize the task graph. The returned model will contain artificial tasks created from the task names.
-              - "skip_task_serialization":  The model builder will realize the task graph but won't send it to the client.
-              - "unmodified" (or any other value): The model builder will run unchanged.
-         */
-        String projectOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "unmodified");
-        List<LaunchableGradleTask> tasks = tasks(gradleProject, (TaskContainerInternal) project.getTasks(), projectOptions);
-
-        if (!"skip_task_serialization".equals(projectOptions)) {
-            gradleProject.setTasks(tasks);
-        }
-
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
+        }
+
+        if (realizeTasks) {
+            List<LaunchableGradleTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
+            gradleProject.setTasks(tasks);
         }
 
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultGradleProject owner, TaskContainerInternal tasks, String projectOptions) {
-        if ("omit_all_tasks".equals(projectOptions)) {
-            return ImmutableList.of();
-        }
-        if ("skip_task_graph_realization".equals(projectOptions)) {
-            return tasks.getNames().stream()
-                .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
-                    .setBuildTreePath(owner.getBuildTreePath() + SEPARATOR + taskName))
-                .collect(toList());
-        }
-
+    private static List<LaunchableGradleTask> collectTasks(DefaultGradleProject owner, TaskContainerInternal tasks) {
         tasks.discoverTasks();
         tasks.realize();
 
@@ -124,16 +115,12 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return ownerBuildTreePath + buildTreePath;
     }
 
-    public static <T extends LaunchableGradleTask> T buildFromTaskName(T target, DefaultProjectIdentifier projectIdentifier, String taskName) {
-        String taskPath = projectIdentifier.getProjectPath() + SEPARATOR + taskName;
-        target.setPath(taskPath)
-            .setName(taskName)
-            .setGroup("undefined")
-            .setDisplayName(taskPath)
-            .setDescription("")
-            .setPublic(true)
-            .setProjectIdentifier(projectIdentifier);
-
-        return target;
+    public static boolean shouldRealizeTasks() {
+        // This property was initially added in Gradle 6.1 to allow Android Studio troubleshoot sync performance issues.
+        // As Android Studio wanted to avoid task realization during sync, it started using "omit_all_tasks" option in production.
+        // Gradle should support this option at least until an alternative solution exists and Android Studio has migrated to it
+        String builderOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "");
+        boolean avoidTaskRealization = "omit_all_tasks".equals(builderOptions);
+        return !avoidTaskRealization;
     }
 }

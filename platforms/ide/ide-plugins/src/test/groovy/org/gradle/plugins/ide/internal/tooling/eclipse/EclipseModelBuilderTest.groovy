@@ -310,7 +310,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     private def createEclipseModelBuilder() {
-        def gradleProjectBuilder = new GradleProjectBuilder()
+        def gradleProjectBuilder = new GradleProjectBuilder(true)
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
             getUniqueName(_ as Project) >> { Project p -> p.getName() }
         }
