@@ -136,20 +136,18 @@ public class WrapUtil {
         }
         return Collections.synchronizedList(coll);
     }
-    
+
 
     /**
      * Wraps the given key and value in a mutable unordered map.
      */
     public static <K, V> Map<K, V> toMap(K key, V value) {
         logDeprecation(7);
-
         Map<K, V> map = new ConcurrentHashMap<>();
 
         if (key != null && value != null) {
             map.put(key, value);
         }
-
         return map;
     }
 
@@ -159,5 +157,4 @@ public class WrapUtil {
         logDeprecation(7);
         return items;
     }
-
 }
