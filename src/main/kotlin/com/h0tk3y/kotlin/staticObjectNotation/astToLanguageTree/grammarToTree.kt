@@ -62,7 +62,10 @@ object GrammarToTree {
         collectingFailure(ast.findChild(label)?.let { ast.unsupportedBecause(it, LabelledStatement) })
         collectingFailure(ast.findChild(annotation)?.let { ast.unsupportedBecause(it, AnnotationUsage) })
 
-        val singleChild = ast.childrenOrEmpty.singleOrNull() ?: error("expected a single child")
+        val singleChild =
+            ast.childrenOrEmpty.singleOrNull { it.kind != label && it.kind != annotation && it.kind != whitespace }
+                ?: error("expected a single child")
+        
         elementAfterBarrier {
             when (singleChild.kind) {
                 loopStatement -> failNow(singleChild.unsupported(LoopStatement))

@@ -1,6 +1,5 @@
 package com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree
 
-import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.*
 import com.h0tk3y.kotlin.staticObjectNotation.astToLanguageTree.UnsupportedLanguageFeature.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -45,7 +44,10 @@ class RejectedLanguageFeaturesTest {
             { rejects("a.b.c[1] = 1") },
             { rejects("a[b].c = 1") },
             { rejects("a.b.c()[1] = 1") },
-            { rejects("a.b[a[b]].c = 1") }
+            { rejects("a.b[a[b]].c = 1") },
+            { rejects("a = b[1]") },
+            { rejects("a = b[1][2]") },
+            { rejects("a = b[b[1]]") }
         )
     }
 
@@ -90,6 +92,27 @@ class RejectedLanguageFeaturesTest {
             { assertTrue { parse("interface A { }").single().isUnsupported<TypeDeclaration>() } },
             { assertTrue { parse("sealed interface A { }").single().isUnsupported<TypeDeclaration>() } },
             { assertTrue { parse("typealias A = Unit").single().isUnsupported<TypeDeclaration>() } },
+        )
+    }
+    
+    @Test
+    fun `rejects function declarations until they are supported`() { // TODO remove this
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(FunctionDeclaration, code)
+        assertAll(
+            { rejects("fun f() { }") },
+            { rejects("f { fun local() { } }") },
+            { rejects("abstract fun f() { }") },
+        )
+    }
+    
+    @Test
+    fun `rejects annotation usages`() {
+        fun rejects(@Language("kts") code: String) = rejectsAndReportsFeature(AnnotationUsage, code)
+        assertAll(
+            { rejects("@A val x = 1") },
+            { rejects("@A b { }") },
+            { rejects("b(@A x)") },
+            { rejects("b { @A f() }") },
         )
     }
 
