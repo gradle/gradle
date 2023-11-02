@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.internal.classpath
 
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-class BuildClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
+class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
