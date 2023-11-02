@@ -681,7 +681,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     private String forceConsumerResolution() {
         return """
             abstract class ForceResolution : DefaultTask() {
-                @get:Input
+                @get:InputFiles
                 abstract val resolvedFiles: ConfigurableFileCollection
             }
 
