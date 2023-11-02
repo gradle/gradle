@@ -40,12 +40,13 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyE
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.InternalTransformer;
+import org.gradle.internal.component.ResolutionFailureHandler;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -132,27 +133,28 @@ public class DependencyInsightReporter {
             UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
             Throwable failure = unresolved.getFailure();
             DefaultSection failures = new DefaultSection("Failures");
-            Set<String> uniqueResolutions = new HashSet<>();
+            LinkedHashSet<String> uniqueResolutions = new LinkedHashSet<>();
             String errorMessage = collectErrorMessages(failure, alreadyReportedErrors, uniqueResolutions);
             failures.addChild(new DefaultSection(errorMessage));
             sections.add(failures);
+
         }
     }
 
-    private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors, Set<String> uniqueResolution) {
+    private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolution) {
         TreeFormatter formatter = new TreeFormatter();
         collectErrorMessages(failure, formatter, alreadyReportedErrors, uniqueResolution);
         return formatter.toString();
     }
 
-    private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors, Set<String> uniqueResolutions) {
+    private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors, LinkedHashSet<String> uniqueResolutions) {
         if (alreadyReportedErrors.add(failure)) {
             formatter.node(failure.getMessage());
 
             Throwable cause = failure.getCause();
             if (failure instanceof ResolutionProvider && cause != failure){
                 ((ResolutionProvider) failure).getResolutions().forEach(resolution -> {
-                    if (uniqueResolutions.add(resolution)) {
+                    if (!resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX) && uniqueResolutions.add(resolution)) {
                         formatter.node(resolution);
                     }
                 });

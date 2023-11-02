@@ -29,7 +29,6 @@ import org.gradle.internal.component.NoMatchingArtifactVariantsException
 import org.gradle.internal.component.NoMatchingGraphVariantsException
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
 /**
@@ -190,8 +189,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dependencyInsight", "--configuration", "compileClasspath", "--dependency", "gson"
 
         String basicOutput = """   Failures:
-      - Could not resolve com.google.code.gson:gson:2.8.5.
-        Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm."""
+      - Could not resolve com.google.code.gson:gson:2.8.5."""
         String fullOutput = "          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:"
 
         outputContains(basicOutput)

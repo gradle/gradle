@@ -78,7 +78,8 @@ import static org.gradle.internal.exceptions.StyledException.style;
  * to the variant selection process.
  */
 public class ResolutionFailureHandler {
-    private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
+    public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
+
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
