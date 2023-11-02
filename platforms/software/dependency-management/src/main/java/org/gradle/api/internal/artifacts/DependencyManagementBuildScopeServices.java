@@ -85,7 +85,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -378,8 +377,8 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry, ProviderFactory providerFactory) {
-        return new ResolutionFailureHandler(problems, documentationRegistry, providerFactory);
+    ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry) {
+        return new ResolutionFailureHandler(problems, documentationRegistry);
     }
 
     GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {

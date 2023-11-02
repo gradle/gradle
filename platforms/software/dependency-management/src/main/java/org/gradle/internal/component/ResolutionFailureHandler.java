@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -41,7 +40,6 @@ import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
@@ -80,16 +78,17 @@ import static org.gradle.internal.exceptions.StyledException.style;
  * to the variant selection process.
  */
 public class ResolutionFailureHandler {
-    private static final String FAILURE_TYPE = "Variant Selection Failure";
+    private static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
+    private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
+    private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
+    private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
 
-    @VisibleForTesting
-    public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
-    @VisibleForTesting
-    public static final String INCOMPATIBLE_VARIANTS_PREFIX = "See the documentation on incompatible variant errors at ";
-
+    @SuppressWarnings("FieldCanBeLocal")
+    private final Problems problemsService;
     private final DocumentationRegistry documentationRegistry;
 
-    public ResolutionFailureHandler(Problems problemsService, DocumentationRegistry documentationRegistry, ProviderFactory providerFactory) {
+    public ResolutionFailureHandler(Problems problemsService, DocumentationRegistry documentationRegistry) {
+        this.problemsService = problemsService;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -270,8 +269,8 @@ public class ResolutionFailureHandler {
     ) {
         String message = buildAmbiguousGraphVariantsFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
         AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
+        e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-ambiguity" + "."));
         addBasicResolution(e);
-        e.addResolution("See the documentation on ambiguity errors at " + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-ambiguity" + "."));
         return e;
     }
 
@@ -285,8 +284,8 @@ public class ResolutionFailureHandler {
     ) {
         String message = buildIncompatibleGraphVariantsFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
         IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
-        addBasicResolution(e);
         e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-incompatible") + ".");
+        addBasicResolution(e);
         return e;
     }
 
@@ -300,7 +299,7 @@ public class ResolutionFailureHandler {
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
         addBasicResolution(e);
-        e.addResolution("See the documentation on no matching variant errors at " + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-no-match" + "."));
+        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-no-match" + "."));
         return e;
     }
 
