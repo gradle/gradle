@@ -3,16 +3,13 @@
 [compile]
 compiling source
 
-
 > Task :testCompile
 [testCompile]
 compiling test source
 
-
 > Task :test
 [test]
 running unit tests
-
 
 > Task :build
 [build]
