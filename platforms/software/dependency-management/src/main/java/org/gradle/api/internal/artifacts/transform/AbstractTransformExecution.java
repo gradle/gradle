@@ -34,6 +34,7 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -43,6 +44,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
@@ -61,7 +63,7 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
+    protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
     protected static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
@@ -117,6 +119,15 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     public Optional<String> getBuildOperationWorkType() {
         return Optional.of("TRANSFORM");
     }
+
+    @Override
+    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(identityInputs, identityFileInputs);
+        emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
+        return transformWorkspaceIdentity;
+    }
+
+    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
@@ -239,9 +250,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             subject.getInitialComponentIdentifier()));
     }
 
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    public void visitRegularInputs(InputVisitor visitor) {
+    protected void visitInputArtifact(InputVisitor visitor) {
         visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
             new InputFileValueSupplier(
                 inputArtifactProvider,

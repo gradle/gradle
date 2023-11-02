@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.test.fixtures.file.TestFile
-
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -77,8 +75,8 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
 
-        outputContains("Transformed artifact: buildB-1.0.jar.xform (project :buildB), location: ${expectedWorkspaceLocation(buildB)}")
-        outputContains("Transformed artifact: buildC-1.0.jar.xform (project :buildC), location: ${expectedWorkspaceLocation(buildC)}")
+        outputContains("Transformed artifact: buildB-1.0.jar.xform (project :buildB)")
+        outputContains("Transformed artifact: buildC-1.0.jar.xform (project :buildC)")
         output.count("Transforming") == 2
     }
 
@@ -135,10 +133,5 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(':buildB', ':lib:jar')
         assertTaskExecuted(':buildB', ':app:resolve')
         assertTaskExecuted(':', ':run')
-    }
-
-
-    private String expectedWorkspaceLocation(TestFile includedBuild) {
-        includedBuild.file("build/.transforms")
     }
 }
