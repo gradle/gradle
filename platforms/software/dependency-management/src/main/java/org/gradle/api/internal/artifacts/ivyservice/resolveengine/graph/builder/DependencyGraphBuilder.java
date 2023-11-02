@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -93,6 +94,7 @@ public class DependencyGraphBuilder {
     private final VersionParser versionParser;
     private final ResolutionConflictTracker conflictTracker;
     private final GraphVariantSelector variantSelector;
+    private final DocumentationRegistry documentationRegistry;
 
     final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
     final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -113,7 +115,8 @@ public class DependencyGraphBuilder {
                                   Comparator<Version> versionComparator,
                                   ComponentIdGenerator idGenerator,
                                   VersionParser versionParser,
-                                  GraphVariantSelector variantSelector
+                                  GraphVariantSelector variantSelector,
+                                  DocumentationRegistry documentationRegistry
     ) {
         this.idResolver = componentIdResolver;
         this.metaDataResolver = componentMetaDataResolver;
@@ -133,6 +136,7 @@ public class DependencyGraphBuilder {
         this.versionParser = versionParser;
         this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
         this.variantSelector = variantSelector;
+        this.documentationRegistry = documentationRegistry;
     }
 
     public void resolve(
@@ -398,11 +402,11 @@ public class DependencyGraphBuilder {
         if (!incomingRootEdges.isEmpty()) {
             String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
             DeprecationLogger.deprecate(
-                String.format(
-                    "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
-                    "Depending on the resolved configuration in this manner",
-                    rootNodeName
-                ))
+                    String.format(
+                        "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
+                            "Depending on the resolved configuration in this manner",
+                        rootNodeName
+                    ))
                 .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")
