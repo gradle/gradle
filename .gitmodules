@@ -1,0 +1,3 @@
+[submodule "kotlin-static-object-notation"]
+	path = kotlin-static-object-notation
+	url = https://github.com/h0tk3y/kotlin-static-object-notation

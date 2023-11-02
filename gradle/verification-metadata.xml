@@ -82,10 +82,6 @@
          <trusted-key id="0a123c1ed3f13a6a0140e166c71fb765cd9de313" group="org.apache.ant"/>
          <trusted-key id="0cb5871fb7bf3b351614bbf6ca85ffe638d4407a" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="0e18eae07b7774eac5db3f2113bb90ce8eafbe37" group="com.microsoft.playwright"/>
-         <trusted-key id="7b79add11f8a779fe90fd3d0893a028475557671">
-            <trusting group="com.gradle"/>
-            <trusting group="org.gradle"/>
-         </trusted-key>
          <trusted-key id="120d6f34e627ed3a772ebbfe55c7e5e701832382" group="org.yaml" name="snakeyaml"/>
          <trusted-key id="160a7a9cf46221a56b06ad64461a804f2609fd89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079fe63e31c938f10f0df21d1d0a3c384" group="com.google.inject" name="guice" version="4.2.3"/>
@@ -162,6 +158,7 @@
          <trusted-key id="5989baf76217b843d66be55b2d0e1fb8fe4b68b4" group="org.eclipse.jetty"/>
          <trusted-key id="59b06224fd8912e36603be79fefe78456eddc34a" group="io.mockk"/>
          <trusted-key id="5b7f3605a8ce471a9ca8db7ec84125c13bf6f2f2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
+         <trusted-key id="5cba19e56141e78d54bf716f08a4a4958d61fc3d" group="io.kotest"/>
          <trusted-key id="5ce325996a35213326ae2c68912d2c0eccda55c0" group="com.google.errorprone" name="error_prone_annotations"/>
          <trusted-key id="5de533cb43daf8bc3e372283e7ae839cd7c58886" group="org.eclipse.jetty"/>
          <trusted-key id="5f55943e13d49059d3f342777186b06e1ed139e7" group="org.apache.lucene"/>
@@ -179,9 +176,17 @@
          <trusted-key id="70cd19bfd9f6c330027d6f260315bfb7970a144f" group="com.sun.xml.bind"/>
          <trusted-key id="7616eb882daf57a11477aaf559a252fb1199d873" group="com.google.code.findbugs"/>
          <trusted-key id="76e94e8ff0ab5af3b6f8366972fefd1572eb75e1" group="org.spockframework"/>
+         <trusted-key id="7b79add11f8a779fe90fd3d0893a028475557671">
+            <trusting group="com.gradle"/>
+            <trusting group="org.gradle"/>
+         </trusted-key>
          <trusted-key id="7c669810892cbd3148fa92995b05ccde140c2876" group="org.eclipse.jgit" name="org.eclipse.jgit"/>
          <trusted-key id="7faa0f2206de228f0db01ad741321490758aad6f" group="org.codehaus.groovy"/>
          <trusted-key id="829d279ba9a3c503eb98a0e53c48f45a0e97af7e" group="org.gebish"/>
+         <trusted-key id="842afb86375d805422835bfd82b5574242c20d6f">
+            <trusting group="com.tunnelvisionlabs"/>
+            <trusting group="org.antlr"/>
+         </trusted-key>
          <trusted-key id="8446b9e902a3f3ddee711fdb8e26ff248bc7aead">
             <trusting group="com.github.jnr"/>
             <trusting group="com.headius"/>
@@ -193,6 +198,7 @@
          </trusted-key>
          <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61">
             <trusting group="com.diffplug.durian"/>
+            <trusting group="com.github.ajalt"/>
             <trusting group="com.github.javaparser"/>
             <trusting group="info.picocli"/>
             <trusting group="io.github.http-builder-ng"/>
@@ -251,6 +257,7 @@
          </trusted-key>
          <trusted-key id="c9a503282182ec4ecdb914ea102e05d8da6c286d" group="com.sun.xml.bind"/>
          <trusted-key id="cacfbd4755a2fc78709bdd92be096e29edb8d141" group="net.sf.proguard"/>
+         <trusted-key id="cb3190ca7842439e57f3712e44ce7bf2825ea2cd" group="com.ibm.icu" name="icu4j"/>
          <trusted-key id="cc4483cd6a3eb2939b948667a1b4460d8ba7b9af" group="org.mockito" name="mockito-core"/>
          <trusted-key id="cd5464315f0b98c77e6e8ecd9daadc1c9fcc82d0">
             <trusting group="commons-cli"/>
@@ -270,6 +277,7 @@
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
+         <trusted-key id="d790f72ea8fd39551012b62dcf9f3090ce4cb752" group="org.abego.treelayout" name="org.abego.treelayout.core"/>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="db467d22a2666d061fdd120db5bd4591883d638c" group="com.tngtech.archunit"/>
          <trusted-key id="dc98224c6421a7a5bb87f346ed2378cd09a08cde" group="org.jline"/>
@@ -491,6 +499,11 @@
             <sha256 value="a0752e3164203444f77f08662e34267320f9435e76de41864a3e8a8e4781043f" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="com.benasher44" name="uuid-jvm" version="0.7.1">
+         <artifact name="uuid-jvm-0.7.1.jar">
+            <pgp value="72a88d0b8bab5d872568c70900d93ad094fff117"/>
+         </artifact>
+      </component>
       <component group="com.beust" name="jcommander" version="1.35">
          <artifact name="jcommander-1.35.jar">
             <pgp value="f60db6893ab3825459528eadcc54b93c018511a4"/>
@@ -637,6 +650,7 @@
       </component>
       <component group="com.gradleup" name="gr8-plugin" version="0.9">
          <artifact name="gr8-plugin-0.9.jar">
+            <pgp value="4857d1ce04e78fab2a172e8f39b48e1baddb933f"/>
             <sha256 value="07fe6fe9a922beb3d8258be2d3d5f65d4f7b146c99ff44c5f4227c045ae92673" origin="Generated by Gradle" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
@@ -683,6 +697,46 @@
       <component group="com.squareup" name="javawriter" version="2.5.0">
          <artifact name="javawriter-2.5.0.jar">
             <pgp value="90ee19787a7bcf6fd37a1e9180c08b1c29100955"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-gradle-plugin" version="47dc4517bf">
+         <artifact name="antlr-kotlin-gradle-plugin-47dc4517bf.jar">
+            <sha256 value="e8101a98802a8b219501ea499287a05988dc9c764d3478807d9dd61385f3c341" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-gradle-plugin" version="70d79b7eb1">
+         <artifact name="antlr-kotlin-gradle-plugin-70d79b7eb1.jar">
+            <sha256 value="c584ea9303e2e0c2c5937dd99f3fffb4260db0c900ad6a7324f574c0641c46f1" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-runtime" version="47dc4517bf">
+         <artifact name="antlr-kotlin-runtime-47dc4517bf.jar">
+            <sha256 value="04cdaef6c599dd47d1187c2340323e2742489e15863ef6ec48f1fa0126369cbb" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-runtime" version="70d79b7eb1">
+         <artifact name="antlr-kotlin-runtime-70d79b7eb1.jar">
+            <sha256 value="656a4f42b7e3f0b4bc0c21080add28e0fba7d3722a26336bc912ed1dd42214a4" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-runtime-jvm" version="47dc4517bf">
+         <artifact name="antlr-kotlin-runtime-jvm-47dc4517bf.jar">
+            <sha256 value="7e4aa20d19cde84e971e61879bad22c19d3f7869ce250050a9b32e89e570ac66" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-runtime-jvm" version="70d79b7eb1">
+         <artifact name="antlr-kotlin-runtime-jvm-70d79b7eb1.jar">
+            <sha256 value="9fbb2a3295216075465b52c4a02a430f113b78a0dfa95e938c1a27fb2a97d13f" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-target" version="47dc4517bf">
+         <artifact name="antlr-kotlin-target-47dc4517bf.jar">
+            <sha256 value="6da976212e370b545e8467db3bf1c3da90c2045e649589ce6a3fb3dd4746b9c1" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="com.strumenta.antlr-kotlin" name="antlr-kotlin-target" version="70d79b7eb1">
+         <artifact name="antlr-kotlin-target-70d79b7eb1.jar">
+            <sha256 value="a39b1221b0e7eb97ef20ec8e5e933688f6d264a637e13a3b501fbca359e320e0" origin="Generated by Gradle" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.sun.activation" name="jakarta.activation" version="2.0.0">
@@ -799,6 +853,11 @@
       <component group="io.airlift" name="slice" version="0.29">
          <artifact name="slice-0.29.jar">
             <pgp value="c328250fe23a2420814521ec0eb69f76fd171538"/>
+         </artifact>
+      </component>
+      <component group="io.github.classgraph" name="classgraph" version="4.8.149">
+         <artifact name="classgraph-4.8.149.jar">
+            <pgp value="1f47744c9b6e14f2049c2857f1f111af65925306"/>
          </artifact>
       </component>
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">

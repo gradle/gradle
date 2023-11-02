@@ -31,6 +31,11 @@ plugins {
 
 includeBuild("build-logic-commons")
 includeBuild("build-logic")
+includeBuild("kotlin-static-object-notation") {
+    dependencySubstitution {
+        substitute(module("org.gradle:restricted-kotlin-dsl")).using(project(":"))
+    }
+}
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
