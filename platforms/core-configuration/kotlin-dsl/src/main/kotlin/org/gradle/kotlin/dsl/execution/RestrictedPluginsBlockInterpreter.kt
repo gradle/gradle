@@ -48,7 +48,7 @@ import kotlin.reflect.KClass
 internal
 fun tryInterpretRestrictedPluginsBlock(program: Program.Plugins): PluginsBlockInterpretation? {
     val restrictedTree = try {
-        restrictedLanguageTree(program.fragment.source.text)
+        restrictedLanguageTree(program.fragment.identifierString)
     } catch (parseCancellationException: ParseCancellationException) {
         return null
     }
