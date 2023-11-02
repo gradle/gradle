@@ -131,11 +131,11 @@ class PluginsBlockInterpreterTest {
 
     @Test
     fun `single plugin - id() long chain of versions and applies`() {
-        assertDynamicInterpretationOf(
+        assertStaticInterpretationOf(
             """
                 id("plugin-id").version("1.0").version("2.0").apply(true).apply(false) version "3.0" apply false apply true version "4.0"
             """,
-            "Expecting token of type RBRACE, but got DOT instead",
+            PluginRequestSpec(id = "plugin-id", version = "4.0", apply = true)
         )
     }
 
@@ -534,10 +534,10 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - id() with empty string`() {
-        assertDynamicInterpretationOf(
+    fun `single plugin - id() with empty string`() {
+        assertStaticInterpretationOf(
             """id("")""",
-            "Expecting token of type RBRACE, but got IDENTIFIER ('id') instead"
+            PluginRequestSpec(id = "")
         )
     }
 
@@ -614,10 +614,10 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - kotlin() with empty string`() {
-        assertDynamicInterpretationOf(
+    fun `single plugin - kotlin() with empty string`() {
+        assertStaticInterpretationOf(
             """kotlin("")""",
-            "Expecting token of type RBRACE, but got IDENTIFIER ('kotlin') instead"
+            PluginRequestSpec(id = "org.jetbrains.kotlin.")
         )
     }
 
