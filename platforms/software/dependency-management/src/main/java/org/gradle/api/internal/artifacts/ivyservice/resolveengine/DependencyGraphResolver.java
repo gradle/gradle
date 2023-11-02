@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -85,7 +84,6 @@ public class DependencyGraphResolver {
     private final ComponentIdGenerator idGenerator;
     private final GraphVariantSelector variantSelector;
     private final ImmutableAttributesFactory attributesFactory;
-    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DependencyGraphResolver(
@@ -102,8 +100,7 @@ public class DependencyGraphResolver {
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         ComponentIdGenerator idGenerator,
         GraphVariantSelector variantSelector,
-        ImmutableAttributesFactory attributesFactory,
-        DocumentationRegistry documentationRegistry
+        ImmutableAttributesFactory attributesFactory
     ) {
         this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.versionComparator = versionComparator;
@@ -119,7 +116,6 @@ public class DependencyGraphResolver {
         this.idGenerator = idGenerator;
         this.variantSelector = variantSelector;
         this.attributesFactory = attributesFactory;
-        this.documentationRegistry = documentationRegistry;
     }
 
     /**
@@ -164,8 +160,7 @@ public class DependencyGraphResolver {
             versionComparator.asVersionComparator(),
             idGenerator,
             versionParser,
-            variantSelector,
-            documentationRegistry
+            variantSelector
         );
 
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies
