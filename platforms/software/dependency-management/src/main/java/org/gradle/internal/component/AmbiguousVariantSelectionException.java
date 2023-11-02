@@ -29,9 +29,4 @@ public abstract class AmbiguousVariantSelectionException extends ArtifactVariant
     public AmbiguousVariantSelectionException(String message) {
         super(message);
     }
-
-    @SuppressWarnings("unused")
-    public AmbiguousVariantSelectionException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
