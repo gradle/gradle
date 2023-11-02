@@ -39,6 +39,11 @@ sealed class PluginsBlockInterpretation {
 
 internal
 fun interpret(program: Program.Plugins): PluginsBlockInterpretation {
+    val restrictedDslResult = tryInterpretRestrictedPluginsBlock(program)
+    if (restrictedDslResult != null) {
+        return restrictedDslResult
+    }
+
     val blockString = program.fragment.blockString
     return when (val r = pluginsBlockParser(blockString)) {
         is ParserResult.Failure -> PluginsBlockInterpretation.Dynamic(r.reason)
