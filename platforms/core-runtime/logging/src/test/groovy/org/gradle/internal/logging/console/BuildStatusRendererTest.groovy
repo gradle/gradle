@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,20 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
-import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 
-class PlainBuildStatusRendererTest extends OutputSpecification {
+class BuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
+    def console = new ConsoleStub()
+    def consoleMetaData = Mock(ConsoleMetaData)
     long currentTimeMs
-    def renderer = new PlainBuildStatusRenderer(listener)
+    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData)
 
     @Override
     UpdateNowEvent updateNow() {
@@ -47,20 +48,22 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
 
     def "formats given message with an incrementing timer"() {
         def event1 = startRootBuildOperation(1)
+        def event2 = event('2')
 
         when:
         renderer.onOutput(event1)
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: INITIALIZING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == "<-------------> 0% INITIALIZING [0ms]"
+
+        when:
+        currentTimeMs += 1000
+        renderer.onOutput(event2)
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == "<-------------> 0% INITIALIZING [1s]"
     }
 
     def "hides timer between build phases"() {
@@ -72,28 +75,14 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: INITIALIZING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% INITIALIZING [0ms]'
 
         when:
         renderer.onOutput(complete(1, 'WAITING'))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: WAITING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% WAITING'
     }
 
     def "formats build"() {
@@ -105,28 +94,14 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: INITIALIZING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% INITIALIZING [0ms]'
 
         when:
         renderer.onOutput(complete(1))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: WAITING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% WAITING'
     }
 
     def "formats configuration phase"() {
@@ -143,39 +118,21 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 25%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<===----------> 25% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
@@ -186,14 +143,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 75%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<=========----> 75% CONFIGURING [0ms]'
     }
 
     def "formats configuration phase with nested builds"() {
@@ -210,39 +160,21 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 10%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<=------------> 10% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -250,11 +182,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        3 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<=------------> 10% CONFIGURING [0ms]'
     }
 
     def "formats execution phase"() {
@@ -269,50 +197,28 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: EXECUTING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: EXECUTING 25%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<===----------> 25% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(2))
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<===----------> 25% EXECUTING [0ms]'
     }
 
     def "formats execution phase with nested builds"() {
@@ -329,39 +235,21 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: EXECUTING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: EXECUTING 10%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<=------------> 10% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -369,11 +257,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        3 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<=------------> 10% EXECUTING [0ms]'
     }
 
     def "configuration phase runs until task graph execution"() {
@@ -390,14 +274,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event3)
@@ -406,25 +283,14 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: CONFIGURING 100%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<=============> 100% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        2 * listener.onOutput(!{
-            verifyAll(it, LogEvent) {
-                category == "progress"
-            }
-        })
+        statusBar.display == '<=============> 100% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
@@ -432,14 +298,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: EXECUTING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(5))
@@ -447,14 +306,7 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        1 * listener.onOutput({
-            verifyAll(it, LogEvent) {
-                message == "> Progress: WAITING 0%"
-                category == "progress"
-                logLevel == LogLevel.LIFECYCLE
-                timestamp == currentTimeMs
-            }
-        })
+        statusBar.display == '<-------------> 0% WAITING'
     }
 
     def startRootBuildOperation(Long id) {
@@ -491,5 +343,9 @@ class PlainBuildStatusRendererTest extends OutputSpecification {
 
     def start(Long id, Long parentId, BuildOperationCategory category, int totalProgress = 0) {
         new ProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(parentId), currentTimeMs, "category", "description", null, null, totalProgress, true, new OperationIdentifier(id), category)
+    }
+
+    private ConsoleStub.TestableRedrawableLabel getStatusBar() {
+        console.statusBar as ConsoleStub.TestableRedrawableLabel
     }
 }
