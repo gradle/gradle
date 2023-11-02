@@ -134,8 +134,9 @@ public class WrapUtil {
         for (T item : items) {
             coll.add(item);
         }
-        return coll;
+        return Collections.synchronizedList(coll);
     }
+    
 
     /**
      * Wraps the given key and value in a mutable unordered map.
