@@ -30,8 +30,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "buildSrc and included builds should be cached in global cache"() {
         given:
-        // Run with a clean global cache
-        executer.requireOwnGradleUserHomeDir()
+        // We test content in the global cache
+        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -54,6 +54,8 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     def "buildSrc and included build should be just instrumented and not upgraded"() {
         given:
+        // We test content in the global cache
+        requireOwnGradleUserHomeDir()
         withBuildSrc()
         withIncludedBuild()
         buildFile << """
@@ -70,6 +72,27 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         then:
         allTransformsFor("buildSrc.jar") == ["InstrumentArtifactTransform"]
         allTransformsFor("included-1.0.jar") == ["InstrumentArtifactTransform"]
+    }
+
+    def "external dependencies should not be copied to the global artifact transform cache"() {
+        given:
+        // We test content in the global cache
+        requireOwnGradleUserHomeDir()
+        buildFile << """
+            buildscript {
+                ${mavenCentralRepository()}
+                dependencies {
+                    classpath "org.apache.commons:commons-lang3:3.8.1"
+                }
+            }
+        """
+
+        when:
+        run("tasks")
+
+        then:
+        gradleUserHomeOutputs("commons-lang3-3.8.1.jar").isEmpty()
+        gradleUserHomeOutput("commons-lang3-3.8.1.jiar").exists()
     }
 
     def withBuildSrc() {
