@@ -67,7 +67,6 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
     @Override
     public void transform(TransformOutputs outputs) {
         if (!getInputAsFile().exists()) {
-            System.out.println("Debug1: " + getInputAsFile() + " does not exist");
             // Don't instrument files that don't exist, these could be files added to classpath via files()
             return;
         }

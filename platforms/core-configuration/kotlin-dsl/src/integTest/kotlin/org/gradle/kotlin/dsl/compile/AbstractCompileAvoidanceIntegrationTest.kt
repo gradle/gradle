@@ -127,7 +127,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     protected
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        val output = executer.withArgument("--stacktrace").withTasks(*tasks).run().normalizedOutput
+        val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 
@@ -140,7 +140,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
 
     protected
     fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
-        val error = executer.withArgument("--stacktrace").runWithFailure().error
+        val error = executer.runWithFailure().error
         MatcherAssert.assertThat(error, CoreMatchers.containsString(expectedFailure))
     }
 }
