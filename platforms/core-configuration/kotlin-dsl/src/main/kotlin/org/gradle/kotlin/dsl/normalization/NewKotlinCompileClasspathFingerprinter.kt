@@ -28,18 +28,24 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
+import org.gradle.internal.hash.ChecksumService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.kotlin.dsl.support.walkReproducibly
 import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
+import java.io.File
 
 
 internal
-class NewKotlinCompileClasspathFingerprinter : FileCollectionFingerprinter { // TODO: rename/replace KotlinCompileClasspathFingerprinter
+class NewKotlinCompileClasspathFingerprinter(
+    val checksumService: ChecksumService,
+    val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
+) : FileCollectionFingerprinter { // TODO: rename/replace KotlinCompileClasspathFingerprinter
 
     override fun getNormalizer(): FileNormalizer {
         TODO("Not yet implemented")
@@ -48,9 +54,8 @@ class NewKotlinCompileClasspathFingerprinter : FileCollectionFingerprinter { // 
     override fun fingerprint(files: FileCollection): CurrentFileCollectionFingerprint {
         val fingerprints: Map<String, HashCode> = files
             .map {
-                val snapshots = compilationService.calculateClasspathSnapshot(it, ClassSnapshotGranularity.CLASS_LEVEL).classSnapshots
+                val hash = getHash(it)
                 val path = it.path
-                val hash = hash(snapshots)
                 Pair(path, hash)
             }.toMap()
         return when {
@@ -60,10 +65,45 @@ class NewKotlinCompileClasspathFingerprinter : FileCollectionFingerprinter { // 
     }
 
     private
+    fun getHash(file: File): HashCode {
+        val checksum = getChecksum(file)
+        return checksum.let { classpathSnapshotHashesCache.getHash(it) { computeHashForFile(file) } }
+    }
+
+    private
+    fun getChecksum(file: File): HashCode {
+        return if (file.isFile) {
+            getChecksumOfFile(file)
+        } else {
+            getChecksumOfDirectory(file)
+        }
+    }
+
+    private
+    fun getChecksumOfFile(file: File): HashCode = checksumService.md5(file)
+
+    private
+    fun getChecksumOfDirectory(file: File): HashCode {
+        val hasher = Hashing.newHasher()
+        file.walkReproducibly()
+            .filter { it.isFile }
+            .forEach {
+                hasher.putHash(getChecksumOfFile(it))
+            }
+        return hasher.hash()
+    }
+
+    private
+    fun computeHashForFile(file: File): HashCode {
+        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL).classSnapshots
+        return hash(snapshots)
+    }
+
+    private
     fun hash(snapshots: Map<String, ClassSnapshot>): HashCode {
         val hasher = Hashing.newHasher()
         snapshots.entries.stream()
-            .filter { it.value is AccessibleClassSnapshot } // TODO: filterInstanceOf
+            .filter { it.value is AccessibleClassSnapshot }
             .map { (it.value as AccessibleClassSnapshot).classAbiHash }
             .forEach {
                 hasher.putLong(it)
