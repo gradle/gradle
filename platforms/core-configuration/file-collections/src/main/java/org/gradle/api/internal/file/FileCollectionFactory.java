@@ -30,6 +30,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -37,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+@ServiceScope(Scope.Global.class)
 public interface FileCollectionFactory {
     /**
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
