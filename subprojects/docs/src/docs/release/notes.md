@@ -225,10 +225,11 @@ TODO include image, will be done as late as possible as images in this file make
 
 #### Improved handling of wrapped assertion errors when running tests
 
-We've made further improvements to how Gradle handles assertion errors thrown by test frameworks.
+We've further improved how Gradle handles assertion errors thrown by test frameworks.
 
 Previously, assertion errors wrapped in non-assertion-related exceptions were reported as generic test failures. 
-We've reworked the way Gradle handles such cases: the Tooling API clients will receive rich information about the assertion error even if they are wrapped.
+We've reworked how Gradle handles such cases. 
+The Tooling API clients will receive rich information about the assertion error even if they are wrapped.
 
 <a name="build-features"></a>
 ### Build Features API
