@@ -39,7 +39,7 @@ class GradleProjectBuilderOptionsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         def project = loadToolingModel(GradleProject) {
             if (option != null) {
-                it.addJvmArguments("-Dorg.gradle.internal.GradleProjectBuilderOptions=$option")
+                it.withArguments("-Dorg.gradle.internal.GradleProjectBuilderOptions=$option")
             }
         }
 
@@ -77,7 +77,7 @@ class GradleProjectBuilderOptionsCrossVersionSpec extends ToolingApiSpecificatio
         when:
         def ideaProject = loadToolingModel(IdeaProject) {
             if (option != null) {
-                it.addJvmArguments("-Dorg.gradle.internal.GradleProjectBuilderOptions=$option")
+                it.withArguments("-Dorg.gradle.internal.GradleProjectBuilderOptions=$option")
             }
         }
 
