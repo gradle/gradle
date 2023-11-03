@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.provider.DefaultProperty
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.peek
@@ -32,6 +31,7 @@ import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 
@@ -46,7 +46,6 @@ object ProvenanceCompilerPlugin {
 
 private
 class ProvenanceGenerationExtension : IrGenerationExtension {
-    @OptIn(FirIncompatiblePluginAPI::class)
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         moduleFragment.accept(object : IrElementTransformerVoidWithContext() {
 
@@ -60,7 +59,7 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
                     val lineNumber = fileEntry.getLineNumber(provenanceOffset) + 1
                     val columnNumber = fileEntry.getColumnNumber(provenanceOffset)
 
-                    val targetType = pluginContext.referenceClass(FqName(DefaultProperty::class.qualifiedName!!))
+                    val targetType = pluginContext.referenceClass(PROPERTY_CLASS_ID)
                         ?: error("Class not found")
 
                     val withProv = IrSingleStatementBuilder(
@@ -89,4 +88,9 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
     private
     fun IrCall.isPropertyAssignment() =
         valueArgumentsCount == 1 && symbol.owner.name.asString() == "assign"
+
+    companion object {
+        private val PROPERTY_CLASS_FQNAME = FqName(DefaultProperty::class.qualifiedName!!)
+        private val PROPERTY_CLASS_ID = ClassId(PROPERTY_CLASS_FQNAME.parent(), PROPERTY_CLASS_FQNAME.shortName())
+    }
 }
