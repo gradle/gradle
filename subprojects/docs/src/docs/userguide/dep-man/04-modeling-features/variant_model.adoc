@@ -249,7 +249,20 @@ A no matching variant error looks like the following:
           - Provides usage 'api'
 ----
 
-All _compatible_ candidate variants are displayed with their attributes.
+or like:
+
+[listing]
+----
+> No variants of project : match the consumer attributes:
+   - Configuration ':myElements' declares attribute 'color' with value 'blue':
+       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+   - Configuration ':myElements' variant secondary declares attribute 'color' with value 'blue':
+       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+----
+
+depending upon the stage in the variant selection algorithm where the error occurs.
+
+All _potentially compatible_ candidate variants are displayed with their attributes.
 
 * Incompatible attributes are presented first, as they usually are the key in understanding why a variant could not be selected.
 * Other attributes are presented second, this includes _requested_ and _compatible_ ones as well as all extra _producer_ attributes that are not requested by the consumer.

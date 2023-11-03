@@ -30,6 +30,7 @@ import org.gradle.internal.component.NoMatchingArtifactVariantsException
 import org.gradle.internal.component.NoMatchingGraphVariantsException
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
 /**
@@ -38,6 +39,8 @@ import spock.lang.Ignore
  *
  * It can also build a text report demonstrating all these errors in a single place.
  */
+// TODO: assert resolutions are correct
+// TODO: consolidate error checking/switch to checking text blocks
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region resolution failures
     // region Graph Variant failures
@@ -51,6 +54,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
 
     @ToBeFixedForConfigurationCache
@@ -76,6 +81,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
 
     @ToBeFixedForConfigurationCache
@@ -697,5 +704,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertFullMessageCorrect(String identifyingFragment) {
         failure.assertHasErrorOutput(identifyingFragment)
+    }
+
+    private void assertSuggestsReviewingAlgorithm() {
+        assertSuggestsViewingDocs("Review the variant matching algorithm at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_attributes.html#sec:abm_algorithm.")
+    }
+
+    private void assertSuggestsViewingDocs(String resolution) {
+        failure.assertHasResolution(resolution)
     }
 }

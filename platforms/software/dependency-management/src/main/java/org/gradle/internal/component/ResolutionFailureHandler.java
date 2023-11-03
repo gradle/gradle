@@ -84,6 +84,10 @@ public class ResolutionFailureHandler {
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
 
+    private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
+    private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
+    private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+
     @SuppressWarnings("FieldCanBeLocal")
     private final Problems problemsService;
     private final DocumentationRegistry documentationRegistry;
@@ -101,6 +105,7 @@ public class ResolutionFailureHandler {
     public NoMatchingArtifactVariantsException noMatchingArtifactVariantFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
         NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
+        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         addBasicResolution(e);
         return e;
     }
@@ -270,7 +275,7 @@ public class ResolutionFailureHandler {
     ) {
         String message = buildAmbiguousGraphVariantsFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
         AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
-        e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-ambiguity" + "."));
+        e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", AMBIGUOUS_VARIANTS_SECTION + "."));
         addBasicResolution(e);
         return e;
     }
@@ -285,7 +290,7 @@ public class ResolutionFailureHandler {
     ) {
         String message = buildIncompatibleGraphVariantsFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
         IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
-        e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-incompatible") + ".");
+        e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
         addBasicResolution(e);
         return e;
     }
@@ -300,7 +305,7 @@ public class ResolutionFailureHandler {
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
         addBasicResolution(e);
-        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", "sub:variant-no-match" + "."));
+        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         return e;
     }
 
