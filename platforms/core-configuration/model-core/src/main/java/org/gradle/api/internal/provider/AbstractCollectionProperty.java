@@ -28,13 +28,14 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>> implements CollectionPropertyInternal<T, C> {
@@ -66,12 +67,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    private CollectionPropertyConfigurer<T> getConventionValue() {
+    @Override
+    public CollectionPropertyConfigurer<T> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    private CollectionPropertyConfigurer<T> getExplicitValue() {
+    @Override
+    public CollectionPropertyConfigurer<T> getExplicitValue() {
         assertCanMutate();
         return new ExplicitValueConfigurer();
     }
@@ -85,8 +88,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void excludeAll(Predicate<T> filter) {
-        setSupplier(getSupplier().keep(filter.negate()));
+    public void excludeAll(Spec<T> filter) {
+        setSupplier(getSupplier().keep(Specs.negate(filter)));
     }
 
     @Override
@@ -320,7 +323,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> keep(Predicate<T> filter) {
+        public CollectionSupplier<T, C> keep(Spec<T> filter) {
             return this;
         }
 
@@ -370,7 +373,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> keep(Predicate<T> filter) {
+        public CollectionSupplier<T, C> keep(Spec<T> filter) {
             return this;
         }
 
@@ -420,7 +423,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> keep(Predicate<T> filter) {
+        public CollectionSupplier<T, C> keep(Spec<T> filter) {
             // fixed values do not allow further filtering
             throw new UnsupportedOperationException();
         }
@@ -476,8 +479,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> keep(Predicate<T> filter) {
-            return minus(new Collectors.FilteringCollector<>(value, filter.negate(), collectionFactory));
+        public CollectionSupplier<T, C> keep(Spec<T> filter) {
+            return minus(new Collectors.FilteringCollector<>(value, Specs.negate(filter), collectionFactory));
         }
 
         @Override
@@ -625,9 +628,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void excludeAll(Predicate<T> filter) {
+        public void excludeAll(Spec<T> filter) {
             prune();
-            setConvention(getConventionSupplier().keep(filter.negate()));
+            setConvention(getConventionSupplier().keep(Specs.negate(filter)));
         }
 
         @Override
@@ -707,7 +710,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void excludeAll(Predicate<T> filter) {
+        public void excludeAll(Spec<T> filter) {
             prune();
             AbstractCollectionProperty.this.excludeAll(filter);
         }

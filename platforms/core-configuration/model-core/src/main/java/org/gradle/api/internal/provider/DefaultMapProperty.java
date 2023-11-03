@@ -17,15 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
-import org.gradle.api.provider.MapConfigurer;
+import org.gradle.api.provider.MapPropertyConfigurer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
@@ -35,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -189,8 +189,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    public void excludeAll(Predicate<K> keyFilter) {
-        setSupplier(getSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
+    public void excludeAll(Spec<K> keyFilter) {
+        setSupplier(getSupplier().keep(Specs.negate(keyFilter)));
     }
 
     @Override
@@ -210,18 +210,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(getSupplier().minus(new Collectors.SingleElement<>(key)));
     }
 
-    private MapConfigurer<K, V> getConventionValue() {
+    @Override
+    public MapPropertyConfigurer<K, V> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    private MapConfigurer<K, V> getExplicitValue() {
+    @Override
+    public MapPropertyConfigurer<K, V> getExplicitValue() {
         assertCanMutate();
         return new ExplicitConfigurer();
     }
 
     @Override
-    public MapConfigurer<K, V> value() {
+    public MapPropertyConfigurer<K, V> value() {
         if (isExplicit()) {
             return getExplicitValue();
         }
@@ -361,7 +363,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+        public MapSupplier<K, V> keep(Spec<K> keyFilter) {
             return this;
         }
 
@@ -416,7 +418,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+        public MapSupplier<K, V> keep(Spec<K> keyFilter) {
             return this;
         }
 
@@ -498,7 +500,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter) {
+        public MapSupplier<K, V> keep(Spec<K> keyFilter) {
             throw new UnsupportedOperationException();
         }
 
@@ -528,8 +530,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> keep(Predicate<K> keyFilter, Predicate<V> valueFilter) {
-            return new CollectingSupplier(new MapCollectors.FilteringCollector<>(collector, keyFilter, valueFilter), pruning);
+        public MapSupplier<K, V> keep(Spec<K> keyFilter) {
+            return new CollectingSupplier(new MapCollectors.FilteringCollector<>(collector, keyFilter), pruning);
         }
 
         @Override
@@ -670,7 +672,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
 
     //TODO-RC consider combining these two implementations so they just delegate to diff collectors
-    class ConventionConfigurer implements MapConfigurer<K, V> {
+    class ConventionConfigurer implements MapPropertyConfigurer<K, V> {
 
         private boolean pruned;
 
@@ -706,9 +708,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void excludeAll(Predicate<K> keyFilter) {
+        public void excludeAll(Spec<K> keyFilter) {
             prune();
-            setConvention(getConventionSupplier().keep(keyFilter.negate(), Predicates.alwaysTrue()));
+            setConvention(getConventionSupplier().keep(Specs.negate(keyFilter)));
         }
 
         @Override
@@ -734,7 +736,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     /**
      * Instead of delegating to parent, consider inverting delegation (but with pruning optional).
      */
-    class ExplicitConfigurer implements MapConfigurer<K, V> {
+    class ExplicitConfigurer implements MapPropertyConfigurer<K, V> {
 
         private boolean pruned;
 
@@ -770,7 +772,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void excludeAll(Predicate<K> keyFilter) {
+        public void excludeAll(Spec<K> keyFilter) {
             prune();
             DefaultMapProperty.this.excludeAll(keyFilter);
         }

@@ -23,11 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -389,7 +389,7 @@ public class Collectors {
 
     public static class FilteringCollector<T> implements Collector<T> {
         private final Collector<T> upstream;
-        private final Predicate<T> predicate;
+        private final Spec<T> predicate;
         private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
 
         @Override
@@ -397,7 +397,7 @@ public class Collectors {
             return upstream.getProducer();
         }
 
-        public FilteringCollector(Collector<T> upstream, Predicate<T> predicate, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
+        public FilteringCollector(Collector<T> upstream, Spec<T> predicate, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
             this.upstream = upstream;
             this.predicate = predicate;
             this.collectionFactory = collectionFactory;
@@ -421,7 +421,7 @@ public class Collectors {
                 return baseValue;
             }
             ImmutableCollection<T> baseElements = baseBuilder.build();
-            dest.addAll(Iterables.filter(baseElements, predicate::test));
+            dest.addAll(Iterables.filter(baseElements, predicate::isSatisfiedBy));
             return baseValue;
         }
 

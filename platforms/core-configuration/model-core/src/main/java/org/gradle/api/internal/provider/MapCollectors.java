@@ -25,10 +25,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.specs.Spec;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 public class MapCollectors {
 
@@ -223,13 +223,11 @@ public class MapCollectors {
 
     public static class FilteringCollector<K, V> implements MapCollector<K, V> {
         private final MapCollector<K, V> upstream;
-        private final Predicate<K> keyFilter;
-        private final Predicate<V> valueFilter;
+        private final Spec<K> keyFilter;
 
-        public FilteringCollector(MapCollector<K, V> collector, Predicate<K> keyFilter, Predicate<V> valueFilter) {
+        public FilteringCollector(MapCollector<K, V> collector, Spec<K> keyFilter) {
             this.upstream = collector;
             this.keyFilter = keyFilter;
-            this.valueFilter = valueFilter;
         }
 
         @Override
@@ -240,7 +238,7 @@ public class MapCollectors {
                 return baseValue;
             }
             ImmutableCollection<K> baseElements = baseBuilder.build();
-            dest.addAll(Iterables.filter(baseElements, keyFilter::test));
+            dest.addAll(Iterables.filter(baseElements, keyFilter::isSatisfiedBy));
             return baseValue;
         }
 
@@ -251,7 +249,7 @@ public class MapCollectors {
             if (baseValue.isMissing()) {
                 return baseValue;
             }
-            Iterables.filter(baseEntries.entrySet(), e -> keyFilter.test(e.getKey()) && valueFilter.test(e.getValue()))
+            Iterables.filter(baseEntries.entrySet(), e -> keyFilter.isSatisfiedBy(e.getKey()))
                 .forEach(e -> dest.put(e.getKey(), e.getValue()));
             return baseValue;
         }

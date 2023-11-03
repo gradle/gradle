@@ -17,8 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
-
-import java.util.function.Predicate;
+import org.gradle.api.specs.Spec;
 
 /**
  * Allows configuring collection-based properties, namely {@link ListProperty} and {@link SetProperty}.
@@ -75,7 +74,7 @@ public interface CollectionPropertyConfigurer<T> {
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
-    void excludeAll(Predicate<T> filter);
+    void excludeAll(Spec<T> filter);
 
     void exclude(T element);
 
