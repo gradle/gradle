@@ -194,7 +194,6 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
                 useTestNG {
                     ${configureIncludeOrExcludeGroups}
                 }
-                filter.failOnNoMatchingTests = false
             }
         """.stripIndent()
         file('src/test/java/org/gradle/groups/SomeTest.java') << '''
