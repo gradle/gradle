@@ -80,7 +80,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public CollectionPropertyConfigurer<T> value() {
+    public CollectionPropertyConfigurer<T> getActualValue() {
         if (isExplicit()) {
             return getExplicitValue();
         }

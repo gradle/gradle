@@ -113,13 +113,13 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
     CollectionPropertyConfigurer<T> getExplicitValue();
 
     /**
-     * Returns the value configurer for this property's current value,
+     * Returns the value configurer for this property's explicit value,
      * be it explicitly assigned or defined by convention.
      *
      * @since 8.6
      */
     @Incubating
-    CollectionPropertyConfigurer<T> value();
+    CollectionPropertyConfigurer<T> getActualValue();
 
     /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Iterable)} or {@link #add(Object)} will fail.

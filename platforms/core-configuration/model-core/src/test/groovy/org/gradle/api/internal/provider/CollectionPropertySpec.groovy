@@ -21,10 +21,9 @@ import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
-
-import java.util.function.Predicate
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
@@ -1092,9 +1091,9 @@ The value of this property is derived from: <source>""")
     def "may exclude elements from value via predicate"() {
         given:
         property.value(Providers.of(["1", "2", "3", "4", "5", "6", "8"]))
-        property.value().excludeAll({ it.toInteger() % 2 == 1 } as Predicate)
-        property.value().excludeAll({ it.toInteger() < 4 } as Predicate)
-        property.value().excludeAll Predicate.isEqual("6")
+        property.getActualValue().excludeAll({ it.toInteger() % 2 == 1 } as Spec)
+        property.getActualValue().excludeAll({ it.toInteger() < 4 } as Spec)
+        property.getActualValue().excludeAll({ it == "6" } as Spec)
 
         expect:
         assertValueIs(["4", "8"])
@@ -1103,9 +1102,9 @@ The value of this property is derived from: <source>""")
     def "adding explicit value via configurer is undefined-safe"() {
         given:
         property.set([])
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.notDefined())
-        property.value().addAll(Providers.of(["4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.notDefined())
+        property.getActualValue().addAll(Providers.of(["4"]))
 
         expect:
         assertValueIs(["1", "2", "4"])
@@ -1114,9 +1113,9 @@ The value of this property is derived from: <source>""")
     def "adding convention value via configurer is undefined-safe"() {
         given:
         property.set(null as Iterable)
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.notDefined())
-        property.value().addAll(Providers.of(["4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.notDefined())
+        property.getActualValue().addAll(Providers.of(["4"]))
 
         expect:
         property.getOrNull() == toImmutable(["1", "2", "4"])
@@ -1125,8 +1124,8 @@ The value of this property is derived from: <source>""")
     def "can add to convention"() {
         given:
         property.set(null as Iterable)
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.of(["3", "4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1135,8 +1134,8 @@ The value of this property is derived from: <source>""")
     def "can add to explicit value"() {
         given:
         property.set([])
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.of(["3", "4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1146,8 +1145,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention([])
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.of(["3", "4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1156,8 +1155,8 @@ The value of this property is derived from: <source>""")
     def "can add to value without knowing"() {
         given:
         property.set([])
-        property.value().addAll(Providers.of(["1", "2"]))
-        property.value().addAll(Providers.of(["3", "4"]))
+        property.getActualValue().addAll(Providers.of(["1", "2"]))
+        property.getActualValue().addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1167,8 +1166,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5", "6"]))
-        property.value().excludeAll({ it.toInteger() % 2 == 1 } as Predicate)
-        property.value().excludeAll({ it.toInteger() > 5 } as Predicate)
+        property.getActualValue().excludeAll({ it.toInteger() % 2 == 1 } as Spec)
+        property.getActualValue().excludeAll({ it.toInteger() > 5 } as Spec)
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1178,7 +1177,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.value().excludeAll(Providers.of(["1", "3", "5"]))
+        property.getActualValue().excludeAll(Providers.of(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1188,7 +1187,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.value().excludeAll(toImmutable(["1", "3", "5"]))
+        property.getActualValue().excludeAll(toImmutable(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1198,9 +1197,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.value().exclude(Providers.of("1"))
-        property.value().exclude(Providers.of("3"))
-        property.value().exclude(Providers.of("5"))
+        property.getActualValue().exclude(Providers.of("1"))
+        property.getActualValue().exclude(Providers.of("3"))
+        property.getActualValue().exclude(Providers.of("5"))
         expect:
         assertValueIs toImmutable(["2", "4"])
     }
@@ -1209,9 +1208,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.value().exclude("1")
-        property.value().exclude("3")
-        property.value().exclude("5")
+        property.getActualValue().exclude("1")
+        property.getActualValue().exclude("3")
+        property.getActualValue().exclude("5")
         expect:
         assertValueIs toImmutable(["2", "4"])
     }
@@ -1220,8 +1219,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.value().excludeAll("1", "7")
-        property.value().excludeAll("3", "5")
+        property.getActualValue().excludeAll("1", "7")
+        property.getActualValue().excludeAll("3", "5")
         expect:
         assertValueIs toImmutable(["2", "4"])
     }

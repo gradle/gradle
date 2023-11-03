@@ -223,7 +223,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    public MapPropertyConfigurer<K, V> value() {
+    public MapPropertyConfigurer<K, V> getActualValue() {
         if (isExplicit()) {
             return getExplicitValue();
         }
