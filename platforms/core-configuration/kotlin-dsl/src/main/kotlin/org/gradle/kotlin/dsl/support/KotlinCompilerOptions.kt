@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.JavaVersion
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.internal.deprecation.DeprecationLogger
 import java.io.Serializable
 
 
@@ -32,9 +31,7 @@ data class KotlinCompilerOptions(
 fun kotlinCompilerOptions(gradleProperties: GradlePropertiesController): KotlinCompilerOptions =
     KotlinCompilerOptions(
         allWarningsAsErrors = getCompilerOptionBoolean(gradleProperties, allWarningsAsErrorsPropertyName, false),
-        skipMetadataVersionCheck = getCompilerOptionBoolean(gradleProperties, skipMetadataVersionCheckPropertyName, true) {
-            nagAboutUnsetSkipMetadataVersionCheckProperty()
-        }
+        skipMetadataVersionCheck = getCompilerOptionBoolean(gradleProperties, skipMetadataVersionCheckPropertyName, true)
     )
 
 
@@ -64,13 +61,3 @@ fun getCompilerOptionBoolean(gradleProperties: GradlePropertiesController, prope
     }
 }
 
-
-private
-fun nagAboutUnsetSkipMetadataVersionCheckProperty() {
-    DeprecationLogger.deprecateBuildInvocationFeature("Skipping Kotlin metadata version check in Kotlin DSL script compilation")
-        .withContext("Skipping the check may lead to hard to troubleshoot errors when libraries built with Kotlin versions unsupported by the Kotlin embedded in Gradle are used in build logic.")
-        .withAdvice("To opt in to the future behaviour, set the '$skipMetadataVersionCheckPropertyName' System property to `false`.")
-        .startingWithGradle9("the Kotlin metadata version check will be enabled by default")
-        .withUpgradeGuideSection(8, "kotlin_dsl_skip_metadata_version_check")
-        .nagUser()
-}
