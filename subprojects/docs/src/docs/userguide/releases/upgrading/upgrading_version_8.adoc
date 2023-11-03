@@ -1226,11 +1226,11 @@ See link:jvm_test_suite_plugin.html[the user manual] for further information on 
 
 In the absence of test suites, dependencies must be manually declared on the test runtime classpath:
 
-* If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
-in addition to the existing `implementation` dependency on the test engine.
-* If using JUnit 4, only the existing `implementation` dependency on `junit` 4 is required.
-* If using JUnit 3, a test `runtimeOnly` dependency on `junit` 4 is required in addition to a
-`compileOnly` dependency on `junit` 3.
+  * If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
+  in addition to the existing `implementation` dependency on the test engine.
+  * If using JUnit 4, only the existing `implementation` dependency on `junit` 4 is required.
+  * If using JUnit 3, a test `runtimeOnly` dependency on `junit` 4 is required in addition to a
+  `compileOnly` dependency on `junit` 3.
 
 =====
 [.multi-language-sample]
