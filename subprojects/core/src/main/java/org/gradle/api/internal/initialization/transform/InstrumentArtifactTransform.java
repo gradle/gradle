@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
@@ -65,7 +66,7 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
     public abstract ObjectFactory getObjects();
 
     @InputArtifact
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @Classpath
     public abstract Provider<FileSystemLocation> getInput();
 
     private File getInputAsFile() {

@@ -31,7 +31,6 @@ public interface DependencyFactoryInternal extends DependencyFactory {
     enum ClassPathNotation {
         GRADLE_API("Gradle API"),
         GRADLE_KOTLIN_DSL("Gradle Kotlin DSL"),
-        GRADLE_PROJECTS_ON_BUILD_CLASSPATH("Gradle Projects On Build Classpath"),
         GRADLE_TEST_KIT("Gradle TestKit"),
         LOCAL_GROOVY("Local Groovy");
 
