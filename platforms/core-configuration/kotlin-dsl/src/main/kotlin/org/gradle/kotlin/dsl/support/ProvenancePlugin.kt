@@ -20,7 +20,6 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.common.peek
 import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.ir.builders.IrSingleStatementBuilder
 import org.jetbrains.kotlin.ir.builders.irCall
@@ -64,7 +63,7 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
 
                     val withProv = IrSingleStatementBuilder(
                         pluginContext,
-                        scope = scopeStack.peek()!!.scope,
+                        scope = currentScope!!.scope,
                         startOffset = expression.startOffset,
                         endOffset = expression.endOffset
                     ).build {
@@ -90,7 +89,10 @@ class ProvenanceGenerationExtension : IrGenerationExtension {
         valueArgumentsCount == 1 && symbol.owner.name.asString() == "assign"
 
     companion object {
-        private val PROPERTY_CLASS_FQNAME = FqName(DefaultProperty::class.qualifiedName!!)
-        private val PROPERTY_CLASS_ID = ClassId(PROPERTY_CLASS_FQNAME.parent(), PROPERTY_CLASS_FQNAME.shortName())
+        private
+        val PROPERTY_CLASS_FQNAME = FqName(DefaultProperty::class.qualifiedName!!)
+
+        private
+        val PROPERTY_CLASS_ID = ClassId(PROPERTY_CLASS_FQNAME.parent(), PROPERTY_CLASS_FQNAME.shortName())
     }
 }
