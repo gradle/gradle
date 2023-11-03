@@ -53,6 +53,23 @@ compileClasspath - Compile classpath for source set 'main'.
 ...
 ----
 
+== Configurations
+
+Dependencies in Gradle are grouped into sets called *configurations*.
+
+TIP: A *configuration* is simply a named set of dependencies.
+
+When you’re building and running a Java project there are two classpaths involved:
+
+- *compile classpath* - Dependencies required for the JDK to be able to compile Java code
+- *runtime classpath* - Dependencies required to run the compiled Java code
+
+Given the two classpaths, there must be three options to declare our dependencies:
+
+- *compileOnly* - put the dependency on the *compile classpath* only
+- *runtimeOnly* - put the dependency on the *runtime classpath* only
+- *implementation* - put the dependency on *both classpaths*
+
 == Declaring Your Dependencies
 
 To add a dependency to your project, specify a dependency in the dependencies block of your module's `build.gradle(.kts)` file.
@@ -66,15 +83,32 @@ plugins {
 }
 
 dependencies {
+    // Dependency on a remote binary
+    implementation("com.example.gradle:app-helper:10.1.1")
+
     // Dependency on a local library module
     implementation(project(":mylibrary"))
 
     // Dependency on local binaries
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-
-    // Dependency on a remote binary
-    implementation("com.example.gradle:app-helper:10.1.1")
 }
+----
+
+The dependencies in this example use the `implementation` dependency configuration as they are needed on both the compile and runtime classpaths.
+
+=== Remote binary dependency
+This declares a dependency on version `10.1.1` of the `app-magic` library inside the `com.example.gradle` namespace group:
+
+[source]
+----
+implementation("com.example.gradle:app-helper:10.1.1")
+----
+
+This is shorthand for the following:
+
+[source]
+----
+implementation(group = "com.example.gradle", name = "app-helper", version = "10.1.1")
 ----
 
 === Local library module dependency
@@ -105,20 +139,7 @@ Alternatively, you can specify individual files as follows:
 implementation(files("libs/foo.jar", "libs/bar.jar"))
 ----
 
-=== Remote binary dependency
-This declares a dependency on version `10.1.1` of the `app-magic` library inside the `com.example.gradle` namespace group:
-
-[source]
-----
-implementation("com.example.gradle:app-helper:10.1.1")
-----
-
-This is shorthand for the following:
-
-[source]
-----
-implementation(group = "com.example.gradle", name = "app-helper", version = "10.1.1")
-----
+TIP: Local dependencies are not recommended.
 
 == Version Catalog
 
