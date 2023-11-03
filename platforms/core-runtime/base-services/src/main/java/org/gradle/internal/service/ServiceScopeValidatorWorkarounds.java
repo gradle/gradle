@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.internal.service;
 
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.service.scopes.ServiceScope
-import java.io.File
+import org.gradle.api.NonNullApi;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * Defines specific configuration inputs that should not be included in the configuration cache fingerprint.
- */
-@ServiceScope(Scopes.BuildTree::class)
-interface IgnoredConfigurationInputs {
-    /**
-     * Checks if the [file] should be excluded from the configuration inputs fingerprint if it participates
-     * in file system checks, such as [File.exists], [File.isFile] etc.
-     */
-    fun isFileSystemCheckIgnoredFor(file: File): Boolean
+@NonNullApi
+public class ServiceScopeValidatorWorkarounds {
+
+    private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
+        "org.gradle.api.internal.file.FileCollectionFactory",
+        "org.gradle.api.problems.Problems"
+    ));
+
+    public static boolean shouldSuppressValidation(Class<?> serviceType) {
+        return SUPPRESSED_VALIDATION_CLASSES.contains(serviceType.getName());
+    }
+
 }
