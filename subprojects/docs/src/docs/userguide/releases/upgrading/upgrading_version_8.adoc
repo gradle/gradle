@@ -40,11 +40,15 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 1.9.20
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.20[Kotlin 1.9.20].
+
 ==== Changes to Groovy task conventions
 
 The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
 
-If you are using this task *without applying `groovy-base`*, you will have to manually set compatibility versions on these tasks.
+If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
 ==== Provider.filter
@@ -141,6 +145,14 @@ Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
+If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
+For example, in OpenJDK this can be done by adding the following to `gradle.properties`:
+```
+systemProp.javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl
+systemProp.javax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+systemProp.javax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+```
+See the link:https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8[CVE-2023-42445] advisory for more details and ways to enable secure XML processing on previous Gradle versions.
 
 ==== EAR plugin with customized JEE 1.3 descriptor
 
@@ -1214,11 +1226,11 @@ See link:jvm_test_suite_plugin.html[the user manual] for further information on 
 
 In the absence of test suites, dependencies must be manually declared on the test runtime classpath:
 
-  * If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
-  in addition to the existing `implementation` dependency on the test engine.
-  * If using JUnit 4, only the existing `implementation` dependency on `junit` 4 is required.
-  * If using JUnit 3, a test `runtimeOnly` dependency on `junit` 4 is required in addition to a
-  `compileOnly` dependency on `junit` 3.
+* If using JUnit 5, an explicit `runtimeOnly` dependency on `junit-platform-launcher` is required
+in addition to the existing `implementation` dependency on the test engine.
+* If using JUnit 4, only the existing `implementation` dependency on `junit` 4 is required.
+* If using JUnit 3, a test `runtimeOnly` dependency on `junit` 4 is required in addition to a
+`compileOnly` dependency on `junit` 3.
 
 =====
 [.multi-language-sample]

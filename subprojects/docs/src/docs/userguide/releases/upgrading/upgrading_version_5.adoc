@@ -320,13 +320,13 @@ This change has been made so that plugins applied to the settings script can con
 ==== Plugin validation changes
 
 - The `validateTaskProperties` task is now deprecated, use `validatePlugins` instead.
-The new name better reflects the fact that it also validates artifact transform parameters and other non-property definitions.
+  The new name better reflects the fact that it also validates artifact transform parameters and other non-property definitions.
 - The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
 - The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
 - The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
 - The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
 - The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
-* A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
+  * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== Changes to Kotlin DSL
 
@@ -456,12 +456,12 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 
 * The `org.gradle.util.internal.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
-Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
+  Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[org.gradle.process.CommandLineArgumentProvider] instead.
 * The deprecated class `org.gradle.api.ConventionProperty` has been removed.
-Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Providers] instead of convention properties.
+  Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Providers] instead of convention properties.
 * The deprecated class `org.gradle.reporting.DurationFormatter` has been removed.
 * The bridge method `org.gradle.api.tasks.TaskInputs.property(String name, @Nullable Object value)` returning `TaskInputs` has been removed.
-A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
+  A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0.
 * The following setters have been removed from `JacocoReportBase`:
 ** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:executionData[executionData] - use `getExecutionData().setFrom()` instead.
 ** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:sourceDirectories[sourceDirectories] - use `getSourceDirectories().setFrom()` instead.
@@ -469,23 +469,23 @@ A plugin using the method must be compiled with Gradle 4.3 to work on Gradle 6.0
 ** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalClassDirs[additionalClassDirs] - use `getAdditionalClassDirs().setFrom()` instead.
 ** link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html#org.gradle.testing.jacoco.tasks.JacocoReport:additionalSourceDirs[additionalSourceDirs] - use `getAdditionalSourceDirs().setFrom()` instead.
 * The `append` property on `JacocoTaskExtension` has been removed.
-`append` is now always configured to be true for the Jacoco agent.
+  `append` is now always configured to be true for the Jacoco agent.
 * The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
-The method was never meant to be public.
+  The method was never meant to be public.
 * File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
-Use a simple name, like `application.xml`, instead.
+  Use a simple name, like `application.xml`, instead.
 * The `org.gradle.testfixtures.ProjectBuilder` constructor has been removed. Please use `ProjectBuilder.builder()` instead.
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
-Disable incremental Groovy compilation when you want to compile in those cases.
+  Disable incremental Groovy compilation when you want to compile in those cases.
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
-Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
+  Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
-Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+  Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 * Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
-Trying to modify it will result in an `UnsupportedOperationException` being thrown.
+  Trying to modify it will result in an `UnsupportedOperationException` being thrown.
 * There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
@@ -761,9 +761,9 @@ none
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
-* Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
+ * Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
 
-* There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
+ * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
 ----
     validateTaskProperties.getClasses().setFrom(fileCollection)
     validateTaskProperties.getClasspath().setFrom(fileCollection)
