@@ -36,7 +36,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
+import org.gradle.api.internal.initialization.transform.InstrumentBuildService;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.provider.Provider;
 import org.gradle.cache.GlobalCache;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
@@ -51,6 +54,7 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
@@ -62,18 +66,22 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
     private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
+    private static final AtomicLong INSTRUMENTED_ID = new AtomicLong();
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
     private final List<GlobalCache> globalCaches;
+    private final Gradle gradle;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
-        List<GlobalCache> globalCaches
+        List<GlobalCache> globalCaches,
+        Gradle gradle
     ) {
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
         this.globalCaches = globalCaches;
+        this.gradle = gradle;
     }
 
     @Override
@@ -119,22 +127,33 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         );
 
         // Register instrumentation and upgrades transform
+        FileCollection classHierarchy = hierarchyCollectedView.getFiles();
         dependencyHandler.registerTransform(
             InstrumentArtifactTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
                 spec.parameters(parameters -> {
-                    parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles());
+                    parameters.getBuildService().set(registerNewService(classHierarchy));
+                    parameters.getClassHierarchy().setFrom(classHierarchy);
                     parameters.getCacheLocations().set(getSerializableGlobalCaches());
                 });
             }
         );
 
+        // TODO: Clear resources of the service
         return artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
             config.componentFilter(DefaultScriptClassPathResolver::filterGradleDependencies);
         }).getFiles();
+    }
+
+    private Provider<InstrumentBuildService> registerNewService(FileCollection classHierarchy) {
+        return gradle.getSharedServices().registerIfAbsent(
+            "org.gradle.internal.instrumentation.Service$" + INSTRUMENTED_ID.getAndIncrement() + "@" + System.identityHashCode(this),
+            InstrumentBuildService.class,
+            spec -> spec.getParameters().getClassHierarchy().setFrom(classHierarchy)
+        );
     }
 
     private List<GlobalCache> getSerializableGlobalCaches() {

@@ -24,6 +24,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
@@ -54,6 +55,9 @@ import static org.gradle.api.internal.initialization.transform.InstrumentArtifac
 public abstract class InstrumentArtifactTransform implements TransformAction<InstrumentArtifactTransformParameters> {
 
     public interface InstrumentArtifactTransformParameters extends TransformParameters {
+        @Internal
+        Property<InstrumentBuildService> getBuildService();
+
         @InputFiles
         @PathSensitive(PathSensitivity.NAME_ONLY)
         ConfigurableFileCollection getClassHierarchy();
