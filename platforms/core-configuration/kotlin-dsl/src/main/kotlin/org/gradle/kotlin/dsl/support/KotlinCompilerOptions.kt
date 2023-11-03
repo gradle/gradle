@@ -60,4 +60,3 @@ fun getCompilerOptionBoolean(gradleProperties: GradlePropertiesController, prope
         else -> defaultValue.also { whenUnset?.invoke() }
     }
 }
-
