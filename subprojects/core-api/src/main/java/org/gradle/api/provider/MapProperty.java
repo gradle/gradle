@@ -177,5 +177,5 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * @since 8.6
      */
     @Incubating
-    MapPropertyConfigurer<K, V> value();
+    MapPropertyConfigurer<K, V> getActualValue();
 }
