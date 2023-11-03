@@ -49,6 +49,10 @@ public class ServiceRegistryBuilder {
         return this;
     }
 
+    /**
+     * Providing a scope makes the resulting {@link ServiceRegistry}
+     * validate all registered services for being annotated with the given scope.
+     */
     public ServiceRegistryBuilder scope(Class<? extends Scope> scope) {
         this.scope = scope;
         return this;

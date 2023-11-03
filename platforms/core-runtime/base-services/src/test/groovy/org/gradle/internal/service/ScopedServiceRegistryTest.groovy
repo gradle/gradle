@@ -22,9 +22,10 @@ import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
 class ScopedServiceRegistryTest extends Specification {
+
     def "fails when registering a service by adding #method in a wrong scope"() {
         given:
-        def registry = ServiceRegistryBuilder.builder().scope(Scopes.Build).build()
+        def registry = new ScopedServiceRegistry(Scopes.Build)
 
         when:
         registration(registry)
@@ -55,6 +56,15 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(ScopedService) === service
     }
 
+    def "fails to create an inherited registry providing a service in the wrong scope"() {
+        when:
+        new BrokenScopedServiceRegistry()
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+    }
+
     def "succeeds when registering an unscoped service"() {
         given:
         def registry = new ScopedServiceRegistry(Scopes.BuildTree)
@@ -70,15 +80,6 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(UnscopedService) === service
     }
 
-    def "fails to create an inherited registry providing a service in the wrong scope"() {
-        when:
-        new BrokenServiceRegistry()
-
-        then:
-        def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
-    }
-
     @ServiceScope(Scopes.BuildTree)
     static class ScopedService {}
 
@@ -91,8 +92,8 @@ class ScopedServiceRegistryTest extends Specification {
         }
     }
 
-    static class BrokenServiceRegistry extends ScopedServiceRegistry {
-        BrokenServiceRegistry() {
+    static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
+        BrokenScopedServiceRegistry() {
             super(Scopes.Build)
         }
 

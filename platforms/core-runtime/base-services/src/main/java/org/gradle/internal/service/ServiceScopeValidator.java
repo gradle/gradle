@@ -25,8 +25,15 @@ import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Checks that services are being declared in the correct scope.
+ * <p>
+ * Only services that are annotated with {@link ServiceScope} are validated.
+ */
 @NonNullApi
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
+
+    private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS = Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
 
     private final Class<? extends Scope> scope;
 
@@ -36,30 +43,24 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
-        return Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
+        return SCOPE_ANNOTATIONS;
     }
 
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
-        assertCorrectScope(registration.getDeclaredType());
+        validateScope(registration.getDeclaredType());
     }
 
-    private void assertCorrectScope(Class<?> serviceType) {
+    private void validateScope(Class<?> serviceType) {
         Class<? extends Scope> serviceScope = scopeOf(serviceType);
         if (serviceScope != null && scope != serviceScope) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
         }
     }
 
-    private String invalidScopeMessage(
-        Class<?> serviceType,
-        Class<? extends Scope> actualScope
-    ) {
+    private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope> actualScope) {
         return String.format("Service '%s' was declared in scope '%s' but registered in scope '%s'",
-            serviceType.getName(),
-            actualScope.getSimpleName(),
-            scope.getSimpleName()
-        );
+            serviceType.getName(), actualScope.getSimpleName(), scope.getSimpleName());
     }
 
     @Nullable
