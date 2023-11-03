@@ -17,10 +17,10 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * Allows configuring a {@link MapProperty}.
@@ -30,7 +30,7 @@ import java.util.function.Predicate;
  * @since 8.6
  */
 @Incubating
-public interface MapConfigurer<K, V> {
+public interface MapPropertyConfigurer<K, V> {
     /**
      * Adds a map entry to the property value.
      *
@@ -67,7 +67,7 @@ public interface MapConfigurer<K, V> {
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 
-    void excludeAll(Predicate<K> keyFilter);
+    void excludeAll(Spec<K> keyFilter);
 
     void exclude(K key);
 
