@@ -13,13 +13,13 @@
 // limitations under the License.
 
 [[introduction]]
-= Introduction
+= Getting Started
 
 Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
 
-There are two options to get started using Gradle:
+To get started using Gradle:
 
-1. Read the <<gradle_intro,introduction chapters>> for a theoretical approach.
+1. Read the <<gradle_intro,introduction chapters>> to learn core Gradle concepts.
 2. Follow the <<getting_started,getting started tutorial>> for a hands-on approach.
 
 [[gradle_intro]]
@@ -34,15 +34,14 @@ _Reading time_: **25 minutes**
 The introduction covers:
 
 <<gradle_basics.adoc#gradle,Part 1.>> Gradle Overview +
-<<gradle_wrapper.adoc#gradle_wrapper,Part 2.>> Gradle's Wrapper +
-<<command_line_interface.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
+<<gradle_wrapper_basics.adoc#gradle_wrapper,Part 2.>> Gradle's Wrapper +
+<<command_line_interface_basics.adoc#command_line_interface,Part 3.>> Gradle's Command Line Interface +
 <<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File +
 <<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files +
 <<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
 <<task_basics.adoc#task_basics,Part 7.>> Tasks +
 <<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
 <<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Gradle Optimizations +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 10.>> Multi-Project Builds +
 
 [[getting_started]]
 == 2. Getting Started Tutorial

@@ -71,12 +71,7 @@ $ gradlew.bat build
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
-[[sec:adding_wrapper]]
-[[sec:upgrading_wrapper]]
-[[customizing_wrapper]]
-[[sec:authenticated_download]]
-[[sec:verification]]
-[[wrapper_checksum_verification]]
+Consult the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper reference>> to learn more.
 
 [.text-right]
-**Next Step:** <<command_line_interface.adoc#command_line_interface,Learn about the Gradle CLI>> >>
+**Next Step:** <<command_line_interface_basics.adoc#command_line_interface,Learn about the Gradle CLI>> >>

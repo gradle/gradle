@@ -15,23 +15,28 @@
 [[gradle]]
 = Gradle Basics
 
-Gradle *builds, tests, and deploys projects from* information contained in *build scripts*.
+Gradle *automates building, testing, and deployment of software* from information contained in *build scripts*.
 
 image::gradle-basic-1.png[]
 
-== Gradle core principles
+== Gradle core concepts
 
 === Projects
 
-A Gradle project includes *one root project* and *any number of subprojects* detailed in the settings file.
+A Gradle project is a piece of software that can be built, such an application or a library.
+
+Single project builds include a single project called the *root project*.
+
+Multi-project builds include *one root project* and *any number of subprojects* detailed in a settings file.
 
 === Build Scripts
 
-*Each project contains a build script* that details build steps to Gradle using the Groovy or Kotlin DSL.
+*Each project can include a build script* that details to Gradle what steps to take in order to build the project.
 
 === Tasks
 
 *Each project contains one or more tasks* defined inside a build script or a plugin that details actions to Gradle.
+Tasks are a basic unit of work.
 
 === Plugins
 
@@ -97,9 +102,9 @@ $ gradle.bat build  // Windows
 
 Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
-Gradle is automatically invoked when you build, clean, or run your app in the IDE.
+Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
 
-It is recommended that you consult the manual for the IDE of your choice to learn more about how Gradle is used.
+It is recommended that you consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
 
 [.text-right]
-**Next Step:** <<gradle_wrapper.adoc#gradle_wrapper,Learn about the Gradle Wrapper>> >>
+**Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper,Learn about the Gradle Wrapper>> >>

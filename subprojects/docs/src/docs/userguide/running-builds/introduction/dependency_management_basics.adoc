@@ -15,6 +15,8 @@
 [[dependency_management_basics]]
 = Dependency Management Basics
 
+Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
+
 Gradle has built-in support for dependency management.
 
 image::gradle-basic-7.png[]
@@ -224,56 +226,7 @@ dependencyResolutionManagement {
 }
 ----
 
-== Dependency ordering
-The order in which you list each repository determines how Gradle searches the repositories for each project dependency.
-
-For example, if a dependency is available from both repository A and B, and you list A first, Gradle downloads the dependency from repository A:
-
-[source]
-----
-repositories {
-    repositoryA()
-    repositoryB()
-}
-----
-
-== Remote repositories
-The URL of a remote repository must be listed accordingly, along with a type:
-
-[source]
-----
-repositories {
-    maven {
-        url = uri("https://packages.atlassian.com/maven-public-snapshot/")
-    }
-    maven {
-        url = uri("https://repository.jboss.org/nexus/content/repositories/releases/")
-    }
-}
-----
-
-Google's Maven repository, the Maven central repository, and the Gradle plugin portal are commonly used, and shorthands are available:
-
-[source]
-----
-repositories {
-    google()
-    mavenCentral()
-    gradlePluginPortal()
-}
-----
-
-== Local repositories
-Maven local is a repository located on your local machine.
-
-The Maven Local repository allows you to manage local copies of your project's dependencies:
-
-[source]
-----
-repositories {
-    mavenLocal()
-}
-----
+Consult the <<dependency_management_terminology .adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

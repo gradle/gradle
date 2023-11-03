@@ -141,5 +141,14 @@ The idea of a remote cache is to share commonly built task outputs across remote
 When both remote and local caches are enabled, the build output is first checked in the local cache.
 If the output isn't in the local cache, it will be downloaded from the remote cache and stored in the local cache.
 
+=== Configuration cache
+The configuration cache is a newer Gradle optimization.
+
+Unlike the build cache, which caches outputs produced by the build, the configuration cache captures and saves the state of the configuration phase.
+
+The configuration cache improves build performance by caching the result of the configuration phase and reusing this for subsequent builds.
+
+Consult the <<performance.adoc#performance_gradle,Gradle optimizations and build performance chapter>> to learn more.
+
 [.text-right]
 **Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn about Multi-project Builds>> >>

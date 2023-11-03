@@ -19,10 +19,7 @@ The settings file is the *entry point* of every Gradle project.
 
 image::gradle-basic-3.png[]
 
-The _settings file_ has two primary purposes:
-
-1. Register subprojects which will be part of the build process.
-2. Add libraries to your build.
+The primary purpose of the _settings file_ is to add subprojects to your build.
 
 Gradle supports single and multi-project builds.
 
@@ -47,36 +44,19 @@ Let's take a look at an example and break it down:
 .settings.gradle.kts
 [source,kotlin]
 ----
-pluginManagement {                                          // <1>
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    includeBuild("../build-logic")
-}
-
-plugins {                                                   // <2>
+plugins {                                                   // <1>
     id("org.gradle.toolchains.plugin") version "0.6.0"
 }
 
-rootProject.name = "root-project"                           // <3>
+rootProject.name = "root-project"                           // <2>
 
-dependencyResolutionManagement {                            // <4>
-    repositories {
-        mavenCentral()
-    }
-    includeBuild("../other-project")
-}
-
-include("sub-project-a")                                    // <5>
+include("sub-project-a")                                    // <3>
 include("sub-project-b")
 include("sub-project-c")
 ----
-<1> Define plugin location.
-<2> Define shared plugins.
-<3> Define the project name.
-<4> Define dependency location and components.
-<5> Define subprojects.
+<1> Define shared plugins.
+<2> Define the project name.
+<3> Define subprojects.
 =====
 
 [.multi-language-sample]
@@ -84,57 +64,23 @@ include("sub-project-c")
 .settings.gradle
 [source,groovy]
 ----
-pluginManagement {                                          // <1>
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    includeBuild('../build-logic')
-}
-
-plugins {                                                   // <2>
+plugins {                                                   // <1>
     id 'org.gradle.toolchains.plugin' version '0.6.0'
 }
 
-rootProject.name = 'root-project'                           // <3>
+rootProject.name = 'root-project'                           // <2>
 
-dependencyResolutionManagement {                            // <4>
-    repositories {
-        mavenCentral()
-    }
-    includeBuild('../other-project')
-}
-
-include('sub-project-a')                                    // <5>
+include('sub-project-a')                                    // <3>
 include('sub-project-b')
 include('sub-project-c')
 ----
-<1> Define plugin location.
-<2> Define shared plugins.
-<3> Define the project name.
-<4> Define dependency location and components.
-<5> Define subprojects.
+<1> Define shared plugins.
+<2> Define the project name.
+<3> Define subprojects.
 =====
 ====
 
-=== 1. Define plugin location
-
-Plugins extend Gradle's capabilities.
-
-The settings file can optionally define the plugins your build uses, including binary repositories such as the Gradle Plugin Portal or other Gradle builds:
-
-[source]
-----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    includeBuild("../my-build-logic")
-}
-----
-
-=== 2. Define shared plugins
+=== 1. Define shared plugins
 
 The settings file can optionally define the plugins which are used as shared configuration in the build:
 
@@ -145,7 +91,7 @@ plugins {
 }
 ----
 
-=== 3. Define the project name
+=== 2. Define the project name
 
 The settings file defines your project name:
 
@@ -156,25 +102,7 @@ rootProject.name = "root-project"
 
 There is only one root project per build.
 
-=== 4. Define dependency location and components
-
-The settings file can optionally define the locations of components your project relies on such as binary repositories like Maven Central and/or other Gradle builds:
-
-[source]
-----
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        // google()
-        // jcenter()
-    }
-    includeBuild("../other-project")
-}
-----
-
-For example, if your source code depends on a Google library, you can add `google()` to the `repositories{}` block. Then Gradle will be able to download libraries from https://maven.google.com/, the Google Maven repository.
-
-=== 5. Define subprojects
+=== 3. Define subprojects
 
 The settings file defines the structure of the project by including subprojects if there are any:
 
@@ -184,6 +112,8 @@ include("app")
 include("business-logic")
 include("data-model")
 ----
+
+Consult the <<writing_settings_files.adoc#writing_settings_files,Writing Settings File page>> to learn more.
 
 [.text-right]
 **Next Step:** <<build_file_basics.adoc#build_file_basics,Learn about the Build scripts>> >>

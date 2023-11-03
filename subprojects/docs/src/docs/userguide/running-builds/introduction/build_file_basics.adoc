@@ -19,17 +19,12 @@ Every project has a build script that details build configuration, tasks, and pl
 
 image::gradle-basic-4.png[]
 
-Every Gradle build comprises one or more projects; a root project and subprojects.
-Each one has a _build script_.
-
-For single-project builds, the build file contains dependencies and repository information for the build and the project.
-
-For multi-project builds, each subproject has its own build file, and each subproject will be evaluated by executing its build file.
+Every Gradle build comprises at least one _build script_.
 
 In the build file, two types of dependencies can be added:
 
 1. The libraries and/or plugins on which Gradle and the build script depend.
-2. The libraries on which the project sources depend.
+2. The libraries on which the project sources (i.e. source code) depend.
 
 [[sec:build_script]]
 == Build scripts
@@ -62,18 +57,13 @@ dependencies {
 }
 
 application {
-    mainClass.set("main")                                               // <4>
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()                                                  // <5>
+    mainClass = "main"                                                  // <4>
 }
 ----
 <1> Add plugins.
-<2> Add dependency location.
+<2> Add repositories.
 <3> Add dependencies.
 <4> Use convention properties.
-<5> Register or configure tasks.
 =====
 
 [.multi-language-sample]
@@ -99,23 +89,18 @@ dependencies {
 application {
     mainClass = 'main'                                                  // <4>
 }
-
-tasks.named('test') {
-    useJUnitPlatform()                                                  // <5>
-}
 ----
 <1> Add plugins.
-<2> Add dependency location.
+<2> Add repositories.
 <3> Add dependencies.
 <4> Use convention properties.
-<5> Register or configure tasks.
 =====
 ====
 
 === 1. Add plugins
 Plugins are bundled tasks used to extend Gradle.
 
-Adding a plugin to a build is called _applying_ a plugin.
+Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
 [source]
 ----
@@ -126,7 +111,7 @@ plugins {
 
 The Kotlin gradle plugin, version 1.9.0, has been applied to the project so that source code written in Kotlin can be used.
 
-=== 2. Add dependency location
+=== 2. Add repositories
 A project generally has several dependencies it needs to do its work.
 Many of the dependencies will be used by the source code.
 
@@ -167,23 +152,11 @@ In the example, the `application` plugin has a method that can declare the main 
 [source]
 ----
 application {
-    mainClass.set("main")
+    mainClass = "main"
 }
 ----
 
-=== 5. Register or configure tasks
-Tasks perform some basic work, such as compiling classes, running unit tests, or zipping up a WAR file.
-
-Tasks either come from plugins or the build script itself.
-
-In the example, the build script configures all test-related tasks to use the `JUnit` platform.
-
-[source]
-----
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
-----
+Consult the <<writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page>> to learn more.
 
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>
