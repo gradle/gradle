@@ -38,15 +38,6 @@ import static org.gradle.util.Path.SEPARATOR;
  */
 public class GradleProjectBuilder implements ToolingModelBuilder {
 
-    /**
-     * When false, the builder won't realize the task graph, and the task list for every project in the hierarchy will be empty.
-     */
-    private final boolean realizeTasks;
-
-    public GradleProjectBuilder(boolean realizeTasks) {
-        this.realizeTasks = realizeTasks;
-    }
-
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
@@ -61,12 +52,16 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     public DefaultGradleProject buildAll(Project project) {
-        return buildHierarchy(project.getRootProject());
+        boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
+        return buildHierarchy(project.getRootProject(), realizeTasks);
     }
 
-    private DefaultGradleProject buildHierarchy(Project project) {
+    /**
+     * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
+     */
+    private static DefaultGradleProject buildHierarchy(Project project, boolean realizeTasks) {
         List<DefaultGradleProject> children = getChildProjectsForInternalUse(project).stream()
-            .map(this::buildHierarchy)
+            .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 
         String projectIdentityPath = ((ProjectInternal) project).getIdentityPath().getPath();
@@ -85,7 +80,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             child.setParent(gradleProject);
         }
 
-        if (shouldRealizeTasks()) {
+        if (realizeTasks) {
             List<LaunchableGradleProjectTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
             gradleProject.setTasks(tasks);
         }
@@ -119,12 +114,4 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         return ownerBuildTreePath + buildTreePath;
     }
 
-    public static boolean shouldRealizeTasks() {
-        // This property was initially added in Gradle 6.1 to allow Android Studio troubleshoot sync performance issues.
-        // As Android Studio wanted to avoid task realization during sync, it started using "omit_all_tasks" option in production.
-        // Gradle should support this option at least until an alternative solution exists and Android Studio has migrated to it
-        String builderOptions = System.getProperty("org.gradle.internal.GradleProjectBuilderOptions", "");
-        boolean avoidTaskRealization = "omit_all_tasks".equals(builderOptions);
-        return !avoidTaskRealization;
-    }
 }

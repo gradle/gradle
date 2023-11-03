@@ -20,7 +20,7 @@ package org.gradle.plugins.ide.internal.tooling
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
-    def builder = new GradleProjectBuilder(true)
+    def builder = new GradleProjectBuilder()
 
     def "builds basics for project"() {
         def buildFile = temporaryFolder.file("build.gradle") << "//empty"
