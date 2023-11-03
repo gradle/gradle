@@ -19,6 +19,9 @@ package org.gradle.internal.service;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 
+/**
+ * A registry validating that all registered services are annotated with a corresponding {@link Scope}.
+ */
 @NonNullApi
 public class ScopedServiceRegistry extends DefaultServiceRegistry {
 
@@ -43,7 +46,11 @@ public class ScopedServiceRegistry extends DefaultServiceRegistry {
         addServiceValidator(scope);
     }
 
-    private DefaultServiceRegistry addServiceValidator(Class<? extends Scope> scope) {
-        return add(new ServiceScopeValidator(scope));
+    /**
+     * Validator implements a special type of service ({@link AnnotatedServiceLifecycleHandler})
+     * that gets notified about all existing and further service registrations.
+     */
+    private void addServiceValidator(Class<? extends Scope> scope) {
+        add(new ServiceScopeValidator(scope));
     }
 }
