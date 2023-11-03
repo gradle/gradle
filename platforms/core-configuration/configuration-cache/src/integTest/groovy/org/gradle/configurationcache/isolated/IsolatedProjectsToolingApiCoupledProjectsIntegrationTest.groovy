@@ -295,7 +295,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             plugins.apply(my.MyPlugin)
             def otherProject = project(':a')
-            myExtension.message = otherProject.myExtension.message
+            def otherProjectExtension = otherProject.myExtension
+            myExtension.message = otherProjectExtension != null ? otherProjectExtension.message : 'default message'
         """
 
         when:
@@ -333,21 +334,21 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             // some change
         """
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
-        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+        def model3 = runBuildAction (new FetchCustomModelForEachProject())
 
         then:
         model3.size() == 2
         model3[0].message == "the message"
-        model3[1].message == "the message"
+        model3[1].message == "default message"
 
         and:
         fixture.assertStateUpdatedWithProblems {
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
-            projectsConfigured(":", ":a") // :a and :b are coupled, so configure a but reuse its model
+            projectsConfigured(":", ":b")
             modelsCreated(":b")
             modelsReused(":", ":a", ":c", ":buildSrc")
-            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'")
+            problem("Build file 'b/build.gradle': line 4: Cannot access project ':a' from project ':b'. 'org.gradle.internal.invalidate-coupled-projects=false' is preventing configuration of project ':a'")
         }
     }
 }

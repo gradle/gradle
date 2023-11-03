@@ -138,7 +138,6 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         }
     }
 
-    private
     companion object {
         val PROBLEM_KEY = Any()
     }
