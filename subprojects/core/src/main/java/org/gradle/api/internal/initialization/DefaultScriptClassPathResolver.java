@@ -67,8 +67,8 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
     ));
 
-    private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("hierarchy-collected", Boolean.class);
-    private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("instrumented", Boolean.class);
+    private static final Attribute<Boolean> HIERARCHY_COLLECTED_ATTRIBUTE = Attribute.of("org.gradle.internal.hierarchy-collected", Boolean.class);
+    private static final Attribute<Boolean> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", Boolean.class);
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
     private final List<GlobalCache> globalCaches;
