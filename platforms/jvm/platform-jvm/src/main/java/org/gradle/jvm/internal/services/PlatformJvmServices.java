@@ -31,6 +31,7 @@ import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.RtxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 
@@ -51,6 +52,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(LocationListInstallationSupplier.class);
         registration.add(MavenToolchainsInstallationSupplier.class);
         registration.add(OsXInstallationSupplier.class);
+        registration.add(RtxInstallationSupplier.class);
         registration.add(SdkmanInstallationSupplier.class);
         registration.add(WindowsInstallationSupplier.class);
     }

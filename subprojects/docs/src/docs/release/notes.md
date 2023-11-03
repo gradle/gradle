@@ -50,7 +50,12 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="toolchain-autodetection-rtx"></a>
+### Toolchain Auto-detection support for rtx
 
+[rtx](https://rtx.pub) is now a supported java version manager for Gradle.
+Gradle will automatically detect java installations managed by rtx and use them
+to build your project.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

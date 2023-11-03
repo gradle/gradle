@@ -47,6 +47,7 @@ import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.RtxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -304,6 +305,7 @@ public abstract class AvailableJavaHomes {
             new LinuxInstallationSupplier(providerFactory()),
             new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
+            new RtxInstallationSupplier(providerFactory()),
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
         );

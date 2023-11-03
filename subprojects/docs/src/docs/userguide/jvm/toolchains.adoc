@@ -192,7 +192,7 @@ The following is a list of common package managers, tools, and locations that ar
 JVM auto-detection knows how to work with:
 
 * Operation-system specific locations: Linux, macOS, Windows
-* Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!]
+* Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!], https://rtx.pub/[rtx]
 * https://maven.apache.org/guides/mini/guide-using-toolchains.html[Maven Toolchain] specifications
 * https://www.jetbrains.com/help/idea/sdk.html#jdk-from-ide[IntelliJ IDEA] installations
 
