@@ -164,8 +164,8 @@ task thing(type: SomeTask) {
         def (problem) = collectedProblems
         problem.details == "An input file was expected to be present but it doesn't exist"
         problem.additionalData?.propertyName == "prop"
-        problem.where != null
-        def problemFileLocation = problem.where.find { it.type == 'file' }
+        problem.locations != null
+        def problemFileLocation = problem.locations.find { it.type == 'file' }
         problemFileLocation != null
         problemFileLocation.line == 11
         problemFileLocation.column == 24
