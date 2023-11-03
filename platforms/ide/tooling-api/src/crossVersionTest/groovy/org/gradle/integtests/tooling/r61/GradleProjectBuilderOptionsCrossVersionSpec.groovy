@@ -83,7 +83,9 @@ class GradleProjectBuilderOptionsCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         result.assertOutputContains("realizing non-lazy task")
-        if (!realizesLazy) {
+        if (realizesLazy) {
+            result.assertOutputContains("realizing lazy task")
+        } else {
             result.assertNotOutput("realizing lazy task")
         }
 
