@@ -104,7 +104,6 @@ import spock.lang.Shared
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
-import java.util.concurrent.Executors.FinalizableDelegatedExecutorService
 import java.util.concurrent.ThreadFactory
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
