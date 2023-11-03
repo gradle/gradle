@@ -85,7 +85,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
             child.setParent(gradleProject);
         }
 
-        if (realizeTasks) {
+        if (shouldRealizeTasks()) {
             List<LaunchableGradleProjectTask> tasks = collectTasks(gradleProject, (TaskContainerInternal) project.getTasks());
             gradleProject.setTasks(tasks);
         }
