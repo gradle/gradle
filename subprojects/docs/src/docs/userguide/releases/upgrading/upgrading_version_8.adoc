@@ -355,7 +355,7 @@ It uses eager APIs and has ordering issues if the value is read in build logic a
 It could result in outputs ending up in different locations.
 
 It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` found at `Project.layout.buildDirectory`.
-See the `link:{dslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
+See the `link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
 
 Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
 We know this is a big change and want to give time for authors of major plugins to move away from its usage first.
