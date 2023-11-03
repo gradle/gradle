@@ -1,0 +1,133 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[task_basics]]
+= Task Basics
+
+The work that Gradle can do on a project is defined by one or more _tasks_.
+
+image::gradle-basic-5.png[]
+
+A task represents some atomic piece of work that a build performs.
+This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
+
+You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory:
+
+[source]
+----
+$ ./gradlew build
+----
+
+== Available tasks
+All available tasks in your project come from Gradle plugins and build scripts.
+
+You can list all the available tasks in the project by running the following command in the terminal:
+
+[source]
+----
+$ ./gradlew tasks
+----
+
+[source]
+----
+Application tasks
+-----------------
+run - Runs this project as a JVM application
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+
+...
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+...
+
+Other tasks
+-----------
+compileJava - Compiles main Java source.
+
+...
+----
+
+[[sec:hello_world]]
+== Hello world task
+
+Let's take a look at a simple "Hello World" task in a build script:
+
+====
+include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
+====
+
+You can execute the build script with `./gradlew -q hello`:
+
+====
+----
+$ ./gradlew -q hello
+include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+----
+====
+
+[TIP]
+====
+The `-q` option suppresses Gradle's log messages so that only the output of the tasks is shown.
+====
+
+In the example, the build script registers a single task called `hello` and adds an action to it.
+
+When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
+The action is simply a block containing some code to execute: `println("Hello world!")`.
+
+== Task types
+
+There are two types of tasks:
+
+1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
+2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
+
+== Built-in tasks
+
+Gradle provides many _built-in_ task types for common actions such as copying or deleting files.
+
+This example task copies `*.war` files from the `source` directory to the `target` directory using the built-in `Copy` task type:
+
+[source]
+----
+tasks.register("copyTask",Copy) {
+    from("source")
+    into("target")
+    include("*.war")
+}
+----
+
+This task is executed using the command `./gradlew :app:copyTask`.
+
+Popular built-in task types include:
+
+- **Copy** - `Copy` is useful to copy files around.
+- **Delete** -  `Delete` is useful to delete files and directories.
+- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
+- **Zip** - `Zip` is useful for bundling files.
+
+Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
+
+Consult the <<more_about_tasks.adoc#more_about_tasks,Task development chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<plugin_basics.adoc#plugin_basics,Learn about Plugins>> >>

@@ -80,7 +80,6 @@ Beta and RC versions may or may not work.
 | 8.2 | 1.8.20 | 1.8
 | 8.3 | 1.9.0  | 1.8
 | 8.4 | 1.9.10 | 1.8
-| 8.5 | 1.9.20 | 1.8
 |===
 
 == Groovy

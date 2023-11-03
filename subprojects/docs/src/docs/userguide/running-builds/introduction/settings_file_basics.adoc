@@ -1,0 +1,119 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[settings_file_basics]]
+= Settings File Basics
+
+The settings file is the *entry point* of every Gradle project.
+
+image::gradle-basic-3.png[]
+
+The primary purpose of the _settings file_ is to add subprojects to your build.
+
+Gradle supports single and multi-project builds.
+
+- For single-project builds, the settings file is optional.
+- For multi-project builds, the settings file is mandatory and declares all subprojects.
+
+[[sec:settings_script]]
+== Settings script
+
+The settings file is a script.
+It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
+
+The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
+
+The settings file is typically found in the root directory of the project.
+
+Let's take a look at an example and break it down:
+
+====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source,kotlin]
+----
+plugins {                                                   // <1>
+    id("org.gradle.toolchains.plugin") version "0.6.0"
+}
+
+rootProject.name = "root-project"                           // <2>
+
+include("sub-project-a")                                    // <3>
+include("sub-project-b")
+include("sub-project-c")
+----
+<1> Define shared plugins.
+<2> Define the project name.
+<3> Define subprojects.
+=====
+
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+plugins {                                                   // <1>
+    id 'org.gradle.toolchains.plugin' version '0.6.0'
+}
+
+rootProject.name = 'root-project'                           // <2>
+
+include('sub-project-a')                                    // <3>
+include('sub-project-b')
+include('sub-project-c')
+----
+<1> Define shared plugins.
+<2> Define the project name.
+<3> Define subprojects.
+=====
+====
+
+=== 1. Define shared plugins
+
+The settings file can optionally define the plugins which are used as shared configuration in the build:
+
+[source]
+----
+plugins {
+    id("org.gradle.toolchains.fake") version "0.6.0"
+}
+----
+
+=== 2. Define the project name
+
+The settings file defines your project name:
+
+[source]
+----
+rootProject.name = "root-project"
+----
+
+There is only one root project per build.
+
+=== 3. Define subprojects
+
+The settings file defines the structure of the project by including subprojects if there are any:
+
+[source]
+----
+include("app")
+include("business-logic")
+include("data-model")
+----
+
+// Consult the writing_settings_files.adoc#writing_settings_files,Writing Settings File page to learn more.
+
+[.text-right]
+**Next Step:** <<build_file_basics.adoc#build_file_basics,Learn about the Build scripts>> >>

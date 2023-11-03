@@ -82,9 +82,9 @@ Gradle provides many _built-in_ tasks that developers can use to enhance build s
 
 This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
 
-[source,kotlin]
+[source]
 ----
-tasks.register<Copy>("copyTask") {
+tasks.register("copyTask",Copy) {
     from("source")
     into("target")
     include("*.war")

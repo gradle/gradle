@@ -1,0 +1,134 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[plugin_basics]]
+= Plugin Basics
+
+Plugins are used to *extend build capability and customize Gradle*.
+
+image::gradle-basic-6.png[]
+
+Most features, like the ability to compile Java code, are added by _plugins_.
+
+Using plugins is also the primary mechanism for organizing build logic.
+
+Plugins are essentially a set of all useful tasks, such as compiling tasks, creating documentation, setting up source files, etc.
+
+*Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
+
+For example, The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
+The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs or Firebase services in your Android application.
+The Palantir Git-Version Plugin, `com.palantir.git-version`, is a plugin that generates a project version for use with Gradle by calling `git-describe`.
+
+== Plugin distribution
+
+Plugins are distributed in three ways:
+
+1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
+2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
+3. **Local plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
+
+[[sec:types_of_plugins]]
+== Types of plugins
+
+There are two general types of plugins in Gradle, *binary* plugins and *script* plugins.
+
+*Binary plugins* can reside within a build script, within the project hierarchy, or externally in a plugin jar.
+
+*Script plugins* are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
+They are typically used within a build but can be externalized and accessed remotely.
+
+A plugin often starts as a script plugin (because they are easy to write).
+Then, as the code becomes more valuable, it becomes a binary plugin that can be easily tested and shared between multiple projects or organizations.
+
+[[sec:using_plugins]]
+== Using plugins
+
+To use the build logic encapsulated in a plugin, Gradle needs to perform two steps.
+
+First, it needs to *resolve* the plugin, and then it needs to **apply** the plugin to the project.
+
+*Resolving* a plugin means finding the correct version of the jar that contains a given plugin and adding it to the project.
+
+*Applying* a plugin means executing the plugin on the project.
+
+[[sec:binary_plugins]]
+== Binary plugins
+
+You apply plugins in the build script using their *plugin id*, which is a globally unique identifier or name:
+
+[source]
+----
+plugins {
+    application
+    java // Can also be writen id("java")
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+}
+----
+
+Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
+
+All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`).
+
+The version should also be called out:
+
+[source]
+----
+plugins {
+    id «plugin id» version «plugin version» [apply «false»]
+}
+----
+
+== Community plugins
+
+Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities.
+
+The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+
+For example, you could search `generate unit test` in the Gradle Plugin Portal if you wanted to automatically generate unit tests for your project.
+There, you will find many plugins, including the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply as follows:
+
+[source]
+----
+plugins {
+    id("org.utbot.gradle.plugin") version "1.0.0-alpha"
+}
+----
+
+== Plugin tasks
+
+Since plugins add tasks to your project when applied, you can view the tasks added by `ubot` by running `./gradlew tasks`:
+
+[source]
+----
+$ ./gradlew tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'temp'
+------------------------------------------------------------
+
+Utbot tasks
+-----------
+generateTestsAndSarifReport - Generate a SARIF report
+....
+----
+
+As we can see, the `generateTestsAndSarifReport` task has been added to the project.
+
+Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Gradle optimizations>> >>

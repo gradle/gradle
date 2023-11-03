@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[command_line_interface]]
-= Command-Line Interface
+= Command-Line Interface Reference
 
 The command-line interface is the **primary method of interacting with Gradle**.
 

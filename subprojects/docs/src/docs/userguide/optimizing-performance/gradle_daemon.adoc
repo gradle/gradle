@@ -104,7 +104,7 @@ org.gradle.daemon=true
 
 You can disable the Daemon in multiple ways but there are important considerations:
 
-Single-use Deamon :: If the JVM args of the client process don't match what the build requires, a single-used Daemon (disposable JVM) is created.
+Single-use Daemon :: If the JVM args of the client process don't match what the build requires, a single-used Daemon (disposable JVM) is created.
 This means the Daemon is required for the build, so it is created, used, and then stopped at the end of the build.
 
 No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, the Daemon will not be used at all since the build happens in the client JVM.

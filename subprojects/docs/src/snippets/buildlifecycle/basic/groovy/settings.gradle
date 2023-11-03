@@ -1,2 +1,2 @@
 rootProject.name = 'basic'
-println 'This is executed during the initialization phase.'
+println 'Executed during the 1. INITIALIZATION PHASE.'

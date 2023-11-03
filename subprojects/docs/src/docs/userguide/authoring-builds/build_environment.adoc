@@ -47,7 +47,7 @@ When configuring Gradle behavior, you can use these methods, listed in order of 
 |3.2
 |<<#sec:gradle_configuration_properties, Gradle properties>>
 |`org.gradle.caching=true`
-|Stored in a `gradle.properties` file in the <<sec:gradle_environment_variables,GRADLE_HOME>>.
+|Stored in a `gradle.properties` file in the `<<sec:gradle_environment_variables,GRADLE_HOME>>`.
 
 |4
 |<<#sec:gradle_environment_variables, Environment variables>>

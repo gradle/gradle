@@ -1,0 +1,232 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_management_basics]]
+= Dependency Management Basics
+
+Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
+
+Gradle has built-in support for dependency management.
+
+image::gradle-basic-7.png[]
+
+Gradle build scripts defines a process to build projects that contain some dependencies.
+Dependencies refer to JARs, plugins, libraries, or source code that support building your project.
+
+The Gradle build system makes it easy to include external binaries or other library modules to your build as dependencies.
+The dependencies can be located on your machine or in a remote repository, and any transitive dependencies they declare are also automatically included.
+
+== Viewing Project Dependencies
+
+You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
+
+[source]
+----
+$ ./gradlew :app:dependencies
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.google.guava:guava:32.1.2-jre
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.12.0
+     +--- com.google.errorprone:error_prone_annotations:2.11.0
+     \--- com.google.j2objc:j2objc-annotations:1.3
+
+...
+----
+
+== Declaring Your Dependencies
+
+To add a dependency to your project, specify a dependency in the dependencies block of your module's `build.gradle(.kts)` file.
+
+For example, the following `build.gradle.kts` file for an app module includes three different types of dependencies:
+
+[source]
+----
+plugins {
+    id("com.tutorial.application")
+}
+
+dependencies {
+    // Dependency on a local library module
+    implementation(project(":mylibrary"))
+
+    // Dependency on local binaries
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // Dependency on a remote binary
+    implementation("com.example.gradle:app-helper:10.1.1")
+}
+----
+
+=== Local library module dependency
+This declares a dependency on a Java library module named `mylibrary`:
+
+[source]
+----
+implementation(project(":mylibrary"))
+----
+
+This name must match the library name defined with an `include` in your `settings.gradle(.kts)` file.
+When you build your app, the build system compiles the library module and packages the resulting compiled contents in the app.
+
+=== Local binary dependency
+This declares dependencies on JAR files inside your project's `module_name/libs/` directory:
+
+[source]
+----
+implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+----
+
+Remember that Gradle reads paths relative to the `build.gradle(.kts)` file.
+
+Alternatively, you can specify individual files as follows:
+
+[source]
+----
+implementation(files("libs/foo.jar", "libs/bar.jar"))
+----
+
+=== Remote binary dependency
+This declares a dependency on version `10.1.1` of the `app-magic` library inside the `com.example.gradle` namespace group:
+
+[source]
+----
+implementation("com.example.gradle:app-helper:10.1.1")
+----
+
+This is shorthand for the following:
+
+[source]
+----
+implementation(group = "com.example.gradle", name = "app-helper", version = "10.1.1")
+----
+
+== Version Catalog
+
+<<version_catalog.adoc#version_catalog,Version catalogs>> are a way of centralizing your dependency declarations by creating a `libs.versions.toml` file.
+
+[source]
+----
+[libraries]
+gradle-helper = "com.example.gradle:app-helper:10.1.1"
+
+[plugins]
+tutorial-application = { id = "com.tutorial.application" }
+----
+
+Using a version catalog, the example would include aliases:
+
+[source]
+----
+plugins {
+    alias(libs.tutorial.application)
+}
+
+dependencies {
+    // Dependency on a local library module
+    implementation(project(":mylibrary"))
+
+    // Dependency on local binaries
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    // Dependency on a remote binary
+    implementation(libs.gradle.helper)
+}
+----
+
+== Dependency Configurations
+[%header,cols="1,~"]
+|===
+|Configuration
+|Behavior
+
+|implementation
+|Gradle adds the dependency to the compile classpath and build output (runtime).
+
+|api
+|Gradle adds the dependency to the compile classpath and build output (runtime) -- for *external use*.
+
+|compileOnly
+|Gradle only adds the dependency to the compile classpath and not the build output).
+
+|compileOnlyApi
+|Gradle onlyadds the dependency to the compile classpath and not the build output -- for *external use*.
+
+|runtimeOnly
+|Gradle only adds the dependency to the build output (runtime) and not the compile classpath).
+
+|testImplementation
+|Gradle adds the dependency to the test compile classpath and the test runtime.
+
+|testCompileOnly
+|Gradle adds the dependency to the test compile classpath and not the test runtime.
+
+|testRuntimeOnly
+|Gradle adds the dependency to the test runtime and not the test compile time.
+|===
+
+== Transitive dependencies
+A _transitive dependency_ is a dependency of a dependency.
+
+In the example above, for the `guava` dependency to work, it requires a library called `failureaccess`:
+
+[source]
+----
+compileClasspath - Compile classpath for source set 'main'.
+\--- com.google.guava:guava:32.1.2-jre
+     +--- com.google.guava:failureaccess:1.0.1
+----
+
+Therefore `failureaccess` is a transitive dependency of the project.
+
+== Dependency location
+Gradle looks for the location your dependencies in the repositories specified in the `repositories` block of your `build.gradle(.kts)` file:
+
+[source]
+----
+repositories {
+    maven {
+        url './maven-repo'
+    }
+    ivy {
+        url './ivy-repo'
+    }
+}
+----
+
+When the dependency location is specified in the build file of a specific project, it is only applied to that subproject and not the root project or other subprojects.
+
+For shared dependency locations, among all subprojects, Gradle looks for repositories specified in the `dependencyResolutionManagement` or `pluginManagement` block of your `settings.gradle(.kts)` file:
+
+[source]
+----
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+----
+
+Consult the <<dependency_management_terminology .adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

@@ -149,7 +149,7 @@ $ ./gradlew build
 In Windows, the command is:
 [source]
 ----
-$ .\gradlew.bat build
+$ gradlew.bat build
 ----
 
 The first time you run the wrapper, it downloads and caches the Gradle binaries if they are not already installed on your machine.

@@ -40,15 +40,11 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 1.9.20
-
-The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.20[Kotlin 1.9.20].
-
 ==== Changes to Groovy task conventions
 
 The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
 
-If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
+If you are using this task *without applying `groovy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
 ==== Provider.filter
@@ -145,14 +141,6 @@ Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic has dependencies on old XML parsers that don't support secure parsing, your build may now fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
-If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
-For example, in OpenJDK this can be done by adding the following to `gradle.properties`:
-```
-systemProp.javax.xml.parsers.SAXParserFactory=com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl
-systemProp.javax.xml.transform.TransformerFactory=com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
-systemProp.javax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
-```
-See the link:https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8[CVE-2023-42445] advisory for more details and ways to enable secure XML processing on previous Gradle versions.
 
 ==== EAR plugin with customized JEE 1.3 descriptor
 
@@ -367,7 +355,7 @@ It uses eager APIs and has ordering issues if the value is read in build logic a
 It could result in outputs ending up in different locations.
 
 It is replaced by a `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` found at `Project.layout.buildDirectory`.
-See the `link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
+See the `link:{dslPath}/org.gradle.api.file.ProjectLayout.html[ProjectLayout]` interface for details.
 
 Note that, at this stage, Gradle will not print deprecation warnings if you still use `Project.buildDir`.
 We know this is a big change and want to give time for authors of major plugins to move away from its usage first.

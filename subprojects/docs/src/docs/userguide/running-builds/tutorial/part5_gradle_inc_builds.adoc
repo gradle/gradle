@@ -135,4 +135,4 @@ If there is no label, the task was newly executed by Gradle (locally).
 We will look at the `FROM-CACHE` label in the next section.
 
 [.text-right]
-**Next Step:** <<part6_gradle_caching#part6_begin,Enabling the Cache>> >>
+**Next Step:** <<part6_gradle_caching#part6_begin,Enabling the Build Cache>> >>

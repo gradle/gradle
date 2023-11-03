@@ -1,0 +1,162 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[build_file_basics]]
+= Build File Basics
+
+Every project has a build script that details build configuration, tasks, and plugins.
+
+image::gradle-basic-4.png[]
+
+Every Gradle build comprises at least one _build script_.
+
+In the build file, two types of dependencies can be added:
+
+1. The libraries and/or plugins on which Gradle and the build script depend.
+2. The libraries on which the project sources (i.e. source code) depend.
+
+[[sec:build_script]]
+== Build scripts
+
+The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file written in Kotlin.
+
+The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
+
+Let's take a look at an example and break it down:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"                      // <1>
+}
+
+repositories {
+    mavenCentral()                                                      // <2>
+}
+
+dependencies {
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")       // <3>
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")
+}
+
+application {
+    mainClass = "main"                                                  // <4>
+}
+----
+<1> Add plugins.
+<2> Add repositories.
+<3> Add dependencies.
+<4> Use convention properties.
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.9.0'                       // <1>
+}
+
+repositories {
+    mavenCentral()                                                      // <2>
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'        // <3>
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.1-jre'
+}
+
+application {
+    mainClass = 'main'                                                  // <4>
+}
+----
+<1> Add plugins.
+<2> Add repositories.
+<3> Add dependencies.
+<4> Use convention properties.
+=====
+====
+
+=== 1. Add plugins
+Plugins are bundled tasks used to extend Gradle.
+
+Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
+
+[source]
+----
+plugins {
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+}
+----
+
+The Kotlin gradle plugin, version 1.9.0, has been applied to the project so that source code written in Kotlin can be used.
+
+=== 2. Add repositories
+A project generally has several dependencies it needs to do its work.
+Many of the dependencies will be used by the source code.
+
+In the example, the link:https://mvnrepository.com/[Maven Central^] repository has been added as the location for all the binaries that Gradle will need to download to build the project.
+
+[source]
+----
+repositories {
+    mavenCentral()
+}
+----
+
+In this example, the Kotlin JVM Plugin, `org.jetbrains.kotlin.jvm`, will be downloaded by Gradle from the link:https://mvnrepository.com/artifact/org.jetbrains.kotlin.jvm/org.jetbrains.kotlin.jvm.gradle.plugin[Maven Central Repository].
+
+=== 3. Add dependencies
+Dependencies are grouped in configurations and can be retrieved and uploaded from repositories.
+
+In the example, a list of dependencies based on configurations (how/when/where Gradle will use it) is added, including the `junit` testing framework, which is used to test the Java source code.
+
+[source]
+----
+dependencies {
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")
+}
+----
+
+In this example, the source code in the project will import the Google `guava` library which will also be retrieved from the link:https://mvnrepository.com/artifact/com.google.guava/guava[Maven Central Repository] by Gradle.
+
+=== 4. Use convention properties
+A plugin adds tasks to a project.
+It also adds properties and methods to a project.
+
+In the example, the `application` plugin has a method that can declare the main class of a Java application, which is required to compile and run the code.
+
+[source]
+----
+application {
+    mainClass = "main"
+}
+----
+
+//Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
+
+[.text-right]
+**Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>

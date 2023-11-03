@@ -59,16 +59,6 @@ include::migrating_from_ant.adoc[leveloffset=+2]
 include::introduction.adoc[leveloffset=+2]
 include::installation.adoc[leveloffset=+2]
 
-== TUTORIAL
-
-include::part1_gradle_init.adoc[leveloffset=+2]
-include::part2_gradle_tasks.adoc[leveloffset=+2]
-include::part3_gradle_dep_man.adoc[leveloffset=+2]
-include::part4_gradle_plugins.adoc[leveloffset=+2]
-include::part5_gradle_inc_builds.adoc[leveloffset=+2]
-include::part6_gradle_caching.adoc[leveloffset=+2]
-include::part7_gradle_refs.adoc[leveloffset=+2]
-
 [[part:running_builds]]
 == **RUNNING GRADLE BUILDS**
 
@@ -91,7 +81,7 @@ include::init_scripts.adoc[leveloffset=+2]
 
 include::build_lifecycle.adoc[leveloffset=+2]
 include::directory_layout.adoc[leveloffset=+2]
-include::tutorial_using_tasks.adoc[leveloffset=+2]
+include::using_tasks.adoc[leveloffset=+2]
 include::writing_build_scripts.adoc[leveloffset=+2]
 include::plugins.adoc[leveloffset=+2]
 include::working_with_files.adoc[leveloffset=+2]
