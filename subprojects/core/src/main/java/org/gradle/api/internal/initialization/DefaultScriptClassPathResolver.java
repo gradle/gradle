@@ -33,9 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
 import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -59,11 +57,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API = EnumSet.copyOf(ImmutableSet.of(
         DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
-        DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
-    ));
-    private static final Set<DependencyFactoryInternal.ClassPathNotation> NO_GRADLE_API_AND_PROJECTS = EnumSet.copyOf(ImmutableSet.of(
-        DependencyFactoryInternal.ClassPathNotation.GRADLE_API,
-        DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH,
         DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
     ));
 
@@ -112,18 +105,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     }
 
     private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        // Handle projects as files, so we cache them globally
-        ArtifactView projectsView = artifactView(classpathConfiguration, config -> config.componentFilter(id -> id instanceof ProjectComponentIdentifier));
-        DefaultSelfResolvingDependency projectDependencies = new DefaultSelfResolvingDependency(
-            new OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_PROJECTS_ON_BUILD_CLASSPATH),
-            (FileCollectionInternal) projectsView.getFiles()
-        );
-        Configuration projectsOnlyConfiguration = configContainer.detachedConfiguration(projectDependencies);
-
         // Register collect type hierarchy
         ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
-            config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API_AND_PROJECTS));
+            config.componentFilter(id -> !(id instanceof ProjectComponentIdentifier) && DefaultScriptClassPathResolver.filterGradleDependencies(id));
         });
         dependencyHandler.registerTransform(
             CollectDirectClassSuperTypesTransform.class,
@@ -146,15 +131,10 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             }
         );
 
-        FileCollection instrumentedClasspath = artifactView(classpathConfiguration, config -> {
+        return artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
-            config.componentFilter(id -> DefaultScriptClassPathResolver.filterGradleDependencies(id, NO_GRADLE_API));
+            config.componentFilter(DefaultScriptClassPathResolver::filterGradleDependencies);
         }).getFiles();
-        //noinspection CodeBlock2Expr
-        FileCollection instrumentedProjectsOnlyClasspath = artifactView(projectsOnlyConfiguration, config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
-        }).getFiles();
-        return instrumentedClasspath.plus(instrumentedProjectsOnlyClasspath);
     }
 
     private List<GlobalCache> getSerializableGlobalCaches() {
@@ -167,12 +147,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return configuration.getIncoming().artifactView(configAction);
     }
 
-    private static boolean filterGradleDependencies(ComponentIdentifier componentId, Set<DependencyFactoryInternal.ClassPathNotation> ignoredClasspathNotations) {
+    private static boolean filterGradleDependencies(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
             DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return !ignoredClasspathNotations.contains(classPathNotation);
+            return !DefaultScriptClassPathResolver.NO_GRADLE_API.contains(classPathNotation);
         }
-        return !(componentId instanceof ProjectComponentIdentifier);
+        return true;
     }
 
     private static class SerializableGlobalCache implements GlobalCache, Serializable {
