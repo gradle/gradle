@@ -1152,7 +1152,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def "project transform execution can be up-to-date or from build cache"() {
+    def "incremental project transform execution can be up-to-date or from build cache"() {
         createDirs("producer", "consumer")
         settingsFile << """
             include 'producer', 'consumer'
@@ -1165,6 +1165,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 @InputArtifact
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract InputChanges getInputChanges()
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
@@ -1220,6 +1223,68 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         outputDoesNotContain("processing [producer.jar]")
         checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["FROM-CACHE"])
+    }
+
+    def "non-incremental project transform execution can be up-to-date"() {
+        createDirs("producer", "consumer")
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransform(buildFile)
+        buildFile << """
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=initial"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        outputDoesNotContain("processing [producer.jar]")
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), ["UP-TO-DATE"])
+
+        when:
+        run ":consumer:resolve", "-DproducerContent=changed"
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+
+        checkExecuteTransformWorkOperations(getExecutePlannedStepOperations(1).first(), [null])
     }
 
     def "build operation for planned steps executed non-planned"() {

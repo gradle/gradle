@@ -34,6 +34,7 @@ public interface JvmVendor {
         MICROSOFT("microsoft", "Microsoft"),
         ORACLE("oracle", "Oracle"),
         SAP("sap se", "SAP SapMachine"),
+        TENCENT("tencent", "Tencent"),
         UNKNOWN("gradle", "Unknown Vendor");
 
         private final String indicatorString;
