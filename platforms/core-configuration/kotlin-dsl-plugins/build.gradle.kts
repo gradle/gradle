@@ -7,7 +7,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.2.1"
+version = "4.2.2"
 
 base.archivesName = "plugins"
 
@@ -21,8 +21,6 @@ dependencies {
     compileOnly(project(":language-java"))
     compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
-    compileOnly(project(":plugins-java-base"))
-    compileOnly(project(":toolchains-jvm"))
     compileOnly(project(":kotlin-dsl"))
 
     compileOnly(libs.slf4jApi)
