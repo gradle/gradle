@@ -135,11 +135,17 @@ Check the [version catalog API](javadoc/org/gradle/api/artifacts/VersionCatalog.
 
 #### Control skipping Kotlin metadata version check for script compilation
 
-Skipping [Kotlin metadata](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-metadata/) version check in Kotlin DSL script compilation is now deprecated.
+[Kotlin/JVM metadata](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-metadata/) is backward-compatible with all Kotlin releases and forward-compatible with one Kotlin release.
+For example, Kotlin 1.9 supports Kotlin metadata from Kotlin 1.0 up to Kotlin 2.0, but not from Kotlin 2.1.
 
-You can control if Kotlin DSL script compilation should skip Kotlin metadata version check with the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property.
+The Kotlin compiler checks that the metadata of all dependencies is compatible.
+Skipping that check is the current default for Gradle script compilation.
+This may lead to hard-to-troubleshoot errors when libraries built with Kotlin versions unsupported by the Kotlin embedded in Gradle are used in build logic.
 
-To opt-in early to this future-proof behavior, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
+Skipping the check will be deprecated soon.
+Starting with Gradle 9.0, the Kotlin metadata version check will be enabled by default.
+
+To opt-in early to the future-proof behavior, set the `org.gradle.kotlin.dsl.skipMetadataVersionCheck` property to `false`.
 This will enable the metadata check.
 
 To enable the check persistently, set the property in the `gradle.properties` file of your build root directory:
@@ -148,8 +154,6 @@ To enable the check persistently, set the property in the `gradle.properties` fi
 ----
 org.gradle.kotlin.dsl.skipMetadataVersionCheck=false
 ----
-
-Please see the dedicated [upgrade guide section](userguide/upgrading_version_8.html#kotlin_dsl_skip_metadata_version_check) for more information.
 
 <a name="error-reporting"></a>
 ### Error and Warning Reporting Improvements
