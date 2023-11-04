@@ -212,7 +212,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         where:
         [agpVersion, ide] << [
             TestedVersions.androidGradle.toList(),
-            [false]
+            [false, true]
         ].combinations()
     }
 
