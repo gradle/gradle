@@ -88,6 +88,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     static def grettyConfigForCurrentJavaVersion() {
-        TestedVersions.gretty.findAll { JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) }
+        TestedVersions.gretty.findAll {
+            JavaVersion.current().isCompatibleWith(it.javaMinVersion as JavaVersion) &&
+                (it.javaMaxVersion == null || JavaVersion.current() <= JavaVersion.toVersion(it.javaMaxVersion))
+        }
     }
 }

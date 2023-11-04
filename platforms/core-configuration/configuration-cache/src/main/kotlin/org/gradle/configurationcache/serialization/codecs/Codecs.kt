@@ -387,6 +387,7 @@ class Codecs(
         bind(RegexpPatternCodec)
         bind(UrlCodec)
         bind(LevelCodec)
+        bind(CharsetCodec)
 
         javaTimeTypes()
 
