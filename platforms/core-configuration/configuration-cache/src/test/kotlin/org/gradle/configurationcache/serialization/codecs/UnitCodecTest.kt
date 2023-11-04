@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import spock.lang.Issue
@@ -26,9 +26,9 @@ class UnitCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/25560")
-    fun `can handle Unit instance`() {
+    fun `same Unit instance is used upon restore`() {
         configurationCacheRoundtripOf(Unit).run {
-            assertThat(this, `is`(Unit))
+            assertThat(this, sameInstance(Unit))
         }
     }
 }
