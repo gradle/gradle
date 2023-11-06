@@ -51,7 +51,7 @@ import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 @DisableCachingByDefault(because = "Not enable yet, since original instrumentation is also not cached in build cache.")
 public abstract class CollectDirectClassSuperTypesTransform implements TransformAction<TransformParameters.None> {
 
-    private static final Predicate<String> ACCEPTED_TYPES = type -> !type.startsWith("java/lang");
+    private static final Predicate<String> ACCEPTED_TYPES = type -> type != null && !type.startsWith("java/lang");
     private static final String FILE_SUFFIX = ".super-types";
 
     @Inject
