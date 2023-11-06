@@ -413,9 +413,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
+        validateMutation(MutationType.HIERARCHY);
         this.extendsFrom.clear();
         for (Configuration configuration : extendsFrom) {
-            this.extendsFrom.add(configuration);
+            extendsFrom(configuration);
         }
         return this;
     }
@@ -436,17 +437,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        this.extendsFrom.addAll(Arrays.asList(extendsFrom));
+        for (Configuration configuration : extendsFrom) {
+            checkCycle(configuration);
+            this.extendsFrom.add(configuration);
+        }
         return this;
     }
 
-    private void addConfigurationToExtendsFrom(Configuration configuration) {
-        validateMutation(MutationType.HIERARCHY);
+    private void checkCycle(Configuration configuration) {
         if (configuration.getHierarchy().contains(this)) {
             throw new InvalidUserDataException(String.format(
                 "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
                 configuration, configuration.getHierarchy()));
         }
+    }
+
+    private void addConfigurationToExtendsFrom(Configuration configuration) {
+        validateMutation(MutationType.HIERARCHY);
         if (inheritedArtifacts != null) {
             inheritedArtifacts.addCollection(configuration.getAllArtifacts());
         }
@@ -461,7 +468,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration extendsFrom(Provider<? extends Configuration> superConfig) {
-        this.extendsFrom.addLater(superConfig);
+        this.extendsFrom.addLater(superConfig.map(configuration -> {
+                checkCycle(configuration);
+                return configuration;
+            }
+            ));
         return this;
     }
 
