@@ -962,9 +962,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def "can publish java-library with lazy capabilities"() {
         given:
         createBuildScripts("""
-
-            configurations.api.outgoing.capability providers.provider { 'org:foo:1.0' }
-            configurations.implementation.outgoing.capability providers.provider { 'org:bar:1.0' }
+            def changedLater = "bad value"
+            configurations.api.outgoing.capability providers.provider { changedLater + ':foo:1.0' }
+            configurations.implementation.outgoing.capability providers.provider { changedLater + ':bar:1.0' }
 
             publishing {
                 publications {
@@ -973,6 +973,8 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
+
+            changedLater = "org"
 """)
 
         when:
