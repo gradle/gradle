@@ -48,7 +48,7 @@ class NewKotlinCompileClasspathFingerprinter(
 ) : FileCollectionFingerprinter { // TODO: rename/replace KotlinCompileClasspathFingerprinter
 
     override fun getNormalizer(): FileNormalizer {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun fingerprint(files: FileCollection): CurrentFileCollectionFingerprint {
@@ -96,11 +96,11 @@ class NewKotlinCompileClasspathFingerprinter(
     }
 
     override fun fingerprint(snapshot: FileSystemSnapshot, previousFingerprint: FileCollectionFingerprint?): CurrentFileCollectionFingerprint {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun empty(): CurrentFileCollectionFingerprint {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 }
 
@@ -122,27 +122,27 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
     override fun getStrategyIdentifier(): String = COMPILE_CLASSPATH_IDENTIFIER
 
     override fun getSnapshot(): FileSystemSnapshot {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun isEmpty(): Boolean {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun archive(factory: CurrentFileCollectionFingerprint.ArchivedFileCollectionFingerprintFactory): FileCollectionFingerprint {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun getFingerprints(): Map<String, FileSystemLocationFingerprint> {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun getRootHashes(): ImmutableMultimap<String, HashCode> {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 
     override fun wasCreatedWithStrategy(strategy: FingerprintingStrategy): Boolean {
-        TODO("Not yet implemented")
+        throw UnsupportedOperationException("Not implemented")
     }
 }
 
