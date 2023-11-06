@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 /**
- * Builds the IsolatedGradleProject that contains information about a project and its tasks.
+ * Builds the {@link org.gradle.tooling.model.internal.gradle.IsolatedGradleProject} that contains information about a project and its tasks.
  */
 @NonNullApi
 public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
@@ -60,19 +60,24 @@ public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
 
         if (realizeTasks) {
-            List<LaunchableGradleTask> tasks = tasks(gradleProject, project.getTasks());
+            List<LaunchableGradleTask> tasks = buildTasks(gradleProject, project.getTasks());
             gradleProject.setTasks(tasks);
         }
 
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> tasks(DefaultIsolatedGradleProject owner, TaskContainer tasks) {
+    private static List<LaunchableGradleTask> buildTasks(DefaultIsolatedGradleProject owner, TaskContainer tasks) {
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
-            .map(task -> buildFromTask(new LaunchableGradleTask(), owner.getProjectIdentifier(), task)
-                .setBuildTreePath(getBuildTreePath(task))).collect(toList());
+            .map(task -> buildTask(owner, task))
+            .collect(toList());
+    }
+
+    private static LaunchableGradleTask buildTask(DefaultIsolatedGradleProject owner, Task task) {
+        return buildFromTask(new LaunchableGradleTask(), owner.getProjectIdentifier(), task)
+            .setBuildTreePath(getBuildTreePath(task));
     }
 
     private static String getBuildTreePath(Task task) {

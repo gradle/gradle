@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
@@ -32,7 +33,6 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
-import static org.gradle.util.Path.SEPARATOR;
 
 /**
  * Builds the {@link GradleProject} model that contains the project hierarchy and task information.
@@ -94,23 +94,19 @@ public class GradleProjectBuilder implements ToolingModelBuilder, GradleProjectB
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
-            .map(task -> buildTaskModel(owner, task)).collect(toList());
+            .map(task -> buildTask(owner, task))
+            .collect(toList());
     }
 
-    private static LaunchableGradleProjectTask buildTaskModel(DefaultGradleProject owner, Task task) {
+    private static LaunchableGradleProjectTask buildTask(DefaultGradleProject owner, Task task) {
         LaunchableGradleProjectTask model = buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task);
-        model.setProject(owner)
-            .setBuildTreePath(getBuildTreePath(owner, task));
+        model.setProject(owner);
+        model.setBuildTreePath(getBuildTreePath(task));
         return model;
     }
 
-    private static String getBuildTreePath(DefaultGradleProject owner, Task task) {
-        String ownerBuildTreePath = owner.getBuildTreePath();
-        String buildTreePath = SEPARATOR + task.getName();
-        if (SEPARATOR.equals(ownerBuildTreePath)) {
-            return buildTreePath;
-        }
-        return ownerBuildTreePath + buildTreePath;
+    private static String getBuildTreePath(Task task) {
+        return ((TaskInternal) task).getIdentityPath().getPath();
     }
 
 }
