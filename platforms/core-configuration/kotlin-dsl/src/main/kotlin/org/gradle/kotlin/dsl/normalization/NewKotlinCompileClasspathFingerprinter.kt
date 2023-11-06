@@ -39,7 +39,6 @@ import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 
 internal
@@ -55,32 +54,21 @@ class NewKotlinCompileClasspathFingerprinter(
     override fun fingerprint(files: FileCollection): CurrentFileCollectionFingerprint {
         val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
 
-        val duration = measureTimeMillis {
-            fileCollectionSnapshotter.snapshot(files).snapshot.accept { snapshot ->
-                val file = File(snapshot.absolutePath)
+        fileCollectionSnapshotter.snapshot(files).snapshot.accept { snapshot ->
+            val file = File(snapshot.absolutePath)
 
-                // if not jar file or class directory, we ignore it
-                if (file.isFile && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
-                    return@accept SnapshotVisitResult.CONTINUE
-                }
-
-                val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
-                    val abiHash = computeHashForFile(file)
-                    if (file.isDirectory) {
-                        println("--> dir  = ${file.path}, CONTENT hash: ${snapshot.hash}, ABI hash: $abiHash")
-                    } else {
-                        println("--> file = ${file.name}, CONTENT hash: ${snapshot.hash}, ABI hash: $abiHash")
-                    } // TODO: remove
-                    abiHash
-                }
-                fingerprints[snapshot.absolutePath] = fingerprint
-
-                // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
-                if (file.isDirectory) SnapshotVisitResult.SKIP_SUBTREE else SnapshotVisitResult.CONTINUE
+            // if not jar file or class directory, we ignore it
+            if (file.isFile && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
+                return@accept SnapshotVisitResult.CONTINUE
             }
-        }
-        if (duration > 0) {
-            println("Snapshotting took $duration ms") // TODO: remove
+
+            val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
+                computeHashForFile(file)
+            }
+            fingerprints[snapshot.absolutePath] = fingerprint
+
+            // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
+            if (file.isDirectory) SnapshotVisitResult.SKIP_SUBTREE else SnapshotVisitResult.CONTINUE
         }
 
         return when {
