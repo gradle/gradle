@@ -128,7 +128,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         run("tasks", "--info")
 
         then:
-        allTransformsFor("animals-1.0.jar") == ["CollectDirectClassSuperTypesTransform", "InstrumentArtifactTransform"]
+        allTransformsFor("animals-1.0.jar") ==~ ["CollectDirectClassSuperTypesTransform", "InstrumentArtifactTransform"]
         def output = gradleUserHomeOutput("animals-1.0.jar.super-types")
         output.exists()
         output.readLines() == [

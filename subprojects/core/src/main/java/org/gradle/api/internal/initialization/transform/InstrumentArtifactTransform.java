@@ -17,20 +17,19 @@
 package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
@@ -40,6 +39,7 @@ import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.Stat;
 import org.gradle.util.internal.GFileUtils;
@@ -58,10 +58,6 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         @Internal
         Property<InstrumentBuildService> getBuildService();
 
-        @InputFiles
-        @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getClassHierarchy();
-
         @Internal
         ListProperty<GlobalCache> getCacheLocations();
     }
@@ -69,8 +65,15 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
     @Inject
     public abstract ObjectFactory getObjects();
 
-    @InputArtifact
+    /**
+     * Not used directly, but needed to make sure the transform is executed when the dependencies change.
+     */
+    @CompileClasspath
+    @InputArtifactDependencies
+    public abstract FileCollection getDependencies();
+
     @Classpath
+    @InputArtifact
     public abstract Provider<FileSystemLocation> getInput();
 
     private File getInputAsFile() {
@@ -85,11 +88,13 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
         }
 
         // TransformedClassPath.handleInstrumentingArtifactTransform depends on the order and this naming, we should make it more resilient in the future
-        String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         InstrumentationServices instrumentationServices = getObjects().newInstance(InstrumentationServices.class);
+        String instrumentedJarName = getInput().get().getAsFile().getName().replaceFirst("\\.jar$", TransformedClassPath.INSTRUMENTED_JAR_EXTENSION);
         File outputFile = outputs.file(instrumentedJarName);
+        InstrumentBuildService buildService = getParameters().getBuildService().get();
+        InstrumentingTypeRegistry typeRegistry = buildService.getInstrumentingTypeRegistry(instrumentationServices.getGradleCoreInstrumentingTypeRegistry());
         ClasspathElementTransformFactoryForAgent transformFactory = instrumentationServices.getTransformFactory();
-        ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), InstrumentingTypeRegistry.EMPTY);
+        ClasspathElementTransform transform = transformFactory.createTransformer(getInputAsFile(), new InstrumentingClassTransform(), typeRegistry);
         transform.transform(outputFile);
 
         List<GlobalCache> globalCaches = getParameters().getCacheLocations().get();
@@ -106,14 +111,20 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
     static class InstrumentationServices {
 
         private final ClasspathElementTransformFactoryForAgent transformFactory;
+        private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
 
         @Inject
-        public InstrumentationServices(Stat stat) {
+        public InstrumentationServices(Stat stat, GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
             this.transformFactory = new ClasspathElementTransformFactoryForAgent(new InPlaceClasspathBuilder(), new ClasspathWalker(stat));
+            this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
         }
 
         public ClasspathElementTransformFactoryForAgent getTransformFactory() {
             return transformFactory;
+        }
+
+        public GradleCoreInstrumentingTypeRegistry getGradleCoreInstrumentingTypeRegistry() {
+            return gradleCoreInstrumentingTypeRegistry;
         }
     }
 }

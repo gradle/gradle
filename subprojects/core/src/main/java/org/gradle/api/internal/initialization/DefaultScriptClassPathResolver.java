@@ -135,7 +135,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
                 spec.parameters(parameters -> {
                     parameters.getBuildService().set(registerNewService(classHierarchy));
-                    parameters.getClassHierarchy().setFrom(classHierarchy);
                     parameters.getCacheLocations().set(getSerializableGlobalCaches());
                 });
             }
