@@ -30,6 +30,8 @@ import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
+import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
+import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import spock.lang.Issue
 
 import java.util.regex.Matcher
@@ -64,10 +66,17 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
+        runner.useDaemon = false
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()
         }
         applyEnterprisePlugin()
+        runner.addBuildMutator { invocationSettings ->
+            new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
 
         when:
         def result = runner.run()
