@@ -32,6 +32,7 @@ import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprin
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
@@ -55,20 +56,18 @@ class NewKotlinCompileClasspathFingerprinter(
         val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
 
         fileCollectionSnapshotter.snapshot(files).snapshot.accept { snapshot ->
-            val file = File(snapshot.absolutePath)
-
             // if not jar file or class directory, we ignore it
-            if (file.isFile && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
+            if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
                 return@accept SnapshotVisitResult.CONTINUE
             }
 
             val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
-                computeHashForFile(file)
+                computeHashForFile(File(snapshot.absolutePath))
             }
             fingerprints[snapshot.absolutePath] = fingerprint
 
             // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
-            if (file.isDirectory) SnapshotVisitResult.SKIP_SUBTREE else SnapshotVisitResult.CONTINUE
+            SnapshotVisitResult.SKIP_SUBTREE
         }
 
         return when {
