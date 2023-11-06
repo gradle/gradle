@@ -89,7 +89,7 @@ import java.util.stream.Collectors;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
-    private final GradleProjectBuilder gradleProjectBuilder;
+    private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
 
     private boolean projectDependenciesOnly;
@@ -102,12 +102,12 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
     @VisibleForTesting
-    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
+    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
         this.gradleProjectBuilder = gradleProjectBuilder;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
-    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ProjectStateRegistry projectStateRegistry) {
+    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateRegistry projectStateRegistry) {
         this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateRegistry));
     }
 
@@ -150,7 +150,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         currentProject = project;
         eclipseProjects = Lists.newArrayList();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
-        rootGradleProject = gradleProjectBuilder.buildAll(project);
+        rootGradleProject = gradleProjectBuilder.buildRoot(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root, new ArrayList<>());
         deduplicateProjectNames(root);
