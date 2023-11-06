@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.capabilities
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -142,12 +143,12 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             root(":p1", "test:p1:") {
                 project(":p2", "test:p2:") {
                     configuration 'runtimeElements'
-                    project(":shared", "test:shared:") {
-                        artifact(classifier: 'one-preferred')
-                    }
-                    project(":shared", "test:shared:") {
-                        artifact(classifier: 'two-preferred')
-                    }
+//                    project(":shared", "test:shared:") {
+//                        artifact(classifier: 'one-preferred')
+//                    }
+//                    project(":shared", "test:shared:") {
+//                        artifact(classifier: 'two-preferred')
+//                    }
                 }
                 project(":shared", "test:shared:") {
                     variant('onePrefRuntimeElements', [
@@ -157,6 +158,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
                     byConflictResolution()
+                    artifact(classifier: 'one-preferred')
                     project(":shared", "test:shared:") {
 
                     }
@@ -168,8 +170,106 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
+                    artifact(classifier: 'two-preferred')
                 }
             }
         }
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/26145")
+    def "dependencies can be resolved with multiple capability replacements"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'dev.jacomet.logging-capabilities' version '0.11.1'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation 'eu.medsea.mimeutil:mime-util:2.1.3'
+                implementation 'org.slf4j:slf4j-api:2.0.7'
+                runtimeOnly 'ch.qos.logback:logback-classic:1.3.11'
+            }
+
+            loggingCapabilities {
+                enforceLogback()
+            }
+        """
+
+        expect:
+        succeeds("dependencies", "--configuration=runtimeClasspath")
+    }
+
+    def "can evict node in a component with an un-evicted selected node"() {
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << """
+            configurations {
+                consumable("one") {
+                    outgoing {
+                        capability('o:n:e')
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                    }
+                }
+                consumable("one-preferred") {
+                    outgoing {
+                        capability('o:n:e')
+                        capability('g:one-preferred:v')
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                    }
+                }
+            }
+        """
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                resolvable("classpath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                    }
+                }
+            }
+
+            configurations.classpath {
+                resolutionStrategy.capabilitiesResolution.all { details ->
+                    def selection =
+                        details.candidates.find { it.variantName.endsWith('preferred') }
+                    println("Selecting \$selection from \${details.candidates}")
+                    details.select(selection)
+                }
+            }
+
+            dependencies {
+                implementation(project(':producer')) {
+                    capabilities {
+                        requireCapability('o:n:e')
+                    }
+                }
+                implementation(project(':producer')) {
+                    capabilities {
+                        requireCapability('o:n:e')
+                        requireCapability('g:one-preferred:v')
+                    }
+                }
+            }
+
+            task resolve {
+                def root = configurations.classpath.incoming.resolutionResult.rootComponent
+                doLast {
+                    println(root.get().dependencies)
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
     }
 }

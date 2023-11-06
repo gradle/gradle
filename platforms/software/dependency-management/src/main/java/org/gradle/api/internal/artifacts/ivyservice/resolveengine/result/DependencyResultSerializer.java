@@ -40,20 +40,18 @@ public class DependencyResultSerializer {
     public ResolvedGraphDependency read(Decoder decoder, Map<Long, ComponentSelector> selectors, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         long selectorId = decoder.readSmallLong();
         ComponentSelector requested = selectors.get(selectorId);
+        assert requested != null;
         boolean constraint = decoder.readBoolean();
         long fromVariant = decoder.readSmallLong();
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             long selectedId = decoder.readSmallLong();
             long selectedVariantId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, fromVariant, selectedVariantId);
-        } else if (resultByte == SUCCESSFUL_NOTHING_SELECTED) {
-            long selectedId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, fromVariant, null);
+            return new DetachedResolvedGraphDependency(requested, selectedId, constraint, fromVariant, selectedVariantId);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, fromVariant, null);
+            return new DetachedResolvedGraphDependency(requested, reason, failure, constraint, fromVariant);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -64,14 +62,9 @@ public class DependencyResultSerializer {
         encoder.writeBoolean(value.isConstraint());
         encoder.writeSmallLong(value.getFromVariant());
         if (value.getFailure() == null) {
-            if (value.getSelectedVariant() != null) {
-                encoder.writeByte(SUCCESSFUL);
-                encoder.writeSmallLong(value.getSelected());
-                encoder.writeSmallLong(value.getSelectedVariant());
-            } else {
-                encoder.writeByte(SUCCESSFUL_NOTHING_SELECTED);
-                encoder.writeSmallLong(value.getSelected());
-            }
+            encoder.writeByte(SUCCESSFUL);
+            encoder.writeSmallLong(value.getSelectedComponentId());
+            encoder.writeSmallLong(value.getSelectedVariant());
         } else {
             encoder.writeByte(FAILED);
             componentSelectionReasonSerializer.write(encoder, value.getReason());

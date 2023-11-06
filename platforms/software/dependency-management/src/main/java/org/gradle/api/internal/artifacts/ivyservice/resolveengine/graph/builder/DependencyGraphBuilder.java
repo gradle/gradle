@@ -390,6 +390,13 @@ public class DependencyGraphBuilder {
                         validateChangingVersions(selected);
                     }
                 }
+                for (NodeState node : selected.getNodes()) {
+                    if (node.isSelected() && node.isEvicted()) {
+                        throw new IllegalStateException(String.format(
+                            "Node '%s' is both selected and evicted.", node.getNameWithVariant())
+                        );
+                    }
+                }
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }

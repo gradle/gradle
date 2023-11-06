@@ -193,7 +193,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:testB:1.0:runtimeAlt').byConflictResolution("On capability org:testB we want runtimeAlt with 'special'")
-                module('org:testB:1.0:runtimeAlt')
+//                module('org:testB:1.0:runtimeAlt')
             }
         }
     }
@@ -255,7 +255,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:testB:1.0:runtimeAlt').byConflictResolution("On capability org:testB we want runtimeAlt with 'special'")
-                module('org:testB:1.0:runtimeAlt')
+//                module('org:testB:1.0:runtimeAlt')
                 module('org:testB:1.0:runtimeOptional')
             }
         }

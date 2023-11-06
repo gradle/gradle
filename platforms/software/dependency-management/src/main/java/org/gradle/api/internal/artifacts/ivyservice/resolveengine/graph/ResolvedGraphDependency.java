@@ -35,9 +35,11 @@ public interface ResolvedGraphDependency {
 
     /**
      * Returns the simple id of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
+     *
+     * @return null if a failure is present
      */
     @Nullable
-    Long getSelected();
+    Long getSelectedComponentId();
 
     /**
      * Not null only when failure is not null.
@@ -54,6 +56,8 @@ public interface ResolvedGraphDependency {
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
+     *
+     * @return null if a failure is present
      */
     @Nullable
     Long getSelectedVariant();

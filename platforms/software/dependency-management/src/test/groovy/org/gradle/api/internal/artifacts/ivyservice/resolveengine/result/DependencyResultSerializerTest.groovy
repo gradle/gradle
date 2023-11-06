@@ -43,7 +43,7 @@ class DependencyResultSerializerTest extends Specification {
             }
             getFromVariant() >> 55L
             getFailure() >> null
-            getSelected() >> 12L
+            getSelectedComponentId() >> 12L
             getSelectedVariant() >> 123L
             getReason() >> ComponentSelectionReasons.requested()
         }
@@ -59,7 +59,7 @@ class DependencyResultSerializerTest extends Specification {
         out.requested == requested
         out.failure == null
         out.fromVariant == 55L
-        out.selected == 12L
+        out.selectedComponentId == 12L
         out.selectedVariant == 123L
     }
 
@@ -91,7 +91,7 @@ class DependencyResultSerializerTest extends Specification {
         out.requested == requested
         out.failure.cause.message == "Boo!"
         out.fromVariant == 55L
-        out.selected == null
+        out.selectedComponentId == null
         out.selectedVariant == null
         out.reason.conflictResolution
     }

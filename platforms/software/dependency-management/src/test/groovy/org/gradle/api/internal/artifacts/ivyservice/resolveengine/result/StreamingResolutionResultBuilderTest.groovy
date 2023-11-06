@@ -217,7 +217,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphEdge dep(DependencyGraphSelector selector, Long fromVariant, Long selectedId) {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.selector >> selector
-        _ * edge.selected >> selectedId
+        _ * edge.selectedComponentId >> selectedId
         _ * edge.failure >> null
         _ * edge.fromVariant >> fromVariant
         _ * edge.selectedVariant >> selectedId

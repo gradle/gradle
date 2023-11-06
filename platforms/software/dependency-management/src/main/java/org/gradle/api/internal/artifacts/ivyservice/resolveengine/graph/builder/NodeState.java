@@ -695,6 +695,10 @@ public class NodeState implements DependencyGraphNode {
         evicted = true;
     }
 
+    public boolean isEvicted() {
+        return evicted;
+    }
+
     boolean shouldIncludedInGraphResult() {
         return isSelected() && !component.getModule().isVirtualPlatform();
     }
@@ -1087,7 +1091,13 @@ public class NodeState implements DependencyGraphNode {
                 edge.restartConnected();
             }
         }
+        // See https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970
+        List<EdgeState> incomingEdges = ImmutableList.copyOf(this.incomingEdges);
         clearIncomingEdges();
+        for (EdgeState incomingEdge : incomingEdges) {
+            NodeState from = incomingEdge.getFrom();
+            from.removeOutgoingEdge(incomingEdge);
+        }
     }
 
     private void clearIncomingEdges() {
@@ -1160,24 +1170,21 @@ public class NodeState implements DependencyGraphNode {
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
-                if (from.removeOutgoingEdge(incomingEdge)) {
-                    incomingEdge.getSelector().release(resolveState.getConflictTracker());
-                }
+                from.removeOutgoingEdge(incomingEdge);
             }
             pendingDependencies.registerConstraintProvider(from);
         }
     }
 
-    private boolean removeOutgoingEdge(EdgeState edge) {
+    private void removeOutgoingEdge(EdgeState edge) {
         if (!removingOutgoingEdges) {
             // don't try to remove an outgoing edge if we're already doing it
             // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
             edge.markUnused();
-            return true;
+            edge.getSelector().release(resolveState.getConflictTracker());
         }
-        return false;
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {

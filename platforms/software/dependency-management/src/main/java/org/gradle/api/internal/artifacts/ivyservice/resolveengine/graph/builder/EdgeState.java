@@ -30,8 +30,8 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
@@ -274,6 +274,7 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
+            // TODO: What if the node is evicted?
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
@@ -352,7 +353,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Long getSelected() {
+    public Long getSelectedComponentId() {
         return getSelectedComponent().getResultId();
     }
 
@@ -366,18 +367,11 @@ class EdgeState implements DependencyGraphEdge {
         return resolvedVariant != null || !findTargetNodes().isEmpty();
     }
 
-    @Nullable
     @Override
     public Long getSelectedVariant() {
-        NodeState node = getSelectedNode();
-        if (node == null) {
-            return null;
-        } else {
-            return node.getNodeId();
-        }
+        return getSelectedNode().getNodeId();
     }
 
-    @Nullable
     public NodeState getSelectedNode() {
         if (resolvedVariant != null) {
             return resolvedVariant;
@@ -390,12 +384,18 @@ class EdgeState implements DependencyGraphEdge {
                 return resolvedVariant;
             }
         }
-        return null;
+
+        throw new IllegalStateException("Could not find selected node for " + this);
     }
 
     private List<NodeState> findTargetNodes() {
         List<NodeState> targetNodes = this.targetNodes;
         if (targetNodes.isEmpty()) {
+            // TODO: This really seems wrong.
+            //       If the graph finishes resolution and we have no target nodes
+            //       We should not just assume that we target _some_ other node in the same component
+            //       In fact, an `assert false` here never triggers. The test added by the original commit
+            //       passes even when this is removed.
             // happens for substituted dependencies
             ComponentState targetComponent = getTargetComponent();
             if (targetComponent != null) {

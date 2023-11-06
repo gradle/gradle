@@ -35,24 +35,36 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final Long fromVariant;
     private final Long targetVariant;
 
-    public DetachedResolvedGraphDependency(ComponentSelector requested,
-                                           Long selected,
-                                           ComponentSelectionReason reason,
-                                           ModuleVersionResolveException failure,
-                                           boolean constraint,
-                                           Long fromVariant,
-                                           Long targetVariant
+    public DetachedResolvedGraphDependency(
+        ComponentSelector requested,
+        Long selected,
+        boolean constraint,
+        Long fromVariant,
+        Long targetVariant
     ) {
-        assert requested != null;
-        assert failure != null || selected != null;
-
         this.requested = requested;
-        this.reason = reason;
+        this.reason = null;
         this.selected = selected;
-        this.failure = failure;
+        this.failure = null;
         this.constraint = constraint;
         this.fromVariant = fromVariant;
         this.targetVariant = targetVariant;
+    }
+
+    public DetachedResolvedGraphDependency(
+        ComponentSelector requested,
+        ComponentSelectionReason reason,
+        ModuleVersionResolveException failure,
+        boolean constraint,
+        Long fromVariant
+    ) {
+        this.requested = requested;
+        this.reason = reason;
+        this.selected = null;
+        this.failure = failure;
+        this.constraint = constraint;
+        this.fromVariant = fromVariant;
+        this.targetVariant = null;
     }
 
     @Override
@@ -61,7 +73,7 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     }
 
     @Override
-    public Long getSelected() {
+    public Long getSelectedComponentId() {
         return selected;
     }
 

@@ -263,7 +263,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         return Stub(ResolvedGraphDependency) {
             getRequested() >> selector
             getFromVariant() >> id(from)
-            getSelected() >> id(selected)
+            getSelectedComponentId() >> id(selected)
             getSelectedVariant() >> id(selected)
             getFailure() >> failure
         }
