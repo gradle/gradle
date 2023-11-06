@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
@@ -63,14 +62,12 @@ public class GradleProjectBuilder implements ToolingModelBuilder, GradleProjectB
             .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 
-        String projectIdentityPath = ((ProjectInternal) project).getIdentityPath().getPath();
         DefaultGradleProject gradleProject = new DefaultGradleProject()
             .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
             .setName(project.getName())
             .setDescription(project.getDescription())
             .setBuildDirectory(project.getLayout().getBuildDirectory().getAsFile().get())
             .setProjectDirectory(project.getProjectDir())
-            .setBuildTreePath(projectIdentityPath)
             .setChildren(children);
 
         gradleProject.getBuildScript().setSourceFile(project.getBuildFile());

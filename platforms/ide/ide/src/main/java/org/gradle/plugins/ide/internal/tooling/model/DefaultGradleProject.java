@@ -38,7 +38,6 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     private DefaultProjectIdentifier projectIdentifier;
     private DefaultGradleProject parent;
     private List<? extends DefaultGradleProject> children = new LinkedList<>();
-    private String buildTreePath;
 
     public String getName() {
         return name;
@@ -150,12 +149,4 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
         return buildScript;
     }
 
-    public DefaultGradleProject setBuildTreePath(String buildTreePath) {
-        this.buildTreePath = buildTreePath;
-        return this;
-    }
-
-    public String getBuildTreePath() {
-        return buildTreePath;
-    }
 }
