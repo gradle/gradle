@@ -435,13 +435,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public Configuration setExtendsFrom(Provider<? extends Iterable<Configuration>> extendsFrom) {
-        this.extendsFrom.clear();
-        this.extendsFrom.addAllLater(extendsFrom);
-        return this;
-    }
-
-    @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
         this.extendsFrom.addAll(Arrays.asList(extendsFrom));
         return this;

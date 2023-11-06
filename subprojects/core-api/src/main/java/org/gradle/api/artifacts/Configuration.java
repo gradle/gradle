@@ -148,16 +148,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration setExtendsFrom(Iterable<Configuration> superConfigs);
 
     /**
-     * Sets the configurations which this configuration extends from.
-     *
-     * @param superConfigs The super configuration. Should not be null.
-     * @return this configuration
-     * @since 8.6
-     */
-    @Incubating
-    Configuration setExtendsFrom(Provider<? extends Iterable<Configuration>> superConfigs);
-
-    /**
      * Adds the given configurations to the set of configuration which this configuration extends from.
      *
      * @param superConfigs The super configurations.
