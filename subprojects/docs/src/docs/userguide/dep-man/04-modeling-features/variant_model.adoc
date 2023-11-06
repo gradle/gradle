@@ -272,7 +272,12 @@ Similar to the ambiguous variant error, the goal is to understand which variant 
 [[sub:variant-incompatible]]
 === Dealing with incompatible variant errors
 
-Something is incompatible here.
+Something is incompatible here.  Either configuration or variant are the same thing, really.  Only needs to be explained once.
+
+[[sub:transform-ambiguity]]
+=== Dealing with ambiguous transformation errors
+
+Explain something has gone wrong with multiple Artifact Transforms here.
 
 [[sec:variant-visual]]
 == Visualizing variant information

@@ -83,10 +83,12 @@ public class ResolutionFailureHandler {
     private static final String AMBIGUOUS_VARIANTS_PREFIX = "Ambiguity errors are explained in more detail at ";
     private static final String INCOMPATIBLE_VARIANTS_PREFIX = "Incompatible variant errors are explained in more detail at ";
     private static final String NO_MATCHING_VARIANTS_PREFIX = "No matching variant errors are explained in more detail at ";
+    private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
 
     private static final String AMBIGUOUS_VARIANTS_SECTION = "sub:variant-ambiguity";
     private static final String NO_MATCHING_VARIANTS_SECTION = "sub:variant-no-match";
     private static final String INCOMPATIBLE_VARIANTS_SECTION = "sub:variant-incompatible";
+    private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @SuppressWarnings("FieldCanBeLocal")
     private final Problems problemsService;
@@ -97,7 +99,11 @@ public class ResolutionFailureHandler {
         this.documentationRegistry = documentationRegistry;
     }
 
-    private void addBasicResolution(AbstractVariantSelectionException exception) {
+    private void suggestSpecificDocumentation(AbstractVariantSelectionException exception, String prefix, String section) {
+        exception.addResolution(prefix + documentationRegistry.getDocumentationFor("variant_model", section) + ".");
+    }
+
+    private void suggestReviewAlgorithm(AbstractVariantSelectionException exception) {
         exception.addResolution(DEFAULT_MESSAGE_PREFIX + documentationRegistry.getDocumentationFor("variant_attributes", "sec:abm_algorithm") + ".");
     }
 
@@ -105,22 +111,24 @@ public class ResolutionFailureHandler {
     public NoMatchingArtifactVariantsException noMatchingArtifactVariantFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, AttributeDescriber attributeDescriber) {
         String message = buildNoMatchingVariantsFailureMsg(displayName, componentRequested, variants, matcher, attributeDescriber);
         NoMatchingArtifactVariantsException e = new NoMatchingArtifactVariantsException(message);
-        e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
-        addBasicResolution(e);
+        suggestSpecificDocumentation(e, NO_MATCHING_VARIANTS_PREFIX, NO_MATCHING_VARIANTS_SECTION);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
     public AmbiguousArtifactVariantsException ambiguousArtifactVariantsFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded, AttributeDescriber attributeDescriber) {
         String message = buildMultipleMatchingVariantsFailureMsg(attributeDescriber, displayName, componentRequested, matches, matcher, discarded);
         AmbiguousArtifactVariantsException e = new AmbiguousArtifactVariantsException(message);
-        addBasicResolution(e);
+        suggestSpecificDocumentation(e, AMBIGUOUS_VARIANTS_PREFIX, AMBIGUOUS_VARIANTS_SECTION);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
     public AmbiguousArtifactTransformException ambiguousArtifactTransformationFailure(AttributesSchema schema, String displayName, ImmutableAttributes componentRequested, List<TransformedVariant> transformedVariants) {
         String message = buildAmbiguousTransformMsg(displayName, componentRequested, transformedVariants);
         AmbiguousArtifactTransformException e = new AmbiguousArtifactTransformException(message);
-        addBasicResolution(e);
+        suggestSpecificDocumentation(e, AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
@@ -135,14 +143,16 @@ public class ResolutionFailureHandler {
     public BrokenResolvedArtifactSet unknownArtifactVariantSelectionFailure(AttributesSchema schema, ResolvedVariantSet producer, Exception cause) {
         String message = buildUnknownArtifactVariantFailureMsg(producer);
         ArtifactVariantSelectionException e = new ArtifactVariantSelectionException(message, cause);
-        addBasicResolution(e);
+        // This is the catch-all error type and there's nothing more specific to add here
+        suggestReviewAlgorithm(e);
         return unknownArtifactVariantSelectionFailure(schema, e);
     }
 
     public IncompatibleArtifactVariantsException incompatibleArtifactVariantsFailure(ComponentState selected, Set<NodeState> incompatibleNodes) {
         String message = buildIncompatibleArtifactVariantsFailureMsg(selected, incompatibleNodes);
         IncompatibleArtifactVariantsException e = new IncompatibleArtifactVariantsException(message);
-        addBasicResolution(e);
+        suggestSpecificDocumentation(e, INCOMPATIBLE_VARIANTS_PREFIX, INCOMPATIBLE_VARIANTS_SECTION);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
@@ -276,7 +286,7 @@ public class ResolutionFailureHandler {
         String message = buildAmbiguousGraphVariantsFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, discarded);
         AmbiguousGraphVariantsException e = new AmbiguousGraphVariantsException(message);
         e.addResolution(AMBIGUOUS_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", AMBIGUOUS_VARIANTS_SECTION + "."));
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
@@ -291,7 +301,7 @@ public class ResolutionFailureHandler {
         String message = buildIncompatibleGraphVariantsFailureMsg(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer);
         IncompatibleGraphVariantsException e = new IncompatibleGraphVariantsException(message);
         e.addResolution(INCOMPATIBLE_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", INCOMPATIBLE_VARIANTS_SECTION) + ".");
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
@@ -304,7 +314,7 @@ public class ResolutionFailureHandler {
     ) {
         String message = buildNoMatchingGraphVariantSelectionFailureMsg(new StyledDescriber(describer), fromConfigurationAttributes, attributeMatcher, targetComponent, candidates);
         NoMatchingGraphVariantsException e = new NoMatchingGraphVariantsException(message);
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         e.addResolution(NO_MATCHING_VARIANTS_PREFIX + documentationRegistry.getDocumentationFor("variant_model", NO_MATCHING_VARIANTS_SECTION + "."));
         return e;
     }
@@ -312,28 +322,28 @@ public class ResolutionFailureHandler {
     public NoMatchingCapabilitiesException noMatchingCapabilitiesFailure(ComponentGraphResolveMetadata targetComponent, Collection<? extends Capability> requestedCapabilities, List<? extends VariantGraphResolveState> candidates) {
         String message = buildNoMatchingCapabilitiesFailureMsg(targetComponent, requestedCapabilities, candidates);
         NoMatchingCapabilitiesException e = new NoMatchingCapabilitiesException(message);
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
     public ConfigurationNotFoundException configurationNotFoundFailure(String targetConfigurationName, ComponentIdentifier targetComponentId) {
         String message = buildConfigurationNotFoundFailureMsg(targetConfigurationName, targetComponentId);
         ConfigurationNotFoundException e = new ConfigurationNotFoundException(message);
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
     public ExternalConfigurationNotFoundException externalConfigurationNotFoundFailure(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
         String message = buildExternalConfigurationNotFoundFailureMsg(fromComponent, fromConfiguration, toConfiguration, toComponent);
         ExternalConfigurationNotFoundException e = new ExternalConfigurationNotFoundException(message);
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 
     public ConfigurationNotConsumableException configurationNotConsumableFailure(String targetComponentName, String targetConfigurationName) {
         String message = buildConfigurationNotConsumableFailureMsg(targetComponentName, targetConfigurationName);
         ConfigurationNotConsumableException e = new ConfigurationNotConsumableException(message);
-        addBasicResolution(e);
+        suggestReviewAlgorithm(e);
         return e;
     }
 

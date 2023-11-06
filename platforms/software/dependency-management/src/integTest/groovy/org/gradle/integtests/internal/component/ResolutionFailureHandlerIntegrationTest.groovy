@@ -69,6 +69,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. However we cannot choose between the following variants of com.squareup.okhttp3:okhttp:4.4.0:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
 
     def "demonstrate no matching graph variants selection failure for project"() {
@@ -96,6 +98,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
 
     def "demonstrate incompatible graph variants selection failure"() {
@@ -108,6 +112,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Configuration 'mismatch' in project : does not match the consumer attributes")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
     }
 
     // region Configuration requested by name
@@ -150,6 +156,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
     }
 
     def "demonstrate no matching artifact variants exception"() {
@@ -161,6 +169,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("No variants of project : match the consumer attributes:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
 
     def "demonstrate ambiguous artifact transforms exception"() {
@@ -172,6 +182,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("Found multiple transforms that can produce a variant of project : with requested attributes:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
     }
 
     def "demonstrate ambiguous artifact variants exception"() {
@@ -183,6 +195,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("More than one variant of project : matches the consumer attributes:")
+        assertSuggestsReviewingAlgorithm()
+        assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
     // endregion Artifact Variant failures
     // endregion resolution failures
