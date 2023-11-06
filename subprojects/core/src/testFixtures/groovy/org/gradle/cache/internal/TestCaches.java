@@ -16,10 +16,17 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.Action;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.LockOptions;
+import org.gradle.cache.PersistentCache;
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Map;
 
 /**
  * Static util class for obtaining test doubles for a {@link DecompressionCache}.
@@ -33,12 +40,49 @@ public abstract class TestCaches {
 
     public static DecompressionCacheFactory decompressionCacheFactory(File cacheDir) {
         return new DecompressionCacheFactory() {
-            final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
+            final CacheBuilder cacheBuilder = new CacheBuilder() {
+                final TestInMemoryCacheFactory cacheFactory = new TestInMemoryCacheFactory();
+
+                @Override
+                public CacheBuilder withProperties(Map<String, ?> properties) {
+                    return this;
+                }
+
+                @Override
+                public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
+                    return this;
+                }
+
+                @Override
+                public CacheBuilder withDisplayName(String displayName) {
+                    return this;
+                }
+
+                @Override
+                public CacheBuilder withLockOptions(LockOptions lockOptions) {
+                    return this;
+                }
+
+                @Override
+                public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
+                    return this;
+                }
+
+                @Override
+                public CacheBuilder withCleanupStrategy(CacheCleanupStrategy cleanup) {
+                    return this;
+                }
+
+                @Override
+                public PersistentCache open() throws CacheOpenException {
+                    return cacheFactory.open(cacheDir, "test compression cache");
+                }
+            };
 
             @Nonnull
             @Override
             public DecompressionCache create() {
-                return new DefaultDecompressionCache(cacheFactory.open(cacheDir, "test compression cache"));
+                return new DefaultDecompressionCache(cacheBuilder);
             }
         };
     }

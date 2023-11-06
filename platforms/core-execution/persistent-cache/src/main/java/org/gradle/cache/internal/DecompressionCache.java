@@ -16,13 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import java.io.Closeable;
 import java.io.File;
 
 /**
  * A cache that can be used to store decompressed data extracted from archive files like zip and tars.
  */
-public interface DecompressionCache extends Closeable {
+public interface DecompressionCache {
     String EXPANSION_CACHE_KEY = "expanded";
 
     /**

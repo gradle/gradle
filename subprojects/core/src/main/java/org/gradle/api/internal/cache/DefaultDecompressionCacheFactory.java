@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  *
  * This class manages a singleton cache and creates it on demand. Closing this factory will close the cache.
  */
-public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
+public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory {
 
     private final Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier;
     private volatile DecompressionCache cache;
@@ -51,12 +51,5 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
             }
         }
         return cache;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (cache != null) {
-            cache.close();
-        }
     }
 }

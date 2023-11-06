@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.bundling
+package org.gradle.cache.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -22,11 +22,15 @@ import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/25752#issuecomment-1792821355")
-class UndeletableFilesTest extends AbstractIntegrationSpec {
+class DefaultDecompressionCacheDeletionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
-    def "reproduce zip issue original"() {
+    def setup() {
+        resources.maybeCopy('DefaultDecompressionCacheDeletionIntegrationTest/zip')
+    }
+
+    def "clean after unzipping file to cache in task"() {
         buildFile << """
             plugins {
                 id 'lifecycle-base'
@@ -45,24 +49,46 @@ class UndeletableFilesTest extends AbstractIntegrationSpec {
             }
         """
 
-        resources.maybeCopy('UndeletableTestFiles/zip')
+        expect:
+        succeeds "clean"
+    }
+
+    def "clean after unzipping file to cache during configuration phase"() {
+        buildFile << """
+            plugins {
+                id 'lifecycle-base'
+            }
+
+            zipTree(file("hello.zip")).files
+        """
 
         expect:
         succeeds "clean"
     }
 
-    def "reproduce zip issue MVR"() {
+    def "clean after unzipping during configuration, then unzip again in a different task"() {
         buildFile << """
             plugins {
                 id 'lifecycle-base'
             }
 
             System.out.println("Files in the archive: " + zipTree(file("hello.zip")).files)
+
+            def helloArchive = zipTree(file("hello.zip"))
+            tasks.create("makeArchive", Zip) {
+                archiveFileName = "archive.zip"
+                destinationDirectory = layout.buildDirectory
+
+                from helloArchive
+
+                doLast {
+                    System.out.println("Files in the archive: " + helloArchive.files)
+                }
+            }
         """
 
-        resources.maybeCopy('UndeletableTestFiles/zip')
 
         expect:
-        succeeds "clean"
+        succeeds "clean", "makeArchive"
     }
 }

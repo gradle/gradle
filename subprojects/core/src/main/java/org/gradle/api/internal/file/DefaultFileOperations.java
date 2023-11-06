@@ -197,9 +197,6 @@ public class DefaultFileOperations implements FileOperations {
             public void useCache(Runnable action) {
                 action.run();
             }
-
-            @Override
-            public void close() throws IOException {}
         };
 
         return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache), taskDependencyFactory, patternSetFactory);
