@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
@@ -39,6 +40,7 @@ public class DefaultDecompressionCache implements DecompressionCache {
     public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
+                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) //TODO: the documentation above says this is a cross-version cache, not it's not! should it be?
                 .open();
     }
