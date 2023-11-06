@@ -26,6 +26,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
@@ -87,6 +88,12 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         Instantiator elementInstantiator = instantiatorFactory.decorateLenient(servicesToInject);
         return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, elementInstantiator, collectionCallbackActionDecorator));
+    }
+
+    @Override
+    public <T> DomainObjectCollection<T> newDomainObjectCollection(Class<T> elementType) {
+        Instantiator instantiator = instantiatorFactory.decorateLenient();
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectCollection.class, elementType, new ListElementSource<>(), collectionCallbackActionDecorator));
     }
 
     @Override

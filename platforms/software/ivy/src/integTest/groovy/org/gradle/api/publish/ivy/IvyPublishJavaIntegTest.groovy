@@ -958,6 +958,44 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26163")
+    def "can publish java-library with lazy capabilities"() {
+        given:
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability providers.provider { 'org:foo:1.0' }
+            configurations.implementation.outgoing.capability providers.provider { 'org:bar:1.0' }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputContains(IvyComponentParser.PUBLICATION_WARNING_FOOTER)
+        outputContains('Declares capability org:foo:1.0')
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
+            capability('org', 'foo', '1.0')
+            noMoreCapabilities()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
+            capability('org', 'foo', '1.0')
+            capability('org', 'bar', '1.0')
+            noMoreCapabilities()
+        }
+    }
+
     def "can ignore publication warnings"() {
         given:
         def silenceMethod = "suppressIvyMetadataWarningsFor"
