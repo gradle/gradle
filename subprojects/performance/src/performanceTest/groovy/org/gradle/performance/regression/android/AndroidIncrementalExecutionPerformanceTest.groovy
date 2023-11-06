@@ -24,6 +24,10 @@ import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.regression.corefeature.AbstractIncrementalExecutionPerformanceTest
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
+import org.gradle.profiler.mutations.ClearJarsCacheMutator
+import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import java.util.jar.JarOutputStream
@@ -50,6 +54,42 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
         runner.warmUpRuns = 20
         applyEnterprisePlugin()
+    }
+
+    def "first use#configurationCaching"() {
+        given:
+        if (configurationCachingEnabled && IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
+            runner.addBuildMutator { settings ->
+                new BuildMutator() {
+                    @Override
+                    void beforeBuild(BuildContext context) {
+                        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.workingDir)
+                    }
+                }
+            }
+        }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearArtifactTransformCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearJarsCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        runner.useDaemon = false
+        runner.tasksToRun = ["help"]
+        enableConfigurationCaching(configurationCachingEnabled)
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        configurationCachingEnabled << [true, false]
+        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
     }
 
     def "abi change#configurationCaching"() {
