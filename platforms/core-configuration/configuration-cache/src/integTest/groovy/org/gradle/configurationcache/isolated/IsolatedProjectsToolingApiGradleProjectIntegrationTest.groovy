@@ -29,6 +29,10 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         file("lib1/build.gradle") << """
             description = "Library 1"
+
+            tasks.register("lazy") {
+                println "realizing lazy task"
+            }
         """
 
         when:
@@ -40,11 +44,11 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         projectModels.size() == 2
         projectModels[0].name == "root"
-        projectModels[1].name == "lib1"
+        projectModels[0].tasks.size() > 0
 
-        projectModels.forEach {
-            assert it.tasks.size() > 0
-        }
+        projectModels[1].name == "lib1"
+        projectModels[1].tasks.find { it.name == "lazy" }
+        outputContains("realizing lazy task")
 
         and: "all properties are available"
         with(projectModels[1]) {
@@ -89,7 +93,6 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         projectModel.children.size() == 1
         projectModel.children[0].name == "lib1"
         projectModel.children[0].children.name == ["lib11"]
-
     }
 
     def "can fetch GradleProject model without tasks"() {
@@ -97,6 +100,12 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             rootProject.name = 'root'
 
             include(":lib1")
+        """
+
+        buildFile << """
+            tasks.register("lazy") {
+                println "realizing lazy task"
+            }
         """
 
         when:
@@ -108,6 +117,8 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         projectModel.tasks.isEmpty()
         projectModel.children[0].name == "lib1"
         projectModel.children[0].tasks.isEmpty()
+
+        outputDoesNotContain("realizing lazy task")
     }
 
     def "can fetch GradleProject model for non-root project"() {
