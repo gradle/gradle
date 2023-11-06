@@ -21,12 +21,12 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
+@Issue("https://github.com/gradle/gradle/issues/25752#issuecomment-1792821355")
 class UndeletableFilesTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
-    @Issue("https://github.com/gradle/gradle/issues/25752#issuecomment-1792821355")
-    def "reproduce zip issue"() {
+    def "reproduce zip issue original"() {
         buildFile << """
             plugins {
                 id 'lifecycle-base'
@@ -43,6 +43,21 @@ class UndeletableFilesTest extends AbstractIntegrationSpec {
 
                 from helloArchive
             }
+        """
+
+        resources.maybeCopy('UndeletableTestFiles/zip')
+
+        expect:
+        succeeds "clean"
+    }
+
+    def "reproduce zip issue MVR"() {
+        buildFile << """
+            plugins {
+                id 'lifecycle-base'
+            }
+
+            System.out.println("Files in the archive: " + zipTree(file("hello.zip")).files)
         """
 
         resources.maybeCopy('UndeletableTestFiles/zip')
