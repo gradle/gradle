@@ -52,6 +52,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
                     GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
+                    IsolatedGradleProjectBuilder isolatedGradleProjectBuilder = new IsolatedGradleProjectBuilder();
                     IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
                     registry.register(new RunEclipseTasksBuilder());
@@ -63,6 +64,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
+                    registry.register(isolatedGradleProjectBuilder);
                 }
             };
         }
