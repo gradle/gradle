@@ -20,7 +20,7 @@ Everyone has to start somewhere, and if you're new to Gradle, this is where to b
 To get started using Gradle:
 
 1. Read the <<gradle_intro,core concepts chapters>>.
-2. Follow the <<getting_started,getting started tutorial>> for a hands-on approach.
+2. Follow the <<getting_started,tutorial>> for a hands-on approach.
 
 [[gradle_intro]]
 == 1. Gradle Core Concepts
@@ -41,7 +41,8 @@ The core concepts cover:
 <<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependency Management +
 <<task_basics.adoc#task_basics,Part 7.>> Tasks +
 <<plugin_basics.adoc#plugin_basics,Part 8.>> Plugins +
-<<gradle_optimizations.adoc#gradle_optimizations,Part 9.>> Gradle Optimizations +
+<<build_scans.adoc#build_scans,Part 9.>> Build Scans +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 10.>> Gradle Optimizations +
 
 [[getting_started]]
 == 2. Gradle Tutorial

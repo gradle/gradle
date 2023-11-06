@@ -13,9 +13,9 @@
 // limitations under the License.
 
 [[gradle_optimizations]]
-= Gradle Optimizations Basics
+= Gradle Incremental Builds and Build Caching
 
-Gradle uses two main features to reduce build time, *incremental builds* and *caching*.
+Gradle uses two main features to reduce build time, *incremental builds* and *build caching*.
 
 image::gradle-basic-8.png[]
 
@@ -56,14 +56,6 @@ BUILD SUCCESSFUL in 374ms
 ----
 
 When you run a task that has been previously executed and hasn't changed, then `UP-TO-DATE` is printed next to the task.
-
-=== Turn on verbose mode
-To view the state of a task, add `org.gradle.console=verbose` to your `gradle.properties` file:
-
-[source]
-----
-org.gradle.console=verbose
-----
 
 == Build caching
 
@@ -109,46 +101,7 @@ Once the local directory has been repopulated, the next execution will mark task
 The build cache allows you to share and reuse unchanged build and test outputs across teams.
 This speeds up local and CI builds since cycles are not wasted re-building components that are unaffected by new code changes.
 
-=== Turn on local build cache
-Add `org.gradle.caching=true` to the `gradle.properties` file:
-
-[source]
-----
-org.gradle.caching=true
-----
-
-=== Turn off local build cache
-Add `org.gradle.caching=false` to the `gradle.properties` file:
-
-[source]
-----
-org.gradle.caching=false
-----
-
-=== Clear local build cache
-Run the `cleanBuildCache` task:
-
-[source]
-----
-./gradlew cleanBuildCache
-----
-
-=== Remote build cache
-In addition to the local build cache on a developer's machine, Gradle can use a remote build cache.
-
-The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
-
-When both remote and local caches are enabled, the build output is first checked in the local cache.
-If the output isn't in the local cache, it will be downloaded from the remote cache and stored in the local cache.
-
-=== Configuration cache
-The configuration cache is a newer Gradle optimization.
-
-Unlike the build cache, which caches outputs produced by the build, the configuration cache captures and saves the state of the configuration phase.
-
-The configuration cache improves build performance by caching the result of the configuration phase and reusing this for subsequent builds.
-
 Consult the <<performance.adoc#performance_gradle,Gradle optimizations and build performance chapter>> to learn more.
 
 [.text-right]
-**Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn about Multi-project Builds>> >>
+**Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scans>> >>

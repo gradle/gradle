@@ -15,9 +15,11 @@
 [[build_scans]]
 = Build Scans
 
-A build scan is a representation of data captured as you run your build.
+A build scan is a *representation of data captured* as you run your build.
 
-== What are Build Scans?
+image::gradle-basic-8.png[]
+
+== Build Scans
 Gradle captures your build data and sends it to the link:https://scans.gradle.com/[Build Scan Service].
 The service then transforms the data into information you can use and share with others.
 
@@ -30,7 +32,7 @@ Instead, just copy the link to your latest build scan.
 
 image::build-scan-2.png[]
 
-== How do I enable Build Scans?
+== Enable Build Scans
 
 To enable build scans on a gradle command, add `--scan` to the command line option:
 
@@ -40,3 +42,8 @@ To enable build scans on a gradle command, add `--scan` to the command line opti
 ----
 
 You may be prompted to agree to the terms in order to use Gradle's build scans.
+
+Vist the link:https://scans.gradle.com/[Build Scans page] to learn more.
+
+[.text-right]
+**Next Step:** <<part1_gradle_init.adoc#part1_gradle_init,Start the Tutorial>> >>

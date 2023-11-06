@@ -39,49 +39,7 @@ Plugins are distributed in three ways:
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Local plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
-[[sec:types_of_plugins]]
-== Types of plugins
-
-There are two general types of plugins in Gradle, *binary* plugins and *script* plugins.
-
-*Binary plugins* can reside within a build script, within the project hierarchy, or externally in a plugin jar.
-
-*Script plugins* are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
-They are typically used within a build but can be externalized and accessed remotely.
-
-A plugin often starts as a script plugin (because they are easy to write).
-Then, as the code becomes more valuable, it becomes a binary plugin that can be easily tested and shared between multiple projects or organizations.
-
-[[sec:using_plugins]]
-== Using plugins
-
-To use the build logic encapsulated in a plugin, Gradle needs to perform two steps.
-
-First, it needs to *resolve* the plugin, and then it needs to **apply** the plugin to the project.
-
-*Resolving* a plugin means finding the correct version of the jar that contains a given plugin and adding it to the project.
-
-*Applying* a plugin means executing the plugin on the project.
-
-[[sec:binary_plugins]]
-== Binary plugins
-
-You apply plugins in the build script using their *plugin id*, which is a globally unique identifier or name:
-
-[source]
-----
-plugins {
-    application
-    java // Can also be writen id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
-}
-----
-
-Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
-
-All other binary plugins must use the fully qualified form of the plugin id (e.g. `com.github.foo.bar`).
-
-The version should also be called out:
+You apply plugins in the build script using their *plugin id*, which is a globally unique identifier or name.
 
 [source]
 ----
@@ -90,25 +48,53 @@ plugins {
 }
 ----
 
-== Community plugins
+== Core plugins
 
-Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities.
+Core Gradle plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
 
-The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+To apply the `java` plugin to a project:
 
-For example, you could search `generate unit test` in the Gradle Plugin Portal if you wanted to automatically generate unit tests for your project.
-There, you will find many plugins, including the link:https://plugins.gradle.org/plugin/org.utbot.gradle.plugin[`ubot` plugin] which you can apply as follows:
-
-[source]
+[source,build.gradle.kts]
 ----
 plugins {
-    id("org.utbot.gradle.plugin") version "1.0.0-alpha"
+    java
 }
 ----
 
+The <<java_plugin.adoc#java_plugin,Java plugin>> adds Java compilation along with testing and bundling capabilities to a project.
+
+== Community plugins
+
+Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities, such as the link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin].
+
+To apply the `org.springframework.boot` plugin to a project:
+
+[source,build.gradle.kts]
+----
+plugins {
+	id("org.springframework.boot") version "3.1.5"
+}
+----
+
+The Spring Boot Gradle plugin provides Spring Boot support in Gradle.
+It packages executable jar or war archives and runs link:https://spring.io/[Spring Boot] Java applications.
+
+The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
+
 == Plugin tasks
 
-Since plugins add tasks to your project when applied, you can view the tasks added by `ubot` by running `./gradlew tasks`:
+link:https://plugins.gradle.org/plugin/com.google.cloud.tools.jib[Jib] is a Gradle plugin for building Docker and OCI images of Java applications.
+
+The Google Jib Gradle plugin is applied as follows:
+
+[source,build.gradle.kts]
+----
+plugins {
+  id("com.google.cloud.tools.jib") version "3.4.0"
+}
+----
+
+Since plugins add tasks to your project when applied, you can view the tasks added by the Jib plugin by running `./gradlew tasks`:
 
 [source]
 ----
@@ -117,18 +103,21 @@ $ ./gradlew tasks
 > Task :tasks
 
 ------------------------------------------------------------
-Tasks runnable from root project 'temp'
+Tasks runnable from root project 'plugins'
 ------------------------------------------------------------
 
-Utbot tasks
------------
-generateTestsAndSarifReport - Generate a SARIF report
-....
+...
+
+Jib tasks
+---------
+jib - Builds a container image to a registry.
+jibBuildTar - Builds a container image to a tarball.
+jibDockerBuild - Builds a container image to a Docker daemon.
 ----
 
-As we can see, the `generateTestsAndSarifReport` task has been added to the project.
+As we can see, the `jib`, `jibBuildTar`, and `jibDockerBuild` tasks from the Jib plugin have been added to the project.
 
 Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
 
 [.text-right]
-**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Gradle optimizations>> >>
+**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Incremental Builds and Build Caching>> >>

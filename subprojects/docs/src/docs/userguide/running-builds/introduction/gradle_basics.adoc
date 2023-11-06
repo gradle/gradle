@@ -23,20 +23,29 @@ image::gradle-basic-1.png[]
 
 === Projects
 
-A Gradle project is a piece of software that can be built, such an application or a library.
+A Gradle *project* is a piece of software that can be built, such an application or a library.
 
-Single project builds include a single project called the *root project*.
+*Single project* builds include a single project called the *root project*.
 
-Multi-project builds include *one root project* and *any number of subprojects* detailed in a settings file.
+*Multi-project* builds include *one root project* and *any number of subprojects*.
 
 === Build Scripts
 
-*Each project can include a build script* that details to Gradle what steps to take in order to build the project.
+*Build script* detail to Gradle what steps to take in order to build the project.
+
+Each project can include one or more build script.
+
+=== Dependency Management
+
+*Dependency management* is an automated technique for declaring, resolving, and using functionality required by a project.
+
+Each project typically includes a number of external dependencies that Gradle will resolve during the build.
 
 === Tasks
 
-*Each project contains one or more tasks* defined inside a build script or a plugin that details actions to Gradle.
-Tasks are a basic unit of work.
+*Tasks are a basic unit of work* such as compiling code or running your test.
+
+Each project contains one or more tasks, defined inside a build script or a plugin.
 
 === Plugins
 

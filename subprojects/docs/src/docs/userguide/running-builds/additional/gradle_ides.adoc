@@ -17,16 +17,6 @@
 
 All major IDEs support Gradle including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
-== Android Studio
-
-The Android build system compiles app resources and source code and packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
-
-Android Studio uses Gradle to automate and manage the build process while letting you define flexible, custom build configurations.
-
-image::android_studio.png[]
-
-You can find documentation link:https://developer.android.com/build[here].
-
 == IntelliJ IDEA
 
 IntelliJ IDEA supports a fully-functional integration with Gradle that helps you automate your building process.
@@ -36,6 +26,16 @@ image::intellij_idea.png[]
 You can easily create a new Gradle project, open and sync an existing one, work with several linked projects simultaneously, and manage them.
 
 You can find documentation link:https://www.jetbrains.com/help/idea/gradle.html[here].
+
+== Android Studio
+
+The Android build system compiles app resources and source code and packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
+
+Android Studio uses Gradle to automate and manage the build process while letting you define flexible, custom build configurations.
+
+image::android_studio.png[]
+
+You can find documentation link:https://developer.android.com/build[here].
 
 == Visual Studio Code
 

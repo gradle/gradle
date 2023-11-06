@@ -15,12 +15,9 @@
 [[task_basics]]
 = Task Basics
 
-The work that Gradle can do on a project is defined by one or more _tasks_.
+A task represents some *atomic piece of work* that a build performs such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
 image::gradle-basic-5.png[]
-
-A task represents some atomic piece of work that a build performs.
-This might be compiling some classes, creating a JAR, generating Javadoc, or publishing some archives to a repository.
 
 You run a Gradle `build` task using the `gradle` command or by invoking the Gradle Wrapper (`./gradlew' or `gradle.bat`) in your project directory:
 
@@ -65,67 +62,60 @@ compileJava - Compiles main Java source.
 ...
 ----
 
-[[sec:hello_world]]
-== Hello world task
-
-Let's take a look at a simple "Hello World" task in a build script:
-
-====
-include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
-====
-
-You can execute the build script with `./gradlew -q hello`:
-
-====
-----
-$ ./gradlew -q hello
-include::{snippetsPath}/tutorial/hello/tests/hello.out[]
-----
-====
-
-[TIP]
-====
-The `-q` option suppresses Gradle's log messages so that only the output of the tasks is shown.
-====
-
-In the example, the build script registers a single task called `hello` and adds an action to it.
-
-When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the action you've provided.
-The action is simply a block containing some code to execute: `println("Hello world!")`.
-
-== Task types
-
-There are two types of tasks:
-
-1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
-2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
-
-== Built-in tasks
-
-Gradle provides many _built-in_ task types for common actions such as copying or deleting files.
-
-This example task copies `*.war` files from the `source` directory to the `target` directory using the built-in `Copy` task type:
+== Running tasks
+The `run` task is executed with `./gradlew run`:
 
 [source]
 ----
-tasks.register("copyTask",Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}
+$ ./gradlew run
+
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+
+> Task :app:run
+Hello World!
+
+BUILD SUCCESSFUL in 904ms
+2 actionable tasks: 2 executed
 ----
 
-This task is executed using the command `./gradlew :app:copyTask`.
+In this example Java project, the output of the `run` task is a `Hello World` statement printed on the console.
 
-Popular built-in task types include:
+== Task dependency
 
-- **Copy** - `Copy` is useful to copy files around.
-- **Delete** -  `Delete` is useful to delete files and directories.
-- **Exec** - `Exec` is useful to execute arbitrary O/S commands.
-- **Zip** - `Zip` is useful for bundling files.
+Many times, a task requires another task to run first.
 
-Many more are included in the link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-delete/index.html[DSL documentation].
+For example, in order for Gradle to execute the `build` task, the Java code must first be compiled.
+Thus, the `build` task _depends_ on the `compileJava` task.
+
+This means that the `compileJava` task will run _before_ the `build` task:
+
+[source]
+----
+$ ./gradlew build
+
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 764ms
+7 actionable tasks: 7 executed
+----
+
+Task execution order is automatically determined by Gradle.
+Build scripts can optionally add task dependency logic.
 
 Consult the <<more_about_tasks.adoc#more_about_tasks,Task development chapter>> to learn more.
 

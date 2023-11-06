@@ -50,10 +50,10 @@ To run the Wrapper on a Linux or OSX machine:
 $ ./gradlew build
 ----
 
-To run the Wrapper on a Windows machine:
+To run the Wrapper on Windows PowerShell:
 
 ----
-$ gradlew.bat build
+$ .\gradlew.bat build
 ----
 
 The command is run in the same directory that the Wrapper is located in.
