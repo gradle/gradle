@@ -35,13 +35,16 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.initialization.transform.CollectDirectClassSuperTypesTransform;
-import org.gradle.api.internal.initialization.transform.InstrumentArtifactTransform;
+import org.gradle.api.internal.initialization.transform.InstrumentingArtifactTransform;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.GlobalCache;
+import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
+import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.util.GradleVersion;
@@ -65,15 +68,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private final NamedObjectInstantiator instantiator;
     private final CachedClasspathTransformer classpathTransformer;
     private final List<GlobalCache> globalCaches;
+    private final AgentStatus agentStatus;
+    private final GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry;
 
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
-        List<GlobalCache> globalCaches
+        List<GlobalCache> globalCaches,
+        AgentStatus agentStatus,
+        GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry
     ) {
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
         this.globalCaches = globalCaches;
+        this.agentStatus = agentStatus;
+        this.gradleCoreInstrumentingTypeRegistry = gradleCoreInstrumentingTypeRegistry;
     }
 
     @Override
@@ -120,13 +129,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
         // Register instrumentation and upgrades transform
         dependencyHandler.registerTransform(
-            InstrumentArtifactTransform.class,
+            InstrumentingArtifactTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
                 spec.parameters(parameters -> {
                     parameters.getClassHierarchy().setFrom(hierarchyCollectedView.getFiles());
                     parameters.getCacheLocations().set(getSerializableGlobalCaches());
+                    parameters.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
+                    parameters.getMaxSupportedJavaVersion().set(AsmConstants.MAX_SUPPORTED_JAVA_VERSION);
+                    parameters.getUpgradedPropertiesHash().set(gradleCoreInstrumentingTypeRegistry.getUpgradedPropertiesHash().map(Object::toString).orElse(null));
                 });
             }
         );
