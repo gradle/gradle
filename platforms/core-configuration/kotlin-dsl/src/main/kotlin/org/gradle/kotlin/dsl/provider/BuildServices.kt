@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
@@ -141,8 +142,8 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createCompileClasspathHasher(
-        checksumService: ChecksumService,
         kotlinDslCompileAvoidanceClasspathHashCache: KotlinDslCompileAvoidanceClasspathHashCache,
+        fileCollectionSnapshotter: FileCollectionSnapshotter,
 //        cacheService: ResourceSnapshotterCacheService,
 //        fileCollectionSnapshotter: FileCollectionSnapshotter,
 //        stringInterner: StringInterner,
@@ -153,7 +154,7 @@ object BuildServices : ServiceRegistrationProvider {
             if (isKotlinScriptCompilationAvoidanceEnabled) {
 //                KotlinCompileClasspathFingerprinter(cacheService, fileCollectionSnapshotter, stringInterner)
                 // TODO: drop unused code
-                NewKotlinCompileClasspathFingerprinter(checksumService, kotlinDslCompileAvoidanceClasspathHashCache)
+                NewKotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache, fileCollectionSnapshotter)
             } else {
                 classpathFingerprinter
             },
