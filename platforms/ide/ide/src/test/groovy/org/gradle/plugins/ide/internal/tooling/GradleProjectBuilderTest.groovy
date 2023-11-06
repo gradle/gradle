@@ -27,7 +27,7 @@ class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
         project.description = 'a test project'
 
         when:
-        def model = builder.buildAll(project)
+        def model = builder.buildRoot(project)
 
         then:
         model.path == ':'
