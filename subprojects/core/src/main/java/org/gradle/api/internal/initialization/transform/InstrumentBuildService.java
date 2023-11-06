@@ -41,9 +41,6 @@ public abstract class InstrumentBuildService implements BuildService<InstrumentB
     private final AtomicReference<InstrumentingTypeRegistry> instrumentingTypeRegistry = new AtomicReference<>();
 
     public InstrumentingTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
-        if (gradleCoreInstrumentingTypeRegistry.isEmpty()) {
-            return InstrumentingTypeRegistry.empty();
-        }
         if (instrumentingTypeRegistry.get() != null) {
             return instrumentingTypeRegistry.get();
         }
