@@ -41,6 +41,7 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":build-cache"))
+    testFixturesImplementation(project(":problems"))
     testFixturesImplementation(project(":snapshots"))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
