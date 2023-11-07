@@ -20,11 +20,14 @@ import org.gradle.tooling.model.GradleProject
 
 class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    def "can fetch IsolatedGradleProject model"() {
+    def "can fetch IsolatedGradleProject model in non-isolated mode"() {
         settingsFile << """
             rootProject.name = 'root'
-
             include("lib1")
+        """
+
+        buildFile << """
+            description = "I am root"
         """
 
         file("lib1/build.gradle") << """
@@ -36,22 +39,32 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         """
 
         when:
-        executer.withArguments(ENABLE_CLI)
         def projectModels = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
 
         then:
-        outputContains("Running build action to fetch isolated project models")
-
         projectModels.size() == 2
-        projectModels[0].name == "root"
-        projectModels[0].tasks.size() > 0
+        def rootProject = projectModels[0]
+        def subProject = projectModels[1]
+        rootProject.name == "root"
+        rootProject.tasks.size() > 0
 
-        projectModels[1].name == "lib1"
-        projectModels[1].tasks.find { it.name == "lazy" }
+        subProject.name == "lib1"
+        subProject.tasks.find { it.name == "lazy" }
         outputContains("realizing lazy task")
 
-        and: "all properties are available"
-        with(projectModels[1]) {
+        and:
+        with(rootProject) {
+            name == "root"
+            description == "I am root"
+            projectIdentifier.projectPath == ":"
+            projectIdentifier.buildIdentifier.rootDir == testDirectory
+            path == ":"
+            buildScript.sourceFile == file("build.gradle")
+            buildDirectory == file("build")
+            projectDirectory == testDirectory
+        }
+
+        with(subProject) {
             name == "lib1"
             description == "Library 1"
             projectIdentifier.projectPath == ":lib1"
@@ -61,14 +74,46 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             buildDirectory == file("lib1/build")
             projectDirectory == file("lib1")
         }
+    }
+
+    def "can fetch IsolatedGradleProject model"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include("lib1")
+        """
+
+        file("lib1/build.gradle") << """
+            tasks.register("lazy") {
+                println "realizing lazy task"
+            }
+        """
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def projectModels2 = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
+        def projectModels = runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
 
-        then: "build action is cached"
-        outputDoesNotContain("Running build action to fetch isolated project models")
-        projectModels2.size() == 2
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":lib1")
+            buildModelCreated()
+            modelsCreated(":", ":lib1")
+        }
+
+        and:
+        projectModels.size() == 2
+        projectModels[0].name == "root"
+        projectModels[0].tasks.size() > 0
+
+        projectModels[1].name == "lib1"
+        projectModels[1].tasks.find { it.name == "lazy" }
+        outputContains("realizing lazy task")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchIsolatedGradleProjectForEachProjectInBuild())
+
+        then:
+        fixture.assertStateLoaded()
     }
 
     def "can fetch GradleProject model"() {
@@ -84,15 +129,27 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         def projectModel = fetchModel(GradleProject)
 
         then:
+        fixture.assertStateStored {
+            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProject`
+            modelsCreated(":lib1", ":lib1:lib11")
+        }
+
+        and:
         projectModel.name == "root"
         projectModel.tasks.size() > 0
-        projectModel.tasks.forEach {
-            assert it.project == projectModel
-        }
+        projectModel.tasks.every { it.project == projectModel }
 
         projectModel.children.size() == 1
         projectModel.children[0].name == "lib1"
         projectModel.children[0].children.name == ["lib11"]
+        projectModel.children.every { it.parent == projectModel }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateLoaded()
     }
 
     def "can fetch GradleProject model without tasks"() {
@@ -113,12 +170,25 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         def projectModel = fetchModel(GradleProject)
 
         then:
+        fixture.assertStateStored {
+            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProject`
+            modelsCreated(":lib1")
+        }
+
+        and:
         projectModel.name == "root"
         projectModel.tasks.isEmpty()
         projectModel.children[0].name == "lib1"
         projectModel.children[0].tasks.isEmpty()
 
         outputDoesNotContain("realizing lazy task")
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        fetchModel(GradleProject)
+
+        then:
+        fixture.assertStateLoaded()
     }
 
     def "can fetch GradleProject model for non-root project"() {
@@ -135,12 +205,23 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
 
         then:
-        projectModel != null
+        fixture.assertStateStored {
+            buildModelCreated()
+            modelsCreated(":") // intermediate `IsolatedGradleProject`
+            modelsCreated(":lib1", 2) // `GradleProject` (containing root-project data) and intermediate `IsolatedGradleProject`
+        }
 
         and: "GradleProject model is always returned for the root regardless of the target"
         projectModel.name == "root"
         projectModel.children.size() == 1
         projectModel.children[0].name == "lib1"
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+
+        then:
+        fixture.assertStateLoaded()
     }
 
     def "can fetch GradleProject model for an included build project"() {
@@ -160,12 +241,23 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
 
         then:
-        projectModel != null
+        fixture.assertStateStored {
+            buildModelCreated()
+            modelsCreated(":included1") // intermediate `IsolatedGradleProject`
+            modelsCreated(":included1:lib2", 2) // `GradleProject` (containing root-project data) and intermediate `IsolatedGradleProject`
+        }
 
-        and:
+        and: "GradleProject model is always returned for the root regardless of the target"
         projectModel.name == "included1"
         projectModel.children.size() == 1
         projectModel.children[0].name == "lib2"
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+
+        then:
+        fixture.assertStateLoaded()
     }
 
 }

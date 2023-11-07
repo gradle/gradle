@@ -29,7 +29,6 @@ public class FetchIsolatedGradleProjectForEachProjectInBuild implements BuildAct
 
     @Override
     public List<IsolatedGradleProject> execute(BuildController controller) {
-        System.out.println("Running build action to fetch isolated project models");
         GradleBuild buildModel = controller.getBuildModel();
         ArrayList<IsolatedGradleProject> collected = new ArrayList<>();
         for (BasicGradleProject project : buildModel.getProjects()) {
