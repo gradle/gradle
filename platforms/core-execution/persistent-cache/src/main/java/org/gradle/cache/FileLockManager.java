@@ -107,10 +107,6 @@ public interface FileLockManager {
         /**
          * No locking whatsoever.
          */
-        None;
-
-        public boolean isOnDemand() {
-            return this == OnDemand;
-        }
+        None
     }
 }

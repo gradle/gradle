@@ -63,30 +63,23 @@ public class FixedExclusiveModeCrossProcessCacheAccess extends AbstractCrossProc
         if (fileLock != null) {
             throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        this.fileLock = getFileLock(lockManager, lockTarget, lockOptions, cacheDisplayName, initializationAction, onOpenAction, NO_OP_CONTENDED_ACTION);
-    }
-
-    static FileLock getFileLock(
-        FileLockManager lockManager,
-        File lockTarget,
-        LockOptions lockOptions,
-        String cacheDisplayName,
-        CacheInitializationAction initializationAction,
-        Action<FileLock> onOpenAction,
-        Action<FileLockReleasedSignal> whenContended
-    ) {
-        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
+        final FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", NO_OP_CONTENDED_ACTION);
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
-                fileLock.writeFile(() -> initializationAction.initialize(fileLock));
+                fileLock.writeFile(new Runnable() {
+                    @Override
+                    public void run() {
+                        initializationAction.initialize(fileLock);
+                    }
+                });
             }
             onOpenAction.execute(fileLock);
-            return fileLock;
         } catch (Exception e) {
             fileLock.close();
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        this.fileLock = fileLock;
     }
 
     @Override

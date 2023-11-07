@@ -20,14 +20,9 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 
-import java.util.concurrent.TimeUnit
-
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
-
-    private static final long ONE_SECOND_IN_MILLIS = TimeUnit.SECONDS.toMillis(1);
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(180_000)
@@ -429,66 +424,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    def "only one process should run immutable transform for the same artifact at once"() {
-        executer.requireOwnGradleUserHomeDir()
-        def m1 = mavenRepo.module("test", "test", "1.3").publish()
-        m1.artifactFile.text = "1234"
-
-        given:
-        def firstBuild = new BuildTestFile(file("build0"), "build")
-        def secondBuild = new BuildTestFile(file("build1"), "build")
-        setupBuild(firstBuild)
-        firstBuild.buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            dependencies {
-                compile 'test:test:1.3'
-            }
-
-            task beforeResolve {
-                def projectDirName = layout.projectDirectory.asFile.name
-                doLast {
-                    ${server.callFromBuildUsingExpression('"resolveStarted_\$projectDirName"')}
-                }
-            }
-
-            task resolve {
-                dependsOn('beforeResolve')
-                def artifacts = configurations.compile.incoming.artifactView {
-                    attributes { it.attribute(artifactType, 'size') }
-                }.artifacts
-                inputs.files artifacts.artifactFiles
-
-                doLast {
-                    assert artifacts.artifactFiles.collect { it.name } == ['test-1.3.jar.txt']
-                }
-            }
-        """
-        // Let's just use exactly the same build for a second build and run it in parallel
-        GFileUtils.copyDirectory(firstBuild, secondBuild)
-
-        when:
-        server.expect("resolveStarted_build0")
-        def firstBuildHttpHandle = server.expectAndBlock("test-1.3.jar")
-        def firstBuildGradleHandle = executer.inDirectory(firstBuild).withTasks(':resolve').start()
-        firstBuildHttpHandle.waitForAllPendingCalls()
-
-        def secondBuildHttpHandle = server.expectAndBlock("resolveStarted_build1")
-        def secondBuildGradleHandle = executer.inDirectory(secondBuild).withTasks(':resolve').start()
-        secondBuildHttpHandle.waitForAllPendingCalls()
-        secondBuildHttpHandle.releaseAll()
-        Thread.sleep(ONE_SECOND_IN_MILLIS)
-        firstBuildHttpHandle.releaseAll()
-
-        then:
-        firstBuildGradleHandle.waitForFinish()
-        firstBuildGradleHandle.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
-        secondBuildGradleHandle.waitForFinish()
-        !secondBuildGradleHandle.standardOutput.contains("Transforming test-1.3.jar to test-1.3.jar.txt")
-    }
-
-    def "multiple processes can run immutable transforms at the same time for different artifacts"() {
+    def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->
             def lib = mavenRepo.module("org.test.foo", "build${idx}").publish()
@@ -534,13 +470,17 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         expect:
         server.expectConcurrent(buildNames.collect { "resolveStarted_" + it })
-        def transformations = server.expectConcurrentAndBlock(3, buildNames.collect { it + "-1.0.jar" } as String[])
+        def transformations = server.expectConcurrentAndBlock(1, buildNames.collect { it + "-1.0.jar" } as String[])
         def buildHandles = builds.collect {
             executer.inDirectory(it).withTasks("resolve").start()
         }
 
-        transformations.waitForAllPendingCalls()
-        transformations.releaseAll()
+        for (build in builds) {
+            transformations.waitForAllPendingCalls()
+            Thread.sleep(1000)
+            transformations.release(1)
+        }
+
         buildHandles.each {
             it.waitForFinish()
         }

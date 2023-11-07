@@ -22,14 +22,12 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.cache.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.locks.Lock;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(LockOnDemandCrossProcessCacheAccess.class);
@@ -55,7 +53,6 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
      * @param onClose Action to run when the lock is closed. Action is called while holding state lock
      */
     public LockOnDemandCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, Lock stateLock, CacheInitializationAction initAction, Action<FileLock> onOpen, Action<FileLock> onClose) {
-        checkArgument(lockOptions.getMode() == Exclusive, "Only supported lock mode is exclusive.");
         this.cacheDisplayName = cacheDisplayName;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
@@ -106,16 +103,27 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Acquiring file lock for {}", cacheDisplayName);
                 }
-                fileLock = getFileLock(lockOptions);
+                fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName, "", whenContended);
+                try {
+                    if (initAction.requiresInitialization(fileLock)) {
+                        fileLock.writeFile(new Runnable() {
+                            @Override
+                            public void run() {
+                                initAction.initialize(fileLock);
+                            }
+                        });
+                    }
+                    onOpen.execute(fileLock);
+                } catch (Exception e) {
+                    fileLock.close();
+                    fileLock = null;
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
             }
             lockCount++;
         } finally {
             stateLock.unlock();
         }
-    }
-
-    private FileLock getFileLock(LockOptions lockOptions) {
-        return FixedExclusiveModeCrossProcessCacheAccess.getFileLock(lockManager, lockTarget, lockOptions, cacheDisplayName, initAction, onOpen, whenContended);
     }
 
     private void decrementLockCount() {

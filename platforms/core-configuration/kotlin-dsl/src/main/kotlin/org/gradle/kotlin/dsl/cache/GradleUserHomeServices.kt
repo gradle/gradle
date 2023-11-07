@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl.cache
 
-import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.file.FileAccessTimeJournal
