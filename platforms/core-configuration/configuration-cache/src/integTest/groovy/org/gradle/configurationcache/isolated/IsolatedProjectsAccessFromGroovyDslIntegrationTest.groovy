@@ -821,4 +821,23 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
         }
     }
+
+    def "supports nested structure of build layout"() {
+        settingsFile << """
+            include ':a'
+            include ':a:tests'
+            include ':a:tests:integ-tests'
+        """
+        file("a/build.gradle") << ""
+        file("a/tests/build.gradle") << ""
+        file("a/tests/integ-tests/build.gradle") << ""
+
+        when:
+        isolatedProjectsRun 'build'
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
+        }
+    }
 }
