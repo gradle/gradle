@@ -144,6 +144,7 @@ public class ExecutionGradleServices {
     ) {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
+        // CHECKSTYLE:OFF
         Step<ChangingOutputsContext,Result> sharedExecutionPipeline =
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
@@ -202,6 +203,7 @@ public class ExecutionGradleServices {
                 incrementalPipeline,
                 nonIncrementalPipeline
         )))));
+        // CHECKSTYLE:ON
         // @formatter:on
     }
 
