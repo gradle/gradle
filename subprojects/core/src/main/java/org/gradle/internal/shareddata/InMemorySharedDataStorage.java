@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -73,11 +72,6 @@ public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjec
                 }
             }
         };
-    }
-
-    @Nullable
-    public <T> Provider<T> get(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier) {
-        return Cast.uncheckedCast(getProjectDataResolver(sourceProjectIdentityPath).get(new DataKey(type, identifier)));
     }
 
     public <T> void put(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier, Provider<T> dataProvider) {
