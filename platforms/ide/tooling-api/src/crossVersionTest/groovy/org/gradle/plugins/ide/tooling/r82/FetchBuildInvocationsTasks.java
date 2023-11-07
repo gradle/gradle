@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 
 public class FetchBuildInvocationsTasks implements BuildAction<List<Task>> {
     @Override
-    public List<Task> execute(final BuildController controller) {
+    public List<Task> execute(BuildController controller) {
         return controller.getBuildModel().getEditableBuilds().stream()
             .map(build -> controller.getModel(build.getRootProject(), BuildInvocations.class))
             .flatMap(invocations -> invocations.getTasks().stream())

@@ -19,7 +19,6 @@ package org.gradle.language.cpp.internal.tooling;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -47,7 +46,6 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.cpp.CppProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,11 +119,8 @@ public class CppModelBuilder implements ToolingModelBuilder {
         return binaries;
     }
 
-    @Nonnull
     private static LaunchableGradleTask buildLaunchableTask(DefaultProjectIdentifier projectIdentifier, Task task) {
-        LaunchableGradleTask launchableGradleTask = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, task);
-        launchableGradleTask.setBuildTreePath(((TaskInternal) task).getIdentityPath().getPath());
-        return launchableGradleTask;
+        return ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, task);
     }
 
     private List<DefaultSourceFile> sourceFiles(CompilerOutputFileNamingSchemeFactory namingSchemeFactory, PlatformToolProvider platformToolProvider, File objDir, Set<File> files) {
