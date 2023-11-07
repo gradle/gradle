@@ -22,8 +22,6 @@ import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import javax.annotation.Nonnull;
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.function.Supplier;
 
 /**
