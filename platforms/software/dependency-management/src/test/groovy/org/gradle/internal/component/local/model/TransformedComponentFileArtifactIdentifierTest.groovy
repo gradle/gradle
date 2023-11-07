@@ -34,7 +34,7 @@ class TransformedComponentFileArtifactIdentifierTest extends Specification {
         id.getDisplayName() == "original -> current (foo)"
     }
 
-    def "are equal when publish componentId and files are equal"() {
+    def "equals and hash code differentiate between same and different instances"() {
         def componentId = newComponentId("foo")
 
         when:
