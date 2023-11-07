@@ -30,19 +30,15 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.TestExecutionEngineFactory
 import org.gradle.internal.execution.TestExecutionHistoryStore
-import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
@@ -51,7 +47,6 @@ import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.execution.steps.ValidateStep
-import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -63,11 +58,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ExecutionGradleServices
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
@@ -122,37 +114,24 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def progressEventEmitter = Stub(BuildOperationProgressEventEmitter)
 
     def buildCacheController = Stub(BuildCacheController)
-    def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
-    def cancellationToken = new DefaultBuildCancellationToken()
+    def buildId = UniqueId.generate()
     def outputChangeListener = { affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, {}) } as OutputChangeListener
-    def outputFilesRepository = Stub(OutputFilesRepository) {
-        isGeneratedByGradle(_ as File) >> true
-    }
-    def workInputListeners = Stub(WorkInputListeners)
-    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
     def validationWarningRecorder = Mock(ValidateStep.ValidationWarningRecorder)
-    def executionEngine = new ExecutionGradleServices().createExecutionEngine(
+    def executionEngine = TestExecutionEngineFactory.createExecutionEngine(
+        buildId,
         buildCacheController,
-        cancellationToken,
-        buildInvocationScopeId,
         buildOperationExecutor,
-        buildOutputCleanupRegistry,
-        new GradleEnterprisePluginManager(),
         classloaderHasher,
-        new CurrentBuildOperationRef(),
         deleter,
         new DefaultExecutionStateChangeDetector(),
         outputChangeListener,
-        workInputListeners,
-        outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
-        Mock(TimeoutHandler),
+        Stub(Problems),
         validationWarningRecorder,
-        virtualFileSystem,
-        new DefaultProblems(Mock(BuildOperationProgressEventEmitter))
+        virtualFileSystem
     )
 
     def invoker = new DefaultTransformInvocationFactory(
@@ -501,7 +480,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     private TransformStepSubject immutableDependency(File file) {
-        return TransformStepSubject.initial(artifact(Stub(ComponentArtifactIdentifier), file))
+        return TransformStepSubject.initial(artifact(Stub(ComponentArtifactIdentifier)))
     }
 
     private TransformStepSubject mutableDependency(File file) {
@@ -512,10 +491,10 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
                 Path.path(":child"),
                 "child"
             ), file.getName())
-        return TransformStepSubject.initial(artifact(artifactIdentifier, file))
+        return TransformStepSubject.initial(artifact(artifactIdentifier))
     }
 
-    private ResolvableArtifact artifact(ComponentArtifactIdentifier id, File file) {
+    private ResolvableArtifact artifact(ComponentArtifactIdentifier id) {
         return Stub(ResolvableArtifact) {
             getId() >> id
         }
