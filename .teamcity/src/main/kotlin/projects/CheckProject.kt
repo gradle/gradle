@@ -72,8 +72,8 @@ class CheckProject(
     subProjectsOrder = subProjects
 
     cleanupRule(
-        historyDays = 14,
-        artifactsDays = 7,
+        historyDays = 28,
+        artifactsDays = 14,
         artifactsPatterns = """
                 +:**/*
                 +:$hiddenArtifactDestination/**/*"
