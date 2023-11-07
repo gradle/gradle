@@ -110,7 +110,7 @@ class DefaultConfigurationCache internal constructor(
     val projectMetadata = lazy { ProjectMetadataController(host, cacheIO, resolveStateFactory, store) }
 
     private
-    val sharedData = lazy { SharedDataController(host, cacheIO, store) }
+    val sharedData = lazy { SharedDataController(host, cacheIO, cacheFingerprintController,store) }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheIO>() }
