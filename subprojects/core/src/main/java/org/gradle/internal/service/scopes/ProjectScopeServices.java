@@ -57,6 +57,7 @@ import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -68,6 +69,8 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -85,6 +88,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.shareddata.DefaultProjectSharedData;
+import org.gradle.internal.shareddata.CrossProjectConfigurationDependencyListener;
+import org.gradle.internal.shareddata.SharedDataRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
@@ -120,9 +125,26 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerProjectServices(registration);
             }
-            registration.add(DefaultProjectSharedData.class);
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
+    }
+
+    protected ProjectSharedData createProjectSharedData(
+        ProjectInternal project,
+        SharedDataRegistry sharedDataRegistry,
+        ProjectStateRegistry projectStateRegistry,
+        ProviderFactory providerFactory,
+        ConfigurationTimeBarrier configurationTimeBarrier,
+        ListenerManager listeners
+    ) {
+        return new DefaultProjectSharedData(
+            project,
+            sharedDataRegistry,
+            projectStateRegistry,
+            providerFactory,
+            configurationTimeBarrier,
+            listeners.getBroadcaster(CrossProjectConfigurationDependencyListener.class)
+        );
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
