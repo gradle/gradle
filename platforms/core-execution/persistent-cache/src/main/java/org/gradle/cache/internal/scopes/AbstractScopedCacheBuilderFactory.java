@@ -31,12 +31,18 @@ import java.io.File;
 public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
-    private final File rootDir;
+    private final File rootContentDir;
+    private final File lockDir;
 
-    public AbstractScopedCacheBuilderFactory(File rootDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        this.rootDir = rootDir;
-        this.cacheScopeMapping = new DefaultCacheScopeMapping(rootDir, GradleVersion.current());
+    public AbstractScopedCacheBuilderFactory(File rootContentDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        this(rootContentDir, rootContentDir, unscopedCacheBuilderFactory);
+    }
+
+    public AbstractScopedCacheBuilderFactory(File rootContentDir, File lockDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        this.rootContentDir = rootContentDir;
+        this.cacheScopeMapping = new DefaultCacheScopeMapping(rootContentDir, GradleVersion.current());
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
+        this.lockDir = lockDir;
     }
 
     protected UnscopedCacheBuilderFactory getCacheRepository() {
@@ -45,26 +51,36 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public File getRootDir() {
-        return rootDir;
+        return rootContentDir;
     }
 
     @Override
     public CacheBuilder createCacheBuilder(String key) {
-        return unscopedCacheBuilderFactory.cache(baseDirForCache(key));
+        return unscopedCacheBuilderFactory.cache(baseDirForCache(key), lockDirForCache(key));
     }
 
     @Override
     public CacheBuilder createCrossVersionCacheBuilder(String key) {
-        return unscopedCacheBuilderFactory.cache(baseDirForCrossVersionCache(key));
+        return unscopedCacheBuilderFactory.cache(baseDirForCrossVersionCache(key), lockDirForCrossVersionCache(key));
     }
 
     @Override
     public File baseDirForCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(rootDir, key, VersionStrategy.CachePerVersion);
+        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.CachePerVersion);
     }
 
     @Override
     public File baseDirForCrossVersionCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(rootDir, key, VersionStrategy.SharedCache);
+        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.SharedCache);
+    }
+
+    @Override
+    public File lockDirForCache(String key) {
+        return cacheScopeMapping.getBaseDirectory(lockDir, key, VersionStrategy.CachePerVersion);
+    }
+
+    @Override
+    public File lockDirForCrossVersionCache(String key) {
+        return cacheScopeMapping.getBaseDirectory(lockDir, key, VersionStrategy.SharedCache);
     }
 }

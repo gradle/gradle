@@ -48,9 +48,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
-        GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
+    public PersistentCache open(File contentDir, File lockDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+        GFileUtils.mkdirs(contentDir);
+        InMemoryCache cache = new InMemoryCache(contentDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
             initializer.execute(cache);
         }

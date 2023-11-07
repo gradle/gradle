@@ -26,7 +26,7 @@ class LockOptionsBuilderTest extends Specification {
         def builder = LockOptionsBuilder.mode(Exclusive).useCrossVersionImplementation()
 
         when:
-        def copy = builder.withMode(Shared)
+        def copy = builder.copyWithMode(Shared)
 
         then:
         !copy.is(builder)

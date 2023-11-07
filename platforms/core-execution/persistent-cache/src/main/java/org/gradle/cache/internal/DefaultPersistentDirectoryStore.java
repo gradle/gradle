@@ -47,7 +47,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
-    private final File dir;
+    private final File cacheDir;
+    private final File lockDir;
     private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
     @Nullable
@@ -61,7 +62,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
-        File dir,
+        File cacheDir,
+        File lockDir,
         @Nullable String displayName,
         CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
@@ -70,21 +72,23 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         ExecutorFactory executorFactory,
         ProgressLoggerFactory progressLoggerFactory
     ) {
-        this.dir = dir;
+        this.cacheDir = cacheDir;
+        this.lockDir = lockDir;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
-        this.propertiesFile = new File(dir, "cache.properties");
-        this.gcFile = new File(dir, "gc.properties");
+        this.propertiesFile = new File(cacheDir, "cache.properties");
+        this.gcFile = new File(cacheDir, "gc.properties");
         this.progressLoggerFactory = progressLoggerFactory;
-        this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
+        this.displayName = displayName != null ? (displayName + " (" + cacheDir + ")") : ("cache directory " + cacheDir.getName() + " (" + cacheDir + ")");
     }
 
     @Override
     public DefaultPersistentDirectoryStore open() {
-        GFileUtils.mkdirs(dir);
+        GFileUtils.mkdirs(cacheDir);
+        GFileUtils.mkdirs(lockDir);
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open();
@@ -96,14 +100,14 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
+        return new DefaultCacheCoordinator(displayName, getLockTarget(lockOptions), lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
     }
 
-    private File getLockTarget() {
+    private File getLockTarget(LockOptions lockOptions) {
         switch (lockTarget) {
             case CacheDirectory:
             case DefaultTarget:
-                return dir;
+                return lockOptions.getLockDir() == null ? cacheDir : lockOptions.getLockDir();
             case CachePropertiesFile:
                 return propertiesFile;
             default:
@@ -132,14 +136,15 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public File getBaseDir() {
-        return dir;
+        return cacheDir;
     }
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget()));
+        return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget(lockOptions)));
     }
 
+    // TODO: move all this to LockOptions
     // TODO: Duplicated in DefaultFileLockManager
     static File determineLockTargetFile(File target) {
         if (target.isDirectory()) {
@@ -201,7 +206,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     private class CleanupExecutor implements CacheCleanupExecutor {
         private boolean requiresCleanup() {
-            if (dir.exists() && cacheCleanupStrategy != null) {
+            if (cacheDir.exists() && cacheCleanupStrategy != null) {
                 if (!gcFile.exists()) {
                     GFileUtils.touch(gcFile);
                 } else {

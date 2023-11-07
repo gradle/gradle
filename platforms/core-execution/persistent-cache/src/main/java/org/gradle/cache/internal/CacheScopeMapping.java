@@ -19,6 +19,8 @@ package org.gradle.cache.internal;
 import javax.annotation.Nullable;
 import java.io.File;
 
+// TODO: comment me
 public interface CacheScopeMapping {
     File getBaseDirectory(@Nullable File baseDir, String key, VersionStrategy versionStrategy);
+    File getLockDir(@Nullable File lockDir);
 }

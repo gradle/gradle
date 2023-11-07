@@ -15,14 +15,20 @@
  */
 package org.gradle.cache;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 public interface LockOptions {
 
     FileLockManager.LockMode getMode();
+
+    @Nullable
+    File getLockDir();
 
     boolean isUseCrossVersionImplementation();
 
     /**
      * Creates a copy of these options with the given mode.
      */
-    LockOptions withMode(FileLockManager.LockMode mode);
+    LockOptions copyWithMode(FileLockManager.LockMode mode);
 }

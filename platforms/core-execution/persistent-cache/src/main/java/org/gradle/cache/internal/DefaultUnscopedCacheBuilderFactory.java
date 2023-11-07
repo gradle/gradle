@@ -44,13 +44,14 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
     }
 
     @Override
-    public CacheBuilder cache(File baseDir) {
-        return new PersistentCacheBuilder(baseDir);
+    public CacheBuilder cache(File baseDir, File lockDir) {
+        return new PersistentCacheBuilder(baseDir, lockDir);
     }
 
     private class PersistentCacheBuilder implements CacheBuilder {
         final String key;
         final File baseDir;
+        final File lockDir;
         Map<String, ?> properties = Collections.emptyMap();
         Action<? super PersistentCache> initializer;
         CacheCleanupStrategy cacheCleanupStrategy;
@@ -62,11 +63,13 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         PersistentCacheBuilder(String key) {
             this.key = key;
             this.baseDir = null;
+            this.lockDir = null;
         }
 
-        PersistentCacheBuilder(File baseDir) {
+        PersistentCacheBuilder(File baseDir, File lockDir) {
             this.key = null;
             this.baseDir = baseDir;
+            this.lockDir = lockDir;
         }
 
         @Override
@@ -115,7 +118,14 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
             }
 
-            return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
+            File lockBaseDir;
+            if (lockOptions.getLockDir() != null) {
+                lockBaseDir = lockOptions.getLockDir();
+            } else {
+                lockBaseDir = cacheBaseDir;
+            }
+
+            return factory.open(cacheBaseDir, lockBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }

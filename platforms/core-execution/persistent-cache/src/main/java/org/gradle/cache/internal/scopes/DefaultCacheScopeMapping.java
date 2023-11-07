@@ -48,6 +48,11 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         return getCacheDir(cacheRootDir, versionStrategy, key);
     }
 
+    @Override
+    public File getLockDir(@Nullable File lockDir) {
+        return lockDir;
+    }
+
     private File getRootDirectory(@Nullable File scope) {
         if (scope == null) {
             return globalCacheDir;

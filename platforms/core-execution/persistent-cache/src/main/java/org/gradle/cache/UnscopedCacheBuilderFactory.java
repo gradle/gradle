@@ -46,11 +46,15 @@ public interface UnscopedCacheBuilderFactory {
      */
     CacheBuilder cache(String key);
 
+    default CacheBuilder cache(File dir) {
+        return cache(dir, dir);
+    }
+
     /**
      * Returns a builder for the cache with the given base directory. You should prefer one of the other methods over using this method.
      *
      * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      */
-    CacheBuilder cache(File baseDir);
+    CacheBuilder cache(File baseDir, File lockDir);
 }

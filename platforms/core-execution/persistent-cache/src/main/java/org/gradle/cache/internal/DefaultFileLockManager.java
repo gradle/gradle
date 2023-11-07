@@ -45,6 +45,7 @@ import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -107,22 +108,24 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
+            return new DefaultFileLock(canonicalTarget, options.getLockDir(), options, targetDisplayName, operationDisplayName, port, whenContended);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
         }
     }
 
-    static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
+    static File determineLockTargetFile(File target, @Nullable File lockDir) {
+        File baseDir = lockDir == null ? target.getParentFile() : lockDir;
+        if (baseDir.isDirectory()) {
+            return new File(baseDir, target.getName() + ".lock");
         } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
+            return new File(baseDir.getParentFile(), target.getName() + ".lock");
         }
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
+        @Nullable
         private final File lockFile;
         private final File target;
         private final LockMode mode;
@@ -134,7 +137,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
+        public DefaultFileLock(File target, @Nullable File lockDir, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
             if (options.getMode() == LockMode.OnDemand) {
@@ -145,7 +148,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
-            this.lockFile = determineLockTargetFile(target);
+            this.lockFile = determineLockTargetFile(target, lockDir);
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             try {
@@ -295,7 +298,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * - lock info region, locked just to write the lock info or read info from it
          * <br><br>
          *
-         * Algorithm:<br> 
+         * Algorithm:<br>
          * 1. We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.<br>
          * 2a. If we use exclusive lock, and we succeed in step 1., then we acquire an exclusive lock
          * on the information region and write our details (port and lock id) there, and then we release lock of information region.

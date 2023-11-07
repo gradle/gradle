@@ -92,7 +92,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = unscopedCacheBuilderFactory
-            .cache(target)
+            .cache(target, target)
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))

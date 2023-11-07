@@ -18,14 +18,24 @@ package org.gradle.cache.internal.filelock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
+// TODO: This needs cleanup
 public class LockOptionsBuilder implements LockOptions {
 
     private FileLockManager.LockMode mode;
     private boolean crossVersion;
+    @Nullable private final File lockDir;
 
     private LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion) {
+        this(mode, crossVersion, null);
+    }
+
+    public LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion, @Nullable File lockDir) {
         this.mode = mode;
         this.crossVersion = crossVersion;
+        this.lockDir = lockDir;
     }
 
     public static LockOptionsBuilder mode(FileLockManager.LockMode lockMode) {
@@ -42,14 +52,20 @@ public class LockOptionsBuilder implements LockOptions {
         return mode;
     }
 
+    @Nullable
+    @Override
+    public File getLockDir() {
+        return lockDir;
+    }
+
     @Override
     public boolean isUseCrossVersionImplementation() {
         return crossVersion;
     }
 
     @Override
-    public LockOptions withMode(FileLockManager.LockMode mode) {
-        return new LockOptionsBuilder(mode, crossVersion);
+    public LockOptions copyWithMode(FileLockManager.LockMode mode) {
+        return new LockOptionsBuilder(mode, crossVersion, lockDir);
     }
 
     @Override
@@ -74,6 +90,9 @@ public class LockOptionsBuilder implements LockOptions {
         if (mode != that.mode) {
             return false;
         }
+        if (lockDir != that.lockDir) {
+            return false;
+        }
 
         return true;
     }
@@ -82,6 +101,7 @@ public class LockOptionsBuilder implements LockOptions {
     public int hashCode() {
         int result = mode.hashCode();
         result = 31 * result + (crossVersion ? 1 : 0);
+        result = 31 * result + (lockDir != null ? lockDir.hashCode() : 0);
         return result;
     }
 }

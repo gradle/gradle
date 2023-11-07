@@ -53,4 +53,8 @@ public interface ScopedCacheBuilderFactory {
      * Returns the base directory that would be used for a cross Gradle version cache builder created by this factory.
      */
     File baseDirForCrossVersionCache(String key);
+
+
+    File lockDirForCache(String key);
+    File lockDirForCrossVersionCache(String key);
 }

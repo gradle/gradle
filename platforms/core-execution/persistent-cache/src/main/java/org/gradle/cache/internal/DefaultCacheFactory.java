@@ -62,10 +62,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, File lockDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
-            return doOpen(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
+            return doOpen(cacheDir, lockDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
         } finally {
             lock.unlock();
         }
@@ -89,6 +89,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
 
     private PersistentCache doOpen(
         File cacheDir,
+        File lockDir,
         String displayName,
         Map<String, ?> properties,
         CacheBuilder.LockTarget lockTarget,
@@ -96,18 +97,20 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Nullable Action<? super PersistentCache> initializer,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        File canonicalDir = FileUtils.canonicalize(cacheDir);
-        DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
+        File canonicalCacheDir = FileUtils.canonicalize(cacheDir);
+        File canonicalLockDir = FileUtils.canonicalize(lockDir);
+
+        DirCacheReference dirCacheReference = dirCaches.get(canonicalCacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+                cache = new DefaultPersistentDirectoryCache(canonicalCacheDir, canonicalLockDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
             } else {
-                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+                cache = new DefaultPersistentDirectoryStore(canonicalCacheDir, canonicalLockDir, displayName, lockTarget, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockTarget, lockOptions);
-            dirCaches.put(canonicalDir, dirCacheReference);
+            dirCaches.put(canonicalCacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));

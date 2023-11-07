@@ -451,7 +451,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
-        def lock = customManager.lock(testFile, options().withMode(Exclusive), "targetDisplayName", operationalDisplayName)
+        def lock = customManager.lock(testFile, options().copyWithMode(Exclusive), "targetDisplayName", operationalDisplayName)
 
         then:
         isVersionLockFileWithInfoRegion(testFileLock, true, processIdentifier.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
@@ -500,7 +500,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName)
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
-        def lock = lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
+        def lock = lockManager.lock(file, options().copyWithMode(lockMode), "foo", "operation")
         openedLocks << lock
         lock
     }
@@ -508,7 +508,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     protected abstract LockOptionsBuilder options();
 
     protected void writeFile(FileLockManager lockManager = manager) {
-        def lock = lockManager.lock(testFile, options().withMode(Exclusive), "foo", "operation")
+        def lock = lockManager.lock(testFile, options().copyWithMode(Exclusive), "foo", "operation")
         try {
             lock.writeFile {}
         } finally {
