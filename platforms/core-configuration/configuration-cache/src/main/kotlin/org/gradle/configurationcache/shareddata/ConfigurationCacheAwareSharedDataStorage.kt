@@ -37,12 +37,18 @@ class ConfigurationCacheAwareSharedDataStorage(
         delegate.put(sourceProjectIdentityPath, type, identifier, dataProvider)
     }
 
-    override fun getProjectDataResolver(sourceProjectIdentitityPath: Path): SharedDataStorage.ProjectProducedSharedData =
-        cache.loadOrCreateProjectSharedData(sourceProjectIdentitityPath) {
-            // If not found in the cache, ensure the project gets configured and registers its shared data.
-            // The project should get its own fingerprint tracked while it is being configured.
-            projectStateRegistry.stateFor(sourceProjectIdentitityPath).ensureConfigured()
+    override fun getProjectDataResolver(consumerProjectIdentityPath: Path, sourceProjectIdentitityPath: Path): SharedDataStorage.ProjectProducedSharedData =
+        if (consumerProjectIdentityPath.equals(sourceProjectIdentitityPath)) {
+            // Don't trigger serialization if it's the producer project querying its own data.
+            // The producer project might still be in configuration phase, so it can later attempt to mutate its shared data.
+            delegate.getProjectDataResolver(consumerProjectIdentityPath, sourceProjectIdentitityPath)
+        } else {
+            cache.loadOrCreateProjectSharedData(sourceProjectIdentitityPath) {
+                // If not found in the cache, ensure the project gets configured and registers its shared data.
+                // The project should get its own fingerprint tracked while it is being configured.
+                projectStateRegistry.stateFor(sourceProjectIdentitityPath).ensureConfigured()
 
-            delegate.getProjectDataResolver(sourceProjectIdentitityPath)
+                delegate.getProjectDataResolver(consumerProjectIdentityPath, sourceProjectIdentitityPath)
+            }
         }
 }
