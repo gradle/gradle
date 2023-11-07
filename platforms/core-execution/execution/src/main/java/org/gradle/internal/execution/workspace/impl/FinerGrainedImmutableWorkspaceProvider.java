@@ -30,7 +30,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static org.gradle.cache.FileLockManager.LockMode.None;
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -63,7 +61,7 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP, cacheConfigurations))
-            .withLockOptions(mode(None))
+            .withLockOptions(mode(OnDemand))
             .open();
         this.finerCacheFactory = finerCacheFactory;
         this.finerGrainedCaches = new ConcurrentHashMap<>();
@@ -90,12 +88,9 @@ public class FinerGrainedImmutableWorkspaceProvider implements WorkspaceProvider
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        File workspace = new File(baseDirectory, path);
-        GFileUtils.mkdirs(workspace);
-        @SuppressWarnings("resource")
-        PersistentCache finerCache = finerGrainedCaches.computeIfAbsent(path, this::openFinnerCache);
-        return finerCache.withFileLock(() -> {
-            fileAccessTracker.markAccessed(workspace);
+        return cache.withFileLock(() -> {
+            File workspace = new File(baseDirectory, path);
+            fileAccessTracker.markAccessed(baseDirectory);
             return action.executeInWorkspace(workspace, executionHistoryStore);
         });
     }
