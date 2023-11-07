@@ -62,7 +62,9 @@ public interface ProjectSharedData {
     MultipleSourcesIdentifier fromProjects(Collection<Project> projects);
 
     // TODO API shape issue? giving the project instance to the user code is prone to violations of isolation (which we catch, but still)
-    MultipleSourcesIdentifier fromAllProjects(Spec<? super Project> filterProjects);
+    MultipleSourcesIdentifier fromAllProjects();
+    MultipleSourcesIdentifier fromProjectsInCurrentBuild();
+    MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects);
     MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
 
     /**

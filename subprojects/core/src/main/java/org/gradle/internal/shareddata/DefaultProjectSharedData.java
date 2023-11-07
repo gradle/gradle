@@ -32,6 +32,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.shareddata.ProjectSharedData;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -131,8 +132,28 @@ public class DefaultProjectSharedData implements ProjectSharedData {
     }
 
     @Override
-    public MultipleSourcesIdentifier fromAllProjects(Spec<? super Project> filterProjects) {
-        return () -> projectStateRegistry.getAllProjects().stream().filter(it -> filterProjects.isSatisfiedBy(it.getMutableModel())).map(ProjectState::getIdentityPath).collect(Collectors.toList());
+    public MultipleSourcesIdentifier fromAllProjects() {
+        return fromAllProjectsMatching(project -> true);
+    }
+
+    @Override
+    public MultipleSourcesIdentifier fromProjectsInCurrentBuild() {
+        BuildState consumerBuild = projectStateRegistry.stateFor(usedInProject).getOwner();
+        return fromAllProjectsMatching(project -> project.getOwner().equals(consumerBuild));
+    }
+
+    @Override
+    public MultipleSourcesIdentifier fromAllProjectsMatchingIdentityPath(Spec<? super String> filterProjects) {
+        return fromAllProjectsMatching(project ->
+            filterProjects.isSatisfiedBy(project.getIdentityPath().getPath())
+        );
+    }
+
+    private MultipleSourcesIdentifier fromAllProjectsMatching(Spec<? super ProjectState> filterProjects) {
+        return () -> projectStateRegistry.getAllProjects().stream()
+            .filter(filterProjects::isSatisfiedBy)
+            .map(ProjectState::getIdentityPath)
+            .collect(Collectors.toList());
     }
 
     @Override
