@@ -50,7 +50,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                 .label("is incorrectly annotated with @" + annotationType.getSimpleName())
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .noLocation()
-                .category(VALIDATION, "INVALID_USE_OF_TYPE_ANNOTATION")
+                .category(VALIDATION, "type", "invalid-use-of-type-annotation")
                 .severity(Severity.ERROR)
                 .details(String.format("This annotation only makes sense on %s types", Arrays.stream(appliesOnlyTo)
                     .map(Class::getSimpleName)

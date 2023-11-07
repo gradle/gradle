@@ -82,6 +82,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -208,7 +209,7 @@ public class DefaultTransform implements Transform {
                         .label("is declared to be sensitive to absolute paths")
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .noLocation()
-                        .category(VALIDATION, CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY)
+                        .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY))
                         .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
@@ -369,7 +370,7 @@ public class DefaultTransform implements Transform {
                             .label("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase()))
                             .noLocation()
-                            .category(VALIDATION, ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT)
+                            .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT))
                             .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")

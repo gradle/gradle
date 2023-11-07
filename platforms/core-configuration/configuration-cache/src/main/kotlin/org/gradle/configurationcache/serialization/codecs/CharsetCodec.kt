@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package com.tngtech.archunit.library.freeze;
+package org.gradle.configurationcache.serialization.codecs
 
-/**
- * Remove this class once ArchUnit 1.0.2 is released and use TextFileBasedViolationStore directly once it becomes public.
- * See: https://github.com/TNG/ArchUnit/pull/1046.
- */
-@SuppressWarnings("JavadocLinkAsPlainText")
-public class GradleViolationStoreFactory {
-    public static ViolationStore create() {
-        return new ViolationStoreFactory.TextFileBasedViolationStore();
+import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
+import java.nio.charset.Charset
+
+
+object CharsetCodec : Codec<Charset> {
+
+    override suspend fun WriteContext.encode(value: Charset) {
+        writeString(value.name())
     }
+
+    override suspend fun ReadContext.decode(): Charset =
+        Charset.forName(readString())
 }
