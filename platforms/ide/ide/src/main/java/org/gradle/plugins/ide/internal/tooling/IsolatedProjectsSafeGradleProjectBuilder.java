@@ -95,7 +95,8 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
             .setName(isolatedModel.getName())
             .setDescription(isolatedModel.getDescription())
             .setBuildDirectory(isolatedModel.getBuildDirectory())
-            .setProjectDirectory(isolatedModel.getProjectDirectory());
+            .setProjectDirectory(isolatedModel.getProjectDirectory())
+            .setBuildTreePath(project.getIdentityPath().getPath());
 
         model.getBuildScript().setSourceFile(isolatedModel.getBuildScript().getSourceFile());
 
