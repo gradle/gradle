@@ -53,7 +53,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -151,14 +150,14 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
     private
     class ProblemReportingProject(
-        val delegate: DefaultProject,
-        val referrer: DefaultProject,
+        val delegate: ProjectInternal,
+        val referrer: ProjectInternal,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
         val problemFactory: ProblemFactory,
