@@ -324,7 +324,7 @@ class HttpClientHelperSSLTest extends Specification {
     private def performExternalRequest() {
         createClient()
 
-        client.performGet("https://gradle.org", false)
+        client.performGet("https://www.microsoft.com", false)
     }
 
 }
