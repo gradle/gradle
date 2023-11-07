@@ -249,7 +249,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             projectStateRegistry: ProjectStateRegistry,
             cache: BuildTreeConfigurationCache
         ): SharedDataStorage {
-            val inMemoryStorage = VintageBuildTreeProvider().createSharedDataStorage(projectStateRegistry)
+            val inMemoryStorage = VintageBuildTreeProvider().createSharedDataStorage()
             return ConfigurationCacheAwareSharedDataStorage(projectStateRegistry, inMemoryStorage, cache)
         }
     }
@@ -260,8 +260,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
         }
 
-        fun createSharedDataStorage(projectStateRegistry: ProjectStateRegistry) : SharedDataStorage {
-            return InMemorySharedDataStorage(projectStateRegistry)
+        fun createSharedDataStorage(): SharedDataStorage {
+            return InMemorySharedDataStorage()
         }
     }
 }

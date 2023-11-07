@@ -18,12 +18,10 @@ package org.gradle.internal.shareddata;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,12 +32,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @NonNullApi
 public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjectState {
-    private final ProjectStateRegistry projectStateRegistry;
-
-    @Inject
-    public InMemorySharedDataStorage(ProjectStateRegistry projectStateRegistry) {
-        this.projectStateRegistry = projectStateRegistry;
-    }
 
     private final ReadWriteLock modificationLock = new ReentrantReadWriteLock();
 
@@ -78,7 +70,7 @@ public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjec
         Lock writeLock = modificationLock.writeLock();
         writeLock.lock();
         try {
-            dataByProjectPathAndKey.computeIfAbsent(projectStateRegistry.stateFor(sourceProjectIdentityPath).getIdentityPath(), key -> new ConcurrentHashMap<>()).compute(
+            dataByProjectPathAndKey.computeIfAbsent(sourceProjectIdentityPath, key -> new ConcurrentHashMap<>()).compute(
                 new DataKey(type, identifier),
                 (key, oldValue) -> {
                     if (oldValue != null) {
