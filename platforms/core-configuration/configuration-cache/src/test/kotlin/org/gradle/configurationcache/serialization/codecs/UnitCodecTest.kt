@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.tngtech.archunit.library.freeze;
+package org.gradle.configurationcache.serialization.codecs
 
-/**
- * Remove this class once ArchUnit 1.0.2 is released and use TextFileBasedViolationStore directly once it becomes public.
- * See: https://github.com/TNG/ArchUnit/pull/1046.
- */
-@SuppressWarnings("JavadocLinkAsPlainText")
-public class GradleViolationStoreFactory {
-    public static ViolationStore create() {
-        return new ViolationStoreFactory.TextFileBasedViolationStore();
+import org.hamcrest.CoreMatchers.sameInstance
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Test
+import spock.lang.Issue
+
+
+class UnitCodecTest : AbstractUserTypeCodecTest() {
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/25560")
+    fun `same Unit instance is used upon restore`() {
+        configurationCacheRoundtripOf(Unit).run {
+            assertThat(this, sameInstance(Unit))
+        }
     }
 }

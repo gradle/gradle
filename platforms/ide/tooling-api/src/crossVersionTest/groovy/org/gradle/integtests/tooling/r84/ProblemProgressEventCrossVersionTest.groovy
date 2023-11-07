@@ -79,6 +79,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[1].severity == Severity.ERROR.name()
         problems[1].where[0].path == 'ba'
         problems[1].where[0].line == -1
-        problems[1].problemCategory == 'task_selection'
+        problems[1].problemCategory == 'task-selection:no-matches'
     }
 }
