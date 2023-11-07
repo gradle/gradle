@@ -79,6 +79,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         }
         runner.useDaemon = false
         runner.tasksToRun = ["help"]
+//        runner.args = ["--info"]
         enableConfigurationCaching(configurationCachingEnabled)
 
         when:

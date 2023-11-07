@@ -41,13 +41,18 @@ public abstract class InstrumentBuildService implements BuildService<InstrumentB
     private final AtomicReference<InstrumentingTypeRegistry> instrumentingTypeRegistry = new AtomicReference<>();
 
     public InstrumentingTypeRegistry getInstrumentingTypeRegistry(GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+        System.out.println("InstrumentBuildService.getInstrumentingTypeRegistry start");
         if (instrumentingTypeRegistry.get() != null) {
             return instrumentingTypeRegistry.get();
         }
-        return newInstrumentingTypeRegistry(gradleCoreInstrumentingTypeRegistry);
+        System.out.println("InstrumentBuildService.getInstrumentingTypeRegistry middle");
+        InstrumentingTypeRegistry registry = newInstrumentingTypeRegistry(gradleCoreInstrumentingTypeRegistry);
+        System.out.println("InstrumentBuildService.getInstrumentingTypeRegistry end");
+        return registry;
     }
 
     private synchronized InstrumentingTypeRegistry newInstrumentingTypeRegistry(GradleCoreInstrumentingTypeRegistry gradleCoreInstrumentingTypeRegistry) {
+        System.out.println("InstrumentBuildService.getInstrumentingTypeRegistry");
         if (instrumentingTypeRegistry.get() != null) {
             return instrumentingTypeRegistry.get();
         }

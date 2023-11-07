@@ -108,11 +108,11 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
-        FileCollection instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
+        Set<File> instrumentedView = getInstrumentedView(classpathConfiguration, dependencyHandler, configContainer);
         return TransformedClassPath.handleInstrumentingArtifactTransform(DefaultClassPath.of(instrumentedView));
     }
 
-    private FileCollection getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
+    private Set<File> getInstrumentedView(Configuration classpathConfiguration, DependencyHandler dependencyHandler, ConfigurationContainer configContainer) {
         // Register collect type hierarchy
         ArtifactView hierarchyCollectedView = artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(HIERARCHY_COLLECTED_ATTRIBUTE, true));
@@ -128,23 +128,27 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
         // Register instrumentation and upgrades transform
         FileCollection classHierarchy = hierarchyCollectedView.getFiles();
+        Provider<InstrumentBuildService> service = registerNewService(classHierarchy);
+        InstrumentBuildService buildService = service.get();
         dependencyHandler.registerTransform(
             InstrumentArtifactTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, false);
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, true);
                 spec.parameters(parameters -> {
-                    parameters.getBuildService().set(registerNewService(classHierarchy));
+                    parameters.getBuildService().set(service);
                     parameters.getCacheLocations().set(getSerializableGlobalCaches());
                 });
             }
         );
 
         // TODO: Clear resources of the service
-        return artifactView(classpathConfiguration, config -> {
+        Set<File> files = artifactView(classpathConfiguration, config -> {
             config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, true));
             config.componentFilter(DefaultScriptClassPathResolver::filterGradleDependencies);
-        }).getFiles();
+        }).getFiles().getFiles();
+        buildService.clear();
+        return files;
     }
 
     private Provider<InstrumentBuildService> registerNewService(FileCollection classHierarchy) {
