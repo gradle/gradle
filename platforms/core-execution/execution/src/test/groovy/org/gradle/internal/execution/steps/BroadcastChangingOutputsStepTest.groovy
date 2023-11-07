@@ -21,11 +21,11 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class ChangeOutputsStepTest extends StepSpec<InputChangesContext> {
+class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def delegateResult = Stub(Result)
 
-    def step = new ChangeOutputsStep<>(outputChangeListener, delegate)
+    def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
 
     def "notifies listener about specific outputs changing"() {
         def outputDir = file("output-dir")
