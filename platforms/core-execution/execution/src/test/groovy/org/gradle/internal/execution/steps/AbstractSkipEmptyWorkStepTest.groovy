@@ -18,36 +18,21 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.history.OutputsCleaner
-import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.properties.InputBehavior
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
-    def outputChangeListener = Mock(OutputChangeListener)
+abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends StepSpec<C> {
     def workInputListeners = Mock(WorkInputListeners)
-    def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     def primaryFileInputs = EnumSet.of(PRIMARY)
     def allFileInputs = EnumSet.allOf(InputBehavior)
-
-    def step = new SkipEmptyWorkStep(
-        outputChangeListener,
-        workInputListeners,
-        { -> outputsCleaner },
-        delegate)
 
     def knownSnapshot = Mock(ValueSnapshot)
     def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
@@ -55,8 +40,12 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
 
+    abstract protected AbstractSkipEmptyWorkStep<C> createStep()
+
+    AbstractSkipEmptyWorkStep<C> step
 
     def setup() {
+        step = createStep()
         _ * work.inputFingerprinter >> inputFingerprinter
         context.getInputProperties() >> { knownInputProperties }
         context.getInputFileProperties() >> { knownInputFileProperties }
@@ -159,96 +148,5 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         then:
         result.execution.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
-    }
-
-    def "skips when work has empty sources and previous outputs (#description)"() {
-        def previousOutputFile = file("output.txt").createFile()
-        def outputFileSnapshot = snapshot(previousOutputFile)
-
-        when:
-        def result = step.execute(work, context)
-
-        then:
-        interaction {
-            emptySourcesWithPreviousOutputs(outputFileSnapshot)
-        }
-
-        and:
-        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
-
-        and:
-        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
-
-        and:
-        1 * outputsCleaner.didWork >> didWork
-        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
-        0 * _
-
-        then:
-        result.execution.get().outcome == outcome
-        !result.afterExecutionState.present
-
-        where:
-        didWork | outcome
-        true    | EXECUTED_NON_INCREMENTALLY
-        false   | SHORT_CIRCUITED
-        description = didWork ? "removed files" : "no files removed"
-    }
-
-    def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
-        def previousOutputFile = file("output.txt").createFile()
-        def outputFileSnapshot = snapshot(previousOutputFile)
-        def ioException = new IOException("Couldn't delete file")
-
-        when:
-        step.execute(work, context)
-
-        then:
-        interaction {
-            emptySourcesWithPreviousOutputs(outputFileSnapshot)
-        }
-
-        and:
-        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
-
-        and:
-        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
-
-        then:
-        def ex = thrown Exception
-        ex.message.contains("Couldn't delete file")
-        ex.cause == ioException
-    }
-
-    private void emptySourcesWithPreviousOutputs(FileSystemSnapshot outputFileSnapshot) {
-        def previousExecutionState = Stub(PreviousExecutionState)
-        def outputFileSnapshots = ImmutableSortedMap.of("output", outputFileSnapshot)
-
-        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
-        _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
-        _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
-        1 * inputFingerprinter.fingerprintInputProperties(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            _
-        ) >> new DefaultInputFingerprinter.InputFingerprints(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
-            ImmutableSet.of())
-
-        1 * sourceFileFingerprint.empty >> true
-    }
-
-    private static Set<String> rootPaths(File... files) {
-        files*.absolutePath as Set
-    }
-
-    private def snapshot(File file) {
-        fileCollectionSnapshotter.snapshot(TestFiles.fixed(file)).snapshot
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
@@ -35,9 +36,13 @@ public class CachingResult extends UpToDateResult implements ExecutionEngine.Res
         this.cachingState = cachingState;
     }
 
-    public CachingResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata, CachingState cachingState) {
+    public CachingResult(Duration duration, Try<Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata, CachingState cachingState) {
         super(duration, execution, afterExecutionState, executionReasons, reusedOutputOriginMetadata);
         this.cachingState = cachingState;
+    }
+
+    public static CachingResult shortcutResult(Execution execution, @Nullable String executionReason, Duration duration) {
+        return new CachingResult(duration, Try.successful(execution), null, executionReason == null ? ImmutableList.of() : ImmutableList.of(executionReason), null, CachingState.NOT_DETERMINED);
     }
 
     public CachingState getCachingState() {
