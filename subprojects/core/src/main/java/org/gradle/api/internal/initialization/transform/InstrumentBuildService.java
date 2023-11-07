@@ -60,18 +60,18 @@ public abstract class InstrumentBuildService implements BuildService<InstrumentB
     private Map<String, Set<String>> readClassHierarchy() {
         Set<File> files = getParameters().getClassHierarchy().getFiles();
         Map<String, Set<String>> classHierarchy = new HashMap<>();
-        files.forEach(file -> {
-            Properties properties = new Properties();
-            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
-                properties.load(inputStream);
-                properties.forEach((key, value) -> {
-                    Set<String> keyTypes = classHierarchy.computeIfAbsent((String) key, __ -> new HashSet<>());
-                    Collections.addAll(keyTypes, ((String) value).split(","));
-                });
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+//        files.forEach(file -> {
+//            Properties properties = new Properties();
+//            try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+//                properties.load(inputStream);
+//                properties.forEach((key, value) -> {
+//                    Set<String> keyTypes = classHierarchy.computeIfAbsent((String) key, __ -> new HashSet<>());
+//                    Collections.addAll(keyTypes, ((String) value).split(","));
+//                });
+//            } catch (IOException e) {
+//                throw new UncheckedIOException(e);
+//            }
+//        });
         return classHierarchy;
     }
 
