@@ -93,12 +93,13 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
                 dependencyScope("api") {
                     outgoing {
                         capability("com.foo:producer:2.0")
-                        capability("org.bar:extra-capability:1.0")
+                        capability("org.bar:dependency-scope-capability:1.0")
                     }
                 }
                 consumable("elements") {
                     extendsFrom(api)
                     outgoing.artifact(tasks.zip)
+                    outgoing.capability("org.bar:consumable-capability:1.0")
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
                     }
@@ -129,6 +130,9 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
                     def graphVariant = root.dependencies.find { it.selected.id.projectPath == ":producer" }.resolvedVariant
                     def artifactVariant = artifactVariants.find { it.owner.projectPath == ":producer" }
                     assert graphVariant.capabilities == artifactVariant.capabilities
+
+                    def expected = ["com.foo:producer:2.0", "org.bar:dependency-scope-capability:1.0", "org.bar:consumable-capability:1.0"] as Set
+                    assert graphVariant.capabilities.collect { "\${it.group}:\${it.name}:\${it.version}" } as Set == expected
                 }
             }
         """
