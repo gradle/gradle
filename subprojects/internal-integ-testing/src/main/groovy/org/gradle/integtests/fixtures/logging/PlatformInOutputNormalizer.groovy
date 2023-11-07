@@ -15,20 +15,32 @@
  */
 package org.gradle.integtests.fixtures.logging
 
-
 import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.platform.internal.DefaultBuildPlatform
 
 /**
  * This normalizer converts toolchain error message so it doesn't contain platform-specific information.
  */
-class ToolchainDownloadOutputNormalizer implements OutputNormalizer {
+class PlatformInOutputNormalizer implements OutputNormalizer {
+    def static internalOs = OperatingSystem.current()
+    def static os = DefaultBuildPlatform.getOperatingSystem(internalOs)
+    def static arch = getArchitectureString()
+
+    private static getArchitectureString() {
+        def archProperty = System.getProperty("os.arch")
+        if (archProperty == "amd64") {
+            return "x86_64"
+        } else {
+            return archProperty
+        }
+    }
+
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
         return commandOutput
-            .replaceAll(
-                "No matching toolchains found for requested specification: (.+) for (.+).") {
-                "No matching toolchains found for requested specification: ${it[1]} for %OS% on %ARCH%."
-            }
+            .replaceAll(arch, "%ARCH%")
+            .replaceAll(os.name(), "%OS%")
     }
 }

@@ -61,7 +61,7 @@ public class DefaultBuildPlatform implements BuildPlatform {
         throw new GradleException("Unhandled system architecture: " + architecture);
     }
 
-    private static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {
+    public static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {
         if (org.gradle.internal.os.OperatingSystem.LINUX == operatingSystem) {
             return OperatingSystem.LINUX;
         } else if (org.gradle.internal.os.OperatingSystem.UNIX == operatingSystem) {
