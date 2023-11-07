@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.execution.IncrementalUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -27,7 +28,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Map;
 
-class MutableTransformExecution extends AbstractTransformExecution {
+class MutableTransformExecution extends AbstractTransformExecution implements IncrementalUnitOfWork {
     private final String rootProjectLocation;
     private final String producerBuildTreePath;
 

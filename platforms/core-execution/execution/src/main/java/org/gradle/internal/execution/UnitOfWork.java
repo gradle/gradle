@@ -143,6 +143,7 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
+    // TODO Move this to IncrementalUnitOfWork
     /**
      * Whether the work should be executed incrementally (if possible) or not.
      */
