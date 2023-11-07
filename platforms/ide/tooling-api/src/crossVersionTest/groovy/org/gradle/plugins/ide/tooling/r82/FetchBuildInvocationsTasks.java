@@ -18,19 +18,19 @@ package org.gradle.plugins.ide.tooling.r82;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.Task;
+import org.gradle.tooling.model.gradle.BuildInvocations;
 
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class FetchTasksAction implements BuildAction<List<Task>> {
+public class FetchBuildInvocationsTasks implements BuildAction<List<Task>> {
     @Override
-    public List<Task> execute(BuildController controller) {
+    public List<Task> execute(final BuildController controller) {
         return controller.getBuildModel().getEditableBuilds().stream()
-            .flatMap(build -> build.getProjects().stream())
-            .flatMap(project -> controller.getModel(project, GradleProject.class).getTasks().stream())
+            .map(build -> controller.getModel(build.getRootProject(), BuildInvocations.class))
+            .flatMap(invocations -> invocations.getTasks().stream())
             .collect(toList());
     }
 }
