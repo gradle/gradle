@@ -15,7 +15,7 @@
 [[command_line_interface]]
 = Command-Line Interface Basics
 
-The command-line interface is the **primary method of interacting with Gradle** outside IDEs.
+The command-line interface is a popular **method of interacting with Gradle** outside the IDE.
 
 image::gradle-basic-2.png[]
 

@@ -21,15 +21,12 @@ image::gradle-basic-7.png[]
 
 Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
 
-Gradle build scripts defines a process to build projects that contain some dependencies.
+Gradle build scripts define a process to build projects that contain some dependencies.
 Dependencies refer to JARs, plugins, libraries, or source code that support building your project.
-
-The Gradle build system makes it easy to include external binaries or other library modules to your build as dependencies.
-The dependencies can be located on your machine or in a remote repository, and any transitive dependencies they declare are also automatically included.
 
 == Version Catalog
 
-Version catalogs are a way of centralizing your dependency declarations by creating a `libs.versions.toml` file.
+Version catalogs are a way of centralizing your dependency declarations in a `libs.versions.toml` file.
 
 The catalog makes sharing dependencies and version configurations between subprojects simple.
 It also allows teams to enforce versions of libraries and plugins in large projects.
@@ -44,14 +41,15 @@ The version catalog typically contains four sections:
 [source,gradle/libs.versions.toml]
 ----
 [versions]
-testHelperVer = "7.4.1"
+androidGradlePlugin = "7.4.1"
+mockito = "2.16.0"
 
 [libraries]
-gradle-helper = "com.example.gradle:app-helper:10.1.1"
-gradle-test-helper = { group = "com.example.gradle", name = "app-test-helper", version.ref = "testHelperVer" }
+google-material = { group = "com.google.android.material", name = "material", version = "1.1.0-alpha05" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
 [plugins]
-tutorial-application = { id = "com.tutorial.application" }
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 ----
 
 The file is located in the `gradle` directory so that it can be used by Gradle and IDEs automatically.
@@ -61,36 +59,30 @@ The version catalog should be checked into subversion: `gradle/libs.versions.tom
 
 To add a dependency to your project, specify a dependency in the dependencies block of your `build.gradle(.kts)` file.
 
-The following `build.gradle.kts` file adds a plugin and two dependencies to the project, using the version catalog above:
+The following `build.gradle.kts` file adds a plugin and two dependencies to the project using the version catalog above:
 
 [source]
 ----
 plugins {
-    alias(libs.tutorial.application)
+   alias(libs.plugins.android.application)  // <1>
 }
 
 dependencies {
     // Dependency on a remote binary to compile and run the code
-    implementation(libs.gradle.helper)
+    implementation(libs.google.material)    // <2>
 
     // Dependency on a remote binary to compile and run the test code
-    testImplementation(libs.gradle.test.helper)
+    testImplementation(libs.mockito.core)   // <3>
 }
 ----
-
-This declares a dependency on version `10.1.1` of the `app-helper` library inside the `com.example.gradle` namespace group:
-
-[source]
-----
-implementation(libs.gradle.helper)                                                      // Using version catalog
-implementation(group = "com.example.gradle", name = "app-helper", version = "10.1.1")   // Using long format
-implementation("com.example.gradle:app-helper:10.1.1")                                  // Using shorthand
-----
+<1> Applies the Android Gradle plugin to this project, which adds several features that are specific to building Android apps.
+<2> Adds the Material dependency to the project. Material Design provides components for creating a user interface in an Android App. This library will be used to compile and run the Kotlin source code in this project.
+<3> Adds the Mockito dependency to the project. Mockito is a mocking framework for testing Java code. This library will be used to compile and run the _test_ source code in this project.
 
 Dependencies in Gradle are grouped by *configurations*.
 
-- The `app-helper` library is added to the `implementation` configuration which is used for compiling and running code.
-- The `gradle-test-helper` library is added to the `testImplementation` configuration which is used for compiling and running _test_ code.
+- The `material` library is added to the `implementation` configuration, which is used for compiling and running code.
+- The `mockito-core` library is added to the `testImplementation` configuration, which is used for compiling and running _test_ code.
 
 NOTE: There are many more configurations available.
 
@@ -108,11 +100,11 @@ $ ./gradlew :app:dependencies
 Project ':app'
 ------------------------------------------------------------
 
-implementation - Implementation dependencies for the 'main' feature. (n)
-\--- com.google.guava:guava:32.1.1-jre (n)
+implementation - Implementation only dependencies for source set 'main'. (n)
+\--- com.google.android.material:material:1.1.0-alpha05 (n)
 
 testImplementation - Implementation only dependencies for source set 'test'. (n)
-\--- org.junit.jupiter:junit-jupiter:5.9.3 (n)
+\--- org.mockito:mockito-core:2.16.0 (n)
 
 ...
 ----

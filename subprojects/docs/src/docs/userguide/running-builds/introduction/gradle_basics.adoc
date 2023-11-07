@@ -15,7 +15,7 @@
 [[gradle]]
 = Gradle Basics
 
-Gradle *automates building, testing, and deployment of software* from information contained in *build scripts*.
+Gradle *automates building, testing, and deployment of software* from information in *build scripts*.
 
 image::gradle-basic-1.png[]
 
@@ -23,7 +23,7 @@ image::gradle-basic-1.png[]
 
 === Projects
 
-A Gradle *project* is a piece of software that can be built, such an application or a library.
+A Gradle *project* is a piece of software that can be built, such as an application or a library.
 
 *Single project* builds include a single project called the *root project*.
 
@@ -31,9 +31,9 @@ A Gradle *project* is a piece of software that can be built, such an application
 
 === Build Scripts
 
-*Build script* detail to Gradle what steps to take in order to build the project.
+*Build script* detail to Gradle what steps to take to build the project.
 
-Each project can include one or more build script.
+Each project can include one or more build scripts.
 
 === Dependency Management
 
@@ -45,7 +45,7 @@ Each project typically includes a number of external dependencies that Gradle wi
 
 *Tasks are a basic unit of work* such as compiling code or running your test.
 
-Each project contains one or more tasks, defined inside a build script or a plugin.
+Each project contains one or more tasks defined inside a build script or a plugin.
 
 === Plugins
 

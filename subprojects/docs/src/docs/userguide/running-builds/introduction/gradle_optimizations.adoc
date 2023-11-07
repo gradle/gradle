@@ -21,14 +21,14 @@ image::gradle-basic-8.png[]
 
 == Incremental builds
 
-An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build, making the execution of such tasks unnecessary.
+An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build, making executing such tasks unnecessary.
 
 For incremental builds to work, tasks must define their inputs and outputs.
 Gradle will determine whether the input or outputs have changed at build time.
 If they have changed, Gradle will execute the task.
 Otherwise, it will skip execution.
 
-Incremental builds are always enabled so the only way to see it in action is to turn on _verbose mode_.
+Incremental builds are always enabled, so the only way to see it in action is to turn on _verbose mode_.
 With verbose mode, each task state is labeled during a build:
 
 [source]
@@ -56,6 +56,8 @@ BUILD SUCCESSFUL in 374ms
 ----
 
 When you run a task that has been previously executed and hasn't changed, then `UP-TO-DATE` is printed next to the task.
+
+TIP: To enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
 
 == Build caching
 
@@ -99,7 +101,7 @@ BUILD SUCCESSFUL in 364ms
 Once the local directory has been repopulated, the next execution will mark tasks as `UP-TO-DATE` and not `FROM-CACHE`.
 
 The build cache allows you to share and reuse unchanged build and test outputs across teams.
-This speeds up local and CI builds since cycles are not wasted re-building components that are unaffected by new code changes.
+This speeds up local and CI builds since cycles are not wasted re-building components unaffected by new code changes.
 
 Consult the <<performance.adoc#performance_gradle,Gradle optimizations and build performance chapter>> to learn more.
 

@@ -30,7 +30,7 @@ Gradle supports single and multi-project builds.
 == Settings script
 
 The settings file is a script.
-It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file written in Kotlin.
+It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kts` file in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
@@ -44,14 +44,14 @@ Let's take a look at an example and break it down:
 .settings.gradle.kts
 [source,kotlin]
 ----
-rootProject.name = "root-project"                           // <1>
+rootProject.name = "root-project"   // <1>
 
-include("sub-project-a")                                    // <2>
+include("sub-project-a")            // <2>
 include("sub-project-b")
 include("sub-project-c")
 ----
 <1> Define the project name.
-<2> Define subprojects.
+<2> Add subprojects.
 =====
 
 [.multi-language-sample]
@@ -59,14 +59,14 @@ include("sub-project-c")
 .settings.gradle
 [source,groovy]
 ----
-rootProject.name = 'root-project'                           // <1>
+rootProject.name = 'root-project'   // <1>
 
-include('sub-project-a')                                    // <2>
+include('sub-project-a')            // <2>
 include('sub-project-b')
 include('sub-project-c')
 ----
 <1> Define the project name.
-<2> Define subprojects.
+<2> Add subprojects.
 =====
 ====
 
@@ -81,9 +81,9 @@ rootProject.name = "root-project"
 
 There is only one root project per build.
 
-=== 2. Define subprojects
+=== 2. Add subprojects
 
-The settings file defines the structure of the project by including subprojects if there are any:
+The settings file defines the structure of the project by including subprojects, if there are any:
 
 [source]
 ----

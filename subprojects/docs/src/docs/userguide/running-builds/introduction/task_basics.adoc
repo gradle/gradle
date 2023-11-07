@@ -15,7 +15,7 @@
 [[task_basics]]
 = Task Basics
 
-A task represents some *atomic piece of work* that a build performs such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
+A task represents some *atomic piece of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
 image::gradle-basic-5.png[]
 
@@ -86,7 +86,7 @@ In this example Java project, the output of the `run` task is a `Hello World` st
 
 Many times, a task requires another task to run first.
 
-For example, in order for Gradle to execute the `build` task, the Java code must first be compiled.
+For example, for Gradle to execute the `build` task, the Java code must first be compiled.
 Thus, the `build` task _depends_ on the `compileJava` task.
 
 This means that the `compileJava` task will run _before_ the `build` task:
@@ -114,8 +114,8 @@ BUILD SUCCESSFUL in 764ms
 7 actionable tasks: 7 executed
 ----
 
-Task execution order is automatically determined by Gradle.
-Build scripts can optionally add task dependency logic.
+Build scripts can optionally define task dependencies.
+Gradle then automatically determines the task execution order.
 
 Consult the <<more_about_tasks.adoc#more_about_tasks,Task development chapter>> to learn more.
 

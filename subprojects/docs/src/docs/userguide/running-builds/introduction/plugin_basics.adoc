@@ -23,13 +23,15 @@ Most features, like the ability to compile Java code, are added by _plugins_.
 
 Using plugins is also the primary mechanism for organizing build logic.
 
-Plugins are essentially a set of all useful tasks, such as compiling tasks, creating documentation, setting up source files, etc.
+Plugins are essentially a set of useful tasks, such as compiling code, creating documentation, setting up source files, etc.
 
 *Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
 
-For example, The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
-The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs or Firebase services in your Android application.
-The Palantir Git-Version Plugin, `com.palantir.git-version`, is a plugin that generates a project version for use with Gradle by calling `git-describe`.
+For example:
+
+- The Spring Boot Gradle Plugin, `org.springframework.boot`, provides Spring Boot support.
+- The Google Services Gradle Plugin, `com.google.gms:google-services`, enables Google APIs and Firebase services in your Android application.
+- The Palantir Git-Version Plugin, `com.palantir.git-version`, is a plugin that generates a project version for use with Gradle by calling `git-describe`.
 
 == Plugin distribution
 
@@ -37,9 +39,9 @@ Plugins are distributed in three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Local plugins** - Gradle enables user to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
+3. **Local plugins** - Gradle enables users to create custom plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
 
-You apply plugins in the build script using their *plugin id*, which is a globally unique identifier or name.
+You apply plugins in the build script using their *plugin id*, a globally unique identifier, or a name:
 
 [source]
 ----
@@ -63,6 +65,8 @@ plugins {
 
 The <<java_plugin.adoc#java_plugin,Java plugin>> adds Java compilation along with testing and bundling capabilities to a project.
 
+There are many more <<plugin_reference#plugin_reference,Gradle core plugins>> users can take advantage of.
+
 == Community plugins
 
 Gradle has a vibrant community of plugin developers who contribute plugins for various capabilities, such as the link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin].
@@ -72,12 +76,12 @@ To apply the `org.springframework.boot` plugin to a project:
 [source,build.gradle.kts]
 ----
 plugins {
-	id("org.springframework.boot") version "3.1.5"
+    id("org.springframework.boot") version "3.1.5"
 }
 ----
 
-The Spring Boot Gradle plugin provides Spring Boot support in Gradle.
-It packages executable jar or war archives and runs link:https://spring.io/[Spring Boot] Java applications.
+The Spring Boot plugin provides Spring Boot support in Gradle.
+It packages executable JAR or WAR archives and runs link:https://spring.io/[Spring Boot] Java applications.
 
 The link:http://plugins.gradle.org/[Gradle plugin portal] provides an interface for searching and exploring community plugins.
 
@@ -106,8 +110,6 @@ $ ./gradlew tasks
 Tasks runnable from root project 'plugins'
 ------------------------------------------------------------
 
-...
-
 Jib tasks
 ---------
 jib - Builds a container image to a registry.
@@ -115,7 +117,7 @@ jibBuildTar - Builds a container image to a tarball.
 jibDockerBuild - Builds a container image to a Docker daemon.
 ----
 
-As we can see, the `jib`, `jibBuildTar`, and `jibDockerBuild` tasks from the Jib plugin have been added to the project.
+As we can see, the `jib`, `jibBuildTar`, and `jibDockerBuild` tasks from the Jib plugin have been added to the project and may be executed.
 
 Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
 

@@ -15,7 +15,7 @@
 [[build_file_basics]]
 = Build File Basics
 
-In general, every project has a build script that details *build configuration, tasks, and plugins*.
+Generally, a build script details *build configuration, tasks, and plugins*.
 
 image::gradle-basic-4.png[]
 
@@ -24,12 +24,12 @@ Every Gradle build comprises at least one _build script_.
 In the build file, two types of dependencies can be added:
 
 1. The libraries and/or plugins on which Gradle and the build script depend.
-2. The libraries on which the project sources (i.e. source code) depend.
+2. The libraries on which the project sources (i.e., source code) depend.
 
 [[sec:build_script]]
 == Build scripts
 
-The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file written in Kotlin.
+The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file in Kotlin.
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
@@ -73,6 +73,7 @@ application {
 
 === 1. Add plugins
 Plugins are bundled tasks used to extend Gradle.
+
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
 [source]
@@ -91,6 +92,10 @@ The `java` plugin adds Java compilation along with testing and bundling capabili
 A plugin adds tasks to a project.
 It also adds properties and methods to a project.
 
+The `application` plugin defines tasks that package and distribute an application, such as the `run` task.
+
+The Application plugin also has a method that can declare the main class of a Java application, which is required to compile and run the code.
+
 [source]
 ----
 application {
@@ -98,7 +103,7 @@ application {
 }
 ----
 
-In the example, the `application` plugin has a method that can declare the main class of a Java application, which is required to compile and run the code.
+In this example, the specification of the main class (i.e., the entry point) of the application is 'main`.
 
 //Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
 
