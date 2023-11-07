@@ -49,6 +49,7 @@ import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.ChangingOutputsContext;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
@@ -143,6 +144,13 @@ public class ExecutionGradleServices {
     ) {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
+        Step<ChangingOutputsContext,Result> sharedExecutionPipeline =
+            new PreCreateOutputParentsStep<>(
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
+            new CancelExecutionStep<>(cancellationToken,
+            new ExecuteStep<>(buildOperationExecutor
+        ))));
+
         Step<IdentityContext,CachingResult> incrementalPipeline =
             new AssignWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
@@ -160,12 +168,10 @@ public class ExecutionGradleServices {
             new ResolveInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new CancelExecutionStep<>(cancellationToken,
+            // TODO Replace with emptying the whole workspace
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))));
+            sharedExecutionPipeline
+        )))))))))))))))));
 
         Step<IdentityContext,CachingResult> nonIncrementalPipeline =
             new AssignWorkspaceStep<>(
@@ -184,12 +190,9 @@ public class ExecutionGradleServices {
             new AlwaysNonIncrementalInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new CancelExecutionStep<>(cancellationToken,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))))));
+            sharedExecutionPipeline
+        ))))))))))))))));
 
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
