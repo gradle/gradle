@@ -31,6 +31,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -55,12 +56,15 @@ import org.gradle.internal.execution.steps.HandleStaleOutputsStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.IdentityContext;
+import org.gradle.internal.execution.steps.IncrementalChangesContext;
+import org.gradle.internal.execution.steps.InputChangesContext;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.Result;
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
@@ -177,7 +181,7 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
-            new ResolveInputChangesStep<>(
+            new AlwaysNonIncrementalInputChangesStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
@@ -196,5 +200,18 @@ public class ExecutionGradleServices {
                 nonIncrementalPipeline
         )))));
         // @formatter:on
+    }
+
+    private static class AlwaysNonIncrementalInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
+        private final Step<? super InputChangesContext, ? extends R> delegate;
+
+        public AlwaysNonIncrementalInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public R execute(UnitOfWork work, C context) {
+            return delegate.execute(work, new InputChangesContext(context, null));
+        }
     }
 }
