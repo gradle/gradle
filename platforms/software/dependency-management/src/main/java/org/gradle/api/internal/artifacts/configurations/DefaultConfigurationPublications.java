@@ -97,11 +97,11 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         visitor.visitArtifacts(artifacts);
         PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
         if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
-            visitor.visitOwnVariant(displayName, attributes.asImmutable(), getCapabilities(), allArtifactSet);
+            visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
         }
         if (variants != null) {
-            for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
-                variant.visit(visitor, getCapabilities());
+            for (ConfigurationVariantInternal variant : variants.withType(ConfigurationVariantInternal.class)) {
+                visitor.visitChildVariant(variant.getName(), variant.getDisplayName(), variant.getAttributes().asImmutable(), variant.getArtifacts());
             }
         }
     }
