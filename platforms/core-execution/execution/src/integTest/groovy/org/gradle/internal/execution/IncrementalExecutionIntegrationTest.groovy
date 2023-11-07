@@ -18,40 +18,20 @@ package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
-import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
-import org.gradle.internal.execution.steps.AssignWorkspaceStep
-import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
-import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CreateOutputsStep
-import org.gradle.internal.execution.steps.ExecuteStep
-import org.gradle.internal.execution.steps.IdentifyStep
-import org.gradle.internal.execution.steps.IdentityCacheStep
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
-import org.gradle.internal.execution.steps.RecordOutputsStep
-import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
-import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep
-import org.gradle.internal.execution.steps.ResolveCachingStateStep
-import org.gradle.internal.execution.steps.ResolveChangesStep
-import org.gradle.internal.execution.steps.ResolveInputChangesStep
-import org.gradle.internal.execution.steps.SkipUpToDateStep
-import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -62,10 +42,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -78,8 +56,6 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
@@ -95,15 +71,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             fileSystemAccess.write(affectedOutputPaths) {}
         }
     }
-    def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
+    def buildId = UniqueId.generate()
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
             return TestHashCodes.hashCodeFrom(1234)
         }
-    }
-    def outputFilesRepository = Stub(OutputFilesRepository) {
-        isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fingerprinter)])
@@ -134,29 +107,23 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
+    def problems = Stub(Problems)
 
-    ExecutionEngine getExecutor() {
-        // @formatter:off
-        new DefaultExecutionEngine( Stub(Problems),
-            new IdentifyStep<>(buildOperationExecutor,
-            new IdentityCacheStep<>(
-            new AssignWorkspaceStep<>(
-            new LoadPreviousExecutionStateStep<>(
-            new RemoveUntrackedExecutionStateStep<>(
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter, new DefaultProblems(Mock(BuildOperationProgressEventEmitter)),
-            new ResolveCachingStateStep<>(buildCacheController, false,
-            new ResolveChangesStep<>(changeDetector,
-            new SkipUpToDateStep<>(
-            new RecordOutputsStep<>(outputFilesRepository,
-            new StoreExecutionStateStep<>(
-            new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, outputChangeListener,
-            new CreateOutputsStep<>(
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))))
-        // @formatter:on
+    ExecutionEngine createExecutor() {
+        TestExecutionEngineFactory.createExecutionEngine(
+            buildId,
+            buildCacheController,
+            buildOperationExecutor,
+            classloaderHierarchyHasher,
+            deleter,
+            changeDetector,
+            outputChangeListener,
+            outputSnapshotter,
+            overlappingOutputDetector,
+            problems,
+            validationWarningReporter,
+            virtualFileSystem
+        )
     }
 
     def "outputs are created"() {
@@ -199,7 +166,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.afterExecutionState.get().outputFilesProducedByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
         SnapshotVisitorUtil.getRelativePaths(result.afterExecutionState.get().outputFilesProducedByWork["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
-        afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
+        afterExecution.originMetadata.buildInvocationId == buildId.toString()
         afterExecution.outputFilesProducedByWork == result.afterExecutionState.get().outputFilesProducedByWork
     }
 
@@ -214,7 +181,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         def outputFilesProducedByWork = result.afterExecutionState.get().outputFilesProducedByWork
 
         when:
-        buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
+        buildId = UniqueId.generate()
         result = upToDate(builder.withWork { ->
             throw new IllegalStateException("Must not be executed")
         }.build())
@@ -233,7 +200,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         !result.reusedOutputOriginMetadata.present
 
         when:
-        buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
+        buildId = UniqueId.generate()
         outputFile.text = "outdated"
 
         then:
@@ -252,7 +219,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         !result.reusedOutputOriginMetadata.present
 
         when:
-        buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
+        buildId = UniqueId.generate()
         result = outOfDate(builder.build(), "Task has failed previously.")
 
         then:
@@ -688,12 +655,12 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     ExecutionEngine.Result execute(UnitOfWork unitOfWork) {
         virtualFileSystem.invalidateAll()
-        executor.createRequest(unitOfWork).execute()
+        createExecutor().createRequest(unitOfWork).execute()
     }
 
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
-        def result = executor.createRequest(unitOfWork)
+        def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)
 
         if (result.getCompleted().isPresent()) {
