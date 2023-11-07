@@ -44,7 +44,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
     @Override
     public <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier) {
         Path sourceProjectIdentitiyPath = dataSourceIdentifier.getSourceProjectIdentitiyPath();
-        return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, dataType, dataIdentifier);
+        return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, consumerProject.getIdentityPath(), dataType, dataIdentifier);
     }
 
 
@@ -55,15 +55,18 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
     @NonNullApi
     private class ProjectSharedDataProvider<T> extends AbstractMinimalProvider<T> {
         private final Path sourceProjectIdentityPath;
+        private final Path consumerProjectIdentityPath;
         private final Class<T> dataType;
         private final String dataIdentifier;
 
         ProjectSharedDataProvider(
-            Path sourceProjectIdentityPath,
+            Path producerProjectIdentityPath,
+            Path consumerProjectIdentityPath,
             Class<T> dataType,
             @Nullable String dataIdentifier
         ) {
-            this.sourceProjectIdentityPath = sourceProjectIdentityPath;
+            this.sourceProjectIdentityPath = producerProjectIdentityPath;
+            this.consumerProjectIdentityPath = consumerProjectIdentityPath;
             this.dataType = dataType;
             this.dataIdentifier = dataIdentifier;
         }
@@ -96,7 +99,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
         @Nullable
         private Provider<T> findProviderInStorage() {
             SharedDataStorage.DataKey dataKey = new SharedDataStorage.DataKey(dataType, dataIdentifier);
-            return Cast.uncheckedCast(storage.getProjectDataResolver(sourceProjectIdentityPath).get(dataKey));
+            return Cast.uncheckedCast(storage.getProjectDataResolver(consumerProjectIdentityPath, sourceProjectIdentityPath).get(dataKey));
         }
     }
 }

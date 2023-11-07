@@ -38,7 +38,7 @@ public class InMemorySharedDataStorage implements SharedDataStorage, HoldsProjec
     private final Map<Path, Map<DataKey, Provider<?>>> dataByProjectPathAndKey = new LinkedHashMap<>();
 
     @Override
-    public ProjectProducedSharedData getProjectDataResolver(Path sourceProjectIdentitityPath) {
+    public ProjectProducedSharedData getProjectDataResolver(Path consumerProjectIdentityPath, Path sourceProjectIdentitityPath) {
         Lock readLock = modificationLock.readLock();
         return new ProjectProducedSharedData() {
             @Nullable
