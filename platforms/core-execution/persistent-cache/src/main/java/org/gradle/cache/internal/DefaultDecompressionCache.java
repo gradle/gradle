@@ -34,7 +34,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * per-project, so that in a multi-project build if multiple projects all want to work with zip files, they will not block
  * each other.
  *
- * The cache is created lazily upon any action that requires it to be open; and is then closed immediately (via {@link AutoCloseable}
+ * The cache is created lazily upon any action that requires it to be open; and is then closed immediately (via {@link AutoCloseable})
  * when that action is complete.  This is necessary because this cache lives in the project build directory by default, and as such
  * should be deletable via a clean task at any time.
  *
