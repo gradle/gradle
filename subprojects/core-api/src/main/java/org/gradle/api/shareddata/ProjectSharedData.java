@@ -16,6 +16,7 @@
 
 package org.gradle.api.shareddata;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -28,7 +29,14 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * Provides the ability for project configuration logic to register shared data produced by the project and to obtain shared data
+ * that is produced by other projects.
+ *
+ * @since 8.6
+ */
 @NonNullApi
+@Incubating
 public interface ProjectSharedData {
     <T> void register(Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
 
@@ -41,6 +49,12 @@ public interface ProjectSharedData {
     SingleSourceIdentifier fromProject(Project project);
     SingleSourceIdentifier fromProject(ProjectComponentIdentifier project);
 
+    /**
+     * Identifies a single source project in queries to obtain shared data from a single project.
+     *
+     * @since 8.6
+     */
+    @Incubating
     interface SingleSourceIdentifier {
         Path getSourceProjectIdentitiyPath();
     }
@@ -51,6 +65,12 @@ public interface ProjectSharedData {
     MultipleSourcesIdentifier fromAllProjects(Spec<? super Project> filterProjects);
     MultipleSourcesIdentifier fromResolutionResults(Configuration configuration);
 
+    /**
+     * Identifies a collection of projects in queries to obtain shared data from a set of projects.
+     *
+     * @since 8.6
+     */
+    @Incubating
     interface MultipleSourcesIdentifier {
         Collection<Path> getSourceProjectIdentityPaths();
     }
