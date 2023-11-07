@@ -165,7 +165,6 @@ public class ExecutionGradleServices {
 
         Step<IdentityContext,CachingResult> nonIncrementalPipeline =
             new AssignWorkspaceStep<>(
-            new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
@@ -174,6 +173,7 @@ public class ExecutionGradleServices {
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
+            // TODO Replace with checking if workspace exists, and if it does, check outputs
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
@@ -185,7 +185,7 @@ public class ExecutionGradleServices {
             new CancelExecutionStep<>(cancellationToken,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))));
+        ))))))))))))))))))));
 
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
