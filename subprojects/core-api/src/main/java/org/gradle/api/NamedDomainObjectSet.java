@@ -43,6 +43,12 @@ public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>,
      * {@inheritDoc}
      */
     @Override
+    NamedDomainObjectSet<T> named(Spec<String> nameFilter);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     NamedDomainObjectSet<T> matching(Spec<? super T> spec);
 
     /**
