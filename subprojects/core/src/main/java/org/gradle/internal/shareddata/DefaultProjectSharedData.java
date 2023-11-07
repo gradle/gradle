@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.shareddata.ProjectSharedData;
@@ -48,13 +49,24 @@ public class DefaultProjectSharedData implements ProjectSharedData {
     private final SharedDataRegistry globalSharedData;
     private final ProjectStateRegistry projectStateRegistry;
     private final ProviderFactory providerFactory;
+    private final ConfigurationTimeBarrier configurationTimeBarrier;
+    private final CrossProjectConfigurationDependencyListener dependencyListener;
 
     @Inject
-    public DefaultProjectSharedData(ProjectInternal usedInProject, SharedDataRegistry globalSharedData, ProjectStateRegistry projectStateRegistry, ProviderFactory providerFactory) {
+    public DefaultProjectSharedData(
+        ProjectInternal usedInProject,
+        SharedDataRegistry globalSharedData,
+        ProjectStateRegistry projectStateRegistry,
+        ProviderFactory providerFactory,
+        ConfigurationTimeBarrier configurationTimeBarrier,
+        CrossProjectConfigurationDependencyListener dependencyListener
+    ) {
         this.usedInProject = usedInProject;
         this.globalSharedData = globalSharedData;
         this.projectStateRegistry = projectStateRegistry;
         this.providerFactory = providerFactory;
+        this.configurationTimeBarrier = configurationTimeBarrier;
+        this.dependencyListener = dependencyListener;
     }
 
     @Override
@@ -64,11 +76,22 @@ public class DefaultProjectSharedData implements ProjectSharedData {
 
     @Override
     public <T> Provider<T> obtain(Class<T> dataType, @Nullable String dataIdentifier, SingleSourceIdentifier dataSourceIdentifier) {
-        // TODO: check composite builds
-        // TODO: should not wait for the other project(s) to be configured, unless `.get()` is called
-        projectStateRegistry.stateFor(dataSourceIdentifier.getSourceProjectIdentitiyPath()).ensureConfigured();
+        return globalSharedData.obtainData(usedInProject, dataType, dataIdentifier, dataSourceIdentifier)
+            .withSideEffect(data -> reportSharedDataUsage(dataSourceIdentifier))
+            .orElse(providerFactory.provider(() -> {
+                // we want to report such usages on empty values, too, as the value may appear on the producer side in subsequent builds,
+                // and in that case the consumer should get reconfigured
+                reportSharedDataUsage(dataSourceIdentifier);
+                return null;
+            }));
+    }
 
-        return globalSharedData.obtainData(usedInProject, dataType, dataIdentifier, dataSourceIdentifier);
+    private void reportSharedDataUsage(SingleSourceIdentifier dataSourceIdentifier) {
+        if (configurationTimeBarrier.isAtConfigurationTime()) {
+            ProjectState consumingProject = projectStateRegistry.stateFor(usedInProject);
+            Path producerIdentityPath = dataSourceIdentifier.getSourceProjectIdentitiyPath();
+            dependencyListener.configurationDependencyObserved(consumingProject, producerIdentityPath);
+        }
     }
 
     @Override

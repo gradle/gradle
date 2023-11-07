@@ -16,14 +16,17 @@
 
 package org.gradle.internal.shareddata;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.shareddata.ProjectSharedData;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.StatefulListener;
+import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
-
-public interface SharedDataRegistry {
-    <T> void registerSharedDataProducer(ProjectInternal providerProject, Class<T> dataType, @Nullable String dataIdentifier, Provider<T> dataProvider);
-    <T> ProviderInternal<T> obtainData(ProjectInternal consumerProject, Class<T> dataType, @Nullable String dataIdentifier, ProjectSharedData.SingleSourceIdentifier dataSourceIdentifier);
+@StatefulListener
+@EventScope(Scopes.Build.class)
+public interface CrossProjectConfigurationDependencyListener {
+    /**
+     * Called when a configuration of a project is consumed as a dependency.
+     */
+    void configurationDependencyObserved(ProjectState consumingProject, Path targetProjectIdentityPath);
 }
