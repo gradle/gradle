@@ -29,7 +29,7 @@ import java.util.Objects;
 public interface SharedDataStorage extends HoldsProjectState {
     <T> void put(Path sourceProjectIdentityPath, Class<T> type, @Nullable String identifier, Provider<T> dataProvider);
 
-    ProjectProducedSharedData getProjectDataResolver(Path sourceProjectIdentitityPath);
+    ProjectProducedSharedData getProjectDataResolver(Path consumerProjectIdentityPath, Path sourceProjectIdentitityPath);
 
     interface ProjectProducedSharedData {
         @Nullable Provider<?> get(DataKey dataKey);
