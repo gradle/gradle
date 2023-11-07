@@ -21,6 +21,7 @@ import org.gradle.configurationcache.ConfigurationCacheIO
 import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.StateType
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.models.ProjectStateStore
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.readCollection
@@ -36,8 +37,14 @@ import org.gradle.util.Path
 internal class SharedDataController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
+    fingerprintController: ConfigurationCacheFingerprintController,
     store: ConfigurationCacheStateStore
-) : ProjectStateStore<Path, ProjectProducedSharedData>(store, StateType.SharedData) {
+) : ProjectStateStore<Path, ProjectProducedSharedData>(
+    store,
+    StateType.SharedData,
+    // It is important to write the shared data in the context of the producer project's fingerprint, so that, if the fingerprint gets invalidated, it is the producer project that gets reconfigured
+    writeProcedure = { path, doWrite -> fingerprintController.collectFingerprintForProject(path, doWrite) }
+) {
     override fun projectPathForKey(key: Path): Path = key
 
     override fun write(encoder: Encoder, value: ProjectProducedSharedData) {

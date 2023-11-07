@@ -126,7 +126,7 @@ class DefaultConfigurationCache internal constructor(
     val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
 
     private
-    val sharedData = lazy { SharedDataController(host, cacheIO, store) }
+    val sharedData = lazy { SharedDataController(host, cacheIO, cacheFingerprintController,store) }
 
     private
     val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
