@@ -37,7 +37,8 @@ import java.util.function.Consumer
 internal
 abstract class ProjectStateStore<K, V>(
     private val store: ConfigurationCacheStateStore,
-    private val stateType: StateType
+    private val stateType: StateType,
+    private val writeProcedure: (K, doWrite: () -> BlockAddress) -> BlockAddress = { _, doWrite -> doWrite() }
 ) : Closeable {
     private
     val valuesStore by lazy {
@@ -104,7 +105,7 @@ abstract class ProjectStateStore<K, V>(
         }
         // TODO - should protect from concurrent creation
         val value = creator()
-        val address = valuesStore.write(value)
+        val address = writeProcedure(key) { valuesStore.write(value) }
         currentValues[key] = address
         return value
     }
