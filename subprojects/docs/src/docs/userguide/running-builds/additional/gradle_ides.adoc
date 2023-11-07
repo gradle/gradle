@@ -29,7 +29,8 @@ You can find documentation link:https://www.jetbrains.com/help/idea/gradle.html[
 
 == Android Studio
 
-The Android build system compiles app resources and source code and packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
+The Android build system compiles app resources and source code.
+It then packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
 
 Android Studio uses Gradle to automate and manage the build process while letting you define flexible, custom build configurations.
 
@@ -39,17 +40,18 @@ You can find documentation link:https://developer.android.com/build[here].
 
 == Visual Studio Code
 
-VS Code supports Gradle Java project (not including Android) via the link:https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle[Gradle for Java extension].
+VS Code supports Gradle Java projects (not including Android) via the link:https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-gradle[Gradle for Java extension].
 
 image::visual_studio_code.png[]
 
-The extension provides a visual interface for your Gradle build, you can use this interface to view Gradle Tasks and Project dependencies, or run Gradle Tasks as VS Code Tasks. The extension also offers a better Gradle build file authoring experience including syntax highlighting, error reporting, and auto-completion.
+The extension provides a visual interface for your Gradle build.
+You can use this interface to view Gradle Tasks and Project dependencies, or run Gradle Tasks as VS Code Tasks. The extension also offers a better Gradle build file authoring experience including syntax highlighting, error reporting, and auto-completion.
 
 You can find documentation link:https://code.visualstudio.com/docs/java/java-build[here].
 
 == Eclipse
 
-The Eclipse IDE is the essential tool for any Java developer, including a Java IDE, a Git client, XML Editor, and Gradle integration.
+The Eclipse IDE caters to the Java developer, including a Java IDE, a Git client, XML Editor, and Gradle integration.
 
 image::eclipse.png[]
 

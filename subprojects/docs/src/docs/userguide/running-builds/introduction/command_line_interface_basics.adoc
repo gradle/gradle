@@ -68,20 +68,20 @@ Some plugins also add their own command line options.
 
 [[sec:command_line_executing_tasks]]
 === Executing tasks
-To execute a task called `myTask` on the root project, type:
+To execute a task called `taskName` on the root project, type:
 
 ----
-$ gradle :myTask
+$ gradle :taskName
 ----
 
-This will run the single `myTask` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
+This will run the single `taskName` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
 
 [[sec:disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks
 To pass an option to a task, prefix the option name with `--` after the task name:
 
 ----
-$ gradle exampleTask --exampleOption=exampleValue
+$ gradle taskName --exampleOption=exampleValue
 ----
 
 Consult the <<command_line_interface.adoc#command_line_interface,Gradle Command Line Interface reference>> to learn more.

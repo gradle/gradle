@@ -75,9 +75,9 @@ project
 │   └── src                             // <6>
 └── subproject-b
     ├── build.gradle(.kts)              // <5>
-    └── logic                           // <6>
+    └── src                             // <6>
 ----
-<1> Gradle wrapper files
+<1> Gradle directory to store wrapper files and more
 <2> Gradle version catalog for dependency management
 <3> Gradle wrapper scripts
 <4> Gradle settings file to define a root project name and subprojects
@@ -95,6 +95,8 @@ For example:
 ----
 $ gradle build
 ----
+
+NOTE: Most projects do not use the installed version of Gradle.
 
 === Gradle Wrapper
 

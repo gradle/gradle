@@ -15,7 +15,7 @@
 [[build_file_basics]]
 = Build File Basics
 
-Every project has a build script that details *build configuration, tasks, and plugins*.
+In general, every project has a build script that details *build configuration, tasks, and plugins*.
 
 image::gradle-basic-4.png[]
 
