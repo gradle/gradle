@@ -16,14 +16,18 @@
 
 package org.gradle.configurationcache.shareddata
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.BuildTreeConfigurationCache
 import org.gradle.internal.shareddata.SharedDataStorage
 import org.gradle.util.Path
 
+
+internal
 class ConfigurationCacheAwareSharedDataStorage(
+    private val projectStateRegistry: ProjectStateRegistry,
     private val delegate: SharedDataStorage,
-    private val cache: BuildTreeConfigurationCache
+    private val cache: BuildTreeConfigurationCache,
 ) : SharedDataStorage {
     override fun discardAll() {
         delegate.discardAll()
@@ -35,6 +39,10 @@ class ConfigurationCacheAwareSharedDataStorage(
 
     override fun getProjectDataResolver(sourceProjectIdentitityPath: Path): SharedDataStorage.ProjectProducedSharedData =
         cache.loadOrCreateProjectSharedData(sourceProjectIdentitityPath) {
+            // If not found in the cache, ensure the project gets configured and registers its shared data.
+            // The project should get its own fingerprint tracked while it is being configured.
+            projectStateRegistry.stateFor(sourceProjectIdentitityPath).ensureConfigured()
+
             delegate.getProjectDataResolver(sourceProjectIdentitityPath)
         }
 }

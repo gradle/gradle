@@ -250,7 +250,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             cache: BuildTreeConfigurationCache
         ): SharedDataStorage {
             val inMemoryStorage = VintageBuildTreeProvider().createSharedDataStorage(projectStateRegistry)
-            return ConfigurationCacheAwareSharedDataStorage(inMemoryStorage, cache)
+            return ConfigurationCacheAwareSharedDataStorage(projectStateRegistry, inMemoryStorage, cache)
         }
     }
 
