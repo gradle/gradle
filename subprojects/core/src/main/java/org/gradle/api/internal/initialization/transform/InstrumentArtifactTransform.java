@@ -17,18 +17,15 @@
 package org.gradle.api.internal.initialization.transform;
 
 import org.gradle.api.artifacts.transform.InputArtifact;
-import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Internal;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
@@ -65,12 +62,12 @@ public abstract class InstrumentArtifactTransform implements TransformAction<Ins
     @Inject
     public abstract ObjectFactory getObjects();
 
-    /**
-     * Not used directly, but needed to make sure the transform is executed when the dependencies change.
-     */
-    @CompileClasspath
-    @InputArtifactDependencies
-    public abstract FileCollection getDependencies();
+//    /**
+//     * Not used directly, but needed to make sure the transform is executed when the dependencies change.
+//     */
+//    @CompileClasspath
+//    @InputArtifactDependencies
+//    public abstract FileCollection getDependencies();
 
     @Classpath
     @InputArtifact
