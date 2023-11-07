@@ -25,7 +25,6 @@ import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -42,6 +41,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE;
 
 public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
@@ -90,17 +91,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         cacheHit.getResultingSnapshots(),
                         originMetadata,
                         true);
-                    Try<Execution> execution = Try.successful(new Execution() {
-                        @Override
-                        public ExecutionOutcome getOutcome() {
-                            return ExecutionOutcome.FROM_CACHE;
-                        }
-
-                        @Override
-                        public Object getOutput() {
-                            return work.loadAlreadyProducedOutput(context.getWorkspace());
-                        }
-                    });
+                    Try<Execution> execution = Try.successful(Execution.skipped(FROM_CACHE, work, context.getWorkspace()));
                     return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))

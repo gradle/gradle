@@ -27,6 +27,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Optional;
 
 public interface ExecutionEngine {
@@ -83,7 +84,6 @@ public interface ExecutionEngine {
         Optional<AfterExecutionState> getAfterExecutionState();
     }
 
-    // TOOD Make this a class
     interface Execution {
         /**
          * Get how the outputs have been produced.
@@ -103,6 +103,21 @@ public interface ExecutionEngine {
          */
         default boolean canStoreOutputsInCache() {
             return true;
+        }
+
+        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work, File workspace) {
+            return new Execution() {
+                @Override
+                public ExecutionOutcome getOutcome() {
+                    return outcome;
+                }
+
+                @Nullable
+                @Override
+                public Object getOutput() {
+                    return work.loadAlreadyProducedOutput(workspace);
+                }
+            };
         }
     }
 

@@ -158,17 +158,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         broadcastWorkInputs(work, true);
 
-        Try<Execution> execution = Try.successful(new Execution() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return skipOutcome;
-            }
-
-            @Override
-            public Object getOutput() {
-                return work.loadAlreadyProducedOutput(context.getWorkspace());
-            }
-        });
+        Try<Execution> execution = Try.successful(Execution.skipped(skipOutcome, work, context.getWorkspace()));
         return new CachingResult(duration, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
     }
 

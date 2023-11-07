@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -66,17 +65,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             previousExecutionState.getOutputFilesProducedByWork(),
             previousExecutionState.getOriginMetadata(),
             true);
-        Try<Execution> execution = Try.successful(new Execution() {
-            @Override
-            public ExecutionOutcome getOutcome() {
-                return UP_TO_DATE;
-            }
-
-            @Override
-            public Object getOutput() {
-                return work.loadAlreadyProducedOutput(context.getWorkspace());
-            }
-        });
+        Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work, context.getWorkspace()));
         return new UpToDateResult(
             previousExecutionState.getOriginMetadata().getExecutionTime(),
             execution,
