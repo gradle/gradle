@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyResolveDetails;
@@ -574,9 +575,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             );
             configurationAction.execute(handler);
             if (selector instanceof ProjectComponentSelector) {
-                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, handler.getRequestedCapabilities());
+                selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
             } else if (selector instanceof ModuleComponentSelector) {
-                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, handler.getRequestedCapabilities());
+                selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, ImmutableList.copyOf(handler.getRequestedCapabilities().get()));
             }
         }
     }

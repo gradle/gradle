@@ -15,25 +15,35 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.List;
-import java.util.Set;
+import javax.inject.Inject;
 
-public class DefaultMutableModuleDependencyCapabilitiesHandler implements ModuleDependencyCapabilitiesInternal {
-    private final NotationParser<Object, Capability> notationParser;
-    private final Set<Capability> requestedCapabilities = Sets.newLinkedHashSet();
+public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implements ModuleDependencyCapabilitiesInternal {
 
-    public DefaultMutableModuleDependencyCapabilitiesHandler(NotationParser<Object, Capability> notationParser) {
-        this.notationParser = notationParser;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
+
+    @Inject
+    public DefaultMutableModuleDependencyCapabilitiesHandler(NotationParser<Object, Capability> capabilityNotationParser) {
+        this.capabilityNotationParser = capabilityNotationParser;
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Override
+    public abstract SetProperty<Capability> getRequestedCapabilities();
 
     @Override
     public void requireCapability(Object capabilityNotation) {
-        requestedCapabilities.add(notationParser.parseNotation(capabilityNotation));
+        if (capabilityNotation instanceof Provider) {
+            getRequestedCapabilities().add(((Provider<?>) capabilityNotation).map(capabilityNotationParser::parseNotation));
+        }
+        getRequestedCapabilities().add(capabilityNotationParser.parseNotation(capabilityNotation));
     }
 
     @Override
@@ -44,14 +54,11 @@ public class DefaultMutableModuleDependencyCapabilitiesHandler implements Module
     }
 
     @Override
-    public List<Capability> getRequestedCapabilities() {
-        return ImmutableList.copyOf(requestedCapabilities);
-    }
-
-    @Override
     public ModuleDependencyCapabilitiesInternal copy() {
-        DefaultMutableModuleDependencyCapabilitiesHandler out = new DefaultMutableModuleDependencyCapabilitiesHandler(notationParser);
-        out.requestedCapabilities.addAll(requestedCapabilities);
+        DefaultMutableModuleDependencyCapabilitiesHandler out = getObjectFactory().newInstance(
+            DefaultMutableModuleDependencyCapabilitiesHandler.class, capabilityNotationParser
+        );
+        out.getRequestedCapabilities().addAll(getRequestedCapabilities());
         return out;
     }
 }
