@@ -46,11 +46,13 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
         return new ProjectSharedDataProvider<>(sourceProjectIdentitiyPath, dataType, dataIdentifier);
     }
 
-    // TODO: does it make sense to record project dependencies based on the providers used in tasks?
-    //       We definitely need to record dependencies for data consumed at configuration time.
+
+    /**
+     * The purpose of this proxy provider implementation is to avoid realization of the producer's shared data storage (where the real data provider is contained) until the
+     * moment when the shared data is used or otherwise needs realization.
+     */
     @NonNullApi
     private class ProjectSharedDataProvider<T> extends AbstractMinimalProvider<T> {
-
         private final Path sourceProjectIdentityPath;
         private final Class<T> dataType;
         private final String dataIdentifier;
@@ -65,6 +67,7 @@ public class DefaultSharedDataRegistry implements SharedDataRegistry {
             this.dataIdentifier = dataIdentifier;
         }
 
+        // TODO: We should record project dependencies based on the providers used in tasks. It is not done yet
         @Override
         public ValueProducer getProducer() {
             @Nullable Provider<T> providerOrNull = findProviderInStorage();
