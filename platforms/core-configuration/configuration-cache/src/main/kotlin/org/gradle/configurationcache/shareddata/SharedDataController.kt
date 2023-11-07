@@ -43,7 +43,7 @@ internal class SharedDataController(
     store,
     StateType.SharedData,
     // It is important to write the shared data in the context of the producer project's fingerprint, so that, if the fingerprint gets invalidated, it is the producer project that gets reconfigured
-    writeProcedure = { path, doWrite -> fingerprintController.collectFingerprintForProject(path, doWrite) }
+    writeProcedure = { path, doWrite -> fingerprintController.runCollectingFingerprintForProject(path, doWrite) }
 ) {
     override fun projectPathForKey(key: Path): Path = key
 
