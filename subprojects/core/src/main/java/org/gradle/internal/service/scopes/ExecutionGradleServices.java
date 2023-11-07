@@ -66,7 +66,8 @@ import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.Result;
-import org.gradle.internal.execution.steps.SkipEmptyWorkStep;
+import org.gradle.internal.execution.steps.SkipEmptyIncrementalWorkStep;
+import org.gradle.internal.execution.steps.SkipEmptyNonIncrementalWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -157,7 +158,7 @@ public class ExecutionGradleServices {
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
+            new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
@@ -178,7 +179,7 @@ public class ExecutionGradleServices {
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
+            new SkipEmptyNonIncrementalWorkStep(workInputListeners,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
