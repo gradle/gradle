@@ -15,7 +15,7 @@
 [[writing_plugins]]
 = Writing Plugins
 
-Writing custom plugins is the best way to customize your builds and organize your build logic.
+Writing custom plugins is the best way to customize and organize your build logic.
 
 == Sample plugin
 
@@ -40,7 +40,7 @@ class SamplePlugin : Plugin<Project> {
 
 == Script plugin
 
-The simplest plugin is a script plugin which is coded in the build script.
+The simplest plugin is a script plugin, which is coded in the build script.
 
 Let's take a look at an example:
 
@@ -92,7 +92,7 @@ First, build a task by subclassing `DefaultTask()`.
 abstract class CreateFileTask : DefaultTask() { }
 ----
 
-This is a simple task that adds a file to our application’s root directory.
+This simple task adds a file to our application’s root directory.
 
 === Extend the `org.gradle.api.Plugin` interface
 Next, create a new class that extends the `org.gradle.api.Plugin` interface.
@@ -104,7 +104,7 @@ class MyPlugin : Plugin<Project> {
 }
 ----
 
-This interface has a single `apply` method which uses the `CreateFileTask` task
+This interface has a single `apply` method, which uses the `CreateFileTask` task
 
 === Apply the script plugin
 Finally, apply the plugin in the build script.

@@ -227,7 +227,7 @@ plugins {
 }
 ----
 
-This is typically used to ensure that all subprojects use the same version of a plugin.
+This is typically used to ensure that all subprojects use the same plugin version.
 
 === Define the root project name
 

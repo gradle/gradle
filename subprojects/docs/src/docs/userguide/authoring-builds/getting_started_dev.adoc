@@ -1,0 +1,64 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dev_introduction]]
+= Getting Started
+
+Build engineers that are ready to start writing their own tasks, plugins and other build logic should start here.
+
+To get started developing Gradle scripts:
+
+1. Read the <<gradle_author_intro,core concepts chapters.
+2. Follow the <<author_tutorial,tutorial>> for a hands-on approach.
+
+[[gradle_author_intro]]
+== 1. Authoring Gradle Core Concepts
+
+The core concepts section goes through the Gradle authoring basics so that you can quickly understand how to create tasks, apply and write plugins, optimize a build, and more.
+
+[sidebar]
+_Training level_: **Intermediate** +
+_Reading time_: **35 minutes**
+
+The introduction covers:
+
+<<directory_layout.adoc#directory_layout,Part 1.>> Gradle Directories +
+<<build_lifecycle.adoc#build_lifecycle,Part 2.>> Gradle Build Lifecycle +
+<<writing_settings_files.adoc#writing_settings_files,Part 3.>> Writing Settings Files +
+<<writing_build_scripts.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
+<<tutorial_using_tasks.adoc#tutorial_using_tasks,Part 5.>> Using Tasks +
+<<writing_tasks.adoc#writing_tasks,Part 6.>> Writing Tasks +
+<<plugins.adoc#plugins,Part 7.>> Using Plugins +
+<<writing_plugins.adoc#writing_plugins,Part 8.>> Writing Plugins +
+
+[[author_tutorial]]
+== 2. Authoring Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through authoring your first plugin.
+No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+
+[sidebar]
+_Training level_: **Intermediate** +
+_Training time_: **65 minutes**
+
+The tutorial covers:
+
+<<partr1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
+<<partr2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
+<<partr3_settings_file#part3_begin,Part 3.>> Writing the Settings File +
+<<partr4_build_script#part4_begin,Part 4.>> Writing Build Script +
+<<partr5_registering_tasks#part5_begin,Part 5.>> Writing Tasks +
+<<partr6_using_plugins#part6_begin,Part 6.>> Writing Plugins +

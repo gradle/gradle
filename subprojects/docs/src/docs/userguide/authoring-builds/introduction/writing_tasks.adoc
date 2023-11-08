@@ -44,12 +44,12 @@ abstract class CreateFileTask : DefaultTask() {
 ----
 
 The `CreateFileTask` implements a simple set of *actions*.
-First a file called "myfile.txt" is created in the main project.
+First, a file called "myfile.txt" is created in the main project.
 Then, some text is written to the file.
 
 == Register a task
 
-A task is *registered* in the build script using the `register()` method is it can be used in the build logic.
+A task is *registered* in the build script using the `register()` method so it can be used in the build logic.
 
 .build.gradle.kts
 [source,kotlin]
@@ -70,7 +70,7 @@ tasks.register<CreateFileTask>("createFileTask", ) {
 
 == Task group and description
 
-Adding *group* and *description* statements to your tasks can help users understand how-to use your task:
+Adding *group* and *description* statements to your tasks can help users understand how to use your task:
 
 .build.gradle.kts
 [source,kotlin]
@@ -95,7 +95,7 @@ Once a task is added to a group, it is visible when listing tasks.
 == Task input and outputs
 
 For the task to do useful work, it typically needs some *inputs*.
-A task normally produces *outputs*.
+A task typically produces *outputs*.
 
 .build.gradle.kts
 [source,kotlin]
