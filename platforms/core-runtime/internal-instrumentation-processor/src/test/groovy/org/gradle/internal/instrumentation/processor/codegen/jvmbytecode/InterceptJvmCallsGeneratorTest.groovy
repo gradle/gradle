@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode
 
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
+import org.gradle.internal.instrumentation.api.capabilities.InterceptionType
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 
@@ -50,7 +51,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, InterceptionCapability.InstrumentationInterceptor {
 
                 private final MethodVisitor methodVisitor;
                 private final InstrumentationMetadata metadata;
@@ -108,7 +109,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation).hadErrorContaining("Intercepting inherited methods is supported only for Gradle types for now, but type was: java/io/File")
     }
 
-    def "should generate interceptor with public modifier and a public factory class"() {
+    def "should generate interceptor with public modifier and a public factory class for #type"() {
         given:
         def givenSource = source """
             package org.gradle.test;
@@ -117,7 +118,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             import org.gradle.internal.instrumentation.api.annotations.ParameterKind.*;
             import java.io.File;
 
-            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl")
+            @SpecificJvmCallInterceptors(generatedClassName = "my.InterceptorDeclaration_JvmBytecodeImpl", type = ${type.getClass().getName()}.$type)
             public class FileInterceptorsDeclaration {
                 @InterceptCalls
                 @InstanceMethod
@@ -131,9 +132,10 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
+        def capability = type.getMarkerInterface().getCanonicalName() - type.getMarkerInterface().getPackage().name - "."
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, $capability {
 
                 private InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
                     super(methodVisitor);
@@ -141,7 +143,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                     this.metadata = metadata;
                 }
 
-                public static class Factory implements JvmBytecodeCallInterceptor.Factory {
+                public static class Factory implements JvmBytecodeCallInterceptor.Factory, $capability {
                     @Override
                     public JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
                         return new my.InterceptorDeclaration_JvmBytecodeImpl(methodVisitor, metadata);
@@ -153,6 +155,9 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(expectedJvmInterceptors))
             .containsElementsIn(expectedJvmInterceptors)
+
+        where:
+        type << [InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE]
     }
 
     def "should group visitMethodInsn logic by call owner"() {
@@ -196,7 +201,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
-            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+            public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, InterceptionCapability.InstrumentationInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
