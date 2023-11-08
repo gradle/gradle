@@ -487,7 +487,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         failure = executer.withTasks(*tasks).runWithFailure()
 
         if (enableProblemsApiCheck && buildOperationsFixture.problems().isEmpty()) {
-            throw new AssertionFailedError("Expected to receive a problem event accompanying the build failure but did not.")
+            throw new AssertionFailedError("Expected problem to reported for the failed build, but none was reported.")
         }
 
         return failure
