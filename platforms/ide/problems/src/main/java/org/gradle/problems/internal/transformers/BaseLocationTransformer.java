@@ -16,7 +16,10 @@
 
 package org.gradle.problems.internal.transformers;
 
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCloneBuilder;
 import org.gradle.api.problems.ProblemTransformer;
+import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -33,6 +36,12 @@ public abstract class BaseLocationTransformer implements ProblemTransformer {
     public BaseLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {
         this.buildOperationAncestryTracker = buildOperationAncestryTracker;
         this.operationListener = operationListener;
+    }
+
+    protected static Problem cloneWithLocation(Problem problem, ProblemLocation location) {
+        ProblemCloneBuilder cloneBuilder = problem.toBuilder();
+        cloneBuilder.getLocations().add(location);
+        return cloneBuilder.build();
     }
 
     @Nonnull

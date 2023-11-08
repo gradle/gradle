@@ -16,32 +16,33 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.ProblemCloneBuilder;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Problem {
-    private String label;
+    private final String label;
     private Severity severity;
-    private List<ProblemLocation> where;
-    private DocLink documentationLink;
-    private String description;
-    private List<String> solutions;
-    private Throwable cause;
-    private String problemCategory;
-    private Map<String, String> additionalMetadata;
+    private final List<ProblemLocation> where;
+    private final DocLink documentationLink;
+    private final String description;
+    private final List<String> solutions;
+    private final Throwable cause;
+    private final String problemCategory;
+    private final Map<String, String> additionalMetadata;
 
-    public DefaultProblem(
+    protected DefaultProblem(
         String label,
         Severity severity,
         List<ProblemLocation> locations,
@@ -54,10 +55,10 @@ public class DefaultProblem implements Problem {
     ) {
         this.label = label;
         this.severity = severity;
-        this.where = locations;
+        this.where = ImmutableList.copyOf(locations);
         this.documentationLink = documentationUrl;
         this.description = description;
-        this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
+        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalMetadata = additionalMetadata;
@@ -107,6 +108,11 @@ public class DefaultProblem implements Problem {
     @Override
     public Map<String, String> getAdditionalData() {
         return additionalMetadata;
+    }
+
+    @Override
+    public ProblemCloneBuilder toBuilder() {
+        return new DefaultProblemCloneBuilder(this);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {

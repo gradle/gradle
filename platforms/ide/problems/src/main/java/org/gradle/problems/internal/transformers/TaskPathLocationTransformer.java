@@ -37,18 +37,16 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
 
     @Override
     public Problem transform(Problem problem) {
-        getExecuteTask(ExecuteTaskBuildOperationDetails.class)
-            .ifPresent(id -> {
+        return getExecuteTask(ExecuteTaskBuildOperationDetails.class)
+            .map(id -> {
                 try {
                     ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(id, ExecuteTaskBuildOperationDetails.class);
                     Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
-                    problem.getLocations().add(new TaskPathLocation(taskPath));
+                    return cloneWithLocation(problem, new TaskPathLocation(taskPath));
                 } catch (Exception ex) {
-                    throw new GradleException("Problem meanwhile reporting problem", ex);
+                    throw new GradleException("Problem while reporting problem", ex);
                 }
-            });
-
-        return problem;
+            }).orElse(problem);
     }
 }

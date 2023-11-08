@@ -36,20 +36,20 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
 
     @Override
     public Problem transform(Problem problem) {
-        getExecuteTask(OperationDetails.class)
-            .ifPresent(id -> {
+        return getExecuteTask(OperationDetails.class)
+            .map(id -> {
                 try {
                     OperationDetails operationDetails = operationListener.getOp(id, OperationDetails.class);
                     Objects.requireNonNull(operationDetails, "operationDetails should not be null");
                     String pluginId = operationDetails.getPluginId();
                     if (pluginId != null) {
-                        problem.getLocations().add(new PluginIdLocation(pluginId));
+                        return cloneWithLocation(problem, new PluginIdLocation(pluginId));
                     }
+                    return problem;
                 } catch (Exception ex) {
-                    throw new GradleException("Problem meanwhile reporting problem", ex);
+                    throw new GradleException("Problem while reporting problem", ex);
                 }
-            });
-
-        return problem;
+            }).orElse(problem);
     }
+
 }

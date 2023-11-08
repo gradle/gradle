@@ -94,4 +94,12 @@ public interface Problem {
      * In a map so it can be somewhat structured.
      */
     Map<String, String> getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance
+     *
+     * @since 8.6
+     */
+    @Incubating
+    ProblemCloneBuilder toBuilder();
 }
