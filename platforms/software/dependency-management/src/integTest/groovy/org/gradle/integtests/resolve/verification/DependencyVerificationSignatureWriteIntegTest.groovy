@@ -674,4 +674,177 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.size() == 1
         PGPUtils.getSize(keyringsAscii[0]) == 5
     }
+
+    def "checksums are exported properly when buildSrc is present"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0")
+        uncheckedModule("org", "bar", "1.0")
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+            dependencies {
+                implementation("org:bar:1.0")
+            }
+            repositories {
+                maven {
+                    url = uri("${mavenHttpRepo.uri}")
+                }
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        succeeds(":help")
+
+        then:
+        assertMetadataExists()
+        hasModules(["org:bar", "org:foo"])
+    }
+
+    def "keys are exported properly when buildSrc is present"() {
+        def keyring = newKeyRing()
+        def keyring2 = newKeyRing()
+        assert keyring.publicKey != keyring2.publicKey
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(keyring.secretKey): keyring.password])
+            }
+        }
+        uncheckedModule("org", "bar", "1.0") {
+            withSignature {
+                keyring2.sign(it, [(keyring2.secretKey): keyring2.password])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+            dependencies {
+                implementation("org:bar:1.0")
+            }
+            repositories {
+                maven {
+                    url = uri("${mavenHttpRepo.uri}")
+                }
+            }
+        """
+
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        keyServerFixture.registerPublicKey(keyring2.publicKey)
+
+        when:
+        writeVerificationMetadata()
+        succeeds(":help", "--export-keys")
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 2
+        keyringsAscii.collect { it.publicKey.keyID }.toSet() == [keyring.publicKey.keyID, keyring2.publicKey.keyID].toSet()
+    }
+
+    @Issue(["https://github.com/gradle/gradle/issues/24822", "https://github.com/gradle/gradle/issues/26289"])
+    def "keys are exported properly with dry-run when buildSrc is present"() {
+        def keyring = newKeyRing()
+        def keyring2 = newKeyRing(keyring.publicKey)
+        assert keyring.publicKey != keyring2.publicKey
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:baz:1.0.0", SigningFixtures.validPublicKeyHexString) // to check that it is read on first invocation
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(keyring.secretKey): keyring.password])
+            }
+        }
+        uncheckedModule("org", "bar", "1.0") {
+            withSignature {
+                keyring2.sign(it, [(keyring2.secretKey): keyring2.password])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+            dependencies {
+                implementation("org:bar:1.0")
+            }
+            repositories {
+                maven {
+                    url = uri("${mavenHttpRepo.uri}")
+                }
+            }
+        """
+        keyServerFixture.registerPublicKey(SigningFixtures.validPublicKey)
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        keyServerFixture.registerPublicKey(keyring2.publicKey)
+
+        when:
+        writeVerificationMetadata()
+        succeeds(":help", "--dry-run", "--export-keys")
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.dryrun.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 3
+        keyringsAscii.collect { it.publicKey.keyID }.toSet() == [
+            keyring.publicKey.keyID,
+            keyring2.publicKey.keyID,
+            SigningFixtures.validPublicKey.keyID
+        ].toSet()
+
+        assertDryRunXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <trusted-keys>
+         <trusted-key id="${SecuritySupport.toHexString(keyring.publicKey.fingerprint)}" group="org" name="foo" version="1.0"/>
+         <trusted-key id="${SecuritySupport.toHexString(keyring2.publicKey.fingerprint)}" group="org" name="bar" version="1.0"/>
+      </trusted-keys>
+   </configuration>
+   <components>
+      <component group="org" name="baz" version="1.0.0">
+         <artifact name="baz-1.0.0.jar">
+            <pgp value="${SigningFixtures.validPublicKeyHexString}"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+    }
 }

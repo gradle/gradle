@@ -263,6 +263,18 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void maybeReadExistingFile() {
+        if (isDryRun) {
+            File previous = mayBeDryRunFile(verificationFile);
+            if (previous.exists()) {
+                LOGGER.info("Found dependency verification dryrun metadata file, updating");
+                try {
+                    DependencyVerificationsXmlReader.readFromXml(new FileInputStream(previous), verificationsBuilder);
+                } catch (FileNotFoundException e) {
+                    throw new UncheckedIOException(e);
+                }
+                return;
+            }
+        }
         if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
             try {
@@ -617,13 +629,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
-        List<PGPPublicKeyRing> existingRings;
-        if (!isDryRun) {
-            existingRings = keyrings.loadKeys();
-            LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
-        } else {
-            existingRings = Collections.emptyList();
+        File effectiveFile = mayBeDryRunFile(keyrings.getEffectiveKeyringsFile());
+        if (!effectiveFile.exists()) {
+            return Collections.emptyList();
         }
+        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(effectiveFile);
+        LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
         return existingRings;
     }
 }
