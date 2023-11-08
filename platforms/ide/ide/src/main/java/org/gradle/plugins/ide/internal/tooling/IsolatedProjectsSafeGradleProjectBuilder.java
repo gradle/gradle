@@ -20,7 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultIsolatedGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.model.GradleProject;
@@ -62,19 +62,19 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
         ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
         // We must request isolated root model instead of building it directly,
         // because the original target of the model may not have been a root project
-        DefaultIsolatedGradleProject rootIsolatedModel = mapToIsolatedModels(singletonList(rootProject)).get(0);
+        IsolatedGradleProjectInternal rootIsolatedModel = mapToIsolatedModels(singletonList(rootProject)).get(0);
         return build(rootIsolatedModel, rootProject);
     }
 
-    private DefaultGradleProject build(DefaultIsolatedGradleProject isolatedModel, ProjectInternal project) {
+    private DefaultGradleProject build(IsolatedGradleProjectInternal isolatedModel, ProjectInternal project) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
         Collection<Project> childProjects = getChildProjectsForInternalUse(project);
-        List<DefaultIsolatedGradleProject> childIsolatedModels = mapToIsolatedModels(childProjects);
+        List<IsolatedGradleProjectInternal> childIsolatedModels = mapToIsolatedModels(childProjects);
 
         List<DefaultGradleProject> childModels = new ArrayList<>();
         int i = 0;
         for (Project childProject : childProjects) {
-            DefaultIsolatedGradleProject childIsolatedModel = childIsolatedModels.get(i++);
+            IsolatedGradleProjectInternal childIsolatedModel = childIsolatedModels.get(i++);
             DefaultGradleProject childModel = build(childIsolatedModel, (ProjectInternal) childProject);
             childModel.setParent(model);
             childModels.add(childModel);
@@ -83,12 +83,12 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
         return model;
     }
 
-    private List<DefaultIsolatedGradleProject> mapToIsolatedModels(Collection<Project> childProjects) {
+    private List<IsolatedGradleProjectInternal> mapToIsolatedModels(Collection<Project> childProjects) {
         return intermediateToolingModelProvider
-            .getModels(new ArrayList<>(childProjects), "org.gradle.tooling.model.internal.gradle.IsolatedGradleProject", DefaultIsolatedGradleProject.class);
+            .getModels(new ArrayList<>(childProjects), IsolatedGradleProjectInternal.class);
     }
 
-    private static DefaultGradleProject buildWithoutChildren(ProjectInternal project, DefaultIsolatedGradleProject isolatedModel) {
+    private static DefaultGradleProject buildWithoutChildren(ProjectInternal project, IsolatedGradleProjectInternal isolatedModel) {
         DefaultGradleProject model = new DefaultGradleProject();
 
         model.setProjectIdentifier(isolatedModel.getProjectIdentifier())

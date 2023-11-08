@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultIsolatedGradleProject;
+import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -33,24 +33,24 @@ import static java.util.stream.Collectors.toList;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 /**
- * Builds the {@link org.gradle.tooling.model.internal.gradle.IsolatedGradleProject} that contains information about a project and its tasks.
+ * Builds the {@link IsolatedGradleProjectInternal} that contains information about a project and its tasks.
  */
 @NonNullApi
 public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.internal.gradle.IsolatedGradleProject");
+        return modelName.equals(IsolatedGradleProjectInternal.class.getName());
     }
 
     @Override
-    public Object buildAll(String modelName, Project project) {
+    public IsolatedGradleProjectInternal buildAll(String modelName, Project project) {
         boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
         return build(project, realizeTasks);
     }
 
-    private static DefaultIsolatedGradleProject build(Project project, boolean realizeTasks) {
-        DefaultIsolatedGradleProject gradleProject = new DefaultIsolatedGradleProject()
+    private static IsolatedGradleProjectInternal build(Project project, boolean realizeTasks) {
+        IsolatedGradleProjectInternal gradleProject = new IsolatedGradleProjectInternal()
             .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
             .setName(project.getName())
             .setDescription(project.getDescription())
@@ -67,7 +67,7 @@ public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
         return gradleProject;
     }
 
-    private static List<LaunchableGradleTask> buildTasks(DefaultIsolatedGradleProject owner, TaskContainer tasks) {
+    private static List<LaunchableGradleTask> buildTasks(IsolatedGradleProjectInternal owner, TaskContainer tasks) {
         return tasks.getNames().stream()
             .map(tasks::findByName)
             .filter(Objects::nonNull)
@@ -75,7 +75,7 @@ public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
             .collect(toList());
     }
 
-    private static LaunchableGradleTask buildTask(DefaultIsolatedGradleProject owner, Task task) {
+    private static LaunchableGradleTask buildTask(IsolatedGradleProjectInternal owner, Task task) {
         return buildFromTask(new LaunchableGradleTask(), owner.getProjectIdentifier(), task)
             .setBuildTreePath(getBuildTreePath(task));
     }

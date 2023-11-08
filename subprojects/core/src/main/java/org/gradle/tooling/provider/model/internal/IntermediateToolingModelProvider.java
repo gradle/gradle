@@ -35,6 +35,6 @@ public interface IntermediateToolingModelProvider {
     /**
      * Fetches a given model for the given projects, validating they are of an expected implementation type.
      */
-    <T> List<T> getModels(List<Project> targets, String modelName, Class<T> implementationType);
+    <T> List<T> getModels(List<Project> targets, Class<T> implementationType);
 
 }

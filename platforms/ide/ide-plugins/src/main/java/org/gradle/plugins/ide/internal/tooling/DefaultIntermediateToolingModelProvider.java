@@ -33,11 +33,12 @@ import java.util.List;
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     @Override
-    public <T> List<T> getModels(List<Project> targets, String modelName, Class<T> implementationType) {
+    public <T> List<T> getModels(List<Project> targets, Class<T> implementationType) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
 
+        String modelName = implementationType.getName();
         List<Object> rawModels = getModels(targets, modelName);
         return ensureModelTypes(implementationType, rawModels);
     }

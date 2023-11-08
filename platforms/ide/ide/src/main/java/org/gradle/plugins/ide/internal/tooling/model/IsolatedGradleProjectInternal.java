@@ -28,10 +28,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Structurally implements {@link org.gradle.tooling.model.internal.gradle.IsolatedGradleProject} model.
+ * Represents a Gradle project, isolated from the project hierarchy.
+ * <p>
+ * <b>This model is internal, and is NOT part of the public Tooling API.</b>
  */
 @NonNullApi
-public class DefaultIsolatedGradleProject implements Serializable, GradleProjectIdentity {
+public class IsolatedGradleProjectInternal implements Serializable, GradleProjectIdentity {
 
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
@@ -45,7 +47,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return name;
     }
 
-    public DefaultIsolatedGradleProject setName(String name) {
+    public IsolatedGradleProjectInternal setName(String name) {
         this.name = name;
         return this;
     }
@@ -54,7 +56,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return description;
     }
 
-    public DefaultIsolatedGradleProject setDescription(@Nullable String description) {
+    public IsolatedGradleProjectInternal setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }
@@ -77,7 +79,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
-    public DefaultIsolatedGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+    public IsolatedGradleProjectInternal setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
     }
@@ -92,7 +94,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return tasks;
     }
 
-    public DefaultIsolatedGradleProject setTasks(List<LaunchableGradleTask> tasks) {
+    public IsolatedGradleProjectInternal setTasks(List<LaunchableGradleTask> tasks) {
         this.tasks = tasks;
         return this;
     }
@@ -101,7 +103,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return buildDirectory;
     }
 
-    public DefaultIsolatedGradleProject setBuildDirectory(File buildDirectory) {
+    public IsolatedGradleProjectInternal setBuildDirectory(File buildDirectory) {
         this.buildDirectory = buildDirectory;
         return this;
     }
@@ -110,7 +112,7 @@ public class DefaultIsolatedGradleProject implements Serializable, GradleProject
         return projectDirectory;
     }
 
-    public DefaultIsolatedGradleProject setProjectDirectory(File projectDirectory) {
+    public IsolatedGradleProjectInternal setProjectDirectory(File projectDirectory) {
         this.projectDirectory = projectDirectory;
         return this;
     }
