@@ -36,7 +36,7 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
  * Builds the {@link IsolatedGradleProjectInternal} that contains information about a project and its tasks.
  */
 @NonNullApi
-public class IsolatedGradleProjectBuilder implements ToolingModelBuilder {
+public class IsolatedGradleProjectInternalBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {

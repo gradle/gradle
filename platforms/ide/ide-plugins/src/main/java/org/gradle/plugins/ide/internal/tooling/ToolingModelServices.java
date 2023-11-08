@@ -68,7 +68,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
-                    registry.register(new IsolatedGradleProjectBuilder());
+                    registry.register(new IsolatedGradleProjectInternalBuilder());
                 }
 
                 private GradleProjectBuilderInternal createGradleProjectBuilder(boolean isolatedProjects) {
