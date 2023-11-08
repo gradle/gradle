@@ -33,8 +33,13 @@ import java.util.List;
 public interface IntermediateToolingModelProvider {
 
     /**
-     * Fetches a given model for the given projects, validating they are of an expected implementation type.
+     * Fetches models of a given type for the given projects.
      */
-    <T> List<T> getModels(List<Project> targets, Class<T> implementationType);
+    <T> List<T> getModels(List<Project> targets, Class<T> modelType);
+
+    /**
+     * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
+     */
+    <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter);
 
 }

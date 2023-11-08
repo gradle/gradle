@@ -60,22 +60,29 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
     @Override
     public DefaultGradleProject buildRoot(Project project) {
         ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
+        IsolatedGradleProjectParameter parameter = createParameter(GradleProjectBuilderOptions.shouldRealizeTasks());
+
         // We must request isolated root model instead of building it directly,
-        // because the original target of the model may not have been a root project
-        IsolatedGradleProjectInternal rootIsolatedModel = mapToIsolatedModels(singletonList(rootProject)).get(0);
-        return build(rootIsolatedModel, rootProject);
+        // because the target project given to the builder may not have been a root project
+        IsolatedGradleProjectInternal rootIsolatedModel = getRootIsolatedModel(rootProject, parameter);
+
+        return build(rootIsolatedModel, rootProject, parameter);
     }
 
-    private DefaultGradleProject build(IsolatedGradleProjectInternal isolatedModel, ProjectInternal project) {
+    private IsolatedGradleProjectInternal getRootIsolatedModel(ProjectInternal rootProject, IsolatedGradleProjectParameter parameter) {
+        return getIsolatedModels(singletonList(rootProject), parameter).get(0);
+    }
+
+    private DefaultGradleProject build(IsolatedGradleProjectInternal isolatedModel, ProjectInternal project, IsolatedGradleProjectParameter parameter) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
         Collection<Project> childProjects = getChildProjectsForInternalUse(project);
-        List<IsolatedGradleProjectInternal> childIsolatedModels = mapToIsolatedModels(childProjects);
+        List<IsolatedGradleProjectInternal> childIsolatedModels = getIsolatedModels(childProjects, parameter);
 
         List<DefaultGradleProject> childModels = new ArrayList<>();
         int i = 0;
         for (Project childProject : childProjects) {
             IsolatedGradleProjectInternal childIsolatedModel = childIsolatedModels.get(i++);
-            DefaultGradleProject childModel = build(childIsolatedModel, (ProjectInternal) childProject);
+            DefaultGradleProject childModel = build(childIsolatedModel, (ProjectInternal) childProject, parameter);
             childModel.setParent(model);
             childModels.add(childModel);
         }
@@ -83,9 +90,9 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
         return model;
     }
 
-    private List<IsolatedGradleProjectInternal> mapToIsolatedModels(Collection<Project> childProjects) {
+    private List<IsolatedGradleProjectInternal> getIsolatedModels(Collection<Project> projects, IsolatedGradleProjectParameter parameter) {
         return intermediateToolingModelProvider
-            .getModels(new ArrayList<>(childProjects), IsolatedGradleProjectInternal.class);
+            .getModels(new ArrayList<>(projects), IsolatedGradleProjectInternal.class, parameter);
     }
 
     private static DefaultGradleProject buildWithoutChildren(ProjectInternal project, IsolatedGradleProjectInternal isolatedModel) {
@@ -108,7 +115,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
         return model;
     }
 
-    public static LaunchableGradleProjectTask buildProjectTask(DefaultGradleProject owner, LaunchableGradleTask model) {
+    private static LaunchableGradleProjectTask buildProjectTask(DefaultGradleProject owner, LaunchableGradleTask model) {
         LaunchableGradleProjectTask target = new LaunchableGradleProjectTask();
         target.setPath(model.getPath())
             .setName(model.getName())
@@ -120,6 +127,10 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
             .setBuildTreePath(model.getBuildTreePath());
         target.setProject(owner);
         return target;
+    }
+
+    private static IsolatedGradleProjectParameter createParameter(boolean realizeTasks) {
+        return () -> realizeTasks;
     }
 
 }

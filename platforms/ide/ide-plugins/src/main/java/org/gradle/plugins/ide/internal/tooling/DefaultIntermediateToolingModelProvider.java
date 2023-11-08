@@ -25,36 +25,58 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
     @Override
-    public <T> List<T> getModels(List<Project> targets, Class<T> implementationType) {
+    public <T> List<T> getModels(List<Project> targets, Class<T> modelType) {
+        return getModelsImpl(targets, modelType, null);
+    }
+
+    @Override
+    public <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter) {
+        return getModelsImpl(targets, modelType, modelBuilderParameter);
+    }
+
+    private static <T> List<T> getModelsImpl(List<Project> targets, Class<T> modelType, @Nullable Object modelBuilderParameter) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
 
-        String modelName = implementationType.getName();
-        List<Object> rawModels = getModels(targets, modelName);
-        return ensureModelTypes(implementationType, rawModels);
+        String modelName = modelType.getName();
+        List<Object> rawModels = getModels(targets, modelName, modelBuilderParameter);
+        return ensureModelTypes(modelType, rawModels);
     }
 
-    private static List<Object> getModels(List<Project> targets, String modelName) {
+    private static List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
         BuildState buildState = extractSingleBuildState(targets);
+        Function<Class<?>, Object> parameterFactory = modelBuilderParameter == null ? null : createParameterFactory(modelBuilderParameter);
         return buildState.withToolingModels(controller -> {
             ArrayList<Object> models = new ArrayList<>();
             for (Project targetProject : targets) {
                 ProjectState builderTarget = ((ProjectInternal) targetProject).getOwner();
-                ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, false);
-                Object model = toolingModelScope.getModel(modelName, null);
+                ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
+                Object model = toolingModelScope.getModel(modelName, parameterFactory);
                 models.add(model);
             }
             return models;
         });
+    }
+
+    private static Function<Class<?>, Object> createParameterFactory(Object modelBuilderParameter) {
+        return expectedParameterType -> {
+            if (expectedParameterType.isInstance(modelBuilderParameter)) {
+                return modelBuilderParameter;
+            } else {
+                throw new IllegalStateException(String.format("Expected model builder parameter type '%s', got '%s'", expectedParameterType.getName(), modelBuilderParameter.getClass().getName()));
+            }
+        };
     }
 
     private static BuildState extractSingleBuildState(List<Project> targets) {

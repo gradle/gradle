@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.plugins.ide.internal.tooling.model.IsolatedGradleProjectInternal;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,7 +36,12 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
  * Builds the {@link IsolatedGradleProjectInternal} that contains information about a project and its tasks.
  */
 @NonNullApi
-public class IsolatedGradleProjectInternalBuilder implements ToolingModelBuilder {
+public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolingModelBuilder<IsolatedGradleProjectParameter> {
+
+    @Override
+    public Class<IsolatedGradleProjectParameter> getParameterType() {
+        return IsolatedGradleProjectParameter.class;
+    }
 
     @Override
     public boolean canBuild(String modelName) {
@@ -44,9 +49,13 @@ public class IsolatedGradleProjectInternalBuilder implements ToolingModelBuilder
     }
 
     @Override
+    public IsolatedGradleProjectInternal buildAll(String modelName, IsolatedGradleProjectParameter parameter, Project project) {
+        return build(project, parameter.getRealizeTasks());
+    }
+
+    @Override
     public IsolatedGradleProjectInternal buildAll(String modelName, Project project) {
-        boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
-        return build(project, realizeTasks);
+        return build(project, true);
     }
 
     private static IsolatedGradleProjectInternal build(Project project, boolean realizeTasks) {
