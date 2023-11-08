@@ -282,6 +282,7 @@ include::{snippetsPath}/tutorial/dynamicDepends/tests/dynamicDepends.out[]
 
 Or you can add behavior to an existing task:
 
+[[sec:hello_world]]
 ====
 include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
