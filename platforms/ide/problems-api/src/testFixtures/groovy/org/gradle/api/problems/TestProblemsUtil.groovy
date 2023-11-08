@@ -17,7 +17,7 @@
 package org.gradle.api.problems
 
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
+import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter
 
 /**
  * Static util class that provides methods for creating {@link Problems} instances for testing.
@@ -31,6 +31,6 @@ abstract class TestProblemsUtil {
      * @return the problems instance
      */
     public static Problems createTestProblems() {
-       return new DefaultProblems(new NoOpBuildOperationProgressEventEmitter())
+       return new DefaultProblems(new NoOpProblemEmitter())
     }
 }
