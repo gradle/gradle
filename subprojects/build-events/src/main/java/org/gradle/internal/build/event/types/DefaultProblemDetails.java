@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemDetails implements InternalBasicProblemDetails, Serializable {
