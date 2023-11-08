@@ -17,7 +17,7 @@
 package org.gradle.internal.instrumentation.processor.codegen.groovy;
 
 import com.squareup.javapoet.ClassName;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionCapability;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
@@ -50,7 +50,7 @@ class CallInterceptorSpecs {
 
         String getFullClassName();
 
-        InterceptionCapability getCapability();
+        InterceptionType getCapabilities();
 
         List<CallInterceptionRequest> getRequests();
 
@@ -84,7 +84,7 @@ class CallInterceptorSpecs {
             }
 
             @Override
-            public InterceptionCapability getCapability() {
+            public InterceptionType getCapabilities() {
                 return null;
             }
 
@@ -129,7 +129,7 @@ class CallInterceptorSpecs {
             }
 
             @Override
-            public InterceptionCapability getCapability() {
+            public InterceptionType getCapabilities() {
                 return null;
             }
 

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.instrumentation.api.capabilities;
 
-public enum InterceptionCapabilities {
+public enum InterceptionType {
     INSTRUMENTATION(InterceptionCapability.InstrumentationInterceptor.class),
     BYTECODE_UPGRADE(InterceptionCapability.BytecodeUpgradeInterceptor.class);
 
     private final Class<? extends InterceptionCapability> markerInterface;
 
-    InterceptionCapabilities(Class<? extends InterceptionCapability> markerInterface) {
+    InterceptionType(Class<? extends InterceptionCapability> markerInterface) {
         this.markerInterface = markerInterface;
     }
 
