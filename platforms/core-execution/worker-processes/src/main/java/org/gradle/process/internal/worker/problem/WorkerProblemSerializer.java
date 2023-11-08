@@ -26,6 +26,9 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+/**
+ * Simple serializer π {@link DefaultProblem} used by the worker/daemon communication protocol.
+ */
 public class WorkerProblemSerializer {
     public static SerializerRegistry create() {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry(false);
