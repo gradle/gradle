@@ -33,7 +33,7 @@ public class DefaultBuildOperationProgressEventEmitter implements BuildOperation
     }
 
     @Override
-    public void emit(@Nullable OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
+    public void emit(@Nullable OperationIdentifier operationIdentifier, long timestamp, Object details) {
         // Explicit check in case of unsafe CurrentBuildOperationRef usage
         if (operationIdentifier == null) {
             throw new IllegalArgumentException("operationIdentifier is null");
@@ -42,7 +42,7 @@ public class DefaultBuildOperationProgressEventEmitter implements BuildOperation
     }
 
     @Override
-    public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {
+    public void emitNow(@Nullable OperationIdentifier operationIdentifier, Object details) {
         emit(operationIdentifier, clock.getCurrentTime(), details);
     }
 
