@@ -18,9 +18,11 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.tooling.model.GradleProject
 
+import static org.gradle.configurationcache.isolated.ToolingModelChecker.checkGradleProject
+
 class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
-    def "can fetch GradleProject model"() {
+    def "can fetch GradleProject model for empty projects"() {
         settingsFile << """
             rootProject.name = 'root'
 
@@ -28,27 +30,32 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             include(":lib1:lib11")
         """
 
-        when:
+        when: "fetching without Isolated Projects"
+        def expectedProjectModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        with(expectedProjectModel) {
+            it.name == "root"
+            it.tasks.size() > 0
+            it.children.size() == 1
+            it.children[0].children.size() == 1
+        }
+
+        when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def projectModel = fetchModel(GradleProject)
 
         then:
         fixture.assertStateStored {
-            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProject`
-            modelsCreated(":lib1", ":lib1:lib11")
+            modelsCreated(":", 2) // GradleProject, intermediate IsolatedGradleProjectInternal
+            modelsCreated(":lib1", ":lib1:lib11") // intermediate IsolatedGradleProjectInternal
         }
 
-        and:
-        projectModel.name == "root"
-        projectModel.tasks.size() > 0
-        projectModel.tasks.every { it.project == projectModel }
+        checkGradleProject(projectModel, expectedProjectModel)
 
-        projectModel.children.size() == 1
-        projectModel.children[0].name == "lib1"
-        projectModel.children[0].children.name == ["lib11"]
-        projectModel.children.every { it.parent == projectModel }
-
-        when:
+        when: "fetching again with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         fetchModel(GradleProject)
 
@@ -69,25 +76,36 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             }
         """
 
+        when: "fetching without Isolated Projects"
+        executer.withArguments("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
+        def expectedProjectModel = fetchModel(GradleProject)
+
+        then:
+        fixture.assertNoConfigurationCache()
+        outputDoesNotContain("realizing lazy task")
+
+        with(expectedProjectModel) {
+            it.name == "root"
+            it.tasks.isEmpty()
+            it.children.size() == 1
+            it.children[0].tasks.isEmpty()
+        }
+
         when:
         executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         def projectModel = fetchModel(GradleProject)
 
-        then:
+        then: "fetching with Isolated Projects"
         fixture.assertStateStored {
-            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProject`
+            modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProjectInternal`
             modelsCreated(":lib1")
         }
 
-        and:
-        projectModel.name == "root"
-        projectModel.tasks.isEmpty()
-        projectModel.children[0].name == "lib1"
-        projectModel.children[0].tasks.isEmpty()
-
         outputDoesNotContain("realizing lazy task")
 
-        when:
+        checkGradleProject(projectModel, expectedProjectModel)
+
+        when: "fetching again with Isolated Projects"
         executer.withArguments(ENABLE_CLI, "-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks")
         fetchModel(GradleProject)
 
@@ -98,27 +116,38 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
     def "can fetch GradleProject model for non-root project"() {
         settingsFile << """
             rootProject.name = 'root'
-
             include(":lib1")
         """
 
-        file("lib1/build.gradle") << """plugins { id 'java' }"""
+        file("lib1/build.gradle") << """
+            plugins { id 'java' }
+        """
 
-        when:
+        when: "fetching without Isolated Projects"
+        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        // Returned model is for root project even though the target is not the root
+        with(expectedProjectModel) {
+            it.name == "root"
+            it.children.size() == 1
+            it.children[0].name == "lib1"
+        }
+
+        when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":lib1"))
 
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":") // intermediate `IsolatedGradleProject`
-            modelsCreated(":lib1", 2) // `GradleProject` (containing root-project data) and intermediate `IsolatedGradleProject`
+            modelsCreated(":") // intermediate IsolatedGradleProject
+            modelsCreated(":lib1", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
         }
 
-        and: "GradleProject model is always returned for the root regardless of the target"
-        projectModel.name == "root"
-        projectModel.children.size() == 1
-        projectModel.children[0].name == "lib1"
+        checkGradleProject(projectModel, expectedProjectModel)
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -140,21 +169,31 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             include("lib2")
         """
 
-        when:
+        when: "fetching without Isolated Projects"
+        def expectedProjectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        // Returned model is for root project even though the target is not the root
+        with(expectedProjectModel) {
+            it.name == "included1"
+            it.children.size() == 1
+            it.children[0].name == "lib2"
+        }
+
+        when: "fetching with Isolated Projects"
         executer.withArguments(ENABLE_CLI)
         def projectModel = runBuildAction(new FetchGradleProjectForTarget(":included1:lib2"))
 
         then:
         fixture.assertStateStored {
             buildModelCreated()
-            modelsCreated(":included1") // intermediate `IsolatedGradleProject`
-            modelsCreated(":included1:lib2", 2) // `GradleProject` (containing root-project data) and intermediate `IsolatedGradleProject`
+            modelsCreated(":included1") // intermediate IsolatedGradleProjectInternal
+            modelsCreated(":included1:lib2", 2) // GradleProject (containing root-project data) and intermediate IsolatedGradleProjectInternal
         }
 
-        and: "GradleProject model is always returned for the root regardless of the target"
-        projectModel.name == "included1"
-        projectModel.children.size() == 1
-        projectModel.children[0].name == "lib2"
+        checkGradleProject(projectModel, expectedProjectModel)
 
         when:
         executer.withArguments(ENABLE_CLI)
