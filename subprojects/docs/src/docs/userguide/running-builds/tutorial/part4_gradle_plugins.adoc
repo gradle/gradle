@@ -114,8 +114,7 @@ Similarly, the new tasks from the Maven Publish plugin are now available in Inte
 image::tutorial/intellij-idea-plugin.png[]
 
 == Step 3. Configuring the Plugin
-Add the publishing block below to the end of your `build.gradle.kts` file:
-
+Add the publishing information to your `build.gradle.kts` file:
 [source]
 ----
 publishing {
