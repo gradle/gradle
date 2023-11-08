@@ -91,7 +91,7 @@ public interface UnboundReportableProblemBuilder extends UnboundProblemBuilder, 
      * {@inheritDoc}
      */
     @Override
-    UnboundReportableProblemBuilder additionalData(String key, String value);
+    UnboundReportableProblemBuilder additionalData(String key, Object value);
 
     /**
      * {@inheritDoc}

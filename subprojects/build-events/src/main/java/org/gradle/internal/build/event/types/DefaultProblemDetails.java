@@ -17,20 +17,28 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails2;
 
 import java.io.Serializable;
+import java.util.Map;
 
 @NonNullApi
-public class DefaultProblemDetails implements InternalProblemDetails, Serializable {
+public class DefaultProblemDetails implements InternalProblemDetails2, Serializable {
     private final String json;
+    private final Map<String, Object> additionalData;
 
-    public DefaultProblemDetails(String json) {
+    public DefaultProblemDetails(String json, Map<String, Object> additionalData) {
         this.json = json;
+        this.additionalData = additionalData;
     }
 
     @Override
     public String getJson() {
         return json;
+    }
+
+    @Override
+    public Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 }

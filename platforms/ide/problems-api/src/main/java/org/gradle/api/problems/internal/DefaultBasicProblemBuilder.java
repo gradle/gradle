@@ -43,7 +43,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     private boolean explicitlyUndocumented;
     private List<String> solutions;
     private RuntimeException exception;
-    private final Map<String, String> additionalMetadata;
+    private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
 
     public DefaultBasicProblemBuilder(Problem problem) {
@@ -56,12 +56,12 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         this.explicitlyUndocumented = problem.getDocumentationLink() == null;
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.exception = problem.getException();
-        this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
+        this.additionalData = new HashMap<String, Object>(problem.getAdditionalData());
     }
 
     public DefaultBasicProblemBuilder() {
         this.locations = new ArrayList<ProblemLocation>();
-        this.additionalMetadata = new HashMap<String, String>();
+        this.additionalData = new HashMap<String, Object>();
     }
 
     @Override
@@ -75,7 +75,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             getSolutions(),
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             getProblemCategory(),
-            getAdditionalMetadata());
+            getAdditionalData());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -176,8 +176,8 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return this;
     }
 
-    public UnboundBasicProblemBuilder additionalData(String key, String value) {
-        this.getAdditionalMetadata().put(key, value);
+    public UnboundBasicProblemBuilder additionalData(String key, Object value) {
+        this.getAdditionalData().put(key, value);
         return this;
     }
 
@@ -220,8 +220,8 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
         return solutions;
     }
 
-    protected Map<String, String> getAdditionalMetadata() {
-        return additionalMetadata;
+    protected Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 
     protected boolean isCollectLocation() {

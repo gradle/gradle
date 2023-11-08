@@ -128,6 +128,8 @@ import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemDetails2;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
@@ -175,6 +177,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -680,10 +683,21 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private ProblemDescriptor toProblemDescriptor(InternalProblemEvent progressEvent, InternalProblemDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        InternalProblemDetails details = progressEvent.getDetails();
+        Map<String, Object> additionalData;
+        if (details instanceof InternalProblemDetails2) {
+            additionalData = ((InternalProblemDetails2) details).getAdditionalData();
+        } else {
+            additionalData = Collections.emptyMap();
+        }
+
+
+
         return new DefaultProblemsOperationDescriptor(
             descriptor,
             parent,
-            progressEvent.getDetails().getJson()
+            details.getJson(),
+            additionalData
         );
     }
 

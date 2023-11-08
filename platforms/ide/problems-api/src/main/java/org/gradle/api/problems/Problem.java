@@ -92,8 +92,10 @@ public interface Problem {
     /**
      * Additional Data about the problem.
      * In a map so it can be somewhat structured.
+     * TODO (donat) describe what are the allowed value types: currently java.lang.String
+     * TODO (donat) add (non-javadoc) comment on how to extend the supported value types
      */
-    Map<String, String> getAdditionalData();
+    Map<String, Object> getAdditionalData();
 
     /**
      * Returns a problem builder with fields initialized with values from this instance.
