@@ -20,7 +20,7 @@ Explore our guides and examples to use Gradle.
 [[releases]]
 == Releases
 
-Information on Gradle releases and how to install Gradle is found in the <<installation.adoc#installation,Releases section>>.
+Information on Gradle releases and how to install Gradle is found on the <<installation.adoc#installation,Installation page>>.
 
 [[content]]
 == Content

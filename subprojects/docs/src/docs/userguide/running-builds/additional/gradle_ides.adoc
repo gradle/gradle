@@ -15,7 +15,7 @@
 [[gradle_ides]]
 = Gradle in IDEs
 
-All major IDEs support Gradle including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+Many IDEs support Gradle including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 == IntelliJ IDEA
 

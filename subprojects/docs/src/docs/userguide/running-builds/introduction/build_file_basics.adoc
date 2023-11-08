@@ -42,7 +42,7 @@ Let's take a look at an example and break it down:
 [source,kotlin]
 ----
 plugins {
-    application         // <1>
+    id("application")    // <1>
 }
 
 application {
@@ -72,14 +72,14 @@ application {
 ====
 
 === 1. Add plugins
-Plugins are bundled tasks used to extend Gradle.
+Plugins extend Gradle's functionality and can contribute tasks to a project.
 
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
 [source]
 ----
 plugins {
-    application
+    id("application")
 }
 ----
 
@@ -94,16 +94,16 @@ It also adds properties and methods to a project.
 
 The `application` plugin defines tasks that package and distribute an application, such as the `run` task.
 
-The Application plugin also has a method that can declare the main class of a Java application, which is required to compile and run the code.
+The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
 
 [source]
 ----
 application {
-    mainClass = "main"
+    mainClass = "com.example.Main"
 }
 ----
 
-In this example, the specification of the main class (i.e., the entry point) of the application is 'main`.
+In this example, the specification of the main class (i.e., the entry point) of the application is `com.example.Main`.
 
 //Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
 

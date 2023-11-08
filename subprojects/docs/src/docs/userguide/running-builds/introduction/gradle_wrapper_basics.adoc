@@ -63,7 +63,7 @@ If you want to run the command in a different directory, you must provide the re
 $ ../gradlew build
 ----
 
-The following console output demonstrates the use of the Wrapper on a Windows machine for a Java-based project:
+The following console output demonstrates the use of the Wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
 
 ----
 $ gradlew.bat build

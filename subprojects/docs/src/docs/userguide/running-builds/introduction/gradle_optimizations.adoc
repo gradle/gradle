@@ -15,7 +15,7 @@
 [[gradle_optimizations]]
 = Gradle Incremental Builds and Build Caching
 
-Gradle uses two main features to reduce build time, *incremental builds* and *build caching*.
+Gradle uses two main features to reduce build time: *incremental builds* and *build caching*.
 
 image::gradle-basic-8.png[]
 
@@ -33,7 +33,7 @@ With verbose mode, each task state is labeled during a build:
 
 [source]
 ----
-$ ./gradlew compileJava
+$ ./gradlew compileJava --console=verbose
 
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
@@ -57,7 +57,7 @@ BUILD SUCCESSFUL in 374ms
 
 When you run a task that has been previously executed and hasn't changed, then `UP-TO-DATE` is printed next to the task.
 
-TIP: To enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
+TIP: To permanently enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
 
 == Build caching
 
@@ -70,13 +70,13 @@ The files are rebuilt, even though the developer is building something that has 
 This is where a *build cache* is helpful.
 
 The build cache stores previous build results and restores them when needed.
-It prevents the redundant work and cost of regenerating time-consuming and expensive processes.
+It prevents the redundant work and cost of executing time-consuming and expensive processes.
 
 When the build cache has been used to repopulate the local directory, the tasks are marked as `FROM-CACHE`:
 
 [source]
 ----
-$ ./gradlew compileJava
+$ ./gradlew compileJava --build-cache
 
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
@@ -101,9 +101,9 @@ BUILD SUCCESSFUL in 364ms
 Once the local directory has been repopulated, the next execution will mark tasks as `UP-TO-DATE` and not `FROM-CACHE`.
 
 The build cache allows you to share and reuse unchanged build and test outputs across teams.
-This speeds up local and CI builds since cycles are not wasted re-building components unaffected by new code changes.
+This speeds up local and CI builds since cycles are not wasted re-building binaries unaffected by new code changes.
 
-Consult the <<performance.adoc#performance_gradle,Gradle optimizations and build performance chapter>> to learn more.
+Consult the <<build_cache#build_cache,Build cache chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scans>> >>

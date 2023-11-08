@@ -15,7 +15,7 @@
 [[intro_multi_project_builds]]
 = Multi-Project Build Basics
 
-Gradle supports multi-project build.
+Gradle supports multi-project builds.
 
 image::gradle-basic-9.png[]
 

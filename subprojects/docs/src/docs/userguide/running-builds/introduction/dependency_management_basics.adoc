@@ -19,9 +19,9 @@ Gradle has built-in support for *dependency management*.
 
 image::gradle-basic-7.png[]
 
-Dependency management is an automated technique for declaring, resolving, and using functionality required by a project.
+Dependency management is an automated technique for declaring and resolving external resources required by a project.
 
-Gradle build scripts define a process to build projects that contain some dependencies.
+Gradle build scripts define the process to build projects that may contain one or more dependencies on external resources.
 Dependencies refer to JARs, plugins, libraries, or source code that support building your project.
 
 == Version Catalog
@@ -53,7 +53,7 @@ android-application = { id = "com.android.application", version.ref = "androidGr
 ----
 
 The file is located in the `gradle` directory so that it can be used by Gradle and IDEs automatically.
-The version catalog should be checked into subversion: `gradle/libs.versions.toml`.
+The version catalog should be checked into source control: `gradle/libs.versions.toml`.
 
 == Declaring Your Dependencies
 
@@ -81,7 +81,7 @@ dependencies {
 
 Dependencies in Gradle are grouped by *configurations*.
 
-- The `material` library is added to the `implementation` configuration, which is used for compiling and running code.
+- The `material` library is added to the `implementation` configuration, which is used for compiling and running _production_ code.
 - The `mockito-core` library is added to the `testImplementation` configuration, which is used for compiling and running _test_ code.
 
 NOTE: There are many more configurations available.
@@ -109,7 +109,7 @@ testImplementation - Implementation only dependencies for source set 'test'. (n)
 ...
 ----
 
-Consult the <<dependency_management_terminology .adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
+Consult the <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>
