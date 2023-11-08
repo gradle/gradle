@@ -20,7 +20,6 @@ import com.google.common.collect.Interners
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
