@@ -15,7 +15,8 @@
  */
 
 /**
- * Package containing all parts concerning the transport of problems.
+ * Package containing all parts concerning the transport of problems
+ * between the worker and the daemon process.
  */
 @NonNullApi
 package org.gradle.process.internal.worker.problem;
