@@ -20,8 +20,6 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.stream.EncodedStream;
 
 import java.io.DataInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
