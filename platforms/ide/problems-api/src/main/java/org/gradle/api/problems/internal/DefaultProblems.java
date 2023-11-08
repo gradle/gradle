@@ -87,12 +87,12 @@ public class DefaultProblems implements InternalProblems {
     }
 
     public RuntimeException throwError(RuntimeException exception, Problem problem) {
-        reportAsProgressEvent(problem);
+        report(problem);
         throw exception;
     }
 
     @Override
-    public void reportAsProgressEvent(Problem problem) {
+    public void report(Problem problem) {
         // Transform the problem with all registered transformers
         for (ProblemTransformer transformer : transformers) {
             problem = transformer.transform(problem);

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Package containing all parts concerning the transport of problems.
+ */
+@NonNullApi
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.DefaultProblem;
-
-public interface WorkerProblemProtocol {
-    void reportProblem(DefaultProblem problem);
-}
+import org.gradle.api.NonNullApi;

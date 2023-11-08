@@ -14,23 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.problem;
+package org.gradle.problems.internal.emitters;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemEmitter;
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
-@NonNullApi
-public class WorkerProblemEmitter implements ProblemEmitter {
-    private final WorkerProblemProtocol protocol;
+/**
+ * Emits problems as build operation progress events.
+ *
+ * @since 8.6
+ */
+@Incubating
+public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
-    public WorkerProblemEmitter(WorkerProblemProtocol protocol) {
-        this.protocol = protocol;
+    private final BuildOperationProgressEventEmitter eventEmitter;
+
+    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
+        this.eventEmitter = eventEmitter;
     }
 
     @Override
     public void emit(Problem problem) {
-        protocol.reportProblem((DefaultProblem) problem);
+        eventEmitter.emitNowIfCurrent(new DefaultProblemProgressDetails(problem));
     }
 }

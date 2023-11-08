@@ -16,33 +16,37 @@
 
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
-import java.io.EOFException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class WorkerProblemSerializer {
     public static SerializerRegistry create() {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry(false);
 
-        registry.register(Problem.class, new ProblemSerializer());
+        registry.register(DefaultProblem.class, new ProblemSerializer());
         return registry;
     }
 
-    private static class ProblemSerializer implements Serializer<Problem> {
+    private static class ProblemSerializer implements Serializer<DefaultProblem> {
+
         @Override
-        public Problem read(Decoder decoder) throws EOFException, Exception {
-            System.err.println("ProblemSerializer.read");
-            return null;
+        public void write(Encoder encoder, DefaultProblem problem) throws Exception {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(encoder.getOutputStream());
+            objectOutputStream.writeObject(problem);
         }
 
         @Override
-        public void write(Encoder encoder, Problem problemProgressDetails) throws Exception {
-            System.err.println("ProblemSerializer.write");
+        public DefaultProblem read(Decoder decoder) throws Exception {
+            ObjectInputStream objectInputStream = new ObjectInputStream(decoder.getInputStream());
+            return (DefaultProblem) objectInputStream.readObject();
         }
+
     }
 }

@@ -20,6 +20,7 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
 /**
  * A link to a documentation page.
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
  * @since 8.4
  */
 @Incubating
-public interface DocLink {
+public interface DocLink extends Serializable {
 
     /**
      * The URL to the documentation page.

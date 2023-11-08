@@ -23,14 +23,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
  */
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
 
+    boolean forkCompiler = false
+
     def setup() {
         buildFile << """
             plugins {
                 id 'java'
             }
 
-            tasks.compileJava {
-                options.compilerArgs += ["-Xlint:all"]
+            tasks {
+                compileJava {
+                    options.compilerArgs += ["-Xlint:all"]
+//                    options.forkOptions.jvmArgs += ["-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006"]
+                }
             }
         """
     }
@@ -128,10 +133,32 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "events are received when compiler is forked"() {
+        enableProblemsApiCheck()
+
+        buildFile << """
+        tasks.compileJava.options.fork = true
+        """
+
+        def files = [
+            writeJavaCausingCompilationError("Foo"),
+        ]
+
+        when:
+        // Special flag to fork the compiler, see the setup()
+        fails("compileJava")
+
+        then:
+        collectedProblems.size() == 2
+        for (def problem in collectedProblems) {
+            assertProblem(problem, files, "ERROR")
+        }
+    }
+
     def assertProblem(Map<String, Object> problem, List<String> possibleFiles, String severity) {
         assert problem["severity"] == severity
 
-        def locations = problem["where"] as List<Map<String, Object>>
+        def locations = problem["locations"] as List<Map<String, Object>>
         assert locations.size() == 2
 
         def taskLocation = locations.find {
@@ -147,6 +174,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         assert possibleFiles.remove(fileLocation["path"])
         assert fileLocation["line"] != null
         assert fileLocation["column"] != null
+        assert fileLocation["length"] != null
 
         return true
     }

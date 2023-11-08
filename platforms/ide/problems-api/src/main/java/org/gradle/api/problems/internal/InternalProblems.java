@@ -39,5 +39,5 @@ public interface InternalProblems extends Problems {
 
     ProblemStream getProblemStream();
 
-    void reportAsProgressEvent(Problem problem);
+    void report(Problem problem);
 }

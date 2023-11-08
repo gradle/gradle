@@ -24,13 +24,14 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Problem {
+public class DefaultProblem implements Problem, Serializable {
     private String label;
     private Severity severity;
     private List<ProblemLocation> where;
