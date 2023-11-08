@@ -201,7 +201,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             attributesFactory,
             objectFactory,
             capabilityNotationParser,
-            instantiator,
             selector);
         detailsAction.execute(details);
         return details.selector;
@@ -511,19 +510,16 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         private final ImmutableAttributesFactory attributesFactory;
         private final ObjectFactory objectFactory;
         private final NotationParser<Object, Capability> capabilityNotationParser;
-        private final Instantiator instantatior;
         private ComponentSelector selector;
 
         @Inject
         public DefaultVariantSelectionDetails(ImmutableAttributesFactory attributesFactory,
                                               ObjectFactory objectFactory,
                                               NotationParser<Object, Capability> capabilityNotationParser,
-                                              Instantiator instantatior,
                                               ComponentSelector selector) {
             this.attributesFactory = attributesFactory;
             this.objectFactory = objectFactory;
             this.capabilityNotationParser = capabilityNotationParser;
-            this.instantatior = instantatior;
             this.selector = selector;
         }
 
@@ -570,7 +566,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configurationAction) {
-            ModuleDependencyCapabilitiesInternal handler = instantatior.newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class,
+            ModuleDependencyCapabilitiesInternal handler = objectFactory.newInstance(DefaultMutableModuleDependencyCapabilitiesHandler.class,
                 capabilityNotationParser
             );
             configurationAction.execute(handler);
