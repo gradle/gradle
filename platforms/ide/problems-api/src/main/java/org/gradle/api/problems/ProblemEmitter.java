@@ -17,6 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.operations.BuildOperationRef;
 
 /**
  * Interface for emitting problems.

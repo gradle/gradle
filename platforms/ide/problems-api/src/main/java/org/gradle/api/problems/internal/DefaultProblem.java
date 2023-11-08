@@ -22,6 +22,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.internal.operations.BuildOperationRef;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -42,6 +43,9 @@ public class DefaultProblem implements Problem, Serializable {
     private String problemCategory;
     private Map<String, String> additionalMetadata;
 
+    @Nullable
+    private BuildOperationRef buildOperationRef;
+
     public DefaultProblem(
         String label,
         Severity severity,
@@ -51,7 +55,8 @@ public class DefaultProblem implements Problem, Serializable {
         @Nullable List<String> solutions,
         @Nullable Throwable cause,
         String problemCategory,
-        Map<String, String> additionalMetadata
+        Map<String, String> additionalMetadata,
+        @Nullable BuildOperationRef buildOperationRef
     ) {
         this.label = label;
         this.severity = severity;
@@ -62,6 +67,7 @@ public class DefaultProblem implements Problem, Serializable {
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalMetadata = additionalMetadata;
+        this.buildOperationRef = buildOperationRef;
     }
 
     @Override
@@ -110,6 +116,19 @@ public class DefaultProblem implements Problem, Serializable {
         return additionalMetadata;
     }
 
+    public void setBuildOperationRef(BuildOperationRef buildOperationRef) {
+        this.buildOperationRef = buildOperationRef;
+    }
+
+    @Nullable
+    public BuildOperationRef getBuildOperationRef() {
+        return buildOperationRef;
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
+    }
+
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }
@@ -131,15 +150,13 @@ public class DefaultProblem implements Problem, Serializable {
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalMetadata, that.additionalMetadata);
+            equals(additionalMetadata, that.additionalMetadata) &&
+            equals(buildOperationRef, that.buildOperationRef);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata, buildOperationRef});
     }
 
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
 }

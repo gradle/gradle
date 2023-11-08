@@ -21,6 +21,9 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.internal.DefaultProblem;
 
+/**
+ * Worker-side implementation of {@link ProblemEmitter}.
+ */
 @NonNullApi
 public class WorkerProblemEmitter implements ProblemEmitter {
     private final WorkerProblemProtocol protocol;
