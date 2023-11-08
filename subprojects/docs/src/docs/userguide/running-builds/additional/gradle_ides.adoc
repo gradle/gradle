@@ -29,8 +29,7 @@ You can find documentation link:https://www.jetbrains.com/help/idea/gradle.html[
 
 == Android Studio
 
-The Android build system compiles app resources and source code.
-It then packages them into APKs or Android App Bundles that you can test, deploy, sign, and distribute.
+Android Studio is the official IDE for Android app development, based on IntelliJ IDEA.
 
 Android Studio uses Gradle to automate and manage the build process while letting you define flexible, custom build configurations.
 
@@ -51,7 +50,7 @@ You can find documentation link:https://code.visualstudio.com/docs/java/java-bui
 
 == Eclipse
 
-The Eclipse IDE caters to the Java developer, including a Java IDE, a Git client, XML Editor, and Gradle integration.
+The Eclipse IDE caters to the Java developer, and features Java tooling, a Git client, XML Editor, and Gradle integration.
 
 image::eclipse.png[]
 

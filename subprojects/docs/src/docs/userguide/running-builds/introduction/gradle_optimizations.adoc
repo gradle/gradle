@@ -21,14 +21,15 @@ image::gradle-basic-8.png[]
 
 == Incremental builds
 
-An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build, making executing such tasks unnecessary.
+An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build.
+Re-executing such tasks is unnecessary if they would only re-produce the same output.
 
 For incremental builds to work, tasks must define their inputs and outputs.
 Gradle will determine whether the input or outputs have changed at build time.
 If they have changed, Gradle will execute the task.
 Otherwise, it will skip execution.
 
-Incremental builds are always enabled, so the only way to see it in action is to turn on _verbose mode_.
+Incremental builds are always enabled, and the best way to see them in action is to turn on _verbose mode_.
 With verbose mode, each task state is labeled during a build:
 
 [source]

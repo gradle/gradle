@@ -15,7 +15,7 @@
 [[task_basics]]
 = Task Basics
 
-A task represents some *atomic piece of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
+A task represents some *independent unit of work* that a build performs, such as compiling classes, creating a JAR, generating Javadoc, or publishing archives to a repository.
 
 image::gradle-basic-5.png[]
 

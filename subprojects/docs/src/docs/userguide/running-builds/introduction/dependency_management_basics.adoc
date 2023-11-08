@@ -21,12 +21,12 @@ image::gradle-basic-7.png[]
 
 Dependency management is an automated technique for declaring and resolving external resources required by a project.
 
-Gradle build scripts define the process to build projects that may contain one or more dependencies on external resources.
+Gradle build scripts define the process to build projects that may require external dependencies.
 Dependencies refer to JARs, plugins, libraries, or source code that support building your project.
 
 == Version Catalog
 
-Version catalogs are a way of centralizing your dependency declarations in a `libs.versions.toml` file.
+Version catalogs provide a way to centralize your dependency declarations in a `libs.versions.toml` file.
 
 The catalog makes sharing dependencies and version configurations between subprojects simple.
 It also allows teams to enforce versions of libraries and plugins in large projects.

@@ -23,7 +23,7 @@ Most features, like the ability to compile Java code, are added by _plugins_.
 
 Using plugins is also the primary mechanism for organizing build logic.
 
-Plugins can provide useful tasks, such as running code, creating documentation, setting up source files, publishing archives, etc.
+Plugins can provide useful tasks with capabilities such as running code, creating documentation, setting up source files, publishing archives, etc.
 
 *Applying* a plugin to a project allows the plugin to extend the project's and Gradle's capabilities.
 

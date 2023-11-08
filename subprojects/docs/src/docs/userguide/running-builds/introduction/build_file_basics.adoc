@@ -103,7 +103,7 @@ application {
 }
 ----
 
-In this example, the specification of the main class (i.e., the entry point) of the application is `com.example.Main`.
+In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
 
 //Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
 
