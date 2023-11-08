@@ -24,6 +24,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -72,23 +73,27 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     @Override
     protected Consumer<TypeSpec.Builder> classContentForClass(
         String className,
-        Collection<CallInterceptionRequest> requestsClassGroup,
+        List<CallInterceptionRequest> requestsClassGroup,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
         Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
+        InterceptionType interceptionType = requestsClassGroup.get(0).getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
+            .map(RequestExtra.InterceptJvmCalls::getInterceptionType)
+            .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
 
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
-        TypeSpec factoryClass = generateFactoryClass(className);
+        TypeSpec factoryClass = generateFactoryClass(className, interceptionType);
 
         return builder ->
             builder.addMethod(constructor)
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
+                .addSuperinterface(ClassName.get(interceptionType.getMarkerInterface()))
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
@@ -100,7 +105,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addType(factoryClass);
     }
 
-    private static TypeSpec generateFactoryClass(String className) {
+    private static TypeSpec generateFactoryClass(String className, InterceptionType interceptionType) {
         MethodSpec method = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
@@ -112,6 +117,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
+            .addSuperinterface(ClassName.get(interceptionType.getMarkerInterface()))
             .addMethod(method)
             .build();
     }

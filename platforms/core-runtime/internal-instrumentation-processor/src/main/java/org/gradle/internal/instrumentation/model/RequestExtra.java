@@ -16,30 +16,44 @@
 
 package org.gradle.internal.instrumentation.model;
 
+import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+
 import javax.lang.model.element.ExecutableElement;
 
 public interface RequestExtra {
     class InterceptJvmCalls implements RequestExtra {
         private final String implementationClassName;
+        private final InterceptionType interceptionType;
+
+        public InterceptJvmCalls(String implementationClassName, InterceptionType interceptionType) {
+            this.implementationClassName = implementationClassName;
+            this.interceptionType = interceptionType;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptJvmCalls(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public InterceptionType getInterceptionType() {
+            return interceptionType;
         }
     }
 
     class InterceptGroovyCalls implements RequestExtra {
         private final String implementationClassName;
+        private final InterceptionType interceptionType;
+
+        public InterceptGroovyCalls(String implementationClassName, InterceptionType interceptionType) {
+            this.implementationClassName = implementationClassName;
+            this.interceptionType = interceptionType;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptGroovyCalls(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public InterceptionType getInterceptionType() {
+            return interceptionType;
         }
     }
 

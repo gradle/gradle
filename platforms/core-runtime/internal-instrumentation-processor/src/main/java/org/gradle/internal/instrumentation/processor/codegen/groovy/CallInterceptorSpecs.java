@@ -50,7 +50,7 @@ class CallInterceptorSpecs {
 
         String getFullClassName();
 
-        InterceptionType getCapabilities();
+        InterceptionType getInterceptionType();
 
         List<CallInterceptionRequest> getRequests();
 
@@ -60,12 +60,14 @@ class CallInterceptorSpecs {
             private final String className;
             private final String fullClassName;
             private final List<CallInterceptionRequest> requests;
+            private final InterceptionType interceptionType;
 
-            private NamedCallableInterceptorSpec(String name, String className, String fullClassName, List<CallInterceptionRequest> requests) {
+            private NamedCallableInterceptorSpec(String name, String className, String fullClassName, List<CallInterceptionRequest> requests, InterceptionType interceptionType) {
                 this.name = name;
                 this.className = className;
                 this.fullClassName = fullClassName;
                 this.requests = requests;
+                this.interceptionType = interceptionType;
             }
 
 
@@ -84,8 +86,8 @@ class CallInterceptorSpecs {
             }
 
             @Override
-            public InterceptionType getCapabilities() {
-                return null;
+            public InterceptionType getInterceptionType() {
+                return interceptionType;
             }
 
             @Override
@@ -93,10 +95,10 @@ class CallInterceptorSpecs {
                 return requests;
             }
 
-            public static NamedCallableInterceptorSpec of(String implementationName, String name) {
+            public static NamedCallableInterceptorSpec of(String implementationName, String name, InterceptionType interceptionType) {
                 String className = TextUtil.capitalize(name) + "CallInterceptor";
                 String fullClassName = implementationName + "$" + className;
-                return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>());
+                return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>(), interceptionType);
             }
         }
 
@@ -106,12 +108,14 @@ class CallInterceptorSpecs {
             private final Type constructorType;
             private final String className;
             private final List<CallInterceptionRequest> requests;
+            private final InterceptionType interceptionType;
 
-            private ConstructorInterceptorSpec(Type constructorType, String className, String fullClassName, List<CallInterceptionRequest> requests) {
+            private ConstructorInterceptorSpec(Type constructorType, String className, String fullClassName, List<CallInterceptionRequest> requests, InterceptionType interceptionType) {
                 this.constructorType = constructorType;
                 this.className = className;
                 this.fullClassName = fullClassName;
                 this.requests = requests;
+                this.interceptionType = interceptionType;
             }
 
             public Type getConstructorType() {
@@ -129,8 +133,8 @@ class CallInterceptorSpecs {
             }
 
             @Override
-            public InterceptionType getCapabilities() {
-                return null;
+            public InterceptionType getInterceptionType() {
+                return interceptionType;
             }
 
             @Override
@@ -138,10 +142,10 @@ class CallInterceptorSpecs {
                 return requests;
             }
 
-            public static ConstructorInterceptorSpec of(String implementationName, Type constructedType) {
+            public static ConstructorInterceptorSpec of(String implementationName, Type constructedType, InterceptionType interceptionType) {
                 String className = ClassName.bestGuess(constructedType.getClassName()).simpleName() + "ConstructorCallInterceptor";
                 String fullClassName = implementationName + "$" + className;
-                return new ConstructorInterceptorSpec(constructedType, className, fullClassName, new ArrayList<>());
+                return new ConstructorInterceptorSpec(constructedType, className, fullClassName, new ArrayList<>(), interceptionType);
             }
         }
     }
