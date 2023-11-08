@@ -1,0 +1,299 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr1_gradle_init]]
+= Part 1: Initializing the Project
+
+Learn the basics of authoring Gradle by first creating a Java app using Gradle init.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+- Review the directory layout
+- Run a Java application
+- Produce a Build Scan
+- Bundle the application in an archive
+****
+
+[[part1_begin]]
+== Step 0. Before you Begin
+
+1. Make sure you have <<installation.adoc#installation,Gradle installed>>.
+
+2. Install link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA].
+The Community Edition is a free version of IntelliJ IDEA.
+
+== Step 1. Initializing the Project
+
+Create a new directory called `tutorial` and `cd` into it:
+
+[source]
+----
+$ mkdir tutorial
+----
+[source]
+----
+$ cd tutorial
+----
+
+Run `gradle init` and continue with the prompt as indicated below:
+
+[source]
+----
+$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 2
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 3
+
+Generate multiple subprojects for application? (default: no) [yes, no]
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2] 1
+
+Select test framework:
+  1: JUnit 4
+  2: TestNG
+  3: Spock
+  4: JUnit Jupiter
+Enter selection (default: JUnit Jupiter) [1..4] 4
+
+Project name (default: tutorial):
+Source package (default: tutorial):
+Enter target version of Java (min. 7) (default: 19):
+Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no] no
+----
+
+NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project (as it is the default DSL starting in Gradle 8.2). All examples are macOS based.
+
+== Step 2. Understanding the Directory layout
+
+The *project root directory* contains all source files from your project.
+
+When you are done with Gradle `init`, the directory should look as follows:
+
+----
+├── gradle                              // <1>
+│   └── wrapper
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle.kts                 // <3>
+└── app
+    ├── build.gradle.kts                // <4>
+    └── src
+        ├── main
+        │   └── java
+        │       └── demo
+        │           └── App.java        // <5>
+        └── test
+            └── java
+                └── demo
+                    └── AppTest.java    // <6>
+----
+<1> Generated folder for wrapper files
+<2> Gradle wrapper start scripts
+<3> Settings file to define build name and subprojects
+<4> Build script of app project
+<5> Default Java source folder
+<6> Default Java test source folder
+
+The `tutorial` folder is the *root project directory*.
+Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
+
+While the Gradle Wrapper is local to the root project, the Gradle executable is found in the `GRADLE_USER_HOME`.
+
+The `GRADLE_USER_HOME`, which defaults to `USER_HOME/.gradle`, is also where Gradle stores its global configuration properties, initialization scripts, caches, log files and more.
+
+== Step 3. Review the Gradle Files
+
+The `settings.gradle.kts` file has two interesting lines:
+
+.settings.gradle.kts
+[source, kotlin]
+----
+rootProject.name = "demo"
+include("app")
+----
+
+- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it’s in.
+
+- `include("app")` defines that the build consists of one subproject called `app` that contains the source code and build logic.
+
+More subprojects can be added by additional `include()` statements.
+
+Our build contains one subproject called `app` that represents the Java application we are building.
+It is configured in the `app/build.gradle(.kts)` file:
+
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    application                                                     // <1>
+}
+
+repositories {
+    mavenCentral()                                                  // <2>
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")     // <3>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("com.google.guava:guava:32.1.1-jre")             // <4>
+}
+
+application {
+    mainClass.set("demo.App")                                       // <5>
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()                                              // <6>
+}
+----
+<1> Apply the application plugin to add support for building a CLI application in Java.
+<2> Use Maven Central for resolving dependencies.
+<3> Use JUnit Jupiter for testing.
+<4> This dependency is used by the application.
+<5> Define the main class for the application.
+<6> Use JUnit Platform for unit tests.
+
+The build script in the `app` subproject directory includes the dependencies and components the `app` code will need to be assembled, tested, and published.
+
+== Step 4. Review the Code
+
+The file `src/main/java/demo/App.java` contains the main class and source code:
+
+.App.java
+[source, java]
+----
+package tutorial;
+
+public class App {
+    public String getGreeting() {
+        return "Hello World!";
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+----
+
+The code prints out a simple "Hello World" greeting to the screen.
+
+The generated test is available at `src/test/java/demo/App.java`:
+
+.App.java
+[source, java]
+----
+package tutorial;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class AppTest {
+    @Test void appHasAGreeting() {
+        App classUnderTest = new App();
+        assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+    }
+}
+----
+
+The generated test class has a single _JUnit Jupiter_ test.
+The test instantiates the `App` class, invokes a method on it, and checks that it returns the expected value.
+
+== Step 5. Run the App
+
+The Application plugin, which was automatically added by `gradle init`, facilitates creating an executable JVM application:
+
+[source, kotlin]
+----
+plugins {
+    application
+}
+----
+
+Applying the Application plugin implicitly applies the Java plugin and adds tasks like `assemble`, `build`, or `run` to our project.
+
+Thanks to the `application` plugin, you can run the application directly from the command line.
+The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
+
+[source]
+----
+$ ./gradlew run
+
+> Task :app:run
+Hello World!
+
+BUILD SUCCESSFUL in 998ms
+2 actionable tasks: 2 executed
+----
+
+== Step 6. Bundle the App
+
+The `application` plugin also bundles the application, with all its dependencies, for you.
+The archive will also contain a script to start the application with a single command.
+
+Run `./gradlew build`:
+
+[source]
+----
+$ ./gradlew build
+
+BUILD SUCCESSFUL in 876ms
+7 actionable tasks: 6 executed, 1 up-to-date
+----
+
+If you run a full build as shown above, Gradle will have produced the archive in two formats for you: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
+
+== Step 6. Publish a Build Scan
+
+The best way to learn more about what your build is doing behind the scenes, is to publish a link:https://scans.gradle.com[Build Scan].
+To do so, run the `build` task again with the `--scan` flag.
+
+[source]
+----
+$ ./gradlew build --scan
+
+BUILD SUCCESSFUL in 1s
+7 actionable tasks: 7 up-to-date
+Resolving local hostname is slow, see https://gradle.com/help/gradle-slow-host-name
+
+Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms of Service defined at https://gradle.com/terms-of-service. Do you accept these terms? [yes, no] yes
+
+Gradle Terms of Service accepted.
+
+Publishing build scan...
+https://gradle.com/s/5h7b7gi77dg7q
+----
+
+Click the link and explore which tasks where executed, which dependencies where downloaded, and many more details:
+
+image::build-scan-3.png[]
+
+[.text-right]
+**Next Step:** <<partr2_build_lifecycle#partr2_build_lifecycle,The Build Lifecycle>> >>

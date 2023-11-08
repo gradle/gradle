@@ -1,0 +1,56 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr6_using_plugins]]
+= Part 6: Using Plugins
+
+Learn the basics of using Gradle plugins and create a simple script plugin.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+****
+
+[[part6_begin]]
+== Step 0. Before you Begin
+
+1. You authored a task in <<partr5_registering_tasks.adoc#part5_begin,part 5>>.
+
+== Step 1.
+
+1. Apply a core plugin
+
+2. Apply a community plugin
+
+3. Apply a local plugin
+script plugin
+[source, build.gradle.kts]
+----
+class MyPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.run {
+            tasks {
+                register("myCopyTask", Copy::class) {
+                    group = "sample"
+                    from("build.gradle.kts")
+                    into("build/copy")
+                }
+            }
+        }
+    }
+}
+
+apply<MyPlugin>()
+----

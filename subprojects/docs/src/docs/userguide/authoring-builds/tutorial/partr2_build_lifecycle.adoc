@@ -1,0 +1,106 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr2_build_lifecycle]]
+= Part 2: The Build Lifecycle
+
+Learn the Gradle build lifecycle.
+
+****
+**In this section you will:**
+
+- Understand the Build Lifecycle
+- Run a task to view it in action
+****
+
+[[part2_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+
+== Step 1. Understanding the Build Lifecycle
+
+A Gradle build has three distinct phases:
+
+Phase 1 - Initialization  :: During the initialization phase, Gradle determines which projects are going to take part in the build, and creates a `Project` instance for each of these projects.
+
+Phase 2 - Configuration  :: During this phase, the `Project` objects are configured using the build scripts of all projects which are part of the build are executed.
+
+Phase 3 - Execution  :: Gradle determines the set of tasks, created and configured during the configuration phase, to be executed. Gradle then executes each of the selected tasks.
+
+When Gradle is invoked to execute a task, the lifecycle begins:
+
+image::gradle-build-lifecycle.png[]
+
+== Step 2. Update the Settings File
+
+Add the following line to the Settings file:
+
+.settings.gradle.kts
+[source, kotlin]
+----
+println("SETTINGS FILE: This is executed during the initialization phase")
+----
+
+== Step 3. Update the Build Script
+
+Add the following lines to the Build script:
+
+.build.gradle.kts
+[source, kotlin]
+----
+println("BUILD SCRIPT: This is executed during the configuration phase")
+
+tasks.register("lifecycle"){
+    println("REGISTER TASK: This is executed during the configuration phase")
+}
+
+tasks.named("lifecycle"){
+    println("NAMED TASK: This is executed during the configuration phase")
+    doLast {
+        println("NAMED TASK: This is executed during the execution phase")
+    }
+}
+----
+
+== Step 4. Run a Gradle Task
+
+Run the `lifecycle` task created in Step 3:
+
+[source]
+----
+$ ./gradlew lifecycle
+----
+
+[source]
+----
+SETTINGS FILE: This is executed during the initialization phase <1>
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase   <2>
+REGISTER TASK: This is executed during the configuration phase  <2>
+NAMED TASK: This is executed during the configuration phase     <2>
+
+> Task :app:lifecycle
+NAMED TASK: This is executed during the execution phase         <3>
+
+BUILD SUCCESSFUL in 335ms
+1 actionable task: 1 executed
+----
+<1> *Initialization*: Gradle executes `settings.gradle.kts` to determine the projects to be built and creates a `Project` object for each one.
+<2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
+<3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
+
+[.text-right]
+**Next Step:** <<partr3_settings_file#partr3_settings_file,Settings File>> >>

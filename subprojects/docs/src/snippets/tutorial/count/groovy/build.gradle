@@ -1,5 +1,12 @@
+class Example {
+    static void sum(int a, int b) {
+        int c = a + b;
+        println(c);
+    }
+}
+
 tasks.register('count') {
     doLast {
-        4.times { print "$it " }
+        4.times { print Example.sum(it,it) }
     }
 }

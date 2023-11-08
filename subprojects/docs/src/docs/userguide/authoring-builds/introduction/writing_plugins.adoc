@@ -1,0 +1,117 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[writing_plugins]]
+= Writing Plugins
+
+Writing custom plugins is the best way to customize your builds and organize your build logic.
+
+== Sample plugin
+
+A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+
+The example below is the most straightforward plugin, a "hello world" *plugin*:
+
+.build.gradle.kts
+[source,kotlin]
+----
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class SamplePlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.create("SampleTask") {
+            println("Hello world!")
+        }
+    }
+}
+----
+
+== Script plugin
+
+The simplest plugin is a script plugin which is coded in the build script.
+
+Let's take a look at an example:
+
+.build.gradle.kts
+[source,kotlin]
+----
+abstract class CreateFileTask : DefaultTask() {                                     // <1>
+    @get:Input
+    abstract val fileText: Property<String>
+
+    @Input
+    val fileName = "myfile.txt"
+
+    @OutputFile
+    val myFile: File = File(fileName)
+
+    @TaskAction
+    fun action() {
+        myFile.createNewFile()
+        myFile.writeText(fileText.get())
+    }
+}
+
+class MyPlugin : Plugin<Project> {                                                  // <2>
+    override fun apply(project: Project) {
+        project.run {
+            tasks {
+                register("createFileTask", CreateFileTask::class) {
+                    group = "from my plugin"
+                    description = "Create myfile.txt in the current directory"
+                    fileText.set("HELLO FROM MY PLUGIN")
+                }
+            }
+        }
+    }
+}
+
+apply<MyPlugin>()                                                                   // <3>
+----
+<1> Subclass `DefaultTask()`.
+<2> Extend the `org.gradle.api.Plugin` interface.
+<3> Apply the script plugin.
+
+=== Subclass `DefaultTask()`
+First, build a task by subclassing `DefaultTask()`.
+
+[source]
+----
+abstract class CreateFileTask : DefaultTask() { }
+----
+
+This is a simple task that adds a file to our application’s root directory.
+
+=== Extend the `org.gradle.api.Plugin` interface
+Next, create a new class that extends the `org.gradle.api.Plugin` interface.
+
+[source]
+----
+class MyPlugin : Plugin<Project> {
+    override fun apply() {}
+}
+----
+
+This interface has a single `apply` method which uses the `CreateFileTask` task
+
+=== Apply the script plugin
+Finally, apply the plugin in the build script.
+
+[source]
+----
+apply<MyPlugin>()
+----
+
+This makes the plugin available to the application.
