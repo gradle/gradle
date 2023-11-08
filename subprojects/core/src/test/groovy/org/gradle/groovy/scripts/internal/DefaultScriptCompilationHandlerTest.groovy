@@ -118,7 +118,6 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         scriptFileName = "script-file-name"
         cachedFile = new File(scriptCacheDir, scriptClassName + ".class")
         expectedScriptClass = TestBaseScript.class
-//        Problems.init(new DefaultProblems(Mock(BuildOperationProgressEventEmitter)))
     }
 
     private ScriptSource scriptSource(final String scriptText) {

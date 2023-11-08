@@ -31,6 +31,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.provider.Provider
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -154,7 +155,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         validationWarningRecorder,
         virtualFileSystem,
         documentationRegistry,
-        new DefaultProblems(Mock(BuildOperationProgressEventEmitter))
+        new DefaultProblems(Stub(ProblemEmitter))
     )
 
     def invoker = new DefaultTransformInvocationFactory(
