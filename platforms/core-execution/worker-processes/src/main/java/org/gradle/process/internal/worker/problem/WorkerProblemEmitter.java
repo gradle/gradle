@@ -23,6 +23,8 @@ import org.gradle.api.problems.internal.DefaultProblem;
 
 /**
  * Worker-side implementation of {@link ProblemEmitter}.
+ * <p>
+ * This emitter will use the {@link WorkerProblemProtocol} to communicate problems to the daemon.
  */
 @NonNullApi
 public class WorkerProblemEmitter implements ProblemEmitter {
