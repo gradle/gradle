@@ -39,7 +39,7 @@ public class DefaultProblem implements Problem {
     private List<String> solutions;
     private Throwable cause;
     private String problemCategory;
-    private Map<String, String> additionalMetadata;
+    private Map<String, Object> additionalData;
 
     public DefaultProblem(
         String label,
@@ -50,7 +50,7 @@ public class DefaultProblem implements Problem {
         @Nullable List<String> solutions,
         @Nullable Throwable cause,
         String problemCategory,
-        Map<String, String> additionalMetadata
+        Map<String, Object> additionalData
     ) {
         this.label = label;
         this.severity = severity;
@@ -60,7 +60,7 @@ public class DefaultProblem implements Problem {
         this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
         this.cause = cause;
         this.problemCategory = problemCategory;
-        this.additionalMetadata = additionalMetadata;
+        this.additionalData = additionalData;
     }
 
     @Override
@@ -105,8 +105,8 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Map<String, String> getAdditionalData() {
-        return additionalMetadata;
+    public Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
@@ -130,12 +130,12 @@ public class DefaultProblem implements Problem {
             equals(description, that.description) &&
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
-            equals(additionalMetadata, that.additionalMetadata);
+            equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata});
+        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalData});
     }
 
     public void setSeverity(Severity severity) {

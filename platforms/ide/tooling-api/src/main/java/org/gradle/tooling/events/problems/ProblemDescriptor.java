@@ -19,6 +19,8 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
+import java.util.Map;
+
 /**
  * Describes a problem operation.
  * <p>
@@ -36,4 +38,12 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the problem properties.
      */
     String getJson();
+
+    /**
+     * Additional data associated with this descriptor.
+     *
+     * @return a map of additional data.
+     * @since 8.6
+     */
+    Map<String, Object> getAdditionalData();
 }

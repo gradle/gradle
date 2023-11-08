@@ -17,18 +17,11 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
+import java.util.Map;
 
-/**
- * This interface is part of the cross-version protocol
- *
- * since 8.4
- */
 @NonNullApi
-public interface InternalProblemEvent extends InternalProgressEvent {
+public interface InternalProblemDetails2 extends InternalProblemDetails {
 
-    InternalProblemDetails getDetails();
-
-
+    Map<String, Object> getAdditionalData();
 }

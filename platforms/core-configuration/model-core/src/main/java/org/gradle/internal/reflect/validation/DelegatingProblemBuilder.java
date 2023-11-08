@@ -111,7 +111,7 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public BuildableProblemBuilder additionalData(String key, String value) {
+    public BuildableProblemBuilder additionalData(String key, Object value) {
         ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).additionalData(key, value);
         return (BuildableProblemBuilder) validateDelegate(newDelegate);
     }

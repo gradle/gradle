@@ -56,10 +56,16 @@ public interface ProblemBuilder {
 
     /**
      * Specifies arbitrary data associated with this problem.
+     * Currently supported value types:
+     * <ul>
+     *     <li>java.lang.String</li>
+     * </ul>
      *
      * @return this
+     * @throws RuntimeException for unsupported value types
+     * @since 8.6
      */
-    ProblemBuilder additionalData(String key, String value);
+    ProblemBuilder additionalData(String key, Object value);
 
     /**
      * The exception causing this problem.

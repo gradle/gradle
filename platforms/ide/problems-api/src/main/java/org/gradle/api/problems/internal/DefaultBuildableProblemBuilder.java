@@ -59,7 +59,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     private boolean explicitlyUndocumented = false;
     private List<String> solution;
     private RuntimeException exception;
-    protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
+    protected final Map<String, Object> additionalMetadata = new HashMap<String, Object>();
     private boolean collectLocation = false;
 
     public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
@@ -140,9 +140,16 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public BuildableProblemBuilder additionalData(String key, String value) {
+    public BuildableProblemBuilder additionalData(String key, Object value) {
+        validateValue(value);
         this.additionalMetadata.put(key, value);
         return this;
+    }
+
+    private static void validateValue(Object value) {
+        if (!(value instanceof String)) {
+            throw new RuntimeException("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.");
+        }
     }
 
     @Override

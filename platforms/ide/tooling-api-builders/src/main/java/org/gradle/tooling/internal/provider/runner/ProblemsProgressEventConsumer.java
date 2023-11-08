@@ -30,6 +30,9 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
     private final BuildOperationIdFactory idFactory;
@@ -52,11 +55,20 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         ),
                         buildOperationId),
                     new DefaultProblemDetails(
-                        new Gson().toJson(problem)
+                        new Gson().toJson(problem),
+                        filterEntriesWithUnsupportedValueTypes(problem.getAdditionalData())
                     )
                 )
             );
         }
+    }
+
+    private static Map<String, Object> filterEntriesWithUnsupportedValueTypes(Map<String, Object> additionalData) {
+        return additionalData.entrySet().stream().filter(entry -> isSupportedType(entry.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static boolean isSupportedType(Object type) {
+        return type instanceof String || type instanceof Integer;
     }
 
     @Override

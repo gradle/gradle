@@ -22,21 +22,31 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import java.util.Map;
+
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
     private final String json;
+    private final Map<String, Object> additionalData;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
-        String json
+        String json,
+        Map<String, Object> additionalData
     ) {
         super(internalDescriptor, parent);
         this.json = json;
+        this.additionalData = additionalData;
     }
 
     @Override
     public String getJson() {
         return json;
+    }
+
+    @Override
+    public Map<String, Object> getAdditionalData() {
+        return additionalData;
     }
 }
