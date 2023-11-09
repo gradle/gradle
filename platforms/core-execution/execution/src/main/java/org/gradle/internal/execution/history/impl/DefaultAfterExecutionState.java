@@ -29,17 +29,20 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 public class DefaultAfterExecutionState implements AfterExecutionState {
     private final BeforeExecutionState beforeExecutionState;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
+    private final boolean successful;
     private final OriginMetadata originMetadata;
     private final boolean reused;
 
     public DefaultAfterExecutionState(
         BeforeExecutionState beforeExecutionState,
         ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
+        boolean successful,
         OriginMetadata originMetadata,
         boolean reused
     ) {
         this.beforeExecutionState = beforeExecutionState;
         this.outputFileLocationSnapshots = outputFileLocationSnapshots;
+        this.successful = successful;
         this.originMetadata = originMetadata;
         this.reused = reused;
     }
@@ -67,6 +70,11 @@ public class DefaultAfterExecutionState implements AfterExecutionState {
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork() {
         return outputFileLocationSnapshots;
+    }
+
+    @Override
+    public boolean isSuccessful() {
+        return successful;
     }
 
     @Override

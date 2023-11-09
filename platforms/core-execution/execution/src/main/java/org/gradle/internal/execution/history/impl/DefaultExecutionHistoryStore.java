@@ -19,9 +19,9 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -65,7 +65,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, boolean successful, AfterExecutionState executionState) {
+    public void store(String key, AfterExecutionState executionState) {
         store.put(key, new DefaultPreviousExecutionState(
             executionState.getOriginMetadata(),
             executionState.getImplementation(),
@@ -73,7 +73,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getInputProperties(),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
-            successful
+            executionState.isSuccessful()
         ));
     }
 

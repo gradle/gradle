@@ -25,11 +25,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 public interface PreviousExecutionState extends InputExecutionState, OutputExecutionState {
 
     /**
-     * Whether the execution was successful.
-     */
-    boolean isSuccessful();
-
-    /**
      * {@inheritDoc}
      */
     @Override

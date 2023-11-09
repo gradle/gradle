@@ -26,6 +26,11 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 public interface OutputExecutionState {
 
     /**
+     * Whether the execution was successful.
+     */
+    boolean isSuccessful();
+
+    /**
      * Snapshots of the roots of output properties.
      *
      * In the presence of overlapping outputs this might be different from

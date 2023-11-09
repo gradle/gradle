@@ -64,12 +64,12 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result.getDuration()));
+            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result));
 
         return new AfterExecutionResult(result, afterExecutionState.orElse(null));
     }
 
-    private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
+    private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Result result) {
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();
@@ -79,9 +79,9 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
                 // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
                 // which is currently the _only_ thing this value is used for.
-                Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
+                Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
                 OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
-                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
+                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, result.getExecution().isSuccessful(), originMetadata, false);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return afterExecutionState;
             },
