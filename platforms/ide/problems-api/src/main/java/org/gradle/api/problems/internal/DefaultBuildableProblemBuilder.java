@@ -29,6 +29,7 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -164,10 +165,14 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         }
         // We will try to capture the build operation that caused the problem.
         // This is a best-effort attempt (as it can be null) and might need to be set manually through Problem#setBuildOperationRef
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef
+        BuildOperationRef buildOperationRef = CurrentBuildOperationRef
             .instance()
-            .get()
-            .getId();
+            .get();
+
+        OperationIdentifier buildOperationId = null;
+        if (buildOperationRef != null) {
+            buildOperationId = buildOperationRef.getId();
+        }
 
         return new DefaultReportableProblem(
             label,
