@@ -106,19 +106,6 @@ The following table lists a few commonly used methods:
 | Includes a build at the specified path to the composite build.
 |===
 
-[[sec:the_script_api]]
-== The Script API
-
-When Gradle executes a Groovy settings script (`settings.gradle`), it compiles the script into a class that implements link:{groovyDslPath}/org.gradle.api.Script.html[`Script`].
-
-As a result, settings scripts have access to all properties and methods declared by the link:{groovyDslPath}/org.gradle.api.Script.html[`Script`] interface.
-
-When Gradle executes a Kotlin settings script (`settings.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[`KotlinSettingsScript`].
-
-As a result, settings scripts have access to all visible properties and functions declared by the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html[`KotlinSettingsScript`] type.
-
-The Script API is particularly useful for working with files and paths; it provides useful methods such as `copy()`, `delete()`, `exec()` and `uri()` that are not available via the `Settings` object.
-
 == Settings Script structure
 
 Let's take a look at an example and break it down:

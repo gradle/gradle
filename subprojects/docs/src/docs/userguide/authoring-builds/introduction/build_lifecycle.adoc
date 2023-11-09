@@ -64,7 +64,7 @@ include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradl
 include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
-The following command configures and executes the `test` and `testBoth` tasks specified above.
+The following command executes the `test` and `testBoth` tasks specified above.
 Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures.
 
 [source.multi-language-sample,kotlin]

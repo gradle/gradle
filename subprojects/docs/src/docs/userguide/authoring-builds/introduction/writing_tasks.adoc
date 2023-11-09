@@ -49,7 +49,7 @@ Then, some text is written to the file.
 
 == Register a task
 
-A task is *registered* in the build script using the `register()` method so it can be used in the build logic.
+A task is *registered* in the build script using the `register()` method which allows it to then be used in the build logic.
 
 .build.gradle.kts
 [source,kotlin]
@@ -70,7 +70,7 @@ tasks.register<CreateFileTask>("createFileTask", ) {
 
 == Task group and description
 
-Adding *group* and *description* statements to your tasks can help users understand how to use your task:
+Setting the *group* and *description* properties on your tasks can help users understand how-to use your task:
 
 .build.gradle.kts
 [source,kotlin]

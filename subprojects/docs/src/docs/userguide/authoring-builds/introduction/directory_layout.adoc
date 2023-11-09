@@ -22,7 +22,7 @@ image::author-gradle-2.png[]
 [[dir:gradle_user_home]]
 == Gradle User Home directory
 
-By default, the Gradle User Home (`~/.gradle` or `C:\Users\username\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
+By default, the Gradle User Home (`~/.gradle` or `C:\Users\<USERNAME>\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
 
 It can be set with the environment variable `GRADLE_USER_HOME`.
 
@@ -74,7 +74,7 @@ If using `--no-daemon`, it runs in the foreground after the build session with a
 
 The following cleanup strategies are applied periodically (by default, once every 24 hours):
 
-- Version-specific caches in `caches/{gradleVersion}/` are checked for whether they are still in use.
+- Version-specific caches in all `caches/<GRADLE_VERSION>/` directories are checked for whether they are still in use.
 +
 If not, directories for release versions are deleted after 30 days of inactivity, and snapshot versions after 7 days.
 - Shared caches in `caches/` (e.g., `jars-*`) are checked for whether they are still in use.

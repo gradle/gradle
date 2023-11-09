@@ -69,8 +69,6 @@ Script plugins are self-resolving in that they are resolved from the specific fi
 Core binary plugins provided as part of the Gradle distribution are automatically resolved.
 
 *Applying* a plugin means executing the plugin's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] on the Project you want to enhance with the plugin.
-Applying plugins is _idempotent_.
-You can safely apply any plugin multiple times without side effects.
 
 The <<#sec:plugins_block,plugins DSL>> is recommended to resolve and apply plugins in one step.
 
@@ -88,7 +86,7 @@ This can be achieved in several ways:
 
 |<<#sec:plugins_block,1>>
 |<<#sec:plugins_block,Using the `plugins` block>>
-|Applying *community* plugin or *local* plugins in `buildSrc` to a specific project.
+|Applying *community* plugins or *local* plugins in `buildSrc` to a specific project.
 |Build script or Settings file
 
 ||
@@ -230,14 +228,12 @@ The form is:
 [source,kotlin]
 ----
 plugins {
-    `«plugin id»`                                             // <1>
-    id(«plugin id»)                                           // <2>
-    id(«plugin id») version «plugin version» [apply «false»]  // <3>
+    id(«plugin id»)                             // <1>
+    id(«plugin id») version «plugin version»    // <2>
 }
 ----
-<1> for core Gradle plugins
-<2> for core Gradle plugins or plugins already available to the build script
-<3> for binary Gradle plugins that need to be resolved
+<1> for core Gradle plugins or plugins already available to the build script
+<2> for binary Gradle plugins that need to be resolved
 =====
 
 [.multi-language-sample]
@@ -246,8 +242,8 @@ plugins {
 [source,groovy]
 ----
 plugins {
-    id «plugin id»                                            // <1>
-    id «plugin id» version «plugin version» [apply «false»]   // <2>
+    id «plugin id»                            // <1>
+    id «plugin id» version «plugin version»   // <2>
 }
 ----
 <1> for core Gradle plugins or plugins already available to the build script
@@ -256,13 +252,10 @@ plugins {
 ====
 
 [.multi-language-text.lang-kotlin]
-Where `«plugin id»`, in case `#1` is a static Kotlin extension property named after the core plugin ID, and in cases `#2` and `#3` is a string.
-`«plugin version»` is also a string.
-The `apply` statement with a `boolean` can disable the default behavior of applying the plugin immediately (e.g., you want to apply it only in `subprojects`).
+Where `«plugin id»` and `«plugin version»` are a string.
 
 [.multi-language-text.lang-groovy]
-Where `«plugin id»` and `«plugin version»` must be constant, literal strings, and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g., you want to apply it only in `subprojects`).
-No other statements are allowed; their presence will cause a compilation error.
+Where `«plugin id»` and `«plugin version»` must be constant, literal strings.
 
 The `plugins{}` block must also be a top-level statement in the build script.
 It cannot be nested inside another construct (e.g., an if-statement or for-loop).
@@ -271,9 +264,8 @@ It cannot be nested inside another construct (e.g., an if-statement or for-loop)
 ==== Only in build scripts and settings file
 
 The `plugins{}` block can only be used in a project's build script `build.gradle(.kts)` and the `settings.gradle(.kts)` file.
+It must appear before any other block.
 It cannot be used in script plugins or init scripts.
-
-If the restrictions of the `plugins{}` block are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript{} block>>.
 
 [[sec:subprojects_plugins_dsl]]
 ==== Applying plugins to all subprojects

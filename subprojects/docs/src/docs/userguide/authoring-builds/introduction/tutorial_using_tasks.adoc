@@ -215,7 +215,7 @@ include::{snippetsPath}/tutorial/intro/tests/intro.out[]
 ----
 ====
 
-To add a dependency, the corresponding task does not need to exist:
+The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
 
 ====
 include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
@@ -227,9 +227,7 @@ include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
 ====
 
-The dependency of `taskX` to `taskY` may be declared before `taskY` is defined.
-
-We can update the `hello` task from the previous example to include a dependency:
+The `hello` task from the previous example is updated to include a dependency:
 
 .build.gradle.kts
 [source,kotlin]
@@ -297,7 +295,7 @@ TIP: The calls `doFirst` and `doLast` can be executed multiple times.
 They add an action to the beginning or the end of the task's actions list.
 When the task executes, the actions in the action list are executed in order.
 
-Here is an example of the `named` method being used to configure a plugin:
+Here is an example of the `named` method being used to configure a task added by a plugin:
 
 [source,groovy]
 ----

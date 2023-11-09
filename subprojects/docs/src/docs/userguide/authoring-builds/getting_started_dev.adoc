@@ -15,11 +15,11 @@
 [[dev_introduction]]
 = Getting Started
 
-Build engineers that are ready to start writing their own tasks, plugins and other build logic should start here.
+Build engineers that are ready to start writing their own tasks, plugins, and configuring custom build logic should start here.
 
-To get started developing Gradle scripts:
+To get started engineering Gradle builds:
 
-1. Read the <<gradle_author_intro,core concepts chapters.
+1. Read the <<gradle_author_intro,core concepts chapters>>.
 2. Follow the <<author_tutorial,tutorial>> for a hands-on approach.
 
 [[gradle_author_intro]]

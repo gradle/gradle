@@ -106,10 +106,6 @@ The following table lists a few commonly used properties:
 | `ProjectLayout`
 | Provides access to several important locations for a project.
 
-| `projectDir`
-| `File`
-| The directory containing the build script.
-
 | `group`
 | `Object`
 | `unspecified`
@@ -125,26 +121,12 @@ The following table lists a few commonly used methods:
 |===
 | Name | Description
 
-| `allprojects()`
-| Configures this project and each of its subprojects.
+| `uri()`
+| Resolves a file path to a URI, relative to the project directory of this project.
 
 | `task()`
 | Creates a Task with the given name and adds it to this project.
 |===
-
-[[sec:the_script_api]]
-== The Script API
-
-When Gradle executes a Groovy build script (`build.gradle`), it compiles the script into a class that
-implements link:{groovyDslPath}/org.gradle.api.Script.html[Script].
-
-As a result, builds scripts have access to all properties and methods declared by the `Script` interface.
-
-When Gradle executes a Kotlin build script (`build.gradle.kts`), it compiles the script into a subclass of link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-project-script-template/index.html[KotlinProjectScriptTemplate].
-
-As a result, builds scripts have access to all visible properties and functions declared by the `KotlinProjectScriptTemplate` type.
-
-The Script API is particularly useful for working with files and paths; it provides useful methods such as `copy()`, `delete()`, `exec()` and `uri()` that are not available via the `Project` object.
 
 == Build Script structure
 
@@ -180,7 +162,7 @@ tasks.named<Test>("test") {                                             // <5>
     useJUnitPlatform()
 }
 ----
-<1> Add Gradle extensions via plugins.
+<1> Apply plugins to the build.
 <2> Define dependency location.
 <3> Add dependencies.
 <4> Use convention properties.
@@ -216,7 +198,7 @@ tasks.named('test') {                                                   // <5>
     useJUnitPlatform()
 }
 ----
-<1> Add Gradle extensions via plugins.
+<1> Apply plugins to the build.
 <2> Define dependency location.
 <3> Add dependencies.
 <4> Use convention properties.
@@ -224,7 +206,7 @@ tasks.named('test') {                                                   // <5>
 =====
 ====
 
-=== Add Gradle extensions via plugins
+=== 1. Apply plugins to the build
 Plugins are used to extend Gradle. They are also used to modularize and reuse project configurations.
 
 Plugins can be applied using the `PluginAware.apply(java.util.Map)` method or the `PluginDependenciesSpec` plugins script block.
@@ -244,11 +226,12 @@ In the example, the `application` plugin, which is included with Gradle, has bee
 The Kotlin gradle plugin, version 1.9.0, has also been applied.
 This plugin is not included with Gradle and, therefore has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
 
-=== Define dependency location
+=== 2. Define dependency location
 
 A project generally has a number of dependencies it needs to do its work.
 Dependencies include plugins, libraries, or components that Gradle must download for the build to succeed.
-The locations of the binaries for the dependencies must be described.
+
+The build script lets Gradle know where to look for the binaries of the dependencies:
 
 [source]
 ----
@@ -259,7 +242,7 @@ repositories {
 
 In the example, the `guava` library and the JetBrains Kotlin plugin (`org.jetbrains.kotlin.jvm`) will be downloaded from the link:https://repo.maven.apache.org/maven2/[Maven Central Repository].
 
-=== Add dependencies
+=== 3. Add dependencies
 
 A project generally has a number of dependencies it needs to do its work.
 These dependencies are typically imports in the source code.
@@ -282,7 +265,7 @@ dependencies {
 In the example, the application code uses Google's `guava` libraries.
 Guava provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.
 
-=== Use convention properties
+=== 4. Use convention properties
 
 A plugin can add properties and methods to a project through the project's `Convention` object.
 
@@ -295,7 +278,7 @@ application {
 }
 ----
 
-=== Register and configure tasks
+=== 5. Register and configure tasks
 
 Tasks perform some basic piece of work, such as compiling classes, or running unit tests, or zipping up a WAR file.
 
@@ -329,7 +312,7 @@ tasks.create<Zip>("zip-reports") {
 
 TIP: `register()`, which enables <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>, is preferred over `create()`.
 
-You can acquire a reference to a task to configure it using the `TaskCollection.named(java.lang.String)` method:
+You can locate a task to configure it using the `TaskCollection.named(java.lang.String)` method:
 
 [source]
 ----
