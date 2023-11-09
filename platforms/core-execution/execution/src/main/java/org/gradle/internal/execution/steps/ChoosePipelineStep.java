@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
 
@@ -33,10 +34,12 @@ public class ChoosePipelineStep<C extends IdentityContext, R extends Result> imp
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        if (work instanceof MutableUnitOfWork) {
+        if (work instanceof ImmutableUnitOfWork) {
+            return immutablePipeline.execute(work, context);
+        } else if (work instanceof MutableUnitOfWork) {
             return mutablePipeline.execute(work, context);
         } else {
-            return immutablePipeline.execute(work, context);
+            throw new AssertionError("Invalid work type: " + work.getClass().getName());
         }
     }
 }

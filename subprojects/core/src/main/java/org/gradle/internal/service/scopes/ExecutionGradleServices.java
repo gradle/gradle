@@ -153,6 +153,27 @@ public class ExecutionGradleServices {
             new ExecuteStep<>(buildOperationExecutor
         ))));
 
+        Step<IdentityContext,CachingResult> immutablePipeline =
+            new AssignWorkspaceStep<>(
+            new LoadPreviousExecutionStateStep<>(
+            new MarkSnapshottingInputsStartedStep<>(
+            new SkipEmptyNonIncrementalWorkStep(workInputListeners,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
+            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new MarkSnapshottingInputsFinishedStep<>(
+            new ResolveChangesStep<>(changeDetector,
+            // TODO Replace with checking if workspace exists, and if it does, check outputs
+            new SkipUpToDateStep<>(
+            new StoreExecutionStateStep<>(
+            new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
+            new AlwaysNonIncrementalInputChangesStep<>(
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
+            sharedExecutionPipeline
+        ))))))))))))))));
+
         Step<IdentityContext,CachingResult> mutablePipeline =
             new AssignWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
@@ -174,27 +195,6 @@ public class ExecutionGradleServices {
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
         )))))))))))))))));
-
-        Step<IdentityContext,CachingResult> immutablePipeline =
-            new AssignWorkspaceStep<>(
-            new LoadPreviousExecutionStateStep<>(
-            new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyNonIncrementalWorkStep(workInputListeners,
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
-            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
-            new MarkSnapshottingInputsFinishedStep<>(
-            new ResolveChangesStep<>(changeDetector,
-            // TODO Replace with checking if workspace exists, and if it does, check outputs
-            new SkipUpToDateStep<>(
-            new StoreExecutionStateStep<>(
-            new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
-            new AlwaysNonIncrementalInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            sharedExecutionPipeline
-        ))))))))))))))));
 
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,

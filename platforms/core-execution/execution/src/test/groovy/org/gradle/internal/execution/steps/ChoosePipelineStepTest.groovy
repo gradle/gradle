@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.MutableUnitOfWork
-import org.gradle.internal.execution.UnitOfWork
 
 class ChoosePipelineStepTest extends StepSpec<IdentityContext> {
     def incrementalPipeline = Mock(Step)
@@ -26,7 +26,7 @@ class ChoosePipelineStepTest extends StepSpec<IdentityContext> {
 
     def "executes non-incremental work via non-incremental pipeline"() {
         def delegateResult = Mock(Result)
-        def nonIncrementalWork = Mock(UnitOfWork)
+        def nonIncrementalWork = Mock(ImmutableUnitOfWork)
 
         when:
         def result = step.execute(nonIncrementalWork, context)
@@ -48,5 +48,14 @@ class ChoosePipelineStepTest extends StepSpec<IdentityContext> {
         result == delegateResult
         1 * incrementalPipeline.execute(incrementalWork, context) >> delegateResult
         0 * _
+    }
+
+    def "barfs at unknown type of work"() {
+        when:
+        step.execute(work, context)
+
+        then:
+        def ex = thrown AssertionError
+        ex.message.startsWith("Invalid work type: ${work.class.name}")
     }
 }
