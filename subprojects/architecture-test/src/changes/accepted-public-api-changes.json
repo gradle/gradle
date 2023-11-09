@@ -1,3 +1,18 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3m88o1fmv0l7lvdx7rywa3a01Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3m88o1fmv0l7lvdx7rywa3a01Kt",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3m88o1fmv0l7lvdx7rywa3a01Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_3m88o1fmv0l7lvdx7rywa3a01Kt.register(org.gradle.api.problems.ProblemTransformerRegistry,kotlin.reflect.KClass)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }
