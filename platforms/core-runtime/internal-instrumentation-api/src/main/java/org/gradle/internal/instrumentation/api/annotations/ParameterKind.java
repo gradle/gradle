@@ -16,6 +16,8 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
+import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationContext;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -40,5 +42,15 @@ public class ParameterKind {
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
     public @interface VarargParameter {
+    }
+
+    /**
+     * The current context of instrumentation. Not supported for Groovy at the moment.
+     *
+     * See also {@link JvmInstrumentationContext}.
+     */
+    @Retention(RetentionPolicy.CLASS)
+    @Target(ElementType.PARAMETER)
+    public @interface Context {
     }
 }
