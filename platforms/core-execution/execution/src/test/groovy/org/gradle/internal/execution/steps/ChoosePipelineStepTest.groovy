@@ -16,13 +16,13 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.IncrementalUnitOfWork
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 
 class ChoosePipelineStepTest extends StepSpec<IdentityContext> {
     def incrementalPipeline = Mock(Step)
     def nonIncrementalPipeline = Mock(Step)
-    def step = new ChoosePipelineStep(incrementalPipeline, nonIncrementalPipeline)
+    def step = new ChoosePipelineStep(nonIncrementalPipeline, incrementalPipeline)
 
     def "executes non-incremental work via non-incremental pipeline"() {
         def delegateResult = Mock(Result)
@@ -39,7 +39,7 @@ class ChoosePipelineStepTest extends StepSpec<IdentityContext> {
 
     def "executes incremental work via incremental pipeline"() {
         def delegateResult = Mock(Result)
-        def incrementalWork = Mock(IncrementalUnitOfWork)
+        def incrementalWork = Mock(MutableUnitOfWork)
 
         when:
         def result = step.execute(incrementalWork, context)

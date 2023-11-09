@@ -16,28 +16,27 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.IncrementalUnitOfWork;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
 
 public class ChoosePipelineStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
 
-    private final Step<? super IdentityContext, ? extends R> incrementalPipeline;
-    private final Step<? super IdentityContext, ? extends R> nonIncrementalPipeline;
+    private final Step<? super IdentityContext, ? extends R> immutablePipeline;
+    private final Step<? super IdentityContext, ? extends R> mutablePipeline;
 
     public ChoosePipelineStep(
-        Step<? super IdentityContext, ? extends R> incrementalPipeline,
-        Step<? super IdentityContext, ? extends R> nonIncrementalPipeline
+        Step<? super IdentityContext, ? extends R> immutablePipeline, Step<? super IdentityContext, ? extends R> mutablePipeline
     ) {
-        this.incrementalPipeline = incrementalPipeline;
-        this.nonIncrementalPipeline = nonIncrementalPipeline;
+        this.immutablePipeline = immutablePipeline;
+        this.mutablePipeline = mutablePipeline;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        if (work instanceof IncrementalUnitOfWork) {
-            return incrementalPipeline.execute(work, context);
+        if (work instanceof MutableUnitOfWork) {
+            return mutablePipeline.execute(work, context);
         } else {
-            return nonIncrementalPipeline.execute(work, context);
+            return immutablePipeline.execute(work, context);
         }
     }
 }

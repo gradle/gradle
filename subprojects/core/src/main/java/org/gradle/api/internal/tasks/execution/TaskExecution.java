@@ -48,8 +48,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.IncrementalUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -92,7 +92,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
 @SuppressWarnings("deprecation")
-public class TaskExecution implements IncrementalUnitOfWork {
+public class TaskExecution implements MutableUnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
     };

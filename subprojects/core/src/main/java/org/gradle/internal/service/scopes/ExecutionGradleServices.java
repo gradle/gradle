@@ -153,7 +153,7 @@ public class ExecutionGradleServices {
             new ExecuteStep<>(buildOperationExecutor
         ))));
 
-        Step<IdentityContext,CachingResult> incrementalPipeline =
+        Step<IdentityContext,CachingResult> mutablePipeline =
             new AssignWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
@@ -175,7 +175,7 @@ public class ExecutionGradleServices {
             sharedExecutionPipeline
         )))))))))))))))));
 
-        Step<IdentityContext,CachingResult> nonIncrementalPipeline =
+        Step<IdentityContext,CachingResult> immutablePipeline =
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
@@ -201,8 +201,8 @@ public class ExecutionGradleServices {
             new IdentityCacheStep<>(
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationExecutor,
             new ChoosePipelineStep<>(
-                incrementalPipeline,
-                nonIncrementalPipeline
+                immutablePipeline,
+                mutablePipeline
         )))));
         // CHECKSTYLE:ON
         // @formatter:on
