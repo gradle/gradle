@@ -43,12 +43,6 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public boolean isProducesDifferentValueOverTime() {
-        return leftProducer.isProducesDifferentValueOverTime()
-            || rightProducer.isProducesDifferentValueOverTime();
-    }
-
-    @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
         if (!isMissing(left)) {
             if (leftProducer.isKnown()) {

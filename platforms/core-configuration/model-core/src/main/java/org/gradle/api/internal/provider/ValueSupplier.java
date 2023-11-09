@@ -55,8 +55,6 @@ public interface ValueSupplier {
             return true;
         }
 
-        boolean isProducesDifferentValueOverTime();
-
         void visitProducerTasks(Action<? super Task> visitor);
 
         default void visitContentProducerTasks(Action<? super Task> visitor) {
@@ -85,7 +83,8 @@ public interface ValueSupplier {
         }
 
         static ValueProducer externalValue() {
-            return new ExternalValueProducer();
+            // At the moment, external values do not differ from values without the producer.
+            return NO_PRODUCER;
         }
 
         /**
@@ -103,18 +102,6 @@ public interface ValueSupplier {
         }
     }
 
-    class ExternalValueProducer implements ValueProducer {
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return true;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-    }
-
     class TaskProducer implements ValueProducer {
         private final Task task;
         private boolean content;
@@ -122,11 +109,6 @@ public interface ValueSupplier {
         public TaskProducer(Task task, boolean content) {
             this.task = task;
             this.content = content;
-        }
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
         }
 
         @Override
@@ -157,11 +139,6 @@ public interface ValueSupplier {
         }
 
         @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return left.isProducesDifferentValueOverTime() || right.isProducesDifferentValueOverTime();
-        }
-
-        @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
             left.visitProducerTasks(visitor);
             right.visitProducerTasks(visitor);
@@ -175,22 +152,11 @@ public interface ValueSupplier {
         }
 
         @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
-        }
-
-        @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }
     }
 
     class NoProducer implements ValueProducer {
-
-        @Override
-        public boolean isProducesDifferentValueOverTime() {
-            return false;
-        }
-
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
         }
