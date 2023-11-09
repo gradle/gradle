@@ -104,7 +104,7 @@ public interface ValueSupplier {
 
     class TaskProducer implements ValueProducer {
         private final Task task;
-        private boolean content;
+        private final boolean content;
 
         public TaskProducer(Task task, boolean content) {
             this.task = task;
