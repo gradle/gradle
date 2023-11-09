@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
@@ -72,7 +73,7 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     }
 
     public DefaultGradleProject setChildren(List<? extends DefaultGradleProject> children) {
-        this.children = children;
+        this.children = ImmutableList.copyOf(children); // also ensures it's serializable
         return this;
     }
 
@@ -124,7 +125,7 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     }
 
     public DefaultGradleProject setTasks(List<LaunchableGradleProjectTask> tasks) {
-        this.tasks = tasks;
+        this.tasks = ImmutableList.copyOf(tasks); // also ensures it's serializable
         return this;
     }
 
