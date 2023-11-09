@@ -17,8 +17,6 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.emitters.NoOpProblemEmitter;
@@ -48,12 +46,12 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
-import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
-import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
-import org.gradle.process.internal.worker.problem.WorkerProblemSerializer;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.messaging.WorkerConfig;
 import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
+import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
+import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
+import org.gradle.process.internal.worker.problem.WorkerProblemSerializer;
 
 import java.io.DataInputStream;
 import java.io.File;

@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
 
+@NonNullApi
 public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override

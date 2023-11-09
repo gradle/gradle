@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.configuration.ImportsReader
@@ -46,7 +47,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextResource
@@ -98,14 +98,14 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
-        def emitter = Mock(BuildOperationProgressEventEmitter)
         scriptCompilationHandler = new DefaultScriptCompilationHandler(
             TestFiles.deleter(),
             importsReader
         ) {
             @Override
-            Problems getProblemService() {
-                return new DefaultProblems(emitter)
+            protected Problems getProblemService() {
+                def problemEmitter = Stub(ProblemEmitter)
+                return new DefaultProblems(problemEmitter)
             }
         }
 

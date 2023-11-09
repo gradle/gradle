@@ -21,7 +21,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -43,7 +43,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         String problemCategory,
         Map<String, String> additionalMetadata,
         @Nullable InternalProblems problemService,
-        @Nullable BuildOperationRef buildOperationRef
+        @Nullable OperationIdentifier buildOperationId
         ) {
         super(
             message,
@@ -55,7 +55,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
             cause,
             problemCategory,
             additionalMetadata,
-            buildOperationRef
+            buildOperationId
         );
         this.problemService = problemService;
     }

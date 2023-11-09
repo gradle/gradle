@@ -16,9 +16,9 @@
 
 package org.gradle.internal.buildtree
 
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.ProjectParallelExecutionController
@@ -33,7 +33,7 @@ class BuildTreeStateTest extends Specification {
 
     def setup() {
         def services = new DefaultServiceRegistry()
-        services.add(Mock(BuildOperationProgressEventEmitter))
+        services.add(Stub(ProblemEmitter))
         services.add(Mock(BuildModelParameters))
         services.add(Mock(ProjectParallelExecutionController))
         services.add(BuildTreeActionExecutor, actionExecutor)

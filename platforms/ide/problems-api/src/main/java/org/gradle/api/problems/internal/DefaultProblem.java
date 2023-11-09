@@ -22,7 +22,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -44,7 +44,7 @@ public class DefaultProblem implements Problem, Serializable {
     private Map<String, String> additionalMetadata;
 
     @Nullable
-    private BuildOperationRef buildOperationRef;
+    private OperationIdentifier buildOperationId;
 
     public DefaultProblem(
         String label,
@@ -56,7 +56,7 @@ public class DefaultProblem implements Problem, Serializable {
         @Nullable Throwable cause,
         String problemCategory,
         Map<String, String> additionalMetadata,
-        @Nullable BuildOperationRef buildOperationRef
+        @Nullable OperationIdentifier buildOperationId
     ) {
         this.label = label;
         this.severity = severity;
@@ -67,7 +67,7 @@ public class DefaultProblem implements Problem, Serializable {
         this.cause = cause;
         this.problemCategory = problemCategory;
         this.additionalMetadata = additionalMetadata;
-        this.buildOperationRef = buildOperationRef;
+        this.buildOperationId = buildOperationId;
     }
 
     @Override
@@ -116,13 +116,13 @@ public class DefaultProblem implements Problem, Serializable {
         return additionalMetadata;
     }
 
-    public void setBuildOperationRef(BuildOperationRef buildOperationRef) {
-        this.buildOperationRef = buildOperationRef;
+    public void setBuildOperationRef(@Nullable OperationIdentifier buildOperationId) {
+        this.buildOperationId = buildOperationId;
     }
 
     @Nullable
-    public BuildOperationRef getBuildOperationRef() {
-        return buildOperationRef;
+    public OperationIdentifier getBuildOperationRef() {
+        return buildOperationId;
     }
 
     public void setSeverity(Severity severity) {
@@ -151,12 +151,12 @@ public class DefaultProblem implements Problem, Serializable {
             equals(solutions, that.solutions) &&
             equals(cause, that.cause) &&
             equals(additionalMetadata, that.additionalMetadata) &&
-            equals(buildOperationRef, that.buildOperationRef);
+            equals(buildOperationId, that.buildOperationId);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata, buildOperationRef});
+        return Arrays.hashCode(new Object[]{label, severity, where, documentationLink, description, solutions, cause, additionalMetadata, buildOperationId});
     }
 
 }

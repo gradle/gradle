@@ -24,22 +24,21 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static com.google.common.collect.ImmutableList.of
 import static org.gradle.integtests.fixtures.validation.ValidationProblemPropertyAnnotationHandler.TEST_PROBLEM
+import static org.gradle.internal.RenderingUtils.oxfordListOf
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
-import static org.gradle.internal.RenderingUtils.oxfordListOf
 
 class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
-    def emitter = Mock(BuildOperationProgressEventEmitter)
+    def emitter = Stub(ProblemEmitter)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, new DefaultProblems(emitter), delegate)
     def delegateResult = Mock(Result)
 

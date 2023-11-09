@@ -21,7 +21,6 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.problems.buildtree.ProblemStream;
 
 public interface InternalProblems extends Problems {

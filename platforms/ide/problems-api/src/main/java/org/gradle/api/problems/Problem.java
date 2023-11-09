@@ -18,7 +18,6 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.locations.ProblemLocation;
-import org.gradle.internal.operations.BuildOperationRef;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -98,12 +97,4 @@ public interface Problem {
      */
     Map<String, String> getAdditionalData();
 
-    /**
-     * The build operation that caused the problem.
-     * Might be null if the problem is not associated with a build operation.
-     *
-     * @since 8.6
-     */
-    @Nullable
-    BuildOperationRef getBuildOperationRef();
 }

@@ -30,9 +30,9 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -41,9 +41,8 @@ import java.util.function.Supplier
 
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
 
-    def stub = Stub(BuildOperationProgressEventEmitter)
     def supplier = Stub(Supplier)
-    def problems = new DefaultProblems(stub)
+
     def createVersionCatalogBuilder() {
         new DefaultVersionCatalogBuilder(
             "libs",
@@ -53,7 +52,8 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             supplier) {
             @Override
             protected Problems getProblemService() {
-                problems
+                def problemEmitter = Stub(ProblemEmitter)
+                return new DefaultProblems(problemEmitter)
             }
         }
     }
