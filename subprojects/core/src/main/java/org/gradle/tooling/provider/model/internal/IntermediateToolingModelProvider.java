@@ -26,7 +26,8 @@ import java.util.List;
 /**
  * Fetches models for given projects in an Isolated Project-compatible manner.
  * <p>
- * It should be used by tooling model builders when they need to aggregate models from multiple projects.
+ * It should be used by tooling model builders when they need to aggregate models
+ * from <b>multiple projects of the same build</b>.
  */
 @NonNullApi
 @ServiceScope(Scopes.Build.class)
@@ -34,11 +35,15 @@ public interface IntermediateToolingModelProvider {
 
     /**
      * Fetches models of a given type for the given projects.
+     * <p>
+     * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
      */
     <T> List<T> getModels(List<Project> targets, Class<T> modelType);
 
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
+     * <p>
+     * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
      */
     <T> List<T> getModels(List<Project> targets, Class<T> modelType, Object modelBuilderParameter);
 
