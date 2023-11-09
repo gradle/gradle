@@ -17,7 +17,8 @@
 package org.gradle.internal.execution;
 
 /**
- * A unit of work that can be executed incrementally, i.e. it can reuse outputs from a previous execution.
+ * A unit of work that can be executed multiple times in the same workspace.
+ * Such work can reuse outputs from a previous execution.
  */
-public interface IncrementalUnitOfWork extends UnitOfWork {
+public interface MutableUnitOfWork extends UnitOfWork {
 }
