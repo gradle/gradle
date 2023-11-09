@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 /**
  * Captures the state of the outputs of a {@link org.gradle.internal.execution.UnitOfWork}.
  */
-public interface OutputExecutionState extends ExecutionState {
+public interface OutputExecutionState {
 
     /**
      * Snapshots of the roots of output properties.
