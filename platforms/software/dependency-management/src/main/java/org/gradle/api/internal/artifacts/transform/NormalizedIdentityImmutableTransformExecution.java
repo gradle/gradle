@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -26,7 +27,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Map;
 
-class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution {
+class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork {
     public NormalizedIdentityImmutableTransformExecution(
         Transform transform,
         File inputArtifact,

@@ -49,6 +49,7 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -336,7 +337,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return classes;
     }
 
-    private abstract class AbstractAccessorUnitOfWork implements UnitOfWork {
+    private abstract class AbstractAccessorUnitOfWork implements ImmutableUnitOfWork {
         private static final String OUT_SOURCES = "sources";
         private static final String OUT_CLASSES = "classes";
 

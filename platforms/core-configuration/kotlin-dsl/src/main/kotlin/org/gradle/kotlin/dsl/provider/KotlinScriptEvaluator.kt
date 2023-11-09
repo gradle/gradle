@@ -34,6 +34,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
@@ -356,7 +357,7 @@ class CompileKotlinScript(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter
-) : UnitOfWork {
+) : ImmutableUnitOfWork {
 
     companion object {
         const val JVM_TARGET = "jvmTarget"

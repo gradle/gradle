@@ -24,6 +24,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
@@ -114,7 +115,7 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
-) : UnitOfWork {
+) : ImmutableUnitOfWork {
 
     companion object {
         const val PROJECT_SCHEMA_INPUT_PROPERTY = "projectSchema"
