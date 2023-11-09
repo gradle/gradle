@@ -18,7 +18,7 @@ package org.gradle.cache.internal.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.VersionStrategy;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
@@ -26,7 +26,6 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 public class DefaultCacheScopeMapping implements CacheScopeMapping {
-
     @VisibleForTesting
     public static final String GLOBAL_CACHE_DIR_NAME = "caches";
     private static final Pattern CACHE_KEY_NAME_PATTERN = Pattern.compile("\\p{Alpha}+[-/.\\w]*");
@@ -46,11 +45,6 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         }
         File cacheRootDir = getRootDirectory(baseDir);
         return getCacheDir(cacheRootDir, versionStrategy, key);
-    }
-
-    @Override
-    public File getLockDir(@Nullable File lockDir) {
-        return lockDir;
     }
 
     private File getRootDirectory(@Nullable File scope) {

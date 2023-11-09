@@ -165,7 +165,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     }
 
     BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
+        File workDir = cacheBuilderFactory.getCacheDir("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 

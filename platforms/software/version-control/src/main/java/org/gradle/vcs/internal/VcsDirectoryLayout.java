@@ -26,7 +26,7 @@ public class VcsDirectoryLayout {
 
     public VcsDirectoryLayout(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         this.checkoutDir = cacheBuilderFactory.baseDirForCrossVersionCache("vcs-1");
-        this.metadataDir = cacheBuilderFactory.baseDirForCache("vcsMetadata");
+        this.metadataDir = cacheBuilderFactory.getCacheDir("vcsMetadata");
     }
 
     public File getMetadataDir() {

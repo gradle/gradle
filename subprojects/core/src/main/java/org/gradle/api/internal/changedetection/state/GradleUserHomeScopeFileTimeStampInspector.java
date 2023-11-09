@@ -41,7 +41,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     private boolean isCurrentTimestampHighPrecision;
 
     public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
-        super(cacheBuilderFactory.baseDirForCache("file-changes"));
+        super(cacheBuilderFactory.getCacheDir("file-changes"));
     }
 
     public void attach(CachingFileHasher fileHasher) {

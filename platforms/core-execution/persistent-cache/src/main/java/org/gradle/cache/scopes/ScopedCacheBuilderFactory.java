@@ -45,16 +45,20 @@ public interface ScopedCacheBuilderFactory {
     File getRootDir();
 
     /**
-     * Returns the base directory that would be used for a Gradle-version specific cache builder created by this factory.
+     * Returns the base directory that would be used for a Gradle-version specific cache builder created by this factory
+     * at the root dir specified by {@link #getRootDir()}.
      */
-    File baseDirForCache(String key);
+    File getCacheDir(String key);
 
     /**
-     * Returns the base directory that would be used for a cross Gradle version cache builder created by this factory.
+     * Returns the base directory that would be used for a cross Gradle version cache builder created by this factory
+     * at the root dir specified by {@link #getRootDir()}.
      */
     File baseDirForCrossVersionCache(String key);
 
-
-    File lockDirForCache(String key);
-    File lockDirForCrossVersionCache(String key);
+    /**
+     * Returns the base directory that would be used for a cache builder created by this factory
+     * using the given version strategy at the given root dir.
+     */
+    File getCacheDir(File rootDir, String key, VersionStrategy versionStrategy);
 }

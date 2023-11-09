@@ -19,14 +19,12 @@ package org.gradle.api.internal.cache;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 /**
@@ -35,14 +33,13 @@ import java.util.function.Supplier;
  * This class manages a singleton cache and creates it on demand. Closing this factory will close the cache.
  */
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
-
     private final Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier;
-    private final File lockDir;
+    private final File rootLockDir;
     private volatile DecompressionCache cache;
 
-    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier, File gradleUserHomeDir) {
+    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier, File projectCacheDir) {
         this.cacheBuilderFactorySupplier = cacheBuilderFactorySupplier;
-        this.lockDir = Paths.get(gradleUserHomeDir.getAbsolutePath(), DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME, DefaultDecompressionCache.EXPANSION_CACHE_KEY).toFile();
+        this.rootLockDir = projectCacheDir;
     }
 
     @Nonnull
@@ -51,7 +48,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get(), lockDir);
+                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get(), rootLockDir);
                 }
             }
         }

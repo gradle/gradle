@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal.scopes
 
-import org.gradle.cache.internal.VersionStrategy
+import org.gradle.cache.scopes.VersionStrategy
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule

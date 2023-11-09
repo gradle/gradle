@@ -53,6 +53,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
@@ -152,8 +153,8 @@ public class BuildTreeScopeServices {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, StartParameter startParameter) {
-        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory, startParameter.getGradleUserHomeDir());
+    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, ProjectCacheDir projectCacheDir) {
+        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory, projectCacheDir.getDir());
     }
 
     protected BuildLogicBuildQueue createBuildLogicBuildQueue(

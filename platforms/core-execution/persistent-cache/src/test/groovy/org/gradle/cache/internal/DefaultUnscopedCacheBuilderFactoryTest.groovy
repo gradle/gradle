@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.cache.LockOptions
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.scopes.VersionStrategy
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

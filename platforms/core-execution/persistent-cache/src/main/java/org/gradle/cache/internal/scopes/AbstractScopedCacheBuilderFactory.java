@@ -19,7 +19,7 @@ package org.gradle.cache.internal.scopes;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.VersionStrategy;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.util.GradleVersion;
 
@@ -31,18 +31,12 @@ import java.io.File;
 public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
-    private final File rootContentDir;
-    private final File lockDir;
+    private final File rootCacheDir;
 
     public AbstractScopedCacheBuilderFactory(File rootContentDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        this(rootContentDir, rootContentDir, unscopedCacheBuilderFactory);
-    }
-
-    public AbstractScopedCacheBuilderFactory(File rootContentDir, File lockDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        this.rootContentDir = rootContentDir;
+        this.rootCacheDir = rootContentDir;
         this.cacheScopeMapping = new DefaultCacheScopeMapping(rootContentDir, GradleVersion.current());
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
-        this.lockDir = lockDir;
     }
 
     protected UnscopedCacheBuilderFactory getCacheRepository() {
@@ -51,12 +45,12 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public File getRootDir() {
-        return rootContentDir;
+        return rootCacheDir;
     }
 
     @Override
     public CacheBuilder createCacheBuilder(String key) {
-        return unscopedCacheBuilderFactory.cache(baseDirForCache(key));
+        return unscopedCacheBuilderFactory.cache(getCacheDir(key));
     }
 
     @Override
@@ -65,22 +59,17 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
     }
 
     @Override
-    public File baseDirForCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.CachePerVersion);
+    public File getCacheDir(String key) {
+        return getCacheDir(rootCacheDir, key, VersionStrategy.CachePerVersion);
     }
 
     @Override
     public File baseDirForCrossVersionCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.SharedCache);
+        return getCacheDir(rootCacheDir, key, VersionStrategy.SharedCache);
     }
 
     @Override
-    public File lockDirForCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(lockDir, key, VersionStrategy.CachePerVersion);
-    }
-
-    @Override
-    public File lockDirForCrossVersionCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.SharedCache);
+    public File getCacheDir(File rootDir, String key, VersionStrategy versionStrategy) {
+        return cacheScopeMapping.getBaseDirectory(rootDir, key, versionStrategy);
     }
 }

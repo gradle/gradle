@@ -22,11 +22,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
 
 class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
-
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
@@ -473,10 +473,8 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }
-
-                    def lockDir = file("${executer.gradleUserHomeDir.file("caches/expanded")}")
-                    assert lockDir.list().size() == 1
-                    assert lockDir.list().contains('expanded.lock')
+                    def lockFile = file(".gradle/${GradleVersion.current().version}/expanded/expanded.lock")
+                    assert lockFile.exists()
                 }
             }
         """

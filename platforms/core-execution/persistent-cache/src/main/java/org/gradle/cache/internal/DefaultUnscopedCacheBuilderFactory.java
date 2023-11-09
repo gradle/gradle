@@ -23,6 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.scopes.VersionStrategy;
 
 import java.io.File;
 import java.util.Collections;
