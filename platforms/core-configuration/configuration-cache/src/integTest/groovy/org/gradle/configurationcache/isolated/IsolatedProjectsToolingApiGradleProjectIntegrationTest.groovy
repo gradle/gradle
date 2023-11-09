@@ -72,7 +72,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         buildFile << """
             tasks.register("lazy") {
-                println "realizing lazy task"
+                throw new RuntimeException("must not realize lazy tasks")
             }
         """
 
@@ -82,7 +82,6 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
 
         then:
         fixture.assertNoConfigurationCache()
-        outputDoesNotContain("realizing lazy task")
 
         with(expectedProjectModel) {
             it.name == "root"
@@ -100,8 +99,6 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
             modelsCreated(":", 2) // `GradleProject` and intermediate `IsolatedGradleProjectInternal`
             modelsCreated(":lib1")
         }
-
-        outputDoesNotContain("realizing lazy task")
 
         checkGradleProject(projectModel, expectedProjectModel)
 
