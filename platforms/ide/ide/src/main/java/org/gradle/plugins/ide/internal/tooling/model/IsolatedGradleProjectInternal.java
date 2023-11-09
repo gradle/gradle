@@ -16,15 +16,14 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -33,12 +32,12 @@ import java.util.List;
  * <b>This model is internal, and is NOT part of the public Tooling API.</b>
  */
 @NonNullApi
-public class IsolatedGradleProjectInternal implements Serializable, GradleProjectIdentity {
+public class IsolatedGradleProjectInternal implements Serializable {
 
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<LaunchableGradleTask> tasks = new LinkedList<>();
+    private List<LaunchableGradleTask> tasks = ImmutableList.of();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
@@ -61,22 +60,8 @@ public class IsolatedGradleProjectInternal implements Serializable, GradleProjec
         return this;
     }
 
-    public String getPath() {
-        return projectIdentifier.getProjectPath();
-    }
-
     public DefaultProjectIdentifier getProjectIdentifier() {
         return projectIdentifier;
-    }
-
-    @Override
-    public String getProjectPath() {
-        return projectIdentifier.getProjectPath();
-    }
-
-    @Override
-    public File getRootDir() {
-        return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
     public IsolatedGradleProjectInternal setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
@@ -84,18 +69,12 @@ public class IsolatedGradleProjectInternal implements Serializable, GradleProjec
         return this;
     }
 
-    public String toString() {
-        return "IsolatedGradleProject{"
-            + "path='" + getPath() + '\''
-            + '}';
-    }
-
     public Collection<LaunchableGradleTask> getTasks() {
         return tasks;
     }
 
     public IsolatedGradleProjectInternal setTasks(List<LaunchableGradleTask> tasks) {
-        this.tasks = tasks;
+        this.tasks = ImmutableList.copyOf(tasks); // also ensures it's serializable
         return this;
     }
 
@@ -121,4 +100,7 @@ public class IsolatedGradleProjectInternal implements Serializable, GradleProjec
         return buildScript;
     }
 
+    public String toString() {
+        return "IsolatedGradleProject{" + projectIdentifier + "}";
+    }
 }
