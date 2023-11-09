@@ -18,7 +18,6 @@ package org.gradle.internal.resource.transport.http
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
@@ -275,13 +274,12 @@ class HttpClientHelperSSLTest extends Specification {
      * and changing performExternalRequest() to performRequest()
      **/
     @Requires(UnitTestPreconditions.Windows)
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4012")
     def "can use windows-root trust store"() {
         given:
         System.properties["javax.net.ssl.trustStoreType"] = "Windows-ROOT"
 
         when:
-        performExternalRequest()
+        performExternalRequest("https://microsoft.com")
 
         then:
         noExceptionThrown()
@@ -321,10 +319,10 @@ class HttpClientHelperSSLTest extends Specification {
         performRequest(expectSuccess, true)
     }
 
-    private def performExternalRequest() {
+    private def performExternalRequest(String targetWebsite = "https://gradle.org") {
         createClient()
 
-        client.performGet("https://gradle.org", false)
+        client.performGet(targetWebsite, false)
     }
 
 }
