@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import spock.lang.Specification
@@ -25,7 +26,7 @@ import java.util.function.Predicate
 abstract class AbstractCallInterceptionTest extends Specification {
     protected abstract Predicate<String> shouldInstrumentAndReloadClassByName()
 
-    protected abstract JvmBytecodeInterceptorSet jvmBytecodeInterceptorSet()
+    protected abstract JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet()
 
     protected abstract GroovyCallInterceptorsProvider groovyCallInterceptors()
 

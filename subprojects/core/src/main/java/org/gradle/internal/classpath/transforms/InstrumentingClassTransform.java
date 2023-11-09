@@ -25,8 +25,8 @@ import org.gradle.internal.classpath.CallInterceptionClosureInstrumentingClassVi
 import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.classpath.JvmBytecodeInterceptorSet;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
@@ -51,6 +51,7 @@ import java.util.Properties;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest.INSTRUMENTATION_ONLY;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -178,7 +179,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(CallInterceptorRegistry.getJvmBytecodeInterceptors());
+        this(CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY));
     }
 
     /**

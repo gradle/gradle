@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest;
 
 import javax.annotation.Nullable;
 
@@ -36,7 +37,7 @@ public interface CallInterceptorResolver {
         @Nullable
         @Override
         public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator(InterceptorsFilteringRequest.INSTRUMENTATION_ONLY);
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
             }
@@ -45,7 +46,7 @@ public interface CallInterceptorResolver {
 
         @Override
         public boolean isAwareOfCallSiteName(String name) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator();
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator(InterceptorsFilteringRequest.INSTRUMENTATION_ONLY);
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
             }

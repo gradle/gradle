@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath
 
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver
-import org.gradle.internal.classpath.intercept.CallInterceptorsSet
+import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorate
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
@@ -28,7 +28,7 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
 
 class CallInterceptingMetaClassTest extends Specification {
 
-    CallInterceptorResolver callInterceptors = new CallInterceptorsSet(new ClassLoaderSourceGroovyCallInterceptorsProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE));
+    CallInterceptorResolver callInterceptors = new DefaultCallSiteDecorate(new ClassLoaderSourceGroovyCallInterceptorsProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE));
     private MetaClass originalMetaClass = null
     private static InterceptorTestReceiver instance = null
 
