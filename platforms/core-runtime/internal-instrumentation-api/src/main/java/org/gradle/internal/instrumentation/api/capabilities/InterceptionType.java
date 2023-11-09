@@ -17,7 +17,15 @@
 package org.gradle.internal.instrumentation.api.capabilities;
 
 public enum InterceptionType {
+
+    /**
+     * An interceptor that is applied to the bytecode always.
+     */
     INSTRUMENTATION(InterceptionCapability.InstrumentationInterceptor.class),
+
+    /**
+     * An interceptor that is applied to the bytecode only for upgrades.
+     */
     BYTECODE_UPGRADE(InterceptionCapability.BytecodeUpgradeInterceptor.class);
 
     private final Class<? extends InterceptionCapability> markerInterface;
