@@ -89,6 +89,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
                         beforeExecutionState,
                         cacheHit.getResultingSnapshots(),
+                        true,
                         originMetadata,
                         true);
                     Try<Execution> execution = Try.successful(Execution.skipped(FROM_CACHE, work, context.getWorkspace()));

@@ -63,6 +63,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
             beforeExecutionState,
             previousExecutionState.getOutputFilesProducedByWork(),
+            true,
             previousExecutionState.getOriginMetadata(),
             true);
         Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work, context.getWorkspace()));

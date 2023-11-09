@@ -157,10 +157,10 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
         1 * executionHistoryStore.store(
             identity.uniqueId,
-            successful,
             { AfterExecutionState executionState ->
                 executionState.outputFilesProducedByWork == finalOutputs
                 executionState.originMetadata == originMetadata
+                executionState.successful >> successful
             }
         )
     }

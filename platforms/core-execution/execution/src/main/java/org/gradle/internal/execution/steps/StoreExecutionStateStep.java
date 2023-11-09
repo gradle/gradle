@@ -51,7 +51,6 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
                         if (shouldStore) {
                             history.store(
                                 context.getIdentity().getUniqueId(),
-                                result.getExecution().isSuccessful(),
                                 afterExecutionState
                             );
                         }
