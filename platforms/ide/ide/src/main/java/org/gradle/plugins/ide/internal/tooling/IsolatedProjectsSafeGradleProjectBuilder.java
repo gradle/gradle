@@ -54,11 +54,11 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements ToolingModelBui
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        return buildRoot(project);
+        return buildForRoot(project);
     }
 
     @Override
-    public DefaultGradleProject buildRoot(Project project) {
+    public DefaultGradleProject buildForRoot(Project project) {
         ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
         IsolatedGradleProjectParameter parameter = createParameter(GradleProjectBuilderOptions.shouldRealizeTasks());
 

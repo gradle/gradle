@@ -150,7 +150,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         currentProject = project;
         eclipseProjects = Lists.newArrayList();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
-        rootGradleProject = gradleProjectBuilder.buildRoot(project);
+        rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root, new ArrayList<>());
         deduplicateProjectNames(root);

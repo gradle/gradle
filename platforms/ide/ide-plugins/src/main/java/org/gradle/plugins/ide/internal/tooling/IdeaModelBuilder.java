@@ -75,7 +75,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
         applyIdeaPlugin((ProjectInternal) root, new ArrayList<>());
-        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildRoot(project);
+        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         return build(root, rootGradleProject);
     }
 
