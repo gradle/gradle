@@ -42,4 +42,5 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
      */
     void setResult(ComponentGraphResolveState state);
 
+    void applyTo(BuildableComponentResolveResult target);
 }

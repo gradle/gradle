@@ -19,12 +19,16 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.model.CalculatedValueContainerCache;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +47,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private final List<ModuleComponentRepository<ModuleComponentGraphResolveState>> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
+    private final CalculatedValueContainerCache<DisplayName, BuildableComponentResolveResult> metadataValueContainerCache;
 
-    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser) {
+    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.versionedComponentChooser = componentChooser;
+        this.metadataValueContainerCache = new CalculatedValueContainerCache<>(calculatedValueContainerFactory);
     }
 
     public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
@@ -59,7 +65,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
-        resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
+        metadataValueContainerCache.getReference(toDisplayName(identifier), () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata))
+            .finalizeAndGet()
+            .applyTo(result);
     }
 
     @Override
@@ -78,10 +86,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         return true;
     }
 
-    private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    private BuildableComponentResolveResult resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<>();
+        BuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
         for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
@@ -97,7 +106,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
             String repositoryName = latestResolved.repository.getName();
             result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(repositoryName));
-            return;
+            return result;
         }
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(identifier, errors));
@@ -107,6 +116,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             }
             result.notFound(identifier);
         }
+
+        return result;
     }
 
     @Nullable
@@ -163,5 +174,33 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         return best;
+    }
+
+    private static DisplayName toDisplayName(ComponentIdentifier identifier) {
+        if (DisplayName.class.isAssignableFrom(identifier.getClass())) {
+            return (DisplayName) identifier;
+        } else {
+            return new DisplayName() {
+                @Override
+                public String getDisplayName() {
+                    return identifier.getDisplayName();
+                }
+
+                @Override
+                public String getCapitalizedDisplayName() {
+                    return getDisplayName();
+                }
+
+                @Override
+                public int hashCode() {
+                    return identifier.hashCode();
+                }
+
+                @Override
+                public boolean equals(Object obj) {
+                    return identifier.equals(obj);
+                }
+            };
+        }
     }
 }
