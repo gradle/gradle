@@ -25,7 +25,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 /**
  * Captures the state of the inputs of a {@link org.gradle.internal.execution.UnitOfWork}.
  */
-public interface InputExecutionState extends ExecutionState {
+public interface InputExecutionState {
     /**
      * The main implementation snapshots.
      */
