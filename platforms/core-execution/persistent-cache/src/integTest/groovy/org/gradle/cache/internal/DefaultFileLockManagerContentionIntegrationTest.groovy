@@ -66,7 +66,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 void lockIt() {
                     def lock
                     try {
-                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "task file lock")
+                        lock = fileLockManager.lock(projectLayout.projectDirectory.file("locks/testlock").asFile, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), "task file lock")
                     } finally {
                         lock?.close()
                     }
@@ -258,7 +258,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     println "Waiting for lock..."
                     final PersistentCache zincCache = cacheBuilderFactory.cache("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
-                            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.Exclusive))
                             .open();
                     println "Starting work..."
                     try {
@@ -359,7 +359,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
         receivingSocket = receivingFileLockContentionHandler.communicator.socket
-        receivingLock = fileLockManager.lock(file("locks/testlock"), LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
+        receivingLock = fileLockManager.lock(file("locks/testlock"), new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
     }
 
 }

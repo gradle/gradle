@@ -18,10 +18,10 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
@@ -29,13 +29,13 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")
@@ -63,8 +63,8 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
         return cacheBuilderFactory
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withCrossVersionCache()
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTarget.DefaultTarget))
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }

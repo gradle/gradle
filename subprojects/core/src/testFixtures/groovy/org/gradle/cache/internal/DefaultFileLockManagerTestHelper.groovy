@@ -74,7 +74,7 @@ abstract class DefaultFileLockManagerTestHelper {
     }
 
     static FileLock createDefaultFileLock(File file, FileLockManager.LockMode mode = FileLockManager.LockMode.Exclusive, DefaultFileLockManager manager = createDefaultFileLockManager()) {
-        manager.lock(file, LockOptionsBuilder.mode(mode), "test lock")
+        manager.lock(file, new LockOptionsBuilder(mode), "test lock")
     }
 
     static File getLockFile(File target) {

@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -30,7 +31,6 @@ import org.gradle.util.internal.GUtil;
 import java.io.File;
 import java.util.Properties;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 
@@ -48,9 +48,9 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     public DefaultFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder(CACHE_KEY)
-            .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
+            .withCrossVersionCache()
             .withDisplayName("journal cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTarget.CacheDirectory)) // lock on demand
             .open();
         store = cache.createIndexedCache(IndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
             .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));

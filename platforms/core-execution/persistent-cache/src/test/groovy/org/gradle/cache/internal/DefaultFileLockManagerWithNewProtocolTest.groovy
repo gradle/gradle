@@ -26,7 +26,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerTest {
     @Override
     protected LockOptionsBuilder options() {
-        return LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)
+        return new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)
     }
 
     def "a lock has been updated when never written to"() {

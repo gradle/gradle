@@ -17,7 +17,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -41,8 +40,8 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private final Properties properties = new Properties();
     private final Action<? super PersistentCache> initAction;
 
-    public DefaultPersistentDirectoryCache(File cacheDir, File lockDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CacheCleanupStrategy cacheCleanupStrategy, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
-        super(cacheDir, lockDir, displayName, lockTarget, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
+    public DefaultPersistentDirectoryCache(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initAction, CacheCleanupStrategy cacheCleanupStrategy, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+        super(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, progressLoggerFactory);
         this.initAction = initAction;
         this.properties.putAll(properties);
     }

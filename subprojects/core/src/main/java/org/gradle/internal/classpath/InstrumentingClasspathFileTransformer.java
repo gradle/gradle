@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
@@ -34,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static java.lang.String.format;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final int CACHE_FORMAT = 6;
@@ -123,7 +123,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
-            mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
+            new LockOptionsBuilder(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
             "instrumented jar cache"
         );
     }

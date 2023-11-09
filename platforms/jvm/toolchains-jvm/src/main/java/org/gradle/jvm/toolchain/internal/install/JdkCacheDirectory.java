@@ -278,7 +278,7 @@ public class JdkCacheDirectory {
     }
 
     public FileLock acquireWriteLock(File destinationFile, String operationName) {
-        return lockManager.lock(destinationFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
+        return lockManager.lock(destinationFile, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
     }
 
     public File getDownloadLocation() {

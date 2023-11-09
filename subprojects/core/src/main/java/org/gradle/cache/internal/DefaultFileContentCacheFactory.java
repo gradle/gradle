@@ -20,6 +20,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
@@ -36,8 +37,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
     private final FileSystemAccess fileSystemAccess;
@@ -53,7 +52,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         cache = cacheBuilderFactory
             .createCacheBuilder("fileContent")
             .withDisplayName("file content cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
     }
 

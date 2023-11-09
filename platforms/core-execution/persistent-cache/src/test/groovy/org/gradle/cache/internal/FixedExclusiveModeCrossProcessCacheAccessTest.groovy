@@ -29,7 +29,7 @@ class FixedExclusiveModeCrossProcessCacheAccessTest extends Specification {
     def initAction = Mock(CacheInitializationAction)
     def onOpenAction = Mock(Action)
     def onCloseAction = Mock(Action)
-    def cacheAccess = new FixedExclusiveModeCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, initAction, onOpenAction, onCloseAction)
+    def cacheAccess = new FixedExclusiveModeCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, initAction, onOpenAction, onCloseAction)
 
     def "acquires lock then validates cache and runs handler action on open"() {
         def lock = Mock(FileLock)

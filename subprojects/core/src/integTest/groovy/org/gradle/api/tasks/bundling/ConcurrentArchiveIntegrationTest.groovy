@@ -469,11 +469,14 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn tasks.named('update1'), tasks.named('update2')
                 doLast {
                     def cacheDir = file("build/tmp/.cache/expanded")
-                    assert cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
-                    assert cacheDir.list().contains('expanded.lock')
+                    assert cacheDir.list().size() == 1
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }
+
+                    def lockDir = file("${executer.gradleUserHomeDir.file("caches/expanded")}")
+                    assert lockDir.list().size() == 1
+                    assert lockDir.list().contains('expanded.lock')
                 }
             }
         """

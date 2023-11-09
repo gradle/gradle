@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
@@ -30,8 +31,6 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
@@ -92,7 +91,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private FileLock lockBuildLogicQueueFile() {
         return fileLockManager.lock(
             new File(rootBuildDir(), ".gradle/noVersion/buildLogic"),
-            mode(FileLockManager.LockMode.Exclusive),
+            new LockOptionsBuilder(FileLockManager.LockMode.Exclusive),
             "build logic queue"
         );
     }

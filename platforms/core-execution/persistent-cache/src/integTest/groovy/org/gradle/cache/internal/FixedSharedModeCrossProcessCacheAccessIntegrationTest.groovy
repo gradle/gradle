@@ -92,7 +92,7 @@ class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractInte
 
             void initialize(FileLock fileLock) {}
         }
-        def lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Shared)
+        def lockOptions = new LockOptionsBuilder(FileLockManager.LockMode.Shared)
         def lockManager1 = DefaultFileLockManagerTestHelper.createDefaultFileLockManager(100)
         new FixedSharedModeCrossProcessCacheAccess("<cache>", cacheDir, lockOptions, lockManager1, countingInitAction, {}, {})
     }

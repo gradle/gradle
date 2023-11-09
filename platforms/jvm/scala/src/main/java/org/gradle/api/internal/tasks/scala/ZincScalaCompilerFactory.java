@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -55,8 +56,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @SuppressWarnings("deprecation")
 public class ZincScalaCompilerFactory {
@@ -109,7 +108,7 @@ public class ZincScalaCompilerFactory {
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
         final PersistentCache zincCache = unscopedCacheBuilderFactory.cache(zincCacheKey)
             .withDisplayName(zincCacheName)
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand))
             .open();
 
 

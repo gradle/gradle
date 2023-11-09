@@ -21,21 +21,6 @@ import org.gradle.api.Action;
 import java.util.Map;
 
 public interface CacheBuilder {
-    enum LockTarget {
-        /**
-         * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
-         */
-        CachePropertiesFile,
-        /**
-         * Use the cache directory as the lock target, for backwards compatibility with old Gradle versions.
-         */
-        CacheDirectory,
-        /**
-         * Use the default target.
-         */
-        DefaultTarget,
-    }
-
     /**
      * Specifies the additional key properties for the cache. The cache is treated as invalid if any of the properties do not match the properties used to create the cache. The default for this is an
      * empty map.
@@ -47,10 +32,9 @@ public interface CacheBuilder {
 
     /**
      * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
-     * @param lockTarget The lock target, used for backwards compatibility with older Gradle versions. Use {@link LockTarget#DefaultTarget} when no preference.
      * @return this
      */
-    CacheBuilder withCrossVersionCache(LockTarget lockTarget);
+    CacheBuilder withCrossVersionCache();
 
     /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.

@@ -16,7 +16,6 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
@@ -48,7 +47,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
-    public PersistentCache open(File contentDir, File lockDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File contentDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(contentDir);
         InMemoryCache cache = new InMemoryCache(contentDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {

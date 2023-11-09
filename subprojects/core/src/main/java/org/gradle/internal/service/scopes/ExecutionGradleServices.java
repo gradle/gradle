@@ -18,10 +18,11 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.problems.Problems;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
@@ -92,7 +93,6 @@ import org.gradle.util.GradleVersion;
 import java.util.Collections;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 public class ExecutionGradleServices {
@@ -117,9 +117,9 @@ public class ExecutionGradleServices {
     OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheBuilderFactory
             .createCrossVersionCacheBuilder("buildOutputCleanup")
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withCrossVersionCache()
             .withDisplayName("Build Output Cleanup Cache")
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTarget.DefaultTarget))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);

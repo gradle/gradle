@@ -29,7 +29,7 @@ class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
     def initAction = Mock(CacheInitializationAction)
     def onOpenAction = Mock(Action)
     def onCloseAction = Mock(Action)
-    def lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Shared)
+    def lockOptions = new LockOptionsBuilder(FileLockManager.LockMode.Shared)
     def cacheAccess = new FixedSharedModeCrossProcessCacheAccess("<cache>", file, lockOptions, lockManager, initAction, onOpenAction, onCloseAction)
 
     def "acquires lock then validates cache and runs handler action on open"() {

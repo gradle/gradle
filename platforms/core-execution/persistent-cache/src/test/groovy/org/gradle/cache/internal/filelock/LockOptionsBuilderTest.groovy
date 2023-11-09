@@ -23,7 +23,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class LockOptionsBuilderTest extends Specification {
     def "can make copy of options"() {
-        def builder = LockOptionsBuilder.mode(Exclusive).useCrossVersionImplementation()
+        def builder = new LockOptionsBuilder(Exclusive).useCrossVersionImplementation()
 
         when:
         def copy = builder.copyWithMode(Shared)

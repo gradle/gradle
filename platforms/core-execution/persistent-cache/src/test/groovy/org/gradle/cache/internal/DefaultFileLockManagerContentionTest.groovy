@@ -115,7 +115,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     }
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Action<FileLockReleasedSignal> whenContended = null) {
-        def lock = lockManager.lock(file, LockOptionsBuilder.mode(lockMode), "foo", "operation", whenContended)
+        def lock = lockManager.lock(file, new LockOptionsBuilder(lockMode), "foo", "operation", whenContended)
         openedLocks << lock
         lock
     }

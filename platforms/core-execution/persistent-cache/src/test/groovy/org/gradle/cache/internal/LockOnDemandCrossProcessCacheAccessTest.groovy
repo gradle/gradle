@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock
 class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
-    def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), Stub(Action), Stub(Action))
+    def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), Stub(Action), Stub(Action))
 
     def "close when lock has never been acquired"() {
         when:
@@ -367,7 +367,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def signal = Mock(FileLockReleasedSignal)
         def initAction = Mock(CacheInitializationAction)
         def contendedAction
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
 
         when:
         cacheAccess.open()
@@ -432,7 +432,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
         def initAction = Mock(CacheInitializationAction)
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), initAction, Stub(Action), Stub(Action))
 
         when:
         cacheAccess.open()
@@ -467,7 +467,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def contendedAction
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)
@@ -520,7 +520,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onOpen = Mock(Action)
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)
@@ -553,7 +553,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def lock = Mock(FileLock)
         def signal = Mock(FileLockReleasedSignal)
         def contendedAction
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)
@@ -593,7 +593,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def onClose = Mock(Action)
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)
@@ -625,7 +625,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         def lock = Mock(FileLock)
         def failure = new RuntimeException()
         def contendedAction
-        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
+        def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, new LockOptionsBuilder(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), onOpen, onClose)
 
         when:
         cacheAccess.withFileLock(action)

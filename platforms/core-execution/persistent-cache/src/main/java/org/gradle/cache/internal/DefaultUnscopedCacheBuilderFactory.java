@@ -22,12 +22,11 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
@@ -44,32 +43,28 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
     }
 
     @Override
-    public CacheBuilder cache(File baseDir, File lockDir) {
-        return new PersistentCacheBuilder(baseDir, lockDir);
+    public CacheBuilder cache(File baseDir) {
+        return new PersistentCacheBuilder(baseDir);
     }
 
     private class PersistentCacheBuilder implements CacheBuilder {
         final String key;
         final File baseDir;
-        final File lockDir;
         Map<String, ?> properties = Collections.emptyMap();
         Action<? super PersistentCache> initializer;
         CacheCleanupStrategy cacheCleanupStrategy;
-        LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
+        LockOptions lockOptions = new LockOptionsBuilder(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
-        LockTarget lockTarget = LockTarget.DefaultTarget;
 
         PersistentCacheBuilder(String key) {
             this.key = key;
             this.baseDir = null;
-            this.lockDir = null;
         }
 
-        PersistentCacheBuilder(File baseDir, File lockDir) {
+        PersistentCacheBuilder(File baseDir) {
             this.key = null;
             this.baseDir = baseDir;
-            this.lockDir = lockDir;
         }
 
         @Override
@@ -79,9 +74,8 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         }
 
         @Override
-        public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
+        public CacheBuilder withCrossVersionCache() {
             this.versionStrategy = VersionStrategy.SharedCache;
-            this.lockTarget = lockTarget;
             return this;
         }
 
@@ -117,15 +111,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
             } else {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
             }
-
-            File lockBaseDir;
-            if (lockOptions.getLockDir() != null) {
-                lockBaseDir = lockOptions.getLockDir();
-            } else {
-                lockBaseDir = cacheBaseDir;
-            }
-
-            return factory.open(cacheBaseDir, lockBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
+            return factory.open(cacheBaseDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }

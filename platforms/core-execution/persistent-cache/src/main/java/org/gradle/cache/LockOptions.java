@@ -27,8 +27,47 @@ public interface LockOptions {
 
     boolean isUseCrossVersionImplementation();
 
+    // TODO: rename this (LockTargetType?)
+    LockTarget getLockTarget();
+
     /**
      * Creates a copy of these options with the given mode.
      */
     LockOptions copyWithMode(FileLockManager.LockMode mode);
+
+    default File getLockTarget(File cacheDir, File propertiesFile) {
+        switch (getLockTarget()) {
+            case CacheDirectory:
+            case DefaultTarget:
+                return getLockDir() == null ? cacheDir : getLockDir();
+            case CachePropertiesFile:
+                return propertiesFile;
+            default:
+                throw new IllegalArgumentException("Unsupported lock target: " + getLockTarget());
+        }
+    }
+
+    static File determineLockTargetFile(File target) {
+        if (target.isDirectory()) {
+            return new File(target, target.getName() + ".lock");
+        } else {
+            return new File(target.getParentFile(), target.getName() + ".lock");
+        }
+    }
+
+    // TODO: Rename this type (LockTarget is overloaded)
+    enum LockTarget {
+        /**
+         * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
+         */
+        CachePropertiesFile,
+        /**
+         * Use the cache directory as the lock target, for backwards compatibility with old Gradle versions.
+         */
+        CacheDirectory,
+        /**
+         * Use the default target.
+         */
+        DefaultTarget,
+    }
 }

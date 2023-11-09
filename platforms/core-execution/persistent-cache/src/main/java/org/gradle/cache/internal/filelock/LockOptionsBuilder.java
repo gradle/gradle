@@ -27,19 +27,29 @@ public class LockOptionsBuilder implements LockOptions {
     private FileLockManager.LockMode mode;
     private boolean crossVersion;
     @Nullable private final File lockDir;
+    private final LockTarget lockTarget;
 
-    private LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion) {
+    public LockOptionsBuilder() {
+        this(FileLockManager.LockMode.OnDemand);
+    }
+
+    public LockOptionsBuilder(FileLockManager.LockMode mode) {
+        this(mode, false);
+    }
+
+    public LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion) {
         this(mode, crossVersion, null);
     }
 
     public LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion, @Nullable File lockDir) {
+        this(mode, crossVersion, lockDir, LockTarget.DefaultTarget);
+    }
+
+    public LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion, @Nullable File lockDir, LockTarget lockTarget) {
         this.mode = mode;
         this.crossVersion = crossVersion;
         this.lockDir = lockDir;
-    }
-
-    public static LockOptionsBuilder mode(FileLockManager.LockMode lockMode) {
-        return new LockOptionsBuilder(lockMode, false);
+        this.lockTarget = lockTarget;
     }
 
     public LockOptionsBuilder useCrossVersionImplementation() {
@@ -56,6 +66,11 @@ public class LockOptionsBuilder implements LockOptions {
     @Override
     public File getLockDir() {
         return lockDir;
+    }
+
+    @Override
+    public LockTarget getLockTarget() {
+        return lockTarget;
     }
 
     @Override

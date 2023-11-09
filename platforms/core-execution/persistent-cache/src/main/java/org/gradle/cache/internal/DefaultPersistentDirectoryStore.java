@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -48,8 +47,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File cacheDir;
-    private final File lockDir;
-    private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
     @Nullable
     private final CacheCleanupStrategy cacheCleanupStrategy;
@@ -63,9 +60,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public DefaultPersistentDirectoryStore(
         File cacheDir,
-        File lockDir,
         @Nullable String displayName,
-        CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
         @Nullable CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
@@ -73,8 +68,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         ProgressLoggerFactory progressLoggerFactory
     ) {
         this.cacheDir = cacheDir;
-        this.lockDir = lockDir;
-        this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
         this.lockManager = fileLockManager;
@@ -88,7 +81,9 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public DefaultPersistentDirectoryStore open() {
         GFileUtils.mkdirs(cacheDir);
-        GFileUtils.mkdirs(lockDir);
+        if (null != lockOptions.getLockDir()) {
+            GFileUtils.mkdirs(lockOptions.getLockDir());
+        }
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open();
@@ -100,18 +95,18 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(lockOptions), lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
     }
 
-    private File getLockTarget(LockOptions lockOptions) {
-        switch (lockTarget) {
+    private File getLockTarget() {
+        switch (lockOptions.getLockTarget()) {
             case CacheDirectory:
             case DefaultTarget:
-                return lockOptions.getLockDir() == null ? cacheDir : lockOptions.getLockDir();
+                return cacheDir;
             case CachePropertiesFile:
                 return propertiesFile;
             default:
-                throw new IllegalArgumentException("Unsupported lock target: " + lockTarget);
+                throw new IllegalArgumentException("Unsupported lock target: " + lockOptions.getLockTarget());
         }
     }
 
@@ -141,17 +136,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget(lockOptions)));
-    }
-
-    // TODO: move all this to LockOptions
-    // TODO: Duplicated in DefaultFileLockManager
-    static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
-        } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
-        }
+        return Arrays.asList(propertiesFile, gcFile, LockOptions.determineLockTargetFile(lockOptions.getLockTarget(cacheDir, propertiesFile)));
     }
 
     @Override

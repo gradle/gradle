@@ -152,8 +152,8 @@ public class BuildTreeScopeServices {
         return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory);
+    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, StartParameter startParameter) {
+        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory, startParameter.getGradleUserHomeDir());
     }
 
     protected BuildLogicBuildQueue createBuildLogicBuildQueue(

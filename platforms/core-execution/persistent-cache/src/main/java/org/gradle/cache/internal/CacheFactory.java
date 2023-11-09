@@ -16,7 +16,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.LockOptions;
@@ -30,7 +29,7 @@ public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, File lockDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
 
     /**
      * Visit the caches created by this factory.

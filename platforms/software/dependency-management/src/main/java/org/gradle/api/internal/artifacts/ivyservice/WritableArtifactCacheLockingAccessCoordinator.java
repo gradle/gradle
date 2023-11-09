@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
@@ -31,6 +30,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -41,8 +41,6 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
     private final PersistentCache cache;
@@ -56,9 +54,9 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                                                ) {
         cache = unscopedCacheBuilderFactory
                 .cache(cacheMetaData.getCacheDir())
-                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
+                .withCrossVersionCache()
                 .withDisplayName("artifact cache")
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
+                .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
                 .open();
     }

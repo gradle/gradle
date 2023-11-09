@@ -17,7 +17,6 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
@@ -37,13 +36,12 @@ public class DefaultDecompressionCache implements DecompressionCache {
 
     private final PersistentCache cache;
 
-    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory) {
-        File lockDir = new File("/Users/ttresansky/Projects/gradle-worktrees/master/custom-locks");
+    public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory, File lockDir) {
         LockOptions lockOptions = new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, true, lockDir);
 
         this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+                .withCrossVersionCache()
                 .withLockOptions(lockOptions)
                 .open();
     }

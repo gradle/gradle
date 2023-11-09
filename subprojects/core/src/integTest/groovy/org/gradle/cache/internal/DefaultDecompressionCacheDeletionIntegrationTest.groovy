@@ -87,7 +87,6 @@ class DefaultDecompressionCacheDeletionIntegrationTest extends AbstractIntegrati
             }
         """
 
-
         expect:
         succeeds "clean", "makeArchive"
     }

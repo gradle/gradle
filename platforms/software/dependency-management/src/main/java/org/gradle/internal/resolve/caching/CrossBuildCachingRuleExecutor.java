@@ -23,7 +23,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
@@ -80,7 +79,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         this.timeProvider = timeProvider;
         this.cache = cacheBuilderFactory
             .createCacheBuilder(name)
-            .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
+            .withLockOptions(new LockOptionsBuilder())
             .open();
         IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
         this.store = this.cache.createIndexedCache(cacheParams);

@@ -19,11 +19,14 @@ package org.gradle.api.internal.cache;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 /**
@@ -34,10 +37,12 @@ import java.util.function.Supplier;
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
 
     private final Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier;
+    private final File lockDir;
     private volatile DecompressionCache cache;
 
-    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier) {
+    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier, File gradleUserHomeDir) {
         this.cacheBuilderFactorySupplier = cacheBuilderFactorySupplier;
+        this.lockDir = Paths.get(gradleUserHomeDir.getAbsolutePath(), DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME, DefaultDecompressionCache.EXPANSION_CACHE_KEY).toFile();
     }
 
     @Nonnull
@@ -46,7 +51,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get());
+                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get(), lockDir);
                 }
             }
         }

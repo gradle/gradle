@@ -17,20 +17,19 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 /**
  * An implementation of an artifact cache manager which performs operations in a read-only
@@ -50,9 +49,9 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
             ArtifactCacheMetadata cacheMetaData) {
         cache = unscopedCacheBuilderFactory
             .cache(cacheMetaData.getCacheDir())
-            .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
+            .withCrossVersionCache()
             .withDisplayName("read only artifact cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything, it's read-only
+            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.None, false, null, LockOptions.LockTarget.CacheDirectory)) // Don't need to lock anything, it's read-only
             .open();
     }
 

@@ -18,7 +18,6 @@ package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.PersistentCache;
@@ -26,6 +25,7 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -42,7 +42,6 @@ import java.io.File;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     public static final String FAILED_READ_SUFFIX = ".failed";
@@ -92,11 +91,11 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = unscopedCacheBuilderFactory
-            .cache(target, target)
+            .cache(target)
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
-            .withLockOptions(mode(OnDemand))
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+            .withLockOptions(new LockOptionsBuilder(OnDemand))
+            .withCrossVersionCache()
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);

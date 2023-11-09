@@ -56,12 +56,12 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public CacheBuilder createCacheBuilder(String key) {
-        return unscopedCacheBuilderFactory.cache(baseDirForCache(key), lockDirForCache(key));
+        return unscopedCacheBuilderFactory.cache(baseDirForCache(key));
     }
 
     @Override
     public CacheBuilder createCrossVersionCacheBuilder(String key) {
-        return unscopedCacheBuilderFactory.cache(baseDirForCrossVersionCache(key), lockDirForCrossVersionCache(key));
+        return unscopedCacheBuilderFactory.cache(baseDirForCrossVersionCache(key));
     }
 
     @Override
@@ -81,6 +81,6 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public File lockDirForCrossVersionCache(String key) {
-        return cacheScopeMapping.getBaseDirectory(lockDir, key, VersionStrategy.SharedCache);
+        return cacheScopeMapping.getBaseDirectory(rootContentDir, key, VersionStrategy.SharedCache);
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.cache.LockOptions
 import org.gradle.cache.MultiProcessSafeIndexedCache
 import org.gradle.cache.IndexedCacheParameters
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.internal.Factory
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
@@ -37,7 +38,6 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.None
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()
@@ -52,7 +52,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
 
     private DefaultCacheCoordinator newAccess(FileLockManager.LockMode lockMode) {
-        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
+        new DefaultCacheCoordinator("<display-name>", lockFile, new LockOptionsBuilder(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
             @Override
             <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -67,7 +67,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -89,7 +89,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -175,19 +175,19 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock)
         1 * exclusiveLock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> sharedLock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Shared), "<display-name>") >> sharedLock
         1 * initializationAction.requiresInitialization(sharedLock) >> false
         _ * sharedLock.state
         0 * _._
@@ -200,7 +200,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
@@ -216,7 +216,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> { throw failure }
         1 * lock.close()
         0 * _._
@@ -235,12 +235,12 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.open()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Shared), "<display-name>") >> lock
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.close()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> exclusiveLock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>") >> exclusiveLock
         1 * initializationAction.requiresInitialization(exclusiveLock) >> true
         1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(exclusiveLock) >> { throw failure }
@@ -268,7 +268,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
@@ -288,7 +288,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contentionAction = whenContended; return lock }
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
@@ -347,7 +347,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.withFileLock(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.getState()
 
@@ -370,7 +370,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.withFileLock(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.getState()
         1 * action.create() >> "result"
@@ -396,7 +396,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.withFileLock(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.getState()
 
@@ -421,7 +421,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
 
@@ -446,7 +446,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>","", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>","", _) >> lock
         1 * action.create() >> {
             access.useCache {
                 assert access.owner == Thread.currentThread()
@@ -466,7 +466,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * action.create() >> { assert access.owner == Thread.currentThread() }
 
         when:
@@ -485,7 +485,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(Shared)
 
         given:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Shared), "<display-name>") >> lock
         access.open()
 
         when:
@@ -516,7 +516,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache(action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
 
         when:
@@ -531,7 +531,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(mode)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
 
         when:
         access.open()
@@ -553,7 +553,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         access.useCache { access.fileAccess.updateFile(runnable)}
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         1 * lock.updateFile(runnable)
 
         where:
@@ -565,8 +565,8 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(mode)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>") >> lock
         access.open()
         access.useCache(runnable)
 
@@ -596,7 +596,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(OnDemand)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -614,7 +614,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def contendedAction
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
@@ -648,7 +648,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def cache = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> {
+        1 * lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> {
             File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended -> contendedAction = whenContended; return lock }
 
         when:
@@ -684,7 +684,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
         def access = newAccess(OnDemand)
 
         given:
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open()
         def cache = access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class))
@@ -745,7 +745,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     def "throws InvalidCacheReuseException when cache decorator differs"() {
         def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>") >> lock
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCacheche, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             indexedCacheche
         }
@@ -764,7 +764,7 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     def "returns the same cache object when cache decorator match"() {
         def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
-        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
+        lockManager.lock(lockFile, new LockOptionsBuilder(Exclusive), "<display-name>", "", _) >> lock
         decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             indexedCache
         }

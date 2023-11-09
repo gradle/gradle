@@ -55,6 +55,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.gradle.cache.FileLockManager.LockMode.*;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
@@ -99,7 +100,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
     @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, Action<FileLockReleasedSignal> whenContended) {
-        if (options.getMode() == LockMode.OnDemand) {
+        if (options.getMode() == OnDemand) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
         File canonicalTarget = FileUtils.canonicalize(target);
@@ -108,15 +109,15 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            return new DefaultFileLock(canonicalTarget, options.getLockDir(), options, targetDisplayName, operationDisplayName, port, whenContended);
+            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
         }
     }
 
-    static File determineLockTargetFile(File target, @Nullable File lockDir) {
-        File baseDir = lockDir == null ? target.getParentFile() : lockDir;
+    static File determineLockTargetFile(File target, LockOptions options) {
+        File baseDir = options.getLockDir() == null ? target : options.getLockDir();
         if (baseDir.isDirectory()) {
             return new File(baseDir, target.getName() + ".lock");
         } else {
@@ -137,10 +138,10 @@ public class DefaultFileLockManager implements FileLockManager {
         private final int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, @Nullable File lockDir, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
+        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, Action<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
-            if (options.getMode() == LockMode.OnDemand) {
+            if (options.getMode() == OnDemand) {
                 throw new UnsupportedOperationException("Locking mode OnDemand is not supported.");
             }
 
@@ -148,7 +149,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
-            this.lockFile = determineLockTargetFile(target, lockDir);
+            this.lockFile = determineLockTargetFile(target, options);
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             try {
@@ -171,7 +172,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 throw t;
             }
 
-            this.mode = lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
+            this.mode = lock.isShared() ? Shared : Exclusive;
         }
 
         @Override
@@ -210,7 +211,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private void doWriteAction(Runnable action) {
-            if (mode != LockMode.Exclusive) {
+            if (mode != Exclusive) {
                 throw new InsufficientLockModeException("An exclusive lock is required for this operation");
             }
 
@@ -250,7 +251,7 @@ public class DefaultFileLockManager implements FileLockManager {
                             // Discard information region
                             FileLockOutcome lockOutcome;
                             try {
-                                lockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
+                                lockOutcome = lockInformationRegion(Exclusive, newExponentialBackoff(shortTimeoutMs));
                             } catch (InterruptedException e) {
                                 throw throwAsUncheckedException(e);
                             }
@@ -302,7 +303,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * 1. We first try to acquire a lock on the state region with retries, see {@link #lockStateRegion(LockMode)}.<br>
          * 2a. If we use exclusive lock, and we succeed in step 1., then we acquire an exclusive lock
          * on the information region and write our details (port and lock id) there, and then we release lock of information region.
-         * That way other processes can read our details and ping us. That is important for {@link org.gradle.cache.FileLockManager.LockMode.OnDemand} mode.<br>
+         * That way other processes can read our details and ping us. That is important for {@link LockMode#OnDemand} mode.<br>
          * 2b. If we use shared lock, and we succeed in step 1., then we just hold the lock. We don't write anything to the information region
          * since multiple processes can acquire shared lock (due to that we currently also don't support on demand shared locks).<br>
          * 2.c If we fail, we throw a timeout exception.
@@ -333,7 +334,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     lockState = lockFileAccess.ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
-                    FileLockOutcome informationRegionLockOutcome = lockInformationRegion(LockMode.Exclusive, newExponentialBackoff(shortTimeoutMs));
+                    FileLockOutcome informationRegionLockOutcome = lockInformationRegion(Exclusive, newExponentialBackoff(shortTimeoutMs));
                     if (!informationRegionLockOutcome.isLockWasAcquired()) {
                         throw new IllegalStateException(String.format("Unable to lock the information region for %s", displayName));
                     }
@@ -371,7 +372,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private LockInfo readInformationRegion(ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             LockInfo out = new LockInfo();
-            FileLockOutcome lockOutcome = lockInformationRegion(LockMode.Shared, backoff);
+            FileLockOutcome lockOutcome = lockInformationRegion(Shared, backoff);
             if (!lockOutcome.isLockWasAcquired()) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
@@ -400,7 +401,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
                 @Override
                 public IOQuery.Result<FileLockOutcome> run() throws IOException, InterruptedException {
-                    FileLockOutcome lockOutcome = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
+                    FileLockOutcome lockOutcome = lockFileAccess.tryLockState(lockMode == Shared);
                     if (lockOutcome.isLockWasAcquired()) {
                         return IOQuery.Result.successful(lockOutcome);
                     }
@@ -427,7 +428,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private FileLockOutcome lockInformationRegion(final LockMode lockMode, ExponentialBackoff<AwaitableFileLockReleasedSignal> backoff) throws IOException, InterruptedException {
             return backoff.retryUntil(() -> {
-                FileLockOutcome lockOutcome = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
+                FileLockOutcome lockOutcome = lockFileAccess.tryLockInfo(lockMode == Shared);
                 if (lockOutcome.isLockWasAcquired()) {
                     return IOQuery.Result.successful(lockOutcome);
                 } else {
