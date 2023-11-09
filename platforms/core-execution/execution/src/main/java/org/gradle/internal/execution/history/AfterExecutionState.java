@@ -36,6 +36,7 @@ public interface AfterExecutionState extends InputExecutionState, OutputExecutio
      *
      * @see #isReused()
      */
+    @Override
     OriginMetadata getOriginMetadata();
 
     /**

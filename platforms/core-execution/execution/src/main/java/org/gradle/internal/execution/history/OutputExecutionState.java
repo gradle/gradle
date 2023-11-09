@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
@@ -32,4 +33,9 @@ public interface OutputExecutionState {
      * as this does not include overlapping outputs <em>not</em> produced by the work.
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork();
+
+    /**
+     * The origin metadata of the outputs captured.
+     */
+    OriginMetadata getOriginMetadata();
 }
