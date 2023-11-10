@@ -51,7 +51,7 @@ import java.util.Properties;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest.INSTRUMENTATION_ONLY;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.INSTRUMENTATION_ONLY;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;

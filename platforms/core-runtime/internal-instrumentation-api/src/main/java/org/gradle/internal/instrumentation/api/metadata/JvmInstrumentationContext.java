@@ -16,17 +16,17 @@
 
 package org.gradle.internal.instrumentation.api.metadata;
 
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 public class JvmInstrumentationContext {
 
-    private final InterceptorsFilteringRequest request;
+    private final InterceptorsRequest request;
 
-    public JvmInstrumentationContext(InterceptorsFilteringRequest request) {
+    public JvmInstrumentationContext(InterceptorsRequest request) {
         this.request = request;
     }
 
-    public InterceptorsFilteringRequest getInterceptorsFilteringRequest() {
+    public InterceptorsRequest getInterceptorsRequest() {
         return request;
     }
 }

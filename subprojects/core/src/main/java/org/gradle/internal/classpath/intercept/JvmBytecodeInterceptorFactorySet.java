@@ -16,8 +16,8 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 public interface JvmBytecodeInterceptorFactorySet {
-    JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(InterceptorsFilteringRequest request);
+    JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(InterceptorsRequest request);
 }

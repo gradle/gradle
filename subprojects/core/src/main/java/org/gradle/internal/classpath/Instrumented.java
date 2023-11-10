@@ -31,7 +31,6 @@ import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
 import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -55,8 +54,8 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest.INSTRUMENTATION_ONLY;
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.INSTRUMENTATION_ONLY;
 
 public class Instrumented {
     @SuppressWarnings("deprecation")

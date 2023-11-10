@@ -22,13 +22,13 @@ import java.util.Set;
 /**
  * Request for interceptors. Currently, we support filter just for interception types, but in the feature we could also filter per version etc.
  */
-public enum InterceptorsFilteringRequest {
+public enum InterceptorsRequest {
     INSTRUMENTATION_ONLY(EnumSet.of(InterceptionType.INSTRUMENTATION)),
     INSTRUMENTATION_AND_UPGRADES(EnumSet.of(InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE));
 
     private final Set<InterceptionType> instrumentationTypes;
 
-    InterceptorsFilteringRequest(Set<InterceptionType> instrumentationTypes) {
+    InterceptorsRequest(Set<InterceptionType> instrumentationTypes) {
         this.instrumentationTypes = instrumentationTypes;
     }
 

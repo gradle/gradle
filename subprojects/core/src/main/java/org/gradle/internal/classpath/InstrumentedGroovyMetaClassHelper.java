@@ -21,10 +21,13 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.classpath.intercept.CallInterceptorResolver.INTERCEPTOR_RESOLVER;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.INSTRUMENTATION_AND_UPGRADES;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
@@ -34,40 +37,44 @@ public class InstrumentedGroovyMetaClassHelper {
     /**
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
      * This is done for closure delegates that are reassigned, while the owner, thisObject, and the initial delegate are covered in
-     * {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure(Closure)}
+     * {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure(Closure,InterceptorsRequest)}
      */
-    public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented) {
+    public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented, InterceptorsRequest interceptorsRequest) {
         if (object == null) {
             return;
         }
         if (isEffectivelyInstrumented) {
-            addInvocationHooksToMetaClass(object.getClass());
+            CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+            addInvocationHooksToMetaClass(object.getClass(), resolver);
         }
     }
 
-    public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure) {
-        addInvocationHooksToMetaClass(closure.getThisObject().getClass());
-        addInvocationHooksToMetaClass(closure.getOwner().getClass());
-        addInvocationHooksToMetaClass(closure.getDelegate().getClass());
+    public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure, InterceptorsRequest interceptorsRequest) {
+        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+        addInvocationHooksToMetaClass(closure.getThisObject().getClass(), resolver);
+        addInvocationHooksToMetaClass(closure.getOwner().getClass(), resolver);
+        addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);
     }
 
     @SuppressWarnings("unused") // resolved via a method handle
     public static void addInvocationHooksToMetaClassIfInstrumented(Class<?> javaClass, String callableName) {
-        if (INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(callableName)) {
-            addInvocationHooksToMetaClass(javaClass);
+        // In BeanDynamicObject we can't filter interceptors, so we have to apply all
+        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(INSTRUMENTATION_AND_UPGRADES);
+        if (resolver.isAwareOfCallSiteName(callableName)) {
+            addInvocationHooksToMetaClass(javaClass, resolver);
         }
     }
 
-    public static void addInvocationHooksToMetaClass(Class<?> javaClass) {
+    private static void addInvocationHooksToMetaClass(Class<?> javaClass, CallInterceptorResolver resolver) {
         MetaClassRegistry metaClassRegistry = GroovySystem.getMetaClassRegistry();
 
         MetaClass originalMetaClass = metaClassRegistry.getMetaClass(javaClass);
         if (!(originalMetaClass instanceof CallInterceptingMetaClass)) {
-            metaClassRegistry.setMetaClass(javaClass, interceptedMetaClass(javaClass, metaClassRegistry, originalMetaClass));
+            metaClassRegistry.setMetaClass(javaClass, interceptedMetaClass(javaClass, metaClassRegistry, originalMetaClass, resolver));
         }
     }
 
-    private static CallInterceptingMetaClass interceptedMetaClass(Class<?> javaClass, MetaClassRegistry metaClassRegistry, MetaClass originalMetaClass) {
-        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, InstrumentedGroovyCallsHelper.INSTANCE, INTERCEPTOR_RESOLVER);
+    private static CallInterceptingMetaClass interceptedMetaClass(Class<?> javaClass, MetaClassRegistry metaClassRegistry, MetaClass originalMetaClass, CallInterceptorResolver resolver) {
+        return new CallInterceptingMetaClass(metaClassRegistry, javaClass, originalMetaClass, InstrumentedGroovyCallsHelper.INSTANCE, resolver);
     }
 }

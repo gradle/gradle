@@ -17,15 +17,17 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsFilteringRequest;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
+import java.util.EnumMap;
+import java.util.Map;
 
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
 @NonNullApi
 public interface CallInterceptorResolver {
-    CallInterceptorResolver INTERCEPTOR_RESOLVER = new CallInterceptorResolverImpl();
 
     @Nullable
     CallInterceptor resolveCallInterceptor(InterceptScope scope);
@@ -33,11 +35,26 @@ public interface CallInterceptorResolver {
     boolean isAwareOfCallSiteName(String name);
 
     @NonNullApi
-    final class CallInterceptorResolverImpl implements CallInterceptorResolver {
+    final class ClosureCallInterceptorResolver implements CallInterceptorResolver {
+
+        private static final Lazy<Map<InterceptorsRequest, ClosureCallInterceptorResolver>> RESOLVERS = Lazy.locking().of(() -> {
+            Map<InterceptorsRequest, ClosureCallInterceptorResolver> resolvers = new EnumMap<>(InterceptorsRequest.class);
+            for (InterceptorsRequest request : InterceptorsRequest.values()) {
+                resolvers.put(request, new ClosureCallInterceptorResolver(request));
+            }
+            return resolvers;
+        });
+
+        private final InterceptorsRequest interceptorsRequest;
+
+        public ClosureCallInterceptorResolver(InterceptorsRequest interceptorsRequest) {
+            this.interceptorsRequest = interceptorsRequest;
+        }
+
         @Nullable
         @Override
         public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator(InterceptorsFilteringRequest.INSTRUMENTATION_ONLY);
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator(interceptorsRequest);
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).resolveCallInterceptor(scope);
             }
@@ -46,11 +63,15 @@ public interface CallInterceptorResolver {
 
         @Override
         public boolean isAwareOfCallSiteName(String name) {
-            CallSiteDecorator currentDecorator = getGroovyCallDecorator(InterceptorsFilteringRequest.INSTRUMENTATION_ONLY);
+            CallSiteDecorator currentDecorator = getGroovyCallDecorator(interceptorsRequest);
             if (currentDecorator instanceof CallInterceptorResolver) {
                 return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
             }
             return false;
+        }
+
+        public static CallInterceptorResolver of(InterceptorsRequest request) {
+            return RESOLVERS.get().get(request);
         }
     }
 }

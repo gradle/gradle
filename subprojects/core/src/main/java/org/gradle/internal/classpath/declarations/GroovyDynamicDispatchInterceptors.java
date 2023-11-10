@@ -22,12 +22,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
-import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import javax.annotation.Nullable;
@@ -49,7 +50,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        if (!CallInterceptorResolver.INTERCEPTOR_RESOLVER.isAwareOfCallSiteName(messageName)) {
+        if (!ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
@@ -70,7 +71,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
-        CallInterceptor interceptor = CallInterceptorResolver.INTERCEPTOR_RESOLVER.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        CallInterceptor interceptor = ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi
             class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
