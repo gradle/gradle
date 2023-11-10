@@ -42,7 +42,8 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
-import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
+import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CachingResult;
@@ -154,7 +155,7 @@ public class ExecutionGradleServices {
         ))));
 
         Step<IdentityContext,CachingResult> immutablePipeline =
-            new AssignWorkspaceStep<>(
+            new AssignImmutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyNonIncrementalWorkStep(workInputListeners,
@@ -175,7 +176,7 @@ public class ExecutionGradleServices {
         ))))))))))))))));
 
         Step<IdentityContext,CachingResult> mutablePipeline =
-            new AssignWorkspaceStep<>(
+            new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(

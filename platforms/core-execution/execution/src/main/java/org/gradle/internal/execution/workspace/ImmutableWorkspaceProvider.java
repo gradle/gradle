@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.workspace;
 
-import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
-/**
- * A unit of work that can be executed multiple times in the same workspace.
- * Such work can reuse outputs from a previous execution.
- */
-public interface MutableUnitOfWork extends UnitOfWork {
+import javax.annotation.Nullable;
+import java.io.File;
+
+public interface ImmutableWorkspaceProvider {
     /**
-     * Returns the {@link MutableWorkspaceProvider} to allocate a workspace to execution this work in.
+     * Provides a workspace and execution history store for executing the transform.
      */
-    MutableWorkspaceProvider getWorkspaceProvider();
+    <T> T withWorkspace(String path, WorkspaceAction<T> action);
+
+    @FunctionalInterface
+    interface WorkspaceAction<T> {
+        T executeInWorkspace(File workspace, @Nullable ExecutionHistoryStore history);
+    }
 }

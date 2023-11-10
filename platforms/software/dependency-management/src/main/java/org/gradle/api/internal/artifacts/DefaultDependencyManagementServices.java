@@ -129,7 +129,7 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingWorkspaceProvider;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -232,7 +232,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
             return new MutableTransformWorkspaceServices() {
                 @Override
-                public WorkspaceProvider getWorkspaceProvider() {
+                public MutableWorkspaceProvider getWorkspaceProvider() {
                     return new NonLockingWorkspaceProvider(executionHistoryStore, baseDirectory.get());
                 }
 

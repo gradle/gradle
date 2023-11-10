@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -33,7 +33,7 @@ import java.util.Map;
 class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork  {
     private static final String INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME = "inputArtifactSnapshot";
     private final FileSystemAccess fileSystemAccess;
-    private final WorkspaceProvider workspaceProvider;
+    private final ImmutableWorkspaceProvider workspaceProvider;
 
     public NonNormalizedIdentityImmutableTransformExecution(
         Transform transform,
@@ -47,7 +47,7 @@ class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransform
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         FileSystemAccess fileSystemAccess,
-        WorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
@@ -58,7 +58,7 @@ class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransform
     }
 
     @Override
-    public WorkspaceProvider getWorkspaceProvider() {
+    public ImmutableWorkspaceProvider getWorkspaceProvider() {
         return workspaceProvider;
     }
 

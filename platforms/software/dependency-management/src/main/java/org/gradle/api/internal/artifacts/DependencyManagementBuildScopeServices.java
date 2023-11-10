@@ -114,7 +114,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
-import org.gradle.internal.execution.steps.AssignWorkspaceStep;
+import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
@@ -494,7 +494,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExecutionEngine(
             problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignWorkspaceStep<>(
+            new AssignImmutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,

@@ -29,7 +29,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -40,7 +40,7 @@ import java.util.function.Function;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class OnDemandCacheBasedWorkspaceProvider implements WorkspaceProvider, Closeable {
+public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
