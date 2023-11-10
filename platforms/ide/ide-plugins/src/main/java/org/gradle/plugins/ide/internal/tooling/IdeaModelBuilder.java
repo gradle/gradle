@@ -19,12 +19,8 @@ package org.gradle.plugins.ide.internal.tooling;
 import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -50,7 +46,6 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -74,26 +69,15 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
-        applyIdeaPlugin((ProjectInternal) root, new ArrayList<>());
+        applyIdeaPlugin((ProjectInternal) root);
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         return build(root, rootGradleProject);
     }
 
-    private void applyIdeaPlugin(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
+    private void applyIdeaPlugin(ProjectInternal root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
-        }
-        for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                target.ensureProjectsConfigured();
-                GradleInternal build = target.getMutableModel();
-                if (!alreadyProcessed.contains(build)) {
-                    alreadyProcessed.add(build);
-                    applyIdeaPlugin(build.getRootProject(), alreadyProcessed);
-                }
-            }
         }
     }
 
