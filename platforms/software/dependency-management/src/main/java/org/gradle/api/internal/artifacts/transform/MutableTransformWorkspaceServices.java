@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.provider.Provider;
 import org.gradle.cache.Cache;
-import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.execution.workspace.impl.NonLockingWorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
-import javax.annotation.concurrent.NotThreadSafe;
+public interface MutableTransformWorkspaceServices extends ReservedFileSystemLocation {
+    WorkspaceProvider getWorkspaceProvider();
 
-@NotThreadSafe
-public class MutableTransformWorkspaceServices implements TransformWorkspaceServices, ReservedFileSystemLocation {
-
-    private final Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
-    private final Provider<Directory> baseDirectory;
-    private final ExecutionHistoryStore executionHistoryStore;
-
-    public MutableTransformWorkspaceServices(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
-        this.baseDirectory = baseDirectory;
-        this.executionHistoryStore = executionHistoryStore;
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return new NonLockingWorkspaceProvider(executionHistoryStore, baseDirectory.get().getAsFile());
-    }
-
-    @Override
-    public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
-        return identityCache;
-    }
-
-    @Override
-    public Provider<? extends FileSystemLocation> getReservedFileSystemLocation() {
-        return baseDirectory;
-    }
+    Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache();
 }

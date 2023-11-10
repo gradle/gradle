@@ -24,8 +24,9 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 
 import java.io.File;
+import java.util.function.Supplier;
 
-public class TestTransformWorkspaceServices implements TransformWorkspaceServices {
+public class TestTransformWorkspaceServices implements MutableTransformWorkspaceServices, ImmutableTransformWorkspaceServices {
     private final File transformationsStoreDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
 
@@ -48,5 +49,14 @@ public class TestTransformWorkspaceServices implements TransformWorkspaceService
     @Override
     public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
+    }
+
+    @Override
+    public void close() {
+    }
+
+    @Override
+    public Supplier<File> getReservedFileSystemLocation() {
+        return () -> transformationsStoreDirectory;
     }
 }

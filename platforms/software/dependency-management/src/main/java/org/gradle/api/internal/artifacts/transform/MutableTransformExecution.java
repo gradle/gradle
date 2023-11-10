@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.MutableUnitOfWork;
+import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -31,6 +32,7 @@ import java.util.Map;
 class MutableTransformExecution extends AbstractTransformExecution implements MutableUnitOfWork {
     private final String rootProjectLocation;
     private final String producerBuildTreePath;
+    private final WorkspaceProvider workspaceProvider;
 
     public MutableTransformExecution(
         Transform transform,
@@ -44,14 +46,20 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        TransformWorkspaceServices workspaceServices
+        WorkspaceProvider workspaceProvider
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
-            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter, workspaceServices
+            transformExecutionListener, buildOperationExecutor, progressEventEmitter, fileCollectionFactory, inputFingerprinter
         );
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
         this.producerBuildTreePath = producerProject.getBuildTreePath();
+        this.workspaceProvider = workspaceProvider;
+    }
+
+    @Override
+    public WorkspaceProvider getWorkspaceProvider() {
+        return workspaceProvider;
     }
 
     @Override

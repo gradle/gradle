@@ -33,7 +33,6 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -84,11 +83,10 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private final Provider<FileSystemLocation> inputArtifactProvider;
     protected final InputFingerprinter inputFingerprinter;
-    private final TransformWorkspaceServices workspaceServices;
 
     private BuildOperationContext operationContext;
 
-    public AbstractTransformExecution(
+    protected AbstractTransformExecution(
         Transform transform,
         File inputArtifact,
         TransformDependencies dependencies,
@@ -98,8 +96,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         BuildOperationExecutor buildOperationExecutor,
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        TransformWorkspaceServices workspaceServices
+        InputFingerprinter inputFingerprinter
     ) {
         this.transform = transform;
         this.inputArtifact = inputArtifact;
@@ -112,7 +109,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.progressEventEmitter = progressEventEmitter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.workspaceServices = workspaceServices;
     }
 
     @Override
@@ -182,11 +178,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     public Object loadAlreadyProducedOutput(File workspace) {
         TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
         return resultSerializer.readResultsFile(getResultsFile(workspace));
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return workspaceServices.getWorkspaceProvider();
     }
 
     @Override
