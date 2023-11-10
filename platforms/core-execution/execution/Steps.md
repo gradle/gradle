@@ -1,16 +1,14 @@
-[mermaid]
-----
+```mermaid
 flowchart TD
   Identify[Identify work] <--> MutablePipeline[Mutable pipeline]
   Identify <--> ImmutablePipeline[Immutable pipeline]
   MutablePipeline <--> Execution[Execution pipeline]
   ImmutablePipeline <--> Execution
-----
+```
 
-== Identification of the work
+## Identification of the work
 
-[mermaid]
-----
+```mermaid
 sequenceDiagram
   Execution engine ->> Identify: ExecutionRequestContext
     Identify -> Identify: Capture identity inputs
@@ -28,12 +26,11 @@ sequenceDiagram
     end
     IdentityCache ->> Identify: Result
   Identify ->> Execution engine: Result
-----
+```
 
-== Immutable pipeline
+## Immutable pipeline
 
-[mermaid]
-----
+```mermaid
 sequenceDiagram
   AssignImmutableWorkspace ->> AssignTemporaryWorkspace: ImmutableWorkspaceContext
   alt Immutable workspace missing
@@ -57,12 +54,11 @@ sequenceDiagram
     AssignTemporaryWorkspace ->> AssignTemporaryWorkspace: Move workspace to immutable location
   end
   AssignTemporaryWorkspace ->> AssignImmutableWorkspace: CachingResult
-----
+```
 
-== Mutable pipeline
+## Mutable pipeline
 
-[mermaid]
-----
+```mermaid
 sequenceDiagram
 
   AssignPersistentWorkspace ->> HandleStaleOutputs: WorkspaceContext
@@ -95,5 +91,4 @@ sequenceDiagram
       SkipEmptyIncrementalWork ->> LoadPreviousExecutionState: AfterExecutionResult
     LoadPreviousExecutionState ->> HandleStaleOutputs: AfterExecutionResult
   HandleStaleOutputs ->> AssignPersistentWorkspace: AfterExecutionResult
-----
-
+```
