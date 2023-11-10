@@ -141,6 +141,7 @@ public class MavenComponentParser {
             LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
 
         Set<MavenDependencyKey> seenDependencies = Sets.newHashSet();
+        Set<MavenDependencyKey> seenPlatforms = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
 
         List<MavenDependency> dependencies = new ArrayList<>();
@@ -170,6 +171,11 @@ public class MavenComponentParser {
                     dependencies.add(dep);
                 }
             };
+            Consumer<MavenDependency> platformsAdder = dep -> {
+                if (seenPlatforms.add(MavenDependencyKey.of(dep))) {
+                    platforms.add(dep);
+                }
+            };
 
             for (ModuleDependency dependency : variant.getDependencies()) {
                 if (isDependencyWithDefaultArtifact(dependency) && dependencyMatchesProject(dependency, coordinates)) {
@@ -177,7 +183,7 @@ public class MavenComponentParser {
                     continue;
                 }
                 if (platformSupport.isTargetingPlatform(dependency)) {
-                    dependencyFactory.convertImportDependencyConstraint(dependency, platforms::add);
+                    dependencyFactory.convertImportDependencyConstraint(dependency, platformsAdder);
                 } else {
                     dependencyFactory.convertDependency(dependency, dependencyAdder);
                 }
