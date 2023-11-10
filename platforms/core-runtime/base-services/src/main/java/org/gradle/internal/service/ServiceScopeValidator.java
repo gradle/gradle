@@ -58,7 +58,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             return;
         }
 
-        if (scope != serviceScope) {
+        if (!scope.equals(serviceScope)) {
             throw new IllegalArgumentException(invalidScopeMessage(serviceType, serviceScope));
         }
     }

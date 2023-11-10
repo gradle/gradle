@@ -16,19 +16,18 @@
 
 package org.gradle.internal.service;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 @NonNullApi
 public class ServiceScopeValidatorWorkarounds {
 
-    private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
+    private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = ImmutableSet.of(
         "org.gradle.api.internal.file.FileCollectionFactory",
         "org.gradle.api.problems.Problems"
-    ));
+    );
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {
         return SUPPRESSED_VALIDATION_CLASSES.contains(serviceType.getName());
