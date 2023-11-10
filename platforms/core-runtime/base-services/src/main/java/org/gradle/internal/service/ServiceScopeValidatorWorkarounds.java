@@ -21,6 +21,11 @@ import org.gradle.api.NonNullApi;
 
 import java.util.Set;
 
+/**
+ * Temporary workarounds required for the scope validation to work
+ * before the service injection framework supports all cases of stricter validation
+ * and before all the services are annotated appropriately.
+ */
 @NonNullApi
 public class ServiceScopeValidatorWorkarounds {
 
