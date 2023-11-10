@@ -6,6 +6,8 @@
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
    1. Definitions.
+    [#27019](https://github.com/gradle/gradle/issues/27019)
+    [#15619](https://github.com/gradle/gradle/issues/15619)
 
       "License" shall mean the terms and conditions for use, reproduction,
       and distribution as defined by Sections 1 through 9 of this document.
