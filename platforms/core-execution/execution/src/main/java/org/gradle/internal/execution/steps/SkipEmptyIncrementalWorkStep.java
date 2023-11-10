@@ -60,7 +60,12 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
 
     @Override
     protected PreviousExecutionContext recreateContextWithNewInputFiles(PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
-        return context.withInputFiles(inputFiles);
+        return new PreviousExecutionContext(context) {
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return inputFiles;
+            }
+        };
     }
 
     @Override

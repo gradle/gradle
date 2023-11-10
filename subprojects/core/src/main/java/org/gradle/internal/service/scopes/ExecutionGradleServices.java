@@ -31,7 +31,6 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -57,9 +56,10 @@ import org.gradle.internal.execution.steps.HandleStaleOutputsStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.IdentityContext;
-import org.gradle.internal.execution.steps.IncrementalChangesContext;
-import org.gradle.internal.execution.steps.InputChangesContext;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
+import org.gradle.internal.execution.steps.NeverUpToDateStep;
+import org.gradle.internal.execution.steps.NoAfterExecutionStateStep;
+import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
@@ -165,17 +165,14 @@ public class ExecutionGradleServices {
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
-            new ResolveChangesStep<>(changeDetector,
-            // TODO Replace with checking if workspace exists, and if it does, check outputs
-            new SkipUpToDateStep<>(
-            new StoreExecutionStateStep<>(
+            new NeverUpToDateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
-            new AlwaysNonIncrementalInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new NoInputChangesStep<>(
+            new NoAfterExecutionStateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
-        ))))))))))))))));
+        ))))))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
@@ -209,18 +206,5 @@ public class ExecutionGradleServices {
         )))));
         // CHECKSTYLE:ON
         // @formatter:on
-    }
-
-    private static class AlwaysNonIncrementalInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
-        private final Step<? super InputChangesContext, ? extends R> delegate;
-
-        public AlwaysNonIncrementalInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public R execute(UnitOfWork work, C context) {
-            return delegate.execute(work, new InputChangesContext(context, null));
-        }
     }
 }

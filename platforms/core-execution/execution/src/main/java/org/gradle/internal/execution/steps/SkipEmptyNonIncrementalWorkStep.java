@@ -28,7 +28,6 @@ import java.time.Duration;
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED;
 
-// TODO We could do this before allocating a workspace, and always return a singleton empty workspace when no sources are found
 public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<PreviousExecutionContext> {
     public SkipEmptyNonIncrementalWorkStep(
         WorkInputListeners workInputListeners,
@@ -39,7 +38,12 @@ public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<P
 
     @Override
     protected PreviousExecutionContext recreateContextWithNewInputFiles(PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles) {
-        return context.withInputFiles(inputFiles);
+        return new PreviousExecutionContext(context) {
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return inputFiles;
+            }
+        };
     }
 
     @Override

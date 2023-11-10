@@ -79,13 +79,10 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
     private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
         logExecutionReasons(reasons, work);
         AfterExecutionResult result = delegate.execute(work, context);
-        return new UpToDateResult(result, reasons, result.getAfterExecutionState()
-            .filter(AfterExecutionState::isReused)
-            .map(AfterExecutionState::getOriginMetadata)
-            .orElse(null));
+        return new UpToDateResult(result, reasons);
     }
 
-    private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
+    private static void logExecutionReasons(List<String> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));

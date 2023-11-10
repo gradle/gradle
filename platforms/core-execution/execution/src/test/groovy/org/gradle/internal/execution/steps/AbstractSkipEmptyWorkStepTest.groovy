@@ -86,10 +86,8 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends 
 
     def "delegates when work has sources"() {
         def delegateResult = Mock(CachingResult)
-        def delegateContext = Stub(PreviousExecutionContext)
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
-        context.withInputFiles(ImmutableSortedMap.copyOf("known-file": knownFileFingerprint, "source-file": sourceFileFingerprint)) >> delegateContext
 
         when:
         def result = step.execute(work, context)
@@ -112,7 +110,7 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends 
         1 * sourceFileFingerprint.empty >> false
 
         then:
-        1 * delegate.execute(work, delegateContext) >> delegateResult
+        1 * delegate.execute(work, _ as WorkspaceContext) >> delegateResult
         1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 
