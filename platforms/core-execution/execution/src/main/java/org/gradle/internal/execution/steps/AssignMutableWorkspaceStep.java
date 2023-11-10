@@ -19,17 +19,20 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
 
-public class AssignMutableWorkspaceStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
-    private final Step<? super WorkspaceContext, ? extends R> delegate;
+public class AssignMutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
+    private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
 
-    public AssignMutableWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
+    public AssignMutableWorkspaceStep(Step<? super WorkspaceContext, ? extends CachingResult> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public WorkspaceResult execute(UnitOfWork work, C context) {
         return ((MutableUnitOfWork) work).getWorkspaceProvider().withWorkspace(
             context.getIdentity().getUniqueId(),
-            (workspace, history) -> delegate.execute(work, new WorkspaceContext(context, workspace, history)));
+            (workspace, history) -> {
+                CachingResult delegateResult = delegate.execute(work, new WorkspaceContext(context, workspace, history));
+                return new WorkspaceResult(delegateResult, workspace);
+            });
     }
 }

@@ -16,12 +16,20 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.Try
+import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider
 
+import java.time.Duration
+
 class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
-    def delegateResult = Mock(Result)
+    def delegateExecution = Mock(ExecutionEngine.Execution)
+    def delegateResult = Stub(CachingResult) {
+        duration >> Duration.ZERO
+        execution >> Try.successful(delegateExecution)
+    }
     def step = new AssignMutableWorkspaceStep<>(delegate)
     def work = Stub(MutableUnitOfWork)
 
@@ -32,7 +40,6 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         def result = step.execute(work, context)
 
         then:
-        result == delegateResult
         _ * work.workspaceProvider >> workspaceProvider
         1 * workspaceProvider.withWorkspace(":test", _) >> { String identity, MutableWorkspaceProvider.WorkspaceAction action ->
             def actionResult = action.executeInWorkspace(workspace, null)
@@ -42,5 +49,13 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
             assert context.workspace == workspace
             return delegateResult
         }
+        0 * _
+
+        when:
+        result.workspaceOutputs
+
+        then:
+        1 * delegateExecution.getOutput()
+        0 * _
     }
 }
