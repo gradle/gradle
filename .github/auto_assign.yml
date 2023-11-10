@@ -1,10 +1,10 @@
 # Set to true to add reviewers to pull requests
-addReviewers: false
+addReviewers: true
 
 # Set to true to add assignees to pull requests
-addAssignees: author
+addAssignees: author/contributor
 
 # A number of assignees to add to the pull request
 # Set to 0 to add all of the assignees.
 # Uses numberOfReviewers if unset.
-numberOfAssignees: 0
+numberOfAssignees:5
