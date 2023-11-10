@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemEmitter
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblems
@@ -38,8 +39,9 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
-    def emitter = Stub(ProblemEmitter)
-    def step = new ValidateStep<>(virtualFileSystem, warningReporter, new DefaultProblems(emitter), delegate)
+    def problemsEmitter = Stub(ProblemEmitter)
+    def problems = new DefaultProblems(problemsEmitter)
+    def step = new ValidateStep<>(virtualFileSystem, warningReporter, problems, delegate)
     def delegateResult = Mock(Result)
 
     def setup() {

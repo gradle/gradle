@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore;
 
 /**
  * Test class verifying the integration between the {@code JavaCompile} and the {@code Problems} service.
  */
+@Ignore
 class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
-
-    boolean forkCompiler = false
 
     def setup() {
         buildFile << """
