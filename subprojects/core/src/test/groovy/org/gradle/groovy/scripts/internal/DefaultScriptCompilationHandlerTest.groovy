@@ -96,6 +96,9 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def setup() {
+        def problemEmitter = Stub(ProblemEmitter)
+        def problems = new DefaultProblems(problemEmitter)
+
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
         scriptCompilationHandler = new DefaultScriptCompilationHandler(
@@ -104,8 +107,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         ) {
             @Override
             protected Problems getProblemService() {
-                def problemEmitter = Stub(ProblemEmitter)
-                return new DefaultProblems(problemEmitter)
+                return problems
             }
         }
 
