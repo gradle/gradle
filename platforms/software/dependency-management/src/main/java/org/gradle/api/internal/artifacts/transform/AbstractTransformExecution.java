@@ -51,7 +51,6 @@ import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuil
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
@@ -143,7 +142,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
+                    TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
                     resultSerializer.writeToFile(getResultsFile(workspace), result);
                     return result;
                 } finally {
@@ -168,16 +167,16 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             }
 
             @Override
-            public Object getOutput() {
-                return result;
+            public Object getOutput(File workspace) {
+                return result.bindToOutputDir(getOutputDir(workspace));
             }
         };
     }
 
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
-        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer(getOutputDir(workspace));
-        return resultSerializer.readResultsFile(getResultsFile(workspace));
+        TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
+        return resultSerializer.readResultsFile(getResultsFile(workspace)).bindToOutputDir(getOutputDir(workspace));
     }
 
     @Override
@@ -191,11 +190,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     private static File getResultsFile(File workspace) {
         return new File(workspace, "results.bin");
-    }
-
-    @Override
-    public Optional<Duration> getTimeout() {
-        return Optional.empty();
     }
 
     @Override

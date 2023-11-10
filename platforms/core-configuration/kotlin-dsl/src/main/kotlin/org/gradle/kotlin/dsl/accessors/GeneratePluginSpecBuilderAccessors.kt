@@ -119,7 +119,7 @@ class GeneratePluginSpecBuilderAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
     }
 }
