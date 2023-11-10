@@ -83,14 +83,14 @@ class TransformExecutionResultSerializerTest extends Specification {
         serializer.writeToFile(resultFile, initialResults)
         then:
         resultFile.exists()
-        initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
-        initialResults.resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
+        initialResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
+        initialResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
 
         when:
         def loadedResults = serializer.readResultsFile(resultFile)
         then:
-        loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
-        loadedResults.resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
+        loadedResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
+        loadedResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
     }
 
     def "loads files in output directory relative to output directory"() {
@@ -112,22 +112,22 @@ class TransformExecutionResultSerializerTest extends Specification {
         serializer.writeToFile(resultFile, initialResults)
         then:
         resultFile.exists()
-        initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
+        initialResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         when:
         def loadedResults = serializer.readResultsFile(resultFile)
         then:
-        loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
+        loadedResults.bindToOutputDir(newOutputDir).resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
     }
 
     private void assertCanWriteAndReadResult(File... files) {
         ImmutableList<File> resultFiles = ImmutableList.<File>builder().add(files).build()
         def initialResults = buildTransformExecutionResult(resultFiles)
-        assert initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
+        assert initialResults.bindToOutputDir(outputDir).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         serializer.writeToFile(resultFile, initialResults)
         assert resultFile.exists()
-        assert serializer.readResultsFile(resultFile).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
+        assert serializer.readResultsFile(resultFile).bindToOutputDir(outputDir).resolveOutputsForInputArtifact(inputArtifact) == resultFiles
     }
 
     private TransformExecutionResult buildTransformExecutionResult(Collection<File> files) {
