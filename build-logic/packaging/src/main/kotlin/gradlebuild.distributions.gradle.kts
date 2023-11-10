@@ -174,7 +174,19 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(upgradedPropertiesMergeTask)
 }
 
+val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRuntime")
+val kotlinDslSharedRuntimeClasspath = configurations.resolvable("kotlinDslSharedRuntimeClasspath") {
+    extendsFrom(kotlinDslSharedRuntime.get())
+}
+dependencies {
+    kotlinDslSharedRuntime(platform("gradlebuild:build-platform"))
+    kotlinDslSharedRuntime("org.gradle:kotlin-dsl-shared-runtime")
+    kotlinDslSharedRuntime(kotlin("stdlib", embeddedKotlinVersion))
+    kotlinDslSharedRuntime("org.ow2.asm:asm-tree")
+    kotlinDslSharedRuntime("com.google.code.findbugs:jsr305")
+}
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
+    sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)
     classpath.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("generated-sources/kotlin-dsl-extensions")
 }

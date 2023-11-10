@@ -14,20 +14,41 @@
  * limitations under the License.
  */
 
-package gradlebuild.kotlindsl.generator.codegen
+package org.gradle.kotlin.dsl.internal.sharedruntime.codegen
 
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
-import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
 
 
-fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
+/**
+ * Helper for reflective usage by `KotlinExtensionsForGradleApiFacade`.
+ */
+class PluginIdExtensionsFacade {
+    @Suppress("UNCHECKED_CAST")
+    fun generate(parameters: Map<String, Any>) {
+        writeBuiltinPluginIdExtensionsTo(
+            parameters["file"] as File,
+            parameters["gradleJars"] as Iterable<File>,
+            parameters["pluginDependenciesSpecQualifiedName"] as String,
+            parameters["pluginDependencySpecQualifiedName"] as String,
+        )
+    }
+}
+
+
+fun writeBuiltinPluginIdExtensionsTo(
+    file: File,
+    gradleJars: Iterable<File>,
+    pluginDependenciesSpecQualifiedName: String,
+    pluginDependencySpecQualifiedName: String,
+) {
     file.bufferedWriter().use { writer ->
         writer.appendReproducibleNewLine(fileHeader)
-        pluginIdExtensionDeclarationsFor(gradleJars).forEach { extension ->
+        pluginIdExtensionDeclarationsFor(
+            gradleJars,
+            pluginDependenciesSpecQualifiedName,
+            pluginDependencySpecQualifiedName
+        ).forEach { extension ->
             writer.write("\n")
             writer.appendReproducibleNewLine(extension)
         }
@@ -36,9 +57,11 @@ fun writeBuiltinPluginIdExtensionsTo(file: File, gradleJars: Iterable<File>) {
 
 
 private
-fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
-    val extendedType = PluginDependenciesSpec::class.qualifiedName!!
-    val extensionType = PluginDependencySpec::class.qualifiedName!!
+fun pluginIdExtensionDeclarationsFor(
+    jars: Iterable<File>,
+    pluginDependenciesSpecQualifiedName: String,
+    pluginDependencySpecQualifiedName: String,
+): Sequence<String> {
     return pluginExtensionsFrom(jars)
         .map { (memberName, pluginId, implementationClass) ->
             """
@@ -47,7 +70,7 @@ fun pluginIdExtensionDeclarationsFor(jars: Iterable<File>): Sequence<String> {
              *
              * @see $implementationClass
              */
-            inline val $extendedType.`$memberName`: $extensionType
+            inline val $pluginDependenciesSpecQualifiedName.`$memberName`: $pluginDependencySpecQualifiedName
                 get() = id("$pluginId")
             """.trimIndent()
         }
