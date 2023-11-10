@@ -1,0 +1,25 @@
+# Disable sign-off checking for members of the Gradle GitHub organization
+
+#.idea/
+# Transportation / packaging
+.Python
+.download.cfg
+develop/
+built-in-eggs/
+dist/
+transcript/
+eggs/
+.eggs/
+lib_collection/
+lib_collection64/
+parts_artifacts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+require:
+  members: false
