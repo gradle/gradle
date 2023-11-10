@@ -22,7 +22,7 @@ pluginManagement {
         
         versionCatalogs { 
             create("libs") {
-                val kotlinVersion = version("kotlin", "1.9.0")
+                val kotlinVersion = version("kotlin", "1.9.20")
                 plugin("kotlin.jvm", "org.jetbrains.kotlin.jvm").versionRef(kotlinVersion)
             }
         }
