@@ -1,120 +1,99 @@
-// Copyright (C) 2023 Gradle, Inc.
-//
-// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      https://creativecommons.org/licenses/by-nc-sa/4.0/
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+[mermaid]
+----
+flowchart TD
+  Identify[Identify work] <--> MutablePipeline[Mutable pipeline]
+  Identify <--> ImmutablePipeline[Immutable pipeline]
+  MutablePipeline <--> Execution[Execution pipeline]
+  ImmutablePipeline <--> Execution
+----
 
-== Steps
+== Identification of the work
 
 [mermaid]
-....
-flowchart BT
-    subgraph Ingress[Ingress]
-        ExecutionEngine
-
-        ExecutionEngine -->|ExecutionRequestContext| IdentityStep
-        IdentityStep -->|Result| ExecutionEngine
-
-        IdentityStep
-        IdentityCacheStep
-        ChoosePipelineStep
-
-        IdentityStep -->|IdentityContext| IdentityCacheStep
-        IdentityCacheStep -->|Result| IdentityStep
-
-        IdentityCacheStep -->|IdentityContext| ChoosePipelineStep
-        ChoosePipelineStep -->|Result| IdentityCacheStep
-
-        ChoosePipelineStep -->|IdentityContext| AssignWorkspaceStep
-        AssignWorkspaceStep -->|Result| ChoosePipelineStep
-
+----
+sequenceDiagram
+  Execution engine ->> Identify: ExecutionRequestContext
+    Identify -> Identify: Capture identity inputs
+    Identify ->> IdentityCache: IdentityContext
+    alt Not in identity cache
+      IdentityCache -->> ChoosePipeline: IdentityContext
+      alt Mutable work
+        ChoosePipeline ->> Mutable pipeline: IdentityContext
+        Mutable pipeline ->> ChoosePipeline: Result
+      else Immutable work
+        ChoosePipeline ->> Immutable pipeline: IdentityContext
+        Immutable pipeline ->> ChoosePipeline: Result
+      end
+      ChoosePipeline -->> IdentityCache: Result
     end
+    IdentityCache ->> Identify: Result
+  Identify ->> Execution engine: Result
+----
 
-    subgraph MutablePipeline[Mutable pipeline]
-        AssignWorkspaceStep
-        HandleStaleOutputsStep
-        LoadPreviousExecutionStateStep
-        SkipEmptyIncrementalWorkStep
-        CaptureStateBeforeExecutionStep
-        ValidateStep
-        ResolveCachingStateStep
-        ResolveChangesStep
-        SkipUpToDateStep
-        StoreExecutionStateStep
-        BuildCacheStep
-        ResolveInputChangesStep
-        CaptureStateAfterExecutionStep
-        BroadcastChangingOutputsStep
-        RemovePreviousOutputsStep
+== Immutable pipeline
 
-        AssignWorkspaceStep ==>|WorkspaceContext| HandleStaleOutputsStep
-        HandleStaleOutputsStep -->|AfterExecutionResult| AssignWorkspaceStep
+[mermaid]
+----
+sequenceDiagram
+  AssignImmutableWorkspace ->> AssignTemporaryWorkspace: ImmutableWorkspaceContext
+  alt Immutable workspace missing
+    AssignTemporaryWorkspace ->> Validate: TemporaryWorkspaceContext
+      Validate ->> ResolveCachingState: ValidationFinishedContext
+        ResolveCachingState ->> SkipEmptyImmutableWork: CachingContext
+        alt Non-empty sources
+          SkipEmptyImmutableWork ->> BuildCache: CachingContext
+          alt Cache miss
+            BuildCache ->> BroadcastChangingOutputs: CachingContext
+              BroadcastChangingOutputs ->> Execution pipeline: ChangingOutputsContext
+              Execution pipeline ->> BroadcastChangingOutputs: Result
+            BroadcastChangingOutputs ->> BuildCache: Result
+          end
+          BuildCache ->> SkipEmptyImmutableWork: CachingResult
+        end
+        SkipEmptyImmutableWork ->> ResolveCachingState: CachingResult
+      ResolveCachingState ->> Validate: CachingResult
+    Validate ->> AssignTemporaryWorkspace: CachingResult
+    AssignTemporaryWorkspace ->> AssignTemporaryWorkspace: Store history
+    AssignTemporaryWorkspace ->> AssignTemporaryWorkspace: Move workspace to immutable location
+  end
+  AssignTemporaryWorkspace ->> AssignImmutableWorkspace: CachingResult
+----
 
-        HandleStaleOutputsStep -->|WorkspaceContext| LoadPreviousExecutionStateStep
-        LoadPreviousExecutionStateStep -->|AfterExecutionResult| HandleStaleOutputsStep
+== Mutable pipeline
 
-        LoadPreviousExecutionStateStep ==>|PreviousExecutionContext| SkipEmptyIncrementalWorkStep
-        SkipEmptyIncrementalWorkStep -->|AfterExecutionResult| LoadPreviousExecutionStateStep
+[mermaid]
+----
+sequenceDiagram
 
-        SkipEmptyIncrementalWorkStep -->|PreviousExecutionContext| CaptureStateBeforeExecutionStep
-        CaptureStateBeforeExecutionStep -->|CachingResult| SkipEmptyIncrementalWorkStep
+  AssignPersistentWorkspace ->> HandleStaleOutputs: WorkspaceContext
+    HandleStaleOutputs ->> LoadPreviousExecutionState: WorkspaceContext
+      LoadPreviousExecutionState ->> SkipEmptyIncrementalWork: PreviousExecutionContext
+        SkipEmptyIncrementalWork ->> CaptureStateBeforeExecution: PreviousExecutionContext
+          CaptureStateBeforeExecution ->> Validate: BeforeExecutionState
+            Validate ->> ResolveCachingState: ValidationFinishedContext
+              ResolveCachingState ->> ResolveChanges: CachingContext
+                ResolveChanges ->> SkipUpToDate: IncrementalChangesContext
+                  SkipUpToDate ->> StoreExecutionState: IncrementalChangesContext
+                    StoreExecutionState ->> BuildCache: PreviousExecutionContext
+                      BuildCache ->> ResolveInputChanges: IncrementalChangesContext
+                        ResolveInputChanges ->> CaptureStateAfterExecution: InputChangesContext
+                          CaptureStateAfterExecution ->> BroadcastChangingOutputs: BeforeExecutionState
+                            BroadcastChangingOutputs ->> RemovePreviousOutputs: ChangingOutputsContext
+                              RemovePreviousOutputs ->> Execution pipeline: ChangingOutputsContext
+                              Execution pipeline ->> RemovePreviousOutputs: Result
+                            RemovePreviousOutputs ->> BroadcastChangingOutputs: Result
+                          BroadcastChangingOutputs ->> CaptureStateAfterExecution: Result
+                        CaptureStateAfterExecution ->> ResolveInputChanges: AfterExecutionResult
+                      ResolveInputChanges ->> BuildCache: Result
+                    BuildCache ->> StoreExecutionState: AfterExecutionResult
+                  StoreExecutionState ->> SkipUpToDate: AfterExecutionResult
+                SkipUpToDate ->> ResolveChanges: UpToDateResult
+              ResolveChanges ->> ResolveCachingState: Result
+            ResolveCachingState ->> Validate: CachingResult
+          Validate ->> CaptureStateBeforeExecution: CachingResult
+        CaptureStateBeforeExecution ->> SkipEmptyIncrementalWork: CachingResult
+      SkipEmptyIncrementalWork ->> LoadPreviousExecutionState: AfterExecutionResult
+    LoadPreviousExecutionState ->> HandleStaleOutputs: AfterExecutionResult
+  HandleStaleOutputs ->> AssignPersistentWorkspace: AfterExecutionResult
+----
 
-        CaptureStateBeforeExecutionStep ==>|BeforeExecutionState| ValidateStep
-        ValidateStep -->|CachingResult| CaptureStateBeforeExecutionStep
-
-        ValidateStep ==>|ValidationFinishedContext| ResolveCachingStateStep
-        ResolveCachingStateStep ==>|CachingResult| ValidateStep
-
-        ResolveCachingStateStep ==>|CachingContext| ResolveChangesStep
-        ResolveChangesStep -.->|Result| ResolveCachingStateStep
-
-        ResolveChangesStep ==>|IncrementalChangesContext| SkipUpToDateStep
-        SkipUpToDateStep ==>|UpToDateResult| ResolveChangesStep
-
-        SkipUpToDateStep -->|IncrementalChangesContext| StoreExecutionStateStep
-        StoreExecutionStateStep -->|AfterExecutionResult| SkipUpToDateStep
-
-        StoreExecutionStateStep -->|PreviousExecutionContext| BuildCacheStep
-        BuildCacheStep -->|AfterExecutionResult| StoreExecutionStateStep
-
-        BuildCacheStep -->|IncrementalChangesContext| ResolveInputChangesStep
-        ResolveInputChangesStep -->|Result| BuildCacheStep
-
-        ResolveInputChangesStep ==>|InputChangesContext| CaptureStateAfterExecutionStep
-        CaptureStateAfterExecutionStep ==>|AfterExecutionResult| ResolveInputChangesStep
-
-        CaptureStateAfterExecutionStep -->|BeforeExecutionState| BroadcastChangingOutputsStep
-        BroadcastChangingOutputsStep -->|Result| CaptureStateAfterExecutionStep
-
-        BroadcastChangingOutputsStep ==>|ChangingOutputsContext| RemovePreviousOutputsStep
-        RemovePreviousOutputsStep -->|Result| BroadcastChangingOutputsStep
-
-        RemovePreviousOutputsStep -->|ChangingOutputsContext| PreCreateOutputParentsStep
-        PreCreateOutputParentsStep -->|Result| RemovePreviousOutputsStep
-    end
-
-    PreCreateOutputParentsStep -->|ChangingOutputsContext| TimeoutStep
-    TimeoutStep -->|Result| PreCreateOutputParentsStep
-
-    subgraph SharedPipeline[Shared pipeline]
-        PreCreateOutputParentsStep
-        TimeoutStep
-        CancelExecutionStep
-        ExecuteStep
-
-        TimeoutStep -->|ChangingOutputsContext| CancelExecutionStep
-        CancelExecutionStep -->|Result| TimeoutStep
-
-        CancelExecutionStep -->|ChangingOutputsContext| ExecuteStep
-        ExecuteStep -->|Result| CancelExecutionStep
-    end
-
-....
