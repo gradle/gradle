@@ -21,8 +21,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
-import org.gradle.api.problems.ProblemCloneBuilder;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
@@ -111,10 +111,9 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public ProblemCloneBuilder toBuilder() {
-        return new DefaultProblemCloneBuilder(this);
+    public UnboundBasicProblemBuilder toBuilder() {
+        return new DefaultBasicProblemBuilder(this);
     }
-
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == b) || (a != null && a.equals(b));
     }

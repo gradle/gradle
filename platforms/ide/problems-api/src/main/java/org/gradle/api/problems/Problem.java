@@ -87,7 +87,7 @@ public interface Problem {
      * @since 8.5
      */
     @Nullable
-    Throwable getException();
+    Throwable getException(); // TODO this should be RuntimeException
 
     /**
      * Additional Data about the problem.
@@ -101,5 +101,5 @@ public interface Problem {
      * @since 8.6
      */
     @Incubating
-    ProblemCloneBuilder toBuilder();
+    UnboundBasicProblemBuilder toBuilder();
 }

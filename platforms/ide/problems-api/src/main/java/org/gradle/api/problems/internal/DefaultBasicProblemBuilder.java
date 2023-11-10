@@ -16,11 +16,10 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.UnboundReportableProblemBuilder;
+import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
@@ -32,13 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Builder for problems.
- *
- * @since 8.3
- */
-@Incubating
-public class DefaultReportableProblemBuilder implements UnboundReportableProblemBuilder {
+public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
 
     protected String label; // TODO make them private
     protected String problemCategory;
@@ -52,15 +45,7 @@ public class DefaultReportableProblemBuilder implements UnboundReportableProblem
     protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
     protected boolean collectLocation = false;
 
-    private final InternalProblems problemsService;
-
-
-    public DefaultReportableProblemBuilder(InternalProblems problemsService) {
-        this.problemsService = problemsService;
-
-    }
-    public DefaultReportableProblemBuilder(InternalProblems problemsService, ReportableProblem problem) {
-        this(problemsService);
+    public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
         this.problemCategory = problem.getProblemCategory().getCategory();
         this.severity = problem.getSeverity();
@@ -72,22 +57,18 @@ public class DefaultReportableProblemBuilder implements UnboundReportableProblem
         this.exception = (RuntimeException) problem.getException(); // TODO ensure this is valid
     }
 
-    public ReportableProblem build() {
-        if (!explicitlyUndocumented && documentationUrl == null) {
-            throw new IllegalStateException("Problem is not documented: " + label);
-        }
-
-        return new DefaultReportableProblem(
+    @Override
+    public Problem build() {
+        return new DefaultProblem(
             label,
             getSeverity(severity),
             locations,
             documentationUrl,
             description,
             solution,
-            exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
+            exception == null && collectLocation ? new Exception() : exception, // TODO: don't create exception if already reported often
             problemCategory,
-            additionalMetadata,
-            problemsService);
+            additionalMetadata);
     }
 
     @Nonnull
@@ -105,80 +86,80 @@ public class DefaultReportableProblemBuilder implements UnboundReportableProblem
         return this.severity;
     }
 
-    public UnboundReportableProblemBuilder label(String label, Object... args) {
+    public UnboundBasicProblemBuilder label(String label, Object... args) {
         this.label = String.format(label, args);
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder severity(Severity severity) {
+    public UnboundBasicProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
     }
 
-    public UnboundReportableProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
+    @Override
+    public UnboundBasicProblemBuilder location(ProblemLocation location) {
+        this.locations.add(location);
+        return this;
+    }
+
+    public UnboundBasicProblemBuilder location(String path, @javax.annotation.Nullable Integer line) {
         location(path, line, null);
         return this;
     }
 
-    public UnboundReportableProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
+    public UnboundBasicProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
         this.locations.add(new FileLocation(path, line, column, 0));
         return this;
     }
 
-    public UnboundReportableProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
+    public UnboundBasicProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
         this.locations.add(new FileLocation(path, line, column, length));
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder pluginLocation(String pluginId) {
+    public UnboundBasicProblemBuilder pluginLocation(String pluginId) {
         this.locations.add(new PluginIdLocation(pluginId));
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder stackLocation() {
+    public UnboundBasicProblemBuilder stackLocation() {
         this.collectLocation = true;
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder noLocation() {
+    public UnboundBasicProblemBuilder noLocation() {
         return this;
     }
 
-    @Override
-    public UnboundReportableProblemBuilder location(ProblemLocation location) {
-        this.locations.add(location);
-        return this;
-    }
-
-    public UnboundReportableProblemBuilder details(String details) {
+    public UnboundBasicProblemBuilder details(String details) {
         this.description = details;
         return this;
     }
 
-    public UnboundReportableProblemBuilder documentedAt(DocLink doc) {
+    public UnboundBasicProblemBuilder documentedAt(DocLink doc) {
         this.explicitlyUndocumented = false;
         this.documentationUrl = doc;
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder undocumented() {
+    public UnboundBasicProblemBuilder undocumented() {
         this.explicitlyUndocumented = true;
         this.documentationUrl = null;
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder category(String category, String... details){
+    public UnboundBasicProblemBuilder category(String category, String... details){
         this.problemCategory = DefaultProblemCategory.category(category, details).toString();
         return this;
     }
 
-    public UnboundReportableProblemBuilder solution(@Nullable String solution) {
+    public UnboundBasicProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
             this.solution = new ArrayList<String>();
         }
@@ -186,19 +167,14 @@ public class DefaultReportableProblemBuilder implements UnboundReportableProblem
         return this;
     }
 
-    public UnboundReportableProblemBuilder additionalData(String key, String value) {
+    public UnboundBasicProblemBuilder additionalData(String key, String value) {
         this.additionalMetadata.put(key, value);
         return this;
     }
 
     @Override
-    public UnboundReportableProblemBuilder withException(RuntimeException e) {
+    public UnboundBasicProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
-    }
-
-
-    RuntimeException getException() {
-        return exception;
     }
 }

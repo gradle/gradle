@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.UnboundReportableProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
@@ -64,5 +65,10 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
     @Override
     public void report() {
         problemService.reportAsProgressEvent(this);
+    }
+
+    @Override
+    public UnboundReportableProblemBuilder toBuilder() {
+        return new DefaultReportableProblemBuilder(problemService, this);
     }
 }

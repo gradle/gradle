@@ -17,6 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.locations.ProblemLocation;
 
 import javax.annotation.Nullable;
 
@@ -26,18 +27,19 @@ import javax.annotation.Nullable;
  * @since 8.6
  */
 @Incubating
-public interface UnboundBasicProblemBuilder extends BasicProblemBuilder,
-    ProblemBuilderDefiningDocumentation,
-    ProblemBuilderDefiningLocation,
-    ProblemBuilderDefiningLabel,
-    ProblemBuilderDefiningCategory {
-
+public interface UnboundBasicProblemBuilder extends UnboundProblemBuilder, BasicProblemBuilder {
     UnboundBasicProblemBuilder documentedAt(DocLink doc);
     UnboundBasicProblemBuilder undocumented();
     UnboundBasicProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
     UnboundBasicProblemBuilder pluginLocation(String pluginId);
     UnboundBasicProblemBuilder stackLocation();
     UnboundBasicProblemBuilder noLocation();
+    UnboundBasicProblemBuilder location(ProblemLocation location);
     UnboundBasicProblemBuilder label(String label, Object... args);
     UnboundBasicProblemBuilder category(String category, String... details);
+    UnboundBasicProblemBuilder details(String details);
+    UnboundBasicProblemBuilder solution(String solution);
+    UnboundBasicProblemBuilder additionalData(String key, String value);
+    UnboundBasicProblemBuilder withException(RuntimeException e);
+    UnboundBasicProblemBuilder severity(Severity severity);
 }

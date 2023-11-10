@@ -19,7 +19,6 @@ package org.gradle.problems.internal.transformers;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.problems.internal.OperationListener;
 
@@ -43,7 +42,7 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
                     Objects.requireNonNull(operationDetails, "operationDetails should not be null");
                     String pluginId = operationDetails.getPluginId();
                     if (pluginId != null) {
-                        return cloneWithLocation(problem, new PluginIdLocation(pluginId));
+                        return problem.toBuilder().pluginLocation(pluginId).build();
                     }
                     return problem;
                 } catch (Exception ex) {

@@ -43,7 +43,8 @@ public class TaskPathLocationTransformer extends BaseLocationTransformer {
                     ExecuteTaskBuildOperationDetails executeTaskDetails = operationListener.getOp(id, ExecuteTaskBuildOperationDetails.class);
                     Objects.requireNonNull(executeTaskDetails, "executeTaskDetails should not be null");
                     Path taskPath = executeTaskDetails.getTask().getIdentityPath();
-                    return cloneWithLocation(problem, new TaskPathLocation(taskPath));
+                    // TODO: cast the builder to an internal class on which the location() method should be defined
+                    return problem.toBuilder().location(new TaskPathLocation(taskPath)).build();
                 } catch (Exception ex) {
                     throw new GradleException("Problem while reporting problem", ex);
                 }
