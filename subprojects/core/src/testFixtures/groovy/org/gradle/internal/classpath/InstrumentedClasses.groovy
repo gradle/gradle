@@ -40,7 +40,7 @@ class InstrumentedClasses {
         loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
-            new InstrumentingClassTransform(new DefaultJvmBytecodeInterceptorFactorySet(interceptors).getJvmBytecodeInterceptorSet(InterceptorsRequest.INSTRUMENTATION_ONLY)),
+            new InstrumentingClassTransform(new DefaultJvmBytecodeInterceptorFactorySet(interceptors), InterceptorsRequest.ALL),
             typeRegistry
         )
     }

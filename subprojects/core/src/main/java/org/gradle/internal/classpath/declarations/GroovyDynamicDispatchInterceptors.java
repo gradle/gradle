@@ -50,6 +50,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
+        // TODO: Pass InterceptorsRequest as a method parameter
         if (!ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
@@ -71,6 +72,7 @@ public class GroovyDynamicDispatchInterceptors {
         String messageName,
         @CallerClassName String consumer
     ) throws Throwable {
+        // TODO: Pass InterceptorsRequest as a method parameter
         CallInterceptor interceptor = ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi

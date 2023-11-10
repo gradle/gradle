@@ -58,7 +58,7 @@ public class InstrumentedGroovyMetaClassHelper {
 
     @SuppressWarnings("unused") // resolved via a method handle
     public static void addInvocationHooksToMetaClassIfInstrumented(Class<?> javaClass, String callableName) {
-        // In BeanDynamicObject we can't filter interceptors, so we have to apply all
+        // In BeanDynamicObject we can't filter interceptors, so we have to apply all interceptors
         CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(ALL);
         if (resolver.isAwareOfCallSiteName(callableName)) {
             addInvocationHooksToMetaClass(javaClass, resolver);

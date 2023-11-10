@@ -26,11 +26,14 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactorySet;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
@@ -65,8 +68,6 @@ import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
 
 public class InstrumentingClassTransform implements ClassTransform {
-
-    private final JvmBytecodeInterceptorSet externalInterceptors;
 
     /**
      * Decoration format. Increment this when making changes.
@@ -172,6 +173,9 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
 
+    private final JvmBytecodeInterceptorSet externalInterceptors;
+    private final InterceptorsRequest interceptorsRequest;
+
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingClassTransform.class.getSimpleName());
@@ -179,15 +183,18 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY));
+        // TODO: Pass InterceptorsRequest as a constructor parameter
+        this(request -> CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY), INSTRUMENTATION_ONLY);
     }
 
     /**
      * This constructor can be used in tests with a set of call interceptors complemented by ones generated
      * specifically for the tests.
      */
-    public InstrumentingClassTransform(JvmBytecodeInterceptorSet externalInterceptors) {
-        this.externalInterceptors = externalInterceptors;
+    @VisibleForTesting
+    public InstrumentingClassTransform(JvmBytecodeInterceptorFactorySet externalInterceptors, InterceptorsRequest interceptorsRequest) {
+        this.externalInterceptors = externalInterceptors.getJvmBytecodeInterceptorSet(interceptorsRequest);
+        this.interceptorsRequest = interceptorsRequest;
     }
 
     @Override
@@ -195,9 +202,8 @@ public class InstrumentingClassTransform implements ClassTransform {
         return Pair.of(entry.getPath(),
             new InstrumentingVisitor(
                 new CallInterceptionClosureInstrumentingClassVisitor(
-                    new LambdaSerializationTransformer(
-                        new InstrumentingBackwardsCompatibilityVisitor(visitor)
-                    )
+                    new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)),
+                    interceptorsRequest
                 ),
                 classData, externalInterceptors
             )
