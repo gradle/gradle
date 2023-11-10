@@ -263,7 +263,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         }
 
         StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix, false);
-        if (!node.valueWritten && !"".contentEquals(node.value)) {
+        if (!node.valueWritten) {
             output.append(node.parent.prefix);
             output.append(prefixer.nextPrefix());
             output.append(node.value);
