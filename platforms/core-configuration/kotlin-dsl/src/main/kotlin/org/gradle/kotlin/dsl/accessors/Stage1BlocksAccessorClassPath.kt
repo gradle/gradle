@@ -96,8 +96,10 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
                     inputFingerprinter,
                     workspaceProvider
                 )
-                val result = executionEngine.createRequest(work).execute()
-                result.execution.get().output as AccessorsClassPath
+                executionEngine.createRequest(work)
+                    .execute()
+                    .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+                    .get()
             }
             ?: AccessorsClassPath.empty
 
@@ -118,8 +120,10 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
             inputFingerprinter,
             workspaceProvider
         )
-        val result = executionEngine.createRequest(work).execute()
-        return result.execution.get().output as AccessorsClassPath
+        return executionEngine.createRequest(work)
+            .execute()
+            .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+            .get()
     }
 }
 

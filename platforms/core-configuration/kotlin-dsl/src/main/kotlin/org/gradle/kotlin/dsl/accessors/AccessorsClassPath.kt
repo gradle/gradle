@@ -91,8 +91,10 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
                 inputFingerprinter,
                 workspaceProvider
             )
-            val result = executionEngine.createRequest(work).execute()
-            result.execution.get().output as AccessorsClassPath
+            executionEngine.createRequest(work)
+                .execute()
+                .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+                .get()
         }
     }
 

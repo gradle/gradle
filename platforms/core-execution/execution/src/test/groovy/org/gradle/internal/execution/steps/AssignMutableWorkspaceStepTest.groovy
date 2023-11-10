@@ -52,7 +52,7 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         0 * _
 
         when:
-        result.workspaceOutputs
+        result.resolveOutputsFromWorkspaceAs(Object)
 
         then:
         1 * delegateExecution.getOutput()
