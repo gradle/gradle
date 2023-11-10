@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -35,28 +34,26 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+class CaptureStateBeforeExecutionStepTest extends StepSpec<PreviousExecutionContext> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def inputFingerprinter = Mock(InputFingerprinter)
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", TestHashCodes.hashCodeFrom(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
-    def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
-        _ * work.history >> Optional.of(executionHistoryStore)
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
-    def "no state is captured when history is not maintained"() {
+    def "no state is captured when instructed to skip"() {
         when:
         step.execute(work, context)
         then:
         assertNoOperation()
-        _ * work.history >> Optional.empty()
+        _ * context.shouldCaptureBeforeExecutionState() >> false
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             assert !delegateContext.beforeExecutionState.present
         }
@@ -221,6 +218,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     }
 
     void snapshotState() {
+        _ * context.shouldCaptureBeforeExecutionState() >> true
         _ * context.previousExecutionState >> Optional.empty()
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
@@ -228,7 +226,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
-        _ * context.history >> Optional.of(executionHistoryStore)
     }
 
     private void assertOperation(Throwable expectedFailure = null) {

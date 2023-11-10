@@ -57,13 +57,15 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         File immutableWorkspace = workspace.getImmutableLocation();
         FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableWorkspace.getAbsolutePath());
         if (workspaceSnapshot instanceof DirectorySnapshot) {
+            // Load origin metadata
             // TODO Validate workspace
             // TODO Make this nicer
             return new WorkspaceResult(CachingResult.shortcutResult(Execution.skipped(UP_TO_DATE, work), null, Duration.ZERO), immutableWorkspace);
         }
 
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            CachingResult delegateResult = delegate.execute(work, new WorkspaceContext(context, temporaryWorkspace, null));
+            WorkspaceContext delegateContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
+            CachingResult delegateResult = delegate.execute(work, delegateContext);
             if (delegateResult.getExecution().isSuccessful()) {
                 fileSystemAccess.write(ImmutableList.of(immutableWorkspace.getAbsolutePath()), () -> {
                     try {
