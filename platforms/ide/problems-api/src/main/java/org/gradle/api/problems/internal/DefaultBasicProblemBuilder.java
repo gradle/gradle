@@ -24,7 +24,6 @@ import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,25 +35,31 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     protected String label; // TODO make them private
     protected String problemCategory;
     protected Severity severity;
-    protected List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+    protected List<ProblemLocation> locations;
     protected String description;
     protected DocLink documentationUrl;
-    protected boolean explicitlyUndocumented = false;
+    protected boolean explicitlyUndocumented;
     protected List<String> solution;
-    protected RuntimeException exception;
-    protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
+    private RuntimeException exception;
+    protected final Map<String, String> additionalMetadata;
     protected boolean collectLocation = false;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
         this.problemCategory = problem.getProblemCategory().getCategory();
         this.severity = problem.getSeverity();
-        this.locations.addAll(problem.getLocations());
+        this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
         this.description = problem.getDetails(); // TODO change field name
         this.documentationUrl = problem.getDocumentationLink(); // TODO change field name
         this.explicitlyUndocumented = problem.getDocumentationLink() == null;
         this.solution = new ArrayList<String>(problem.getSolutions()); // TODO rename to solutions
         this.exception = (RuntimeException) problem.getException(); // TODO ensure this is valid
+        this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
+    }
+
+    public DefaultBasicProblemBuilder() {
+        this.locations = new ArrayList<ProblemLocation>();
+        this.additionalMetadata = new HashMap<String, String>();
     }
 
     @Override
@@ -66,20 +71,19 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             documentationUrl,
             description,
             solution,
-            exception == null && collectLocation ? new Exception() : exception, // TODO: don't create exception if already reported often
+            getException() == null && collectLocation ? new Exception() : getException(), // TODO: don't create exception if already reported often
             problemCategory,
             additionalMetadata);
     }
 
-    @Nonnull
-    private Severity getSeverity(@Nullable Severity severity) {
+    protected Severity getSeverity(@Nullable Severity severity) {
         if (severity != null) {
             return severity;
         }
         return getSeverity();
     }
 
-    private Severity getSeverity() {
+    protected Severity getSeverity() {
         if (this.severity == null) {
             return Severity.WARNING;
         }
@@ -176,5 +180,10 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     public UnboundBasicProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
+    }
+
+    @Nullable
+    public RuntimeException getException() {
+        return exception;
     }
 }

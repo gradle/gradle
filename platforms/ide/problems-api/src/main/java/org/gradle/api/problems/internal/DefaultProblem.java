@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
@@ -61,7 +62,7 @@ public class DefaultProblem implements Problem {
         this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
         this.problemCategory = problemCategory;
-        this.additionalMetadata = additionalMetadata;
+        this.additionalMetadata = ImmutableMap.copyOf(additionalMetadata);
     }
 
     @Override
