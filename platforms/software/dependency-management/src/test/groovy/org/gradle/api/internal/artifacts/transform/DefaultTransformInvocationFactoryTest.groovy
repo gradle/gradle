@@ -83,7 +83,8 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
 
-    def transformWorkspaceServices = new TestTransformWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
+    def immutableTransformWorkspaceServices = new TestTransformWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
+    def mutableTransformWorkspaceServices = new TestTransformWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(TransformExecutionListener)
@@ -93,7 +94,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
-        get(TransformWorkspaceServices) >> new TestTransformWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
+        get(MutableTransformWorkspaceServices) >> mutableTransformWorkspaceServices
     }
 
     def childProject = Stub(ProjectInternal) {
@@ -138,7 +139,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
         executionEngine,
         fileSystemAccess,
         artifactTransformListener,
-        transformWorkspaceServices,
+        immutableTransformWorkspaceServices,
         fileCollectionFactory,
         projectStateRegistry,
         buildOperationExecutor,
