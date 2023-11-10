@@ -40,9 +40,8 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
         String message = diagnostic.getMessage(Locale.getDefault());
-
         String label = mapKindToLabel(diagnostic.getKind());
-        String resourceName = diagnostic.getSource().getName();
+        String resourceName = diagnostic.getSource() != null ? diagnostic.getSource().toUri().toString() : null;
         Integer line = Math.toIntExact(diagnostic.getLineNumber());
         Integer column = Math.toIntExact(diagnostic.getColumnNumber());
         Integer length = Math.toIntExact(diagnostic.getEndPosition() - diagnostic.getStartPosition());

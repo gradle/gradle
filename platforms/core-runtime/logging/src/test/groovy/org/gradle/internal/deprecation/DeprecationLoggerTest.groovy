@@ -38,6 +38,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
     def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def problemEmitter = Stub(ProblemEmitter)
+    def problems = new DefaultProblems(problemEmitter)
 
     def setup() {
         DeprecationLogger.init(diagnosticsFactory, WarningMode.All, progressEventEmitter, new DefaultProblems(problemEmitter))
@@ -59,7 +60,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, Stub(ProblemEmitter), new DefaultProblems(problemEmitter))
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.All, progressEventEmitter, problems)
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
@@ -156,7 +157,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
-        DeprecationLogger.init(diagnosticsFactory, WarningMode.Summary, Stub(ProblemEmitter), new DefaultProblems(problemEmitter))
+        DeprecationLogger.init(diagnosticsFactory, WarningMode.Summary, progressEventEmitter, problems)
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         when:
