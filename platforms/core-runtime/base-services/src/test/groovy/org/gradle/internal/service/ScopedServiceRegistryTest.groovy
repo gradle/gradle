@@ -32,19 +32,19 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
 
         where:
         method     | registration
-        'instance' | { ScopedServiceRegistry it -> it.add(new ScopedService()) }
-        'type'     | { ScopedServiceRegistry it -> it.register { it.add(ScopedService) } }
+        'instance' | { ScopedServiceRegistry it -> it.add(new BuildTreeScopedService()) }
+        'type'     | { ScopedServiceRegistry it -> it.register { it.add(BuildTreeScopedService) } }
         'provider' | { ScopedServiceRegistry it -> it.addProvider(new ScopedServiceProvider()) }
     }
 
     def "succeeds when registering a service in the correct scope"() {
         given:
         def registry = new ScopedServiceRegistry(Scopes.BuildTree)
-        def service = new ScopedService()
+        def service = new BuildTreeScopedService()
 
         when:
         registry.add(service)
@@ -53,7 +53,7 @@ class ScopedServiceRegistryTest extends Specification {
         noExceptionThrown()
 
         and:
-        registry.get(ScopedService) === service
+        registry.get(BuildTreeScopedService) === service
     }
 
     def "fails to create an inherited registry providing a service in the wrong scope"() {
@@ -62,7 +62,7 @@ class ScopedServiceRegistryTest extends Specification {
 
         then:
         def exception = thrown(IllegalArgumentException)
-        exception.message.contains("Service '${ScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
     }
 
     def "succeeds when registering an unscoped service"() {
@@ -81,14 +81,14 @@ class ScopedServiceRegistryTest extends Specification {
     }
 
     @ServiceScope(Scopes.BuildTree)
-    static class ScopedService {}
+    static class BuildTreeScopedService {}
 
     static class UnscopedService {}
 
     static class ScopedServiceProvider {
-        @SuppressWarnings(["unused", 'GrMethodMayBeStatic'])
-        ScopedService createScopedService() {
-            return new ScopedService()
+        @SuppressWarnings('unused')
+        BuildTreeScopedService createScopedService() {
+            return new BuildTreeScopedService()
         }
     }
 
@@ -97,9 +97,9 @@ class ScopedServiceRegistryTest extends Specification {
             super(Scopes.Build)
         }
 
-        @SuppressWarnings(["unused", 'GrMethodMayBeStatic'])
-        ScopedService createScopedService() {
-            return new ScopedService()
+        @SuppressWarnings('unused')
+        BuildTreeScopedService createScopedService() {
+            return new BuildTreeScopedService()
         }
     }
 }

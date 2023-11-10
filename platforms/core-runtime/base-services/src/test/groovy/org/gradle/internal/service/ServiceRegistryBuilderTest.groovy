@@ -17,16 +17,33 @@
 package org.gradle.internal.service
 
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import spock.lang.Specification
 
 class ServiceRegistryBuilderTest extends Specification {
 
-    def "creates a scoped service registry when setting a scope"() {
-        given:
-        def registry = ServiceRegistryBuilder.builder().scope(Scopes.Build).build()
+    def "creates a scope-validating service registry when setting a scope"() {
+        def scopedBuilder = ServiceRegistryBuilder.builder()
+            .scope(Scopes.Build)
 
-        expect:
-        registry instanceof ScopedServiceRegistry
+        when:
+        scopedBuilder
+            .provider(new ScopedServiceProvider())
+            .build()
+
+        then:
+        def exception = thrown(IllegalArgumentException)
+        exception.message.contains("Service '${BuildTreeScopedService.name}' was declared in scope 'BuildTree' but registered in scope 'Build'")
+    }
+
+    @ServiceScope(Scopes.BuildTree)
+    static class BuildTreeScopedService {}
+
+    static class ScopedServiceProvider {
+        @SuppressWarnings('unused')
+        BuildTreeScopedService createScopedService() {
+            return new BuildTreeScopedService()
+        }
     }
 
 }
