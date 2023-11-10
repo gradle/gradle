@@ -56,6 +56,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             .severity(severity)
             .details(message)
         ).report();
+
+        // We need to print the message to stderr as well, as it was the default behavior of the compiler
+        System.err.println(message);
     }
 
     private static String mapKindToLabel(Diagnostic.Kind kind) {
