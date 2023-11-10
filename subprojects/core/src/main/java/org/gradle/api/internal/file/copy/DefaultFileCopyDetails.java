@@ -23,8 +23,8 @@ import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
@@ -62,11 +62,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.objectFactory = objectFactory;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
-    }
-
-    @Override
-    public boolean isIncludeEmptyDirs() {
-        return specResolver.getIncludeEmptyDirs();
     }
 
     @Override
@@ -266,6 +261,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     public boolean isDefaultDuplicatesStrategy() {
         return defaultDuplicatesStrategy;
+    }
+
+    @Override
+    public CopySpecResolver getSpecResolver() {
+        return specResolver;
     }
 
     @Override
