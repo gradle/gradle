@@ -16,23 +16,67 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
+import org.gradle.internal.snapshot.DirectorySnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.vfs.FileSystemAccess;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
+    private final FileSystemAccess fileSystemAccess;
+
     private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
 
-    public AssignImmutableWorkspaceStep(Step<? super WorkspaceContext, ? extends CachingResult> delegate) {
+    public AssignImmutableWorkspaceStep(
+        FileSystemAccess fileSystemAccess,
+        Step<? super WorkspaceContext, ? extends CachingResult> delegate
+    ) {
+        this.fileSystemAccess = fileSystemAccess;
         this.delegate = delegate;
     }
 
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
-        return ((ImmutableUnitOfWork) work).getWorkspaceProvider().withWorkspace(
-            context.getIdentity().getUniqueId(),
-            (workspace, history) -> {
-                CachingResult delegateResult = delegate.execute(work, new WorkspaceContext(context, workspace, history));
-                return new WorkspaceResult(delegateResult, workspace);
-            });
+        ImmutableWorkspaceProvider workspaceProvider = ((ImmutableUnitOfWork) work).getWorkspaceProvider();
+        String workspacePath = context.getIdentity().getUniqueId();
+        ImmutableWorkspace workspace = workspaceProvider.getWorkspace(workspacePath);
+
+        File immutableWorkspace = workspace.getImmutableLocation();
+        FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableWorkspace.getAbsolutePath());
+        if (workspaceSnapshot instanceof DirectorySnapshot) {
+            // TODO Validate workspace
+            // TODO Make this nicer
+            return new WorkspaceResult(CachingResult.shortcutResult(Execution.skipped(UP_TO_DATE, work), null, Duration.ZERO), immutableWorkspace);
+        }
+
+        return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
+            CachingResult delegateResult = delegate.execute(work, new WorkspaceContext(context, temporaryWorkspace, null));
+            if (delegateResult.getExecution().isSuccessful()) {
+                fileSystemAccess.write(ImmutableList.of(immutableWorkspace.getAbsolutePath()), () -> {
+                    try {
+                        Files.move(temporaryWorkspace.toPath(), immutableWorkspace.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("Couldn't move temporary workspace to immutable area", e);
+                    }
+                });
+                return new WorkspaceResult(delegateResult, immutableWorkspace);
+            } else {
+                // TODO Do not try to capture the workspace in case of a failure
+                return new WorkspaceResult(delegateResult, null);
+            }
+        });
     }
 }

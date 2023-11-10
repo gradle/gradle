@@ -23,7 +23,7 @@ import java.io.File;
 
 public interface MutableWorkspaceProvider {
     /**
-     * Provides a workspace and execution history store for executing the transform.
+     * Provides a persistent workspace and execution history store for executing the given action in.
      */
     <T> T withWorkspace(String path, WorkspaceAction<T> action);
 

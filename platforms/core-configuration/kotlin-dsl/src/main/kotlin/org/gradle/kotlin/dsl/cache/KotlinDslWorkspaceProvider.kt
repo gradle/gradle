@@ -17,13 +17,10 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import java.io.Closeable
 
 
@@ -31,21 +28,15 @@ internal
 class KotlinDslWorkspaceProvider(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
-    inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
-    stringInterner: StringInterner,
-    classLoaderHasher: ClassLoaderHierarchyHasher,
     cacheConfigurations: CacheConfigurationsInternal
 ) : Closeable {
 
     private
-    val kotlinDslWorkspace = OnDemandCacheBasedWorkspaceProvider.withBuiltInHistory(
+    val kotlinDslWorkspace = OnDemandCacheBasedWorkspaceProvider.createWorkspaceProvider(
         cacheBuilderFactory
             .createCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
-        inMemoryCacheDecoratorFactory,
-        stringInterner,
-        classLoaderHasher,
         2, // scripts and accessors caches sit below the root directory
         cacheConfigurations
     )
@@ -60,7 +51,7 @@ class KotlinDslWorkspaceProvider(
     private
     fun subWorkspace(prefix: String): ImmutableWorkspaceProvider = object :
         ImmutableWorkspaceProvider {
-        override fun <T : Any> withWorkspace(path: String, action: ImmutableWorkspaceProvider.WorkspaceAction<T>): T =
-            kotlinDslWorkspace.withWorkspace("$prefix/$path", action)
+        override fun getWorkspace(path: String) =
+            kotlinDslWorkspace.getWorkspace("$prefix/$path")
     }
 }

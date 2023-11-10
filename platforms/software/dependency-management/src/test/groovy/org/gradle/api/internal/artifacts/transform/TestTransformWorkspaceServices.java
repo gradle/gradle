@@ -25,6 +25,7 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class TestTransformWorkspaceServices {
@@ -34,11 +35,15 @@ public abstract class TestTransformWorkspaceServices {
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {
-                return new ImmutableWorkspaceProvider() {
+                return path -> new ImmutableWorkspaceProvider.ImmutableWorkspace() {
                     @Override
-                    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                        File workspace = new File(transformationsStoreDirectory, path);
-                        return action.executeInWorkspace(workspace, null);
+                    public File getImmutableLocation() {
+                        return new File(transformationsStoreDirectory, path);
+                    }
+
+                    @Override
+                    public <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
+                        return action.executeInTemporaryWorkspace(new File(transformationsStoreDirectory, path + "-" + UUID.randomUUID().toString()));
                     }
                 };
             }

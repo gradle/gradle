@@ -165,6 +165,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
@@ -483,6 +484,7 @@ class DependencyManagementBuildScopeServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
+        FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
@@ -496,7 +498,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExecutionEngine(
             problems, new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignImmutableWorkspaceStep<>(
+            new AssignImmutableWorkspaceStep<>(fileSystemAccess,
             new LoadPreviousExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,

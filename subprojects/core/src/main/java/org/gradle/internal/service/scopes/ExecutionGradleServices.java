@@ -82,6 +82,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
 
@@ -135,6 +136,7 @@ public class ExecutionGradleServices {
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
+        FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
@@ -155,7 +157,7 @@ public class ExecutionGradleServices {
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(
+            new AssignImmutableWorkspaceStep<>(fileSystemAccess,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyNonIncrementalWorkStep(workInputListeners,

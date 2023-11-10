@@ -16,13 +16,10 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 
@@ -32,26 +29,20 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
     public DependenciesAccessorsWorkspaceProvider(
         BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        this.delegate = OnDemandCacheBasedWorkspaceProvider.withBuiltInHistory(
+        this.delegate = OnDemandCacheBasedWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
                 .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
-            inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher,
             cacheConfigurations
         );
     }
 
     @Override
-    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-        return delegate.withWorkspace(path, action);
+    public ImmutableWorkspace getWorkspace(String path) {
+        return delegate.getWorkspace(path);
     }
 
     @Override

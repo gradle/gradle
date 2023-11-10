@@ -16,19 +16,25 @@
 
 package org.gradle.internal.execution.workspace;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface ImmutableWorkspaceProvider {
-    /**
-     * Provides a workspace and execution history store for executing the transform.
-     */
-    <T> T withWorkspace(String path, WorkspaceAction<T> action);
+    ImmutableWorkspace getWorkspace(String path);
 
-    @FunctionalInterface
-    interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, @Nullable ExecutionHistoryStore history);
+    interface ImmutableWorkspace {
+        /**
+         * Looks up the immutable workspace.
+         */
+        File getImmutableLocation();
+
+        /**
+         * Provides a temporary workspace and executes the given action in it.
+         */
+        <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action);
+
+        @FunctionalInterface
+        interface TemporaryWorkspaceAction<T> {
+            T executeInTemporaryWorkspace(File temporaryWorkspaceLocation);
+        }
     }
 }
