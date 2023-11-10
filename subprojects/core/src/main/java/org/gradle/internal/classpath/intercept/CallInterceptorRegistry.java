@@ -31,7 +31,7 @@ public class CallInterceptorRegistry {
     private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile Map<InterceptorsRequest, CallSiteDecorator> groovyDecorators = new ConcurrentHashMap<>();
     private static volatile Map<InterceptorsRequest, JvmBytecodeInterceptorSet> jvmInterceptorSets = new ConcurrentHashMap<>();
-    private static volatile GroovyCallSiteInterceptorSet currentGroovyCallInterceptorSet = new DefaultGroovyCallSiteInterceptorSet(GroovyCallInterceptorsProvider.DEFAULT);
+    private static volatile CallSiteInterceptorSet currentGroovyCallInterceptorSet = new DefaultCallSiteInterceptorSet(GroovyCallInterceptorsProvider.DEFAULT);
     private static volatile JvmBytecodeInterceptorFactorySet currentJvmBytecodeFactorySet = new DefaultJvmBytecodeInterceptorFactorySet(JvmBytecodeInterceptorFactoryProvider.DEFAULT);
 
     public synchronized static void loadCallInterceptors(ClassLoader classLoader) {
@@ -39,21 +39,30 @@ public class CallInterceptorRegistry {
             throw new RuntimeException("Cannot load interceptors twice for class loader: " + classLoader);
         }
 
-        groovyDecorators = new ConcurrentHashMap<>();
-        jvmInterceptorSets = new ConcurrentHashMap<>();
         GroovyCallInterceptorsProvider classLoaderGroovyCallInterceptors = new GroovyCallInterceptorsProvider.ClassLoaderSourceGroovyCallInterceptorsProvider(classLoader);
         GroovyCallInterceptorsProvider callInterceptors = GroovyCallInterceptorsProvider.DEFAULT.plus(classLoaderGroovyCallInterceptors);
-        currentGroovyCallInterceptorSet = new DefaultGroovyCallSiteInterceptorSet(callInterceptors);
+        setCurrentGroovyCallInterceptorSet(new DefaultCallSiteInterceptorSet(callInterceptors));
+
         JvmBytecodeInterceptorFactoryProvider.ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider classLoaderJvmBytecodeInterceptors = new JvmBytecodeInterceptorFactoryProvider.ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider(classLoader);
-        currentJvmBytecodeFactorySet = new DefaultJvmBytecodeInterceptorFactorySet(JvmBytecodeInterceptorFactoryProvider.DEFAULT.plus(classLoaderJvmBytecodeInterceptors));
+        setCurrentJvmBytecodeFactorySet(new DefaultJvmBytecodeInterceptorFactorySet(JvmBytecodeInterceptorFactoryProvider.DEFAULT.plus(classLoaderJvmBytecodeInterceptors)));
     }
 
     public static CallSiteDecorator getGroovyCallDecorator(InterceptorsRequest interceptorsRequest) {
-        return groovyDecorators.computeIfAbsent(interceptorsRequest, type -> new DefaultCallSiteDecorate(currentGroovyCallInterceptorSet.getCallInterceptors(interceptorsRequest)));
+        return groovyDecorators.computeIfAbsent(interceptorsRequest, type -> new DefaultCallSiteDecorator(currentGroovyCallInterceptorSet.getCallInterceptors(interceptorsRequest)));
+    }
+
+    private static void setCurrentGroovyCallInterceptorSet(CallSiteInterceptorSet interceptorSet) {
+        groovyDecorators = new ConcurrentHashMap<>();
+        currentGroovyCallInterceptorSet = interceptorSet;
     }
 
     public static JvmBytecodeInterceptorSet getJvmBytecodeInterceptors(InterceptorsRequest interceptorsRequest) {
         return jvmInterceptorSets.computeIfAbsent(interceptorsRequest, type -> currentJvmBytecodeFactorySet.getJvmBytecodeInterceptorSet(type));
+    }
+
+    private static void setCurrentJvmBytecodeFactorySet(JvmBytecodeInterceptorFactorySet interceptorSet) {
+        jvmInterceptorSets = new ConcurrentHashMap<>();
+        currentJvmBytecodeFactorySet = interceptorSet;
     }
 
     /**
@@ -64,12 +73,12 @@ public class CallInterceptorRegistry {
     @NonNullApi
     @VisibleForTesting
     static class GroovyCallInterceptorInternalTesting {
-        static GroovyCallSiteInterceptorSet getCurrentGroovyCallSiteDecorator() {
+        static CallSiteInterceptorSet getCurrentGroovyCallInterceptorSet() {
             return currentGroovyCallInterceptorSet;
         }
 
-        static void setCurrentGroovyCallSiteDecorator(GroovyCallSiteInterceptorSet interceptorsSet) {
-            CallInterceptorRegistry.currentGroovyCallInterceptorSet = interceptorsSet;
+        static void setCurrentGroovyCallInterceptorSet(CallSiteInterceptorSet interceptorsSet) {
+            CallInterceptorRegistry.setCurrentGroovyCallInterceptorSet(interceptorsSet);
         }
     }
 }

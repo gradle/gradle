@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public enum InterceptorsRequest {
     INSTRUMENTATION_ONLY(EnumSet.of(InterceptionType.INSTRUMENTATION)),
-    INSTRUMENTATION_AND_UPGRADES(EnumSet.of(InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE));
+    ALL(EnumSet.of(InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE));
 
     private final Set<InterceptionType> instrumentationTypes;
 

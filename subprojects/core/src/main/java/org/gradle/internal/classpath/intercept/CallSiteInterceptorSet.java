@@ -16,21 +16,10 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 import java.util.List;
 
-public class DefaultGroovyCallSiteInterceptorSet implements GroovyCallSiteInterceptorSet {
-
-    private final GroovyCallInterceptorsProvider provider;
-
-    public DefaultGroovyCallSiteInterceptorSet(GroovyCallInterceptorsProvider provider) {
-        this.provider = provider;
-    }
-
-    @Override
-    public List<CallInterceptor> getCallInterceptors(InterceptorsRequest interceptorsRequest) {
-        return provider.getCallInterceptors();
-    }
+public interface CallSiteInterceptorSet {
+    List<CallInterceptor> getCallInterceptors(InterceptorsRequest interceptorsRequest);
 }

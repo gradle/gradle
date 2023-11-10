@@ -27,7 +27,7 @@ import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.INSTRUMENTATION_AND_UPGRADES;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.ALL;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
@@ -59,7 +59,7 @@ public class InstrumentedGroovyMetaClassHelper {
     @SuppressWarnings("unused") // resolved via a method handle
     public static void addInvocationHooksToMetaClassIfInstrumented(Class<?> javaClass, String callableName) {
         // In BeanDynamicObject we can't filter interceptors, so we have to apply all
-        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(INSTRUMENTATION_AND_UPGRADES);
+        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(ALL);
         if (resolver.isAwareOfCallSiteName(callableName)) {
             addInvocationHooksToMetaClass(javaClass, resolver);
         }

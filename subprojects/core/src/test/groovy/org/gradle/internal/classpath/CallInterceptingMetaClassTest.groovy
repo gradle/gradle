@@ -16,8 +16,9 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.internal.classpath.intercept.CallInterceptorResolver
-import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorate
+import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorator
+import org.gradle.internal.classpath.intercept.DefaultCallSiteInterceptorSet
+import org.gradle.internal.classpath.intercept.CallSiteInterceptorSet
 import spock.lang.Specification
 
 import static org.gradle.internal.classpath.BasicCallInterceptionTestInterceptorsDeclaration.TEST_GENERATED_CLASSES_PACKAGE
@@ -25,10 +26,11 @@ import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.Class
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.ALL
 
 class CallInterceptingMetaClassTest extends Specification {
 
-    CallInterceptorResolver callInterceptors = new DefaultCallSiteDecorate(new ClassLoaderSourceGroovyCallInterceptorsProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE));
+    CallSiteInterceptorSet callInterceptors = new DefaultCallSiteInterceptorSet(new ClassLoaderSourceGroovyCallInterceptorsProvider(this.class.classLoader, TEST_GENERATED_CLASSES_PACKAGE));
     private MetaClass originalMetaClass = null
     private static InterceptorTestReceiver instance = null
 
@@ -40,9 +42,11 @@ class CallInterceptingMetaClassTest extends Specification {
     def setup() {
         interceptorTestReceiverClassLock.lock()
         originalMetaClass = InterceptorTestReceiver.metaClass
+        def interceptors = callInterceptors.getCallInterceptors(ALL)
+        def callSiteResolver = new DefaultCallSiteDecorator(interceptors)
         GroovySystem.metaClassRegistry.setMetaClass(
             InterceptorTestReceiver,
-            new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callTracker, callInterceptors)
+            new CallInterceptingMetaClass(GroovySystem.metaClassRegistry, InterceptorTestReceiver, InterceptorTestReceiver.metaClass, callTracker, callSiteResolver)
         )
         instance = new InterceptorTestReceiver()
     }
