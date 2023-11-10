@@ -41,6 +41,10 @@ public class CachingResult extends UpToDateResult implements ExecutionEngine.Res
         this.cachingState = cachingState;
     }
 
+    protected CachingResult(CachingResult parent) {
+        this(parent, parent.getCachingState());
+    }
+
     public static CachingResult shortcutResult(Execution execution, @Nullable String executionReason, Duration duration) {
         return new CachingResult(duration, Try.successful(execution), null, executionReason == null ? ImmutableList.of() : ImmutableList.of(executionReason), null, CachingState.NOT_DETERMINED);
     }

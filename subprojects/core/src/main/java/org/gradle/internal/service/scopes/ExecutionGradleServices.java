@@ -46,7 +46,6 @@ import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
-import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
@@ -74,6 +73,7 @@ import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.execution.steps.WorkspaceResult;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -154,7 +154,7 @@ public class ExecutionGradleServices {
             new ExecuteStep<>(buildOperationExecutor
         ))));
 
-        Step<IdentityContext,CachingResult> immutablePipeline =
+        Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
@@ -175,7 +175,7 @@ public class ExecutionGradleServices {
             sharedExecutionPipeline
         ))))))))))))))));
 
-        Step<IdentityContext,CachingResult> mutablePipeline =
+        Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationExecutor, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
