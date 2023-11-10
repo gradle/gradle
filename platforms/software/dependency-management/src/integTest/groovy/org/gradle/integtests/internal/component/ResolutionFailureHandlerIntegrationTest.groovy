@@ -39,7 +39,6 @@ import spock.lang.Ignore
  *
  * It can also build a text report demonstrating all these errors in a single place.
  */
-// TODO: assert resolutions are correct
 // TODO: consolidate error checking/switch to checking text blocks
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region resolution failures
@@ -48,12 +47,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForProject.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + AmbiguousGraphVariantsException.class.getName())
+        assertResolutionFailsWithException(ambiguousGraphVariantForProject.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
@@ -63,12 +65,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousGraphVariantForExternalDep.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + AmbiguousGraphVariantsException.class.getName())
+        assertResolutionFailsWithException(ambiguousGraphVariantForExternalDep.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Execution failed for task ':forceResolution'")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. However we cannot choose between the following variants of com.squareup.okhttp3:okhttp:4.4.0:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
@@ -77,12 +82,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingGraphVariantsForProject.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + NoMatchingGraphVariantsException.class.getName())
+        assertResolutionFailsWithException(noMatchingGraphVariantsForProject.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
@@ -92,12 +100,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingGraphVariantsForExternalDep.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + NoMatchingGraphVariantsException.class.getName())
+        assertResolutionFailsWithException(noMatchingGraphVariantsForExternalDep.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
         assertFullMessageCorrect("No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
@@ -106,12 +117,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         incompatibleGraphVariants.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + IncompatibleGraphVariantsException.class.getName())
+        assertResolutionFailsWithException(incompatibleGraphVariants.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Configuration 'mismatch' in project : does not match the consumer attributes")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
     }
@@ -121,12 +135,17 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         configurationNotFound.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + ConfigurationNotFoundException.class.getName())
+        assertResolutionFailsWithException(configurationNotFound.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        // TODO: Nothing specific here
     }
 
     @Ignore("Is the configuration key in the dependency map just not used for Maven deps?  Should this be an error?")
@@ -134,12 +153,17 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         externalConfigurationNotFound.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + ExternalConfigurationNotFoundException.class.getName())
+        assertResolutionFailsWithException(externalConfigurationNotFound.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.")
+
+        and: "Helpful resolutions are provided"
+        assertSuggestsReviewingAlgorithm()
+        // TODO: Nothing specific here
     }
 
     // endregion Configuration requested by name
@@ -150,12 +174,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         incompatibleArtifactVariants.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + IncompatibleArtifactVariantsException.class.getName())
+        assertResolutionFailsWithException(incompatibleArtifactVariants.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
         assertFullMessageCorrect("Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Incompatible variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-incompatible.")
     }
@@ -164,11 +191,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         noMatchingArtifactVariants.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + NoMatchingArtifactVariantsException.class.getName())
+        assertResolutionFailsWithException(noMatchingArtifactVariants.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("No variants of project : match the consumer attributes:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("No matching variant errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-no-match.")
     }
@@ -177,11 +207,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactTransforms.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + AmbiguousArtifactTransformException.class.getName())
+        assertResolutionFailsWithException(ambiguousArtifactTransforms.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("Found multiple transforms that can produce a variant of project : with requested attributes:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
     }
@@ -190,11 +223,14 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         ambiguousArtifactVariants.prepare()
 
         expect:
-        fails "forceResolution", "--stacktrace"
-        failure.assertHasErrorOutput("Caused by: " + AmbiguousArtifactVariantsException.class.getName())
+        assertResolutionFailsWithException(ambiguousArtifactVariants.exception)
+
+        and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         assertFullMessageCorrect("More than one variant of project : matches the consumer attributes:")
+
+        and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
     }
@@ -726,5 +762,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertSuggestsViewingDocs(String resolution) {
         failure.assertHasResolution(resolution)
+    }
+
+    private void assertResolutionFailsWithException(Class<? extends RuntimeException> exception) {
+        fails "forceResolution", "--stacktrace"
+        failure.assertHasErrorOutput("Caused by: " + exception.getName())
     }
 }
