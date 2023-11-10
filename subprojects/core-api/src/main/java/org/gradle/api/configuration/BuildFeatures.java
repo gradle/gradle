@@ -32,7 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildFeatures {
 
     /**
-     * State the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature in the build.
+     * State of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature in the build.
      *
      * @since 8.5
      */

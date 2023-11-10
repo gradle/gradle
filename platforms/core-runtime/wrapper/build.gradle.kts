@@ -4,7 +4,7 @@ import java.util.jar.Attributes
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("com.gradleup.gr8") version "0.9"
+    id("com.gradleup.gr8") version "0.10"
 }
 
 description = "Bootstraps a Gradle build initiated by the gradlew script"

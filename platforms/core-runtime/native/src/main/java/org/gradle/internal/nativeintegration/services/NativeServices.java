@@ -310,7 +310,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         return notAvailable(WindowsRegistry.class);
     }
 
-    protected SystemInfo createSystemInfo() {
+    public SystemInfo createSystemInfo() {
         if (useNativeIntegrations) {
             try {
                 return net.rubygrapefruit.platform.Native.get(SystemInfo.class);

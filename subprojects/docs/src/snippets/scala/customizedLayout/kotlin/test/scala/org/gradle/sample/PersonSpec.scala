@@ -1,15 +1,10 @@
 package org.gradle.sample
 
-import org.junit.runner.RunWith
-import org.scalatest.FunSpec
-import org.scalatest.junit.JUnitRunner
+import org.junit.Test
 
-@RunWith(classOf[JUnitRunner])
-class PersonSpec extends FunSpec {
-  describe("person creation") {
-    it("should successfully create a person") {
-      val person: Named = new Person(List("bob", "smith"))
-      person
-    }
+class PersonSpec {
+  @Test
+  def personCreationShouldSuccessfullyCreatePerson(): Unit = {
+    def person: Named = new Person(List("bob", "smith"))
   }
 }
