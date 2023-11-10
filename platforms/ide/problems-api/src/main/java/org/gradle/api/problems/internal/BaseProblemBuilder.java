@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
@@ -143,27 +142,6 @@ public class BaseProblemBuilder implements ProblemBuilder,
     public BaseProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
-    }
-
-    public Problem build() { // TODO this can be simplified
-        return buildInternal(null);
-    }
-
-    @Nonnull
-    private Problem buildInternal(@Nullable Severity severity) {
-        if (!explicitlyUndocumented && documentationUrl == null) {
-            throw new IllegalStateException("Problem is not documented: " + label);
-        }
-        return new DefaultProblem(
-            label,
-            getSeverity(severity),
-            locations,
-            documentationUrl,
-            description,
-            solution,
-            exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
-            problemCategory,
-            additionalMetadata);
     }
 
     @Nonnull
