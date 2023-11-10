@@ -42,6 +42,9 @@ import java.util.function.Supplier
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
 
     def supplier = Stub(Supplier)
+    def problems = new DefaultProblems(
+        Stub(ProblemEmitter)
+    )
 
     def createVersionCatalogBuilder() {
         new DefaultVersionCatalogBuilder(
@@ -52,8 +55,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             supplier) {
             @Override
             protected Problems getProblemService() {
-                def problemEmitter = Stub(ProblemEmitter)
-                return new DefaultProblems(problemEmitter)
+                return problems
             }
         }
     }
