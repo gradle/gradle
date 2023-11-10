@@ -272,12 +272,74 @@ Similar to the ambiguous variant error, the goal is to understand which variant 
 [[sub:variant-incompatible]]
 === Dealing with incompatible variant errors
 
-Something is incompatible here.  Either configuration or variant are the same thing, really.  Only needs to be explained once.
+An incompatible variant error looks like the following example, where a consumer wants to select a variant with `color=green`, but the only variant available has `color=blue`:
+
+[listing]
+----
+> Could not resolve all task dependencies for configuration ':resolveMe'.
+   > Could not resolve project :.
+     Required by:
+         project :
+      > Configuration 'mismatch' in project : does not match the consumer attributes
+        Configuration 'mismatch':
+          - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
+----
+
+It occurs when Gradle cannot select a single variant of a dependency because an explicitly requested attribute value does not match (and is not compatible with) the value of that attribute on any of the variants of the dependency.
+
+A sub-type of this failure occurs when Gradle *successfully* selects multiple variants of the same component, but the selected variants are incompatible with *each other*.
+
+This looks like the following, where a consumer wants to select two different variants of a component, each supplying different capabilities, which is acceptable.
+Unfortunately one variant has `color=blue` and the other has `color=green`:
+
+[listing]
+----
+> Could not resolve all task dependencies for configuration ':resolveMe'.
+   > Could not resolve project :.
+     Required by:
+         project :
+      > Multiple incompatible variants of org.example:nyvu:1.0 were selected:
+           - Variant org.example:nyvu:1.0 variant blueElementsCapability1 has attributes {color=blue}
+           - Variant org.example:nyvu:1.0 variant greenElementsCapability2 has attributes {color=green}
+
+   > Could not resolve project :.
+     Required by:
+         project :
+      > Multiple incompatible variants of org.example:pi2e5:1.0 were selected:
+           - Variant org.example:pi2e5:1.0 variant blueElementsCapability1 has attributes {color=blue}
+           - Variant org.example:pi2e5:1.0 variant greenElementsCapability2 has attributes {color=green}
+----
 
 [[sub:transform-ambiguity]]
 === Dealing with ambiguous transformation errors
 
-Explain something has gone wrong with multiple Artifact Transforms here.
+ArtifactTransforms can be used to transform artifacts from one type to another, changing their attributes.
+Variant selection can use the attributes available as the result of an artifact transform as a candidate variant.
+
+If a project registers multiple artifact transforms, needs to use an artifact transform to produce a matching variant for a consumer's request, and multiple artifact transforms could each be used to accomplish this, then Gradle will fail with an ambiguous transformation error like the following:
+
+[listing]
+----
+> Could not resolve all task dependencies for configuration ':resolveMe'.
+   > Found multiple transforms that can produce a variant of project : with requested attributes:
+       - color 'red'
+       - shape 'round'
+     Found the following transforms:
+       - From 'configuration ':roundBlueLiquidElements'':
+           - With source attributes:
+               - color 'blue'
+               - shape 'round'
+               - state 'liquid'
+           - Candidate transform(s):
+               - Transform 'BrokenTransform' producing attributes:
+                   - color 'red'
+                   - shape 'round'
+                   - state 'gas'
+               - Transform 'BrokenTransform' producing attributes:
+                   - color 'red'
+                   - shape 'round'
+                   - state 'solid'
+----
 
 [[sec:variant-visual]]
 == Visualizing variant information
