@@ -42,7 +42,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -122,7 +122,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         OnDemandCacheBasedWorkspaceProvider workspaceProvider = OnDemandCacheBasedWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices() {
             @Override
-            public WorkspaceProvider getWorkspaceProvider() {
+            public ImmutableWorkspaceProvider getWorkspaceProvider() {
                 return workspaceProvider;
             }
 

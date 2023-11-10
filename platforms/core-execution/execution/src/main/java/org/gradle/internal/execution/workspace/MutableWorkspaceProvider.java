@@ -21,7 +21,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public interface WorkspaceProvider {
+public interface MutableWorkspaceProvider {
     /**
      * Provides a workspace and execution history store for executing the transform.
      */

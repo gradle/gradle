@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.Map;
 
 class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork {
-    private final WorkspaceProvider workspaceProvider;
+    private final ImmutableWorkspaceProvider workspaceProvider;
 
     public NormalizedIdentityImmutableTransformExecution(
         Transform transform,
@@ -42,7 +42,7 @@ class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExe
         BuildOperationProgressEventEmitter progressEventEmitter,
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
-        WorkspaceProvider workspaceProvider
+        ImmutableWorkspaceProvider workspaceProvider
     ) {
         super(
             transform, inputArtifact, dependencies, subject,
@@ -52,7 +52,7 @@ class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExe
     }
 
     @Override
-    public WorkspaceProvider getWorkspaceProvider() {
+    public ImmutableWorkspaceProvider getWorkspaceProvider() {
         return workspaceProvider;
     }
 

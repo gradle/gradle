@@ -19,14 +19,14 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 
-public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
+public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private final OnDemandCacheBasedWorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspaceProvider(

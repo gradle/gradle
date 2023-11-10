@@ -22,7 +22,7 @@ import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.execution.workspace.WorkspaceProvider
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -38,7 +38,7 @@ import java.util.function.Supplier
 import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
-class UnitOfWorkBuilder {
+class MutableUnitOfWorkBuilder {
     private Supplier<UnitOfWork.WorkResult> work = { ->
         create.each { it ->
             it.createFile()
@@ -56,7 +56,7 @@ class UnitOfWorkBuilder {
     private final InputFingerprinter inputFingerprinter
     private final ExecutionHistoryStore executionHistoryStore
 
-    UnitOfWorkBuilder(
+    MutableUnitOfWorkBuilder(
         Map<String, Object> inputProperties,
         Map<String, ? extends Collection<? extends File>> inputFiles,
         Map<String, ? extends File> outputFiles,
@@ -76,66 +76,66 @@ class UnitOfWorkBuilder {
         this.executionHistoryStore = executionHistoryStore
     }
 
-    UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
+    MutableUnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
         work = closure
         return this
     }
 
-    UnitOfWorkBuilder withInputFiles(Map<String, ? extends Collection<? extends File>> files) {
+    MutableUnitOfWorkBuilder withInputFiles(Map<String, ? extends Collection<? extends File>> files) {
         this.inputFiles = files
         return this
     }
 
-    UnitOfWorkBuilder withoutInputFiles() {
+    MutableUnitOfWorkBuilder withoutInputFiles() {
         this.inputFiles = [:]
         return this
     }
 
-    UnitOfWorkBuilder withoutInputProperties() {
+    MutableUnitOfWorkBuilder withoutInputProperties() {
         this.inputProperties = [:]
         return this
     }
 
-    UnitOfWorkBuilder withOutputFiles(File... outputFiles) {
+    MutableUnitOfWorkBuilder withOutputFiles(File... outputFiles) {
         return withOutputFiles((outputFiles as List)
             .withIndex()
             .collectEntries { outputFile, index -> [('defaultFiles' + index): outputFile] }
         )
     }
 
-    UnitOfWorkBuilder withOutputFiles(Map<String, ? extends File> files) {
+    MutableUnitOfWorkBuilder withOutputFiles(Map<String, ? extends File> files) {
         this.outputFiles = files
         return this
     }
 
-    UnitOfWorkBuilder withOutputDirs(File... outputDirs) {
+    MutableUnitOfWorkBuilder withOutputDirs(File... outputDirs) {
         return withOutputDirs((outputDirs as List)
             .withIndex()
             .collectEntries { outputFile, index -> [('defaultDir' + index): outputFile] }
         )
     }
 
-    UnitOfWorkBuilder withOutputDirs(Map<String, ? extends File> dirs) {
+    MutableUnitOfWorkBuilder withOutputDirs(Map<String, ? extends File> dirs) {
         this.outputDirs = dirs
         return this
     }
 
-    UnitOfWorkBuilder createsFiles(TestFile... outputFiles) {
+    MutableUnitOfWorkBuilder createsFiles(TestFile... outputFiles) {
         create = Arrays.asList(outputFiles)
         return this
     }
 
-    UnitOfWorkBuilder withImplementation(ImplementationSnapshot implementation) {
+    MutableUnitOfWorkBuilder withImplementation(ImplementationSnapshot implementation) {
         this.implementation = implementation
         return this
     }
 
-    UnitOfWorkBuilder withProperty(String name, Object value) {
+    MutableUnitOfWorkBuilder withProperty(String name, Object value) {
         inputProperties.put(name, value)
         return this
     }
 
-    UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
+    MutableUnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
         this.validator = validator
         return this
     }
@@ -145,12 +145,12 @@ class UnitOfWorkBuilder {
         final String uniqueId
     }
 
-    UnitOfWork build() {
+    MutableUnitOfWork build() {
         Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) })
         Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) })
         Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
-        return new UnitOfWork() {
+        return new MutableUnitOfWork() {
             boolean executed
 
             @Override
@@ -159,10 +159,10 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            WorkspaceProvider getWorkspaceProvider() {
-                new WorkspaceProvider() {
+            MutableWorkspaceProvider getWorkspaceProvider() {
+                new MutableWorkspaceProvider() {
                     @Override
-                    <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
+                    <T> T withWorkspace(String path, MutableWorkspaceProvider.WorkspaceAction<T> action) {
                         return action.executeInWorkspace(null, executionHistoryStore)
                     }
                 }
@@ -170,7 +170,7 @@ class UnitOfWorkBuilder {
 
             @Override
             InputFingerprinter getInputFingerprinter() {
-                UnitOfWorkBuilder.this.inputFingerprinter
+                MutableUnitOfWorkBuilder.this.inputFingerprinter
             }
 
             @Override

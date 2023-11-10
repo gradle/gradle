@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-import org.gradle.internal.execution.workspace.WorkspaceProvider
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -58,8 +58,9 @@ class KotlinDslWorkspaceProvider(
         kotlinDslWorkspace.close()
 
     private
-    fun subWorkspace(prefix: String): WorkspaceProvider = object : WorkspaceProvider {
-        override fun <T : Any> withWorkspace(path: String, action: WorkspaceProvider.WorkspaceAction<T>): T =
+    fun subWorkspace(prefix: String): ImmutableWorkspaceProvider = object :
+        ImmutableWorkspaceProvider {
+        override fun <T : Any> withWorkspace(path: String, action: ImmutableWorkspaceProvider.WorkspaceAction<T>): T =
             kotlinDslWorkspace.withWorkspace("$prefix/$path", action)
     }
 }

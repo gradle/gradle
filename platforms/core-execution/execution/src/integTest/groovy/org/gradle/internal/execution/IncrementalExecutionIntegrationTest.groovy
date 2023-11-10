@@ -675,8 +675,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         return temporaryFolder.file(path)
     }
 
-    UnitOfWorkBuilder getBuilder() {
-        new UnitOfWorkBuilder(
+    MutableUnitOfWorkBuilder getBuilder() {
+        new MutableUnitOfWorkBuilder(
             [prop: "value"],
             inputFiles,
             outputFiles,

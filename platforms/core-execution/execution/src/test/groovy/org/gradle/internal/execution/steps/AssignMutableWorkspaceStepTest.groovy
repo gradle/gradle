@@ -16,24 +16,25 @@
 
 package org.gradle.internal.execution.steps
 
-
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.workspace.WorkspaceProvider
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider
 
-class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
+class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
     def delegateResult = Mock(Result)
-    def step = new AssignWorkspaceStep<>(delegate)
+    def step = new AssignMutableWorkspaceStep<>(delegate)
+    def work = Stub(MutableUnitOfWork)
 
-    def "delegates with assigned workspace"() {
+    def "delegates with assigned mutable workspace"() {
         def workspace = file("workspace")
-        def workspaceProvider = Mock(WorkspaceProvider)
+        def workspaceProvider = Mock(MutableWorkspaceProvider)
         when:
         def result = step.execute(work, context)
 
         then:
         result == delegateResult
         _ * work.workspaceProvider >> workspaceProvider
-        1 * workspaceProvider.withWorkspace(":test", _) >> { String identity, WorkspaceProvider.WorkspaceAction action ->
+        1 * workspaceProvider.withWorkspace(":test", _) >> { String identity, MutableWorkspaceProvider.WorkspaceAction action ->
             def actionResult = action.executeInWorkspace(workspace, null)
             return actionResult
         }

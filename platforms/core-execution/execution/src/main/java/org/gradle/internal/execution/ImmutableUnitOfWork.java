@@ -16,8 +16,14 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+
 /**
  * A unit of work that will only be executed atomically and its outputs be reused indefinitely from an immutable workspace.
  */
 public interface ImmutableUnitOfWork extends UnitOfWork {
+    /**
+     * Returns the {@link ImmutableWorkspaceProvider} to allocate a workspace to execution this work in.
+     */
+    ImmutableWorkspaceProvider getWorkspaceProvider();
 }

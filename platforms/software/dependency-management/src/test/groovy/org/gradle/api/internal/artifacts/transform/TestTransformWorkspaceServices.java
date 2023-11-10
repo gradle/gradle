@@ -21,42 +21,62 @@ import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
 import java.util.function.Supplier;
 
-public class TestTransformWorkspaceServices implements MutableTransformWorkspaceServices, ImmutableTransformWorkspaceServices {
-    private final File transformationsStoreDirectory;
-    private final ExecutionHistoryStore executionHistoryStore;
+public abstract class TestTransformWorkspaceServices {
 
-    public TestTransformWorkspaceServices(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
-        this.transformationsStoreDirectory = transformationsStoreDirectory;
-        this.executionHistoryStore = executionHistoryStore;
-    }
-
-    @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return new WorkspaceProvider() {
+    public static ImmutableTransformWorkspaceServices immutable(File transformationsStoreDirectory) {
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        return new ImmutableTransformWorkspaceServices() {
             @Override
-            public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
-                File workspace = new File(transformationsStoreDirectory, path);
-                return action.executeInWorkspace(workspace, executionHistoryStore);
+            public ImmutableWorkspaceProvider getWorkspaceProvider() {
+                return new ImmutableWorkspaceProvider() {
+                    @Override
+                    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                        File workspace = new File(transformationsStoreDirectory, path);
+                        return action.executeInWorkspace(workspace, null);
+                    }
+                };
+            }
+
+            @Override
+            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+                return identityCache;
+            }
+
+            @Override
+            public void close() {
             }
         };
     }
 
-    @Override
-    public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
-        return new ManualEvictionInMemoryCache<>();
-    }
+    public static MutableTransformWorkspaceServices mutable(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        return new MutableTransformWorkspaceServices() {
+            @Override
+            public MutableWorkspaceProvider getWorkspaceProvider() {
+                return new MutableWorkspaceProvider() {
+                    @Override
+                    public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                        File workspace = new File(transformationsStoreDirectory, path);
+                        return action.executeInWorkspace(workspace, executionHistoryStore);
+                    }
+                };
+            }
 
-    @Override
-    public void close() {
-    }
+            @Override
+            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+                return identityCache;
+            }
 
-    @Override
-    public Supplier<File> getReservedFileSystemLocation() {
-        return () -> transformationsStoreDirectory;
+            @Override
+            public Supplier<File> getReservedFileSystemLocation() {
+                return () -> transformationsStoreDirectory;
+            }
+        };
     }
 }

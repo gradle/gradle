@@ -17,11 +17,11 @@
 package org.gradle.internal.execution.workspace.impl;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
 
-public class NonLockingWorkspaceProvider implements WorkspaceProvider {
+public class NonLockingWorkspaceProvider implements MutableWorkspaceProvider {
     private final ExecutionHistoryStore executionHistoryStore;
     private final File baseDirectory;
 

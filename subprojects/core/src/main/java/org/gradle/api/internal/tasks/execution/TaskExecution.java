@@ -57,7 +57,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -286,8 +286,8 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public WorkspaceProvider getWorkspaceProvider() {
-        return new WorkspaceProvider() {
+    public MutableWorkspaceProvider getWorkspaceProvider() {
+        return new MutableWorkspaceProvider() {
             @Override
             public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
                 return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()
