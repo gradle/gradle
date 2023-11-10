@@ -29,7 +29,7 @@ import java.util.Map;
  * @since 8.6
  */
 @Incubating
-public interface ProblemCloneBuilder extends BuildableProblemBuilder,
+public interface ProblemCloneBuilder extends ReportableProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningLabel,

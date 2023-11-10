@@ -17,7 +17,6 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningCategory;
@@ -25,21 +24,22 @@ import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
 import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.ReportableProblemBuilder;
 import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 
 @NonNullApi
-class DelegatingProblemBuilder implements
+class DelegatingReportableProblemBuilder implements
     ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningCategory,
-    BuildableProblemBuilder {
+    ReportableProblemBuilder { // TODO do we need a non-reportable variant?
 
     private final Object delegate;
 
-    DelegatingProblemBuilder(ProblemBuilderDefiningLabel delegate) {
+    DelegatingReportableProblemBuilder(ProblemBuilderDefiningLabel delegate) {
         this.delegate = delegate;
     }
 
@@ -99,37 +99,37 @@ class DelegatingProblemBuilder implements
     }
 
     @Override
-    public BuildableProblemBuilder details(String details) {
-        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).details(details);
-        return (BuildableProblemBuilder) validateDelegate(newDelegate);
+    public ProblemBuilder details(String details) {
+        ProblemBuilder newDelegate = ((ReportableProblemBuilder) delegate).details(details);
+        return validateDelegate(newDelegate);
     }
 
     @Override
-    public BuildableProblemBuilder solution(@Nullable String solution) {
-        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).solution(solution);
-        return (BuildableProblemBuilder) validateDelegate(newDelegate);
+    public ReportableProblemBuilder solution(@Nullable String solution) {
+        ProblemBuilder newDelegate = ((ReportableProblemBuilder) delegate).solution(solution);
+        return (ReportableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
-    public BuildableProblemBuilder additionalData(String key, String value) {
-        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).additionalData(key, value);
-        return (BuildableProblemBuilder) validateDelegate(newDelegate);
+    public ReportableProblemBuilder additionalData(String key, String value) {
+        ProblemBuilder newDelegate = ((ReportableProblemBuilder) delegate).additionalData(key, value);
+        return (ReportableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
-    public BuildableProblemBuilder withException(RuntimeException e) {
-        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).withException(e);
-        return (BuildableProblemBuilder) validateDelegate(newDelegate);
+    public ReportableProblemBuilder withException(RuntimeException e) {
+        ProblemBuilder newDelegate = ((ReportableProblemBuilder) delegate).withException(e);
+        return (ReportableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
-    public BuildableProblemBuilder severity(@Nullable Severity severity) {
-        ProblemBuilder newDelegate = ((BuildableProblemBuilder) delegate).severity(severity);
-        return (BuildableProblemBuilder) validateDelegate(newDelegate);
+    public ReportableProblemBuilder severity(@Nullable Severity severity) {
+        ProblemBuilder newDelegate = ((ReportableProblemBuilder) delegate).severity(severity);
+        return (ReportableProblemBuilder) validateDelegate(newDelegate);
     }
 
     @Override
     public ReportableProblem build() {
-        return ((BuildableProblemBuilder) delegate).build();
+        return ((ReportableProblemBuilder) delegate).build();
     }
 }

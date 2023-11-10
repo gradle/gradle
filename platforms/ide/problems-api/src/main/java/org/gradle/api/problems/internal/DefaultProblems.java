@@ -52,8 +52,8 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public DefaultBuildableProblemBuilder createProblemBuilder() {
-        return new DefaultBuildableProblemBuilder(this);
+    public DefaultReportableProblemBuilder createProblemBuilder() {
+        return new DefaultReportableProblemBuilder(this);
     }
 
     @Override
@@ -63,14 +63,14 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public RuntimeException throwing(ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
         throw throwError(defaultProblemBuilder.getException(), defaultProblemBuilder.build());
     }
 
     @Override
     public RuntimeException rethrowing(RuntimeException e, ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         ProblemBuilder problemBuilder = action.apply(defaultProblemBuilder);
         problemBuilder.withException(e);
         throw throwError(e, defaultProblemBuilder.build());
@@ -78,7 +78,7 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public ReportableProblem create(ProblemBuilderSpec action) {
-        DefaultBuildableProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }

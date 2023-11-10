@@ -17,14 +17,13 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.BuildableProblemBuilder;
 import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilder;
 import org.gradle.api.problems.ProblemBuilderDefiningCategory;
 import org.gradle.api.problems.ProblemBuilderDefiningDocumentation;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.ProblemBuilderDefiningLocation;
-import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
@@ -43,28 +42,23 @@ import java.util.Map;
  * @since 8.3
  */
 @Incubating
-public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
+public class BaseProblemBuilder implements ProblemBuilder,
     ProblemBuilderDefiningDocumentation,
     ProblemBuilderDefiningLocation,
     ProblemBuilderDefiningLabel,
     ProblemBuilderDefiningCategory {
 
-    private String label;
-    private String problemCategory;
-    private final InternalProblems problemsService;
-    private Severity severity;
-    private List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
-    private String description;
-    private DocLink documentationUrl;
-    private boolean explicitlyUndocumented = false;
-    private List<String> solution;
-    private RuntimeException exception;
+    protected String label;
+    protected String problemCategory;
+    protected Severity severity;
+    protected List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+    protected String description;
+    protected DocLink documentationUrl;
+    protected boolean explicitlyUndocumented = false;
+    protected List<String> solution;
+    protected RuntimeException exception;
     protected final Map<String, String> additionalMetadata = new HashMap<String, String>();
-    private boolean collectLocation = false;
-
-    public DefaultBuildableProblemBuilder(InternalProblems problemsService) {
-        this.problemsService = problemsService;
-    }
+    protected boolean collectLocation = false;
 
     @Override
     public ProblemBuilderDefiningDocumentation label(String label, Object... args) {
@@ -73,7 +67,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
     }
 
     @Override
-    public BuildableProblemBuilder severity(Severity severity) {
+    public BaseProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
     }
@@ -110,7 +104,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public BuildableProblemBuilder details(String details) {
+    public BaseProblemBuilder details(String details) {
         this.description = details;
         return this;
     }
@@ -132,7 +126,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public BuildableProblemBuilder solution(@Nullable String solution) {
+    public BaseProblemBuilder solution(@Nullable String solution) {
         if (this.solution == null) {
             this.solution = new ArrayList<String>();
         }
@@ -140,28 +134,27 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
         return this;
     }
 
-    public BuildableProblemBuilder additionalData(String key, String value) {
+    public BaseProblemBuilder additionalData(String key, String value) {
         this.additionalMetadata.put(key, value);
         return this;
     }
 
     @Override
-    public BuildableProblemBuilder withException(RuntimeException e) {
+    public BaseProblemBuilder withException(RuntimeException e) {
         this.exception = e;
         return this;
     }
 
-    public ReportableProblem build() {
+    public Problem build() { // TODO this can be simplified
         return buildInternal(null);
     }
 
     @Nonnull
-    private ReportableProblem buildInternal(@Nullable Severity severity) {
+    private Problem buildInternal(@Nullable Severity severity) {
         if (!explicitlyUndocumented && documentationUrl == null) {
             throw new IllegalStateException("Problem is not documented: " + label);
         }
-
-        return new DefaultReportableProblem(
+        return new DefaultProblem(
             label,
             getSeverity(severity),
             locations,
@@ -170,8 +163,7 @@ public class DefaultBuildableProblemBuilder implements BuildableProblemBuilder,
             solution,
             exception == null && collectLocation ? new Exception() : exception, //TODO: don't create exception if already reported often
             problemCategory,
-            additionalMetadata,
-            problemsService);
+            additionalMetadata);
     }
 
     @Nonnull
