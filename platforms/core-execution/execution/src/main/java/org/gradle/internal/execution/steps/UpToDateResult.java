@@ -30,10 +30,13 @@ public class UpToDateResult extends AfterExecutionResult {
     private final ImmutableList<String> executionReasons;
     private final OriginMetadata reusedOutputOriginMetadata;
 
-    public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+    public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons) {
         super(parent);
         this.executionReasons = executionReasons;
-        this.reusedOutputOriginMetadata = reusedOutputOriginMetadata;
+        this.reusedOutputOriginMetadata = parent.getAfterExecutionState()
+            .filter(AfterExecutionState::isReused)
+            .map(AfterExecutionState::getOriginMetadata)
+            .orElse(null);
     }
 
     public UpToDateResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
@@ -43,7 +46,9 @@ public class UpToDateResult extends AfterExecutionResult {
     }
 
     protected UpToDateResult(UpToDateResult parent) {
-        this(parent, parent.getExecutionReasons(), parent.getReusedOutputOriginMetadata().orElse(null));
+        super(parent);
+        this.executionReasons = parent.getExecutionReasons();
+        this.reusedOutputOriginMetadata = parent.getReusedOutputOriginMetadata().orElse(null);
     }
 
     /**
