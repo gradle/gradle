@@ -19,16 +19,11 @@ package org.gradle.api.internal.file.archive;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.CopyableFileTreeElement;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.PathTraversalChecker;
-import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -37,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * This implementation extracts the files from the archive to the supplied expansion directory.
  */
-public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement implements FileVisitDetails {
+public abstract class AbstractArchiveFileTreeElement extends CopyableFileTreeElement implements FileVisitDetails {
     private final File expandedDir;
     private File file;
     private final AtomicBoolean stopFlag;
@@ -84,30 +79,10 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
         if (file == null) {
             file = new File(expandedDir, safeEntryName());
             if (!file.exists()) {
-                GFileUtils.mkdirs(file.getParentFile());
-                if (isSymbolicLink()) {
-                    copySymlinkTo(file);
-                } else if (isDirectory()) {
-                    file.mkdir();
-                } else {
-                    try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                        copyTo(outputStream);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                copyPreservingPermissions(file);
             }
         }
         return file;
-    }
-
-    protected void copySymlinkTo(File target) {
-        Path targetPath = new File(getSymbolicLinkDetails().getTarget().replace("/", File.separator)).toPath();
-        try {
-            Files.createSymbolicLink(target.toPath(), targetPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override

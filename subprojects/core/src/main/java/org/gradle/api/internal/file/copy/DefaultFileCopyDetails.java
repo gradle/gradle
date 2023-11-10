@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
@@ -28,29 +27,23 @@ import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.SymbolicLinkDetails;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.CopyableFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.file.Chmod;
-import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
-public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
+public class DefaultFileCopyDetails extends CopyableFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecResolver specResolver;
     private final FilterChain filterChain;
@@ -144,45 +137,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public boolean copyTo(File target) {
-        validateTimeStamps();
-        try {
-            if (isSymbolicLink()) {
-                copySymlinkTo(target);
-            } else if (isDirectory()) {
-                GFileUtils.mkdirs(target);
-                adaptPermissions(target);
-            } else {
-                GFileUtils.mkdirs(target.getParentFile());
-                copyFile(target);
-                adaptPermissions(target);
-            }
-            return true;
-        } catch (Exception e) {
-            throw new CopyFileElementException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
-        }
-    }
-
-    private void copyFile(File target) throws IOException {
-        try (FileOutputStream outputStream = new FileOutputStream(target)) {
-            copyTo(outputStream);
-        }
-    }
-
-    private void copySymlinkTo(File target) {
-        try {
-            Path path = target.toPath();
-            if (target.exists() && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
-                FileUtils.deleteDirectory(target);
-            }
-            Files.copy(getFile().toPath(), path, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void adaptPermissions(File target) {
-        int specMode = this.getPermissions().toUnixNumeric();
-        getChmod().chmod(target, specMode);
+        copyPreservingPermissions(target);
+        return true;
     }
 
     @Override
