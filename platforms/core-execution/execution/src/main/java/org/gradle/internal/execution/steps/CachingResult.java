@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -27,7 +26,7 @@ import org.gradle.internal.execution.history.AfterExecutionState;
 import javax.annotation.Nullable;
 import java.time.Duration;
 
-public class CachingResult extends UpToDateResult implements ExecutionEngine.Result {
+public class CachingResult extends UpToDateResult {
 
     private final CachingState cachingState;
 

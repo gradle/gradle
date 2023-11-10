@@ -22,7 +22,7 @@ import org.gradle.internal.execution.ExecutionEngine;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class WorkspaceResult extends CachingResult {
+public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {
     private final File workspace;
 
     public WorkspaceResult(CachingResult parent, @Nullable File workspace) {
@@ -30,8 +30,10 @@ public class WorkspaceResult extends CachingResult {
         this.workspace = workspace;
     }
 
-    public Try<Object> getWorkspaceOutputs() {
+    @Override
+    public <T> Try<T> resolveOutputsFromWorkspaceAs(Class<T> type) {
         return getExecution()
-            .map(ExecutionEngine.Execution::getOutput);
+            .map(ExecutionEngine.Execution::getOutput)
+            .map(type::cast);
     }
 }
