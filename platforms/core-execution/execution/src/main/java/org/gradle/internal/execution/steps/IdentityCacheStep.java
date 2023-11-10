@@ -46,7 +46,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
             return Deferrable.deferred(() -> cache.get(
                 identity,
                 () -> execute(work, context)
-                    .resolveOutputsFromWorkspaceAs(Object.class)
+                    .resolveOutputFromWorkspaceAs(Object.class)
                     .map(Cast::<T>uncheckedNonnullCast)));
         }
     }

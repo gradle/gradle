@@ -37,7 +37,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
 
         then:
         actualResult.get() == delegateOutput
-        delegateResult.resolveOutputsFromWorkspaceAs(_ as Class) >> Try.successful(delegateOutput)
+        delegateResult.resolveOutputFromWorkspaceAs(_ as Class) >> Try.successful(delegateOutput)
 
         1 * delegate.execute(work, context) >> delegateResult
         0 * _

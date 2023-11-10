@@ -184,8 +184,8 @@ class MutableUnitOfWorkBuilder {
                     }
 
                     @Override
-                    Object getOutput() {
-                        return loadAlreadyProducedOutput(executionRequest.workspace)
+                    Object getOutput(File workspace) {
+                        return loadAlreadyProducedOutput(workspace)
                     }
                 }
             }

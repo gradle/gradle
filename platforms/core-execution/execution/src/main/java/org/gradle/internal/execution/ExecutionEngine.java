@@ -66,7 +66,8 @@ public interface ExecutionEngine {
 
         CachingState getCachingState();
 
-        <T> Try<T> resolveOutputsFromWorkspaceAs(Class<T> type);
+        // TODO Parametrize UnitOfWork with this type
+        <T> Try<T> resolveOutputFromWorkspaceAs(Class<T> type);
 
         /**
          * A list of messages describing the first few reasons encountered that caused the work to be executed.
@@ -98,7 +99,7 @@ public interface ExecutionEngine {
          */
         // TODO Parametrize UnitOfWork with this generated result
         @Nullable
-        Object getOutput();
+        Object getOutput(File workspace);
 
         /**
          * Whether the outputs of this execution should be stored in the build cache.
@@ -107,7 +108,7 @@ public interface ExecutionEngine {
             return true;
         }
 
-        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work, File workspace) {
+        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work) {
             return new Execution() {
                 @Override
                 public ExecutionOutcome getOutcome() {
@@ -116,7 +117,7 @@ public interface ExecutionEngine {
 
                 @Nullable
                 @Override
-                public Object getOutput() {
+                public Object getOutput(File workspace) {
                     return work.loadAlreadyProducedOutput(workspace);
                 }
             };

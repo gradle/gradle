@@ -172,8 +172,8 @@ public class TaskExecution implements MutableUnitOfWork {
                 }
 
                 @Override
-                public Object getOutput() {
-                    return null;
+                public Object getOutput(File workspace) {
+                    throw new UnsupportedOperationException("Tasks have no work output");
                 }
 
                 @Override

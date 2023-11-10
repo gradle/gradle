@@ -66,7 +66,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             true,
             previousExecutionState.getOriginMetadata(),
             true);
-        Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work, context.getWorkspace()));
+        Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work));
         return new UpToDateResult(
             previousExecutionState.getOriginMetadata().getExecutionTime(),
             execution,

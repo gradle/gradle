@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
-import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
+import org.gradle.api.internal.artifacts.transform.TransformWorkspaceResult;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
@@ -118,7 +118,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful);
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful);
         OnDemandCacheBasedWorkspaceProvider workspaceProvider = OnDemandCacheBasedWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cacheConfigurations);
         return new ImmutableTransformWorkspaceServices() {
             @Override
@@ -127,7 +127,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             }
 
             @Override
-            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+            public Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> getIdentityCache() {
                 return identityCache;
             }
 

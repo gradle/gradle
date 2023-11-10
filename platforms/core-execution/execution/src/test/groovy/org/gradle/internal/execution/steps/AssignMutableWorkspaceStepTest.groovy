@@ -34,6 +34,7 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
     def work = Stub(MutableUnitOfWork)
 
     def "delegates with assigned mutable workspace"() {
+        def delegateOutput = new Object()
         def workspace = file("workspace")
         def workspaceProvider = Mock(MutableWorkspaceProvider)
         when:
@@ -52,10 +53,11 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         0 * _
 
         when:
-        result.resolveOutputsFromWorkspaceAs(Object)
+        def output = result.resolveOutputFromWorkspaceAs(Object)
 
         then:
-        1 * delegateExecution.getOutput()
+        output.get() == delegateOutput
+        1 * delegateExecution.getOutput(workspace) >> delegateOutput
         0 * _
     }
 }

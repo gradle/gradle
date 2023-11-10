@@ -76,7 +76,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache;
+        Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
         if (producerProject == null) {
             // Non-project-bound transforms run in a global immutable workspace,

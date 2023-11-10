@@ -110,7 +110,7 @@ public interface UnitOfWork extends Describable {
          * Implementation-specific output of executing the user code.
          */
         @Nullable
-        Object getOutput();
+        Object getOutput(File workspace);
 
         /**
          * Whether this output should be stored in the build cache.

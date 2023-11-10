@@ -93,7 +93,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
             )
             executionEngine.createRequest(work)
                 .execute()
-                .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+                .resolveOutputFromWorkspaceAs(AccessorsClassPath::class.java)
                 .get()
         }
     }
@@ -139,7 +139,7 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
     }
 

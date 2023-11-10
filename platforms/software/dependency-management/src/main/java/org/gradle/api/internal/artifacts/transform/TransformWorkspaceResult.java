@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {
-    private final File workspace;
-
-    public WorkspaceResult(CachingResult parent, @Nullable File workspace) {
-        super(parent);
-        this.workspace = workspace;
-    }
-
-    @Override
-    public <T> Try<T> resolveOutputFromWorkspaceAs(Class<T> type) {
-        return getExecution()
-            .map(execution -> execution.getOutput(workspace))
-            .map(type::cast);
-    }
+/**
+ * Transform results bound to a workspace.
+ */
+public interface TransformWorkspaceResult {
+    /**
+     * Resolves location of the outputs of this result for a given input artifact.
+     *
+     * Produced outputs don't need to be resolved to locations, since they are absolute paths and can be returned as is.
+     * The relative paths of selected parts of the input artifact need to resolved based on the provided input artifact location.
+     */
+    ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
 }

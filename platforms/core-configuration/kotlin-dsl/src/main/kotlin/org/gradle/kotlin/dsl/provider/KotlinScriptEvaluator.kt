@@ -258,18 +258,22 @@ class StandardKotlinScriptEvaluator(
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
-            executionEngineFor(scriptHost).createRequest(
-                CompileKotlinScript(
-                    programId,
-                    compilationClassPath,
-                    accessorsClassPath,
-                    initializer,
-                    classpathHasher,
-                    workspaceProvider,
-                    fileCollectionFactory,
-                    inputFingerprinter
+            executionEngineFor(scriptHost)
+                .createRequest(
+                    CompileKotlinScript(
+                        programId,
+                        compilationClassPath,
+                        accessorsClassPath,
+                        initializer,
+                        classpathHasher,
+                        workspaceProvider,
+                        fileCollectionFactory,
+                        inputFingerprinter
+                    )
                 )
-            ).execute().execution.get().output as File
+                .execute()
+                .resolveOutputFromWorkspaceAs(File::class.java)
+                .get()
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -410,15 +414,11 @@ class CompileKotlinScript(
     override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
-        return workOutputFor(workspace)
-    }
-
-    private
-    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
-        object : UnitOfWork.WorkOutput {
+        return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+            override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
+    }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation (${programId.templateId})"

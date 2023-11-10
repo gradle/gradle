@@ -89,10 +89,10 @@ import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceSe
 import org.gradle.api.internal.artifacts.transform.MutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
-import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
+import org.gradle.api.internal.artifacts.transform.TransformWorkspaceResult;
 import org.gradle.api.internal.artifacts.transform.VariantSelectorFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -229,7 +229,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
-            Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
@@ -237,7 +237,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+                public Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> getIdentityCache() {
                     return identityCache;
                 }
 

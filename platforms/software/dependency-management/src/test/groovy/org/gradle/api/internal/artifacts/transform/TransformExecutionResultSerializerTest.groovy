@@ -31,7 +31,7 @@ class TransformExecutionResultSerializerTest extends Specification {
     def inputArtifact = file("inputArtifact").createDir()
     def outputDir = file("outputDir")
     def resultFile = file("results.txt")
-    def serializer = new TransformExecutionResultSerializer(outputDir)
+    def serializer = new TransformExecutionResultSerializer()
 
     def "reads and writes transformation results"() {
         expect:
@@ -115,8 +115,7 @@ class TransformExecutionResultSerializerTest extends Specification {
         initialResults.resolveOutputsForInputArtifact(inputArtifact) == resultFiles
 
         when:
-        def serializerWithNewOutputDir = new TransformExecutionResultSerializer(newOutputDir)
-        def loadedResults = serializerWithNewOutputDir.readResultsFile(resultFile)
+        def loadedResults = serializer.readResultsFile(resultFile)
         then:
         loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
     }

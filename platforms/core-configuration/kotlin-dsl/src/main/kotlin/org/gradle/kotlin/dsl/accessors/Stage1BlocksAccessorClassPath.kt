@@ -98,7 +98,7 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
                 )
                 executionEngine.createRequest(work)
                     .execute()
-                    .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+                    .resolveOutputFromWorkspaceAs(AccessorsClassPath::class.java)
                     .get()
             }
             ?: AccessorsClassPath.empty
@@ -122,7 +122,7 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
         )
         return executionEngine.createRequest(work)
             .execute()
-            .resolveOutputsFromWorkspaceAs(AccessorsClassPath::class.java)
+            .resolveOutputFromWorkspaceAs(AccessorsClassPath::class.java)
             .get()
     }
 }

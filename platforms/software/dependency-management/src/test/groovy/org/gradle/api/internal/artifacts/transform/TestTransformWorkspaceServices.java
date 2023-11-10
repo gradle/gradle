@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 public abstract class TestTransformWorkspaceServices {
 
     public static ImmutableTransformWorkspaceServices immutable(File transformationsStoreDirectory) {
-        Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {
@@ -44,7 +44,7 @@ public abstract class TestTransformWorkspaceServices {
             }
 
             @Override
-            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+            public Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> getIdentityCache() {
                 return identityCache;
             }
 
@@ -55,7 +55,7 @@ public abstract class TestTransformWorkspaceServices {
     }
 
     public static MutableTransformWorkspaceServices mutable(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
-        Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> identityCache = new ManualEvictionInMemoryCache<>();
+        Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
         return new MutableTransformWorkspaceServices() {
             @Override
             public MutableWorkspaceProvider getWorkspaceProvider() {
@@ -69,7 +69,7 @@ public abstract class TestTransformWorkspaceServices {
             }
 
             @Override
-            public Cache<UnitOfWork.Identity, Try<TransformExecutionResult>> getIdentityCache() {
+            public Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> getIdentityCache() {
                 return identityCache;
             }
 
