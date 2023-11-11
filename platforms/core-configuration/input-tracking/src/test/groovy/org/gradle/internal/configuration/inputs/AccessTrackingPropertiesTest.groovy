@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.configuration.inputs
 
 import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import javax.annotation.Nullable
 import java.util.function.BiConsumer
@@ -653,6 +655,73 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         0 * onAccess._
         0 * onRemove._
         0 * onChange._
+    }
+
+    def "remove(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToWrite().remove(null)
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+    }
+
+    def "keySet().remove(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToWrite().keySet().remove(null)
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+    }
+
+    def "keySet().removeAll([null]) is not tracked and throws"() {
+        when:
+        getMapUnderTestToWrite().keySet().removeAll([null])
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+    }
+
+    def "entrySet().remove(null) is not tracked and doesn't throw"() {
+        when:
+        def result = getMapUnderTestToWrite().entrySet().remove(null)
+
+        then:
+        !result
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+    }
+
+    @Requires(value = UnitTestPreconditions.Jdk9OrLater, reason = "Properties.remove(entry(null, null)) throws NPE in Java 8")
+    def "entrySet().remove(entry(null, null)) is not tracked and doesn't throw"() {
+        when:
+        def result = getMapUnderTestToWrite().entrySet().remove(entry(null, null))
+
+        then:
+        !result
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
+    }
+
+    def "entrySet().removeAll([null]) is not tracked and doesn't throw"() {
+        when:
+        def result = getMapUnderTestToWrite().entrySet().removeAll([null])
+
+        then:
+        !result
+        0 * onAccess._
+        0 * onChange._
+        0 * onRemove._
     }
 
     private static Properties propertiesWithContent(Map<String, String> contents) {

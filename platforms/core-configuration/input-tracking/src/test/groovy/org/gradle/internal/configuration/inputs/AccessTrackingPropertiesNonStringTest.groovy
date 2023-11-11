@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.configuration.inputs
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import spock.lang.Specification
 
-import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_KEY
-import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_VALUE
-import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.MISSING_KEY
-import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.NON_STRING_VALUE
-import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.OTHER_VALUE
+import static org.gradle.internal.configuration.inputs.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_KEY
+import static org.gradle.internal.configuration.inputs.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_VALUE
+import static org.gradle.internal.configuration.inputs.AccessTrackingPropertiesNonStringTest.TestData.MISSING_KEY
+import static org.gradle.internal.configuration.inputs.AccessTrackingPropertiesNonStringTest.TestData.NON_STRING_VALUE
+import static org.gradle.internal.configuration.inputs.AccessTrackingPropertiesNonStringTest.TestData.OTHER_VALUE
 
 class AccessTrackingPropertiesNonStringTest extends Specification {
     private enum TestData {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.Iterators;
@@ -33,11 +33,11 @@ import java.util.function.Function;
  */
 class AccessTrackingSet<E> extends ForwardingSet<E> {
     public interface Listener {
-        void onAccess(Object o);
+        void onAccess(@Nullable Object o);
 
         void onAggregatingAccess();
 
-        void onRemove(Object object);
+        void onRemove(@Nullable Object object);
 
         void onClear();
     }
@@ -74,7 +74,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove(@Nullable Object o) {
         // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
         listener.onAccess(o);
         listener.onRemove(o);
@@ -135,7 +135,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "SuspiciousToArrayCall"})
+    @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] array) {
         reportAggregatingAccess();
         T[] result = delegate().toArray(array);

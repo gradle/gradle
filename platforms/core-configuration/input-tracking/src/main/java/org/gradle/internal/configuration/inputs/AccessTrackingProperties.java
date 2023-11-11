@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
 
@@ -39,7 +39,7 @@ import java.util.function.Function;
 /**
  * A wrapper for {@link Properties} that notifies a listener about accesses.
  */
-class AccessTrackingProperties extends Properties {
+public class AccessTrackingProperties extends Properties {
     /**
      * A listener that is notified about reads and modifications of the Properties instance.
      * Note that there's no guarantee about the state of the Properties object when the
@@ -155,8 +155,9 @@ class AccessTrackingProperties extends Properties {
 
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
         Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
-        if (entry != null) {
-            getAndReportAccess(entry.getKey());
+        Object key = entry != null ? entry.getKey() : null;
+        if (key != null) {
+            getAndReportAccess(key);
         }
     }
 
@@ -237,6 +238,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object replace(Object key, Object value) {
         Object oldValue;
         synchronized (delegate) {
@@ -251,6 +253,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object computeIfAbsent(Object key, Function<? super Object, ?> mappingFunction) {
         Object oldValue;
         Object computedValue = null;
@@ -269,6 +272,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object computeIfPresent(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
         Object oldValue;
         Object computedValue = null;
@@ -291,6 +295,7 @@ class AccessTrackingProperties extends Properties {
 
 
     @Override
+    @Nullable
     public Object compute(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
         Object oldValue;
         Object newValue;
@@ -309,6 +314,7 @@ class AccessTrackingProperties extends Properties {
 
 
     @Override
+    @Nullable
     public Object merge(Object key, Object value, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
         Object oldValue;
         Object newValue;
@@ -342,6 +348,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object put(Object key, Object value) {
         Object oldValue;
         synchronized (delegate) {
@@ -354,11 +361,13 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object setProperty(String key, String value) {
         return put(key, value);
     }
 
     @Override
+    @Nullable
     public Object remove(Object key) {
         Object result;
         synchronized (delegate) {
@@ -388,12 +397,14 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public String getProperty(String key) {
         return getProperty(key, null);
     }
 
     @Override
-    public String getProperty(String key, String defaultValue) {
+    @Nullable  // The contract here is trickier - the return value is only null if the default value is null, but this method is not really part of any public API.
+    public String getProperty(String key, @Nullable String defaultValue) {
         Object oValue = getAndReportAccess(key);
         String value = oValue instanceof String ? (String) oValue : null;
         return value != null ? value : defaultValue;
@@ -406,6 +417,7 @@ class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @Nullable
     public Object get(Object key) {
         return getAndReportAccess(key);
     }
@@ -487,13 +499,16 @@ class AccessTrackingProperties extends Properties {
         return delegate.hashCode();
     }
 
-    private Object getAndReportAccess(Object key) {
+    @Nullable
+    private Object getAndReportAccess(@Nullable Object key) {
         Object value = delegate.get(key);
+        // delegate.get(null) actually throws NPE.
+        assert key != null;
         reportAccess(key, value);
         return value;
     }
 
-    private void reportAccess(Object key, Object value) {
+    private void reportAccess(Object key, @Nullable Object value) {
         listener.onAccess(key, value);
     }
 
@@ -542,7 +557,7 @@ class AccessTrackingProperties extends Properties {
     private AccessTrackingSet.Listener trackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
-            public void onAccess(Object o) {
+            public void onAccess(@Nullable Object o) {
                 getAndReportAccess(o);
             }
 
@@ -552,8 +567,8 @@ class AccessTrackingProperties extends Properties {
             }
 
             @Override
-            public void onRemove(Object object) {
-                reportRemoval(object);
+            public void onRemove(@Nullable Object object) {
+                reportRemoval(Objects.requireNonNull(object));
             }
 
             @Override
@@ -566,7 +581,7 @@ class AccessTrackingProperties extends Properties {
     private AccessTrackingSet.Listener entrySetTrackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
-            public void onAccess(Object o) {
+            public void onAccess(@Nullable Object o) {
                 onAccessEntrySetElement(o);
             }
 
@@ -576,10 +591,11 @@ class AccessTrackingProperties extends Properties {
             }
 
             @Override
-            public void onRemove(Object potentialEntry) {
+            public void onRemove(@Nullable Object potentialEntry) {
                 Map.Entry<?, ?> entry = AccessTrackingUtils.tryConvertingToEntry(potentialEntry);
-                if (entry != null) {
-                    reportRemoval(entry.getKey());
+                Object removedKey = entry != null ? entry.getKey() : null;
+                if (removedKey != null) {
+                    reportRemoval(removedKey);
                 }
             }
 

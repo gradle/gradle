@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.Maps;
 
@@ -43,7 +43,7 @@ class AccessTrackingUtils {
      * @return the entry if the object is {@code Map.Entry<String, String>} or {@code null} otherwise
      */
     @Nullable
-    public static Map.Entry<String, String> tryConvertingToTrackableEntry(Object o) {
+    public static Map.Entry<String, String> tryConvertingToTrackableEntry(@Nullable Object o) {
         Map.Entry<?, ?> entry = tryConvertingToEntry(o);
         if (entry == null) {
             return null;
@@ -58,7 +58,7 @@ class AccessTrackingUtils {
     }
 
     @Nullable
-    public static Map.Entry<?, ?> tryConvertingToEntry(Object o) {
+    public static Map.Entry<?, ?> tryConvertingToEntry(@Nullable Object o) {
         if (!(o instanceof Map.Entry)) {
             return null;
         }

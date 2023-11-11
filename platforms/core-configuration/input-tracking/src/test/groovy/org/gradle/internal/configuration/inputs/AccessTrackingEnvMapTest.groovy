@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.configuration.inputs
+
+import com.google.common.collect.ForwardingMap
+
+import javax.annotation.Nullable
 
 class AccessTrackingEnvMapTest extends AbstractAccessTrackingMapTest {
     @Override
     protected Map<String, String> getMapUnderTestToRead() {
-        return new AccessTrackingEnvMap(innerMap, onAccess)
+        return new AccessTrackingEnvMap(new StubEnvMap(), onAccess)
     }
 
     def "access to non-string element with containsKey throws"() {
@@ -29,5 +33,23 @@ class AccessTrackingEnvMapTest extends AbstractAccessTrackingMapTest {
         then:
         thrown(RuntimeException)
         0 * onAccess._
+    }
+
+    private class StubEnvMap extends ForwardingMap<String, String> {
+        @Override
+        String get(@Nullable Object key) {
+            return super.get(Objects.requireNonNull(key))
+        }
+
+        @Override
+        String getOrDefault(@Nullable Object key, String defaultValue) {
+            return super.getOrDefault(Objects.requireNonNull(key), defaultValue)
+        }
+
+        @Override
+        protected Map<String, String> delegate() {
+            // Groovy ends up calling get() to obtain innerMap if there's no explicit qualifier, causing stack overflow.
+            return AccessTrackingEnvMapTest.this.innerMap
+        }
     }
 }

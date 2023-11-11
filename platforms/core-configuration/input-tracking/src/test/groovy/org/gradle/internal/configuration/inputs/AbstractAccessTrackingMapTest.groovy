@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath
+package org.gradle.internal.configuration.inputs
 
 import com.google.common.collect.Maps
 import spock.lang.Specification
@@ -195,6 +195,61 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         'existing' | 'existingValue' | 'other'        | 'otherValue'   | true
         'existing' | 'existingValue' | 'missing'      | null           | false
         'missing'  | null            | 'otherMissing' | null           | false
+    }
+
+    // Null-hostility tests. At the time of writing all tracking map implementations are null-hostile
+    def "get(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToRead().get(null)
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+    }
+
+    def "getOrDefault(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToRead().getOrDefault(null, "defaultValue")
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+    }
+
+    def "keySet().contains(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToRead().keySet().contains(null)
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+    }
+
+    def "keySet().containsAll(null) is not tracked and throws"() {
+        when:
+        getMapUnderTestToRead().keySet().containsAll([null])
+
+        then:
+        thrown(NullPointerException)
+        0 * onAccess._
+    }
+
+    def "entrySet().contains(null) is not tracked and doesn't throw"() {
+        when:
+        def result = getMapUnderTestToRead().entrySet().contains(null)
+
+        then:
+        !result
+        0 * onAccess._
+    }
+
+    def "entrySet().containsAll(null) is not tracked and doesn't throw"() {
+        when:
+        def result = getMapUnderTestToRead().entrySet().containsAll([null])
+
+        then:
+        !result
+        0 * onAccess._
     }
 
     static Map.Entry<String, String> entry(String key, String value) {

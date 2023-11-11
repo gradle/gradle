@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.configuration.inputs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ForwardingMap;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
  * A wrapper for the {@link System#getenv()} result that notifies a listener about accesses.
  */
-class AccessTrackingEnvMap extends ForwardingMap<String, String> {
+public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private final Map<String, String> delegate;
     private final BiConsumer<? super String, ? super String> onAccess;
 
@@ -36,7 +37,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     }
 
     @VisibleForTesting
-    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
+    public AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -47,7 +48,9 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     }
 
     @Override
-    public String getOrDefault(@Nullable Object key, String defaultValue) {
+    @SuppressWarnings("SuspiciousMethodCalls")
+    @Nullable
+    public String getOrDefault(@Nullable Object key, @Nullable String defaultValue) {
         String value = getAndReport(key);
         if (value == null && !delegate.containsKey(key)) {
             return defaultValue;
@@ -65,6 +68,8 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         return new AccessTrackingSet<>(super.keySet(), trackingListener());
     }
 
+    @Nullable
+    @SuppressWarnings("SuspiciousMethodCalls")
     private String getAndReport(@Nullable Object key) {
         String result = delegate.get(key);
         // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
@@ -128,8 +133,8 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private AccessTrackingSet.Listener trackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
-            public void onAccess(Object o) {
-                getAndReport(o);
+            public void onAccess(@Nullable Object o) {
+                getAndReport(Objects.requireNonNull(o));
             }
 
             @Override
@@ -138,7 +143,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
             }
 
             @Override
-            public void onRemove(Object object) {
+            public void onRemove(@Nullable Object object) {
                 // Environment variables are immutable.
             }
 
@@ -152,7 +157,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private AccessTrackingSet.Listener entrySetTrackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
-            public void onAccess(Object o) {
+            public void onAccess(@Nullable Object o) {
                 onAccessEntrySetElement(o);
             }
 
@@ -162,7 +167,7 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
             }
 
             @Override
-            public void onRemove(Object object) {
+            public void onRemove(@Nullable Object object) {
                 // Environment variables are immutable.
             }
 
@@ -173,4 +178,3 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         };
     }
 }
-

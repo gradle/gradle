@@ -39,11 +39,11 @@ import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -316,12 +316,12 @@ class DefaultConfigurationCache internal constructor(
     fun prepareForWork() {
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
-        Instrumented.setListener(instrumentedInputAccessListener)
+        InstrumentedInputs.setListener(instrumentedInputAccessListener)
     }
 
     private
     fun doneWithWork() {
-        Instrumented.discardListener()
+        InstrumentedInputs.discardListener()
         cacheFingerprintController.stopCollectingFingerprint()
     }
 
@@ -349,7 +349,7 @@ class DefaultConfigurationCache internal constructor(
         cacheEntryRequiresCommit = true
 
         if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
-            Instrumented.discardListener()
+            InstrumentedInputs.discardListener()
         }
 
         buildOperationExecutor.withStoreOperation(cacheKey.string) {
