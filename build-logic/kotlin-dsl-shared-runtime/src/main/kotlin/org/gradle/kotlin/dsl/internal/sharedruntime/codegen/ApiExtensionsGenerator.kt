@@ -103,6 +103,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
             writeExtensionsTo(
                 sourceFile("${sourceFilesBaseName}_${hashTypeSourceName.apply(targetType.sourceName)}.kt"),
                 packageName,
+                targetType,
                 extensionsSubset
             )
         }
@@ -117,9 +118,9 @@ fun Sequence<KotlinExtensionFunction>.groupedByTarget(): Map<ApiType, List<Kotli
 
 
 private
-fun writeExtensionsTo(outputFile: File, packageName: String, extensions: List<KotlinExtensionFunction>): Unit =
+fun writeExtensionsTo(outputFile: File, packageName: String, targetType: ApiType, extensions: List<KotlinExtensionFunction>): Unit =
     outputFile.bufferedWriter().use { writer ->
-        writer.write(fileHeaderFor(packageName))
+        writer.write(fileHeaderFor(packageName, targetType.isIncubating))
         writer.write("\n")
         extensions.forEach {
             writer.write("\n${it.toKotlinString()}")

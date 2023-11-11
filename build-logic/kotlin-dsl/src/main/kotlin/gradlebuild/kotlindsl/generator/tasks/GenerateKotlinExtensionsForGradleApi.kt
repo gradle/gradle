@@ -39,7 +39,6 @@ import org.objectweb.asm.Type
 import java.io.File
 
 
-// TODO This will need the sources to grab @since annotations
 @CacheableTask
 abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
 

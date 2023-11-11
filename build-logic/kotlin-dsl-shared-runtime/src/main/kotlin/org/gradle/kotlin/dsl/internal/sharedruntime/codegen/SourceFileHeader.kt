@@ -21,7 +21,7 @@ val fileHeader: String
     get() = fileHeaderFor(kotlinDslPackageName)
 
 
-fun fileHeaderFor(packageName: String) =
+fun fileHeaderFor(packageName: String, isIncubating: Boolean = false) =
     """$licenseHeader
 
 @file:Suppress(
@@ -35,7 +35,7 @@ fun fileHeaderFor(packageName: String) =
     "ObjectPropertyName",
     "deprecation"
 )
-@file:org.gradle.api.Generated
+@file:org.gradle.api.Generated${if (isIncubating) "\n@file:org.gradle.api.Incubating" else ""}
 
 /* ktlint-disable */
 
