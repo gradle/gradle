@@ -416,7 +416,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             val signatureParameter = visitedSignature?.parameters?.get(idx)
             val parameterTypeName = signatureParameter?.binaryName ?: parameterTypeBinaryName
             val variance = signatureParameter?.variance ?: Variance.INVARIANT
-            val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
+            val typeArguments = signatureParameter?.typeArguments ?: emptyList()
             ApiFunctionParameter(
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
@@ -601,7 +601,7 @@ val mappedTypeStrings =
         "java.lang.Cloneable" to "kotlin.Cloneable",
         "java.lang.Comparable" to "kotlin.Comparable",
         "java.lang.Enum" to "kotlin.Enum",
-        "java.lang.Annotation" to "kotlin.Annotation",
+        "java.lang.annotation.Annotation" to "kotlin.Annotation",
         "java.lang.Deprecated" to "kotlin.Deprecated",
         "java.lang.CharSequence" to "kotlin.CharSequence",
         "java.lang.Number" to "kotlin.Number",
