@@ -213,7 +213,7 @@ fun ApiTypeUsage.hasJavaClass(): Boolean =
 
 
 private
-fun candidatesForExtensionFrom(type: ApiType) =
+fun candidatesForExtensionFrom(type: ApiType): Sequence<ApiFunction> =
     type.functions.filter(::isCandidateForExtension).asSequence()
 
 
@@ -386,7 +386,7 @@ fun ApiTypeUsage.toCollectionOfKotlinClasses() =
 
 
 private
-fun ApiTypeUsage.singleTypeArgumentRawToStarProjection() =
+fun ApiTypeUsage.singleTypeArgumentRawToStarProjection(): List<ApiTypeUsage> =
     if (isRaw) singletonListOfStarProjectionTypeUsage
     else typeArguments.also { it.single() }
 
@@ -399,7 +399,7 @@ fun Boolean.toKotlinNullabilityString(): String =
 private
 fun ApiTypeUsage.toTypeParameterString(): String =
     "$sourceName${
-    bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
+        bounds.takeIf { it.isNotEmpty() }?.let { " : ${it.single().toTypeParameterString()}" } ?: ""
     }${typeArguments.toTypeParametersString(type)}${isNullable.toKotlinNullabilityString()}"
 
 
