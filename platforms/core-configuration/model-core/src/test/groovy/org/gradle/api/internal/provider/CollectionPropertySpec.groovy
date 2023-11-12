@@ -1099,31 +1099,10 @@ The value of this property is derived from: <source>""")
         assertValueIs(["4", "8"])
     }
 
-    def "adding explicit value via configurer is undefined-safe"() {
-        given:
-        property.set([])
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.notDefined())
-        property.getActualValue().addAll(Providers.of(["4"]))
-
-        expect:
-        assertValueIs(["1", "2", "4"])
-    }
-
-    def "adding convention value via configurer is undefined-safe"() {
-        given:
-        property.set(null as Iterable)
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.notDefined())
-        property.getActualValue().addAll(Providers.of(["4"]))
-
-        expect:
-        property.getOrNull() == toImmutable(["1", "2", "4"])
-    }
-
     def "can add to convention"() {
         given:
         property.set(null as Iterable)
+        property.convention([])
         property.getActualValue().addAll(Providers.of(["1", "2"]))
         property.getActualValue().addAll(Providers.of(["3", "4"]))
 

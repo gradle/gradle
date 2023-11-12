@@ -67,13 +67,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    @Override
     public CollectionPropertyConfigurer<T> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    @Override
     public CollectionPropertyConfigurer<T> getExplicitValue() {
         assertCanMutate();
         return new ExplicitValueConfigurer();
@@ -296,11 +294,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> pruned() {
-            return Cast.uncheckedCast(emptySupplier().pruned());
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
@@ -339,10 +332,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
-        private final boolean pruning;
-
         private EmptySupplier(boolean pruning) {
-            this.pruning = pruning;
         }
 
         @Override
@@ -358,18 +348,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, pruning);
+            return new CollectingSupplier(collector);
         }
 
         @Override
         public CollectionSupplier<T, C> minus(Collector<T> collector) {
             // empty - something = empty
             return this;
-        }
-
-        @Override
-        public CollectionSupplier<T, C> pruned() {
-            return pruning ? this : new EmptySupplier(true);
         }
 
         @Override
@@ -395,11 +380,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
             this.value = value;
             this.sideEffect = sideEffect;
-        }
-
-        @Override
-        public CollectionSupplier<T, C> pruned() {
-            return null;
         }
 
         @Override
@@ -441,15 +421,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private class CollectingSupplier implements CollectionSupplier<T, C> {
         private final Collector<T> value;
-        private final boolean pruning;
-
-        public CollectingSupplier(Collector<T> value, boolean pruning) {
-            this.value = value;
-            this.pruning = pruning;
-        }
 
         public CollectingSupplier(Collector<T> value) {
-            this(value, false);
+            this.value = value;
         }
 
         @Override
@@ -470,22 +444,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            return new CollectingSupplier(new PlusCollector<>(value, collector, pruning), pruning);
+            return new CollectingSupplier(new PlusCollector<>(value, collector));
         }
 
         @Override
         public CollectionSupplier<T, C> minus(Collector<T> collector) {
-            return new CollectingSupplier(new MinusCollector<>(value, collector, pruning, collectionFactory), pruning);
+            return new CollectingSupplier(new MinusCollector<>(value, collector, collectionFactory));
         }
 
         @Override
         public CollectionSupplier<T, C> keep(Spec<T> filter) {
             return minus(new Collectors.FilteringCollector<>(value, Specs.negate(filter), collectionFactory));
-        }
-
-        @Override
-        public CollectionSupplier<T, C> pruned() {
-            return pruning ? this : new CollectingSupplier(value, true);
         }
 
         @Override
@@ -582,28 +551,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-
     //TODO-RC consider combining these two implementations if their only difference is the target CollectingSupplier
     private class ConventionConfigurer implements CollectionPropertyConfigurer<T> {
-
-        private boolean pruned;
-
-        private void prune() {
-            if (!pruned) {
-                pruned = true;
-                setConvention(getConventionSupplier().pruned());
-            }
-        }
-
         @Override
         public void add(T element) {
-            prune();
             addConventionCollector(new SingleElement<>(element));
         }
 
         @Override
         public void add(Provider<? extends T> provider) {
-            prune();
             addConventionCollector(new ElementFromProvider<>(Providers.internal(provider)));
         }
 
@@ -611,37 +567,31 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void addAll(T... elements) {
-            prune();
             addConventionCollector(new ElementsFromArray<>(elements));
         }
 
         @Override
         public void addAll(Iterable<? extends T> elements) {
-            prune();
             addConventionCollector(new ElementsFromCollection<>(elements));
         }
 
         @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-            prune();
             addConventionCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
         }
 
         @Override
         public void excludeAll(Spec<T> filter) {
-            prune();
             setConvention(getConventionSupplier().keep(Specs.negate(filter)));
         }
 
         @Override
         public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
-            prune();
             setConvention(getConventionSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
 
         @Override
         public void excludeAll(Iterable<? extends T> elements) {
-            prune();
             setConvention(getConventionSupplier().minus(new ElementsFromCollection<>(elements)));
         }
 
@@ -649,43 +599,28 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void excludeAll(T... elements) {
-            prune();
             setConvention(getConventionSupplier().minus(new ElementsFromArray<>(elements)));
         }
 
         @Override
         public void exclude(Provider<T> provider) {
-            prune();
             setConvention(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
         }
 
         @Override
         public void exclude(T element) {
-            prune();
             setConvention(getConventionSupplier().minus(new SingleElement<>(element)));
         }
     }
 
     private class ExplicitValueConfigurer implements CollectionPropertyConfigurer<T> {
-
-        private boolean pruned = false;
-
         @Override
         public void add(T element) {
-            prune();
             AbstractCollectionProperty.this.add(element);
-        }
-
-        private void prune() {
-            if (!pruned) {
-                pruned = true;
-                setSupplier(getSupplier().pruned());
-            }
         }
 
         @Override
         public void add(Provider<? extends T> provider) {
-            prune();
             AbstractCollectionProperty.this.add(provider);
         }
 
@@ -693,49 +628,41 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void addAll(T... elements) {
-            prune();
             AbstractCollectionProperty.this.addAll(elements);
         }
 
         @Override
         public void addAll(Iterable<? extends T> elements) {
-            prune();
             AbstractCollectionProperty.this.addAll(elements);
         }
 
         @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-            prune();
             AbstractCollectionProperty.this.addAll(provider);
         }
 
         @Override
         public void excludeAll(Spec<T> filter) {
-            prune();
             AbstractCollectionProperty.this.excludeAll(filter);
         }
 
         @Override
         public void exclude(Provider<T> provider) {
-            prune();
             AbstractCollectionProperty.this.exclude(provider);
         }
 
         @Override
         public void exclude(T element) {
-            prune();
             AbstractCollectionProperty.this.exclude(element);
         }
 
         @Override
         public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
-            prune();
             AbstractCollectionProperty.this.excludeAll(provider);
         }
 
         @Override
         public void excludeAll(Iterable<? extends T> elements) {
-            prune();
             AbstractCollectionProperty.this.excludeAll(elements);
         }
 
@@ -743,7 +670,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @SafeVarargs
         @SuppressWarnings("varargs")
         public final void excludeAll(T... elements) {
-            prune();
             AbstractCollectionProperty.this.excludeAll(elements);
         }
     }

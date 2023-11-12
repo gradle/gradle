@@ -120,7 +120,14 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            visitValue(visitor, value);
+            if (value.isMissing()) {
+                visitor.execute(ExecutionTimeValue.missing());
+            } else if (value.hasFixedValue()) {
+                // transform preserving side effects
+                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+            } else {
+                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
+            }
         }
 
         @Override
@@ -148,17 +155,6 @@ public class Collectors {
         @Override
         public int size() {
             return 1;
-        }
-    }
-
-    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
-        if (value.isMissing()) {
-            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
-        } else if (value.hasFixedValue()) {
-            // transform preserving side effects
-            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-        } else {
-            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
         }
     }
 
@@ -228,7 +224,12 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
-            return collectEntriesFromValue(collector, collection, value);
+            if (value.isMissing()) {
+                return value.asType();
+            }
+
+            collector.addAll(value.getWithoutSideEffect(), collection);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -271,15 +272,6 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
-    }
-
-    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
-        if (value.isMissing()) {
-            return value.asType();
-        }
-
-        collector.addAll(value.getWithoutSideEffect(), collection);
-        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -437,21 +429,15 @@ public class Collectors {
     public static class PlusCollector<T> implements Collector<T> {
         private final Collector<T> left;
         private final Collector<T> right;
-        private final boolean pruning;
 
-        public PlusCollector(Collector<T> left, Collector<T> right, boolean pruning) {
+        public PlusCollector(Collector<T> left, Collector<T> right) {
             this.left = left;
             this.right = right;
-            this.pruning = pruning;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return
-                pruning ?
-                    (left.calculatePresence(consumer) || right.calculatePresence(consumer))
-                    :
-                    (left.calculatePresence(consumer) && right.calculatePresence(consumer));
+            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
 
         }
 
@@ -463,11 +449,11 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
             Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing() && !pruning) {
+            if (leftValue.isMissing()) {
                 return leftValue;
             }
             Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+            if (rightValue.isMissing()) {
                 return rightValue;
             }
             return Value.present()
@@ -490,13 +476,11 @@ public class Collectors {
     public static class MinusCollector<T> implements Collector<T> {
         private final Collector<T> left;
         private final Collector<T> right;
-        private final boolean pruning;
         private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
 
-        public MinusCollector(Collector<T> left, Collector<T> right, boolean pruning, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
+        public MinusCollector(Collector<T> left, Collector<T> right, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
             this.left = left;
             this.right = right;
-            this.pruning = pruning;
             this.collectionFactory = collectionFactory;
         }
 
@@ -515,12 +499,12 @@ public class Collectors {
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
             ImmutableCollection.Builder<T> leftBuilder = collectionFactory.get();
             Value<Void> leftValue = left.collectEntries(consumer, collector, leftBuilder);
-            if (leftValue.isMissing() && !pruning) {
+            if (leftValue.isMissing()) {
                 return leftValue;
             }
             ImmutableCollection.Builder<T> rightBuilder = collectionFactory.get();
             Value<Void> rightValue = right.collectEntries(consumer, collector, rightBuilder);
-            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+            if (rightValue.isMissing()) {
                 //TODO-RC this is not right
                 return rightValue;
             }

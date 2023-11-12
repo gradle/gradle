@@ -27,7 +27,6 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -60,7 +59,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private MapSupplier<K, V> emptySupplier() {
-        return new EmptySupplier(false);
+        return new EmptySupplier();
     }
 
     private MapSupplier<K, V> noValueSupplier() {
@@ -126,14 +125,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             discardValue();
             defaultValue = noValueSupplier();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
+            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p), false));
+        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
     }
 
     @Override
@@ -207,16 +206,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void exclude(K key) {
-        setSupplier(getSupplier().minus(new Collectors.SingleElement<>(key)));
+        setSupplier(getSupplier().minus(new SingleElement<>(key)));
     }
 
-    @Override
     public MapPropertyConfigurer<K, V> getConventionValue() {
         assertCanMutate();
         return new ConventionConfigurer();
     }
 
-    @Override
     public MapPropertyConfigurer<K, V> getExplicitValue() {
         assertCanMutate();
         return new ExplicitConfigurer();
@@ -257,14 +254,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value == null) {
             setConvention(noValueSupplier());
         } else {
-            setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value), false));
+            setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value)));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider)), false));
+        setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider))));
         return this;
     }
 
@@ -274,7 +271,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         } else if (value.hasFixedValue()) {
             setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue()), false));
+            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
         }
     }
 
@@ -358,11 +355,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> pruned() {
-            return Cast.uncheckedCast(emptySupplier().pruned());
-        }
-
-        @Override
         public MapSupplier<K, V> keep(Spec<K> keyFilter) {
             return this;
         }
@@ -406,16 +398,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
-        private final boolean pruning;
-
-        private EmptySupplier(boolean pruning) {
-            this.pruning = pruning;
-        }
-
-        @Override
-        public MapSupplier<K, V> pruned() {
-            return pruning ? this : new EmptySupplier(true);
-        }
 
         @Override
         public MapSupplier<K, V> keep(Spec<K> keyFilter) {
@@ -440,7 +422,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector, false);
+            return new CollectingSupplier(collector);
         }
 
         @Override
@@ -495,11 +477,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> pruned() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public MapSupplier<K, V> keep(Spec<K> keyFilter) {
             throw new UnsupportedOperationException();
         }
@@ -517,21 +494,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private class CollectingSupplier implements MapSupplier<K, V> {
         private final MapCollector<K, V> collector;
-        private final boolean pruning;
 
-        public CollectingSupplier(MapCollector<K, V> collector, boolean pruning) {
+        public CollectingSupplier(MapCollector<K, V> collector) {
             this.collector = collector;
-            this.pruning = pruning;
-        }
-
-        @Override
-        public MapSupplier<K, V> pruned() {
-            return pruning ? this : new CollectingSupplier(collector, true);
         }
 
         @Override
         public MapSupplier<K, V> keep(Spec<K> keyFilter) {
-            return new CollectingSupplier(new MapCollectors.FilteringCollector<>(collector, keyFilter), pruning);
+            return new CollectingSupplier(new MapCollectors.FilteringCollector<>(collector, keyFilter));
         }
 
         @Override
@@ -566,12 +536,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            return new CollectingSupplier(new PlusCollector<>(this.collector, collector, pruning), pruning);
+            return new CollectingSupplier(new PlusCollector<>(this.collector, collector));
         }
 
         @Override
         public MapSupplier<K, V> minus(Collector<K> keyCollector) {
-            return new CollectingSupplier(new MapCollectors.MinusCollector<>(this.collector, keyCollector, pruning), pruning);
+            return new CollectingSupplier(new MapCollectors.MinusCollector<>(this.collector, keyCollector));
         }
 
         @Override
@@ -673,62 +643,44 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     //TODO-RC consider combining these two implementations so they just delegate to diff collectors
     class ConventionConfigurer implements MapPropertyConfigurer<K, V> {
-
-        private boolean pruned;
-
-        private void prune() {
-            if (!pruned) {
-                pruned = true;
-                setConvention(getConventionSupplier().pruned());
-            }
-        }
-
         @Override
         public void put(K key, V value) {
-            prune();
             addConventionCollector(new MapCollectors.SingleEntry<>(key, value));
         }
 
         @Override
         public void put(K key, Provider<? extends V> providerOfValue) {
-            prune();
             addConventionCollector(new MapCollectors.EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
         }
 
         @Override
         public void putAll(Map<? extends K, ? extends V> entries) {
-            prune();
             addConventionCollector(new MapCollectors.EntriesFromMap<>(entries));
         }
 
         @Override
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            prune();
             addConventionCollector(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(provider)));
         }
 
         @Override
         public void excludeAll(Spec<K> keyFilter) {
-            prune();
             setConvention(getConventionSupplier().keep(Specs.negate(keyFilter)));
         }
 
         @Override
         public void exclude(K key) {
-            prune();
             setConvention(getConventionSupplier().minus(new SingleElement<>(key)));
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void excludeAll(K... key) {
-            prune();
             setConvention(getConventionSupplier().minus(new ElementsFromArray<>(key)));
         }
 
         @Override
         public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
-            prune();
             setConvention(getConventionSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
     }
@@ -737,62 +689,44 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
      * Instead of delegating to parent, consider inverting delegation (but with pruning optional).
      */
     class ExplicitConfigurer implements MapPropertyConfigurer<K, V> {
-
-        private boolean pruned;
-
-        private void prune() {
-            if (!pruned) {
-                pruned = true;
-                setSupplier(getSupplier().pruned());
-            }
-        }
-
         @Override
         public void put(K key, V value) {
-            prune();
             DefaultMapProperty.this.put(key, value);
         }
 
         @Override
         public void put(K key, Provider<? extends V> providerOfValue) {
-            prune();
             DefaultMapProperty.this.put(key, providerOfValue);
         }
 
         @Override
         public void putAll(Map<? extends K, ? extends V> entries) {
-            prune();
             DefaultMapProperty.this.putAll(entries);
         }
 
         @Override
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            prune();
             DefaultMapProperty.this.putAll(provider);
         }
 
         @Override
         public void excludeAll(Spec<K> keyFilter) {
-            prune();
             DefaultMapProperty.this.excludeAll(keyFilter);
         }
 
         @Override
         public void exclude(K key) {
-            prune();
             DefaultMapProperty.this.exclude(key);
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void excludeAll(K... key) {
-            prune();
             DefaultMapProperty.this.excludeAll(key);
         }
 
         @Override
         public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
-            prune();
             DefaultMapProperty.this.excludeAll(provider);
         }
     }

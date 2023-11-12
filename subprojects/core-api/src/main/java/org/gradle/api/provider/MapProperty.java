@@ -155,22 +155,6 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     void finalizeValue();
 
     /**
-     * Returns the configurer for this property's explicit value.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    MapPropertyConfigurer<K, V> getExplicitValue();
-
-    /**
-     * Returns the configurer for this property's convention value.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    MapPropertyConfigurer<K, V> getConventionValue();
-
-    /**
      * Returns the value configurer for this property's current value,
      * no matter whether it was explicitly set or defined via convention.
      *

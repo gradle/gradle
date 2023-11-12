@@ -274,29 +274,25 @@ public class MapCollectors {
     public static class PlusCollector<K, V> implements MapCollector<K, V> {
         private final MapCollector<K, V> left;
         private final MapCollector<K, V> right;
-        private final boolean pruning;
 
-        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right, boolean pruning) {
+        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
             this.left = left;
             this.right = right;
-            this.pruning = pruning;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return pruning ?
-                left.calculatePresence(consumer) || right.calculatePresence(consumer) :
-                left.calculatePresence(consumer) && right.calculatePresence(consumer);
+            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing() && !pruning) {
+            if (leftValue.isMissing()) {
                 return leftValue;
             }
             Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing() && (!pruning || leftValue.isMissing())) {
+            if (rightValue.isMissing()) {
                 return rightValue;
             }
 
@@ -308,7 +304,7 @@ public class MapCollectors {
         @Override
         public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             Value<Void> leftResult = left.collectKeys(consumer, collector, dest);
-            if (leftResult.isMissing() && !pruning) {
+            if (leftResult.isMissing()) {
                 return leftResult;
             }
             Value<Void> rightResult = right.collectKeys(consumer, collector, dest);
@@ -330,18 +326,15 @@ public class MapCollectors {
     public static class MinusCollector<K, V> implements MapCollector<K, V> {
         private final MapCollector<K, V> upstream;
         private final Collector<K> exclusions;
-        private final boolean pruning;
 
-        public MinusCollector(MapCollector<K, V> upstream, Collector<K> exclusions, boolean pruning) {
+        public MinusCollector(MapCollector<K, V> upstream, Collector<K> exclusions) {
             this.upstream = upstream;
             this.exclusions = exclusions;
-            this.pruning = pruning;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return pruning ?
-                upstream.calculatePresence(consumer) || exclusions.calculatePresence(consumer) :
+            return
                 upstream.calculatePresence(consumer) && exclusions.calculatePresence(consumer);
         }
 
@@ -354,7 +347,7 @@ public class MapCollectors {
             }
             ImmutableSet.Builder<K> keysToExcludeBuilder = ImmutableSet.builder();
             Value<Void> exclusionValue = exclusions.collectEntries(consumer, collector.asKeyCollector(), keysToExcludeBuilder);
-            if (exclusionValue.isMissing() && (!pruning || upstreamValue.isMissing())) {
+            if (exclusionValue.isMissing()) {
                 return upstreamValue;
             }
             ImmutableSet<K> keysToExclude = keysToExcludeBuilder.build();
@@ -369,7 +362,7 @@ public class MapCollectors {
         @Override
         public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             Value<Void> leftResult = upstream.collectKeys(consumer, collector, dest);
-            if (leftResult.isMissing() && !pruning) {
+            if (leftResult.isMissing()) {
                 return leftResult;
             }
             //TODO-RC finish this properly

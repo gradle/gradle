@@ -1200,11 +1200,10 @@ The value of this property is derived from: <source>""")
         property.set(null as Map)
         property.convention([:])
         property.getActualValue().put('k0', '1')
-        property.getActualValue().put('k1', '2')
-        property.getActualValue().put('k2', Providers.notDefined())
-        property.getActualValue().put('k3', '4')
+        property.getActualValue().putAll(['k1': '2', 'k2': '3'])
+        property.getActualValue().put('k2', '4')
         expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k3': '4'])
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
     }
 
     def "may replace convention values"() {
@@ -1219,6 +1218,7 @@ The value of this property is derived from: <source>""")
     def "may exclude convention component values using a predicate"() {
         given:
         property.set(null as Map)
+        property.convention([:])
         property.getActualValue().put('k0', '1')
         property.getActualValue().put('k1', '2')
         property.getActualValue().put('k2', '3')
@@ -1262,13 +1262,14 @@ The value of this property is derived from: <source>""")
     def "may exclude single convention component values"() {
         given:
         property.set(null as Map)
+        property.convention([:])
         property.getActualValue().put('k0', '1')
         property.getActualValue().put('k1', '2')
         property.getActualValue().put('k2', '3')
         property.getActualValue().put('k3', '4')
-        property.getActualValue().exclude('k1')
-        property.getActualValue().exclude('k5')
-        property.getActualValue().exclude('k3')
+        property.getActualValue().excludeAll('k1')
+        property.getActualValue().excludeAll('k5')
+        property.getActualValue().excludeAll('k3')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }

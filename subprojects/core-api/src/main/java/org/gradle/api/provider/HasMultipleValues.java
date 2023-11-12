@@ -97,22 +97,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, CollectionPr
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
 
     /**
-     * Returns the configurer for this property's convention value.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getConventionValue();
-
-    /**
-     * Returns the configurer for this property's explicit value.\
-     *
-     * @since 8.6
-     */
-    @Incubating
-    CollectionPropertyConfigurer<T> getExplicitValue();
-
-    /**
      * Returns the value configurer for this property's explicit value,
      * be it explicitly assigned or defined by convention.
      *

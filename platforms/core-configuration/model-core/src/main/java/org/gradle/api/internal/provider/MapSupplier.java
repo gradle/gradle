@@ -28,8 +28,6 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
-    MapSupplier<K, V> pruned();
-
     ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
 
     MapSupplier<K, V> keep(Spec<K> keyFilter);
