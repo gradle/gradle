@@ -353,7 +353,8 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             apiJars,
             emptyList(),
             { true },
-            fixtureParameterNamesSupplier
+            fixtureParameterNamesSupplier,
+            { null }
         )
 
         val generatedSourceCode = generatedSourceFiles.joinToString("") {

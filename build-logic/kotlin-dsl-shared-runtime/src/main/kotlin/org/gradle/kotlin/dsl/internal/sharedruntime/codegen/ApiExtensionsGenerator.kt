@@ -38,6 +38,7 @@ class ApiExtensionGeneratorFacade {
             parameters["classPathDependencies"] as List<File>,
             parameters["apiSpec"] as java.util.function.Function<String, Boolean>,
             parameters["parameterNamesSupplier"] as java.util.function.Function<String, List<String>?>,
+            parameters["functionSinceSupplier"] as java.util.function.Function<String, String?>,
         )
     }
 }
@@ -60,6 +61,7 @@ fun interface ApiSpec {
  * @param classPathDependencies the api classpath dependencies
  * @param apiSpec the api include/exclude spec
  * @param parameterNamesSupplier the api function parameter names
+ * @param sinceSupplier the api functions `@since` values for binary signatures
  *
  * @return the list of generated source files
  */
@@ -75,6 +77,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
     classPathDependencies: List<File>,
     apiSpec: java.util.function.Function<String, Boolean>,
     parameterNamesSupplier: java.util.function.Function<String, List<String>?>,
+    sinceSupplier: java.util.function.Function<String, String?>,
 ): List<File> =
 
     apiTypeProviderFor(
@@ -86,7 +89,11 @@ fun generateKotlinDslApiExtensionsSourceTo(
     ) { parameterNamesSupplier.apply(it) }.use { api ->
 
         val extensionsPerTarget =
-            kotlinDslApiExtensionsDeclarationsFor(api) { apiSpec.apply(it) }.groupedByTarget()
+            kotlinDslApiExtensionsDeclarationsFor(
+                api,
+                { sinceSupplier.apply(it) },
+                { apiSpec.apply(it) }
+            ).groupedByTarget()
 
         val sourceFiles =
             ArrayList<File>(extensionsPerTarget.size)
@@ -131,12 +138,13 @@ fun writeExtensionsTo(outputFile: File, packageName: String, targetType: ApiType
 private
 fun kotlinDslApiExtensionsDeclarationsFor(
     api: ApiTypeProvider,
+    sinceSupplier: (String) -> String?,
     apiSpec: ApiSpec
 ): Sequence<KotlinExtensionFunction> =
 
     api.allTypes()
         .filter { type -> type.isPublic && apiSpec.isApi(type.sourceName) }
-        .flatMap { type -> kotlinExtensionFunctionsFor(type) }
+        .flatMap { type -> kotlinExtensionFunctionsFor(type, sinceSupplier) }
         .distinctBy(::signatureKey)
 
 
@@ -167,7 +175,7 @@ fun apiTypeKey(usage: ApiTypeUsage): List<Any> = usage.run {
 // 3. when overloading, prefer TypeOf over Class
 // 4. in case the policy forbids your overloads, discuss
 private
-fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction> =
+fun kotlinExtensionFunctionsFor(type: ApiType, sinceSupplier: (String) -> String?): Sequence<KotlinExtensionFunction> =
     candidatesForExtensionFrom(type)
         .sortedWithTypeOfTakingFunctionsFirst()
         .flatMap { function ->
@@ -193,6 +201,7 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
             sequenceOf(
                 KotlinExtensionFunction(
                     description = "Kotlin extension function ${if (candidateFor.javaClassToKotlinClass) "taking [kotlin.reflect.KClass] " else ""}for [${type.sourceName}.${function.name}]",
+                    since = sinceSupplier(function.binarySignature),
                     isIncubating = function.isIncubating,
                     isDeprecated = function.isDeprecated,
                     typeParameters = extensionTypeParameters,
@@ -296,6 +305,7 @@ fun List<MappedApiFunctionParameter>.javaClassToKotlinClass() =
 private
 data class KotlinExtensionFunction(
     val description: String,
+    val since: String?,
     val isIncubating: Boolean,
     val isDeprecated: Boolean,
     val typeParameters: List<ApiTypeUsage>,
@@ -312,7 +322,7 @@ data class KotlinExtensionFunction(
             /**
              * $description.
              *
-             * @see ${targetType.sourceName}.$name
+             * @see ${targetType.sourceName}.$name${if (since != null) "\n * @since $since" else ""}
              */
             """.trimIndent()
         )

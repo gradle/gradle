@@ -101,6 +101,12 @@ sourcesPath.description = "Resolves the source code of all Gradle modules Jars (
 val docsPath by docsResolver(":docs")
 docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project"
 
+// Gradle API Sources
+val gradleApiSources = sourcesPath.incoming.artifactView { lenient(true) }.files.asFileTree.matching {
+    include(PublicApi.includes)
+    exclude(PublicApi.excludes)
+}
+
 // Tasks to generate metadata about the distribution that is required at runtime
 
 // List of relocated packages that will be used at Gradle runtime to generate the runtime shaded jars
@@ -111,12 +117,7 @@ val generateRelocatedPackageList by tasks.registering(PackageListGenerator::clas
 
 // Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
 val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
-    source(
-        sourcesPath.incoming.artifactView { lenient(true) }.files.asFileTree.matching {
-            include(PublicApi.includes)
-            exclude(PublicApi.excludes)
-        }
-    )
+    source(gradleApiSources)
     destinationFile = generatedBinFileFor("dsl-meta-data.bin")
 }
 
@@ -188,6 +189,7 @@ dependencies {
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)
     classpath.from(runtimeClasspath)
+    sources.from(gradleApiSources)
     destinationDirectory = layout.buildDirectory.dir("generated-sources/kotlin-dsl-extensions")
 }
 

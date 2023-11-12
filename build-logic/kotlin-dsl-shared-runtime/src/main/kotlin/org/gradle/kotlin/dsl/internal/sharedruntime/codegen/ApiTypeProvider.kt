@@ -164,6 +164,10 @@ class ApiType internal constructor(
     private val context: ApiTypeProvider.Context
 ) {
 
+    internal
+    val binaryName: String
+        get() = binaryNameOfInternalName(delegate.name)
+
     val isPublic: Boolean
         get() = delegate.access.isPublic
 
@@ -294,6 +298,10 @@ class ApiFunction internal constructor(
         context.apiTypeUsageForReturnType(delegate, visitedSignature?.returnType)
     }
 
+    internal
+    val binarySignature: String
+        get() = "${owner.binaryName}.$name(${parameters.joinToString(",") { it.typeBinaryName }})"
+
     private
     val visitedSignature: MethodSignatureVisitor? by unsafeLazy {
         delegate.signature?.let { signature ->
@@ -348,6 +356,7 @@ data class ApiFunctionParameter internal constructor(
     internal val index: Int,
     internal val isVarargs: Boolean,
     private val nameSupplier: () -> String?,
+    internal val typeBinaryName: String,
     val type: ApiTypeUsage
 ) {
 
@@ -423,6 +432,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
                 nameSupplier = {
                     names?.get(idx) ?: delegate.parameters?.get(idx)?.name
                 },
+                typeBinaryName = parameterTypeBinaryName,
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
             )
         }

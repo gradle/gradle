@@ -16,6 +16,7 @@
 
 package gradlebuild.kotlindsl.generator.tasks
 
+import gradlebuild.kotlindsl.generator.codegen.FunctionSinceRepository
 import gradlebuild.kotlindsl.generator.codegen.GradleApiMetadata
 import gradlebuild.kotlindsl.generator.codegen.KotlinExtensionsForGradleApiFacade
 import gradlebuild.kotlindsl.generator.codegen.gradleApiMetadataFrom
@@ -26,7 +27,11 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classloader.ClassLoaderUtils
@@ -48,6 +53,11 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
     @get:Classpath
     abstract val classpath: ConfigurableFileCollection
 
+    @get:InputFiles
+    @get:IgnoreEmptyDirectories
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    abstract val sources: ConfigurableFileCollection
+
     @get:OutputDirectory
     abstract val destinationDirectory: DirectoryProperty
 
@@ -66,19 +76,22 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
                         PluginDependenciesSpec::class.qualifiedName!!,
                         PluginDependencySpec::class.qualifiedName!!,
                     )
-                    facade.generateKotlinDslApiExtensionsSourceTo(
-                        ASM_LEVEL,
-                        ClassLoaderUtils.getPlatformClassLoader(),
-                        Type.getDescriptor(Incubating::class.java),
-                        outputDir,
-                        "org.gradle.kotlin.dsl",
-                        "GradleApiKotlinDslExtensions",
-                        ::hashTypeSourceName,
-                        gradleApiJars,
-                        classpathDependencies.toList(),
-                        gradleApiMetadata.apiSpec,
-                        gradleApiMetadata.parameterNamesSupplier
-                    )
+                    FunctionSinceRepository(classpath.files, sources.files).use { sinceRepo ->
+                        facade.generateKotlinDslApiExtensionsSourceTo(
+                            ASM_LEVEL,
+                            ClassLoaderUtils.getPlatformClassLoader(),
+                            Type.getDescriptor(Incubating::class.java),
+                            outputDir,
+                            "org.gradle.kotlin.dsl",
+                            "GradleApiKotlinDslExtensions",
+                            ::hashTypeSourceName,
+                            gradleApiJars,
+                            classpathDependencies.toList(),
+                            gradleApiMetadata.apiSpec,
+                            gradleApiMetadata.parameterNamesSupplier,
+                            sinceRepo::since
+                        )
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@ dependencies {
     implementation(kotlin("gradle-plugin"))
     implementation(kotlin("sam-with-receiver"))
     implementation("org.ow2.asm:asm")
+    implementation("com.thoughtworks.qdox:qdox")
 
     testImplementation("junit:junit")
     testImplementation("com.nhaarman:mockito-kotlin")
