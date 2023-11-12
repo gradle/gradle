@@ -17,9 +17,9 @@
 package gradlebuild.kotlindsl.generator.codegen
 
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import java.io.File
+import java.net.URLClassLoader
 
 
 /**
@@ -33,13 +33,13 @@ import java.io.File
 class KotlinExtensionsForGradleApiFacade(classPath: ClassPath) : AutoCloseable {
 
     private
-    val loader: VisitableURLClassLoader
+    val loader: URLClassLoader
 
     init {
         loader = DefaultClassLoaderFactory().createIsolatedClassLoader(
             KotlinExtensionsForGradleApiFacade::class.java.simpleName,
             classPath
-        ) as VisitableURLClassLoader
+        ) as URLClassLoader
     }
 
     /**
