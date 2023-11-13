@@ -483,6 +483,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "jvm",
+    "path": "platforms/jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "platforms/jvm/jvm-services",
     "unitTests": true,
@@ -858,6 +865,13 @@
     "path": "subprojects/soak",
     "unitTests": false,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "software",
+    "path": "platforms/software",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

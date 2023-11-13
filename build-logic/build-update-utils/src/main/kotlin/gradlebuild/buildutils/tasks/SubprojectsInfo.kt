@@ -49,7 +49,7 @@ abstract class SubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubprojectsDirectories(): List<File> {
-        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(subprojectsFolder.asFile)
+        val subprojectRoots = platformsFolder.asFile.listFiles(File::isDirectory).plus(platformsFolder.asFile).plus(subprojectsFolder.asFile)
         return subprojectRoots.map { it.listFiles(File::isDirectory).asList() }.flatten()
     }
 
