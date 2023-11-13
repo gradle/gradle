@@ -117,7 +117,7 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     static File determineLockTargetFile(File target, LockOptions options) {
-        File baseDir = options.getLockDir() == null ? target : options.getLockDir();
+        File baseDir = options.getAlternateLockDir() == null ? target : options.getAlternateLockDir();
         if (baseDir.isDirectory()) {
             return new File(baseDir, target.getName() + ".lock");
         } else {

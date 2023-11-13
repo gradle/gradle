@@ -22,7 +22,7 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.InsufficientLockModeException
 import org.gradle.cache.internal.filelock.LockInfoSerializer
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -505,7 +505,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock
     }
 
-    protected abstract LockOptionsBuilder options();
+    protected abstract DefaultLockOptions options();
 
     protected void writeFile(FileLockManager lockManager = manager) {
         def lock = lockManager.lock(testFile, options().copyWithMode(Exclusive), "foo", "operation")

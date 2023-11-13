@@ -19,7 +19,8 @@ package org.gradle.internal.classpath;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.LockOptions;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.transforms.ClassTransform;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory;
@@ -123,7 +124,7 @@ public class InstrumentingClasspathFileTransformer implements ClasspathFileTrans
     private FileLock exclusiveLockFor(File file) {
         return fileLockManager.lock(
             file,
-            new LockOptionsBuilder(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation(),
+            new DefaultLockOptions(FileLockManager.LockMode.Exclusive, true, null, LockOptions.LockTargetType.DefaultTarget),
             "instrumented jar cache"
         );
     }

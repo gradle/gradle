@@ -1354,7 +1354,6 @@ Class <org.gradle.cache.internal.filelock.LockFileAccess> is not annotated (dire
 Class <org.gradle.cache.internal.filelock.LockInfo> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockInfo.java:0)
 Class <org.gradle.cache.internal.filelock.LockInfoAccess> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockInfoAccess.java:0)
 Class <org.gradle.cache.internal.filelock.LockInfoSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockInfoSerializer.java:0)
-Class <org.gradle.cache.internal.filelock.LockOptionsBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockOptionsBuilder.java:0)
 Class <org.gradle.cache.internal.filelock.LockState> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockState.java:0)
 Class <org.gradle.cache.internal.filelock.LockStateAccess> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockStateAccess.java:0)
 Class <org.gradle.cache.internal.filelock.LockStateSerializer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (LockStateSerializer.java:0)

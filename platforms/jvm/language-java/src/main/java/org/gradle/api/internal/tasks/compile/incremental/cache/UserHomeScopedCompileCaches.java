@@ -26,7 +26,7 @@ import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.MinimalPersistentCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -42,7 +42,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
         cache = cacheBuilderFactory
             .createCacheBuilder("javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         IndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = IndexedCacheParameters.of(
             "jarAnalysis",

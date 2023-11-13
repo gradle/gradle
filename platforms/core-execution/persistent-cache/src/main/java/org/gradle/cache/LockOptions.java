@@ -18,45 +18,53 @@ package org.gradle.cache;
 import javax.annotation.Nullable;
 import java.io.File;
 
+/**
+ * Options that configure how to create the lock file with used to manage access to a {@link PersistentCache}.
+ */
 public interface LockOptions {
 
     FileLockManager.LockMode getMode();
 
     @Nullable
-    File getLockDir();
+    File getAlternateLockDir();
 
     boolean isUseCrossVersionImplementation();
 
-    // TODO: rename this (LockTargetType?)
-    LockTarget getLockTarget();
+    LockTargetType getLockTarget();
 
     /**
      * Creates a copy of these options with the given mode.
      */
     LockOptions copyWithMode(FileLockManager.LockMode mode);
 
-    default File getLockTarget(File cacheDir, File propertiesFile) {
+    default File determineLockTargetFile(File cacheDir, File propertiesFile) {
+        File lockDir;
         switch (getLockTarget()) {
             case CacheDirectory:
             case DefaultTarget:
-                return getLockDir() == null ? cacheDir : getLockDir();
+                lockDir = getAlternateLockDir() == null ? cacheDir : getAlternateLockDir();
+                break;
             case CachePropertiesFile:
-                return propertiesFile;
+                lockDir = propertiesFile;
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported lock target: " + getLockTarget());
         }
-    }
 
-    static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
+        if (lockDir.isDirectory()) {
+            return new File(lockDir, lockDir.getName() + ".lock");
         } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
+            return new File(lockDir.getParentFile(), lockDir.getName() + ".lock");
         }
     }
 
-    // TODO: Rename this type (LockTarget is overloaded)
-    enum LockTarget {
+    /**
+     * The type of lock to use when generating a lock for a {@link PersistentCache}.
+     *
+     * The default is {@link LockTargetType#DefaultTarget}, which generates a file with the same name as the cache,
+     * and should be used in most cases.
+     */
+    enum LockTargetType {
         /**
          * Use the cache properties file as the lock target, for backwards compatibility with old Gradle versions.
          */

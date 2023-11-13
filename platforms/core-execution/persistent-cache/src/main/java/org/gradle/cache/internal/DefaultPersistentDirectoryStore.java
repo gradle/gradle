@@ -81,8 +81,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public DefaultPersistentDirectoryStore open() {
         GFileUtils.mkdirs(cacheDir);
-        if (null != lockOptions.getLockDir()) {
-            GFileUtils.mkdirs(lockOptions.getLockDir());
+        if (null != lockOptions.getAlternateLockDir()) {
+            GFileUtils.mkdirs(lockOptions.getAlternateLockDir());
         }
         cacheAccess = createCacheAccess();
         try {
@@ -136,7 +136,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, LockOptions.determineLockTargetFile(lockOptions.getLockTarget(cacheDir, propertiesFile)));
+        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockTargetFile(cacheDir, propertiesFile));
     }
 
     @Override

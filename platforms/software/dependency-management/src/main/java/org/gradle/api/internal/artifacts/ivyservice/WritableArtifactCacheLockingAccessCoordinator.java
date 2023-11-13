@@ -30,7 +30,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -56,7 +56,7 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache()
                 .withDisplayName("artifact cache")
-                .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
+                .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
                 .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations))
                 .open();
     }

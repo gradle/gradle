@@ -23,7 +23,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -51,7 +51,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, CleanupActionDecorator cleanupActionDecorator) {
         this.vcsWorkingDirCache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("vcs-1")
-            .withLockOptions(new LockOptionsBuilder())
+            .withLockOptions(new DefaultLockOptions())
             .withDisplayName("VCS Checkout Cache")
             .withCleanupStrategy(createCacheCleanupStrategy(cleanupActionDecorator))
             .open();

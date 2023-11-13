@@ -29,7 +29,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
@@ -64,7 +64,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache()
-            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTarget.DefaultTarget))
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTargetType.DefaultTarget))
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }

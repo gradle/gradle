@@ -22,7 +22,7 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.VersionStrategy;
 
 import java.io.File;
@@ -54,7 +54,7 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         Map<String, ?> properties = Collections.emptyMap();
         Action<? super PersistentCache> initializer;
         CacheCleanupStrategy cacheCleanupStrategy;
-        LockOptions lockOptions = new LockOptionsBuilder(FileLockManager.LockMode.Shared);
+        LockOptions lockOptions = new DefaultLockOptions(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 

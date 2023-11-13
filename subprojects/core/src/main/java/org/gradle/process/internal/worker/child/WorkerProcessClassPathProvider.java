@@ -25,7 +25,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -169,7 +169,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 if (workerClassPath == null) {
                     PersistentCache workerClassPathCache = cacheBuilderFactory
                         .createCacheBuilder("workerMain")
-                        .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.Exclusive))
+                        .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.Exclusive))
                         .withInitializer(new CacheInitializer())
                         .open();
                     try {

@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class DefaultPreviousExecutionCacheAccessTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder("executionHistory") >> cacheBuilder
         1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
         0 * _._
     }

@@ -23,7 +23,7 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
@@ -51,7 +51,7 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
             .cache(cacheMetaData.getCacheDir())
             .withCrossVersionCache()
             .withDisplayName("read only artifact cache")
-            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.None, false, null, LockOptions.LockTarget.CacheDirectory)) // Don't need to lock anything, it's read-only
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.None, false, null, LockOptions.LockTargetType.CacheDirectory)) // Don't need to lock anything, it's read-only
             .open();
     }
 

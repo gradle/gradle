@@ -23,7 +23,7 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -69,7 +69,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.keyringFileHash = keyringFileHash;
         store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
-            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createIndexedCache(

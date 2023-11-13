@@ -16,7 +16,8 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -39,7 +40,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Issue("GRADLE-3206")
     def "can create new caches and access them in parallel"() {
-        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", new LockOptionsBuilder(OnDemand), null, lockManager, executorFactory, new NoOpProgressLoggerFactory())
+        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", new DefaultLockOptions(OnDemand), null, lockManager, executorFactory, new NoOpProgressLoggerFactory())
         store.open()
 
         when:

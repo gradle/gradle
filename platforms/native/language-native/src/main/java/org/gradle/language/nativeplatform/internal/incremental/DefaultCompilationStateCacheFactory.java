@@ -22,7 +22,7 @@ import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -39,7 +39,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         cache = cacheBuilderFactory
                 .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
-                .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand)) // Lock on demand
+                .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();
         IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

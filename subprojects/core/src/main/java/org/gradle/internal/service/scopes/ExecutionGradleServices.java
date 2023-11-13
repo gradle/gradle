@@ -22,7 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
@@ -119,7 +119,7 @@ public class ExecutionGradleServices {
             .createCrossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache()
             .withDisplayName("Build Output Cleanup Cache")
-            .withLockOptions(new LockOptionsBuilder(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTarget.DefaultTarget))
+            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand, false, null, LockOptions.LockTargetType.DefaultTarget))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);

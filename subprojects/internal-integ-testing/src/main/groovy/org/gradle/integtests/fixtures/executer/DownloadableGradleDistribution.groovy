@@ -23,7 +23,7 @@ import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.DefaultProcessMetaDataProvider
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -71,7 +71,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, [:], new LockOptionsBuilder(FileLockManager.LockMode.Shared).useCrossVersionImplementation(), downloadAction as Action, null)
+            cache = CACHE_FACTORY.open(versionDir, version.version, [:], new DefaultLockOptions(FileLockManager.LockMode.Shared, true), downloadAction as Action, null)
         }
 
         super.binDistribution.assertIsFile()
