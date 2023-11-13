@@ -67,11 +67,33 @@ public interface MapPropertyConfigurer<K, V> {
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 
-    void excludeAll(Spec<K> keyFilter);
+    /**
+     * Removes the map entry that has the given value as a key, if it exists.
+     *
+     * If no such entry is found, this method does nothing.
+     *
+     * @param key key of the entry to remove
+     */
+    void remove(K key);
 
-    void exclude(K key);
+    /**
+     * Removes all map entries that are matched by the given key filter, if any.
+     *
+     * @param keyFilter a filter that matches keys of entries to be removed
+     */
+    void removeIf(Spec<K> keyFilter);
 
-    void excludeAll(K... key);
+    /**
+     * Removes all map entries that have any of the given keys, if any.
+     *
+     * @param key keys of entries to be removed
+     */
+    void removeAll(K... key);
 
-    void excludeAll(Provider<? extends Collection<? extends K>> provider);
+    /**
+     * Removes all map entries that have any of the keys provided by the given provider.
+     *
+     * @param keyProvider a provider of a collection of keys for entries to be removed
+     */
+    void removeAll(Provider<? extends Collection<? extends K>> keyProvider);
 }

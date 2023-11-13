@@ -4,8 +4,9 @@ abstract class Executer() : DefaultTask() {
 
     init {
         options.set(null as List<String>?)
-        options.value().add("--safe")
-        options.value().add("--debug")
+        options.convention(emptyList())
+        options.actualValue.add("--safe")
+        options.actualValue.add("--debug")
     }
 
     @TaskAction
@@ -16,6 +17,6 @@ abstract class Executer() : DefaultTask() {
     }
 }
 tasks.register<Executer>("executer") {
-    options.value().addAll("--native")
-    options.value().excludeAll("--debug")
+    options.actualValue.add("--native")
+    options.actualValue.remove("--debug")
 }

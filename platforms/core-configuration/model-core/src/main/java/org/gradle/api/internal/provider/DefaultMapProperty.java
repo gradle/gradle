@@ -188,24 +188,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    public void excludeAll(Spec<K> keyFilter) {
+    public void removeIf(Spec<K> keyFilter) {
         setSupplier(getSupplier().keep(Specs.negate(keyFilter)));
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings({"unchecked", "varargs"})
-    public final void excludeAll(K... key) {
+    public final void removeAll(K... key) {
         setSupplier(getSupplier().minus(new Collectors.ElementsFromArray(key)));
     }
 
     @Override
-    public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
+    public void removeAll(Provider<? extends Collection<? extends K>> provider) {
         setSupplier(getSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
     }
 
     @Override
-    public void exclude(K key) {
+    public void remove(K key) {
         setSupplier(getSupplier().minus(new SingleElement<>(key)));
     }
 
@@ -664,23 +664,23 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void excludeAll(Spec<K> keyFilter) {
+        public void removeIf(Spec<K> keyFilter) {
             setConvention(getConventionSupplier().keep(Specs.negate(keyFilter)));
         }
 
         @Override
-        public void exclude(K key) {
+        public void remove(K key) {
             setConvention(getConventionSupplier().minus(new SingleElement<>(key)));
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public void excludeAll(K... key) {
+        public void removeAll(K... key) {
             setConvention(getConventionSupplier().minus(new ElementsFromArray<>(key)));
         }
 
         @Override
-        public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
+        public void removeAll(Provider<? extends Collection<? extends K>> provider) {
             setConvention(getConventionSupplier().minus(new Collectors.ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
     }
@@ -710,24 +710,24 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void excludeAll(Spec<K> keyFilter) {
-            DefaultMapProperty.this.excludeAll(keyFilter);
+        public void removeIf(Spec<K> keyFilter) {
+            DefaultMapProperty.this.removeIf(keyFilter);
         }
 
         @Override
-        public void exclude(K key) {
-            DefaultMapProperty.this.exclude(key);
+        public void remove(K key) {
+            DefaultMapProperty.this.remove(key);
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public void excludeAll(K... key) {
-            DefaultMapProperty.this.excludeAll(key);
+        public void removeAll(K... key) {
+            DefaultMapProperty.this.removeAll(key);
         }
 
         @Override
-        public void excludeAll(Provider<? extends Collection<? extends K>> provider) {
-            DefaultMapProperty.this.excludeAll(provider);
+        public void removeAll(Provider<? extends Collection<? extends K>> provider) {
+            DefaultMapProperty.this.removeAll(provider);
         }
     }
 

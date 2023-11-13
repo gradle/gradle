@@ -74,16 +74,46 @@ public interface CollectionPropertyConfigurer<T> {
      */
     void addAll(Provider<? extends Iterable<? extends T>> provider);
 
-    void excludeAll(Spec<T> filter);
+    /**
+     * Removes the given element, if found.
+     *
+     * @param element element to remove
+     */
+    void remove(T element);
 
-    void exclude(T element);
+    /**
+     * Removes the element provided by the given provider, if found.
+     *
+     * @param provider a provider for an element to be be removed
+     */
+    void remove(Provider<T> provider);
 
-    void exclude(Provider<T> provider);
+    /**
+     * Removes all elements that are matched by the given filter.
+     *
+     * @param filter a filter for elements to be removed
+     */
+    void removeIf(Spec<T> filter);
 
+    /**
+     * Removes the elements given, if found.
+     *
+     * @param elements elements to be removed
+     */
     @SuppressWarnings("unchecked")
-    void excludeAll(T... elements);
+    void removeAll(T... elements);
 
-    void excludeAll(Iterable<? extends T> elements);
+    /**
+     * Removes the elements given, if found.
+     *
+     * @param elements a collection of elements to be removed
+     */
+    void removeAll(Iterable<? extends T> elements);
 
-    void excludeAll(Provider<? extends Iterable<? extends T>> provider);
+    /**
+     * Removes the elements given, if found.
+     *
+     * @param provider a provider for a collection of elements to be removed
+     */
+    void removeAll(Provider<? extends Iterable<? extends T>> provider);
 }

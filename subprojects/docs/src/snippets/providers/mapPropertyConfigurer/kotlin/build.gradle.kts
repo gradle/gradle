@@ -4,7 +4,8 @@ abstract class Generator(): DefaultTask() {
 
     init {
         properties.set(null as Map<String, Int>?)
-        properties.value()
+        properties.convention(emptyMap())
+        properties.actualValue
             .putAll(mapOf("a" to 1, "b" to 2))
     }
 
@@ -20,10 +21,10 @@ abstract class Generator(): DefaultTask() {
 var c = 0
 
 tasks.register<Generator>("generate") {
-    properties.value().put("b", -2)
+    properties.actualValue.put("b", -2)
     // Values have not been configured yet
-    properties.value().putAll(providers.provider { mapOf("c" to c, "d" to c + 1) })
-    properties.value().excludeAll("a", "d")
+    properties.actualValue.putAll(providers.provider { mapOf("c" to c, "d" to c + 1) })
+    properties.actualValue.removeAll("a", "d")
 }
 
 // Configure the values. There is no need to reconfigure the task

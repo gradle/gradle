@@ -1199,9 +1199,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Map)
         property.convention([:])
-        property.getActualValue().put('k0', '1')
-        property.getActualValue().putAll(['k1': '2', 'k2': '3'])
-        property.getActualValue().put('k2', '4')
+        property.actualValue.put('k0', '1')
+        property.actualValue.putAll(['k1': '2', 'k2': '3'])
+        property.actualValue.put('k2', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
     }
@@ -1210,7 +1210,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Map)
         property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
-        property.getActualValue().put('k1', '4')
+        property.actualValue.put('k1', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
     }
@@ -1219,10 +1219,10 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Map)
         property.convention([:])
-        property.getActualValue().put('k0', '1')
-        property.getActualValue().put('k1', '2')
-        property.getActualValue().put('k2', '3')
-        property.getActualValue().excludeAll({ it == 'k1' } as Spec)
+        property.actualValue.put('k0', '1')
+        property.actualValue.put('k1', '2')
+        property.actualValue.put('k2', '3')
+        property.actualValue.removeIf({ it == 'k1' } as Spec)
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
@@ -1230,8 +1230,8 @@ The value of this property is derived from: <source>""")
     def "may exclude multiple provided component values"() {
         given:
         property.set(['k0': '1', 'k1': '2', 'k2': '3', 'k3': '4'])
-        property.getActualValue().excludeAll(Providers.of(['k1', 'k5']))
-        property.getActualValue().excludeAll(Providers.of(['k5', 'k3', 'k7']))
+        property.actualValue.removeAll(Providers.of(['k1', 'k5']))
+        property.actualValue.removeAll(Providers.of(['k5', 'k3', 'k7']))
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
@@ -1239,7 +1239,7 @@ The value of this property is derived from: <source>""")
     def "may exclude multiple component values"() {
         given:
         property.set(['k0': '1', 'k1': '2', 'k2': '3', 'k3': '4', 'k1': '5', 'k4': '5'])
-        property.excludeAll('k4', 'k3', 'k7')
+        property.removeAll('k4', 'k3', 'k7')
         expect:
         assertValueIs(['k0': '1', 'k1': '5', 'k2': '3'])
     }
@@ -1248,12 +1248,12 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Map)
         property.convention([:])
-        property.getActualValue().put('k0', '1')
-        property.getActualValue().put('k1', '2')
-        property.getActualValue().put('k2', '3')
-        property.getActualValue().put('k3', '4')
-        property.getActualValue().excludeAll('k1', 'k5')
-        property.getActualValue().excludeAll('k5', 'k3', 'k7')
+        property.actualValue.put('k0', '1')
+        property.actualValue.put('k1', '2')
+        property.actualValue.put('k2', '3')
+        property.actualValue.put('k3', '4')
+        property.actualValue.removeAll('k1', 'k5')
+        property.actualValue.removeAll('k5', 'k3', 'k7')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }
@@ -1263,13 +1263,13 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Map)
         property.convention([:])
-        property.getActualValue().put('k0', '1')
-        property.getActualValue().put('k1', '2')
-        property.getActualValue().put('k2', '3')
-        property.getActualValue().put('k3', '4')
-        property.getActualValue().excludeAll('k1')
-        property.getActualValue().excludeAll('k5')
-        property.getActualValue().excludeAll('k3')
+        property.actualValue.put('k0', '1')
+        property.actualValue.put('k1', '2')
+        property.actualValue.put('k2', '3')
+        property.actualValue.put('k3', '4')
+        property.actualValue.removeAll('k1')
+        property.actualValue.removeAll('k5')
+        property.actualValue.removeAll('k3')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
     }

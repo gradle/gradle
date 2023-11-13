@@ -1070,8 +1070,8 @@ The value of this property is derived from: <source>""")
     def "may exclude elements from value"() {
         given:
         property.set(Providers.of(["1", "2", "3", "4", "5"]))
-        property.excludeAll(Providers.of(["1", "3"]))
-        property.excludeAll(Providers.of(["5"]))
+        property.removeAll(Providers.of(["1", "3"]))
+        property.removeAll(Providers.of(["5"]))
 
         expect:
         assertValueIs(["2", "4"])
@@ -1081,8 +1081,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5"]))
-        property.excludeAll(Providers.of(["1", "3"]))
-        property.excludeAll(Providers.of(["5"]))
+        property.removeAll(Providers.of(["1", "3"]))
+        property.removeAll(Providers.of(["5"]))
 
         expect:
         assertValueIs(["2", "4"])
@@ -1091,9 +1091,9 @@ The value of this property is derived from: <source>""")
     def "may exclude elements from value via predicate"() {
         given:
         property.value(Providers.of(["1", "2", "3", "4", "5", "6", "8"]))
-        property.getActualValue().excludeAll({ it.toInteger() % 2 == 1 } as Spec)
-        property.getActualValue().excludeAll({ it.toInteger() < 4 } as Spec)
-        property.getActualValue().excludeAll({ it == "6" } as Spec)
+        property.actualValue.removeIf({ it.toInteger() % 2 == 1 } as Spec)
+        property.actualValue.removeIf({ it.toInteger() < 4 } as Spec)
+        property.actualValue.removeIf({ it == "6" } as Spec)
 
         expect:
         assertValueIs(["4", "8"])
@@ -1103,8 +1103,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention([])
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.of(["3", "4"]))
+        property.actualValue.addAll(Providers.of(["1", "2"]))
+        property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1113,8 +1113,8 @@ The value of this property is derived from: <source>""")
     def "can add to explicit value"() {
         given:
         property.set([])
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.of(["3", "4"]))
+        property.actualValue.addAll(Providers.of(["1", "2"]))
+        property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1124,8 +1124,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention([])
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.of(["3", "4"]))
+        property.actualValue.addAll(Providers.of(["1", "2"]))
+        property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1134,8 +1134,8 @@ The value of this property is derived from: <source>""")
     def "can add to value without knowing"() {
         given:
         property.set([])
-        property.getActualValue().addAll(Providers.of(["1", "2"]))
-        property.getActualValue().addAll(Providers.of(["3", "4"]))
+        property.actualValue.addAll(Providers.of(["1", "2"]))
+        property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
@@ -1145,8 +1145,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5", "6"]))
-        property.getActualValue().excludeAll({ it.toInteger() % 2 == 1 } as Spec)
-        property.getActualValue().excludeAll({ it.toInteger() > 5 } as Spec)
+        property.actualValue.removeIf({ it.toInteger() % 2 == 1 } as Spec)
+        property.actualValue.removeIf({ it.toInteger() > 5 } as Spec)
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1156,7 +1156,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.getActualValue().excludeAll(Providers.of(["1", "3", "5"]))
+        property.actualValue.removeAll(Providers.of(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1166,7 +1166,7 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.getActualValue().excludeAll(toImmutable(["1", "3", "5"]))
+        property.actualValue.removeAll(toImmutable(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
@@ -1176,9 +1176,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.getActualValue().exclude(Providers.of("1"))
-        property.getActualValue().exclude(Providers.of("3"))
-        property.getActualValue().exclude(Providers.of("5"))
+        property.actualValue.remove(Providers.of("1"))
+        property.actualValue.remove(Providers.of("3"))
+        property.actualValue.remove(Providers.of("5"))
         expect:
         assertValueIs toImmutable(["2", "4"])
     }
@@ -1187,9 +1187,9 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.getActualValue().exclude("1")
-        property.getActualValue().exclude("3")
-        property.getActualValue().exclude("5")
+        property.actualValue.remove("1")
+        property.actualValue.remove("3")
+        property.actualValue.remove("5")
         expect:
         assertValueIs toImmutable(["2", "4"])
     }
@@ -1198,8 +1198,8 @@ The value of this property is derived from: <source>""")
         given:
         property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
-        property.getActualValue().excludeAll("1", "7")
-        property.getActualValue().excludeAll("3", "5")
+        property.actualValue.removeAll("1", "7")
+        property.actualValue.removeAll("3", "5")
         expect:
         assertValueIs toImmutable(["2", "4"])
     }

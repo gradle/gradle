@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>> implements CollectionPropertyInternal<T, C> {
+    private static final CollectionSupplier<Object, Collection<Object>> NO_VALUE = new NoValueSupplier<>(Value.missing());
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
@@ -55,11 +56,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private CollectionSupplier<T, C> emptySupplier() {
-        return new EmptySupplier(false);
+        return new EmptySupplier();
     }
 
     private CollectionSupplier<T, C> noValueSupplier() {
-        return Cast.uncheckedCast(new NoValueSupplier<>(Value.missing()));
+        return Cast.uncheckedCast(NO_VALUE);
     }
 
     /**
@@ -86,34 +87,34 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void excludeAll(Spec<T> filter) {
+    public void removeIf(Spec<T> filter) {
         setSupplier(getSupplier().keep(Specs.negate(filter)));
     }
 
     @Override
-    public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
+    public void removeAll(Provider<? extends Iterable<? extends T>> provider) {
         setSupplier(getSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public final void excludeAll(T... elements) {
+    public final void removeAll(T... elements) {
         setSupplier(getSupplier().minus(new ElementsFromArray<>(elements)));
     }
 
     @Override
-    public void excludeAll(Iterable<? extends T> elements) {
+    public void removeAll(Iterable<? extends T> elements) {
         setSupplier(getSupplier().minus(new ElementsFromCollection<>(elements)));
     }
 
     @Override
-    public void exclude(Provider<T> provider) {
+    public void remove(Provider<T> provider) {
         setSupplier(getSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
     }
 
     @Override
-    public void exclude(T element) {
+    public void remove(T element) {
         setSupplier(getSupplier().minus(new SingleElement<>(element)));
     }
 
@@ -285,7 +286,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, getSupplier().toString());
     }
 
-    class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    static class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
         private final Value<? extends C> value;
 
         public NoValueSupplier(Value<? extends C> value) {
@@ -332,9 +333,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
-        private EmptySupplier(boolean pruning) {
-        }
-
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
@@ -551,7 +549,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    //TODO-RC consider combining these two implementations if their only difference is the target CollectingSupplier
+    //TODO-RC consider combining this and ExplicitValueConfigurer if their only difference continues
+    // to be their target CollectingSupplier
     private class ConventionConfigurer implements CollectionPropertyConfigurer<T> {
         @Override
         public void add(T element) {
@@ -581,34 +580,34 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void excludeAll(Spec<T> filter) {
+        public void removeIf(Spec<T> filter) {
             setConvention(getConventionSupplier().keep(Specs.negate(filter)));
         }
 
         @Override
-        public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
+        public void removeAll(Provider<? extends Iterable<? extends T>> provider) {
             setConvention(getConventionSupplier().minus(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         }
 
         @Override
-        public void excludeAll(Iterable<? extends T> elements) {
+        public void removeAll(Iterable<? extends T> elements) {
             setConvention(getConventionSupplier().minus(new ElementsFromCollection<>(elements)));
         }
 
         @Override
         @SafeVarargs
         @SuppressWarnings("varargs")
-        public final void excludeAll(T... elements) {
+        public final void removeAll(T... elements) {
             setConvention(getConventionSupplier().minus(new ElementsFromArray<>(elements)));
         }
 
         @Override
-        public void exclude(Provider<T> provider) {
+        public void remove(Provider<T> provider) {
             setConvention(getConventionSupplier().minus(new ElementFromProvider<>(Providers.internal(provider))));
         }
 
         @Override
-        public void exclude(T element) {
+        public void remove(T element) {
             setConvention(getConventionSupplier().minus(new SingleElement<>(element)));
         }
     }
@@ -642,35 +641,35 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void excludeAll(Spec<T> filter) {
-            AbstractCollectionProperty.this.excludeAll(filter);
+        public void removeIf(Spec<T> filter) {
+            AbstractCollectionProperty.this.removeIf(filter);
         }
 
         @Override
-        public void exclude(Provider<T> provider) {
-            AbstractCollectionProperty.this.exclude(provider);
+        public void remove(Provider<T> provider) {
+            AbstractCollectionProperty.this.remove(provider);
         }
 
         @Override
-        public void exclude(T element) {
-            AbstractCollectionProperty.this.exclude(element);
+        public void remove(T element) {
+            AbstractCollectionProperty.this.remove(element);
         }
 
         @Override
-        public void excludeAll(Provider<? extends Iterable<? extends T>> provider) {
-            AbstractCollectionProperty.this.excludeAll(provider);
+        public void removeAll(Provider<? extends Iterable<? extends T>> provider) {
+            AbstractCollectionProperty.this.removeAll(provider);
         }
 
         @Override
-        public void excludeAll(Iterable<? extends T> elements) {
-            AbstractCollectionProperty.this.excludeAll(elements);
+        public void removeAll(Iterable<? extends T> elements) {
+            AbstractCollectionProperty.this.removeAll(elements);
         }
 
         @Override
         @SafeVarargs
         @SuppressWarnings("varargs")
-        public final void excludeAll(T... elements) {
-            AbstractCollectionProperty.this.excludeAll(elements);
+        public final void removeAll(T... elements) {
+            AbstractCollectionProperty.this.removeAll(elements);
         }
     }
 }
