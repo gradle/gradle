@@ -154,7 +154,6 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -466,10 +465,9 @@ class DependencyManagementBuildScopeServices {
     /**
      * Execution engine for usage above Gradle scope
      *
-     * Currently used for running artifact transforms in buildscript blocks.
+     * Currently used for running artifact transforms in buildscript blocks, compiling Kotlin scripts etc.
      */
     ExecutionEngine createExecutionEngine(
-        BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         CurrentBuildOperationRef currentBuildOperationRef,
         FileSystemAccess fileSystemAccess,
