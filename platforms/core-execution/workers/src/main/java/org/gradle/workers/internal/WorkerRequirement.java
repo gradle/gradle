@@ -20,4 +20,5 @@ import java.io.File;
 
 public interface WorkerRequirement {
     File getWorkerDirectory();
+    File getCacheDirectory();
 }

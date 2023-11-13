@@ -28,6 +28,8 @@ public class ClassloaderIsolatedCompilerWorkerExecutor extends AbstractIsolatedC
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
-        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getClassLoaderStructure());
+        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getClassLoaderStructure());
     }
 }
+
+// TODO: do we need to get the project cache dir from an internal java fork options?

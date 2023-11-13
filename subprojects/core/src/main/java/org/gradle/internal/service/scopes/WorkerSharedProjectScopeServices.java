@@ -49,7 +49,6 @@ import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
@@ -70,9 +69,11 @@ import java.io.File;
  */
 public class WorkerSharedProjectScopeServices {
     private final File projectDir;
+    private final File projectCacheDir;
 
-    public WorkerSharedProjectScopeServices(File projectDir) {
+    public WorkerSharedProjectScopeServices(File projectDir, File projectCacheDir) {
         this.projectDir = projectDir;
+        this.projectCacheDir = projectCacheDir;
     }
 
     void configure(ServiceRegistration registration) {
@@ -159,7 +160,7 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, ProjectCacheDir projectCacheDir) {
-        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), projectCacheDir.getDir());
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), projectCacheDir);
     }
 }

@@ -120,7 +120,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerProjectServices(registration);
             }
         });
-        addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
+        addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir(), project.getProjectDir())); // TODO: get proper project cache dir here
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
