@@ -42,11 +42,14 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
         if (problem instanceof DefaultProblem) {
             DefaultProblem defaultProblem = (DefaultProblem) problem;
 
-            eventEmitter.emitNow(
-                defaultProblem.getBuildOperationRef(),
-                new DefaultProblemProgressDetails(problem)
-            );
+            // TODO: Decide to emit a different problem, log, or throw
+            // If the problem is not associated with a build operation, we should not emit it
+            if (defaultProblem.getBuildOperationRef() != null) {
+                eventEmitter.emitNow(
+                    defaultProblem.getBuildOperationRef(),
+                    new DefaultProblemProgressDetails(problem)
+                );
+            }
         }
-        // TODO: Decide to emit a different problem, log, or throw
     }
 }
