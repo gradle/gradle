@@ -156,7 +156,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first(), false, false)) == expectedWarning
         })
