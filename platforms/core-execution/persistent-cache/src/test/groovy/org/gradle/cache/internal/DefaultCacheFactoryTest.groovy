@@ -193,21 +193,6 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "fails when directory cache when cache is already open with different lock target"() {
-        given:
-        factory.open(tmpDir.testDirectory, null, [prop: 'value'], new DefaultLockOptions(Shared, false, null, LockOptions.LockTargetType.CachePropertiesFile), null, null)
-
-        when:
-        factory.open(tmpDir.testDirectory, null, [prop: 'other'], new DefaultLockOptions(Shared), null, null)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == "Cache '${tmpDir.testDirectory}' is already open with different lock target."
-
-        cleanup:
-        factory.close()
-    }
-
     void "can visit all caches created by factory"() {
         def visited = [] as Set
 
