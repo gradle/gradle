@@ -35,7 +35,7 @@ This diagram shows two example task graphs, one abstract and the other concrete,
 image::task-dag-examples.png[]
 
 [[build_lifecycle_events]]
-Both plugins and build scripts contribute to the task graph via the <<using_tasks.adoc#sec:task_dependencies,task dependency mechanism>>.
+Both plugins and build scripts contribute to the task graph via the <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependency mechanism>>.
 
 [[sec:build_phases]]
 == Build Phases
