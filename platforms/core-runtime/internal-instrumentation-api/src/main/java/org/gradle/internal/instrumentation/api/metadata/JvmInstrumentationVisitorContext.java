@@ -18,11 +18,11 @@ package org.gradle.internal.instrumentation.api.metadata;
 
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
-public class JvmInstrumentationContext {
+public class JvmInstrumentationVisitorContext {
 
     private final InterceptorsRequest request;
 
-    public JvmInstrumentationContext(InterceptorsRequest request) {
+    public JvmInstrumentationVisitorContext(InterceptorsRequest request) {
         this.request = request;
     }
 

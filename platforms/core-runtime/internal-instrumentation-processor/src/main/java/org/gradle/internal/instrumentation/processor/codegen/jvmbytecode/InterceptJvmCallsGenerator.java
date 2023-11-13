@@ -25,8 +25,10 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
+import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationVisitorContext;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -59,6 +61,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
+import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasInjectVisitorContext;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -96,8 +99,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addSuperinterface(ClassName.get(interceptionType.getMarkerInterface()))
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
+                .addField(INTERCEPTORS_REQUEST_TYPE)
                 .addField(METHOD_VISITOR_FIELD)
                 .addField(METADATA_FIELD)
+                .addField(CONTEXT_FIELD)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
@@ -111,7 +116,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .returns(JvmBytecodeCallInterceptor.class)
             .addParameter(MethodVisitor.class, "methodVisitor")
             .addParameter(InstrumentationMetadata.class, "metadata")
-            .addStatement("return new $L($N, $N)", className, "methodVisitor", "metadata")
+            .addParameter(JvmInstrumentationVisitorContext.class, "context")
+            .addStatement("return new $L($N, $N, $N)", className, "methodVisitor", "metadata", "context")
             .addAnnotation(Override.class)
             .build();
         return TypeSpec.classBuilder("Factory")
@@ -156,9 +162,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
         .addParameter(MethodVisitor.class, "methodVisitor")
         .addParameter(InstrumentationMetadata.class, "metadata")
+        .addParameter(JvmInstrumentationVisitorContext.class, "context")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
         .addStatement("this.$N = metadata", METADATA_FIELD)
+        .addStatement("this.$N = context", CONTEXT_FIELD)
         .build();
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
@@ -189,11 +197,19 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .addStatement("_LDC($N(className))", BINARY_CLASS_NAME_OF)
         .build();
 
+    private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
+        FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer("$T.getType($T.class.getName())", Type.class, InterceptorsRequest.class)
+            .build();
+
     private static final FieldSpec METHOD_VISITOR_FIELD =
         FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static final FieldSpec METADATA_FIELD =
         FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
+
+    private static final FieldSpec CONTEXT_FIELD =
+        FieldSpec.builder(JvmInstrumentationVisitorContext.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static void generateCodeForOwner(
         CallableOwnerInfo owner,
@@ -330,6 +346,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         maybeGenerateLoadBinaryClassNameCall(code, callable);
+        maybeGenerateGetStaticInjectVisitorContext(code, callable);
         code.addStatement("_INVOKESTATIC($N, $S, $S)", implOwnerField, implementationName, implementationDescriptor);
     }
 
@@ -345,6 +362,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             code.addStatement("_ICONST_0()");
         }
         maybeGenerateLoadBinaryClassNameCall(code, callable);
+        maybeGenerateGetStaticInjectVisitorContext(code, callable);
         code.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
     }
 
@@ -359,6 +377,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         method.addStatement("_POP()"); // pops the default method signature marker
         maybeGenerateLoadBinaryClassNameCall(method, interceptedCallable);
+        maybeGenerateGetStaticInjectVisitorContext(method, interceptedCallable);
         method.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
     }
 
@@ -367,10 +386,25 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             throw new Failure("Groovy property access cannot be intercepted in JVM calls");
         }
 
+        boolean hasInjectVisitorContext = hasInjectVisitorContext(callable);
+        if (hasInjectVisitorContext) {
+            ParameterInfo lastParameter = callable.getParameters().get(callable.getParameters().size() - 1);
+            if (lastParameter.getKind() != ParameterKindInfo.INJECT_VISITOR_CONTEXT) {
+                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be last parameter");
+            }
+            if (!lastParameter.getParameterType().getClassName().equals(InterceptorsRequest.class.getName())) {
+                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be of type " + InterceptorsRequest.class.getName() + " but was " + lastParameter.getParameterType().getClassName());
+            }
+            if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.INJECT_VISITOR_CONTEXT).count() > 1) {
+                throw new Failure("An interceptor may not have more than one @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter");
+            }
+        }
+
         boolean hasCallerClassName = hasCallerClassName(callable);
         if (hasCallerClassName) {
-            if (callable.getParameters().get(callable.getParameters().size() - 1).getKind() != ParameterKindInfo.CALLER_CLASS_NAME) {
-                throw new Failure("The interceptor's @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter should go last");
+            int expectedIndex = hasInjectVisitorContext ? callable.getParameters().size() - 2 : callable.getParameters().size() - 1;
+            if (callable.getParameters().get(expectedIndex).getKind() != ParameterKindInfo.CALLER_CLASS_NAME) {
+                throw new Failure("The interceptor's @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter should be last or just before @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " if that parameter is present");
             }
             if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME).count() > 1) {
                 throw new Failure("An interceptor may not have more than one @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter");
@@ -401,6 +435,12 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
         if (hasCallerClassName(callableInfo)) {
             code.addStatement("$N(className)", LOAD_BINARY_CLASS_NAME);
+        }
+    }
+
+    private static void maybeGenerateGetStaticInjectVisitorContext(CodeBlock.Builder code, CallableInfo callableInfo) {
+        if (hasInjectVisitorContext(callableInfo)) {
+            code.addStatement("_GETSTATIC($N, context.getInterceptorsRequest().name(), $N.getDescriptor())", INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
         }
     }
 

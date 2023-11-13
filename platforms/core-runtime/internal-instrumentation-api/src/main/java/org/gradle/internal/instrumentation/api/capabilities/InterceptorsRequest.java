@@ -21,6 +21,8 @@ import java.util.Set;
 
 /**
  * Request for interceptors. Currently, we support filter just for interception types, but in the feature we could also filter per version etc.
+ *
+ * Implemented as a enum, so it's easier to generate bytecode.
  */
 public enum InterceptorsRequest {
     INSTRUMENTATION_ONLY(EnumSet.of(InterceptionType.INSTRUMENTATION)),

@@ -31,6 +31,7 @@ import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationVisitorContext;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -215,11 +216,13 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final ClassData classData;
         private boolean hasGroovyCallSites;
         private final JvmBytecodeInterceptorSet externalInterceptors;
+        private final JvmInstrumentationVisitorContext context;
 
         public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
             this.externalInterceptors = externalInterceptors;
+            this.context = new JvmInstrumentationVisitorContext(INSTRUMENTATION_ONLY);
         }
 
         @Override
@@ -240,7 +243,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors, context);
         }
 
         @Override
@@ -273,12 +276,12 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors, JvmInstrumentationVisitorContext context) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
-            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
+            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData, context);
         }
 
         @Override
