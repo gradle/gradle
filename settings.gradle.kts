@@ -142,6 +142,7 @@ platform("ide") {
 
 // Software Platform
 platform("software") {
+    rootProject()
     subproject("antlr")
     subproject("build-init")
     subproject("dependency-management")
@@ -167,6 +168,7 @@ platform("software") {
 
 // JVM Platform
 platform("jvm") {
+    rootProject()
     subproject("code-quality")
     subproject("distributions-jvm")
     subproject("ear")
@@ -247,14 +249,20 @@ gradle.settingsEvaluated {
 // region platform include DSL
 
 fun platform(platformName: String, platformConfiguration: PlatformScope.() -> Unit) =
-    PlatformScope("platforms/$platformName").platformConfiguration()
+    PlatformScope(platformName, "platforms/$platformName").platformConfiguration()
 
 fun unassigned(platformConfiguration: PlatformScope.() -> Unit) =
-    PlatformScope("subprojects").platformConfiguration()
+    PlatformScope("unassigned", "subprojects").platformConfiguration()
 
 class PlatformScope(
+    private val name: String,
     private val basePath: String
 ) {
+    fun rootProject() {
+        include(name)
+        project(":$name").projectDir = file(basePath)
+    }
+
     fun subproject(projectName: String) {
         include(projectName)
         project(":$projectName").projectDir = file("$basePath/$projectName")

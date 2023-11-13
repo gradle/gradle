@@ -79,6 +79,8 @@ plugins.withId("java-base") {
         configurations.all {
             if (isCanBeResolved && !isCanBeConsumed) {
                 resolutionStrategy.dependencySubstitution {
+                    // It would be nice if we did not need to include the version here.
+                    // See: https://github.com/gradle/gradle/issues/12459
                     substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.2")) {
                         attributes {
                             attribute(minified, true)
