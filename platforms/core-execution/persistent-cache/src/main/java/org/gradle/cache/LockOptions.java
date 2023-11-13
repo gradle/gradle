@@ -19,36 +19,41 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 /**
- * Options that configure how to create the lock file with used to manage access to a {@link PersistentCache}.
+ * Options that specify how to create and manage the lock file used to manage access to a {@link PersistentCache}.
  */
 public interface LockOptions {
-
     FileLockManager.LockMode getMode();
 
-    @Nullable
-    File getAlternateLockDir();
+    @Nullable File getAlternateLockDir();
 
     boolean isUseCrossVersionImplementation();
 
-    LockTargetType getLockTarget();
+    LockTargetType getLockTargetType();
 
     /**
      * Creates a copy of these options with the given mode.
      */
     LockOptions copyWithMode(FileLockManager.LockMode mode);
 
-    default File determineLockTargetFile(File cacheDir, File propertiesFile) {
-        File lockDir;
-        switch (getLockTarget()) {
+    /**
+     * Calculates the lock file for a cache using these options with a given content directory and properties file.
+     *
+     * @param cacheContentDir the cache's content directory
+     * @param propertiesFile the cache's properties file
+     * @return the lock file that will be used
+     */
+    default File determineLockFile(File cacheContentDir, File propertiesFile) {
+        final File lockDir;
+        switch (getLockTargetType()) {
             case CacheDirectory:
             case DefaultTarget:
-                lockDir = getAlternateLockDir() == null ? cacheDir : getAlternateLockDir();
+                lockDir = getAlternateLockDir() == null ? cacheContentDir : getAlternateLockDir();
                 break;
             case CachePropertiesFile:
                 lockDir = propertiesFile;
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported lock target: " + getLockTarget());
+                throw new IllegalArgumentException("Unsupported lock target: " + getLockTargetType());
         }
 
         if (lockDir.isDirectory()) {

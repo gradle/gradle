@@ -99,14 +99,14 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private File getLockTarget() {
-        switch (lockOptions.getLockTarget()) {
+        switch (lockOptions.getLockTargetType()) {
             case CacheDirectory:
             case DefaultTarget:
                 return cacheDir;
             case CachePropertiesFile:
                 return propertiesFile;
             default:
-                throw new IllegalArgumentException("Unsupported lock target: " + lockOptions.getLockTarget());
+                throw new IllegalArgumentException("Unsupported lock target: " + lockOptions.getLockTargetType());
         }
     }
 
@@ -136,7 +136,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockTargetFile(cacheDir, propertiesFile));
+        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockFile(cacheDir, propertiesFile));
     }
 
     @Override

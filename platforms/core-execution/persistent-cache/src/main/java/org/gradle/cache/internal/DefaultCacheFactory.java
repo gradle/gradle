@@ -110,7 +110,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
             }
-            if (lockOptions.getLockTarget() != dirCacheReference.lockOptions.getLockTarget()) {
+            if (lockOptions.getLockTargetType() != dirCacheReference.lockOptions.getLockTargetType()) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock target.", cacheDir));
             }
             if (!properties.equals(dirCacheReference.properties)) {

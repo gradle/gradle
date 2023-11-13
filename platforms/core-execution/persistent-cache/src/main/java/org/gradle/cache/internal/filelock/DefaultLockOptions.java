@@ -69,7 +69,7 @@ public class DefaultLockOptions implements LockOptions {
     }
 
     @Override
-    public LockTargetType getLockTarget() {
+    public LockTargetType getLockTargetType() {
         return lockTargetType;
     }
 
