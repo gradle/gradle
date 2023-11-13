@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
@@ -24,7 +24,7 @@ import org.gradle.tooling.model.ProjectIdentifier
 /**
  * Fixture to structurally match models returned by the Tooling API.
  */
-class ToolingModelChecker {
+class ToolingApiModelChecker {
 
     static <T> void checkModel(T actual, T expected, List<Object> specs) {
         assert (actual == null) == (expected == null)
