@@ -762,7 +762,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    def "fails on access #type of unconfigured project"() {
+    def "fails on invoke method of unconfigured project"() {
         given:
         settingsFile << """
             include(':a')
@@ -771,32 +771,73 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         file("a/build.gradle") << """
             def unconfiguredProject = project(':b')
-            $referrerConfiguration
+            println 'Unconfigured project value = ' + unconfiguredProject.foo()
         """
 
         file("b/build.gradle") << """
-            import ${Property.name}
-
-            interface MyExtension {
-                Property<String> bar()
-            }
-
-            $referentConfiguration
+            String foo(){ 'configured' }
         """
 
         when:
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput(expectedOutput)
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'")
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':b' cannot dynamically look up a $type in the parent project ':'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
         }
 
-        where:
-        type       | referentConfiguration                           | referrerConfiguration                   | expectedOutput
-        "property" | "extensions.create('myExtension', MyExtension)" | "unconfiguredProject.myExtension.bar()" | "Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project."
-        "method"   | "def foo(){}"                                   | "unconfiguredProject.foo()"             | "Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project."
+    }
+
+    def "fails on access property of unconfigured project"() {
+        given:
+        settingsFile << """
+            include(':a')
+            include(':b')
+        """
+
+        file("a/build.gradle") << """
+            def unconfiguredProject = project(':b')
+            println 'Unconfigured project value = ' + unconfiguredProject.myExtension.get()
+        """
+
+        file("b/build.gradle") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getFoo()
+            }
+
+            def myExtension= extensions.create('myExtension', MyExtension)
+            myExtension.foo.set('configured')
+        """
+
+        when:
+        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+
+        then:
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
+        problems.assertResultHasProblems(failure) {
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Cannot access project ':b' from project ':a'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':b' and project ':a' evaluation")
+        }
+    }
+
+    def "supports nested structure of build layout"() {
+        settingsFile << """
+            include ':a'
+            include ':a:tests'
+            include ':a:tests:integ-tests'
+        """
+        file("a/build.gradle") << ""
+        file("a/tests/build.gradle") << ""
+        file("a/tests/integ-tests/build.gradle") << ""
+
+        when:
+        isolatedProjectsRun 'build'
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":a:tests", ":a:tests:integ-tests")
+        }
     }
 }
