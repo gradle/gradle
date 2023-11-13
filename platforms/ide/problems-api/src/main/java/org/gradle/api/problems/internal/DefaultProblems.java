@@ -24,31 +24,25 @@ import org.gradle.api.problems.ReportableProblem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.problems.buildtree.ProblemStream;
 
 import java.util.Collections;
 import java.util.List;
-
-import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
     private final BuildOperationProgressEventEmitter buildOperationProgressEventEmitter;
     private final List<ProblemTransformer> transformers;
-    private final ProblemStream problemStream;
 
     public DefaultProblems(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
-        this(buildOperationProgressEventEmitter, Collections.<ProblemTransformer>emptyList(), EMPTY_STREAM);
+        this(buildOperationProgressEventEmitter, Collections.<ProblemTransformer>emptyList());
     }
 
     public DefaultProblems(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        List<ProblemTransformer> transformers,
-        ProblemStream problemStream
+        List<ProblemTransformer> transformers
     ) {
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
         this.transformers = transformers;
-        this.problemStream = problemStream;
     }
 
     @Override
@@ -57,15 +51,11 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public ProblemStream getProblemStream() {
-        return problemStream;
-    }
-
-    @Override
     public RuntimeException throwing(ProblemBuilderSpec action) {
         DefaultReportableProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.apply(defaultProblemBuilder);
-        throw throwError(defaultProblemBuilder.getException(), defaultProblemBuilder.build());
+        ReportableProblem problem = defaultProblemBuilder.build();
+        throw throwError(problem.getException(), problem);
     }
 
     @Override

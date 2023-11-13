@@ -45,7 +45,7 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
     }
 
     public ReportableProblem build() {
-        if (!explicitlyUndocumented && documentationUrl == null) {
+        if (!explicitlyUndocumented && docLink == null) {
             throw new IllegalStateException("Problem is not documented: " + label);
         }
 
@@ -53,10 +53,10 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
             label,
             getSeverity(severity),
             locations,
-            documentationUrl,
-            description,
-            solution,
-            getException() == null && collectLocation ? new RuntimeException() : getException(), //TODO: don't create exception if already reported often
+            docLink,
+            details,
+            solutions,
+            getExceptionForProblemInstantiation(), //TODO: don't create exception if already reported often
             problemCategory,
             additionalMetadata,
             problemsService);

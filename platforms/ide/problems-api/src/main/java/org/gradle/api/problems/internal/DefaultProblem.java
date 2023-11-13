@@ -39,7 +39,7 @@ public class DefaultProblem implements Problem {
     private final DocLink documentationLink;
     private final String description;
     private final List<String> solutions;
-    private final Throwable cause;
+    private final RuntimeException cause;
     private final String problemCategory;
     private final Map<String, String> additionalMetadata;
 
@@ -50,7 +50,7 @@ public class DefaultProblem implements Problem {
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,
-        @Nullable Throwable cause,
+        @Nullable RuntimeException cause,
         String problemCategory,
         Map<String, String> additionalMetadata
     ) {
@@ -97,7 +97,7 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    public Throwable getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
+    public RuntimeException getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 

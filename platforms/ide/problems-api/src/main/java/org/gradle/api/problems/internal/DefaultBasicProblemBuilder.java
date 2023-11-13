@@ -36,24 +36,24 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     protected String problemCategory;
     protected Severity severity;
     protected List<ProblemLocation> locations;
-    protected String description;
-    protected DocLink documentationUrl;
+    protected String details;
+    protected DocLink docLink;
     protected boolean explicitlyUndocumented;
-    protected List<String> solution;
+    protected List<String> solutions;
     private RuntimeException exception;
     protected final Map<String, String> additionalMetadata;
     protected boolean collectLocation = false;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
-        this.problemCategory = problem.getProblemCategory().getCategory();
+        this.problemCategory = problem.getProblemCategory().toString();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
-        this.description = problem.getDetails(); // TODO change field name
-        this.documentationUrl = problem.getDocumentationLink(); // TODO change field name
+        this.details = problem.getDetails(); // TODO change field name
+        this.docLink = problem.getDocumentationLink(); // TODO change field name
         this.explicitlyUndocumented = problem.getDocumentationLink() == null;
-        this.solution = new ArrayList<String>(problem.getSolutions()); // TODO rename to solutions
-        this.exception = (RuntimeException) problem.getException(); // TODO ensure this is valid
+        this.solutions = new ArrayList<String>(problem.getSolutions()); // TODO rename to solutions
+        this.exception = problem.getException(); // TODO ensure this is valid
         this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
     }
 
@@ -68,12 +68,16 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             label,
             getSeverity(severity),
             locations,
-            documentationUrl,
-            description,
-            solution,
-            getException() == null && collectLocation ? new Exception() : getException(), // TODO: don't create exception if already reported often
+            docLink,
+            details,
+            solutions,
+            getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             problemCategory,
             additionalMetadata);
+    }
+
+    public RuntimeException getExceptionForProblemInstantiation() {
+        return exception == null && collectLocation ? new RuntimeException() : exception;
     }
 
     protected Severity getSeverity(@Nullable Severity severity) {
@@ -140,20 +144,20 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public UnboundBasicProblemBuilder details(String details) {
-        this.description = details;
+        this.details = details;
         return this;
     }
 
     public UnboundBasicProblemBuilder documentedAt(DocLink doc) {
         this.explicitlyUndocumented = false;
-        this.documentationUrl = doc;
+        this.docLink = doc;
         return this;
     }
 
     @Override
     public UnboundBasicProblemBuilder undocumented() {
         this.explicitlyUndocumented = true;
-        this.documentationUrl = null;
+        this.docLink = null;
         return this;
     }
 
@@ -164,10 +168,10 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public UnboundBasicProblemBuilder solution(@Nullable String solution) {
-        if (this.solution == null) {
-            this.solution = new ArrayList<String>();
+        if (this.solutions == null) {
+            this.solutions = new ArrayList<String>();
         }
-        this.solution.add(solution);
+        this.solutions.add(solution);
         return this;
     }
 
@@ -183,7 +187,7 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     @Nullable
-    public RuntimeException getException() {
+    RuntimeException getException() {
         return exception;
     }
 }
