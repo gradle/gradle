@@ -180,7 +180,7 @@ $END_MARKER
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files as List<String>
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.files as List<String>
 
         def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
         compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
@@ -429,7 +429,7 @@ $END_MARKER
         }
 
         Set<ExpectedArtifact> getArtifactNodes() {
-            Set<NodeBuilder> result = new LinkedHashSet()
+            Set<NodeBuilder> result = new LinkedHashSet<>()
             visitNodes(this.root, result)
             return result.collect { it.artifacts }.flatten()
         }
@@ -576,7 +576,6 @@ $END_MARKER
         String extension
         String name
         String fileName
-        String artifactName
         String legacyName
 
         ModuleVersionIdentifier getModuleVersionId() {
@@ -589,18 +588,6 @@ $END_MARKER
             def effectiveType = type != null ? type : 'jar'
             def effectiveExt = extension != null ? extension : effectiveType
             return "${effectiveName}:${classifier}:${effectiveExt}:${effectiveType}"
-        }
-
-        String getVersionedArtifactName() {
-            if (artifactName) {
-                return artifactName
-            }
-            def baseName = "${nameComponent}${classifierComponent}"
-            if (componentId.startsWith("project :")) {
-                return "${baseName}${extensionComponent}"
-            } else {
-                return "${nameComponent}${versionComponent}${classifierComponent}${extensionComponent}"
-            }
         }
 
         String getFileName() {
@@ -854,7 +841,6 @@ $END_MARKER
                 type: attributes.type,
                 extension: attributes.extension, // defaults to the type, empty string means no extension
                 fileName: attributes.fileName, // overrides the expected file name, defaults to (name)-(version)-(classifier).(type)
-                artifactName: attributes.artifactName, // overrides the expected artifact name, defaults to (name)-(classifier).(type)
                 legacyName: attributes.legacyName
             )
             artifacts << artifact

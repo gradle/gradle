@@ -20,13 +20,12 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier, DisplayName {
+public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final PublishArtifact publishArtifact;
     private final DefaultIvyArtifactName ivyArtifactName;
@@ -42,12 +41,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
 
     @Override
     public String getDisplayName() {
-        StringBuilder result = new StringBuilder();
-        result.append(getName());
-        result.append(" (")
-              .append(componentIdentifier.getDisplayName())
-              .append(")");
-        return result.toString();
+        return publishArtifact.getFile().getName() + " (" + componentIdentifier.getDisplayName() + ")";
     }
 
     public PublishArtifact getPublishArtifact() {

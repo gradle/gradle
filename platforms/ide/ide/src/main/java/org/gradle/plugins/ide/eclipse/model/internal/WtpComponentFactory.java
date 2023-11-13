@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
@@ -36,8 +35,8 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
-import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
+import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
 import java.util.Collections;
@@ -135,8 +134,7 @@ public class WtpComponentFactory {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
-                ComponentArtifactMetadata identifier = (ComponentArtifactMetadata) artifact.getId();
-                projectEntries.add(new WbDependentModule(identifier.getName().toString(), deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+                projectEntries.add(new WbDependentModule(artifact.getFile().getName(), deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
             }
         }
 

@@ -20,13 +20,23 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.DisplayName;
 
-public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
+import java.util.Objects;
+
+/**
+ * Identifies the transformed artifact of a component. The original file name is tracked in order to guarantee uniqueness,
+ * as artifact transformations may result in multiple artifacts with the same file name.
+ *
+ * <p>The original file name should refer to the name of the artifact at the beginning of the transform chain.</p>
+ */
+public class TransformedComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentIdentifier componentId;
     private final String fileName;
+    private final String originalFileName;
 
-    public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName) {
+    public TransformedComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName, String originalFileName) {
         this.componentId = componentId;
         this.fileName = fileName;
+        this.originalFileName = originalFileName;
     }
 
     @Override
@@ -38,9 +48,13 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
         return fileName;
     }
 
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
     @Override
     public String getDisplayName() {
-        return getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
+        return getOriginalFileName() + " -> " + getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
     }
 
     @Override
@@ -61,12 +75,12 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        ComponentFileArtifactIdentifier other = (ComponentFileArtifactIdentifier) obj;
-        return componentId.equals(other.componentId) && fileName.equals(other.fileName);
+        TransformedComponentFileArtifactIdentifier other = (TransformedComponentFileArtifactIdentifier) obj;
+        return componentId.equals(other.componentId) && fileName.equals(other.fileName) && originalFileName.equals(other.originalFileName);
     }
 
     @Override
     public int hashCode() {
-        return componentId.hashCode() ^ fileName.hashCode();
+        return Objects.hash(componentId, fileName, originalFileName);
     }
 }
