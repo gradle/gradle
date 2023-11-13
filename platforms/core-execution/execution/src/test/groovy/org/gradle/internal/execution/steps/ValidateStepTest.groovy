@@ -25,6 +25,7 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
@@ -39,6 +40,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
+    def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
     def problemsEmitter = Stub(ProblemEmitter)
     def problems = new DefaultProblems(problemsEmitter)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, problems, delegate)
@@ -90,7 +92,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "fails when there are multiple violations"() {
@@ -131,7 +133,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
             }
         }
         0 * _
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
@@ -202,7 +204,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         }
 
         then:
-        _ * emitter.emitNowIfCurrent(_ as Object) >> {}
+        _ * buildOperationProgressEventEmitter.emitNowIfCurrent(_ as Object) >> {}
         1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first(), true, false)) == expectedWarning })
 
         then:

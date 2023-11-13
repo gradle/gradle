@@ -179,14 +179,14 @@ class ProjectBuilderTest extends Specification {
 
     def "does not emit deprecation warning when using the builder() method"() {
         given:
-        def broadcaster = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(Mock(ProblemDiagnosticsFactory), WarningMode.None, broadcaster, Stub(Problems))
+        def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+        DeprecationLogger.init(Mock(ProblemDiagnosticsFactory), WarningMode.None, buildOperationProgressEventEmitter, Stub(Problems))
 
         when:
         ProjectBuilder.builder()
 
         then:
-        0 * broadcaster.progress(_)
+        0 * buildOperationProgressEventEmitter.progress(_)
 
         cleanup:
         IncubationLogger.reset()
