@@ -51,6 +51,6 @@ public class ParameterKind {
      */
     @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
-    public @interface Context {
+    public @interface VisitorContext {
     }
 }
