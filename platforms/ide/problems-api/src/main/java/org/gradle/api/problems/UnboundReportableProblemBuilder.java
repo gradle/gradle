@@ -17,7 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -28,18 +27,87 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface UnboundReportableProblemBuilder extends UnboundProblemBuilder, UnboundBasicProblemBuilder, ReportableProblemBuilder {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder documentedAt(DocLink doc);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder undocumented();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder pluginLocation(String pluginId);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder stackLocation();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder noLocation();
-    UnboundReportableProblemBuilder taskPathLocation(Path taskPath);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder label(String label, Object... args);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder category(String category, String... details);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder details(String details);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder solution(String solution);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder additionalData(String key, String value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder withException(RuntimeException e);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundReportableProblemBuilder severity(Severity severity);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ReportableProblem build();
 }

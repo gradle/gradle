@@ -17,7 +17,6 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -34,19 +33,82 @@ public interface UnboundProblemBuilder extends
     ProblemBuilderDefiningCategory,
     ProblemBuilder {
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder documentedAt(DocLink doc);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder undocumented();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder fileLocation(String path, @Nullable Integer line, @Nullable Integer column, @Nullable Integer length);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder pluginLocation(String pluginId);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder stackLocation();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder noLocation();
-    UnboundProblemBuilder taskPathLocation(Path taskPath);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder label(String label, Object... args);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder category(String category, String... details);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder details(String details);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder solution(String solution);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder additionalData(String key, String value);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder withException(RuntimeException e);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     UnboundProblemBuilder severity(Severity severity);
 
 }

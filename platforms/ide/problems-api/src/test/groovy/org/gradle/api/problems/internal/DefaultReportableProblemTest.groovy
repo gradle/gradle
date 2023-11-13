@@ -23,18 +23,7 @@ import spock.lang.Specification
 
 class DefaultReportableProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
-        def problem = new DefaultReportableProblem(
-            "message",
-            Severity.WARNING,
-            [],
-            Documentation.userManual("id"),
-            "description",
-            [],
-            new RuntimeException("cause"),
-            "a:b:c",
-            additionalData,
-            Mock(InternalProblems)
-        )
+        def problem = createReportableTestProblem(severity, additionalData, Mock(InternalProblems))
 
         def newProblem = problem.toBuilder().build()
         expect:
@@ -45,11 +34,75 @@ class DefaultReportableProblemTest extends Specification {
         newProblem.exception == problem.exception
         newProblem.locations == problem.locations
         newProblem.severity == problem.severity
+        newProblem.solutions == problem.solutions
         newProblem.equals(problem)
 
         where:
         severity         | additionalData
         Severity.WARNING | [:]
         Severity.ERROR   | [data1: "data2"]
+    }
+
+    def "unbound builder result with a change and check report"() {
+        given:
+        def internalProblems = Mock(InternalProblems)
+        def problem = createReportableTestProblem(Severity.WARNING, [:], internalProblems)
+        def builder = problem.toBuilder()
+        def newProblem = builder
+            .solution("solution")
+            .build()
+
+        when:
+
+        newProblem.report()
+
+        then:
+        1 * internalProblems.reportAsProgressEvent(newProblem)
+        newProblem.problemCategory == problem.problemCategory
+        newProblem.label == problem.label
+        newProblem.additionalData == problem.additionalData
+        newProblem.details == problem.details
+        newProblem.exception == problem.exception
+        newProblem.locations == problem.locations
+        newProblem.severity == problem.severity
+        newProblem.solutions == ["solution"]
+        newProblem.class == DefaultReportableProblem
+    }
+
+    private createReportableTestProblem(Severity severity, Map<String, String> additionalData, InternalProblems internalProblems) {
+        new DefaultReportableProblem(
+            "message",
+            severity,
+            [],
+            Documentation.userManual("id"),
+            "description",
+            [],
+            new RuntimeException("cause"),
+            "a:b:c",
+            additionalData,
+            internalProblems
+        )
+    }
+
+    def "unbound basic builder result is DefaultProblem"() {
+        given:
+        def problem = new DefaultProblem(
+            "message",
+            Severity.WARNING,
+            [],
+            Documentation.userManual("id"),
+            "description",
+            [],
+            new RuntimeException("cause"),
+            "a:b:c",
+            [:]
+        )
+
+
+        when:
+        def newProblem = problem.toBuilder().build()
+
+        then:
+        newProblem.class == DefaultProblem
     }
 }

@@ -96,7 +96,7 @@ public interface Problem {
     Map<String, String> getAdditionalData();
 
     /**
-     * Returns a problem builder with fields initialized with values from this instance
+     * Returns a problem builder with fields initialized with values from this instance.
      *
      * @since 8.6
      */

@@ -21,8 +21,6 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundReportableProblemBuilder;
-import org.gradle.api.problems.locations.TaskPathLocation;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -104,12 +102,6 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
 
     @Override
     public UnboundReportableProblemBuilder noLocation() {
-        return this;
-    }
-
-    @Override
-    public UnboundReportableProblemBuilder taskPathLocation(Path taskPath) {
-        this.getLocations().add(new TaskPathLocation(taskPath));
         return this;
     }
 
