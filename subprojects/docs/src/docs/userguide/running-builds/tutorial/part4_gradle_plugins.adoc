@@ -119,8 +119,8 @@ Add the publishing information to your `build.gradle.kts` file:
 ----
 publishing {
     publications {
-        create("maven") {
-            groupId = "org.gradle.tutorial"
+        create<MavenPublication>("maven") {
+            groupId = "com.gradle.tutorial"
             artifactId = "tutorial"
             version = "1.0"
 
@@ -177,7 +177,7 @@ You can view the POM and GMM file in the `build` directory:
 
 image::tutorial/intellij-idea-dist.png[]
 
-You can also view the files in your Maven Local directory: `/Users/\[username]/m2/repository/org/gradle/tutorial/tutorial/1.0`.
+You can also view the files in your Maven Local directory: `/Users/\[username]/m2/repository/com/gradle/tutorial/tutorial/1.0`.
 
 [source,xml]
 ----
@@ -185,7 +185,7 @@ You can also view the files in your Maven Local directory: `/Users/\[username]/m
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.gradle.tutorial</groupId>
+  <groupId>com.gradle.tutorial</groupId>
   <artifactId>tutorial</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
