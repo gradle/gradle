@@ -371,7 +371,6 @@ class CompileKotlinScript(
         const val SOURCE_HASH = "sourceHash"
         const val COMPILATION_CLASS_PATH = "compilationClassPath"
         const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-        val IDENTITY_HASH__PROPERTIES = listOf(JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
     }
 
     override fun visitIdentityInputs(
@@ -403,8 +402,8 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            IDENTITY_HASH__PROPERTIES.forEach {
-                requireNotNull(identityInputs[it]).appendToHasher(hasher)
+            identityInputs.values.forEach {
+                requireNotNull(it).appendToHasher(hasher)
             }
             hasher.hash().toString()
         }
