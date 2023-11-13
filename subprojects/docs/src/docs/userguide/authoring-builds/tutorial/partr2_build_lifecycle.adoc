@@ -15,13 +15,14 @@
 [[partr2_build_lifecycle]]
 = Part 2: The Build Lifecycle
 
-Learn the Gradle build lifecycle.
+Learn about the Gradle build lifecycle and what each phase represents.
 
 ****
 **In this section you will:**
 
 - Understand the Build Lifecycle
-- Run a task to view it in action
+- Register and configure a simple task
+- Run the task to view the phases in action
 ****
 
 [[part2_begin]]
@@ -39,7 +40,8 @@ Phase 2 - Configuration  :: During this phase, the `Project` objects are configu
 
 Phase 3 - Execution  :: Gradle determines the set of tasks, created and configured during the configuration phase, to be executed. Gradle then executes each of the selected tasks.
 
-When Gradle is invoked to execute a task, the lifecycle begins:
+When Gradle is invoked to execute a task, the lifecycle begins.
+Let's see it in action.
 
 image::gradle-build-lifecycle.png[]
 
@@ -68,15 +70,18 @@ tasks.register("lifecycle"){
 
 tasks.named("lifecycle"){
     println("NAMED TASK: This is executed during the configuration phase")
+    doFirst {
+        println("NAMED TASK - doFirst: This is executed during the execution phase")
+    }
     doLast {
-        println("NAMED TASK: This is executed during the execution phase")
+        println("NAMED TASK - doLast: This is executed during the execution phase")
     }
 }
 ----
 
 == Step 4. Run a Gradle Task
 
-Run the `lifecycle` task created in Step 3:
+Run the `lifecycle` task that you registered and configured in Step 3:
 
 [source]
 ----
@@ -85,22 +90,25 @@ $ ./gradlew lifecycle
 
 [source]
 ----
-SETTINGS FILE: This is executed during the initialization phase <1>
+SETTINGS FILE: This is executed during the initialization phase     <1>
 
 > Configure project :app
-BUILD SCRIPT: This is executed during the configuration phase   <2>
-REGISTER TASK: This is executed during the configuration phase  <2>
-NAMED TASK: This is executed during the configuration phase     <2>
+BUILD SCRIPT: This is executed during the configuration phase       <2>
+REGISTER TASK: This is executed during the configuration phase      <2>
+NAMED TASK: This is executed during the configuration phase         <2>
 
 > Task :app:lifecycle
-NAMED TASK: This is executed during the execution phase         <3>
+NAMED TASK - doFirst: This is executed during the execution phase   <3>
+NAMED TASK - doLast: This is executed during the execution phase    <3>
 
-BUILD SUCCESSFUL in 335ms
+BUILD SUCCESSFUL in 301ms
 1 actionable task: 1 executed
 ----
 <1> *Initialization*: Gradle executes `settings.gradle.kts` to determine the projects to be built and creates a `Project` object for each one.
 <2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
 <3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
+
+dfdsfsd
 
 [.text-right]
 **Next Step:** <<partr3_settings_file#partr3_settings_file,Settings File>> >>

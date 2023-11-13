@@ -26,7 +26,11 @@ Learn the basics of using Gradle plugins and create a simple script plugin.
 [[part6_begin]]
 == Step 0. Before you Begin
 
-1. You authored a task in <<partr5_registering_tasks.adoc#part5_begin,part 5>>.
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You authored a Settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
+4. You authored a Build script in <<partr4_build_script.adoc#part4_begin,part 4>>.
+5. You authored a Task in <<partr5_registering_tasks.adoc#part5_begin,part 5>>.
 
 == Step 1.
 

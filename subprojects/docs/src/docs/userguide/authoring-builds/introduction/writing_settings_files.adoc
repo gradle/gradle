@@ -17,7 +17,7 @@
 
 The settings file is the entry point of every Gradle project.
 
-image::author-gradle-3.png[Settings,500,63,align="center"]
+image::author-gradle-3.png[Settings,500,63,align="left"]
 
 Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initialization,initialization phase>> finds the settings file in your <<directory_layout#dir:project_root,project root directory>>.
 
@@ -35,10 +35,7 @@ Before Gradle assembles the projects for a build, it creates a `Settings` instan
 As the settings script executes, it configures this `Settings`.
 Therefore, the _settings file_ defines the `Settings` object.
 
-[IMPORTANT]
-====
-There is a one-to-one correspondence between a `Settings` instance and a `settings.gradle(.kts)` file.
-====
+IMPORTANT: There is a one-to-one correspondence between a `Settings` instance and a `settings.gradle(.kts)` file.
 
 == The `Settings` Object
 
@@ -279,8 +276,8 @@ For example, instead of using `include` many times to add subprojects, you can i
 
 [source]
 ----
-rootDir.listFiles().filter { it.isDirectory && !it.isHidden }.forEach {
-    include{it.name}
+rootDir.listFiles().filter { it.name!="gradle" && it.isDirectory && !it.isHidden }.forEach {
+    include(it.name)
 }
 ----
 

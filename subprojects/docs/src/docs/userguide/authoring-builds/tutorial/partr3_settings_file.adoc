@@ -20,22 +20,44 @@ Learn the basics of authoring Gradle by developing the Settings File.
 ****
 **In this section you will:**
 
-- Author a Settings file
-
+- Understand the Settings object
+- Update the Settings file
+- How to use a Settings file
 ****
 
 [[part3_begin]]
 == Step 0. Before you Begin
 
-1. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
-== Step 1.
+== Step 1. The `Settings` object
+
+The settings file is the entry point of every Gradle project.
+
+During the initialization phase, Gradle finds the settings file in your project root directory.
+
+When the settings file, `settings.gradle(.kts)`, is found, Gradle instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] object.
+
+One of the purposes of the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] object is to allow you to declare all the projects to be included in the build.
+
+You can use any of the methods and properties on the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] interface directly in your settings file.
+
+For example:
+
+[source]
+----
+ includeBuild('some-build')                         // Delegates to Settings.includeBuild()
+ reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
+----
+
+== Step 2. Update the Settings file
 
 [source,settings.gradle.kts]
 ----
 plugins {
-// Apply the foojay-resolver plugin to allow automatic download of JDKs
-id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+    // Apply the foojay-resolver plugin to allow automatic download of JDKs
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
 }
 
 rootProject.name = "temp"

@@ -54,7 +54,7 @@ Once we apply a plugin to our project, such as the `application` plugin, additio
 .build.gradle.kts
 [source,kotlin]
 plugins {
-    application
+    id("application")
 }
 
 [source]

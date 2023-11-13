@@ -17,7 +17,7 @@
 
 In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file if it exists.
 
-image::author-gradle-4.png[Build,500,63,align="center"]
+image::author-gradle-4.png[Build,500,63,align="left"]
 
 Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
 
@@ -41,10 +41,7 @@ As the build script executes, it configures `Project`.
 
 The build script is either a `\*.gradle` file in Groovy or a `*.gradle.kts` file in Kotlin.
 
-[IMPORTANT]
-====
-_Build scripts_ define `Project` objects.
-====
+IMPORTANT: _Build scripts_ define `Project` objects.
 
 == The `Project` object
 
@@ -140,7 +137,7 @@ Let's take a look at an example and break it down:
 ----
 plugins {                                                               // <1>
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    application
+    id("application")
 }
 
 repositories {                                                          // <2>
@@ -155,7 +152,7 @@ dependencies {                                                          // <3>
 }
 
 application {                                                           // <4>
-    mainClass.set("main")
+    mainClass = "com.example.Main"
 }
 
 tasks.named<Test>("test") {                                             // <5>
@@ -191,7 +188,7 @@ dependencies {                                                          // <3>
 }
 
 application {                                                           // <4>
-    mainClass = 'main'
+    mainClass = 'com.example.Main'
 }
 
 tasks.named('test') {                                                   // <5>
@@ -217,7 +214,7 @@ The plugins block is preferred:
 ----
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    application
+    id("application")
 }
 ----
 
@@ -274,7 +271,7 @@ In the example, the `application` plugin added an `application` property, which 
 [source]
 ----
 application {
-    mainClass.set("main")
+    mainClass = "com.example.Main"
 }
 ----
 
@@ -373,7 +370,7 @@ configurations {
 }
 ----
 
-The closure is treated as a configuration closure, which configures some delegate object as it executes:
+The closure configures some delegate object as it executes:
 
 [source]
 ----

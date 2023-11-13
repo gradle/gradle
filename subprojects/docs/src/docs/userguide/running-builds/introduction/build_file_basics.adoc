@@ -42,11 +42,11 @@ Let's take a look at an example and break it down:
 [source,kotlin]
 ----
 plugins {
-    id("application")    // <1>
+    id("application")               // <1>
 }
 
 application {
-    mainClass = "main"  // <2>
+    mainClass = "com.example.Main"  // <2>
 }
 ----
 <1> Add plugins.
@@ -59,11 +59,11 @@ application {
 [source,groovy]
 ----
 plugins {
-    id 'application'     // <1>
+    id 'application'                // <1>
 }
 
 application {
-    mainClass = 'main'  // <2>
+    mainClass = 'com.example.Main'  // <2>
 }
 ----
 <1> Add plugins.

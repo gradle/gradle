@@ -16,44 +16,48 @@
 = Build Lifecycle
 
 Gradle is an example of *dependency-based programming*: you define tasks and dependencies between tasks.
-Gradle guarantees that these tasks are executed in the order of their dependencies.
+
+image::author-gradle-1.png[]
+
+Gradle guarantees that these tasks will execute in order of their dependencies.
 Your build scripts and plugins configure this dependency graph.
-This page discusses the phases of Gradle's lifecycle as it interprets those scripts.
-Additionally, this page explains how you can react to events of the lifecycle using notifications.
+
+For example, if your project tasks include `assemble`, `build`, `createDocs`, your build script(s) can make sure that they are executed in the order `assemble` -> `build` -> `createDoc`.
 
 == Task Graphs
 
-Some build tools assemble a task graph as they execute tasks.
-Gradle builds the task graph before executing any task.
-With configuration avoidance, Gradle skips configuration for tasks not part of the current build.
+Gradle builds the task graph *before* executing any task.
 
 Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
 
-This diagram shows two example task graphs: abstract and concrete.
-The diagram represents dependencies between tasks as arrows:
+This diagram shows two example task graphs, one abstract and the other concrete, with dependencies between tasks represented as arrows:
 
-.Two examples of Gradle task graphs
-image::task-dag-examples.png[Example task graphs]
-
-Both plugins and build scripts contribute to the task graph via the <<tutorial_using_tasks#sec:task_dependencies,task dependency mechanism>>.
+image::task-dag-examples.png[]
 
 [[build_lifecycle_events]]
+Both plugins and build scripts contribute to the task graph via the <<using_tasks.adoc#sec:task_dependencies,task dependency mechanism>>.
 
 [[sec:build_phases]]
 == Build Phases
 
 A Gradle build has three distinct phases.
-Gradle runs these phases in order: initialization, configuration, and execution.
 
-Initialization::
-- Detects the <<organizing_gradle_projects#sec:settings_file,settings file>>.
-- Evaluates the settings file to determine which projects and included builds participate in the build.
+Gradle runs these phases in order:
+
+Phase 1. Initialization::
+- Detects the `settings.gradle(.kts)` file.
+- Creates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] instance.
+- Evaluates the settings file to determine which projects (and included builds) make up the build.
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
-Configuration::
-- Evaluates the build scripts of every project participating in the build.
+Phase 2. Configuration::
+- Evaluates the build scripts, `build.gradle(.kts)`, of every project participating in the build.
 - Creates a task graph for requested tasks.
-Execution::
-- Schedules and executes each selected task in the order of their dependencies.
+Phase 3. Execution::
+- Schedules and executes the selected tasks.
+- Dependencies between tasks determine execution order.
+- Execution of tasks can occur in parallel.
+
+image::build-lifecycle-example.png[]
 
 === Example
 
@@ -65,7 +69,7 @@ include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradl
 ====
 
 The following command executes the `test` and `testBoth` tasks specified above.
-Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures.
+Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures:
 
 [source.multi-language-sample,kotlin]
 ----
@@ -79,144 +83,77 @@ include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
 
 [[sec:initialization]]
-== Initialization
+== Phase 1. Initialization
 
-In the initialization phase, Gradle detects the set of projects and includes builds participating in the build.
-Gradle first evaluates the settings file. Then, Gradle instantiates `Project` instances for each project.
+In the *initialization phase*, Gradle detects the set of projects (root and subprojects) and included builds participating in the build.
+
+Gradle first evaluates the settings file, `settings.gradle(.kts)`, and instantiates a `Settings` object.
+Then, Gradle instantiates `Project` instances for each project.
 
 === Detect Settings File
 
-When you run Gradle in a directory that contains a `settings.gradle` file, Gradle uses that `settings.gradle` file to initialize the build.
-You can run Gradle within any subproject of the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#intro_multi_project_builds,Executing Multi-Project Builds>>).]
-When you run Gradle in a directory that contains *no* `settings.gradle` file:
+When you run Gradle in a directory that contains a `settings.gradle(.kts)` file, Gradle uses that `settings.gradle(.kts)` file to initialize the build using a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] object.
 
-. Gradle looks for a `settings.gradle(.kts)` file in parent directories.
-. If Gradle finds a `settings.gradle(.kts)` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
-. If Gradle does not find a `settings.gradle(.kts)` file, Gradle builds as a single project.
+When you run Gradle in a directory that contains *no* `settings.gradle(.kts)` file, Gradle looks for the file by recursively going up parent directories.
+If no file is found, Gradle assumes the project is a single project (not a multi-project build).
 
-In the standard Gradle project layout, <<intro_multi_project_builds#sec:project_path,project paths>> match the physical subproject layout on disk.
+In a standard Gradle project, <<intro_multi_project_builds#sec:project_path,project paths>> match the physical subproject layout on disk.
+
 The automatic search for a settings file only works for multi-project builds with a standard project layout.
-To build projects that use a nonstandard layout, execute the build from the directory that contains `settings.gradle(.kts)`.
+To build projects that use a nonstandard layout, execute the build from the directory that contains the `settings.gradle(.kts)` file.
 
 === Evaluate Settings File
 
 During settings file evaluation, Gradle:
 
+- Instantiates a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] object.
 - Adds libraries to your build script classpath.
 - Defines which included builds participate in a composite build.
 - Defines which projects participate in a multi-project build.
 
-Gradle creates a `Project` for every project in the build.
-By default, each `Project` has a name equal to the name of its top-level directory.
+=== Create `Project` Object(s)
+
+Gradle creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] for every project in the build.
+
+By default, each `Project` has a name equal to the name of its top level directory.
+
 Every project except the root project has a parent project.
 Any project may have child projects.
 
-== Configuration
+[[sec:configuration]]
+== Phase 2. Configuration
 
-In the configuration phase, Gradle adds tasks and other properties to the projects generated by the initialization phase.
-By the end of the configuration phase, Gradle has a complete task execution graph for the requested tasks.
+In the *configuration phase*, Gradle adds tasks and other properties to the projects found by the initialization phase.
 
 [[sec:project_evaluation]]
 === Project Evaluation
 
-During project evaluation, Gradle evaluates build scripts to build a task hierarchy within a `Project`.
+During project evaluation, Gradle evaluates build scripts (`build.gradle(.kts)`) to build a task hierarchy within a `Project`.
 This hierarchy includes inputs, actions, and outputs for all tasks.
-
-==== React to Project Evaluation
-
-You can receive a notification immediately before and after evaluating a project.
-These notifications work even when project evaluation fails.
-You can configure project evaluation notifications for all projects or a specific project.
-For example, you could use these notifications for:
-
-- additional configuration after applying all definitions in a build script
-- custom logging
-- custom profiling
-
-The following example uses `gradle.beforeProject()` to add `hasTests` property to certain tests.
-Later, the example uses `gradle.afterProject()` to add a `test` task to each project where the `hasTests` property value is `true`:
-
-====
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];project-a.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
-====
-
-----
-> gradle -q test
-include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/tests/projectEvaluateEvents.out[]
-----
-
-To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to a build's link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] instance.
 
 === Task Execution Graph Assembly
 
 During project evaluation, Gradle assembles the *task execution graph*: a http://en.wikipedia.org/wiki/Directed_acyclic_graph[DAG] representing the dependency relationships between tasks.
 
-[[sec:task_execution_graph_ready]]
-=== React to Task Execution Graph Assembly
+=== Task Evaluation
 
-You can receive a notification immediately after Gradle populates a project's task execution graph.
+During project evaluation, Gradle registers tasks and their configuration actions.
+The configuration actions define inputs, outputs, and actions for those tasks.
+Then, the task is evaluated to determine if it is part of the task graph for the requested tasks.
 
-To receive these events, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].
+By the end of the configuration phase, Gradle has a complete task execution graph for the requested tasks.
 
-=== Task Creation
+[[sec:execution]]
+== Phase 3. Execution
 
-During project evaluation, Gradle registers tasks and their configuration actions. The configuration actions define inputs, outputs, and actions for those tasks. They are evaluated if the task is part of the task graph for the requested tasks.
+In the *execution phase*, Gradle runs tasks.
 
-[[sec:task_creation]]
-==== React to Task Creation
-
-You can receive a notification immediately after Gradle adds a task to a project.
-For example, you could use these notifications to set default values or methods.
-
-The following example sets a `srcDir` value on each task in a project:
-
-====
-include::sample[dir="snippets/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
-====
-
-----
-> gradle -q a
-include::{snippetsPath}/buildlifecycle/taskCreationEvents/tests/taskCreationEvents.out[]
-----
-
-To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/Action.html[Action] to a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer].
-
-== Execution
-
-In the execution phase, Gradle runs tasks.
 Gradle uses the task execution graphs generated by the configuration phase to determine which tasks to execute.
 
 [[sec:task_execution]]
 === Task Execution
 
-Task execution includes most of the work you normally associate with a build: downloading libraries, compiling code, reading inputs, and writing outputs.
+Task execution includes most of the work you usually associate with a build: downloading libraries, compiling code, reading inputs, and writing outputs.
 
-==== React to Task Execution Notifications
-
-WARNING: Task execution events are not compatible with the <<configuration_cache.adoc#config_cache:requirements:build_listeners,configuration cache>>.
-You can use <<build_services#build_services,build services>> to receive information about <<build_services#operation_listener, task execution>>
-in a way compatible with the configuration cache.
-
-You can receive a notification immediately before and after Gradle executes any task.
-These notifications work even when task execution fails.
-The following example logs the start and end of each task execution:
-
-====
-include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
-====
-
-[source.multi-language-sample,kotlin]
-----
-> gradle -q broken
-include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-kotlin/taskExecutionEvents.kotlin.out[]
-----
-[source.multi-language-sample,groovy]
-----
-> gradle -q broken
-include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
-----
-
-To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].
+[.text-right]
+**Next Step:** <<writing_settings_files.adoc#writing_settings_files,Learn how to write Settings files>> >>

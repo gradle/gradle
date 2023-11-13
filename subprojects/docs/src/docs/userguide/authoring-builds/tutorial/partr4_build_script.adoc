@@ -20,15 +20,39 @@ Learn the basics of authoring Gradle by developing the Build Script.
 ****
 **In this section you will:**
 
-- Initialize a Java project
+- Understand the Project object
+- Update the Build script
+- How to use Build scripts
 ****
 
 [[part4_begin]]
 == Step 0. Before you Begin
 
-1. You authored a settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You authored a Settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
 
-== Step 1.
+== Step 1. The `Project` object
+
+Build scripts invoke Gradle APIs to configure the build.
+
+During the configuration phase, Gradle finds the build script(s) in the root and subproject directories.
+
+When a build script, `build.gradle(.kts)`, is found, Gradle configures a link:{javadocPath}org/gradle/api/Project.html[Project] object.
+
+The purpose of the link:{javadocPath}org/gradle/api/Project.html[Project] object is to create a collection of link:{javadocPath}/org/gradle/api/Task.html[Task] objects, apply plugins, and retrieve dependencies.
+
+You can use any of the methods and properties on the link:{javadocPath}org/gradle/api/Project.html[Project] interface directly in your script.
+
+For example:
+
+[source]
+----
+ defaultTasks('some-task')      // Delegates to Project.defaultTasks()
+ reportsDir = file('reports')   // Delegates to Project.file() and the Java Plugin
+----
+
+== Step 2. Update the Build script
 
 [source]
 ----

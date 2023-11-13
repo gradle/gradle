@@ -26,7 +26,10 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 [[part5_begin]]
 == Step 0. Before you Begin
 
-1. You authored a build script in <<partr4_build_script.adoc#part4_begin,part 4>>.
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You authored a Settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
+4. You authored a Build script in <<partr4_build_script.adoc#part4_begin,part 4>>.
 
 == Step 1.
 
