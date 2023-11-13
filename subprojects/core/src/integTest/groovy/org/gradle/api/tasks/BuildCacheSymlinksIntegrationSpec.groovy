@@ -153,6 +153,54 @@ class BuildCacheSymlinksIntegrationSpec extends AbstractIntegrationSpec {
         LinksStrategy.FOLLOW       | false // should be true
     }
 
+    def "project with symlinks should not be rebuilt with no changes"() {
+        given:
+        buildKotlinFile << appBuildScript
+        def original = file("not-src/Hello.txt") << helloWordSource
+        file("src/main/java/Hello.java").createLink(original.absolutePath)
+        succeeds("build")
+
+        when:
+        run("build")
+
+        then:
+        allSkipped()
+    }
+
+    def "project with symlinks pointing outside project should not be rebuilt with no changes"() {
+        given:
+        def original = Files.createTempFile("some", "source").toFile()
+        original << helloWordSource
+
+        file(defaultBuildKotlinFileName) << appBuildScript
+        file("src/main/java/Hello.java").createLink(original.absolutePath)
+        succeeds("build")
+
+        when:
+        succeeds("build")
+
+        then:
+        allSkipped()
+    }
+
+    def "project with symlinks pointing outside project should be rebuilt when external file is changed"() {
+        given:
+        def original = Files.createTempFile("some", "source").toFile()
+        original << helloWordSource
+
+        file(defaultBuildKotlinFileName) << appBuildScript
+        file("src/main/java/Hello.java").createLink(original.absolutePath)
+        succeeds("build")
+
+        when:
+        original.text = updatedHelloWorldSource
+        succeeds("build")
+
+        then:
+        executedAndNotSkipped(":build")
+        succeeds("run").assertOutputContains("Gamarjoba")
+    }
+
     private def checkUpToDate(LinksStrategy linksStrategy, Boolean shouldBeUpToDate, Closure change) {
         buildKotlinFile << """
             tasks.register<Copy>("cp") {
@@ -174,4 +222,22 @@ class BuildCacheSymlinksIntegrationSpec extends AbstractIntegrationSpec {
             executedAndNotSkipped(":cp")
         }
     }
+
+    private static String appBuildScript = """
+        plugins {
+           `application`
+        }
+        application {
+            mainClass = "Hello"
+        }
+    """
+
+    private static String helloWordSource = """
+        public class Hello {
+            public static void main(String... args) {
+                System.out.println("Hello World!");
+            }
+        }
+    """
+    private static String updatedHelloWorldSource = helloWordSource.replace("Hello World", "Gamarjoba genatsvale")
 }

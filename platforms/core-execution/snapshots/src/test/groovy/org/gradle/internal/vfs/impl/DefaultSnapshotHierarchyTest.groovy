@@ -23,8 +23,6 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hasher
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.AbstractIncompleteFileSystemNode
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -755,12 +753,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     static HashCode hashFile(File file) {
-        def hash = TestFiles.fileHasher().hash(file)
-        Hasher combinedHasher = Hashing.newHasher()
-        combinedHasher.putHash(hash)
-        combinedHasher.putNull()
-
-        combinedHasher.hash()
+        TestFiles.fileHasher().hash(file)
     }
 
     private static void assertFileSnapshot(SnapshotHierarchy set, File location) {

@@ -60,7 +60,7 @@ class CachingFileHasherTest extends Specification {
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
         1 * cache.getIfPresent(file.absolutePath) >> null
-        1 * target.hash(file) >> hash
+        1 * target.hash(file, _, _, _) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
             assert fileInfo.length == stat.length
@@ -82,7 +82,7 @@ class CachingFileHasherTest extends Specification {
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
         1 * cache.getIfPresent(file.absolutePath) >> new FileInfo(oldHash, 1024, stat.lastModified)
-        1 * target.hash(file) >> hash
+        1 * target.hash(file, _, _, _) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
             assert fileInfo.length == stat.length
@@ -104,7 +104,7 @@ class CachingFileHasherTest extends Specification {
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
         1 * cache.getIfPresent(file.absolutePath) >> new FileInfo(oldHash, file.length(), 124)
-        1 * target.hash(file) >> hash
+        1 * target.hash(file, _, _, _) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
             assert fileInfo.length == stat.length
@@ -140,7 +140,7 @@ class CachingFileHasherTest extends Specification {
 
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> false
-        1 * target.hash(file) >> hash
+        1 * target.hash(file, _, _, _) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
             assert fileInfo.length == stat.length
@@ -156,7 +156,7 @@ class CachingFileHasherTest extends Specification {
         def fileMetadata = DefaultFileMetadata.file(lastModified, length, AccessType.DIRECT)
 
         when:
-        def result = hasher.hash(file, fileMetadata.length, fileMetadata.lastModified)
+        def result = hasher.hash(file, fileMetadata.length, fileMetadata.lastModified, null)
 
         then:
         result == hash
@@ -164,7 +164,7 @@ class CachingFileHasherTest extends Specification {
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, lastModified) >> true
         1 * cache.getIfPresent(file.absolutePath) >> null
-        1 * target.hash(file) >> hash
+        1 * target.hash(file, _, _, _) >> hash
         1 * cache.put(file.absolutePath, _) >> { String key, FileInfo fileInfo ->
             assert fileInfo.hash == hash
             assert fileInfo.length == length

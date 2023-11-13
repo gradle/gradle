@@ -24,6 +24,9 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.hash.DefaultFileHasher;
+import org.gradle.internal.hash.DefaultStreamHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -830,9 +833,11 @@ public class TestFile extends File {
         return this;
     }
 
+    private static final FileHasher HASHER = new DefaultFileHasher(new DefaultStreamHasher());
+
     public Snapshot snapshot() {
         assertIsFile();
-        return new Snapshot(lastModified(), md5(this));
+        return new Snapshot(lastModified(), HASHER.hash(this));
     }
 
     public void assertHasChangedSince(Snapshot snapshot) {

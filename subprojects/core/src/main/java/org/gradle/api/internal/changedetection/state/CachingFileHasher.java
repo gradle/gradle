@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.InterningStringSerializer;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class CachingFileHasher implements FileHasher {
@@ -72,16 +73,16 @@ public class CachingFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(File file, long length, long lastModified) {
-        return snapshot(file, length, lastModified).getHash();
+    public HashCode hash(File file, long length, long lastModified, @Nullable String linkTarget) {
+        return snapshot(file, length, lastModified, linkTarget).getHash();
     }
 
     private FileInfo snapshot(File file) {
         FileMetadata fileMetadata = fileSystem.stat(file);
-        return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+        return snapshot(file, fileMetadata.getLength(), fileMetadata.getLastModified(), null);
     }
 
-    private FileInfo snapshot(File file, long length, long timestamp) {
+    private FileInfo snapshot(File file, long length, long timestamp, @Nullable String linkTarget) {
         String absolutePath = file.getAbsolutePath();
         if (timestampInspector.timestampCanBeUsedToDetectFileChange(absolutePath, timestamp)) {
             FileInfo info = cache.getIfPresent(absolutePath);
@@ -91,9 +92,11 @@ public class CachingFileHasher implements FileHasher {
             }
         }
 
-        HashCode hash = delegate.hash(file);
+        HashCode hash = delegate.hash(file, length, timestamp, linkTarget);
         FileInfo info = new FileInfo(hash, length, timestamp);
-        cache.put(stringInterner.intern(absolutePath), info);
+        if (linkTarget == null) { // do not cache symlinks because two timestamps are needed to detect the change
+            cache.put(stringInterner.intern(absolutePath), info);
+        }
         statisticsCollector.reportFileHashed(length);
         return info;
     }

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.hash;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,6 +32,10 @@ public class DefaultFileHasher implements FileHasher {
 
     @Override
     public HashCode hash(File file) {
+        return hash(file, null);
+    }
+
+    private HashCode doHash(File file) {
         InputStream inputStream;
         try {
             inputStream = new FileInputStream(file);
@@ -49,7 +54,19 @@ public class DefaultFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(File file, long length, long lastModified) {
-        return hash(file);
+    public HashCode hash(File file, long length, long lastModified, @Nullable String linkTarget) {
+        return hash(file, linkTarget);
+    }
+
+    private HashCode hash(File file, @Nullable String linkTarget) {
+        HashCode hash = doHash(file);
+        if (linkTarget == null) {
+            return hash;
+        } else {
+            Hasher combinedHasher = Hashing.newHasher();
+            combinedHasher.putHash(hash);
+            combinedHasher.putString(linkTarget);
+            return combinedHasher.hash();
+        }
     }
 }

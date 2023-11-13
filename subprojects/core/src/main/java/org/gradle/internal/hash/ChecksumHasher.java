@@ -17,6 +17,7 @@ package org.gradle.internal.hash;
 
 import org.gradle.api.UncheckedIOException;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +49,7 @@ class ChecksumHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(File file, long length, long lastModified) {
+    public HashCode hash(File file, long length, long lastModified, @Nullable String linkTarget) {
         return hash(file);
     }
 

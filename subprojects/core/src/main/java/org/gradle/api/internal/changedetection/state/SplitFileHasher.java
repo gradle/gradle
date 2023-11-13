@@ -20,6 +20,7 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -47,11 +48,11 @@ public class SplitFileHasher implements FileHasher {
     }
 
     @Override
-    public HashCode hash(File file, long length, long lastModified) {
+    public HashCode hash(File file, long length, long lastModified, @Nullable String linkTarget) {
         if (globalCacheLocations.isInsideGlobalCache(file.getPath())) {
-            return globalHasher.hash(file, length, lastModified);
+            return globalHasher.hash(file, length, lastModified, linkTarget);
         } else {
-            return localHasher.hash(file, length, lastModified);
+            return localHasher.hash(file, length, lastModified, linkTarget);
         }
     }
 }

@@ -209,12 +209,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             return new FileHasher() {
                 @Override
                 public HashCode hash(File file) {
-                    throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException("This is a dummy hasher");
                 }
 
                 @Override
-                public HashCode hash(File file, long length, long lastModified) {
-                    throw new UnsupportedOperationException();
+                public HashCode hash(File file, long length, long lastModified, @Nullable String linkTarget) {
+                    throw new UnsupportedOperationException("This is a dummy hasher");
                 }
             };
         }

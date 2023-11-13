@@ -27,8 +27,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLeafSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -453,10 +451,10 @@ public class DirectorySnapshotter {
             }
             long lastModified = targetAttrs.lastModifiedTime().toMillis();
             long fileLength = targetAttrs.size();
-            Path linkTarget = null;
+            String linkTarget = null;
             if (sourceAttrs.isSymbolicLink()) {
                 try {
-                    linkTarget = Files.readSymbolicLink(absoluteFilePath);
+                    linkTarget = Files.readSymbolicLink(absoluteFilePath).toString();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -464,16 +462,9 @@ public class DirectorySnapshotter {
             }
 
             FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
-            HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
+            HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified, linkTarget);
 
-            Hasher combinedHasher = Hashing.newHasher();
-            combinedHasher.putHash(hash);
-            if (linkTarget == null) {
-                combinedHasher.putNull();
-            } else {
-                combinedHasher.putString(linkTarget.toString());
-            }
-            return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, combinedHasher.hash(), metadata);
+            return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
         }
 
         /**

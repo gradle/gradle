@@ -150,7 +150,11 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
         @Override
         protected HashCode getHashCode(FileVisitDetails fileDetails) {
-            return fileHasher.hash(fileDetails.getFile(), fileDetails.getSize(), fileDetails.getLastModified());
+            String linkTarget = null;
+            if (fileDetails.isSymbolicLink()) {
+                linkTarget = fileDetails.getSymbolicLinkDetails().getTarget();
+            }
+            return fileHasher.hash(fileDetails.getFile(), fileDetails.getSize(), fileDetails.getLastModified(), linkTarget);
         }
     }
 

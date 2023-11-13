@@ -16,18 +16,9 @@
 
 package org.gradle.internal.hash
 
-class TestFileHasher implements FileHasher {
-    @Override
-    HashCode hash(File file) {
-        try {
-            return Hashing.hashFile(file)
-        } catch (IOException e) {
-            throw new UncheckedIOException(e)
-        }
-    }
+class TestFileHasher extends DefaultFileHasher {
 
-    @Override
-    HashCode hash(File file, long length, long lastModified) {
-        return hash(file)
+    TestFileHasher() {
+        super(new DefaultStreamHasher())
     }
 }
