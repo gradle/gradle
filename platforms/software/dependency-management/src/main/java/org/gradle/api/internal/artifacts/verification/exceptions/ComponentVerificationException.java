@@ -55,7 +55,7 @@ public class ComponentVerificationException extends GradleException {
         // Add our header first
         treeFormatter.node(
             String.format(
-                "An error happened meanwhile verifying '%s:%s:%s':",
+                "An error happened while verifying '%s:%s:%s':",
                 component.getGroup(), component.getModule(), component.getVersion()
             )
         );
