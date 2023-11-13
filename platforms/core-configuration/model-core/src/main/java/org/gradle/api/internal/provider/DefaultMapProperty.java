@@ -216,8 +216,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new ConventionConfigurer();
     }
 
-    @Override
-    public MapPropertyConfigurer<K, V> getExplicitValue() {
+    private MapPropertyConfigurer<K, V> getExplicitValue() {
         assertCanMutate();
         return new ExplicitConfigurer();
     }

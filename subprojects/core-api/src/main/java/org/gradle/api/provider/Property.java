@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 
@@ -80,6 +81,27 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * @param provider The provider of the property's value, can't be null.
      */
     void set(Provider<? extends T> provider);
+
+    /**
+     * Sets the value of the property to the current convention value, replacing whatever value the property already had.
+     *
+     * If the property has no convention set at the time this method is invoked,
+     * the effect of invoking it is similar to unsetting the property value by passing <code>null</code> to {@link #set(Object)}.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    void setToConvention();
+
+    /**
+     * Sets the value of the property to the current convention value, if an explicit
+     * value has not been set yet.
+     *
+     * If the property has no convention set at the time this method is invoked, it has no effect.
+     *
+     * @since 8.6
+     */
+    void setToConventionIfUnset();
 
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.

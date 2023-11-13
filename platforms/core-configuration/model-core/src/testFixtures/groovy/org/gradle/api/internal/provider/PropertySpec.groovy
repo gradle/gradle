@@ -394,6 +394,48 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == null
     }
 
+    def "can set convention as explicit value"() {
+        def provider = Providers.of(someValue())
+
+        given:
+        def property = propertyWithNoValue()
+        property.convention(provider)
+        property.setToConvention()
+        property.convention(Providers.notDefined())
+
+        expect:
+        property.present
+        property.get() == someValue()
+    }
+
+    def "can commit convention as explicit value if not set yet"() {
+        def provider = Providers.of(someValue())
+
+        given:
+        def property = propertyWithNoValue()
+        property.convention(provider)
+        property.setToConventionIfUnset()
+        property.convention(Providers.notDefined())
+
+        expect:
+        property.present
+        property.get() == someValue()
+    }
+
+    def "ignores convention commit if explicit value already set"() {
+        def provider = Providers.of(someValue())
+
+        given:
+        def property = propertyWithNoValue()
+        property.convention(provider)
+        property.set(Providers.notDefined())
+
+        property.setToConventionIfUnset()
+
+        expect:
+        !property.present
+    }
+
     def "can map value using a transformation"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()

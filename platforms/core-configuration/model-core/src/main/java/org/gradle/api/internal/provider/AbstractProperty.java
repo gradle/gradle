@@ -232,6 +232,16 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         this.value = state.applyConvention(value, convention);
     }
 
+    public void setToConvention() {
+        this.value = state.setToConvention();
+    }
+
+    public void setToConventionIfUnset() {
+        if (!state.isExplicit()) {
+            this.value = state.setToConvention();
+        }
+    }
+
     /**
      * Call prior to reading the value of this property.
      */
@@ -376,7 +386,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         /**
          * Changes into an implicit value state, returning
-         * the xzimplicit value if a convention is applied, or null.
+         * the implicit value if a convention is applied, or null.
          */
         public abstract S implicitValue();
 
@@ -385,6 +395,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         public abstract void beforeMutate(DisplayName displayName);
 
         public abstract ValueConsumer forUpstream(ValueConsumer consumer);
+
+        public abstract S setToConvention();
     }
 
     private static class NonFinalizedValue<S> extends FinalizationState<S> {
@@ -460,6 +472,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public boolean isExplicit() {
             return explicitValue;
+        }
+
+        @Override
+        public S setToConvention() {
+            return explicitValue(convention);
         }
 
         @Override
@@ -570,6 +587,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         public S explicitValue(S value, S defaultValue) {
+            throw unexpected();
+        }
+
+        @Override
+        public S setToConvention() {
             throw unexpected();
         }
 
