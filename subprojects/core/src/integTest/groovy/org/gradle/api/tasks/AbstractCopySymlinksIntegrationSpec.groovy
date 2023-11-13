@@ -28,6 +28,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.startsWith
 
 @Requires(UnitTestPreconditions.Symlinks)
 abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSpec {
@@ -168,7 +170,13 @@ abstract class AbstractCopySymlinksIntegrationSpec extends AbstractIntegrationSp
         then:
         if (error) {
             def relativePathToLink = inputDirectory.toPath().resolve(root).relativize(link.toPath())
-            fails(mainTask).assertHasCause("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToLink pointing to $symlinkTarget.")
+            def relativePathToTrickyLink = inputDirectory.toPath().resolve(root).relativize(trickyLink.toPath())
+            fails(mainTask).assertThatCause(
+                anyOf(
+                    startsWith("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToLink pointing to $symlinkTarget."),
+                    startsWith("Links strategy is set to PRESERVE_RELATIVE, but a symlink pointing outside was visited: $relativePathToTrickyLink pointing to $trickyLinkTarget.")
+                )
+            )
         } else {
             succeeds(mainTask)
         }
