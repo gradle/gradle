@@ -23,7 +23,9 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
@@ -53,7 +55,8 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
 
             BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
             BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
-            BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), modelServices);
+            BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+            BuildTreeState buildTree = new BuildTreeState(buildInvocationScopeId, buildSession.getServices(), modelServices);
             try {
                 result = buildTree.run(context -> context.execute(action));
             } finally {
