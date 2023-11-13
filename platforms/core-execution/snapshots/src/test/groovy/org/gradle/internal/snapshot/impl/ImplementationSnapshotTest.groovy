@@ -43,6 +43,8 @@ class ImplementationSnapshotTest extends Specification {
         'SomeClassName$1$$Lambda$5/23154546436'      | true
         'SomeClassName$$Lambda$154/00000000082FF1F0' | true
         'SomeClassName$$Lambda$267/19410584'         | true
+        // JDK 21 lambdas do not have a counter, verify they pass the check too
+        'SomeClassName$$Lambda/19410584'             | true
     }
 
     def "implementation snapshots are not equal for #description"() {
@@ -52,10 +54,10 @@ class ImplementationSnapshotTest extends Specification {
         where:
         description                                  | implementationFactory
         'unknown classloader for class'              | { -> ImplementationSnapshot.of("SomeClass", null) }
-        'unknown classloader for lambda'             | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', null) }
-        'unknown lambda'                             | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_CLASSLOADER_HASH) }
-        'untrackable lambda'                         | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_UNTRACKABLE_LAMBDA, SHARED_CLASSLOADER_HASH) }
-        'unknown classloader for untrackable lambda' | { -> ImplementationSnapshot.of('SomeClass$$Lambda$3/23501234324', SHARED_UNTRACKABLE_LAMBDA, null) }
+        'unknown classloader for lambda'             | { -> ImplementationSnapshot.of('SomeClass$$Lambda/23501234324', null) }
+        'unknown lambda'                             | { -> ImplementationSnapshot.of('SomeClass$$Lambda/23501234324', SHARED_CLASSLOADER_HASH) }
+        'untrackable lambda'                         | { -> ImplementationSnapshot.of('SomeClass$$Lambda/23501234324', SHARED_UNTRACKABLE_LAMBDA, SHARED_CLASSLOADER_HASH) }
+        'unknown classloader for untrackable lambda' | { -> ImplementationSnapshot.of('SomeClass$$Lambda/23501234324', SHARED_UNTRACKABLE_LAMBDA, null) }
     }
 
     def "cannot hash unknown implementation snapshot"() {

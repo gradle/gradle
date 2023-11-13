@@ -77,6 +77,8 @@ import org.gradle.work.InputChanges
 
 import java.util.function.BiFunction
 
+import static org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactoryTest.TransformationType.INCREMENTAL
+
 class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     private DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
@@ -171,13 +173,15 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
 
     private static class TestTransform implements Transform {
         private final HashCode secondaryInputsHash
+        private final TransformationType transformationType
         private final BiFunction<File, File, List<File>> transformationAction
 
-        static TestTransform create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), BiFunction<File, File, List<File>> transformationAction) {
-            return new TestTransform(secondaryInputsHash, transformationAction)
+        static TestTransform create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), TransformationType transformationType = TransformationType.NON_INCREMENTAL, BiFunction<File, File, List<File>> transformationAction) {
+            return new TestTransform(secondaryInputsHash, transformationType, transformationAction)
         }
 
-        TestTransform(HashCode secondaryInputsHash, BiFunction<File, File, List<File>> transformationAction) {
+        TestTransform(HashCode secondaryInputsHash, TransformationType transformationType, BiFunction<File, File, List<File>> transformationAction) {
+            this.transformationType = transformationType
             this.transformationAction = transformationAction
             this.secondaryInputsHash = secondaryInputsHash
         }
@@ -204,7 +208,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
 
         @Override
         boolean requiresInputChanges() {
-            return false
+            return transformationType == INCREMENTAL
         }
 
         @Override
@@ -278,7 +282,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     def "executes transformations in workspace (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
-        def transform = TestTransform.create { input, outputDir ->
+        def transform = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationType) { input, outputDir ->
             def outputFile = new File(outputDir, input.name)
             outputFile.text = input.text + "transformed"
             return [outputFile]
@@ -473,7 +477,7 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transform = TestTransform.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transform = TestTransform.create(TestHashCodes.hashCodeFrom(1234), INCREMENTAL, transformationAction)
         def subject = mutableDependency(inputArtifact)
 
         when:
@@ -490,15 +494,15 @@ class DefaultTransformInvocationFactoryTest extends AbstractProjectBuilderSpec {
     }
 
     enum TransformationType {
-        MUTABLE, IMMUTABLE
+        INCREMENTAL, NON_INCREMENTAL
     }
 
     private dependency(TransformationType type, File file) {
-        return type == TransformationType.MUTABLE ? mutableDependency(file) : immutableDependency(file)
+        return type == INCREMENTAL ? mutableDependency(file) : immutableDependency(file)
     }
 
     private workspaceDirectory(TransformationType type) {
-        return type == TransformationType.MUTABLE ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
+        return type == INCREMENTAL ? mutableTransformsStoreDirectory : immutableTransformsStoreDirectory
     }
 
     private TransformStepSubject immutableDependency(File file) {

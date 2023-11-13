@@ -51,7 +51,6 @@ public class GroupedOutputFixture {
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
-    private final static String PLAIN_PROGRESS_REPORT = "> Progress: (\\w+) (\\d+)%( \\(FAILING\\))?\\n?";
 
     /**
      * Various patterns to detect the end of the task output
@@ -67,11 +66,6 @@ public class GroupedOutputFixture {
      * Pattern to extract task output.
      */
     private static final Pattern TRANSFORM_OUTPUT_PATTERN = patternForHeader(TRANSFORM_HEADER);
-
-    /**
-     * Pattern to extract plain text progress updates.
-     */
-    public static final Pattern PLAIN_PROGRESS_REPORT_PATTERN = Pattern.compile(PLAIN_PROGRESS_REPORT);
 
     private static Pattern patternForHeader(String header) {
         String pattern = "(?ms)";
@@ -187,8 +181,7 @@ public class GroupedOutputFixture {
     private void consumeTaskOutput(Matcher matcher) {
         String taskName = matcher.group(1);
         String taskOutcome = matcher.group(2);
-        String taskOutputWithoutProgress = PLAIN_PROGRESS_REPORT_PATTERN.matcher(matcher.group(3)).replaceAll("");
-        String taskOutput = StringUtils.strip(taskOutputWithoutProgress, "\n");
+        String taskOutput = StringUtils.strip(matcher.group(3), "\n");
 
         GroupedTaskOutputFixture task = tasks.get(taskName);
         if (task == null) {

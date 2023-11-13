@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 public abstract class ImplementationSnapshot implements ValueSnapshot {
 
-    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
+    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda";
 
     protected final String classIdentifier;
 

@@ -29,6 +29,7 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -112,7 +113,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .label("is missing " + displayName)
                         .documentedAt(userManual("validation_problems", MISSING_ANNOTATION.toLowerCase()))
                         .noLocation()
-                        .category(VALIDATION, MISSING_ANNOTATION)
+                        .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(MISSING_ANNOTATION))
                         .severity(ERROR)
                         .details("A property without annotation isn't considered during up-to-date checking")
                         .solution("Add " + displayName)
@@ -129,7 +130,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                         .label("is annotated with invalid property type @%s", propertyType.getSimpleName())
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                         .noLocation()
-                        .category(VALIDATION, ANNOTATION_INVALID_IN_CONTEXT)
+                        .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT))
                         .severity(ERROR)
                         .details("The '@" + propertyType.getSimpleName() + "' annotation cannot be used in this context")
                         .solution("Remove the property")
@@ -152,7 +153,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .label("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase()))
                             .noLocation()
-                            .category(VALIDATION, INCOMPATIBLE_ANNOTATIONS)
+                            .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS))
                             .severity(ERROR)
                             .details("This modifier is used in conjunction with a property of type '" + propertyType.getSimpleName() + "' but this doesn't have semantics")
                             .solution("Remove the '@" + annotationType.getSimpleName() + "' annotation"));
@@ -163,7 +164,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                             .label("is annotated with invalid modifier @%s", annotationType.getSimpleName())
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase()))
                             .noLocation()
-                            .category(VALIDATION, ANNOTATION_INVALID_IN_CONTEXT)
+                            .category(VALIDATION, "property", TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT))
                             .severity(ERROR)
                             .details("The '@" + annotationType.getSimpleName() + "' annotation cannot be used in this context")
                             .solution("Remove the annotation")

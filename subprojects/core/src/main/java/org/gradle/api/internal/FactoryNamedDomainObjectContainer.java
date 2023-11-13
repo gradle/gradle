@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -81,6 +82,11 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer(), crossProjectConfiguratorMutationGuard));
+    }
+
+    @Override
+    protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(Spec<String> nameFilter, CollectionFilter<S> elementFilter) {
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, nameFilter, elementFilter, getInstantiator(), getNamer(), crossProjectConfiguratorMutationGuard));
     }
 
     @Override

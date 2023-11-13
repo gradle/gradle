@@ -102,6 +102,7 @@ platform("core-configuration") {
     subproject("base-services-groovy")
     subproject("configuration-cache")
     subproject("file-collections")
+    subproject("input-tracking")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-provider-plugins")
     subproject("kotlin-dsl-tooling-builders")

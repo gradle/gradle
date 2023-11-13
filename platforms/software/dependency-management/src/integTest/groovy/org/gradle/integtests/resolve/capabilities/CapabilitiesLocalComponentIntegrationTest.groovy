@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec {
 
@@ -75,6 +76,69 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         outputContains("Could not resolve project :.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26377")
+    def "ResolvedVariantResults reported by ResolutionResult and ArtifactCollection have same capabilities when they are added to configuration in hierarchy"() {
+        settingsFile << "include 'producer'"
+        file("producer/build.gradle") << """
+            group="com.foo"
+
+            task zip(type: Zip) {
+                archiveFileName = "producer.zip"
+                destinationDirectory = layout.buildDirectory
+            }
+
+            configurations {
+                dependencyScope("api") {
+                    outgoing {
+                        capability("com.foo:producer:2.0")
+                        capability("org.bar:dependency-scope-capability:1.0")
+                    }
+                }
+                consumable("elements") {
+                    extendsFrom(api)
+                    outgoing.artifact(tasks.zip)
+                    outgoing.capability("org.bar:consumable-capability:1.0")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                resolvable("classpath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(":producer"))
+            }
+
+            task resolve {
+                def conf = configurations.classpath
+                def root = conf.incoming.resolutionResult.root
+                def artifactVariants = conf.incoming.artifacts.artifacts.collect { it.variant }
+                doLast {
+                    def graphVariant = root.dependencies.find { it.selected.id.projectPath == ":producer" }.resolvedVariant
+                    def artifactVariant = artifactVariants.find { it.owner.projectPath == ":producer" }
+                    assert graphVariant.capabilities == artifactVariant.capabilities
+
+                    def expected = ["com.foo:producer:2.0", "org.bar:dependency-scope-capability:1.0", "org.bar:consumable-capability:1.0"] as Set
+                    assert graphVariant.capabilities.collect { "\${it.group}:\${it.name}:\${it.version}" } as Set == expected
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
     }
 }
 

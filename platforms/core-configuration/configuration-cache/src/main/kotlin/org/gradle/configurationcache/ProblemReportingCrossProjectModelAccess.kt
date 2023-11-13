@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import groovy.lang.Closure
 import groovy.lang.GroovyObjectSupport
+import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
@@ -40,6 +41,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.SyncSpec
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
@@ -51,7 +53,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -74,11 +75,14 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
+import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
@@ -103,7 +107,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
-    private val dynamicCallProblemReporting: DynamicCallProblemReporting
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting,
+    private val buildModelParameters: BuildModelParameters
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -145,17 +150,19 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this as DefaultProject, referrer as DefaultProject, problems, coupledProjectsListener, problemFactory)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
         }
     }
 
     private
     class ProblemReportingProject(
-        val delegate: DefaultProject,
-        val referrer: DefaultProject,
+        val delegate: ProjectInternal,
+        val referrer: ProjectInternal,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
-        val problemFactory: ProblemFactory
+        val problemFactory: ProblemFactory,
+        val buildModelParameters: BuildModelParameters,
+        val dynamicCallProblemReporting: DynamicCallProblemReporting,
     ) : ProjectInternal, GroovyObjectSupport() {
 
         override fun toString(): String {
@@ -184,9 +191,13 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
-            onAccess()
 
-            return delegate.getProperty(propertyName)
+            onProjectsCoupled()
+
+            return withDelegateDynamicCallReportingConfigurationOrder(
+                action = { tryGetProperty(propertyName) },
+                resultNotFoundExceptionProvider = { getMissingProperty(propertyName) }
+            )
         }
 
         override fun invokeMethod(name: String, args: Any): Any? {
@@ -197,9 +208,13 @@ class ProblemReportingCrossProjectModelAccess(
             if (result.isFound) {
                 return result.value
             }
-            onAccess()
 
-            return delegate.invokeMethod(name, args)
+            onProjectsCoupled()
+
+            return withDelegateDynamicCallReportingConfigurationOrder(
+                action = { tryInvokeMethod(name, *varargs) },
+                resultNotFoundExceptionProvider = { methodMissingException(name, *varargs) }
+            )
         }
 
         override fun compareTo(other: Project?): Int {
@@ -1026,20 +1041,104 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onAccess() {
+            reportCrossProjectAccessProblem()
+            onProjectsCoupled()
+        }
+
+        private
+        fun withDelegateDynamicCallIgnoringProblem(
+            action: DynamicObject.() -> DynamicInvokeResult,
+            resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
+        ): Any? {
+            val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
+
+            dynamicCallProblemReporting.enterDynamicCall(delegateBean)
+
+            try {
+                dynamicCallProblemReporting.unreportedProblemInCurrentCall(CrossProjectModelAccessTrackingParentDynamicObject.PROBLEM_KEY)
+
+                val delegateResult = delegateBean.action()
+
+                if (delegateResult.isFound) {
+                    return delegateResult.value
+                }
+                throw delegateBean.resultNotFoundExceptionProvider()
+            } finally {
+                dynamicCallProblemReporting.leaveDynamicCall(delegateBean)
+            }
+        }
+
+        private
+        fun withDelegateDynamicCallReportingConfigurationOrder(
+            action: DynamicObject.() -> DynamicInvokeResult,
+            resultNotFoundExceptionProvider: DynamicObject.() -> GroovyRuntimeException
+        ): Any? {
+            val result = runCatching {
+                withDelegateDynamicCallIgnoringProblem(action, resultNotFoundExceptionProvider)
+            }
+
+            return when {
+                result.isSuccess -> {
+                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    result.getOrNull()
+                }
+
+                // Referent is not configured and wasn't invalidated
+                // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
+                // but referent wasn't changed and since wasn't configured.
+                delegate < referrer && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
+                    reportCrossProjectAccessProblem { missedReferentConfigurationMessage() }
+                    null
+                }
+
+                else -> {
+                    reportCrossProjectAccessProblem { configurationOrderMessage() }
+                    throw result.exceptionOrNull()!!
+                }
+            }
+        }
+
+        private
+        fun onProjectsCoupled() {
+            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
+            // Configure the target project, if it would normally be configured before the referring project
+            if (delegate < referrer && delegate.parent != null && buildModelParameters.isInvalidateCoupledProjects) {
+                delegate.owner.ensureConfigured()
+            }
+        }
+
+        private
+        fun reportCrossProjectAccessProblem(buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}) {
             val problem = problemFactory.problem {
                 text("Cannot access project ")
                 reference(delegate.identityPath.toString())
                 text(" from project ")
                 reference(referrer.identityPath.toString())
+                buildAdditionalMessage()
             }
                 .exception()
                 .build()
+
             problems.onProblem(problem)
-            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
-            // Configure the target project, if it would normally be configured before the referring project
-            if (delegate.compareTo(referrer) < 0 && delegate.parent != null) {
-                delegate.owner.ensureConfigured()
-            }
+        }
+
+        private
+        fun StructuredMessage.Builder.missedReferentConfigurationMessage() = apply {
+            text(". ")
+            reference("org.gradle.internal.invalidate-coupled-projects=false")
+            text(" is preventing configuration of project ")
+            reference(delegate.identityPath.toString())
+        }
+
+        private
+        fun StructuredMessage.Builder.configurationOrderMessage() = apply {
+            text(". ")
+            reference("Project.evaluationDependsOn")
+            text(" must be used to establish a dependency between project ")
+            reference(delegate.identityPath.toString())
+            text(" and project ")
+            reference(referrer.identityPath.toString())
+            text(" evaluation")
         }
     }
 }

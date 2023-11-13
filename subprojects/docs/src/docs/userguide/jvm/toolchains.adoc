@@ -379,6 +379,7 @@ Sorting is done based on the following rules:
 .. MICROSOFT
 .. ORACLE
 .. SAP
+.. TENCENT
 .. everything else
 . higher major versions take precedence over lower ones
 . higher minor versions take precedence over lower ones

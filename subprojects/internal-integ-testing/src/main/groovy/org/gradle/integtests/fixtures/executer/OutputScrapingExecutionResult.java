@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
-import org.gradle.integtests.fixtures.logging.ProgressLoggingOutputNormalizer;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
@@ -175,9 +174,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i+=4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
-                i++;
-            } else if (line.startsWith(ProgressLoggingOutputNormalizer.PROGRESS_LOG_LINE_PREFIX)) {
-                // Remove progress messages
                 i++;
             } else {
                 result.add(normalizeLambdaIds(line));

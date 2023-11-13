@@ -32,6 +32,8 @@ import org.gradle.internal.classpath.transforms.ClassTransform
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForAgent
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
 import org.gradle.internal.classpath.types.GradleCoreInstrumentingTypeRegistry
+import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -476,8 +478,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def "transforms class to intercept calls to System.getProperty()"() {
         given:
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
         def cl = transformAndLoad(SystemPropertyAccessingThing)
 
         when:
@@ -488,7 +489,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         0 * listener._
 
         cleanup:
-        Instrumented.discardListener()
+        InstrumentedInputs.discardListener()
     }
 
     def "transforms Java lambda Action implementations so they can be serialized"() {
@@ -603,5 +604,11 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     byte[] classTwo() {
         return getClass().classLoader.getResource(AnotherSystemPropertyAccessingThing.name.replace('.', '/') + ".class").bytes
+    }
+
+    private InstrumentedInputsListener withInstrumentedInputsListener() {
+        def listener = Mock(InstrumentedInputsListener)
+        InstrumentedInputs.setListener(listener)
+        return listener
     }
 }

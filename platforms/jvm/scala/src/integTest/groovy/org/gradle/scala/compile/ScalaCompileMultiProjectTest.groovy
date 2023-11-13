@@ -36,7 +36,7 @@ class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements Ja
                 apply plugin: "java"
 
                 dependencies {
-                    implementation ("org.scala-lang:scala3-library_3:3.2.1")
+                    implementation ("org.scala-lang:scala3-library_3:3.3.1")
                     implementation project(":a")
                 }
             }

@@ -54,15 +54,18 @@ class MutableTransformExecution extends AbstractTransformExecution {
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        MutableTransformWorkspaceIdentity transformWorkspaceIdentity = new MutableTransformWorkspaceIdentity(
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        return TransformWorkspaceIdentity.createMutable(
             normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
             producerBuildTreePath,
             identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
             identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
-        emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
-        return transformWorkspaceIdentity;
+    }
+
+    @Override
+    public void visitRegularInputs(InputVisitor visitor) {
+        visitInputArtifact(visitor);
     }
 
     private String normalizeAbsolutePath(String path) {

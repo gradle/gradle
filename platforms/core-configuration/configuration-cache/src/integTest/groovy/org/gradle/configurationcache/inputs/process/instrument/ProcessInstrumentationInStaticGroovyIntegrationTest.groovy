@@ -40,8 +40,7 @@ class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProces
         configurationCacheFails(":help")
 
         then:
-        failure.assertOutputContains("FOOBAR=$expectedEnvVar")
-        failure.assertOutputContains("CWD=${cwd.path}")
+        failure.assertOutputContains("FOOBAR=$expectedEnvVar\nCWD=${cwd.path}")
         problems.assertFailureHasProblems(failure) {
             def line = 7 + command.readLines().size()
             withProblem("Build file 'build.gradle': line $line: external process started")

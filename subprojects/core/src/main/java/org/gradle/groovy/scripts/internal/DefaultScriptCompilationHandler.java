@@ -223,7 +223,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     .label(message)
                     .undocumented()
                     .fileLocation(source.getFileName(), lineNumber, null, null)
-                    .category("script_compilation_failed")
+                    .category("compiler", "groovy-dsl", "compilation-failed")
                     .severity(Severity.ERROR)
                     .withException(new ScriptCompilationException(message, e, source, lineNumber));
             }

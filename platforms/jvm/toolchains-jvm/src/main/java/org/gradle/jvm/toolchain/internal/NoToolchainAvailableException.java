@@ -31,7 +31,7 @@ public class NoToolchainAvailableException extends GradleException {
     ) {
         super(
             String.format(
-                "No matching toolchains found for requested specification: %s for %s on %s.",
+                "Cannot find a Java installation on your machine matching this tasks requirements: %s for %s on %s.",
                 specification.getDisplayName(),
                 buildPlatform.getOperatingSystem(),
                 buildPlatform.getArchitecture().toString().toLowerCase()

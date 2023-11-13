@@ -63,6 +63,7 @@ dependencies {
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
     implementation(project(":internal-instrumentation-api"))
+    implementation(project(":input-tracking"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
