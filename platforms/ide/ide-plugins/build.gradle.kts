@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":ear"))
     implementation(project(":file-collections"))
+    implementation(project(":functional"))
     implementation(project(":ide"))
     implementation(project(":language-java"))
     implementation(project(":language-jvm"))

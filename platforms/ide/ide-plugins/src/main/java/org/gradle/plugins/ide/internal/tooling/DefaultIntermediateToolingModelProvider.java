@@ -21,7 +21,14 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
@@ -30,9 +37,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.util.stream.Collectors.toList;
 
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
+
+    private final BuildOperationExecutor buildOperationExecutor;
+
+    public DefaultIntermediateToolingModelProvider(BuildOperationExecutor buildOperationExecutor) {
+        this.buildOperationExecutor = buildOperationExecutor;
+    }
 
     @Override
     public <T> List<T> getModels(List<Project> targets, Class<T> modelType) {
@@ -44,7 +60,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return getModelsImpl(targets, modelType, modelBuilderParameter);
     }
 
-    private static <T> List<T> getModelsImpl(List<Project> targets, Class<T> modelType, @Nullable Object modelBuilderParameter) {
+    private <T> List<T> getModelsImpl(List<Project> targets, Class<T> modelType, @Nullable Object modelBuilderParameter) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
@@ -54,19 +70,25 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return ensureModelTypes(modelType, rawModels);
     }
 
-    private static List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
+    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
         BuildState buildState = extractSingleBuildState(targets);
         Function<Class<?>, Object> parameterFactory = modelBuilderParameter == null ? null : createParameterFactory(modelBuilderParameter);
-        return buildState.withToolingModels(controller -> {
-            ArrayList<Object> models = new ArrayList<>();
-            for (Project targetProject : targets) {
-                ProjectState builderTarget = ((ProjectInternal) targetProject).getOwner();
-                ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
-                Object model = toolingModelScope.getModel(modelName, parameterFactory);
-                models.add(model);
-            }
-            return models;
-        });
+        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, parameterFactory));
+    }
+
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable Function<Class<?>, Object> parameterFactory) {
+        List<Supplier<Object>> fetchActions = targets.stream()
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameterFactory))
+            .collect(toList());
+
+        return runFetchActions(fetchActions);
+    }
+
+    @Nullable
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable Function<Class<?>, Object> parameterFactory) {
+        ProjectState builderTarget = targetProject.getOwner();
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
+        return toolingModelScope.getModel(modelName, parameterFactory);
     }
 
     private static Function<Class<?>, Object> createParameterFactory(Object modelBuilderParameter) {
@@ -114,5 +136,64 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         }
 
         return Cast.uncheckedCast(rawModels);
+    }
+
+    private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
+        List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
+        for (Supplier<T> action : actions) {
+            wrappers.add(new NestedAction<>(action));
+        }
+        executeFetchActions(wrappers);
+
+        List<T> results = new ArrayList<>(actions.size());
+        List<Throwable> failures = new ArrayList<>();
+        for (NestedAction<T> wrapper : wrappers) {
+            Try<T> value = wrapper.value();
+            if (value.isSuccessful()) {
+                results.add(value.get());
+            } else {
+                failures.add(value.getFailure().get());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+        return results;
+    }
+
+    public void executeFetchActions(List<? extends RunnableBuildOperation> actions) {
+        buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
+            for (RunnableBuildOperation action : actions) {
+                buildOperationQueue.add(action);
+            }
+        });
+    }
+
+    private static class NestedAction<T> implements RunnableBuildOperation {
+        private final Supplier<T> action;
+        private Try<T> result;
+
+        public NestedAction(Supplier<T> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            try {
+                T value = action.get();
+                result = Try.successful(value);
+            } catch (Throwable t) {
+                result = Try.failure(t);
+            }
+        }
+
+        public Try<T> value() {
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Intermediate model fetching");
+        }
     }
 }

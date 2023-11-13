@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
@@ -77,8 +78,8 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             };
         }
 
-        protected IntermediateToolingModelProvider createIntermediateToolingProvider() {
-            return new DefaultIntermediateToolingModelProvider();
+        protected IntermediateToolingModelProvider createIntermediateToolingProvider(BuildOperationExecutor buildOperationExecutor) {
+            return new DefaultIntermediateToolingModelProvider(buildOperationExecutor);
         }
     }
 }
