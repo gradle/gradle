@@ -25,12 +25,11 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class FetchTasksAction implements BuildAction<List<Task>> {
+public class FetchRootProjectsTasks implements BuildAction<List<Task>> {
     @Override
     public List<Task> execute(BuildController controller) {
         return controller.getBuildModel().getEditableBuilds().stream()
-            .flatMap(build -> build.getProjects().stream())
-            .flatMap(project -> controller.getModel(project, GradleProject.class).getTasks().stream())
+            .flatMap(build -> controller.getModel(build.getRootProject(), GradleProject.class).getTasks().stream())
             .collect(toList());
     }
 }

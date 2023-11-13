@@ -44,6 +44,24 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         model.projects.first().buildTreePath == ":"
     }
 
+    @TargetGradleVersion('>=8.6')
+    def "buildTreePath available on BuildInvocations"() {
+        given:
+        includedBuild("b1")
+        includedBuild("b2")
+
+        when:
+        def tasks = withConnection {
+            it.action(new FetchBuildInvocationsTasks()).run()
+        }
+
+        then:
+        tasks.size() > 0
+
+        tasks.buildTreePath.every { it != null }
+        tasks.buildTreePath.containsAll([":b1:buildEnvironment", ":b2:buildEnvironment"])
+    }
+
     def "buildTreePath is available for tasks"() {
         given:
         includedBuild("b1")
@@ -51,7 +69,7 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def model = withConnection {
-            it.action(new FetchTasksAction()).run();
+            it.action(new FetchRootProjectsTasks()).run()
         }.collect { it.buildTreePath }
 
         then:
@@ -67,7 +85,7 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection {
-            it.action(new FetchTasksAction()).run();
+            it.action(new FetchRootProjectsTasks()).run();
         }.collect { it.buildTreePath }
 
         then:

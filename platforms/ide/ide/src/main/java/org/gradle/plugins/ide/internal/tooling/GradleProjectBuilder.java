@@ -100,7 +100,6 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
     private static LaunchableGradleProjectTask buildTask(DefaultGradleProject owner, Task task) {
         LaunchableGradleProjectTask model = buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task);
         model.setProject(owner);
-        model.setBuildTreePath(getBuildTreePath(task));
         return model;
     }
 
