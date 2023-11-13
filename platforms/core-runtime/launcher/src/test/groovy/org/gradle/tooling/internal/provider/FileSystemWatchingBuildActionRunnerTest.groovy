@@ -78,7 +78,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
 
         then:
-        1 * problemEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
@@ -114,7 +114,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
 
         then:
-        1 * problemEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
@@ -153,7 +153,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.afterBuildStarted(WatchMode.ENABLED, _, _, buildOperationRunner) >> true
 
         then:
-        1 * problemEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled })
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
