@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 import java.util.LinkedHashMap;
@@ -188,10 +189,25 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         Node attributesNode = getAttributesNode(node, "attributes");
 
-        effectiveEntryAttrs.forEach((key, value) ->
-            attributesNode.appendNode("attribute", ImmutableMap.of(
-                "name", key,
-                "value", value)));
+        effectiveEntryAttrs.forEach((key, value) -> {
+            // If the attribute value is an Iterable, an <attribute> node is produced for each element in the Iterable.
+            // This is something that is supported by the classpath entry format and it allows users to define multi-value
+            // entries by putting a list as value into the 'entryAttributes' Map.
+            // For exmaple: entryAttributes['add-exports'] = ['java.base/jdk.internal.access=ALL-UNNAMED', 'java.base/jdk.internal.loader=ALL-UNNAMED']
+            if (value instanceof Iterable) {
+                Cast.<Iterable<?>>uncheckedCast(value).forEach(valueElement ->
+                    attributesNode.appendNode("attribute", ImmutableMap.of(
+                        "name", key,
+                        "value", valueElement)
+                    )
+                );
+            } else {
+                attributesNode.appendNode("attribute", ImmutableMap.of(
+                    "name", key,
+                    "value", value)
+                );
+            }
+        });
     }
 
     private Map<String, Object> getEffectiveEntryAttrs() {
@@ -207,6 +223,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
         return (Node) attributesNodes.get(0);
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
