@@ -87,7 +87,7 @@ public interface Problem {
      * @since 8.5
      */
     @Nullable
-    RuntimeException getException(); // TODO this should be RuntimeException
+    RuntimeException getException();
 
     /**
      * Additional Data about the problem.

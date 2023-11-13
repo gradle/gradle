@@ -23,6 +23,8 @@ import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -32,28 +34,28 @@ import java.util.Map;
 
 public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
 
-    protected String label; // TODO make them private
-    protected String problemCategory;
-    protected Severity severity;
-    protected List<ProblemLocation> locations;
-    protected String details;
-    protected DocLink docLink;
-    protected boolean explicitlyUndocumented;
-    protected List<String> solutions;
+    private String label;
+    private String problemCategory;
+    private Severity severity;
+    private List<ProblemLocation> locations;
+    private String details;
+    private DocLink docLink;
+    private boolean explicitlyUndocumented;
+    private List<String> solutions;
     private RuntimeException exception;
-    protected final Map<String, String> additionalMetadata;
-    protected boolean collectLocation = false;
+    private final Map<String, String> additionalMetadata;
+    private boolean collectLocation = false;
 
     public DefaultBasicProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
         this.problemCategory = problem.getProblemCategory().toString();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
-        this.details = problem.getDetails(); // TODO change field name
-        this.docLink = problem.getDocumentationLink(); // TODO change field name
+        this.details = problem.getDetails();
+        this.docLink = problem.getDocumentationLink();
         this.explicitlyUndocumented = problem.getDocumentationLink() == null;
-        this.solutions = new ArrayList<String>(problem.getSolutions()); // TODO rename to solutions
-        this.exception = problem.getException(); // TODO ensure this is valid
+        this.solutions = new ArrayList<String>(problem.getSolutions());
+        this.exception = problem.getException();
         this.additionalMetadata = new HashMap<String, String>(problem.getAdditionalData());
     }
 
@@ -65,19 +67,19 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     @Override
     public Problem build() {
         return new DefaultProblem(
-            label,
-            getSeverity(severity),
-            locations,
-            docLink,
-            details,
-            solutions,
+            getLabel(),
+            getSeverity(getSeverity()),
+            getLocations(),
+            getDocLink(),
+            getDetails(),
+            getSolutions(),
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
-            problemCategory,
-            additionalMetadata);
+            getProblemCategory(),
+            getAdditionalMetadata());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
-        return exception == null && collectLocation ? new RuntimeException() : exception;
+        return getException() == null && isCollectLocation() ? new RuntimeException() : getException();
     }
 
     protected Severity getSeverity(@Nullable Severity severity) {
@@ -106,8 +108,8 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     @Override
-    public UnboundBasicProblemBuilder location(ProblemLocation location) {
-        this.locations.add(location);
+    public UnboundBasicProblemBuilder taskPathLocation(Path taskPath) {
+        this.getLocations().add(new TaskPathLocation(taskPath));
         return this;
     }
 
@@ -117,18 +119,18 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public UnboundBasicProblemBuilder location(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column) {
-        this.locations.add(new FileLocation(path, line, column, 0));
+        this.getLocations().add(new FileLocation(path, line, column, 0));
         return this;
     }
 
     public UnboundBasicProblemBuilder fileLocation(String path, @javax.annotation.Nullable Integer line, @javax.annotation.Nullable Integer column, @javax.annotation.Nullable Integer length) {
-        this.locations.add(new FileLocation(path, line, column, length));
+        this.getLocations().add(new FileLocation(path, line, column, length));
         return this;
     }
 
     @Override
     public UnboundBasicProblemBuilder pluginLocation(String pluginId) {
-        this.locations.add(new PluginIdLocation(pluginId));
+        this.getLocations().add(new PluginIdLocation(pluginId));
         return this;
     }
 
@@ -168,15 +170,15 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public UnboundBasicProblemBuilder solution(@Nullable String solution) {
-        if (this.solutions == null) {
+        if (this.getSolutions() == null) {
             this.solutions = new ArrayList<String>();
         }
-        this.solutions.add(solution);
+        this.getSolutions().add(solution);
         return this;
     }
 
     public UnboundBasicProblemBuilder additionalData(String key, String value) {
-        this.additionalMetadata.put(key, value);
+        this.getAdditionalMetadata().put(key, value);
         return this;
     }
 
@@ -189,5 +191,41 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     @Nullable
     RuntimeException getException() {
         return exception;
+    }
+
+    protected String getLabel() {
+        return label;
+    }
+
+    protected String getProblemCategory() {
+        return problemCategory;
+    }
+
+    protected List<ProblemLocation> getLocations() {
+        return locations;
+    }
+
+    protected String getDetails() {
+        return details;
+    }
+
+    protected DocLink getDocLink() {
+        return docLink;
+    }
+
+    protected boolean isExplicitlyUndocumented() {
+        return explicitlyUndocumented;
+    }
+
+    protected List<String> getSolutions() {
+        return solutions;
+    }
+
+    protected Map<String, String> getAdditionalMetadata() {
+        return additionalMetadata;
+    }
+
+    protected boolean isCollectLocation() {
+        return collectLocation;
     }
 }

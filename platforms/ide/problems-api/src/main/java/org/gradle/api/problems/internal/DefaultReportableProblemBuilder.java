@@ -21,7 +21,8 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.UnboundReportableProblemBuilder;
-import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -45,20 +46,20 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
     }
 
     public ReportableProblem build() {
-        if (!explicitlyUndocumented && docLink == null) {
-            throw new IllegalStateException("Problem is not documented: " + label);
+        if (!isExplicitlyUndocumented() && getDocLink() == null) {
+            throw new IllegalStateException("Problem is not documented: " + getLabel());
         }
 
         return new DefaultReportableProblem(
-            label,
-            getSeverity(severity),
-            locations,
-            docLink,
-            details,
-            solutions,
+            getLabel(),
+            getSeverity(getSeverity()),
+            getLocations(),
+            getDocLink(),
+            getDetails(),
+            getSolutions(),
             getExceptionForProblemInstantiation(), //TODO: don't create exception if already reported often
-            problemCategory,
-            additionalMetadata,
+            getProblemCategory(),
+            getAdditionalMetadata(),
             problemsService);
     }
 
@@ -107,8 +108,8 @@ public class DefaultReportableProblemBuilder extends DefaultBasicProblemBuilder 
     }
 
     @Override
-    public UnboundReportableProblemBuilder location(ProblemLocation location) {
-        super.location(location);
+    public UnboundReportableProblemBuilder taskPathLocation(Path taskPath) {
+        this.getLocations().add(new TaskPathLocation(taskPath));
         return this;
     }
 

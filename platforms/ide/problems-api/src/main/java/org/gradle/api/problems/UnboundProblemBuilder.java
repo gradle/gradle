@@ -17,7 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
@@ -40,7 +40,7 @@ public interface UnboundProblemBuilder extends
     UnboundProblemBuilder pluginLocation(String pluginId);
     UnboundProblemBuilder stackLocation();
     UnboundProblemBuilder noLocation();
-    UnboundProblemBuilder location(ProblemLocation location); // TODO we should not have this method here!
+    UnboundProblemBuilder taskPathLocation(Path taskPath);
     UnboundProblemBuilder label(String label, Object... args);
     UnboundProblemBuilder category(String category, String... details);
     UnboundProblemBuilder details(String details);
@@ -48,4 +48,5 @@ public interface UnboundProblemBuilder extends
     UnboundProblemBuilder additionalData(String key, String value);
     UnboundProblemBuilder withException(RuntimeException e);
     UnboundProblemBuilder severity(Severity severity);
+
 }
