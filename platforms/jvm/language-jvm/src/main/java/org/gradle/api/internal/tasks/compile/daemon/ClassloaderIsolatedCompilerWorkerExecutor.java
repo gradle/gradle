@@ -16,20 +16,19 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 
 public class ClassloaderIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompilerWorkerExecutor {
-    public ClassloaderIsolatedCompilerWorkerExecutor(IsolatedClassloaderWorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
-        super(delegate, actionExecutionSpecFactory);
+    public ClassloaderIsolatedCompilerWorkerExecutor(IsolatedClassloaderWorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir) {
+        super(delegate, actionExecutionSpecFactory, projectCacheDir);
     }
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
-        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getClassLoaderStructure());
+        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), getProjectCacheDir().getDir(), daemonForkOptions.getClassLoaderStructure());
     }
 }
-
-// TODO: do we need to get the project cache dir from an internal java fork options?

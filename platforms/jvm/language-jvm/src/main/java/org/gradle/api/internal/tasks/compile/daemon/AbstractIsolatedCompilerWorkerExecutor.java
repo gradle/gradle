@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,10 +40,16 @@ import javax.inject.Inject;
 abstract public class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {
     private final WorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final ProjectCacheDir projectCacheDir;
 
-    public AbstractIsolatedCompilerWorkerExecutor(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public AbstractIsolatedCompilerWorkerExecutor(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir) {
         this.workerFactory = workerFactory;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+        this.projectCacheDir = projectCacheDir;
+    }
+
+    protected ProjectCacheDir getProjectCacheDir() {
+        return projectCacheDir;
     }
 
     abstract IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions);

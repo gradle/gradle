@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -122,7 +123,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
             ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
-                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory), getScalaClasspath(),
+                getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, getServices().get(ProjectCacheDir.class)), getScalaClasspath(),
                 getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry,
                 getServices().get(ClasspathHasher.class));
             compiler = scalaCompilerFactory.newCompiler(spec);
