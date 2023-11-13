@@ -71,6 +71,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
@@ -120,7 +121,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
                 pluginServiceRegistry.registerProjectServices(registration);
             }
         });
-        addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir(), project.getProjectDir())); // TODO: get proper project cache dir here
+        addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir(), parent.get(ProjectCacheDir.class).getDir()));
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
