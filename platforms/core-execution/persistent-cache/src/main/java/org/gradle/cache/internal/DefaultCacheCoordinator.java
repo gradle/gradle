@@ -88,7 +88,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockFile, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -100,15 +100,15 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         switch (lockOptions.getMode()) {
             case Shared:
-                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new FixedSharedModeCrossProcessCacheAccess(cacheDisplayName, lockFile, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case Exclusive:
-                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new FixedExclusiveModeCrossProcessCacheAccess(cacheDisplayName, lockFile, lockOptions, lockManager, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case OnDemand:
-                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockTarget, lockOptions.copyWithMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
+                crossProcessCacheAccess = new LockOnDemandCrossProcessCacheAccess(cacheDisplayName, lockFile, lockOptions.copyWithMode(Exclusive), lockManager, stateLock, initializationAction, onFileLockAcquireAction, onFileLockReleaseAction);
                 fileAccess = new UnitOfWorkFileAccess();
                 break;
             case None:

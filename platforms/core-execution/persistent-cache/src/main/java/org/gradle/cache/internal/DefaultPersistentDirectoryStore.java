@@ -47,7 +47,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File cacheDir;
-    private final LockOptions lockOptions;
+    private final File lockFile;
     @Nullable
     private final CacheCleanupStrategy cacheCleanupStrategy;
     private final FileLockManager lockManager;
@@ -57,6 +57,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
     private DefaultCacheCoordinator cacheAccess;
+    private final LockOptions lockOptions;
 
     public DefaultPersistentDirectoryStore(
         File cacheDir,
@@ -68,7 +69,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         ProgressLoggerFactory progressLoggerFactory
     ) {
         this.cacheDir = cacheDir;
-        this.lockOptions = lockOptions;
         this.cacheCleanupStrategy = cacheCleanupStrategy;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
@@ -76,14 +76,17 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.gcFile = new File(cacheDir, "gc.properties");
         this.progressLoggerFactory = progressLoggerFactory;
         this.displayName = displayName != null ? (displayName + " (" + cacheDir + ")") : ("cache directory " + cacheDir.getName() + " (" + cacheDir + ")");
+        this.lockFile = lockOptions.determineLockFile(cacheDir, propertiesFile);
+        this.lockOptions = lockOptions;
     }
 
     @Override
     public DefaultPersistentDirectoryStore open() {
+        GFileUtils.mkdirs(lockFile.getParentFile());
+        // This may be redundant, as the lock file will often be created in the cache, but it's not guaranteed to be if an alternate lock dir
+        // is supplied, and we want to create the lock file prior to the content dir anyway.
         GFileUtils.mkdirs(cacheDir);
-        if (null != lockOptions.getAlternateLockDir()) {
-            GFileUtils.mkdirs(lockOptions.getAlternateLockDir());
-        }
+
         cacheAccess = createCacheAccess();
         try {
             cacheAccess.open();
@@ -95,19 +98,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
-    }
-
-    private File getLockTarget() {
-        switch (lockOptions.getLockTargetType()) {
-            case CacheDirectory:
-            case DefaultTarget:
-                return cacheDir;
-            case CachePropertiesFile:
-                return propertiesFile;
-            default:
-                throw new IllegalArgumentException("Unsupported lock target: " + lockOptions.getLockTargetType());
-        }
+        return new DefaultCacheCoordinator(displayName, lockFile, lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
     }
 
     protected CacheInitializationAction getInitAction() {

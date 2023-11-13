@@ -16,7 +16,6 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.Action
-import org.gradle.cache.LockOptions
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler

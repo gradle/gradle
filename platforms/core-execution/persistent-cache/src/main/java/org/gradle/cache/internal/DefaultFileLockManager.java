@@ -45,7 +45,6 @@ import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -116,17 +115,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
     }
 
-    static File determineLockTargetFile(File target, LockOptions options) {
-        File baseDir = options.getAlternateLockDir() == null ? target : options.getAlternateLockDir();
-        if (baseDir.isDirectory()) {
-            return new File(baseDir, target.getName() + ".lock");
-        } else {
-            return new File(baseDir.getParentFile(), target.getName() + ".lock");
-        }
-    }
-
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
-        @Nullable
         private final File lockFile;
         private final File target;
         private final LockMode mode;
@@ -149,7 +138,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
-            this.lockFile = determineLockTargetFile(target, options);
+            this.lockFile = target;
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             try {
