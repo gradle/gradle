@@ -76,7 +76,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], new DefaultLockOptions(OnDemand, false, null, LockOptions.LockTargetType.CachePropertiesFile), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], new DefaultLockOptions(Shared, false, null, LockOptions.LockTargetType.CachePropertiesFile), null, null) >> cache
     }
 
     void canSpecifyInitializerActionForDirectoryCache() {

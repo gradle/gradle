@@ -123,8 +123,8 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         where:
         target                                      | toBeLocked
         LockOptions.LockTargetType.CachePropertiesFile | "cache.properties"
-//        LockOptions.LockTargetType.CacheDirectory      | "."
-//        LockOptions.LockTargetType.DefaultTarget       | "."
+        LockOptions.LockTargetType.CacheDirectory      | "."
+        LockOptions.LockTargetType.DefaultTarget       | "."
     }
 
     def "open does not lock cache directory when None mode requested"() {
