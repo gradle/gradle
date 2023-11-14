@@ -87,11 +87,19 @@ public interface Problem {
      * @since 8.5
      */
     @Nullable
-    Throwable getException();
+    RuntimeException getException();
 
     /**
      * Additional Data about the problem.
      * In a map so it can be somewhat structured.
      */
     Map<String, String> getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    UnboundBasicProblemBuilder toBuilder();
 }

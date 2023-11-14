@@ -34,14 +34,14 @@ import org.gradle.api.Incubating;
  *          .details("this is a test")
  *  }</pre>
  *
- * @since 8.5
+ * @since 8.6
  */
 @Incubating
-public interface BuildableProblemBuilder extends ProblemBuilder {
+public interface BasicProblemBuilder extends ProblemBuilder {
     /**
      * Creates the new problem. Calling {@link #build()} won't report the problem via build operations, it can be done separately by calling {@link ReportableProblem#report()}.
      *
      * @return the new problem
      */
-    ReportableProblem build();
+    Problem build();
 }
