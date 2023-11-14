@@ -22,11 +22,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.intercept.AbstractInvocation;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
@@ -48,10 +50,10 @@ public class GroovyDynamicDispatchInterceptors {
         Class<?> senderClass,
         GroovyObject receiver,
         String messageName,
-        @CallerClassName String consumer
+        @CallerClassName String consumer,
+        @InjectVisitorContext InterceptorsRequest interceptorsRequest
     ) throws Throwable {
-        // TODO: Pass InterceptorsRequest as a method parameter
-        if (!ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).isAwareOfCallSiteName(messageName)) {
+        if (!ClosureCallInterceptorResolver.of(interceptorsRequest).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
@@ -70,10 +72,11 @@ public class GroovyDynamicDispatchInterceptors {
         Class<?> senderClass,
         Object receiver,
         String messageName,
-        @CallerClassName String consumer
+        @CallerClassName String consumer,
+        @InjectVisitorContext InterceptorsRequest interceptorsRequest
     ) throws Throwable {
-        // TODO: Pass InterceptorsRequest as a method parameter
-        CallInterceptor interceptor = ClosureCallInterceptorResolver.of(InterceptorsRequest.INSTRUMENTATION_ONLY).resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
+        CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+        CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi
             class SetPropertyInvocationImpl extends AbstractInvocation<Object> {
