@@ -175,9 +175,8 @@ public class ExecutionGradleServices {
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
-        ))))))))))))));
+        )))))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
@@ -196,7 +195,6 @@ public class ExecutionGradleServices {
             new ResolveInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            // TODO Replace with emptying the whole workspace
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline
         )))))))))))))))));
