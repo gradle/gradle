@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.buildtree.BuildModelActionRunner
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -29,14 +30,12 @@ import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class VintageBuildTreeLifecycleControllerFactory(
     private val buildModelParameters: BuildModelParameters,
     private val taskGraph: BuildTreeWorkGraphController,
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val projectLeaseRegistry: ProjectLeaseRegistry,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
     private val startParameter: StartParameter,
 ) : BuildTreeLifecycleControllerFactory {
@@ -55,9 +54,13 @@ class VintageBuildTreeLifecycleControllerFactory(
 
     internal
     fun createModelCreator(targetBuild: BuildLifecycleController) =
-        DefaultBuildTreeModelCreator(buildModelParameters, targetBuild.gradle.owner, buildOperationExecutor, projectLeaseRegistry)
+        DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createModelActionRunner())
 
     internal
     fun createWorkPreparer(targetBuild: BuildLifecycleController) =
         DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
+
+    private
+    fun createModelActionRunner() =
+        BuildModelActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API client action")
 }

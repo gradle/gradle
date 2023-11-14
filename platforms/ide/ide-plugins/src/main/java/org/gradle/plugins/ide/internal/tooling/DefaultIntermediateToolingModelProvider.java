@@ -21,19 +21,13 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.buildtree.BuildModelActionRunner;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -44,10 +38,10 @@ import static java.util.stream.Collectors.toList;
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildModelActionRunner buildModelActionRunner;
 
-    public DefaultIntermediateToolingModelProvider(BuildOperationExecutor buildOperationExecutor) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public DefaultIntermediateToolingModelProvider(BuildModelActionRunner buildModelActionRunner) {
+        this.buildModelActionRunner = buildModelActionRunner;
     }
 
     @Override
@@ -139,62 +133,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
-        List<FetchAction<T>> wrappers = new ArrayList<>(actions.size());
-        for (Supplier<T> action : actions) {
-            wrappers.add(new FetchAction<>(action));
-        }
-        executeFetchActions(wrappers);
-
-        List<T> results = new ArrayList<>(actions.size());
-        List<Throwable> failures = new ArrayList<>();
-        for (FetchAction<T> wrapper : wrappers) {
-            Try<T> value = wrapper.value();
-            if (value.isSuccessful()) {
-                results.add(value.get());
-            } else {
-                failures.add(value.getFailure().get());
-            }
-        }
-        if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(failures, null);
-        }
-        return results;
-    }
-
-    public void executeFetchActions(List<? extends RunnableBuildOperation> actions) {
-        buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
-            for (RunnableBuildOperation action : actions) {
-                buildOperationQueue.add(action);
-            }
-        });
-    }
-
-    @NonNullApi
-    private static class FetchAction<T> implements RunnableBuildOperation {
-        private final Supplier<T> action;
-        private Try<T> result;
-
-        public FetchAction(Supplier<T> action) {
-            this.action = action;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            try {
-                T value = action.get();
-                result = Try.successful(value);
-            } catch (Throwable t) {
-                result = Try.failure(t);
-            }
-        }
-
-        public Try<T> value() {
-            return result;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Intermediate model fetching");
-        }
+        return buildModelActionRunner.run(actions);
     }
 }

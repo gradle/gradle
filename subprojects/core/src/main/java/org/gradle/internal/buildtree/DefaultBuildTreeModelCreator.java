@@ -18,33 +18,24 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildState defaultTarget;
-    private final ProjectLeaseRegistry projectLeaseRegistry;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final boolean parallelActions;
+    private final BuildModelActionRunner buildModelActionRunner;
 
     public DefaultBuildTreeModelCreator(
-        BuildModelParameters buildModelParameters,
         BuildState defaultTarget,
-        BuildOperationExecutor buildOperationExecutor,
-        ProjectLeaseRegistry projectLeaseRegistry
+        BuildModelActionRunner buildModelActionRunner
     ) {
         this.defaultTarget = defaultTarget;
-        this.projectLeaseRegistry = projectLeaseRegistry;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.parallelActions = buildModelParameters.isParallelToolingApiActions();
+        this.buildModelActionRunner = buildModelActionRunner;
     }
 
     @Override
@@ -80,26 +71,12 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         @Override
         public boolean queryModelActionsRunInParallel() {
-            return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
+            return buildModelActionRunner.isParallel();
         }
 
         @Override
-        public void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
-            if (queryModelActionsRunInParallel()) {
-                buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
-                    for (RunnableBuildOperation action : actions) {
-                        buildOperationQueue.add(action);
-                    }
-                });
-            } else {
-                for (RunnableBuildOperation action : actions) {
-                    try {
-                        action.run(null);
-                    } catch (Exception e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            }
+        public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
+            return buildModelActionRunner.run(actions);
         }
     }
 }
