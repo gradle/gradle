@@ -43,6 +43,8 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
+import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
+
 /**
  * Note that this is kept as a Java source file as a workaround for IntelliJ editing
  * being very slow with deeply nested constructor calls in Groovy source files.
@@ -76,7 +78,7 @@ public class TestExecutionEngineFactory {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -35,45 +33,47 @@ import org.gradle.internal.time.Timer;
 import java.time.Duration;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
-
 /**
  * Capture the outputs of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureOutputsAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext, B> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
+    private final AfterExecutionOutputFilter<? super C, B> outputFilter;
     private final Step<? super C, ? extends Result> delegate;
 
     public CaptureOutputsAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
+        AfterExecutionOutputFilter<? super C, B> outputFilter,
         Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
+        this.outputFilter = outputFilter;
         this.delegate = delegate;
     }
 
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        Optional<ExecutionOutputState> afterExecutionOutputState = context.getBeforeExecutionState()
+        Optional<ExecutionOutputState> afterExecutionOutputState = outputFilter.getBeforeExecutionState(context)
             .map(beforeExecutionState -> captureOutputsAfterExecution(work, context, beforeExecutionState, result));
 
         return new AfterExecutionResult(result, afterExecutionOutputState.orElse(null));
     }
 
-    private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Result result) {
+    private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, C context, B beforeExecutionState, Result result) {
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();
-                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
+                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, beforeExecutionState, unfilteredOutputSnapshotsAfterExecution);
                 long snapshotOutputDuration = timer.getElapsedMillis();
 
                 // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
@@ -88,24 +88,6 @@ public class CaptureOutputsAfterExecutionStep<C extends BeforeExecutionContext> 
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
-    }
-
-    private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState) {
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
-
-        if (beforeExecutionState.getDetectedOverlappingOutputs().isPresent()) {
-            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getPreviousExecutionState()
-                .map(PreviousExecutionState::getOutputFilesProducedByWork)
-                .orElse(ImmutableSortedMap.of());
-
-            ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()
-                .map(BeforeExecutionState::getOutputFileLocationSnapshots)
-                .orElse(ImmutableSortedMap.of());
-
-            return filterOutputsAfterExecution(previousExecutionOutputSnapshots, unfilteredOutputSnapshotsBeforeExecution, unfilteredOutputSnapshotsAfterExecution);
-        } else {
-            return unfilteredOutputSnapshotsAfterExecution;
-        }
     }
 
     /*

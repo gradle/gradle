@@ -108,6 +108,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
@@ -116,11 +117,11 @@ import org.gradle.internal.execution.steps.BeforeExecutionContext;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
-import org.gradle.internal.execution.steps.NoAfterExecutionStateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.PreviousExecutionContext;
@@ -154,6 +155,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -167,6 +169,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+
+import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 /**
  * The set of dependency management services that are created per build in the tree.
@@ -468,10 +472,12 @@ class DependencyManagementBuildScopeServices {
      * Currently used for running artifact transforms in buildscript blocks, compiling Kotlin scripts etc.
      */
     ExecutionEngine createExecutionEngine(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         CurrentBuildOperationRef currentBuildOperationRef,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
+        OutputSnapshotter outputSnapshotter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
@@ -488,7 +494,7 @@ class DependencyManagementBuildScopeServices {
             new NoOpCachingStateStep<>(
             new NeverUpToDateStep<>(
             new NoInputChangesStep<>(
-            new NoAfterExecutionStateStep<>(
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
             // TODO Use a shared execution pipeline
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
