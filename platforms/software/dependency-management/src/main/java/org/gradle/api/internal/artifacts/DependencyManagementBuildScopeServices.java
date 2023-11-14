@@ -91,6 +91,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
@@ -477,6 +478,7 @@ class DependencyManagementBuildScopeServices {
         CurrentBuildOperationRef currentBuildOperationRef,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
+        OriginMetadataFactory originMetadataFactory,
         OutputSnapshotter outputSnapshotter,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
@@ -488,7 +490,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignImmutableWorkspaceStep<>(fileSystemAccess,
+            new AssignImmutableWorkspaceStep<>(fileSystemAccess, originMetadataFactory, outputSnapshotter,
             new NoBeforeExecutionStateStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new NoOpCachingStateStep<>(

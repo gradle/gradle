@@ -38,9 +38,10 @@ abstract class StepSpec<C extends Context> extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     final buildOperationExecutor = new TestBuildOperationExecutor()
 
-    final displayName = "job ':test'"
+    final workId = ":test"
+    final displayName = "job '$workId'"
     final identity = Stub(UnitOfWork.Identity) {
-        getUniqueId() >> ":test"
+        uniqueId >> workId
     }
     final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)

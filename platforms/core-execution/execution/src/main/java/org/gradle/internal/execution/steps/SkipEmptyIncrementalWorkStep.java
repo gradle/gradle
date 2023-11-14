@@ -105,8 +105,7 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
             }
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
-
-        return CachingResult.shortcutResult(Execution.skipped(skipOutcome, work), executionReason, duration);
+        return CachingResult.shortcutResult(duration, Execution.skipped(skipOutcome, work), null, executionReason, null);
     }
 
     private boolean cleanPreviousOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {

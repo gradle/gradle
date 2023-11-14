@@ -58,6 +58,6 @@ public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<P
 
     @Override
     protected CachingResult performSkip(UnitOfWork work, PreviousExecutionContext context) {
-        return CachingResult.shortcutResult(Execution.skipped(SHORT_CIRCUITED, work), null, Duration.ZERO);
+        return CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(SHORT_CIRCUITED, work), null, null, null);
     }
 }

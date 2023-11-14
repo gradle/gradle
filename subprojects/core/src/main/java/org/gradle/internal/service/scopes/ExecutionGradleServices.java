@@ -24,6 +24,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
@@ -138,6 +139,7 @@ public class ExecutionGradleServices {
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
         FileSystemAccess fileSystemAccess,
+        OriginMetadataFactory originMetadataFactory,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
@@ -158,10 +160,12 @@ public class ExecutionGradleServices {
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(fileSystemAccess,
+            new AssignImmutableWorkspaceStep<>(fileSystemAccess, originMetadataFactory, outputSnapshotter,
+            // TODO Remove this as it's not used
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyNonIncrementalWorkStep(workInputListeners,
+            // TODO Remove this as it's not used
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
