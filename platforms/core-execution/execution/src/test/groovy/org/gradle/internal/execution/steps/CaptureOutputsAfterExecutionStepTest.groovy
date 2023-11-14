@@ -18,34 +18,23 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.OutputSnapshotter
-import org.gradle.internal.execution.history.BeforeExecutionState
-import org.gradle.internal.execution.history.OverlappingOutputs
-import org.gradle.internal.execution.history.PreviousExecutionState
-import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
-import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import java.time.Duration
-
-import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
 class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
+    def beforeExecutionState = Mock(Object)
     def outputSnapshotter = Mock(OutputSnapshotter)
+    def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
 
-    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, delegate)
+    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputFilter, delegate)
 
     def "no state is captured if before execution state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
-        context.beforeExecutionState >> Optional.empty()
         delegateResult.duration >> delegateDuration
 
         when:
@@ -56,15 +45,13 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         assertNoOperation()
 
         1 * delegate.execute(work, _) >> delegateResult
+        1 * outputFilter.getBeforeExecutionState(context) >> Optional.empty()
         0 * _
     }
 
     def "fails if snapshotting outputs fail"() {
         def delegateDuration = Duration.ofMillis(123)
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
-        context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
-            detectedOverlappingOutputs >> Optional.empty()
-        })
         delegateResult.duration >> delegateDuration
 
         when:
@@ -78,22 +65,26 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         1 * delegate.execute(work, _) >> delegateResult
 
         then:
+        1 * outputFilter.getBeforeExecutionState(context) >> Optional.of(beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         0 * _
     }
 
-    def "non-overlapping outputs are captured"() {
+    def "captured outputs are filtered"() {
         def delegateDuration = Duration.ofMillis(123)
-        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", Mock(FileSystemSnapshot))
-        context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
-            detectedOverlappingOutputs >> Optional.empty()
-        })
+        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+            "outputDir", Mock(FileSystemSnapshot),
+            "outputFile", Mock(FileSystemSnapshot),
+        )
+        def filteredOutputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+            "outputDir", Mock(FileSystemSnapshot)
+        )
         delegateResult.duration >> delegateDuration
 
         when:
         def result = step.execute(work, context)
         then:
-        result.afterExecutionOutputState.get().outputFilesProducedByWork == outputSnapshots
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == filteredOutputSnapshots
         result.duration == delegateDuration
         result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
         result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
@@ -103,58 +94,9 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         1 * delegate.execute(work, _) >> delegateResult
 
         then:
+        1 * outputFilter.getBeforeExecutionState(context) >> Optional.of(beforeExecutionState)
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
-        0 * _
-    }
-
-    def "overlapping outputs are captured"() {
-        def delegateDuration = Duration.ofMillis(123)
-
-        def staleFile = fileSnapshot("stale", TestHashCodes.hashCodeFrom(123))
-        def outputFile = fileSnapshot("outputs", TestHashCodes.hashCodeFrom(345))
-
-        def emptyDirectory = directorySnapshot()
-        def directoryWithStaleFile = directorySnapshot(staleFile)
-        def directoryWithStaleFileAndOutput = directorySnapshot(outputFile, staleFile)
-        def directoryWithOutputFile = directorySnapshot(outputFile)
-
-        def previousOutputs = ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "outputDir", emptyDirectory
-        )
-        def outputsBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "outputDir", directoryWithStaleFile
-        )
-        def outputsAfterExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "outputDir", directoryWithStaleFileAndOutput
-        )
-        def filteredOutputs = ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "outputDir", directoryWithOutputFile
-        )
-        def overlappingOutputs = Mock(OverlappingOutputs)
-
-        context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
-            detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
-            outputFileLocationSnapshots >> outputsBeforeExecution
-        })
-        context.previousExecutionState >> Optional.of(Stub(PreviousExecutionState) {
-            outputFilesProducedByWork >> previousOutputs
-        })
-        delegateResult.duration >> delegateDuration
-
-        when:
-        def result = step.execute(work, context)
-        then:
-        result.afterExecutionOutputState.get().outputFilesProducedByWork == filteredOutputs
-        result.duration == delegateDuration
-        result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
-        result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
-        !result.afterExecutionOutputState.get().reused
-
-        1 * delegate.execute(work, _) >> delegateResult
-
-        then:
-        1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
-        assertOperation()
+        1 * outputFilter.filterOutputs(context, beforeExecutionState, outputSnapshots) >> filteredOutputSnapshots
         0 * _
     }
 
@@ -164,19 +106,5 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionConte
         } else {
             assertFailedOperation(CaptureOutputsAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", expectedFailure)
         }
-    }
-
-    private static RegularFileSnapshot fileSnapshot(String name, HashCode contentHash) {
-        new RegularFileSnapshot("/absolute/${name}", name, contentHash, DefaultFileMetadata.file(0L, 0L, FileMetadata.AccessType.DIRECT))
-    }
-
-    private static FileSystemLocationSnapshot directorySnapshot(RegularFileSnapshot... contents) {
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        builder.enterDirectory(FileMetadata.AccessType.DIRECT, "/absolute", "absolute", INCLUDE_EMPTY_DIRS)
-        contents.each {
-            builder.visitLeafElement(it)
-        }
-        builder.leaveDirectory()
-        return builder.result
     }
 }
