@@ -23,7 +23,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
+import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
@@ -76,7 +76,7 @@ public class TestExecutionEngineFactory {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

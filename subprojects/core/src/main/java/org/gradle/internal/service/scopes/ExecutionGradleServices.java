@@ -46,7 +46,7 @@ import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
-import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
+import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.ChangingOutputsContext;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
@@ -189,7 +189,7 @@ public class ExecutionGradleServices {
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, outputChangeListener,
             new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             // TODO Replace with emptying the whole workspace
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

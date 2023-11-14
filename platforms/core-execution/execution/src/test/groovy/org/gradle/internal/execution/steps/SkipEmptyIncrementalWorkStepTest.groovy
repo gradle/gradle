@@ -65,7 +65,7 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
 
         then:
         result.execution.get().outcome == outcome
-        !result.afterExecutionState.present
+        !result.afterExecutionOutputState.present
 
         where:
         didWork | outcome

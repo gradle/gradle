@@ -77,7 +77,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionState >> Optional.of(afterExecutionState)
+        1 * delegateResult.afterExecutionOutputState >> Optional.of(afterExecutionState)
         1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
         0 * _
 
@@ -104,7 +104,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
         0 * _
     }
 
@@ -117,7 +117,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionState >> Optional.of(afterExecutionState)
+        1 * delegateResult.afterExecutionOutputState >> Optional.of(afterExecutionState)
         1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
         0 * _
     }
@@ -131,7 +131,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
         0 * _
     }
 }

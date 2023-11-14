@@ -22,7 +22,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.InputExecutionState;
+import org.gradle.internal.execution.history.ExecutionInputState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -115,10 +115,10 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         }
 
         ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
-            .map(InputExecutionState::getInputProperties)
+            .map(ExecutionInputState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
-            .map(InputExecutionState::getInputFileProperties)
+            .map(ExecutionInputState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(

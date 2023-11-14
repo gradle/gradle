@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 /**
  * Captures the state a {@link org.gradle.internal.execution.UnitOfWork} after the previous execution has finished.
  */
-public interface PreviousExecutionState extends InputExecutionState, OutputExecutionState {
+public interface PreviousExecutionState extends ExecutionInputState, ExecutionOutputState {
 
     /**
      * {@inheritDoc}

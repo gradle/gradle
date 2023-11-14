@@ -63,9 +63,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result.execution.get().outcome == FROM_CACHE
-        result.afterExecutionState.get().reused
-        result.afterExecutionState.get().originMetadata == cachedOriginMetadata
-        result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
+        result.afterExecutionOutputState.get().reused
+        result.afterExecutionOutputState.get().originMetadata == cachedOriginMetadata
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
 
@@ -163,7 +163,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         then:
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.execution >> Try.successful(execution)
-        1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
@@ -284,7 +284,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def originMetadata = Mock(OriginMetadata)
         def outputFilesProducedByWork = snapshotsOf("test": [])
 
-        1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
+        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
             1 * getOriginMetadata() >> originMetadata
         })

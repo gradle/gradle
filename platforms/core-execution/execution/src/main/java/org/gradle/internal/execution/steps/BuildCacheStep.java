@@ -27,9 +27,9 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -86,14 +86,9 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
-                        beforeExecutionState,
-                        cacheHit.getResultingSnapshots(),
-                        true,
-                        originMetadata,
-                        true);
                     Try<Execution> execution = Try.successful(Execution.skipped(FROM_CACHE, work));
-                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
+                    ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, cacheHit.getResultingSnapshots(), originMetadata, true);
+                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionOutputState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
@@ -143,7 +138,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
      */
     private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
-            result.getAfterExecutionState()
+            result.getAfterExecutionOutputState()
                 .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());

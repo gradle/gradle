@@ -38,7 +38,7 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
         // If we did not capture any outputs after execution, remove them from history
         context.getHistory()
             .ifPresent(history -> {
-                if (!result.getAfterExecutionState().isPresent()) {
+                if (!result.getAfterExecutionOutputState().isPresent()) {
                     history.remove(context.getIdentity().getUniqueId());
                 }
             });
