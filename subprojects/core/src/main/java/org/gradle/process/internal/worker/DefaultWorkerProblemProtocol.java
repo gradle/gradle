@@ -27,7 +27,6 @@ public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
 
     @Override
     public void reportProblem(DefaultProblem problem) {
-        // Here we have a stale build operation?
         InternalProblems problemService = (InternalProblems) ProblemsProgressEventEmitterHolder.get();
         problemService.report(problem);
     }
