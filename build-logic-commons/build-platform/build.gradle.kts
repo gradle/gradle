@@ -44,7 +44,7 @@ dependencies {
         api("com.google.errorprone:error_prone_annotations:2.5.1")
         api("com.google.code.gson:gson:2.8.9")
         api("com.nhaarman:mockito-kotlin:1.6.0")
-        api("com.thoughtworks.qdox:qdox:2.0.0")
+        api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
         api("com.vladsch.flexmark:flexmark-all:0.34.60") {
             because("Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)")
