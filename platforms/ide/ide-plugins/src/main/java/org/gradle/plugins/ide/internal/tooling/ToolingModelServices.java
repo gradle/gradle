@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -51,14 +50,14 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             final FileCollectionFactory fileCollectionFactory,
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
-            BuildFeatures buildFeatures,
+            BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
-                    boolean isolatedProjects = buildFeatures.getIsolatedProjects().getActive().get();
+                    boolean isolatedProjects = buildModelParameters.isIsolatedProjects();
                     GradleProjectBuilderInternal gradleProjectBuilder = createGradleProjectBuilder(isolatedProjects);
                     IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
