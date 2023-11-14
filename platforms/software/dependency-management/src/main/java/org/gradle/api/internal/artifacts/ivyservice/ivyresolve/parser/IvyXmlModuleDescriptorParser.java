@@ -568,7 +568,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             for (Artifact artifact : metaData.getArtifacts()) {
                 for (String conf : artifact.getConfigurations()) {
                     if (getMd().getConfiguration(conf) == null) {
-                        throw new IllegalArgumentException("Artifact " + artifact.getArtifactName() + " is mapped to configuration '" + conf + "' which is not declared.");
+                        throw new IllegalArgumentException("Artifact " + artifact.getArtifactName().getDisplayName() + " is mapped to configuration '" + conf + "' which is not declared.");
                     }
                 }
             }

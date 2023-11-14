@@ -18,6 +18,7 @@ package org.gradle.language.cpp.internal.tooling;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -94,28 +95,32 @@ public class CppModelBuilder implements ToolingModelBuilder {
             List<String> additionalArgs = args(compileTask.getCompilerArgs().get());
             CommandLineToolSearchResult compilerLookup = platformToolProvider.locateTool(ToolType.CPP_COMPILER);
             File compilerExe = compilerLookup.isAvailable() ? compilerLookup.getTool() : null;
-            LaunchableGradleTask compileTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, compileTask);
+            LaunchableGradleTask compileTaskModel = buildLaunchableTask(projectIdentifier, compileTask);
             DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(compileTaskModel, compilerExe, compileTask.getObjectFileDir().get().getAsFile(), sourceFiles, headerDirsCopy,  systemIncludes, userIncludes, macroDefines, additionalArgs);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 ComponentWithExecutable componentWithExecutable = (ComponentWithExecutable) binary;
                 LinkExecutable linkTask = componentWithExecutable.getLinkTask().get();
-                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, componentWithExecutable.getExecutableFileProducer().get());
+                LaunchableGradleTask linkTaskModel = buildLaunchableTask(projectIdentifier, componentWithExecutable.getExecutableFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, componentWithExecutable.getExecutableFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
                 binaries.add(new DefaultCppExecutableModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppSharedLibrary) {
                 CppSharedLibrary sharedLibrary = (CppSharedLibrary) binary;
                 LinkSharedLibrary linkTask = sharedLibrary.getLinkTask().get();
-                LaunchableGradleTask linkTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, sharedLibrary.getLinkFileProducer().get());
+                LaunchableGradleTask linkTaskModel = buildLaunchableTask(projectIdentifier, sharedLibrary.getLinkFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(linkTaskModel, sharedLibrary.getLinkFile().get().getAsFile(), args(linkTask.getLinkerArgs().get()));
                 binaries.add(new DefaultCppSharedLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             } else if (binary instanceof CppStaticLibrary) {
                 CppStaticLibrary staticLibrary = (CppStaticLibrary) binary;
-                LaunchableGradleTask createTaskModel = ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, staticLibrary.getLinkFileProducer().get());
+                LaunchableGradleTask createTaskModel = buildLaunchableTask(projectIdentifier, staticLibrary.getLinkFileProducer().get());
                 DefaultLinkageDetails linkageDetails = new DefaultLinkageDetails(createTaskModel, staticLibrary.getLinkFile().get().getAsFile(), Collections.<String>emptyList());
                 binaries.add(new DefaultCppStaticLibraryModel(binary.getName(), cppBinary.getIdentity().getName(), binary.getBaseName().get(), compilationDetails, linkageDetails));
             }
         }
         return binaries;
+    }
+
+    private static LaunchableGradleTask buildLaunchableTask(DefaultProjectIdentifier projectIdentifier, Task task) {
+        return ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, task);
     }
 
     private List<DefaultSourceFile> sourceFiles(CompilerOutputFileNamingSchemeFactory namingSchemeFactory, PlatformToolProvider platformToolProvider, File objDir, Set<File> files) {

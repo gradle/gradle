@@ -292,7 +292,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            modelsCreated(":")
+            modelsCreated(":", 2) // Requested `GradleProject` and intermediate `IsolatedGradleProject`
         }
         outputContains("configuring build")
         outputDoesNotContain("creating model")

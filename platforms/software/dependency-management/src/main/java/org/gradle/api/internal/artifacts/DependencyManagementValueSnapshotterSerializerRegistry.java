@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSer
 import org.gradle.api.internal.artifacts.metadata.ComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
+import org.gradle.api.internal.artifacts.metadata.TransformedComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
@@ -48,6 +49,7 @@ import org.gradle.internal.component.external.model.ModuleComponentFileArtifactI
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
+import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -96,6 +98,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
         register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
         register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
+        register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer());
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
         registerWithFactory(ResolvedVariantResult.class, () -> new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));

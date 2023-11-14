@@ -31,4 +31,6 @@ public interface IvyArtifactName {
 
     @Nullable
     String getClassifier();
+
+    String getDisplayName();
 }

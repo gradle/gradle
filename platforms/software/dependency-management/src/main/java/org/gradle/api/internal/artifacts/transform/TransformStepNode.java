@@ -116,7 +116,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             sourceAttributes,
             targetAttributes,
             capabilities,
-            artifact.getArtifactName().toString(),
+            artifact.getArtifactName().getDisplayName(),
             upstreamDependencies.getConfigurationIdentity(),
             transformStepNodeId
         );
