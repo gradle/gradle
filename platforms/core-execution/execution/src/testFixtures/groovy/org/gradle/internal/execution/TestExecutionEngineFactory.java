@@ -72,7 +72,7 @@ public class TestExecutionEngineFactory {
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningReporter, problems,
+            new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
