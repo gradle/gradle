@@ -17,6 +17,7 @@
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeInterceptor;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.objectweb.asm.MethodVisitor;
@@ -36,7 +37,7 @@ public interface JvmBytecodeCallInterceptor {
     );
 
     @NonNullApi
-    interface Factory {
+    interface Factory extends BytecodeInterceptor {
         JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata, InterceptorsRequest request);
     }
 }

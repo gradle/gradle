@@ -33,8 +33,7 @@ public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
     @Override
     public List<CallInterceptor> getCallInterceptors(InterceptorsRequest interceptorsRequest) {
         return provider.getCallInterceptors().stream()
-            // TODO: Really filter
-            .filter(interceptor -> true)
+            .filter(interceptorsRequest)
             .collect(Collectors.toList());
     }
 }

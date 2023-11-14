@@ -21,20 +21,20 @@ public enum InterceptionType {
     /**
      * An interceptor that is applied to the bytecode always.
      */
-    INSTRUMENTATION(InterceptionCapability.InstrumentationInterceptor.class),
+    INSTRUMENTATION(BytecodeInterceptor.InstrumentationInterceptor.class),
 
     /**
      * An interceptor that is applied to the bytecode only for upgrades.
      */
-    BYTECODE_UPGRADE(InterceptionCapability.BytecodeUpgradeInterceptor.class);
+    BYTECODE_UPGRADE(BytecodeInterceptor.BytecodeUpgradeInterceptor.class);
 
-    private final Class<? extends InterceptionCapability> markerInterface;
+    private final Class<? extends BytecodeInterceptor> markerInterface;
 
-    InterceptionType(Class<? extends InterceptionCapability> markerInterface) {
+    InterceptionType(Class<? extends BytecodeInterceptor> markerInterface) {
         this.markerInterface = markerInterface;
     }
 
-    public Class<? extends InterceptionCapability> getMarkerInterface() {
+    public Class<? extends BytecodeInterceptor> getMarkerInterface() {
         return markerInterface;
     }
 }

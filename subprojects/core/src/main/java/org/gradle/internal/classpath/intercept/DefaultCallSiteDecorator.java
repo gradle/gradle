@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
+import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
@@ -51,6 +52,11 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
     // to reuse the common MethodHandle decoration routine in maybeDecorateIndyCallSite instead of using a
     // dedicated MethodHandle decorator method just for constructors.
     private final CallInterceptor dispatchingConstructorInterceptor = new CallInterceptor() {
+        @Override
+        public InterceptionType getType() {
+            throw new UnsupportedOperationException("Calling dispatchingConstructorInterceptor.getType() is not supported");
+        }
+
         @Override
         public Object doIntercept(Invocation invocation, String consumer) throws Throwable {
             Object receiver = invocation.getReceiver();

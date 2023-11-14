@@ -31,6 +31,7 @@ import org.gradle.internal.configuration.inputs.AccessTrackingEnvMap;
 import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
+import org.gradle.internal.instrumentation.api.capabilities.BytecodeInterceptor.InstrumentationInterceptor;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.INSTRUMENTATION_ONLY;
+import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.ALL;
 
 public class Instrumented {
     @SuppressWarnings("deprecation")
@@ -92,7 +93,7 @@ public class Instrumented {
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = getGroovyCallDecorator(INSTRUMENTATION_ONLY).maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator(ALL).maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -110,7 +111,7 @@ public class Instrumented {
      * @see IndyInterface
      */
     public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return getGroovyCallDecorator(INSTRUMENTATION_ONLY).maybeDecorateIndyCallSite(
+        return getGroovyCallDecorator(ALL).maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
@@ -641,7 +642,7 @@ public class Instrumented {
     /**
      * The interceptor for all overloads of {@code Runtime.exec}.
      */
-    private static class RuntimeExecInterceptor extends CallInterceptor {
+    private static class RuntimeExecInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         public RuntimeExecInterceptor() {
             super(InterceptScope.methodsNamed("exec"));
         }
@@ -685,7 +686,7 @@ public class Instrumented {
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         protected ProcessGroovyMethodsExecuteInterceptor() {
             super(InterceptScope.methodsNamed("execute"));
         }
@@ -752,7 +753,7 @@ public class Instrumented {
     /**
      * The interceptor for {@link ProcessBuilder#start()}.
      */
-    private static class ProcessBuilderStartInterceptor extends CallInterceptor {
+    private static class ProcessBuilderStartInterceptor extends CallInterceptor implements InstrumentationInterceptor {
         ProcessBuilderStartInterceptor() {
             super(InterceptScope.methodsNamed("start"));
         }

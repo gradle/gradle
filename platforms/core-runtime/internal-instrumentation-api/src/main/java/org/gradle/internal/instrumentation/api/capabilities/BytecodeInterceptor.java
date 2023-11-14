@@ -16,17 +16,27 @@
 
 package org.gradle.internal.instrumentation.api.capabilities;
 
-public interface InterceptionCapability {
+public interface BytecodeInterceptor {
+
+    InterceptionType getType();
 
     /**
      * A marker interface that indicates that a class is used for bytecode upgrades.
      */
-    interface BytecodeUpgradeInterceptor extends InterceptionCapability {
+    interface BytecodeUpgradeInterceptor extends BytecodeInterceptor {
+        @Override
+        default InterceptionType getType() {
+            return InterceptionType.BYTECODE_UPGRADE;
+        }
     }
 
     /**
      * A marker interface that indicates that a class is used for configuration cache instrumentation.
      */
-    interface InstrumentationInterceptor extends InterceptionCapability {
+    interface InstrumentationInterceptor extends BytecodeInterceptor {
+        @Override
+        default InterceptionType getType() {
+            return InterceptionType.INSTRUMENTATION;
+        }
     }
 }

@@ -35,7 +35,7 @@ public class DefaultJvmBytecodeInterceptorFactorySet implements JvmBytecodeInter
     @Override
     public JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(InterceptorsRequest request) {
         List<JvmBytecodeCallInterceptor.Factory> factories = provider.getInterceptorFactories().stream()
-            .filter(factory -> true)
+            .filter(request)
             .collect(Collectors.toList());
         return new JvmBytecodeInterceptorSet() {
             @Override
