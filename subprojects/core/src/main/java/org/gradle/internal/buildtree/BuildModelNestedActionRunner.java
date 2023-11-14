@@ -31,13 +31,13 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @NonNullApi
-public class BuildModelActionRunner {
+public class BuildModelNestedActionRunner {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildModelParameters buildModelParameters;
     private final String buildOperationDescription;
 
-    public BuildModelActionRunner(
+    public BuildModelNestedActionRunner(
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         String buildOperationDescription

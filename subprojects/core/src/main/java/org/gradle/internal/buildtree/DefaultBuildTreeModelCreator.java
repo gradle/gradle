@@ -28,14 +28,14 @@ import java.util.function.Supplier;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildState defaultTarget;
-    private final BuildModelActionRunner buildModelActionRunner;
+    private final BuildModelNestedActionRunner nestedActionRunner;
 
     public DefaultBuildTreeModelCreator(
         BuildState defaultTarget,
-        BuildModelActionRunner buildModelActionRunner
+        BuildModelNestedActionRunner nestedActionRunner
     ) {
         this.defaultTarget = defaultTarget;
-        this.buildModelActionRunner = buildModelActionRunner;
+        this.nestedActionRunner = nestedActionRunner;
     }
 
     @Override
@@ -71,12 +71,12 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         @Override
         public boolean queryModelActionsRunInParallel() {
-            return buildModelActionRunner.isParallel();
+            return nestedActionRunner.isParallel();
         }
 
         @Override
         public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
-            return buildModelActionRunner.run(actions);
+            return nestedActionRunner.run(actions);
         }
     }
 }

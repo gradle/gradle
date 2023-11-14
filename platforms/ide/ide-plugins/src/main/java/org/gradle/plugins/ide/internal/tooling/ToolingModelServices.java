@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.buildtree.BuildModelActionRunner;
+import org.gradle.internal.buildtree.BuildModelNestedActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
@@ -83,7 +83,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             BuildOperationExecutor buildOperationExecutor,
             BuildModelParameters buildModelParameters
         ) {
-            BuildModelActionRunner runner = new BuildModelActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
+            BuildModelNestedActionRunner runner = new BuildModelNestedActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
             return new DefaultIntermediateToolingModelProvider(runner);
         }
     }
