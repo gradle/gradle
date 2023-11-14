@@ -92,7 +92,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
         then:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
-        1 * originFactory.createReader(entity) >> originReader
+        1 * originFactory.createReader() >> originReader
         1 * fileSystemAccess.write([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
@@ -133,7 +133,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
         then:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
-        1 * originFactory.createReader(entity) >> originReader
+        1 * originFactory.createReader() >> originReader
         1 * fileSystemAccess.write([outputFile.absolutePath], _)
 
         then:
@@ -159,7 +159,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
         then:
         1 * buildOperationExecutor.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
-        1 * originFactory.createWriter(entity, Duration.ofMillis(421L)) >> originWriter
+        1 * originFactory.createWriter(entity.identity, entity.type, Duration.ofMillis(421L)) >> originWriter
 
         then:
         1 * packer.pack(entity, outputSnapshots, _ as OutputStream, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
@@ -177,6 +177,8 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
     def entity(TestCacheableTree... trees) {
         return Stub(CacheableEntity) {
+            identity >> ":test"
+            type >> CacheableEntity
             visitOutputTrees(_ as CacheableEntity.CacheableTreeVisitor) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 trees.each { visitor.visitOutputTree(it.name, it.type, it.root) }
             }

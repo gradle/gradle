@@ -129,9 +129,11 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         executions.size() == 2
         def projectExecution = executions.find { it.details.identity == projectTransformIdentification.identity }
         def externalExecution = executions.find { it.details.identity == externalTransformIdentification.identity }
-        [projectExecution, externalExecution].each { with(it) {
-            details.workType == 'TRANSFORM'
-        }}
+        [projectExecution, externalExecution].each {
+            with(it) {
+                details.workType == 'TRANSFORM'
+            }
+        }
 
         with(projectExecution.result) {
             skipMessage == null
@@ -200,8 +202,8 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             originExecutionTime > 0
             originBuildInvocationId != null
             executionReasons.empty
-            cachingDisabledReasonMessage == 'Caching not enabled.'
-            cachingDisabledReasonCategory == 'NOT_CACHEABLE'
+            cachingDisabledReasonMessage == 'Cacheability was not determined'
+            cachingDisabledReasonCategory == 'UNKNOWN'
         }
     }
 
@@ -290,15 +292,15 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             skipMessage == expectedSkipMessage
             originExecutionTime > 0
             originBuildInvocationId != null
-            executionReasons.every { it ==~ 'Output property .* has been removed\\.'}
-            cachingDisabledReasonMessage == null
-            cachingDisabledReasonCategory == null
+            executionReasons.every { it ==~ 'Output property .* has been removed\\.' }
+            cachingDisabledReasonMessage == expectedCachingDisabledReasonMessage
+            cachingDisabledReasonCategory == expecteCachingDisabledReasonCategory
         }
 
         where:
-        type              | inputChanges                                      | expectedSkipMessage
-        "incremental"     | "@Inject abstract InputChanges getInputChanges()" | "FROM-CACHE"
-        "non-incremental" | ""                                                | "UP-TO-DATE"
+        type              | inputChanges                                      | expectedSkipMessage | expectedCachingDisabledReasonMessage | expecteCachingDisabledReasonCategory
+        "incremental"     | "@Inject abstract InputChanges getInputChanges()" | "FROM-CACHE"        | null                                 | null
+        "non-incremental" | ""                                                | "UP-TO-DATE"        | "Cacheability was not determined"    | "UNKNOWN"
     }
 
     def "captures all information on failure"() {
@@ -402,11 +404,13 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         then:
         def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
 
-        executionIdentifications.each { with(it) {
-            with(componentId) {
-                displayName == displayName
+        executionIdentifications.each {
+            with(it) {
+                with(componentId) {
+                    displayName == displayName
+                }
             }
-        }}
+        }
         def inputArtifactNames = executionIdentifications.collect { it.artifactName }
         !inputArtifactNames.empty
         (inputArtifactNames as Set).size() == inputArtifactNames.size()
@@ -448,9 +452,11 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         then:
         def executionIdentifications = buildOperations.progress(IdentifyTransformExecutionProgressDetails).details
 
-        executionIdentifications.each { with(it) {
-            artifactName == componentId.displayName
-        }}
+        executionIdentifications.each {
+            with(it) {
+                artifactName == componentId.displayName
+            }
+        }
         executionIdentifications.artifactName ==~ ['file1.jar', 'file2.jar']
     }
 
@@ -531,7 +537,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         def initialArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'blue'] }.artifactName
         def intermediateArtifactNames = executionIdentifications.findAll { it.fromAttributes == [color: 'red'] }.artifactName
         initialArtifactNames + intermediateArtifactNames ==~ executionIdentifications.artifactName
-        intermediateArtifactNames ==~ initialArtifactNames.collectMany { (1..3).collect { idx -> "${it}${idx}.red".toString() }}
+        intermediateArtifactNames ==~ initialArtifactNames.collectMany { (1..3).collect { idx -> "${it}${idx}.red".toString() } }
 
         def groupedIdentifications = executionIdentifications.groupBy {
             def componentId = it.componentId
@@ -559,7 +565,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }""")
     }
 
-    BuildOperationRecord findTransformExecution(@ClosureParams(value = FromString, options =  ['Map<String,Object>']) Closure<Boolean> spec) {
+    BuildOperationRecord findTransformExecution(@ClosureParams(value = FromString, options = ['Map<String,Object>']) Closure<Boolean> spec) {
         def transformIdentification = buildOperations.progress(IdentifyTransformExecutionProgressDetails)*.details.find(spec)
         return getTransformExecutions().find { it.details.identity == transformIdentification.identity }
     }

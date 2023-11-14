@@ -42,6 +42,7 @@ import org.gradle.caching.internal.controller.service.OpFiringRemoteBuildCacheSe
 import org.gradle.caching.internal.controller.service.RemoteBuildCacheServiceHandle;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
+import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
@@ -221,7 +222,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
             // TODO: Actually unpack the roots inside of the action
             fileSystemAccess.write(roots.build(), () -> {});
-            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader());
             // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
             return new BuildCacheLoadResult() {
@@ -266,7 +267,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originMetadataFactory.createWriter(entity, executionTime));
+                        OriginWriter originWriter = originMetadataFactory.createWriter(entity.getIdentity(), entity.getType(), executionTime);
+                        BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, snapshots, fileOutputStream, originWriter);
                         long entryCount = packResult.getEntries();
                         context.setResult(new PackOperationResult(entryCount, file.length()));
                     }

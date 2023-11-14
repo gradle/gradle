@@ -45,7 +45,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(12345678))
 
-    CacheableEntity cacheableEntity = Stub(CacheableEntity)
+    CacheableEntity cacheableEntity = Stub(CacheableEntity) {
+        identity >> ":test"
+        type >> CacheableEntity
+    }
     Duration executionTime = Duration.ofMillis(123)
     Map<String, FileSystemSnapshot> snapshots = [:]
 
