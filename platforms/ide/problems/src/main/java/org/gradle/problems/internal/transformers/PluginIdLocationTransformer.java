@@ -46,7 +46,7 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
                         problem.getLocations().add(new PluginIdLocation(pluginId));
                     }
                 } catch (Exception ex) {
-                    throw new GradleException("Problem meanwhile reporting problem", ex);
+                    throw new GradleException("Problem while reporting problem", ex);
                 }
             });
 
