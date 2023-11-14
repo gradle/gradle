@@ -139,15 +139,15 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
-        List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
+        List<FetchAction<T>> wrappers = new ArrayList<>(actions.size());
         for (Supplier<T> action : actions) {
-            wrappers.add(new NestedAction<>(action));
+            wrappers.add(new FetchAction<>(action));
         }
         executeFetchActions(wrappers);
 
         List<T> results = new ArrayList<>(actions.size());
         List<Throwable> failures = new ArrayList<>();
-        for (NestedAction<T> wrapper : wrappers) {
+        for (FetchAction<T> wrapper : wrappers) {
             Try<T> value = wrapper.value();
             if (value.isSuccessful()) {
                 results.add(value.get());
@@ -169,11 +169,12 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         });
     }
 
-    private static class NestedAction<T> implements RunnableBuildOperation {
+    @NonNullApi
+    private static class FetchAction<T> implements RunnableBuildOperation {
         private final Supplier<T> action;
         private Try<T> result;
 
-        public NestedAction(Supplier<T> action) {
+        public FetchAction(Supplier<T> action) {
             this.action = action;
         }
 
