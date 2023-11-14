@@ -129,7 +129,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
 
                 public static class Factory implements JvmBytecodeCallInterceptor.Factory, $capability {
                     @Override
-                    public JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata, JvmInstrumentationVisitorContext context) {
+                    public JvmBytecodeCallInterceptor create(MethodVisitor methodVisitor, InstrumentationMetadata metadata, InterceptorsRequest context) {
                         return new my.InterceptorDeclaration_JvmBytecodeImpl(methodVisitor, metadata, context);
                     }
                 }
@@ -241,7 +241,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                         String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("exists") && descriptor.equals("()Z") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                            _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, context.getInterceptorsRequest().name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
+                            _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, context.name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
                             _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION2_TYPE, "intercept_exists", "(Ljava/io/File;Lorg/gradle/internal/instrumentation/api/capabilities/InterceptorsRequest;)Z");
                             return true;
                         }

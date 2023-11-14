@@ -28,7 +28,6 @@ import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
-import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationVisitorContext;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -116,7 +115,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .returns(JvmBytecodeCallInterceptor.class)
             .addParameter(MethodVisitor.class, "methodVisitor")
             .addParameter(InstrumentationMetadata.class, "metadata")
-            .addParameter(JvmInstrumentationVisitorContext.class, "context")
+            .addParameter(InterceptorsRequest.class, "context")
             .addStatement("return new $L($N, $N, $N)", className, "methodVisitor", "metadata", "context")
             .addAnnotation(Override.class)
             .build();
@@ -162,7 +161,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
         .addParameter(MethodVisitor.class, "methodVisitor")
         .addParameter(InstrumentationMetadata.class, "metadata")
-        .addParameter(JvmInstrumentationVisitorContext.class, "context")
+        .addParameter(InterceptorsRequest.class, "context")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
         .addStatement("this.$N = metadata", METADATA_FIELD)
@@ -209,7 +208,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static final FieldSpec CONTEXT_FIELD =
-        FieldSpec.builder(JvmInstrumentationVisitorContext.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
+        FieldSpec.builder(InterceptorsRequest.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static void generateCodeForOwner(
         CallableOwnerInfo owner,
@@ -440,7 +439,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static void maybeGenerateGetStaticInjectVisitorContext(CodeBlock.Builder code, CallableInfo callableInfo) {
         if (hasInjectVisitorContext(callableInfo)) {
-            code.addStatement("_GETSTATIC($N, context.getInterceptorsRequest().name(), $N.getDescriptor())", INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
+            code.addStatement("_GETSTATIC($N, context.name(), $N.getDescriptor())", INTERCEPTORS_REQUEST_TYPE, INTERCEPTORS_REQUEST_TYPE);
         }
     }
 

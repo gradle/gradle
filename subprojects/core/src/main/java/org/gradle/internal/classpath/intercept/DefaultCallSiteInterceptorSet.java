@@ -20,6 +20,7 @@ import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
 import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
 
@@ -31,7 +32,9 @@ public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
 
     @Override
     public List<CallInterceptor> getCallInterceptors(InterceptorsRequest interceptorsRequest) {
-        // TODO: Filter
-        return provider.getCallInterceptors();
+        return provider.getCallInterceptors().stream()
+            // TODO: Really filter
+            .filter(interceptor -> true)
+            .collect(Collectors.toList());
     }
 }

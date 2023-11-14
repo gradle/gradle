@@ -27,12 +27,9 @@ import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.classpath.intercept.CallInterceptorRegistry;
-import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactorySet;
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationVisitorContext;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -175,7 +172,6 @@ public class InstrumentingClassTransform implements ClassTransform {
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
 
     private final JvmBytecodeInterceptorSet externalInterceptors;
-    private final InterceptorsRequest interceptorsRequest;
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
@@ -185,7 +181,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
     public InstrumentingClassTransform() {
         // TODO: Pass InterceptorsRequest as a constructor parameter
-        this(request -> CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY), INSTRUMENTATION_ONLY);
+        this(CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY));
     }
 
     /**
@@ -193,9 +189,8 @@ public class InstrumentingClassTransform implements ClassTransform {
      * specifically for the tests.
      */
     @VisibleForTesting
-    public InstrumentingClassTransform(JvmBytecodeInterceptorFactorySet externalInterceptors, InterceptorsRequest interceptorsRequest) {
-        this.externalInterceptors = externalInterceptors.getJvmBytecodeInterceptorSet(interceptorsRequest);
-        this.interceptorsRequest = interceptorsRequest;
+    public InstrumentingClassTransform(JvmBytecodeInterceptorSet externalInterceptors) {
+        this.externalInterceptors = externalInterceptors;
     }
 
     @Override
@@ -204,7 +199,7 @@ public class InstrumentingClassTransform implements ClassTransform {
             new InstrumentingVisitor(
                 new CallInterceptionClosureInstrumentingClassVisitor(
                     new LambdaSerializationTransformer(new InstrumentingBackwardsCompatibilityVisitor(visitor)),
-                    interceptorsRequest
+                    externalInterceptors.getOriginalRequest()
                 ),
                 classData, externalInterceptors
             )
@@ -216,13 +211,11 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final ClassData classData;
         private boolean hasGroovyCallSites;
         private final JvmBytecodeInterceptorSet externalInterceptors;
-        private final JvmInstrumentationVisitorContext context;
 
         public InstrumentingVisitor(ClassVisitor visitor, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(ASM_LEVEL, visitor);
             this.classData = classData;
             this.externalInterceptors = externalInterceptors;
-            this.context = new JvmInstrumentationVisitorContext(INSTRUMENTATION_ONLY);
         }
 
         @Override
@@ -243,7 +236,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors, context);
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode, classData, externalInterceptors);
         }
 
         @Override
@@ -276,12 +269,12 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final Lazy<MethodNode> asNode;
         private final Collection<JvmBytecodeCallInterceptor> externalInterceptors;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors, JvmInstrumentationVisitorContext context) {
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode, ClassData classData, JvmBytecodeInterceptorSet externalInterceptors) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
-            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData, context);
+            this.externalInterceptors = externalInterceptors.getInterceptors(methodVisitor, classData);
         }
 
         @Override
