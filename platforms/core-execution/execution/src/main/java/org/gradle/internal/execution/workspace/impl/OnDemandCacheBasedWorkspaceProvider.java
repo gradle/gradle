@@ -102,7 +102,6 @@ public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspacePr
     @Override
     public ImmutableWorkspace getWorkspace(String path) {
         File immutableWorkspace = new File(baseDirectory, path);
-        // TODO Is this the right place to mark the workspace used?
         fileAccessTracker.markAccessed(immutableWorkspace);
         return new ImmutableWorkspace() {
             @Override
