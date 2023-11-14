@@ -44,23 +44,6 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
         dest.put(sanitizedKey, sanitizedValue);
     }
 
-    @Override
-    public ValueCollector<K> asKeyCollector() {
-        return new ValueCollector<K>() {
-            @Override
-            public void add(@Nullable K key, ImmutableCollection.Builder<K> dest) {
-                dest.add(sanitizeKey(key));
-            }
-
-            @Override
-            public void addAll(Iterable<? extends K> keys, ImmutableCollection.Builder<K> dest) {
-                for (K key : keys) {
-                    add(key, dest);
-                }
-            }
-        };
-    }
-
     @Nonnull
     private V sanitizeValue(K key, V value) {
         Preconditions.checkNotNull(
@@ -96,5 +79,22 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
         for (Map.Entry<? extends K, ? extends V> entry : entries) {
             add(entry.getKey(), entry.getValue(), dest);
         }
+    }
+
+    @Override
+    public ValueCollector<K> asKeyCollector() {
+        return new ValueCollector<K>() {
+            @Override
+            public void add(@Nullable K key, ImmutableCollection.Builder<K> dest) {
+                dest.add(sanitizeKey(key));
+            }
+
+            @Override
+            public void addAll(Iterable<? extends K> keys, ImmutableCollection.Builder<K> dest) {
+                for (K key : keys) {
+                    add(key, dest);
+                }
+            }
+        };
     }
 }

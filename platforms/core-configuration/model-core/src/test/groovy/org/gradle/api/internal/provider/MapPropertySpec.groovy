@@ -1197,27 +1197,36 @@ The value of this property is derived from: <source>""")
 
     def "may configure convention incrementally"() {
         given:
-        property.set(null as Map)
         property.convention([:])
         property.actualValue.put('k0', '1')
         property.actualValue.putAll(['k1': '2', 'k2': '3'])
         property.actualValue.put('k2', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert !property.explicit
+    }
+
+    def "may configure actual value incrementally"() {
+        given:
+        property.actualValue.put('k0', '1')
+        property.actualValue.putAll(['k1': '2', 'k2': '3'])
+        property.actualValue.put('k2', '4')
+        expect:
+        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
+        assert property.explicit
     }
 
     def "may replace convention values"() {
         given:
-        property.set(null as Map)
         property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
         property.actualValue.put('k1', '4')
         expect:
         assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
+        !property.explicit
     }
 
     def "may exclude convention component values using a predicate"() {
         given:
-        property.set(null as Map)
         property.convention([:])
         property.actualValue.put('k0', '1')
         property.actualValue.put('k1', '2')
@@ -1225,6 +1234,7 @@ The value of this property is derived from: <source>""")
         property.actualValue.removeIf({ it == 'k1' } as Spec)
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
+        !property.explicit
     }
 
     def "may exclude multiple provided component values"() {
@@ -1234,19 +1244,20 @@ The value of this property is derived from: <source>""")
         property.actualValue.removeAll(Providers.of(['k5', 'k3', 'k7']))
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
+        property.explicit
     }
 
     def "may exclude multiple component values"() {
         given:
         property.set(['k0': '1', 'k1': '2', 'k2': '3', 'k3': '4', 'k1': '5', 'k4': '5'])
-        property.removeAll('k4', 'k3', 'k7')
+        property.actualValue.removeAll('k4', 'k3', 'k7')
         expect:
         assertValueIs(['k0': '1', 'k1': '5', 'k2': '3'])
+        property.explicit
     }
 
     def "may exclude multiple convention component values"() {
         given:
-        property.set(null as Map)
         property.convention([:])
         property.actualValue.put('k0', '1')
         property.actualValue.put('k1', '2')
@@ -1256,12 +1267,12 @@ The value of this property is derived from: <source>""")
         property.actualValue.removeAll('k5', 'k3', 'k7')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
+        !property.explicit
     }
 
 
     def "may exclude single convention component values"() {
         given:
-        property.set(null as Map)
         property.convention([:])
         property.actualValue.put('k0', '1')
         property.actualValue.put('k1', '2')
@@ -1272,6 +1283,7 @@ The value of this property is derived from: <source>""")
         property.actualValue.removeAll('k3')
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
+        !property.explicit
     }
 
     private ProviderInternal<String> brokenValueSupplier() {

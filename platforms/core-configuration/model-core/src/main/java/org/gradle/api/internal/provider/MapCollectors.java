@@ -353,7 +353,9 @@ public class MapCollectors {
             ImmutableSet<K> keysToExclude = keysToExcludeBuilder.build();
             Map<K, V> filtered = Maps.filterKeys(upstreamEntries, Predicates.not(keysToExclude::contains));
             dest.putAll(filtered);
-            //TODO-RC what to do about side effects?
+            // Note that we preserve all side effects, for all exclusions and all upstream values
+            // (including excluded ones). We may want to revisit it so side effects for excluded
+            // upstream values are discarded
             return Value.present()
                 .withSideEffect(SideEffect.fixedFrom(upstreamValue))
                 .withSideEffect(SideEffect.fixedFrom(exclusionValue));

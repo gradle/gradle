@@ -80,10 +80,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public CollectionPropertyConfigurer<T> getActualValue() {
-        if (isExplicit()) {
+        if (isExplicit() || isNoValueSupplier(getConventionSupplier())) {
             return getExplicitValue();
         }
         return getConventionValue();
+    }
+
+    private boolean isNoValueSupplier(CollectionSupplier<T, C> valueSupplier) {
+        return valueSupplier instanceof NoValueSupplier;
     }
 
     @Override

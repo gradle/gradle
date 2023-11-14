@@ -92,6 +92,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     def "has empty collection as value by default"() {
         expect:
         assertValueIs([])
+        !property.explicit
     }
 
     def "can change value to empty collection"() {
@@ -100,6 +101,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         expect:
         assertValueIs([])
+        property.explicit
     }
 
     def "can set value using empty collection"() {
@@ -1075,17 +1077,18 @@ The value of this property is derived from: <source>""")
 
         expect:
         assertValueIs(["2", "4"])
+        property.explicit
     }
 
     def "may exclude elements from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5"]))
-        property.removeAll(Providers.of(["1", "3"]))
-        property.removeAll(Providers.of(["5"]))
+        property.actualValue.removeAll(Providers.of(["1", "3"]))
+        property.actualValue.removeAll(Providers.of(["5"]))
 
         expect:
         assertValueIs(["2", "4"])
+        !property.explicit
     }
 
     def "may exclude elements from value via predicate"() {
@@ -1097,110 +1100,111 @@ The value of this property is derived from: <source>""")
 
         expect:
         assertValueIs(["4", "8"])
+        property.explicit
     }
 
     def "can add to convention"() {
         given:
-        property.set(null as Iterable)
         property.convention([])
         property.actualValue.addAll(Providers.of(["1", "2"]))
         property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        !property.explicit
     }
 
     def "can add to explicit value"() {
         given:
-        property.set([])
         property.actualValue.addAll(Providers.of(["1", "2"]))
         property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
     }
 
-    def "can add to convention without knowing"() {
+    def "can add to actual value without knowing it was defined as a convention value"() {
         given:
-        property.set(null as Iterable)
         property.convention([])
         property.actualValue.addAll(Providers.of(["1", "2"]))
         property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        !property.explicit
     }
 
-    def "can add to value without knowing"() {
+    def "can add to actual value without knowing it was defined as an explicit value"() {
         given:
-        property.set([])
         property.actualValue.addAll(Providers.of(["1", "2"]))
         property.actualValue.addAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
     }
 
     def "may exclude elements from convention via predicate"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4", "5", "6"]))
         property.actualValue.removeIf({ it.toInteger() % 2 == 1 } as Spec)
         property.actualValue.removeIf({ it.toInteger() > 5 } as Spec)
 
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 
     def "can exclude provided values from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
         property.actualValue.removeAll(Providers.of(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 
     def "can exclude a collection of values from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
         property.actualValue.removeAll(toImmutable(["1", "3", "5"]))
 
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 
     def "can exclude individually provided values from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
         property.actualValue.remove(Providers.of("1"))
         property.actualValue.remove(Providers.of("3"))
         property.actualValue.remove(Providers.of("5"))
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 
     def "can exclude individual values from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
         property.actualValue.remove("1")
         property.actualValue.remove("3")
         property.actualValue.remove("5")
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 
     def "can exclude multiple values from convention"() {
         given:
-        property.set(null as Iterable)
         property.convention(Providers.of(["1", "2", "3", "4"]))
         property.actualValue.removeAll("1", "7")
         property.actualValue.removeAll("3", "5")
         expect:
         assertValueIs toImmutable(["2", "4"])
+        !property.explicit
     }
 }

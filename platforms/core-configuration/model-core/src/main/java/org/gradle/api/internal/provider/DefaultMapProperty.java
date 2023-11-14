@@ -21,7 +21,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
+import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
+import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
+import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
+import org.gradle.api.internal.provider.MapCollectors.FilteringCollector;
+import org.gradle.api.internal.provider.MapCollectors.MinusCollector;
 import org.gradle.api.internal.provider.MapCollectors.PlusCollector;
+import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapPropertyConfigurer;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -125,14 +131,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             discardValue();
             defaultValue = noValueSupplier();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
+            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
+        setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(p)));
     }
 
     @Override
@@ -151,7 +157,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void put(K key, V value) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-        addCollector(new MapCollectors.SingleEntry<>(key, value));
+        addCollector(new SingleEntry<>(key, value));
     }
 
     @Override
@@ -163,18 +169,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
                 Map.class.getName(), valueType.getName(), p.getType().getName()));
         }
-        addCollector(new MapCollectors.EntryWithValueFromProvider<>(key, p));
+        addCollector(new EntryWithValueFromProvider<>(key, p));
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        addCollector(new MapCollectors.EntriesFromMap<>(entries));
+        addCollector(new EntriesFromMap<>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        addCollector(new MapCollectors.EntriesFromMapProvider<>(p));
+        addCollector(new EntriesFromMapProvider<>(p));
     }
 
     private void addCollector(MapCollector<K, V> collector) {
@@ -221,10 +227,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapPropertyConfigurer<K, V> getActualValue() {
-        if (isExplicit()) {
+        if (isExplicit() || isNoValueSupplier(getConventionSupplier())) {
             return getExplicitValue();
         }
         return getConventionValue();
+    }
+
+    private boolean isNoValueSupplier(MapSupplier<K, V> valueSupplier) {
+        return valueSupplier instanceof NoValueSupplier;
     }
 
     @SuppressWarnings("unchecked")
@@ -254,14 +264,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value == null) {
             setConvention(noValueSupplier());
         } else {
-            setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value)));
+            setConvention(new CollectingSupplier(new EntriesFromMap<>(value)));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider))));
+        setConvention(new CollectingSupplier(new EntriesFromMapProvider<>(Providers.internal(valueProvider))));
         return this;
     }
 
@@ -271,7 +281,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         } else if (value.hasFixedValue()) {
             setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
+            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(value.getChangingValue())));
         }
     }
 
@@ -346,7 +356,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private class NoValueSupplier<K, V> implements MapSupplier<K, V> {
+    private static class NoValueSupplier<K, V> implements MapSupplier<K, V> {
         private final Value<? extends Map<K, V>> value;
 
         public NoValueSupplier(Value<? extends Map<K, V>> value) {
@@ -501,7 +511,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> keep(Spec<K> keyFilter) {
-            return new CollectingSupplier(new MapCollectors.FilteringCollector<>(collector, keyFilter));
+            return new CollectingSupplier(new FilteringCollector<>(collector, keyFilter));
         }
 
         @Override
@@ -541,7 +551,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> minus(Collector<K> keyCollector) {
-            return new CollectingSupplier(new MapCollectors.MinusCollector<>(this.collector, keyCollector));
+            return new CollectingSupplier(new MinusCollector<>(this.collector, keyCollector));
         }
 
         @Override
@@ -645,22 +655,22 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     class ConventionConfigurer implements MapPropertyConfigurer<K, V> {
         @Override
         public void put(K key, V value) {
-            addConventionCollector(new MapCollectors.SingleEntry<>(key, value));
+            addConventionCollector(new SingleEntry<>(key, value));
         }
 
         @Override
         public void put(K key, Provider<? extends V> providerOfValue) {
-            addConventionCollector(new MapCollectors.EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
+            addConventionCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
         }
 
         @Override
         public void putAll(Map<? extends K, ? extends V> entries) {
-            addConventionCollector(new MapCollectors.EntriesFromMap<>(entries));
+            addConventionCollector(new EntriesFromMap<>(entries));
         }
 
         @Override
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            addConventionCollector(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(provider)));
+            addConventionCollector(new EntriesFromMapProvider<>(Providers.internal(provider)));
         }
 
         @Override
