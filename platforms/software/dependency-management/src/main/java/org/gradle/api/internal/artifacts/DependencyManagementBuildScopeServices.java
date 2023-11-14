@@ -494,7 +494,7 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignImmutableWorkspaceStep<>(fileSystemAccess, originMetadataFactory, outputSnapshotter,
             new NoBeforeExecutionStateStep<>(
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, problems,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(
             new NeverUpToDateStep<>(
             new NoInputChangesStep<>(
