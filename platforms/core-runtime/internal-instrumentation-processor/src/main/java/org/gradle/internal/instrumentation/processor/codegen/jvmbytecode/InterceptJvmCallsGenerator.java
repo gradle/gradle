@@ -199,7 +199,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
         FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$T.getType($T.class.getName())", Type.class, InterceptorsRequest.class)
+            .initializer("$T.getType($T.class)", Type.class, InterceptorsRequest.class)
             .build();
 
     private static final FieldSpec METHOD_VISITOR_FIELD =
