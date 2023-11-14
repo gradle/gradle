@@ -18,20 +18,20 @@ package org.gradle.api.internal.catalog;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
-import org.gradle.internal.execution.workspace.impl.OnDemandCacheBasedWorkspaceProvider;
+import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 
 import java.io.Closeable;
 
 public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
-    private final OnDemandCacheBasedWorkspaceProvider delegate;
+    private final CacheBasedImmutableWorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspaceProvider(
         BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        this.delegate = OnDemandCacheBasedWorkspaceProvider.createWorkspaceProvider(
+        this.delegate = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
                 .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),

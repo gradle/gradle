@@ -21,11 +21,11 @@ import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
 
-public class NonLockingWorkspaceProvider implements MutableWorkspaceProvider {
+public class NonLockingMutableWorkspaceProvider implements MutableWorkspaceProvider {
     private final ExecutionHistoryStore executionHistoryStore;
     private final File baseDirectory;
 
-    public NonLockingWorkspaceProvider(ExecutionHistoryStore executionHistoryStore, File baseDirectory) {
+    public NonLockingMutableWorkspaceProvider(ExecutionHistoryStore executionHistoryStore, File baseDirectory) {
         this.executionHistoryStore = executionHistoryStore;
         this.baseDirectory = baseDirectory;
     }

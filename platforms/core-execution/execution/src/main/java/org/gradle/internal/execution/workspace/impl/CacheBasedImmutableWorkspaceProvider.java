@@ -35,14 +35,14 @@ import java.util.UUID;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
+public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final PersistentCache cache;
 
-    public static OnDemandCacheBasedWorkspaceProvider createWorkspaceProvider(
+    public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations
@@ -55,13 +55,13 @@ public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspacePr
         );
     }
 
-    public static OnDemandCacheBasedWorkspaceProvider createWorkspaceProvider(
+    public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        return new OnDemandCacheBasedWorkspaceProvider(
+        return new CacheBasedImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             treeDepthToTrackAndCleanup,
@@ -69,7 +69,7 @@ public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspacePr
         );
     }
 
-    private OnDemandCacheBasedWorkspaceProvider(
+    private CacheBasedImmutableWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         int treeDepthToTrackAndCleanup,
@@ -77,7 +77,10 @@ public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspacePr
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations))
-            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            // We don't need to lock the cache for immutable workspaces
+            // as we are using unique temporary workspaces to run work in
+            // and move them atomically into the cache
+            .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
@@ -112,7 +115,7 @@ public class OnDemandCacheBasedWorkspaceProvider implements ImmutableWorkspacePr
             @Override
             public <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
                 return cache.withFileLock(() -> {
-                    // TODO Should we do a more reliable way to allocate a unique directory?
+                    // TODO Use Files.createTemporaryDirectory() instead
                     String temporaryLocation = path + "-" + UUID.randomUUID();
                     File temporaryWorkspace = new File(baseDirectory, temporaryLocation);
                     // TODO Do we need to track the temporary workspace in the access tracker?
