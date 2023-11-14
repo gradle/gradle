@@ -224,35 +224,10 @@ class DefaultBuildControllerTest extends Specification {
         _ * workerThreadRegistry.workerThread >> true
         1 * modelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
-            actions.forEach { it.run(null) }
+            actions.collect { it.get() }
         }
         1 * action1.get() >> "one"
         1 * action2.get() >> "two"
-        1 * action3.get() >> "three"
-        0 * _
-    }
-
-    def "collects all failures from actions"() {
-        def action1 = Mock(Supplier)
-        def action2 = Mock(Supplier)
-        def action3 = Mock(Supplier)
-        def failure1 = new RuntimeException()
-        def failure2 = new RuntimeException()
-
-        when:
-        controller.run([action1, action2, action3])
-
-        then:
-        def e = thrown(MultipleBuildOperationFailures)
-        e.causes == [failure1, failure2]
-
-        _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.runQueryModelActions(_) >> { def params ->
-            def actions = params[0]
-            actions.forEach { it.run(null) }
-        }
-        1 * action1.get() >> { throw failure1 }
-        1 * action2.get() >> { throw failure2 }
         1 * action3.get() >> "three"
         0 * _
     }
