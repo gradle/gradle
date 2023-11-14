@@ -5509,7 +5509,6 @@ Class <org.gradle.tooling.internal.provider.runner.ClientProvidedBuildActionRunn
 Class <org.gradle.tooling.internal.provider.runner.ClientProvidedBuildActionRunner> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientProvidedBuildActionRunner.java:0)
 Class <org.gradle.tooling.internal.provider.runner.ClientProvidedPhasedActionRunner$ClientActionImpl> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientProvidedPhasedActionRunner.java:0)
 Class <org.gradle.tooling.internal.provider.runner.ClientProvidedPhasedActionRunner> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientProvidedPhasedActionRunner.java:0)
-Class <org.gradle.tooling.internal.provider.runner.DefaultBuildController$NestedAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildController.java:0)
 Class <org.gradle.tooling.internal.provider.runner.DefaultBuildController> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildController.java:0)
 Class <org.gradle.tooling.internal.provider.runner.FileDownloadOperationMapper> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FileDownloadOperationMapper.java:0)
 Class <org.gradle.tooling.internal.provider.runner.OperationDependenciesResolver> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (OperationDependenciesResolver.java:0)
