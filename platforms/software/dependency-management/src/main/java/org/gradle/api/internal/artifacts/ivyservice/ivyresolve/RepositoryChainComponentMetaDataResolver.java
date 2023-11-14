@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.model.CalculatedValueContainerCache;
+import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -37,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
@@ -47,11 +52,13 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private final List<ModuleComponentRepository<ModuleComponentGraphResolveState>> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
-    private final CalculatedValueContainerCache<DisplayName, BuildableComponentResolveResult> metadataValueContainerCache;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final Cache<ModuleComponentIdentifier, CalculatedValueContainer<BuildableComponentResolveResult, ?>> metadataValueContainerCache;
 
     public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.versionedComponentChooser = componentChooser;
-        this.metadataValueContainerCache = new CalculatedValueContainerCache<>(calculatedValueContainerFactory);
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
     }
 
     public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
@@ -65,9 +72,19 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
-        metadataValueContainerCache.getReference(toDisplayName(identifier), () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata))
-            .finalizeAndGet()
-            .applyTo(result);
+        try {
+            CalculatedValueContainer<BuildableComponentResolveResult, ?> metadataValueContainer =
+                metadataValueContainerCache.get((ModuleComponentIdentifier) identifier, () -> createValueContainerFor(identifier, componentOverrideMetadata));
+            metadataValueContainer.finalizeIfNotAlready();
+            metadataValueContainer.get().applyTo(result);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private CalculatedValueContainer<BuildableComponentResolveResult, ?> createValueContainerFor(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return calculatedValueContainerFactory.create(toDisplayName(identifier),
+            (Supplier<BuildableComponentResolveResult>) () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
     }
 
     @Override
@@ -189,16 +206,6 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 @Override
                 public String getCapitalizedDisplayName() {
                     return getDisplayName();
-                }
-
-                @Override
-                public int hashCode() {
-                    return identifier.hashCode();
-                }
-
-                @Override
-                public boolean equals(Object obj) {
-                    return identifier.equals(obj);
                 }
             };
         }
