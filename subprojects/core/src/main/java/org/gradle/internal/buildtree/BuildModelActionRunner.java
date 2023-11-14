@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 public class BuildModelActionRunner {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final boolean parallel;
+    private final BuildModelParameters buildModelParameters;
     private final String buildOperationDescription;
 
     public BuildModelActionRunner(
@@ -43,12 +43,12 @@ public class BuildModelActionRunner {
         String buildOperationDescription
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
-        this.parallel = buildModelParameters.isParallelToolingApiActions();
+        this.buildModelParameters = buildModelParameters;
         this.buildOperationDescription = buildOperationDescription;
     }
 
     public boolean isParallel() {
-        return parallel;
+        return buildModelParameters.isParallelToolingApiActions();
     }
 
     public <T> List<T> run(List<Supplier<T>> actions) {
