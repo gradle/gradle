@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
@@ -33,14 +33,14 @@ public class UpToDateResult extends AfterExecutionResult {
     public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons) {
         super(parent);
         this.executionReasons = executionReasons;
-        this.reusedOutputOriginMetadata = parent.getAfterExecutionState()
-            .filter(AfterExecutionState::isReused)
-            .map(AfterExecutionState::getOriginMetadata)
+        this.reusedOutputOriginMetadata = parent.getAfterExecutionOutputState()
+            .filter(ExecutionOutputState::isReused)
+            .map(ExecutionOutputState::getOriginMetadata)
             .orElse(null);
     }
 
-    public UpToDateResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
-        super(duration, execution, afterExecutionState);
+    public UpToDateResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable ExecutionOutputState executionOutputState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+        super(duration, execution, executionOutputState);
         this.executionReasons = executionReasons;
         this.reusedOutputOriginMetadata = reusedOutputOriginMetadata;
     }

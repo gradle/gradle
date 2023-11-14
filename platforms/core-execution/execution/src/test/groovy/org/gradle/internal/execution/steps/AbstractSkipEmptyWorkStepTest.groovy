@@ -145,6 +145,6 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends 
 
         then:
         result.execution.get().outcome == SHORT_CIRCUITED
-        !result.afterExecutionState.present
+        !result.afterExecutionOutputState.present
     }
 }

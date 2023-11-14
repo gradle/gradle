@@ -163,11 +163,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        result.afterExecutionState.get().outputFilesProducedByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
-        SnapshotVisitorUtil.getRelativePaths(result.afterExecutionState.get().outputFilesProducedByWork["dir"]) == ["some-file", "some-file-2"]
+        result.afterExecutionOutputState.get().outputFilesProducedByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
+        SnapshotVisitorUtil.getRelativePaths(result.afterExecutionOutputState.get().outputFilesProducedByWork["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildId.toString()
-        afterExecution.outputFilesProducedByWork == result.afterExecutionState.get().outputFilesProducedByWork
+        afterExecution.outputFilesProducedByWork == result.afterExecutionOutputState.get().outputFilesProducedByWork
     }
 
     def "work unit is up-to-date if nothing changes"() {
@@ -178,7 +178,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        def outputFilesProducedByWork = result.afterExecutionState.get().outputFilesProducedByWork
+        def outputFilesProducedByWork = result.afterExecutionOutputState.get().outputFilesProducedByWork
 
         when:
         buildId = UniqueId.generate()
@@ -188,7 +188,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
         then:
         result.execution.get().outcome == UP_TO_DATE
-        result.afterExecutionState.get().outputFilesProducedByWork == outputFilesProducedByWork
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == outputFilesProducedByWork
     }
 
     def "out-of-date for an output file change"() {

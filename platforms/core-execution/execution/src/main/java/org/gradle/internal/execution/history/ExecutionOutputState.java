@@ -23,7 +23,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 /**
  * Captures the state of the outputs of a {@link org.gradle.internal.execution.UnitOfWork}.
  */
-public interface OutputExecutionState {
+public interface ExecutionOutputState {
 
     /**
      * Whether the execution was successful.
@@ -43,4 +43,9 @@ public interface OutputExecutionState {
      * The origin metadata of the outputs captured.
      */
     OriginMetadata getOriginMetadata();
+
+    /**
+     * Whether the outputs come from a previous execution.
+     */
+    boolean isReused();
 }

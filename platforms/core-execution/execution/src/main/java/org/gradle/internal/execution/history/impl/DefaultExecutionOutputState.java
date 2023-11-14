@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,27 @@
 
 package org.gradle.internal.execution.history.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultPreviousExecutionState extends AbstractInputExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
+public class DefaultExecutionOutputState implements ExecutionOutputState {
+    private final boolean successful;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
-    private final boolean successful;
+    private final boolean reused;
 
-    public DefaultPreviousExecutionState(
-        OriginMetadata originMetadata,
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
-        boolean successful
-    ) {
-        super(implementation, additionalImplementations, inputProperties, inputFileProperties);
+    public DefaultExecutionOutputState(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, OriginMetadata originMetadata, boolean reused) {
+        this.successful = successful;
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;
-        this.successful = successful;
+        this.reused = reused;
+    }
+
+    @Override
+    public boolean isSuccessful() {
+        return successful;
     }
 
     @Override
@@ -56,12 +50,7 @@ public class DefaultPreviousExecutionState extends AbstractInputExecutionState<F
     }
 
     @Override
-    public boolean isSuccessful() {
-        return successful;
-    }
-
-    @Override
     public boolean isReused() {
-        return true;
+        return reused;
     }
 }

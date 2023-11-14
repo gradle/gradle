@@ -21,10 +21,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,17 +60,12 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         }
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
-        AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
-            beforeExecutionState,
-            previousExecutionState.getOutputFilesProducedByWork(),
-            true,
-            previousExecutionState.getOriginMetadata(),
-            true);
+        ExecutionOutputState executionOutputState = new DefaultExecutionOutputState(true, previousExecutionState.getOutputFilesProducedByWork(), previousExecutionState.getOriginMetadata(), true);
         Try<Execution> execution = Try.successful(Execution.skipped(UP_TO_DATE, work));
         return new UpToDateResult(
             previousExecutionState.getOriginMetadata().getExecutionTime(),
             execution,
-            afterExecutionState,
+            executionOutputState,
             ImmutableList.of(),
             previousExecutionState.getOriginMetadata()
         );

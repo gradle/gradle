@@ -35,13 +35,13 @@ import java.time.Duration
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
-class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+class CaptureOutputsAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
     def buildInvocationScopeId = UniqueId.generate()
     def outputSnapshotter = Mock(OutputSnapshotter)
     def delegateResult = Stub(Result)
 
-    def step = new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, delegate)
+    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, delegate)
 
     def "no state is captured if before execution state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
@@ -51,7 +51,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         when:
         def result = step.execute(work, context)
         then:
-        !result.afterExecutionState.present
+        !result.afterExecutionOutputState.present
         result.duration == delegateDuration
         assertNoOperation()
 
@@ -93,11 +93,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         when:
         def result = step.execute(work, context)
         then:
-        result.afterExecutionState.get().outputFilesProducedByWork == outputSnapshots
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == outputSnapshots
         result.duration == delegateDuration
-        result.afterExecutionState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
-        result.afterExecutionState.get().originMetadata.executionTime >= result.duration
-        !result.afterExecutionState.get().reused
+        result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
+        !result.afterExecutionOutputState.get().reused
         assertOperation()
 
         1 * delegate.execute(work, _) >> delegateResult
@@ -144,11 +144,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         when:
         def result = step.execute(work, context)
         then:
-        result.afterExecutionState.get().outputFilesProducedByWork == filteredOutputs
+        result.afterExecutionOutputState.get().outputFilesProducedByWork == filteredOutputs
         result.duration == delegateDuration
-        result.afterExecutionState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
-        result.afterExecutionState.get().originMetadata.executionTime >= result.duration
-        !result.afterExecutionState.get().reused
+        result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.afterExecutionOutputState.get().originMetadata.executionTime >= result.duration
+        !result.afterExecutionOutputState.get().reused
 
         1 * delegate.execute(work, _) >> delegateResult
 
@@ -160,9 +160,9 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
 
     private void assertOperation(Throwable expectedFailure = null) {
         if (expectedFailure == null) {
-            assertSuccessfulOperation(CaptureStateAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", CaptureStateAfterExecutionStep.Operation.Result.INSTANCE)
+            assertSuccessfulOperation(CaptureOutputsAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", CaptureOutputsAfterExecutionStep.Operation.Result.INSTANCE)
         } else {
-            assertFailedOperation(CaptureStateAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", expectedFailure)
+            assertFailedOperation(CaptureOutputsAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", expectedFailure)
         }
     }
 

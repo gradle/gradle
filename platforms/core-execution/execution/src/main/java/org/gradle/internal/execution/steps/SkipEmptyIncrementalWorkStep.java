@@ -22,7 +22,7 @@ import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.execution.history.InputExecutionState;
+import org.gradle.internal.execution.history.ExecutionInputState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -71,14 +71,14 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
     @Override
     protected ImmutableSortedMap<String, ValueSnapshot> getKnownInputProperties(PreviousExecutionContext context) {
         return context.getPreviousExecutionState()
-            .map(InputExecutionState::getInputProperties)
+            .map(ExecutionInputState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
     }
 
     @Override
     protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(PreviousExecutionContext context) {
         return context.getPreviousExecutionState()
-            .map(InputExecutionState::getInputFileProperties)
+            .map(ExecutionInputState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
     }
 

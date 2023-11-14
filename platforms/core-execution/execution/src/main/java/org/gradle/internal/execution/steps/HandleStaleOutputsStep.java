@@ -73,7 +73,7 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
             cleanupStaleOutputs(work, context);
         }
         R result = delegate.execute(work, context);
-        result.getAfterExecutionState()
+        result.getAfterExecutionOutputState()
             .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
         return result;
     }

@@ -51,7 +51,7 @@ class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
         }
 
         then:
-        1 * delegateResult.afterExecutionState >> Optional.empty()
+        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
         1 * executionHistoryStore.remove(identity.uniqueId)
     }
 }

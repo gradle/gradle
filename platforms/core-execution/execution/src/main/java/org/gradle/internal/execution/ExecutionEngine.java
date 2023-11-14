@@ -24,7 +24,7 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -84,7 +84,7 @@ public interface ExecutionEngine {
          * State after execution.
          */
         @VisibleForTesting
-        Optional<AfterExecutionState> getAfterExecutionState();
+        Optional<ExecutionOutputState> getAfterExecutionOutputState();
     }
 
     interface Execution {

@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -38,17 +38,17 @@ import java.util.Optional;
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
 /**
- * Capture the state of the unit of work after its execution finished.
+ * Capture the outputs of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureOutputsAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super C, ? extends Result> delegate;
 
-    public CaptureStateAfterExecutionStep(
+    public CaptureOutputsAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
@@ -63,13 +63,13 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result));
+        Optional<ExecutionOutputState> afterExecutionOutputState = context.getBeforeExecutionState()
+            .map(beforeExecutionState -> captureOutputsAfterExecution(work, context, beforeExecutionState, result));
 
-        return new AfterExecutionResult(result, afterExecutionState.orElse(null));
+        return new AfterExecutionResult(result, afterExecutionOutputState.orElse(null));
     }
 
-    private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Result result) {
+    private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Result result) {
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();
@@ -81,9 +81,8 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 // which is currently the _only_ thing this value is used for.
                 Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
                 OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
-                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, result.getExecution().isSuccessful(), originMetadata, false);
                 operationContext.setResult(Operation.Result.INSTANCE);
-                return afterExecutionState;
+                return new DefaultExecutionOutputState(result.getExecution().isSuccessful(), outputsProducedByWork, originMetadata, false);
             },
             BuildOperationDescriptor
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
