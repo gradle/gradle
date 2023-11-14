@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
@@ -34,7 +35,6 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterc
 import org.gradle.internal.instrumentation.api.metadata.JvmInstrumentationVisitorContext;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
-import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
