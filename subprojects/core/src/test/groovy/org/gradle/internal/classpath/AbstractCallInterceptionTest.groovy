@@ -16,14 +16,18 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.classpath.intercept.DefaultJvmBytecodeInterceptorFactorySet
+import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
-import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 import spock.lang.Specification
 
 import java.util.function.Predicate
 
 abstract class AbstractCallInterceptionTest extends Specification {
+    protected BytecodeInterceptorRequest bytecodeInterceptorRequest = BytecodeInterceptorRequest.ALL
+
     protected abstract Predicate<String> shouldInstrumentAndReloadClassByName()
 
     protected abstract JvmBytecodeInterceptorFactoryProvider jvmBytecodeInterceptorSet()
@@ -39,10 +43,12 @@ abstract class AbstractCallInterceptionTest extends Specification {
     private GroovyInterceptorsSubstitution groovyInterceptorsSubstitution
 
     def setup() {
+        def jvmInterceptorSet = new DefaultJvmBytecodeInterceptorFactorySet(jvmBytecodeInterceptorSet())
+            .getJvmBytecodeInterceptorSet(bytecodeInterceptorRequest)
         instrumentedClasses = new InstrumentedClasses(
             getClass().classLoader,
             shouldInstrumentAndReloadClassByName(),
-            jvmBytecodeInterceptorSet(),
+            jvmInterceptorSet,
             typeRegistry()
         )
         groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
@@ -51,5 +57,10 @@ abstract class AbstractCallInterceptionTest extends Specification {
 
     def cleanup() {
         groovyInterceptorsSubstitution.cleanupForCurrentThread()
+    }
+
+    def resetInterceptors() {
+        cleanup()
+        setup()
     }
 }

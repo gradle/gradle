@@ -16,11 +16,10 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.internal.classpath.intercept.DefaultJvmBytecodeInterceptorFactorySet
-import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
+
+import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorSet
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 
 import java.util.function.Predicate
 
@@ -31,16 +30,16 @@ class InstrumentedClasses {
     private final TestInstrumentedClassLoader loader
 
     InstrumentedClasses(
-            ClassLoader source,
-            Predicate<String> shouldInstrumentClassByName,
-            JvmBytecodeInterceptorFactoryProvider interceptors,
-            InstrumentingTypeRegistry typeRegistry
+        ClassLoader source,
+        Predicate<String> shouldInstrumentClassByName,
+        JvmBytecodeInterceptorSet interceptors,
+        InstrumentingTypeRegistry typeRegistry
     ) {
         this.shouldInstrumentClassByName = shouldInstrumentClassByName
         loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
-            new InstrumentingClassTransform(new DefaultJvmBytecodeInterceptorFactorySet(interceptors), BytecodeInterceptorRequest.ALL),
+            new InstrumentingClassTransform(interceptors),
             typeRegistry
         )
     }
