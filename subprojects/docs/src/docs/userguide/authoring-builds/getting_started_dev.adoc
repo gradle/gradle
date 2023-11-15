@@ -41,6 +41,7 @@ The introduction covers:
 <<writing_tasks.adoc#writing_tasks,Part 6.>> Writing Tasks +
 <<plugins.adoc#plugins,Part 7.>> Using Plugins +
 <<writing_plugins.adoc#writing_plugins,Part 8.>> Writing Plugins +
+<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 9.>> Multi-Project Builds +
 
 [[author_tutorial]]
 == 2. Authoring Gradle Tutorial
@@ -59,6 +60,6 @@ The tutorial covers:
 <<partr1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
 <<partr2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
 <<partr3_settings_file#part3_begin,Part 3.>> Writing the Settings File +
-<<partr4_build_script#part4_begin,Part 4.>> Writing Build Script +
+<<partr4_build_scripts#part4_begin,Part 4.>> Writing Build Script +
 <<partr5_registering_tasks#part5_begin,Part 5.>> Writing Tasks +
 <<partr6_using_plugins#part6_begin,Part 6.>> Writing Plugins +

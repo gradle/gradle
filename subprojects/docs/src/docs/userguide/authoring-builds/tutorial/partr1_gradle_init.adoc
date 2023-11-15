@@ -153,7 +153,7 @@ It is configured in the `app/build.gradle(.kts)` file:
 [source, kotlin]
 ----
 plugins {
-    application                                                     // <1>
+    id("application")                                               // <1>
 }
 
 repositories {
@@ -233,7 +233,7 @@ The Application plugin, which was automatically added by `gradle init`, facilita
 [source, kotlin]
 ----
 plugins {
-    application
+    id("application")
 }
 ----
 

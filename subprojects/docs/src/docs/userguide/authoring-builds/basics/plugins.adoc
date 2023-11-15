@@ -41,7 +41,7 @@ Plugins are available in three ways:
 
 1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
 2. **Community plugins** - Gradle plugins shared in a remote repository such as Maven or the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Local plugins** - Gradle enables users to create *custom* plugins using link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[APIs].
+3. **Local plugins** - Gradle enables users to create *custom* plugins using link:{javadocPath}/org/gradle/api/Plugin.html[APIs].
 
 [[sec:types_of_plugins]]
 == Types of plugins
@@ -76,6 +76,13 @@ The <<#sec:plugins_block,plugins DSL>> is recommended to resolve and apply plugi
 == Resolving plugins
 
 Gradle provides the *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPublishPlugin`, etc.) as part of its distribution, which means they are automatically resolved.
+
+[source,kotlin]
+----
+plugins {
+  id("java")
+}
+----
 
 However, non-core plugins must be resolved before they can be applied.
 This can be achieved in several ways:
@@ -173,8 +180,8 @@ The plugins block configures an instance of link:{javadocPath}/org/gradle/plugin
 plugins {
     application                                     // by name
     java                                            // by name
-    id("java")                                      // by id
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"  // by id
+    id("java")                                      // by id - recommended
+    id("org.jetbrains.kotlin.jvm") version "1.9.0"  // by id - recommended
 }
 ----
 

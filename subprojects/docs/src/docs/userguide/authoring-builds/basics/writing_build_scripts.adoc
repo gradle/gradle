@@ -15,7 +15,7 @@
 [[writing_build_scripts]]
 = Writing Build Scripts
 
-In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file if it exists.
+In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
 
 image::author-gradle-4.png[Build,500,63,align="left"]
 
@@ -126,6 +126,28 @@ The following table lists a few commonly used methods:
 |===
 
 == Build Script structure
+
+The Build script is composed of `{ ... }` which is a special object in both Groovy and Kotlin.
+This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
+
+Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
+It is short form for:
+
+[source]
+----
+plugins(function() {
+    id("plugin")
+})
+----
+
+Blocks are mapped to Gradle API methods.
+
+The code inside the function is executed against a `this` object called a _receiver_ in Kotlin lambda and a _delegate_ in Groovy closure.
+Gradle determines the correct `this` object and invokes the correct corresponding method.
+The `this` of the method invocation `id("plugin")` object is of type link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`].
+
+The build script is essentially composed of Gradle API calls built on top of the DSLs.
+Gradle executes the script line by line, top to bottom.
 
 Let's take a look at an example and break it down:
 
@@ -329,23 +351,6 @@ tasks.named("javadoc").configure {
 }
 ----
 
-[[sec:dynamic_tasks]]
-== Flexible task registration
-
-The capabilities of the Groovy or Kotlin language can be used in the build script.
-
-As an example, you can register multiple tasks in a loop:
-
-====
-include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
-
-----
-$ gradle -q task1
-include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
-----
-====
-
 == Build Scripting
 
 A build script is made up of zero or more statements and script blocks:
@@ -362,7 +367,7 @@ Statements can include method calls, property assignments, and local variable de
 version = '1.0.0.GA'
 ----
 
-A script block is a method call which takes a closure as a parameter:
+A script block is a method call which takes a closure/lambda as a parameter:
 
 [source]
 ----
@@ -370,16 +375,14 @@ configurations {
 }
 ----
 
-The closure configures some delegate object as it executes:
+The closure/lambda configures some delegate object as it executes:
 
 [source]
 ----
 repositories {
-    mavenLocal()
+    google()
 }
 ----
-
-NOTE: `mavenLocal` is a directory on a local machine that stores project artifacts.
 
 A build script is also a Groovy or a Kotlin script:
 
@@ -401,6 +404,21 @@ include::sample[dir="snippets/tutorial/count/groovy", files="build.gradle[]"]
 ----
 $ gradle -q count
 include::{snippetsPath}/tutorial/count/tests/count.out[]
+----
+====
+
+[[sec:dynamic_tasks]]
+=== Flexible task registration
+
+Using the capabilities of the Groovy or Kotlin language, you can register multiple tasks in a loop:
+
+====
+include::sample[dir="snippets/tutorial/dynamic/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/dynamic/groovy", files="build.gradle[]"]
+
+----
+$ gradle -q task1
+include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
 ----
 ====
 
@@ -501,7 +519,6 @@ The Gradle DSL uses closures in many places.
 
 When the last parameter of a method is a closure, you can place the closure after the method call:
 
-.Closure as method parameter
 ====
 include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureAsLastParam]"]
 ====
@@ -513,17 +530,16 @@ Each closure has a `delegate` object. Groovy uses this delegate to look up varia
 Gradle uses this for _configuration closures_,
 where the `delegate` object refers to the object being configured.
 
-.Closure delegates
 ====
 include::sample[dir="snippets/tutorial/groovy/groovy",files="build.gradle[tags=closureDelegates]"]
 ====
 
 [[script-default-imports]]
-=== Default Imports
+== Default imports
 
 To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
-As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`,
-you can write `throw new StopExecutionException()` instead.
+
+As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`, you can write `throw new StopExecutionException()` instead.
 
 Gradle implicitly adds the following imports to each script:
 

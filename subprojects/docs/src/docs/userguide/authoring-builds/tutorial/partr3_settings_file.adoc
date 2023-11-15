@@ -93,4 +93,4 @@ include("sub-project-c")
 ----
 
 [.text-right]
-**Next Step:** <<partr4_build_script#partr4_build_script,Writing a Build Script>> >>
+**Next Step:** <<partr4_build_scripts#partr4_build_scripts,Writing a Build Script>> >>

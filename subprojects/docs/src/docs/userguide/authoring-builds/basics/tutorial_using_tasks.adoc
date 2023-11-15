@@ -108,7 +108,7 @@ include::sample[dir="snippets/tutorial/hello/kotlin", files="build.gradle.kts[]"
 include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 ====
 
-In the example, the build script *registers* a single task called `hello`, and adds an *action* to it.
+In the example, the build script *registers* a single task called `hello` using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] API, and adds an *action* to it.
 
 If the tasks in the project are listed, the `hello` task is available to Gradle:
 
@@ -141,12 +141,12 @@ include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 ----
 ====
 
-When you run `./gradlew hello`, Gradle executes the `hello` task, which executes the *action* you've provided.
-The action is simply a block containing some code to execute: `println("Hello world!")`.
+When Gradle executes the `hello` task, it executes the *action* provided.
+In this case, the action is simply a block containing some code: `println("Hello world!")`.
 
 == Task group and description
 
-The `hello` task from the previous section can be detailed with a *description* and assigned to a *group*.
+The `hello` task from the previous section can be detailed with a *description* and assigned to a *group* with the following update:
 
 .build.gradle.kts
 [source,kotlin]
@@ -264,7 +264,7 @@ Hello world!
 [[sec:manipulating_existing_tasks]]
 == Task configuration
 
-Once tasks are registered, they can be accessed via an _API_ for further configuration.
+Once tasks are registered, they can be accessed via the link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] API for further configuration.
 
 For instance, you can use this to dynamically add dependencies to a task at runtime:
 
@@ -305,9 +305,9 @@ tasks.named("dokkaHtml") {
 ----
 
 == Task types
-Gradle tasks are a subclass of link:{groovyDslPath}/org.gradle.api.Task.html[`Task`].
+Gradle tasks are a subclass of link:{javadocPath}/org/gradle/api/Task.html[`Task`].
 
-In the build script, the `HelloTask` class is created by extending link:{kotlinDslPath}/gradle/org.gradle.api/-default-task/index.html[`DefaultTask`]:
+In the build script, the `HelloTask` class is created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`]:
 
 .build.gradle.kts
 [source, kotlin]

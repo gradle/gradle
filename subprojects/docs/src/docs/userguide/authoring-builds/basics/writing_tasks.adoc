@@ -15,7 +15,7 @@
 [[writing_tasks]]
 = Writing Tasks
 
-Gradle tasks are created by extending link:{groovyDslPath}/org.gradle.api.DefaultTask.html[`DefaultTask`].
+Gradle tasks are created by extending link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`].
 
 However, the generic `DefaultTask` provides no action for Gradle.
 If users want to extend the capabilities of Gradle and their build script, they must either use a *built-in task* or create a *custom task*:
@@ -28,7 +28,7 @@ If users want to extend the capabilities of Gradle and their build script, they 
 
 The simplest and quickest way to create a *custom* task is in a build script:
 
-To create a task, inherit from the `DefaultTask` class and implement a `@TaskAction` handler:
+To create a task, inherit from the `DefaultTask` class and implement a link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[`@TaskAction`] handler:
 
 .build.gradle.kts
 [source,kotlin]
@@ -49,7 +49,7 @@ Then, some text is written to the file.
 
 == Register a task
 
-A task is *registered* in the build script using the `register()` method which allows it to then be used in the build logic.
+A task is *registered* in the build script using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer.register()`] method which allows it to then be used in the build logic.
 
 .build.gradle.kts
 [source,kotlin]
@@ -63,7 +63,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-tasks.register<CreateFileTask>("createFileTask", ) {
+tasks.register<CreateFileTask>("createFileTask") {
 
 }
 ----
@@ -117,7 +117,7 @@ abstract class CreateFileTask : DefaultTask() {
     }
 }
 
-tasks.register<CreateFileTask>("createFileTask", ) {
+tasks.register<CreateFileTask>("createFileTask") {
     group = "custom"
     description = "Create myfile.txt in the current directory"
 }
@@ -125,7 +125,7 @@ tasks.register<CreateFileTask>("createFileTask", ) {
 
 == Configure a task
 
-A task is optionally *configured* in a build script using the `named()` method.
+A task is optionally *configured* in a build script using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TaskCollection.named()`] method.
 
 The `CreateFileTask` class is updated so that the text in the file is configurable:
 
@@ -160,6 +160,30 @@ tasks.named<CreateFileTask>("createFileTask") {
 ----
 
 In the `named()` method, we find the `createFileTask` task and set the text that will be written to the file.
+
+When the task is executed:
+
+[source]
+----
+$ ./gradlew createFileTask
+
+> Configure project :app
+
+> Task :app:createFileTask
+
+BUILD SUCCESSFUL in 5s
+2 actionable tasks: 1 executed, 1 up-to-date
+----
+
+A text file called `myfile.txt` is created in the project root folder:
+
+.myfile.txt
+[source,txt]
+----
+HELLO FROM THE NAMED METHOD
+----
+
+Consult the <<more_about_tasks.adoc#more_about_tasks,Developing Gradle Tasks chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<plugins.adoc#plugins,Learn how to use Plugins>> >>
