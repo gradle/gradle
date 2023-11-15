@@ -30,7 +30,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.SettingsState
-import org.gradle.initialization.layout.BuildLocations
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -201,7 +201,7 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun settingsDir() =
-            service<BuildLocations>().settingsDir
+            service<BuildLayout>().settingsDir
 
         private
         fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
