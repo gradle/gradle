@@ -24,14 +24,23 @@ import java.io.File;
 public interface LockOptions {
     FileLockManager.LockMode getMode();
 
+    /**
+     * The alternate lock directory to use.
+     *
+     * If this is non-{@code null}, the lock file will <strong>NOT</strong> be created in the cache's content directory,
+     * it will be created in this directory instead.  This is only valid when the {@link LockTargetType} does
+     * <strong>NOT</strong> equal {@link LockTargetType#CachePropertiesFile}.
+     */
     @Nullable File getAlternateLockDir();
 
-    boolean isUseCrossVersionImplementation();
+    boolean isCrossVersionImplementation();
 
     LockTargetType getLockTargetType();
 
     /**
-     * Creates a copy of these options with the given mode.
+     * Creates a copy of this options instance using the given mode.
+     *
+     * @param mode the mode to overwrite the current mode with
      */
     LockOptions copyWithMode(FileLockManager.LockMode mode);
 
@@ -39,7 +48,7 @@ public interface LockOptions {
      * Calculates the lock target for a cache using these options with a given content directory and properties file.
      *
      * We call it a "target" because it could be a file or a directory.  It should <strong>NOT</strong> be confused with the
-     * contents of the cache.
+     * contents of the cache, or the lock file itself.
      *
      * @param cacheContentDir the cache's content directory
      * @param cachePropertiesFile the cache's properties file
@@ -58,12 +67,13 @@ public interface LockOptions {
     }
 
     /**
-     * Calculates the {@code .lock} file for a given lock target, as calculated by {@link #determineLockTarget(File, File)}.
+     * Calculates the {@code .lock} file for a given lock target.
      *
-     * @param lockTarget the lock target, which may be a file or directory based on the lock target type
+     * @param lockTarget the lock target as calculated by {@link #determineLockTarget(File, File)}, which may
+     *      be a file or directory based on the lock target type
      * @return the lock file that will be used
      */
-    default File determineLockFile(File lockTarget) {
+    static File determineLockFile(File lockTarget) {
         if (lockTarget.isDirectory()) {
             return new File(lockTarget, lockTarget.getName() + ".lock");
         } else {
@@ -72,12 +82,12 @@ public interface LockOptions {
     }
 
     /**
-     * The type of lock to target use when generating a lock file for a {@link PersistentCache}.
+     * The type of lock to use when generating a lock file for a {@link PersistentCache}.
      *
      * The default is {@link LockTargetType#DefaultTarget}, which generates a file with the same name as the cache,
-     * is identical in behavior to {@link LockTargetType#CacheDirectory }and should be used in most cases.  This file
-     * is located within the cache's content directory by default,
-     * but this will be replaced by the value at {@link #getAlternateLockDir()} instead if it is not {@code null}.
+     * located in the cache's content directory, is identical in behavior to {@link LockTargetType#CacheDirectory}
+     * and should be used in most cases.  This file will be re-located out of the content dir if the alternate
+     * lock directory value at {@link #getAlternateLockDir()} is non-{@code null}.
      */
     enum LockTargetType {
         /**

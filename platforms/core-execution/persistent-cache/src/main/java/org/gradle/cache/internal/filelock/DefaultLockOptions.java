@@ -74,7 +74,7 @@ public class DefaultLockOptions implements LockOptions {
     }
 
     @Override
-    public boolean isUseCrossVersionImplementation() {
+    public boolean isCrossVersionImplementation() {
         return crossVersion;
     }
 

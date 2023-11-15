@@ -135,7 +135,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             this.target = target;
-            this.lockFile = options.determineLockFile(target);
+            this.lockFile = LockOptions.determineLockFile(target);
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
@@ -148,7 +148,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 throw e;
             }
 
-            LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
+            LockStateSerializer stateProtocol = options.isCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
             try {
                 if (whenContended != null) {

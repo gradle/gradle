@@ -127,7 +127,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockFile(lockTarget));
+        return Arrays.asList(propertiesFile, gcFile, LockOptions.determineLockFile(lockTarget));
     }
 
     @Override
