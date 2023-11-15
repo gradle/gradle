@@ -169,7 +169,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         ComponentIdResolveResult resolvedPreference = selector.resolvePrefer(allRejects);
         if (resolvedPreference != null && resolvedPreference.getFailure() == null) {
             if (preferResults == null) {
-                preferResults = Sets.newTreeSet(new DescendingResolveResultComparator());
+                preferResults = Sets.newTreeSet(new DescendingResolveResultComparator(versionComparator, versionParser));
             }
             preferResults.add(resolvedPreference);
         }
@@ -237,9 +237,17 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private static class DescendingResolveResultComparator implements Comparator<ComponentIdResolveResult> {
+        private final Comparator<Version> versionComparator;
+        private final VersionParser versionParser;
+
+        public DescendingResolveResultComparator(Comparator<Version> versionComparator, VersionParser versionParser) {
+            this.versionComparator = versionComparator;
+            this.versionParser = versionParser;
+        }
+
         @Override
         public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
-            return o2.getModuleVersionId().getVersion().compareTo(o1.getModuleVersionId().getVersion());
+            return versionComparator.compare(versionParser.transform(o2.getModuleVersionId().getVersion()), versionParser.transform(o1.getModuleVersionId().getVersion()));
         }
     }
 }
