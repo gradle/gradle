@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.problems;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
 
-import java.util.Map;
-
-@NonNullApi
-public interface InternalProblemDetails2 extends InternalProblemDetails {
-
-    Map<String, Object> getAdditionalData();
+/**
+ * Represents a problem details.
+ * @since 8.6
+ */
+@Incubating
+public interface Details {
+    /**
+     * @return the problem details
+     */
+    String getDetails();
 }

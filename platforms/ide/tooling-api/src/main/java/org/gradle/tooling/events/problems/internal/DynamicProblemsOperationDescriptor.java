@@ -27,58 +27,44 @@ import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-import javax.annotation.Nullable;
-
 @NonNullApi
-public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
+public class DynamicProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
     private final String json;
-    private final ProblemCategory category;
-    private final Label label;
-    private final Details details;
-    private final Severity severity;
-    private final AdditionalData additionalData;
 
-    public DefaultProblemsOperationDescriptor(
+    public DynamicProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
-        String json,
-        ProblemCategory category,
-        Label label,
-        @Nullable Details details,
-        Severity severity,
-        AdditionalData additionalData
+        String json
     ) {
         super(internalDescriptor, parent);
         this.json = json;
-        this.category = category;
-        this.label = label;
-        this.details = details;
-        this.severity = severity;
-        this.additionalData = additionalData;
     }
+
+    @Override
     public ProblemCategory getCategory() {
-        return category;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Label getLabel() {
-        return label;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Details getDetails() {
-        return details;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Severity getSeverity() {
-        return severity;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public AdditionalData getAdditionalData() {
-        return additionalData;
+        throw new UnsupportedOperationException();
     }
+
     @Override
     public String getJson() {
         return json;

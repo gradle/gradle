@@ -64,10 +64,21 @@ import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent;
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseFinishEvent;
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseOperationDescriptor;
 import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
+import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.events.problems.Details;
+import org.gradle.tooling.events.problems.Label;
+import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.ProblemEvent;
+import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
+import org.gradle.tooling.events.problems.internal.DefaultCategory;
+import org.gradle.tooling.events.problems.internal.DefaultDetails;
+import org.gradle.tooling.events.problems.internal.DefaultLabel;
 import org.gradle.tooling.events.problems.internal.DefaultProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationDescriptor;
+import org.gradle.tooling.events.problems.internal.DefaultSeverity;
+import org.gradle.tooling.events.problems.internal.DynamicProblemsOperationDescriptor;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -129,7 +140,8 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.InternalProblemDetails2;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
@@ -175,9 +187,12 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
+import org.gradle.tooling.internal.protocol.problem.InternalDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalLabel;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -684,21 +699,50 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private ProblemDescriptor toProblemDescriptor(InternalProblemEvent progressEvent, InternalProblemDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         InternalProblemDetails details = progressEvent.getDetails();
-        Map<String, Object> additionalData;
-        if (details instanceof InternalProblemDetails2) {
-            additionalData = ((InternalProblemDetails2) details).getAdditionalData();
+
+        if (!(details instanceof InternalBasicProblemDetails)) {
+            return new DynamicProblemsOperationDescriptor(
+                descriptor,
+                parent,
+                details.getJson()
+            );
         } else {
-            additionalData = Collections.emptyMap();
+            InternalBasicProblemDetails basicDetails = (InternalBasicProblemDetails) details;
+            InternalProblemCategory category = basicDetails.getCategory();
+            return new DefaultProblemsOperationDescriptor(
+                descriptor,
+                parent,
+                details.getJson(),
+                toProblemCategory(category),
+                toProblemLabel(basicDetails.getLabel()),
+                toProblemDetails(basicDetails.getDetails()),
+                toProblemSeverity(basicDetails.getSeverity()),
+                toAdditionalData(basicDetails.getAdditionalData())
+            );
         }
+    }
 
+    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
+        return new DefaultAdditionalData(additionalData.getAsMap());
+    }
 
+    private static ProblemCategory toProblemCategory(InternalProblemCategory category) {
+        return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
+    }
 
-        return new DefaultProblemsOperationDescriptor(
-            descriptor,
-            parent,
-            details.getJson(),
-            additionalData
-        );
+    private static Label toProblemLabel(InternalLabel label) {
+        return new DefaultLabel(label.getLabel());
+    }
+
+    private static Severity toProblemSeverity(InternalSeverity severity) {
+        return DefaultSeverity.from(severity.getSeverity());
+    }
+
+    private static Details toProblemDetails(InternalDetails details) {
+        if (details != null) {
+            return new DefaultDetails(details.getDetails());
+        }
+        return null;
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

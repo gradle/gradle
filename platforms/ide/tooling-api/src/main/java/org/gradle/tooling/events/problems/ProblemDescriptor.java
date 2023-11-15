@@ -19,7 +19,7 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Describes a problem operation.
@@ -40,10 +40,42 @@ public interface ProblemDescriptor extends OperationDescriptor {
     String getJson();
 
     /**
-     * Additional data associated with this descriptor.
+     * Returns the problem category.
      *
-     * @return a map of additional data.
+     * @return the problem category
      * @since 8.6
      */
-    Map<String, Object> getAdditionalData();
+    ProblemCategory getCategory();
+
+    /**
+     * Returns the problem label.
+     *
+     * @return the problem label
+     * @since 8.6
+     */
+    Label getLabel();
+
+    /**
+     * Returns the details string.
+     *
+     * @return the problem details
+     */
+    @Nullable
+    Details getDetails();
+
+    /**
+     * Returns the problem severity.
+     *
+     * @return the problem severity
+     */
+    Severity getSeverity();
+
+    /**
+     * Additional data associated with this problem.
+     * TODO: describe the possible value types.
+     *
+     * @return a map of additional data
+     * @since 8.6
+     */
+    AdditionalData getAdditionalData();
 }
