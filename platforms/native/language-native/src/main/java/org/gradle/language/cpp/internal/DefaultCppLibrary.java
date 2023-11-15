@@ -149,6 +149,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         PatternSet patterns = new PatternSet();
         patterns.include("**/*.h");
         patterns.include("**/*.hpp");
+        patterns.include("**/*.h++");
         patterns.include("**/*.hxx");
         patterns.include("**/*.hm");
         patterns.include("**/*.inl");
