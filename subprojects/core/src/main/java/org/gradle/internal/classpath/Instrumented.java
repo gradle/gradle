@@ -32,6 +32,7 @@ import org.gradle.internal.configuration.inputs.AccessTrackingProperties;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.configuration.inputs.InstrumentedInputsListener;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -56,7 +57,6 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
-import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest.ALL;
 
 public class Instrumented {
     @SuppressWarnings("deprecation")
@@ -91,9 +91,9 @@ public class Instrumented {
 
     // Called by generated code
     @SuppressWarnings("unused")
-    public static void groovyCallSites(CallSiteArray array) {
+    public static void groovyCallSites(CallSiteArray array, BytecodeInterceptorRequest interceptorRequest) {
         for (CallSite callSite : array.array) {
-            array.array[callSite.getIndex()] = getGroovyCallDecorator(ALL).maybeDecorateGroovyCallSite(callSite);
+            array.array[callSite.getIndex()] = getGroovyCallDecorator(interceptorRequest).maybeDecorateGroovyCallSite(callSite);
         }
     }
 
@@ -110,8 +110,17 @@ public class Instrumented {
      * @return the produced CallSite
      * @see IndyInterface
      */
-    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
-        return getGroovyCallDecorator(ALL).maybeDecorateIndyCallSite(
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapInstrumentationOnly(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorRequest.INSTRUMENTATION_ONLY).maybeDecorateIndyCallSite(
+            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
+    }
+
+    // Called by generated code
+    @SuppressWarnings("unused")
+    public static java.lang.invoke.CallSite bootstrapAll(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return getGroovyCallDecorator(BytecodeInterceptorRequest.ALL).maybeDecorateIndyCallSite(
             IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
