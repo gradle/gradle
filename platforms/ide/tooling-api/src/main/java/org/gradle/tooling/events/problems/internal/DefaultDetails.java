@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.tooling.events.problems.Details;
 
-import java.util.Map;
+public class DefaultDetails implements Details {
 
-@NonNullApi
-public interface InternalProblemDetails2 extends InternalProblemDetails {
+    private final String label;
 
-    Map<String, Object> getAdditionalData();
+    public DefaultDetails(String details) {
+        this.label = details;
+    }
+    @Override
+    public String getDetails() {
+        return label;
+    }
 }

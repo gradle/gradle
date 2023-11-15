@@ -18,19 +18,47 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.gson.Gson;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemCategory;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.locations.PluginIdLocation;
+import org.gradle.api.problems.locations.ProblemLocation;
+import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.api.problems.locations.FileLocation;
+import org.gradle.internal.build.event.types.DefaultAdditionalData;
+import org.gradle.internal.build.event.types.DefaultDetails;
+import org.gradle.internal.build.event.types.DefaultDocumentationLink;
+import org.gradle.internal.build.event.types.DefaultFileLocation;
+import org.gradle.internal.build.event.types.DefaultLabel;
+import org.gradle.internal.build.event.types.DefaultPluginIdLocation;
+import org.gradle.internal.build.event.types.DefaultProblemCategory;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.build.event.types.DefaultSeverity;
+import org.gradle.internal.build.event.types.DefaultSolution;
+import org.gradle.internal.build.event.types.DefaultTaskPathLocation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalDetails;
+import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
+import org.gradle.tooling.internal.protocol.problem.InternalLabel;
+import org.gradle.tooling.internal.protocol.problem.InternalLocation;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
+import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @NonNullApi
@@ -56,15 +84,71 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         buildOperationId),
                     new DefaultProblemDetails(
                         new Gson().toJson(problem),
-                        filterEntriesWithUnsupportedValueTypes(problem.getAdditionalData())
+                        mapCategory(problem.getProblemCategory()),
+                        mapLabel(problem.getLabel()),
+                        mapDetails(problem.getDetails()),
+                        mapSeverity(problem.getSeverity()),
+                        mapLocations(problem.getLocations()),
+                        mapDocumentationLink(problem.getDocumentationLink()),
+                        mapSolutions(problem.getSolutions()),
+                        mapEntries(problem.getAdditionalData())
                     )
                 )
             );
         }
     }
 
-    private static Map<String, Object> filterEntriesWithUnsupportedValueTypes(Map<String, Object> additionalData) {
-        return additionalData.entrySet().stream().filter(entry -> isSupportedType(entry.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    private static InternalProblemCategory mapCategory(ProblemCategory category) {
+        return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
+    }
+
+    private static InternalLabel mapLabel(String label) {
+        return new DefaultLabel(label);
+    }
+
+    private static @Nullable InternalDetails mapDetails(@Nullable String details) {
+        return details == null ? null : new DefaultDetails(details);
+    }
+
+    private static InternalSeverity mapSeverity(Severity severity) {
+        // TODO we could probably send the same instance
+        switch (severity) {
+            case ADVICE: return new DefaultSeverity(0);
+            case WARNING: return new DefaultSeverity(1);
+            case ERROR: return new DefaultSeverity(2);
+            default: return new DefaultSeverity(3); // should not happen
+        }
+    }
+
+    private static List<InternalLocation> mapLocations(List<ProblemLocation> locations) {
+        return locations.stream().map((Function<ProblemLocation, InternalLocation>) location -> {
+            if (location instanceof FileLocation) {
+                FileLocation fileLocation = (FileLocation) location;
+                return new DefaultFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+            } else if (location instanceof PluginIdLocation) {
+                PluginIdLocation pluginLocation = (PluginIdLocation) location;
+                return new DefaultPluginIdLocation(pluginLocation.getPluginId());
+            } else if (location instanceof TaskPathLocation) {
+                TaskPathLocation taskLocation = (TaskPathLocation) location;
+                return new DefaultTaskPathLocation(taskLocation.getIdentityPath().toString());
+            } else {
+                throw new RuntimeException("No mapping defined for " + location.getClass().getName());
+            }
+        }).collect(Collectors.toList());
+    }
+
+    private static @Nullable InternalDocumentationLink mapDocumentationLink(@Nullable DocLink link) {
+        return link == null ? null : new DefaultDocumentationLink(link.getUrl());
+    }
+
+    private static List<InternalSolution> mapSolutions(List<String> solutions) {
+        return solutions.stream().map((Function<String, InternalSolution>) DefaultSolution::new).collect(Collectors.toList());
+    }
+
+    private static InternalAdditionalData mapEntries(Map<String, Object> additionalData) {
+        return new DefaultAdditionalData(
+            additionalData.entrySet().stream().filter(entry -> isSupportedType(entry.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
     }
 
     private static boolean isSupportedType(Object type) {

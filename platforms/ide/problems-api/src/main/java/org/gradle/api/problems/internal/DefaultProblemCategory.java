@@ -34,7 +34,7 @@ public class DefaultProblemCategory implements ProblemCategory {
     public static final String VALIDATION = "validation";
 
     public static final String SEPARATOR = Path.SEPARATOR;
-    protected Path category;
+    private final Path category;
 
     public DefaultProblemCategory(String category) {
         if (category.startsWith(SEPARATOR)) {

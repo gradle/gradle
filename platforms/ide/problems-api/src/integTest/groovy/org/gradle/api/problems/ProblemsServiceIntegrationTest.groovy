@@ -435,7 +435,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         ]
     }
 
-    def "trying to emit a problem with invalid additional data results in build failure"() {
+    def "cannot emit a problem with invalid additional data"() {
         given:
         disableProblemsApiCheck()
 
