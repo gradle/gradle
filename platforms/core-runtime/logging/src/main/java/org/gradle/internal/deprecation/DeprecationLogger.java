@@ -16,10 +16,19 @@
 package org.gradle.internal.deprecation;
 
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.ProblemBuilder;
+import org.gradle.api.problems.ProblemBuilderDefiningLabel;
+import org.gradle.api.problems.ProblemBuilderSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.ReportableProblem;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.DefaultProblemCategory;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.CheckReturnValue;
@@ -346,5 +355,28 @@ public class DeprecationLogger {
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
+
+        ReportableProblem problem = transformIntoProblem(usage);
+        problem.report();
+    }
+
+    private static ReportableProblem transformIntoProblem(final DeprecatedFeatureUsage usage) {
+        Problems problems = ProblemsProgressEventEmitterHolder.get();
+        ProblemBuilderSpec problemBuilderSpec = new ProblemBuilderSpec() {
+            @Override
+            public ProblemBuilder apply(ProblemBuilderDefiningLabel builder) {
+                return builder
+                    .label(usage.getSummary())
+                    // FIXME: Not sure
+                    .documentedAt(usage.getDocumentationUrl())
+                    .stackLocation()
+                    .category(DefaultProblemCategory.DEPRECATION, TextUtil.screamingSnakeToKebabCase(usage.getType().name()))
+                    .solution(usage.getAdvice())
+                    .solution(usage.getContextualAdvice())
+                    .severity(Severity.WARNING);
+            }
+        };
+
+        return problems.create(problemBuilderSpec);
     }
 }

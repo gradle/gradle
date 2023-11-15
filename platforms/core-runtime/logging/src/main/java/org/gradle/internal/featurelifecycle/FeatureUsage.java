@@ -37,7 +37,7 @@ public abstract class FeatureUsage {
         return summary;
     }
 
-    protected Class<?> getCalledFrom() {
+    public Class<?> getCalledFrom() {
         return calledFrom;
     }
 

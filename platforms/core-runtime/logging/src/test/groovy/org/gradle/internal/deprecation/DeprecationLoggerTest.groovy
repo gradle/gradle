@@ -21,10 +21,12 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.internal.Factory
+import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule

@@ -28,7 +28,6 @@ import org.gradle.problems.buildtree.ProblemStream;
 
 public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExecutor {
     private final BuildTreeActionExecutor delegate;
-    private final ProblemDiagnosticsFactory problemDiagnosticsFactory;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final StartParameter startParameter;
     private final Problems problemsService;
@@ -43,7 +42,6 @@ public class InitDeprecationLoggingActionExecutor implements BuildTreeActionExec
         ProblemStream problemsStream
     ) {
         this.delegate = delegate;
-        this.problemDiagnosticsFactory = problemDiagnosticsFactory;
         this.eventEmitter = eventEmitter;
         this.startParameter = startParameter;
         this.problemsService = problemsService;
