@@ -38,8 +38,8 @@ public class DefaultDecompressionCache implements DecompressionCache {
     private final PersistentCache cache;
 
     public DefaultDecompressionCache(ScopedCacheBuilderFactory cacheBuilderFactory, File rootLockDir) {
-        File lockDir = cacheBuilderFactory.getCacheDir(rootLockDir, EXPANSION_CACHE_KEY, VersionStrategy.CachePerVersion);
-        LockOptions lockOptions = new DefaultLockOptions(FileLockManager.LockMode.OnDemand, true, lockDir);
+        File versionedLockDir = cacheBuilderFactory.getVersionedDir(rootLockDir, EXPANSION_CACHE_KEY, VersionStrategy.CachePerVersion);
+        LockOptions lockOptions = new DefaultLockOptions(FileLockManager.LockMode.OnDemand, true, versionedLockDir);
 
         this.cache = cacheBuilderFactory.createCrossVersionCacheBuilder(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)

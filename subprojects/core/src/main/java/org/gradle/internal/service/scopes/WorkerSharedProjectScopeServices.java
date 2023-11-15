@@ -166,7 +166,7 @@ public class WorkerSharedProjectScopeServices {
     }
 
     private File buildExpansionCacheDir() {
-        File crossVersionCacheDir = new File(projectCacheDir, DecompressionCache.EXPANSION_CACHE_KEY);
-        return new File(crossVersionCacheDir, projectDir.getName());
+        File rootExpansionCacheDir = new File(projectCacheDir, DecompressionCache.EXPANSION_CACHE_KEY);
+        return new File(rootExpansionCacheDir, projectDir.getName());
     }
 }

@@ -57,8 +57,8 @@ public interface ScopedCacheBuilderFactory {
     File baseDirForCrossVersionCache(String key);
 
     /**
-     * Returns the base directory that would be used for a cache builder created by this factory
-     * using the given version strategy at the given root dir.
+     * Returns the base directory that would be used for storing caching files using
+     * the given version strategy at the given root dir.
      */
-    File getCacheDir(File rootDir, String key, VersionStrategy versionStrategy);
+    File getVersionedDir(File rootDir, String key, VersionStrategy versionStrategy);
 }

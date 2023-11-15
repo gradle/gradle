@@ -67,7 +67,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     };
 
     private final String cacheDisplayName;
-    private final File baseDir;
+    private final File cacheDir;
     private final CacheCleanupExecutor cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
@@ -88,9 +88,9 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File cacheDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
-        this.baseDir = baseDir;
+        this.cacheDir = cacheDir;
         this.cleanupAction = cleanupAction;
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
@@ -335,7 +335,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     private <K, V> File findCacheFile(IndexedCacheParameters<K, V> parameters) {
-        return new File(baseDir, parameters.getCacheName() + ".bin");
+        return new File(cacheDir, parameters.getCacheName() + ".bin");
     }
 
     @Override

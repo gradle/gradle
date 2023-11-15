@@ -20,5 +20,11 @@ import java.io.File;
 
 public interface WorkerRequirement {
     File getWorkerDirectory();
+
+    /**
+     * Returns the directory for the worker to use to create and access caches.
+     *
+     * @return cache directory
+     */
     File getCacheDirectory();
 }

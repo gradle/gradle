@@ -168,7 +168,7 @@ public class BuildTreeScopeServices {
     }
 
     private File buildExpansionCacheDir(ProjectCacheDir projectCacheDir) {
-        File crossVersionCacheDir = new File(projectCacheDir.getDir(), DecompressionCache.EXPANSION_CACHE_KEY);
-        return new File(crossVersionCacheDir, "settings");
+        File rootExpansionCacheDir = new File(projectCacheDir.getDir(), DecompressionCache.EXPANSION_CACHE_KEY);
+        return new File(rootExpansionCacheDir, "settings");
     }
 }

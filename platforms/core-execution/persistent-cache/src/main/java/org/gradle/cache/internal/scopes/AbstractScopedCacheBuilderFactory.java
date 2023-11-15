@@ -31,10 +31,10 @@ import java.io.File;
 public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
-    private final File rootCacheDir;
+    private final File rootDir;
 
     public AbstractScopedCacheBuilderFactory(File rootContentDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        this.rootCacheDir = rootContentDir;
+        this.rootDir = rootContentDir;
         this.cacheScopeMapping = new DefaultCacheScopeMapping(rootContentDir, GradleVersion.current());
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
     }
@@ -45,7 +45,7 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public File getRootDir() {
-        return rootCacheDir;
+        return rootDir;
     }
 
     @Override
@@ -60,16 +60,16 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
 
     @Override
     public File getCacheDir(String key) {
-        return getCacheDir(rootCacheDir, key, VersionStrategy.CachePerVersion);
+        return getVersionedDir(rootDir, key, VersionStrategy.CachePerVersion);
     }
 
     @Override
     public File baseDirForCrossVersionCache(String key) {
-        return getCacheDir(rootCacheDir, key, VersionStrategy.SharedCache);
+        return getVersionedDir(rootDir, key, VersionStrategy.SharedCache);
     }
 
     @Override
-    public File getCacheDir(File rootDir, String key, VersionStrategy versionStrategy) {
+    public File getVersionedDir(File rootDir, String key, VersionStrategy versionStrategy) {
         return cacheScopeMapping.getBaseDirectory(rootDir, key, versionStrategy);
     }
 }

@@ -34,12 +34,12 @@ import java.util.function.Supplier;
  */
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
     private final Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier;
-    private final File rootLockDir;
+    private final File lockDir;
     private volatile DecompressionCache cache;
 
-    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier, File projectCacheDir) {
+    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier, File lockDir) {
         this.cacheBuilderFactorySupplier = cacheBuilderFactorySupplier;
-        this.rootLockDir = projectCacheDir;
+        this.lockDir = lockDir;
     }
 
     @Nonnull
@@ -48,7 +48,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get(), rootLockDir);
+                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get(), lockDir);
                 }
             }
         }
