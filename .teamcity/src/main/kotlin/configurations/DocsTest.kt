@@ -119,7 +119,7 @@ class DocsTest(
     testClasses: List<String>,
 ) : BaseGradleBuildType(stage = stage, init = {
 
-    id("${model.projectId}_${docsTestType.docsTestName}_${testJava.version.name.toCapitalized()}_${os.asName()}_$index")
+    id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
     name = "${docsTestType.docsTestDesc} - ${testJava.version.name.toCapitalized()} ${os.asName()} ($index)"
 
     features {
