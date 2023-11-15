@@ -45,6 +45,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
@@ -161,6 +162,11 @@ public class WorkerSharedProjectScopeServices {
     }
 
     protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
-        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), projectCacheDir);
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory), buildExpansionCacheDir());
+    }
+
+    private File buildExpansionCacheDir() {
+        File crossVersionCacheDir = new File(projectCacheDir, DecompressionCache.EXPANSION_CACHE_KEY);
+        return new File(crossVersionCacheDir, projectDir.getName());
     }
 }

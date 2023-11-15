@@ -38,6 +38,7 @@ import org.gradle.api.model.BuildTreeObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
@@ -72,6 +73,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -154,7 +156,7 @@ public class BuildTreeScopeServices {
     }
 
     protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, ProjectCacheDir projectCacheDir) {
-        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory, projectCacheDir.getDir());
+        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory, buildExpansionCacheDir(projectCacheDir));
     }
 
     protected BuildLogicBuildQueue createBuildLogicBuildQueue(
@@ -163,5 +165,10 @@ public class BuildTreeScopeServices {
         BuildTreeWorkGraphController buildTreeWorkGraphController
     ) {
         return new DefaultBuildLogicBuildQueue(fileLockManager, buildStateRegistry, buildTreeWorkGraphController);
+    }
+
+    private File buildExpansionCacheDir(ProjectCacheDir projectCacheDir) {
+        File crossVersionCacheDir = new File(projectCacheDir.getDir(), DecompressionCache.EXPANSION_CACHE_KEY);
+        return new File(crossVersionCacheDir, "settings");
     }
 }

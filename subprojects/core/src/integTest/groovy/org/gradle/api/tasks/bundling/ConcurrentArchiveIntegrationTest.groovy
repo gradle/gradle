@@ -473,7 +473,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }
-                    def lockFile = file(".gradle/${GradleVersion.current().version}/expanded/expanded.lock")
+                    def lockFile = file(".gradle/expanded/${temporaryFolder.getTestDirectory().getName()}/${GradleVersion.current().version}/expanded.lock")
                     assert lockFile.exists()
                 }
             }

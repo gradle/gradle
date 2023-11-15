@@ -19,7 +19,16 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 
-class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
+/**
+ * Tests for error messages that are shown when Gradle fails to start.
+ *
+ * "Not scary" here means that the ultimate cause of the failure is something like the examples below, i.e.
+ * "Failed to create directory" or "Cache directory exists and is not a directory".  This does <strong>NOT</strong>
+ * mean that this is the only thing shown - it very likely appears at the bottom of a stack of Service
+ * creation failure messages.  The goal here is only to ensure the ultimate cause is sensible to the user
+ * and not internal Gradle speak.
+ */
+class GradleStartupFailureMessageIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireIsolatedDaemons()
@@ -58,7 +67,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         cachesDir.isFile()
-        assertHasStartupFailure(failure, "Cannot create parent directory '${executer.gradleUserHomeDir.file("caches")}")
+        assertHasStartupFailure(failure, "Failed to create directory '${executer.gradleUserHomeDir.file("caches")}")
     }
 
     def "Error message due to unwritable Gradle daemon directory is not scary"() {
