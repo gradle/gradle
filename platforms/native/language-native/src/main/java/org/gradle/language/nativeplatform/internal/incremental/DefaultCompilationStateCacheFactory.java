@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.PersistentCache;
@@ -39,7 +38,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         cache = cacheBuilderFactory
                 .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
-                .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Lock on demand
+                .withLockOptions(new DefaultLockOptions()) // Lock on demand
                 .open();
         IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

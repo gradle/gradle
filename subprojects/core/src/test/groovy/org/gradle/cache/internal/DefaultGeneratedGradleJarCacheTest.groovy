@@ -18,7 +18,6 @@ package org.gradle.cache.internal
 
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
@@ -48,7 +47,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(new DefaultLockOptions()) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         1 * cache.close()
     }
@@ -66,7 +65,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(new DefaultLockOptions()) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)
@@ -89,7 +88,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         1 * cacheBuilderFactory.createCacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(new DefaultLockOptions()) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)
@@ -102,7 +101,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         then:
         0 * cacheBuilderFactory.createCacheBuilder(CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        0 * cacheBuilder.withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
+        0 * cacheBuilder.withLockOptions(new DefaultLockOptions()) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
         1 * cache.useCache(_)

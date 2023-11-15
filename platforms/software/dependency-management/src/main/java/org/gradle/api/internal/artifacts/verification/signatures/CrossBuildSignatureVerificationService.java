@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.verification.signatures;
 import com.google.common.collect.Lists;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
@@ -69,7 +68,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.keyringFileHash = keyringFileHash;
         store = cacheBuilderFactory.createCacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
-            .withLockOptions(new DefaultLockOptions(FileLockManager.LockMode.OnDemand)) // Lock on demand
+            .withLockOptions(new DefaultLockOptions()) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createIndexedCache(

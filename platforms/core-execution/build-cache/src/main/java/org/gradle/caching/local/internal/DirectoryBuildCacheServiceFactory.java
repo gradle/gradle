@@ -41,8 +41,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
-
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
     public static final String FAILED_READ_SUFFIX = ".failed";
 
@@ -94,7 +92,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             .cache(target)
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")
-            .withLockOptions(new DefaultLockOptions(OnDemand))
+            .withLockOptions(new DefaultLockOptions())
             .withCrossVersionCache()
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(temporaryFileProvider);
