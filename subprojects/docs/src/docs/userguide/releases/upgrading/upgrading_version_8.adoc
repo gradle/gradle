@@ -38,6 +38,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to JaCoCo 0.8.11
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
+
+
 === Deprecations
 
 [[deprecated_artifact_identifier]]
