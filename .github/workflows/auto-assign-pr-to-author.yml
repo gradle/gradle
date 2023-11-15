@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened]
 
-permissions:
+permissions: read write 
   contents: read
 
 jobs:
