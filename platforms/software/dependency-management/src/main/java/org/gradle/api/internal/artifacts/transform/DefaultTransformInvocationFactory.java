@@ -76,7 +76,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> identityCache;
+        Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
         if (producerProject == null) {
             // Non-project-bound transforms run in a global immutable workspace,
@@ -136,7 +136,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         return executionEngine.createRequest(execution)
             .executeDeferred(identityCache)
             .map(result -> result
-                .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
+                .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
 

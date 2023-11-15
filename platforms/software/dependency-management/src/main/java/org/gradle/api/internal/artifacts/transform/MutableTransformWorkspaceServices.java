@@ -25,5 +25,5 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 public interface MutableTransformWorkspaceServices extends ReservedFileSystemLocation {
     MutableWorkspaceProvider getWorkspaceProvider();
 
-    Cache<UnitOfWork.Identity, Try<TransformWorkspaceResult>> getIdentityCache();
+    Cache<UnitOfWork.Identity, Try<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
 }

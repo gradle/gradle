@@ -18,6 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.apache.commons.io.input.BufferedFileChannelInputStream;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
@@ -34,8 +36,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -99,8 +99,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private OriginMetadata loadOriginMetadata(File immutableWorkspace) {
         File originFile = getOriginFile(immutableWorkspace);
-        //noinspection IOStreamConstructor
-        try (InputStream originInput = new FileInputStream(originFile)) {
+        try (InputStream originInput = new BufferedFileChannelInputStream(originFile)) {
             return originMetadataFactory.createReader().execute(originInput);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not read origin metadata from " + originFile, e);
@@ -109,10 +108,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private void storeOriginMetadata(UnitOfWork work, File temporaryWorkspace, String identity, Result delegateResult) {
         File originFile = getOriginFile(temporaryWorkspace);
-        //noinspection IOStreamConstructor
-        try (OutputStream outputStream = new FileOutputStream(originFile)) {
+        try {
+            UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream(4096);
             originMetadataFactory.createWriter(identity, work.getClass(), delegateResult.getDuration())
-                .execute(outputStream);
+                .execute(data);
+            try (OutputStream outputStream = Files.newOutputStream(originFile.toPath())) {
+                data.writeTo(outputStream);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not write origin metadata to " + originFile, e);
         }

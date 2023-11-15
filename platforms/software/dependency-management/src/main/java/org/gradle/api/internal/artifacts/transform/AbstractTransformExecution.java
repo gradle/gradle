@@ -168,7 +168,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
             @Override
             public Object getOutput(File workspace) {
-                return result.bindToOutputDir(getOutputDir(workspace));
+                return result.resolveForWorkspace(getOutputDir(workspace));
             }
         };
     }
@@ -176,7 +176,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
         TransformExecutionResultSerializer resultSerializer = new TransformExecutionResultSerializer();
-        return resultSerializer.readResultsFile(getResultsFile(workspace)).bindToOutputDir(getOutputDir(workspace));
+        return resultSerializer.readResultsFile(getResultsFile(workspace)).resolveForWorkspace(getOutputDir(workspace));
     }
 
     @Override
