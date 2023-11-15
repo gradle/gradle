@@ -27,6 +27,7 @@ subprojects/internal-build-reports/         @gradle/bt-developer-productivity
 subprojects/internal-integ-testing/         @gradle/bt-developer-productivity
 subprojects/internal-performance-testing/   @gradle/bt-developer-productivity
 subprojects/internal-testing/               @gradle/bt-developer-productivity
+subprojects/precondition-tester/            @gradle/bt-developer-productivity
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
@@ -46,7 +47,9 @@ platforms/core-runtime/                                     @gradle/bt-core-runt
 platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
 platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/installation-beacon                             @gradle/bt-core-runtime-maintainers
+subprojects/build-profile/                                  @gradle/bt-core-runtime-maintainers
+subprojects/installation-beacon/                            @gradle/bt-core-runtime-maintainers
+subprojects/instrumentation-declarations/                   @gradle/bt-core-runtime-maintainers
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
@@ -56,7 +59,6 @@ platforms/core-execution/build-cache-http/                  @gradle/bt-execution
 platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-ge-build-cache
 platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-ge-build-cache
-subprojects/build-profile/                                  @gradle/bt-execution
 
 # Gradle Enterprise integration
 platforms/enterprise/                                   @gradle/bt-build-scan @gradle/ge-build-insights
@@ -76,6 +78,21 @@ platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
 platforms/software/                         @gradle/bt-jvm
+
+# Extensibility
+platforms/extensibility/        @gradle/bt-extensibility-maintainers
+subprojects/plugin-development/ @gradle/bt-extensibility-maintainers
+subprojects/plugin-use/         @gradle/bt-extensibility-maintainers
+subprojects/test-kit/           @gradle/bt-extensibility-maintainers
+
+# Native
+platforms/native/                   @gradle/bt-native-maintainers
+subprojects/distributions-native/   @gradle/bt-native-maintainers
+subprojects/ide-native/             @gradle/bt-native-maintainers
+subprojects/language-native/        @gradle/bt-native-maintainers
+subprojects/platform-native/        @gradle/bt-native-maintainers
+subprojects/testing-native/         @gradle/bt-native-maintainers
+subprojects/tooling-native/         @gradle/bt-native-maintainers
 
 # gitStream files
 .cm/                                @tresat
@@ -99,10 +116,12 @@ subprojects/smoke-test/                 @gradle/bt-support
 subprojects/soak/                       @gradle/bt-support
 
 # Documentation
-subprojects/docs/src/docs/                                                        @gradle/bt-devrel-education
-subprojects/docs/src/samples/                                                     @gradle/bt-devrel-education
-subprojects/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
-subprojects/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
+platforms/documentation/                                                        @gradle/bt-devrel-education
+subprojects/docs/src/docs/                                                      @gradle/bt-devrel-education
+subprojects/docs/src/samples/                                                   @gradle/bt-devrel-education
+subprojects/docs-asciidoctor-extensions-base/                                   @gradle/bt-devrel-education
+subprojects/docs-asciidoctor-extensions/                                        @gradle/bt-devrel-education
+subprojects/samples/                                                            @gradle/bt-devrel-education
 
 subprojects/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
 subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
