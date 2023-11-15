@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream
 import static org.gradle.util.internal.TextUtil.escapeString
 
 @CompileStatic
-trait TestProjectInitiation {
+trait KotlinDslTestProjectInitiation {
 
     abstract TestFile file(Object... path)
 

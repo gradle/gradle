@@ -17,14 +17,14 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.build.TestProjectInitiation
+import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.junit.Rule
 import org.junit.rules.RuleChain
 
-class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements TestProjectInitiation{
+class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements KotlinDslTestProjectInitiation {
     @Delegate
     ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     TestOutputStream stderr = new TestOutputStream()
