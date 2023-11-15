@@ -71,7 +71,7 @@ class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
         when:
         repository.cache("a/b/c")
             .withCrossVersionCache()
-            .withLockOptions(new DefaultLockOptions(OnDemand, false, null, LockOptions.LockTargetType.CachePropertiesFile))
+            .withLockOptions(new DefaultLockOptions(Shared, false, null, LockOptions.LockTargetType.CachePropertiesFile))
             .open()
 
         then:

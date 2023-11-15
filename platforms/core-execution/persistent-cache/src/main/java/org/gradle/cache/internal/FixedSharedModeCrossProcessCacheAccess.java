@@ -36,7 +36,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared;
  */
 public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcessCacheAccess {
     private final String cacheDisplayName;
-    private final File lockFile;
+    private final File lockTarget;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final CacheInitializationAction initializationAction;
@@ -44,10 +44,10 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     private final Action<FileLock> onCloseAction;
     private FileLock fileLock;
 
-    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockFile, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Action<FileLock> onOpenAction, Action<FileLock> onCloseAction) {
+    public FixedSharedModeCrossProcessCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, FileLockManager lockManager, CacheInitializationAction initializationAction, Action<FileLock> onOpenAction, Action<FileLock> onCloseAction) {
         assert lockOptions.getMode() == Shared;
         this.cacheDisplayName = cacheDisplayName;
-        this.lockFile = lockFile;
+        this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
         this.lockManager = lockManager;
         this.initializationAction = initializationAction;
@@ -58,9 +58,9 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
     @Override
     public void open() {
         if (fileLock != null) {
-            throw new IllegalStateException("File lock " + lockFile + " is already open.");
+            throw new IllegalStateException("File lock " + lockTarget + " is already open.");
         }
-        FileLock fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+        FileLock fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
         try {
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
@@ -70,7 +70,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                     fileLock = null;
                     FileLock exclusiveLock = null;
                     try {
-                        exclusiveLock = lockManager.lock(lockFile, lockOptions.copyWithMode(Exclusive), cacheDisplayName);
+                        exclusiveLock = lockManager.lock(lockTarget, lockOptions.copyWithMode(Exclusive), cacheDisplayName);
                     } catch (Exception e) {
                         // acquiring the exclusive lock can fail in the rare case where another process is just doing or has just done the cache initialization
                         latestException = e;
@@ -93,7 +93,7 @@ public class FixedSharedModeCrossProcessCacheAccess extends AbstractCrossProcess
                             exclusiveLock.close();
                         }
                     }
-                    fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+                    fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
                     rebuild = initializationAction.requiresInitialization(fileLock);
                 }
                 if (rebuild) {

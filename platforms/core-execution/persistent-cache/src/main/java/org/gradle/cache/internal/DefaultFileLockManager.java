@@ -135,16 +135,16 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             this.target = target;
+            this.lockFile = options.determineLockFile(target);
 
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
-            this.lockFile = target;
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             try {
                 lockFile.createNewFile();
             } catch (IOException e) {
-                LOGGER.info("Couldn't create lock file for {}", lockFile);
+                LOGGER.info("Couldn't create lock file {}", lockFile);
                 throw e;
             }
 

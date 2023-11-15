@@ -47,7 +47,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final File cacheDir;
-    private final File lockFile;
+    private final File lockTarget;
     @Nullable
     private final CacheCleanupStrategy cacheCleanupStrategy;
     private final FileLockManager lockManager;
@@ -76,14 +76,14 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.gcFile = new File(cacheDir, "gc.properties");
         this.progressLoggerFactory = progressLoggerFactory;
         this.displayName = displayName != null ? (displayName + " (" + cacheDir + ")") : ("cache directory " + cacheDir.getName() + " (" + cacheDir + ")");
-        this.lockFile = lockOptions.determineLockFile(cacheDir, propertiesFile);
+        this.lockTarget = lockOptions.determineLockTarget(cacheDir, propertiesFile);
         this.lockOptions = lockOptions;
     }
 
     @Override
     public DefaultPersistentDirectoryStore open() {
-        GFileUtils.mkdirs(lockFile.getParentFile());
-        // This may be redundant, as the lock file will often be created in the cache, but it's not guaranteed to be if an alternate lock dir
+        GFileUtils.mkdirs(lockTarget.getParentFile());
+        // This may be redundant, as the lock target will often be a file created in the cache's content, but this is not guaranteed to be if an alternate lock dir
         // is supplied, and we want to create the lock file prior to the content dir anyway.
         GFileUtils.mkdirs(cacheDir);
 
@@ -98,7 +98,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, lockFile, lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
+        return new DefaultCacheCoordinator(displayName, lockTarget, lockOptions, cacheDir, lockManager, getInitAction(), getCleanupExecutor(), executorFactory);
     }
 
     protected CacheInitializationAction getInitAction() {
@@ -127,7 +127,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockFile(cacheDir, propertiesFile));
+        return Arrays.asList(propertiesFile, gcFile, lockOptions.determineLockFile(lockTarget));
     }
 
     @Override
