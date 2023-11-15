@@ -15,8 +15,7 @@
  */
 
 /**
- * Capabilities that can be used to filter interceptors. With that we can filter interceptors (or interceptor factories)
- * if they are used for bytecode upgrades or for configuration cache instrumentation.
+ * Package with types of interceptors. Currently, we support bytecode upgrades or for configuration cache interceptors.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.internal.instrumentation.api.capabilities;
+package org.gradle.internal.instrumentation.api.types;

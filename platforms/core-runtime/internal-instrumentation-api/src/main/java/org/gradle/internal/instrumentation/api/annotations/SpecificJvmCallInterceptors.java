@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface SpecificJvmCallInterceptors {
     String generatedClassName();
-    InterceptionType type() default InterceptionType.INSTRUMENTATION;
+    BytecodeInterceptorType type() default BytecodeInterceptorType.INSTRUMENTATION;
 }
 
 

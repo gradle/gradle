@@ -18,7 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode
 
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType
 
 import static com.google.testing.compile.CompilationSubject.assertThat
 
@@ -122,7 +122,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         Compilation compilation = compile(givenSource)
 
         then:
-        def capability = type.getMarkerInterface().getCanonicalName() - type.getMarkerInterface().getPackage().name - "."
+        def capability = type.getInterceptorMarkerInterface().getCanonicalName() - type.getInterceptorMarkerInterface().getPackage().name - "."
         def expectedJvmInterceptors = source """
             package my;
             public class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor, $capability {
@@ -141,7 +141,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             .containsElementsIn(expectedJvmInterceptors)
 
         where:
-        type << [InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE]
+        type << [BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE]
     }
 
     def "should group visitMethodInsn logic by call owner"() {

@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,9 +31,9 @@ public class DefaultCallSiteInterceptorSet implements CallSiteInterceptorSet {
     }
 
     @Override
-    public List<CallInterceptor> getCallInterceptors(InterceptorsRequest interceptorsRequest) {
+    public List<CallInterceptor> getCallInterceptors(BytecodeInterceptorRequest interceptorRequest) {
         return provider.getCallInterceptors().stream()
-            .filter(interceptorsRequest)
+            .filter(interceptorRequest::matches)
             .collect(Collectors.toList());
     }
 }

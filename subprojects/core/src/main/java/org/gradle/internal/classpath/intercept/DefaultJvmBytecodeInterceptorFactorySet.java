@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath.intercept;
 
 import org.gradle.internal.classpath.ClassData;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -33,9 +33,9 @@ public class DefaultJvmBytecodeInterceptorFactorySet implements JvmBytecodeInter
     }
 
     @Override
-    public JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(InterceptorsRequest request) {
+    public JvmBytecodeInterceptorSet getJvmBytecodeInterceptorSet(BytecodeInterceptorRequest request) {
         List<JvmBytecodeCallInterceptor.Factory> factories = provider.getInterceptorFactories().stream()
-            .filter(request)
+            .filter(request::matches)
             .collect(Collectors.toList());
         return new JvmBytecodeInterceptorSet() {
             @Override
@@ -46,7 +46,7 @@ public class DefaultJvmBytecodeInterceptorFactorySet implements JvmBytecodeInter
             }
 
             @Override
-            public InterceptorsRequest getOriginalRequest() {
+            public BytecodeInterceptorRequest getOriginalRequest() {
                 return request;
             }
         };

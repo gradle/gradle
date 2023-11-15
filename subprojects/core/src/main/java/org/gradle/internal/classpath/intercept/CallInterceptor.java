@@ -19,7 +19,7 @@ package org.gradle.internal.classpath.intercept;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
-import org.gradle.internal.instrumentation.api.capabilities.BytecodeInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

@@ -24,7 +24,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
@@ -95,11 +95,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     }
 
     private static TypeSpec generateNamedCallableInterceptorClass(NamedCallableInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), spec.getInterceptionType(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
+        return generateInterceptorClass(spec.getClassName(), spec.getInterceptorType(), namedCallableScopesArgs(spec.getName(), spec.getRequests()), spec.getRequests()).build();
     }
 
     private static TypeSpec generateConstructorInterceptorClass(ConstructorInterceptorSpec spec) {
-        return generateInterceptorClass(spec.getClassName(), spec.getInterceptionType(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
+        return generateInterceptorClass(spec.getClassName(), spec.getInterceptorType(), constructorScopeArg(TypeUtils.typeName(spec.getConstructorType())), spec.getRequests()).build();
     }
 
     private static SignatureTree signatureTreeFromRequests(Collection<CallInterceptionRequest> requests) {
@@ -108,11 +108,11 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result;
     }
 
-    private static TypeSpec.Builder generateInterceptorClass(String className, InterceptionType capabilities, CodeBlock scopes, List<CallInterceptionRequest> requests) {
+    private static TypeSpec.Builder generateInterceptorClass(String className, BytecodeInterceptorType interceptorType, CodeBlock scopes, List<CallInterceptionRequest> requests) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
-            .addSuperinterface(ClassName.get(capabilities.getMarkerInterface()))
+            .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor;
 
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
@@ -39,13 +39,13 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
     private final Elements elements;
     private final Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate;
     private final Class<? extends Annotation> generatedClassNameProvidingAnnotation;
-    private final BiFunction<String, InterceptionType, RequestExtra> produceFlagForGeneratedClassName;
+    private final BiFunction<String, BytecodeInterceptorType, RequestExtra> produceFlagForGeneratedClassName;
 
     public AddGeneratedClassNameFlagFromClassLevelAnnotation(
         Elements elements,
         Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate,
         Class<? extends Annotation> generatedClassNameProvidingAnnotation,
-        BiFunction<String, InterceptionType, RequestExtra> produceFlagForGeneratedClassName
+        BiFunction<String, BytecodeInterceptorType, RequestExtra> produceFlagForGeneratedClassName
     ) {
         this.elements = elements;
         this.shouldAddExtraToRequestPredicate = shouldAddExtraToRequestPredicate;
@@ -74,7 +74,7 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
                 .orElseThrow(() -> new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation + " does not have a generatedClassName attribute"));
             AnnotationValue interceptionType = AnnotationUtils.findAnnotationValueWithDefaults(elements, annotationMirror, "type")
                 .orElseThrow(() -> new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation + " does not have a type attribute"));
-            originalRequest.getRequestExtras().add(produceFlagForGeneratedClassName.apply((String) generatedClassName.getValue(), InterceptionType.valueOf(interceptionType.getValue().toString())));
+            originalRequest.getRequestExtras().add(produceFlagForGeneratedClassName.apply((String) generatedClassName.getValue(), BytecodeInterceptorType.valueOf(interceptionType.getValue().toString())));
         });
 
         return Collections.singletonList(originalRequest);

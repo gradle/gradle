@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.capabilities;
+package org.gradle.internal.instrumentation.api.types;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * Request for interceptors. Currently, we support filter just for interception types, but in the feature we could also filter per version etc.
  *
  * Implemented as a enum, so it's easier to generate bytecode.
  */
-public enum InterceptorsRequest implements Predicate<BytecodeInterceptor> {
-    INSTRUMENTATION_ONLY(EnumSet.of(InterceptionType.INSTRUMENTATION)),
-    ALL(EnumSet.of(InterceptionType.INSTRUMENTATION, InterceptionType.BYTECODE_UPGRADE));
+public enum BytecodeInterceptorRequest {
+    INSTRUMENTATION_ONLY(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION)),
+    ALL(EnumSet.of(BytecodeInterceptorType.INSTRUMENTATION, BytecodeInterceptorType.BYTECODE_UPGRADE));
 
-    private final Set<InterceptionType> instrumentationTypes;
+    private final Set<BytecodeInterceptorType> instrumentationTypes;
 
-    InterceptorsRequest(Set<InterceptionType> instrumentationTypes) {
+    BytecodeInterceptorRequest(Set<BytecodeInterceptorType> instrumentationTypes) {
         this.instrumentationTypes = instrumentationTypes;
     }
 
-    @Override
-    public boolean test(BytecodeInterceptor bytecodeInterceptor) {
+    public boolean matches(BytecodeInterceptor bytecodeInterceptor) {
         return instrumentationTypes.contains(bytecodeInterceptor.getType());
+    }
+
+    public boolean matches(BytecodeInterceptorFactory bytecodeInterceptorFactory) {
+        return instrumentationTypes.contains(bytecodeInterceptorFactory.getType());
     }
 }

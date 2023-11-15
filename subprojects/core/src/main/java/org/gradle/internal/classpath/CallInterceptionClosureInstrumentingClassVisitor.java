@@ -18,7 +18,7 @@ package org.gradle.internal.classpath;
 
 import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -58,13 +58,13 @@ import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
 @NonNullApi
 public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisitor {
 
-    private static final Type INTERCEPTORS_REQUEST_TYPE = Type.getType(InterceptorsRequest.class);
+    private static final Type BYTECODE_INTERCEPTOR_REQUEST_TYPE = Type.getType(BytecodeInterceptorRequest.class);
 
-    private final InterceptorsRequest interceptorsRequest;
+    private final BytecodeInterceptorRequest interceptorRequest;
 
-    public CallInterceptionClosureInstrumentingClassVisitor(ClassVisitor delegate, InterceptorsRequest interceptorsRequest) {
+    public CallInterceptionClosureInstrumentingClassVisitor(ClassVisitor delegate, BytecodeInterceptorRequest interceptorRequest) {
         super(ASM_LEVEL, delegate);
-        this.interceptorsRequest = interceptorsRequest;
+        this.interceptorRequest = interceptorRequest;
     }
 
     @NonNullApi
@@ -90,8 +90,8 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                     _ALOAD(1);
                     _ALOAD(0);
                     _GETFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
-                    _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, classData.interceptorsRequest.name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
-                    String descriptor = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE, INTERCEPTORS_REQUEST_TYPE);
+                    _GETSTATIC(BYTECODE_INTERCEPTOR_REQUEST_TYPE, classData.interceptorRequest.name(), BYTECODE_INTERCEPTOR_REQUEST_TYPE.getDescriptor());
+                    String descriptor = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, BOOLEAN_TYPE, BYTECODE_INTERCEPTOR_REQUEST_TYPE);
                     _INVOKESTATIC(getType(InstrumentedGroovyMetaClassHelper.class).getInternalName(), "addInvocationHooksInClosureDispatchObject", descriptor, false);
 
                     _ALOAD(0);
@@ -197,8 +197,8 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                     _ICONST_1();
                     _PUTFIELD(classData.className, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z");
 
-                    _GETSTATIC(INTERCEPTORS_REQUEST_TYPE, classData.interceptorsRequest.name(), INTERCEPTORS_REQUEST_TYPE.getDescriptor());
-                    String methodDescriptor = getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE, INTERCEPTORS_REQUEST_TYPE);
+                    _GETSTATIC(BYTECODE_INTERCEPTOR_REQUEST_TYPE, classData.interceptorRequest.name(), BYTECODE_INTERCEPTOR_REQUEST_TYPE.getDescriptor());
+                    String methodDescriptor = getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE, BYTECODE_INTERCEPTOR_REQUEST_TYPE);
                     _INVOKESTATIC(Type.getType(InstrumentedGroovyMetaClassHelper.class), "addInvocationHooksToEffectivelyInstrumentClosure", methodDescriptor);
                 }
             }
@@ -236,12 +236,12 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         static final class ClassData {
             public final ClassVisitor visitor;
             public final String className;
-            private final InterceptorsRequest interceptorsRequest;
+            private final BytecodeInterceptorRequest interceptorRequest;
 
-            ClassData(ClassVisitor visitor, String className, InterceptorsRequest interceptorsRequest) {
+            ClassData(ClassVisitor visitor, String className, BytecodeInterceptorRequest interceptorRequest) {
                 this.visitor = visitor;
                 this.className = className;
-                this.interceptorsRequest = interceptorsRequest;
+                this.interceptorRequest = interceptorRequest;
             }
         }
 
@@ -292,7 +292,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         matchingStrategy.ifPresent(usedStrategies::add);
         MethodInstrumentationStrategy strategy = matchingStrategy.orElse(MethodInstrumentationStrategy.DEFAULT);
         return strategy.methodVisitorFactory.apply(
-            new MethodInstrumentationStrategy.ClassData(cv, className, interceptorsRequest),
+            new MethodInstrumentationStrategy.ClassData(cv, className, interceptorRequest),
             new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions)
         );
     }

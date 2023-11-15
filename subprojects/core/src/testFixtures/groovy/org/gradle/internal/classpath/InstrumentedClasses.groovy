@@ -20,7 +20,7 @@ import org.gradle.internal.classpath.intercept.DefaultJvmBytecodeInterceptorFact
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 
 import java.util.function.Predicate
 
@@ -40,7 +40,7 @@ class InstrumentedClasses {
         loader = new TestInstrumentedClassLoader(
             source,
             shouldInstrumentClassByName,
-            new InstrumentingClassTransform(new DefaultJvmBytecodeInterceptorFactorySet(interceptors), InterceptorsRequest.ALL),
+            new InstrumentingClassTransform(new DefaultJvmBytecodeInterceptorFactorySet(interceptors), BytecodeInterceptorRequest.ALL),
             typeRegistry
         )
     }

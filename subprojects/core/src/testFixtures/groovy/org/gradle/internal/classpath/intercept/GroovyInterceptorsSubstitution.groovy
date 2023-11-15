@@ -19,7 +19,7 @@ package org.gradle.internal.classpath.intercept
 
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider
 import org.gradle.internal.classpath.Instrumented
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 
 import javax.annotation.Nullable
 import java.util.concurrent.atomic.AtomicInteger
@@ -121,7 +121,7 @@ class GroovyInterceptorsSubstitution {
         }
 
         @Override
-        List<CallInterceptor> getCallInterceptors(InterceptorsRequest request) {
+        List<CallInterceptor> getCallInterceptors(BytecodeInterceptorRequest request) {
             return threadLocalDecorators.get().getCallInterceptors(request)
         }
     }

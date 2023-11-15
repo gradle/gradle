@@ -23,11 +23,11 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver.ClosureCallInterceptorResolver;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.ALL;
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest.ALL;
 
 /**
  * Injects the logic for Groovy calls instrumentation into the Groovy metaclasses.
@@ -37,20 +37,20 @@ public class InstrumentedGroovyMetaClassHelper {
     /**
      * Should be invoked on an object that a Groovy Closure can dispatch the calls to. Injects the call interception logic into the metaclass of that object.
      * This is done for closure delegates that are reassigned, while the owner, thisObject, and the initial delegate are covered in
-     * {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure(Closure,InterceptorsRequest)}
+     * {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure(Closure, BytecodeInterceptorRequest)}
      */
-    public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented, InterceptorsRequest interceptorsRequest) {
+    public static void addInvocationHooksInClosureDispatchObject(@Nullable Object object, boolean isEffectivelyInstrumented, BytecodeInterceptorRequest interceptorRequest) {
         if (object == null) {
             return;
         }
         if (isEffectivelyInstrumented) {
-            CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+            CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorRequest);
             addInvocationHooksToMetaClass(object.getClass(), resolver);
         }
     }
 
-    public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure, InterceptorsRequest interceptorsRequest) {
-        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+    public static void addInvocationHooksToEffectivelyInstrumentClosure(Closure<?> closure, BytecodeInterceptorRequest interceptorRequest) {
+        CallInterceptorResolver resolver = ClosureCallInterceptorResolver.of(interceptorRequest);
         addInvocationHooksToMetaClass(closure.getThisObject().getClass(), resolver);
         addInvocationHooksToMetaClass(closure.getOwner().getClass(), resolver);
         addInvocationHooksToMetaClass(closure.getDelegate().getClass(), resolver);

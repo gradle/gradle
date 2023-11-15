@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath.intercept;
 
-import org.gradle.internal.instrumentation.api.capabilities.BytecodeInterceptor.InstrumentationInterceptor;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptor.InstrumentationInterceptor;
 
 /**
  * A special case of the CallInterceptor for static methods and static properties.

@@ -16,44 +16,44 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 
 import javax.lang.model.element.ExecutableElement;
 
 public interface RequestExtra {
     class InterceptJvmCalls implements RequestExtra {
         private final String implementationClassName;
-        private final InterceptionType interceptionType;
+        private final BytecodeInterceptorType interceptorType;
 
-        public InterceptJvmCalls(String implementationClassName, InterceptionType interceptionType) {
+        public InterceptJvmCalls(String implementationClassName, BytecodeInterceptorType interceptorType) {
             this.implementationClassName = implementationClassName;
-            this.interceptionType = interceptionType;
+            this.interceptorType = interceptorType;
         }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptionType getInterceptionType() {
-            return interceptionType;
+        public BytecodeInterceptorType getInterceptionType() {
+            return interceptorType;
         }
     }
 
     class InterceptGroovyCalls implements RequestExtra {
         private final String implementationClassName;
-        private final InterceptionType interceptionType;
+        private final BytecodeInterceptorType interceptorType;
 
-        public InterceptGroovyCalls(String implementationClassName, InterceptionType interceptionType) {
+        public InterceptGroovyCalls(String implementationClassName, BytecodeInterceptorType interceptorType) {
             this.implementationClassName = implementationClassName;
-            this.interceptionType = interceptionType;
+            this.interceptorType = interceptorType;
         }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public InterceptionType getInterceptionType() {
-            return interceptionType;
+        public BytecodeInterceptorType getInterceptionType() {
+            return interceptorType;
         }
     }
 

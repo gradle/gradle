@@ -24,8 +24,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptionType;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -80,7 +80,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Consumer<? super FailureInfo> onFailure
     ) {
         Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
-        InterceptionType interceptionType = requestsClassGroup.get(0).getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
+        BytecodeInterceptorType interceptorType = requestsClassGroup.get(0).getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
             .map(RequestExtra.InterceptJvmCalls::getInterceptionType)
             .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
 
@@ -88,14 +88,14 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         generateVisitMethodInsnCode(
             visitMethodInsnBuilder, requestsClassGroup, typeFieldByOwner, onProcessedRequest, onFailure
         );
-        TypeSpec factoryClass = generateFactoryClass(className, interceptionType);
+        TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
         return builder ->
             builder.addMethod(constructor)
                 .addModifiers(Modifier.PUBLIC)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
-                .addSuperinterface(ClassName.get(interceptionType.getMarkerInterface()))
+                .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(INTERCEPTORS_REQUEST_TYPE)
@@ -109,20 +109,20 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addType(factoryClass);
     }
 
-    private static TypeSpec generateFactoryClass(String className, InterceptionType interceptionType) {
+    private static TypeSpec generateFactoryClass(String className, BytecodeInterceptorType interceptorType) {
         MethodSpec method = MethodSpec.methodBuilder("create")
             .addModifiers(Modifier.PUBLIC)
             .returns(JvmBytecodeCallInterceptor.class)
             .addParameter(MethodVisitor.class, "methodVisitor")
             .addParameter(InstrumentationMetadata.class, "metadata")
-            .addParameter(InterceptorsRequest.class, "context")
+            .addParameter(BytecodeInterceptorRequest.class, "context")
             .addStatement("return new $L($N, $N, $N)", className, "methodVisitor", "metadata", "context")
             .addAnnotation(Override.class)
             .build();
         return TypeSpec.classBuilder("Factory")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addSuperinterface(JvmBytecodeCallInterceptor.Factory.class)
-            .addSuperinterface(ClassName.get(interceptionType.getMarkerInterface()))
+            .addSuperinterface(ClassName.get(interceptorType.getInterceptorFactoryMarkerInterface()))
             .addMethod(method)
             .build();
     }
@@ -161,7 +161,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
         .addParameter(MethodVisitor.class, "methodVisitor")
         .addParameter(InstrumentationMetadata.class, "metadata")
-        .addParameter(InterceptorsRequest.class, "context")
+        .addParameter(BytecodeInterceptorRequest.class, "context")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
         .addStatement("this.$N = metadata", METADATA_FIELD)
@@ -198,7 +198,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
         FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$T.getType($T.class)", Type.class, InterceptorsRequest.class)
+            .initializer("$T.getType($T.class)", Type.class, BytecodeInterceptorRequest.class)
             .build();
 
     private static final FieldSpec METHOD_VISITOR_FIELD =
@@ -208,7 +208,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static final FieldSpec CONTEXT_FIELD =
-        FieldSpec.builder(InterceptorsRequest.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
+        FieldSpec.builder(BytecodeInterceptorRequest.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static void generateCodeForOwner(
         CallableOwnerInfo owner,
@@ -391,8 +391,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             if (lastParameter.getKind() != ParameterKindInfo.INJECT_VISITOR_CONTEXT) {
                 throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be last parameter");
             }
-            if (!lastParameter.getParameterType().getClassName().equals(InterceptorsRequest.class.getName())) {
-                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be of type " + InterceptorsRequest.class.getName() + " but was " + lastParameter.getParameterType().getClassName());
+            if (!lastParameter.getParameterType().getClassName().equals(BytecodeInterceptorRequest.class.getName())) {
+                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be of type " + BytecodeInterceptorRequest.class.getName() + " but was " + lastParameter.getParameterType().getClassName());
             }
             if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.INJECT_VISITOR_CONTEXT).count() > 1) {
                 throw new Failure("An interceptor may not have more than one @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter");

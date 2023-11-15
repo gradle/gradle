@@ -26,7 +26,7 @@ import static org.gradle.internal.classpath.GroovyCallInterceptorsProvider.Class
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.GET_PROPERTY
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.INVOKE_METHOD
 import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallKind.SET_PROPERTY
-import static org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest.ALL
+import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest.ALL
 
 class CallInterceptingMetaClassTest extends Specification {
 

@@ -30,7 +30,7 @@ import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.InjectVisitorContext;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.capabilities.InterceptorsRequest;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest;
 import org.gradle.internal.instrumentation.api.declarations.InterceptorDeclaration;
 
 import javax.annotation.Nullable;
@@ -51,9 +51,9 @@ public class GroovyDynamicDispatchInterceptors {
         GroovyObject receiver,
         String messageName,
         @CallerClassName String consumer,
-        @InjectVisitorContext InterceptorsRequest interceptorsRequest
+        @InjectVisitorContext BytecodeInterceptorRequest interceptorRequest
     ) throws Throwable {
-        if (!ClosureCallInterceptorResolver.of(interceptorsRequest).isAwareOfCallSiteName(messageName)) {
+        if (!ClosureCallInterceptorResolver.of(interceptorRequest).isAwareOfCallSiteName(messageName)) {
             ScriptBytecodeAdapter.setGroovyObjectProperty(messageArgument, senderClass, receiver, messageName);
             return;
         }
@@ -73,9 +73,9 @@ public class GroovyDynamicDispatchInterceptors {
         Object receiver,
         String messageName,
         @CallerClassName String consumer,
-        @InjectVisitorContext InterceptorsRequest interceptorsRequest
+        @InjectVisitorContext BytecodeInterceptorRequest interceptorRequest
     ) throws Throwable {
-        CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorsRequest);
+        CallInterceptorResolver interceptorResolver = ClosureCallInterceptorResolver.of(interceptorRequest);
         CallInterceptor interceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.writesOfPropertiesNamed(messageName));
         if (interceptor != null) {
             @NonNullApi

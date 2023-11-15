@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.capabilities;
+package org.gradle.internal.instrumentation.api.types;
 
 public interface BytecodeInterceptor {
 
-    InterceptionType getType();
+    BytecodeInterceptorType getType();
 
     /**
      * A marker interface that indicates that a class is used for bytecode upgrades.
      */
     interface BytecodeUpgradeInterceptor extends BytecodeInterceptor {
         @Override
-        default InterceptionType getType() {
-            return InterceptionType.BYTECODE_UPGRADE;
+        default BytecodeInterceptorType getType() {
+            return BytecodeInterceptorType.BYTECODE_UPGRADE;
         }
     }
 
@@ -35,8 +35,8 @@ public interface BytecodeInterceptor {
      */
     interface InstrumentationInterceptor extends BytecodeInterceptor {
         @Override
-        default InterceptionType getType() {
-            return InterceptionType.INSTRUMENTATION;
+        default BytecodeInterceptorType getType() {
+            return BytecodeInterceptorType.INSTRUMENTATION;
         }
     }
 }
