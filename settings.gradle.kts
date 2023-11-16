@@ -192,7 +192,7 @@ platform("jvm") {
     subproject("war")
 }
 
-// Gradle Enterprise Platform
+// Develocity Platform
 platform("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")

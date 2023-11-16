@@ -569,7 +569,7 @@ class ConfigurationCacheState(
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
             readFileSystemDefaultExcludes(gradle)
-            // It is important that the Gradle Enterprise plugin be read before
+            // It is important that the Develocity plugin be read before
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)

@@ -32,7 +32,7 @@ platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-ds
 # Core automation platform (core/runtime)
 subprojects/installation-beacon             @gradle/bt-core-runtime-maintainers
 
-# Gradle Enterprise integration
+# Develocity integration
 platforms/enterprise                                    @gradle/bt-build-scan @gradle/ge-build-insights
 platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/ge-testing @gradle/ge-build-insights @ldaley
 platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/ge-build-insights @gradle/ge-testing
