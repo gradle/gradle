@@ -16,15 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
 import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
@@ -43,9 +52,13 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private final List<ModuleComponentRepository<ModuleComponentGraphResolveState>> repositories = new ArrayList<>();
     private final List<String> repositoryNames = new ArrayList<>();
     private final VersionedComponentChooser versionedComponentChooser;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final Cache<ModuleComponentIdentifier, CalculatedValueContainer<BuildableComponentResolveResult, ?>> metadataValueContainerCache;
 
-    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser) {
+    public RepositoryChainComponentMetaDataResolver(VersionedComponentChooser componentChooser, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.versionedComponentChooser = componentChooser;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
     }
 
     public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> repository) {
@@ -59,7 +72,19 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             throw new UnsupportedOperationException("Can resolve meta-data for module components only.");
         }
 
-        resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata, result);
+        try {
+            CalculatedValueContainer<BuildableComponentResolveResult, ?> metadataValueContainer =
+                metadataValueContainerCache.get((ModuleComponentIdentifier) identifier, () -> createValueContainerFor(identifier, componentOverrideMetadata));
+            metadataValueContainer.finalizeIfNotAlready();
+            metadataValueContainer.get().applyTo(result);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private CalculatedValueContainer<BuildableComponentResolveResult, ?> createValueContainerFor(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
+        return calculatedValueContainerFactory.create(toDisplayName(identifier),
+            (Supplier<BuildableComponentResolveResult>) () -> resolveModule((ModuleComponentIdentifier) identifier, componentOverrideMetadata));
     }
 
     @Override
@@ -78,10 +103,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         return true;
     }
 
-    private void resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    private BuildableComponentResolveResult resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
         List<Throwable> errors = new ArrayList<>();
+        BuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
         for (ModuleComponentRepository<ModuleComponentGraphResolveState> repository : repositories) {
@@ -97,7 +123,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
             String repositoryName = latestResolved.repository.getName();
             result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(repositoryName));
-            return;
+            return result;
         }
         if (!errors.isEmpty()) {
             result.failed(new ModuleVersionResolveException(identifier, errors));
@@ -107,6 +133,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             }
             result.notFound(identifier);
         }
+
+        return result;
     }
 
     @Nullable
@@ -163,5 +191,23 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         return best;
+    }
+
+    private static DisplayName toDisplayName(ComponentIdentifier identifier) {
+        if (DisplayName.class.isAssignableFrom(identifier.getClass())) {
+            return (DisplayName) identifier;
+        } else {
+            return new DisplayName() {
+                @Override
+                public String getDisplayName() {
+                    return identifier.getDisplayName();
+                }
+
+                @Override
+                public String getCapitalizedDisplayName() {
+                    return getDisplayName();
+                }
+            };
+        }
     }
 }
