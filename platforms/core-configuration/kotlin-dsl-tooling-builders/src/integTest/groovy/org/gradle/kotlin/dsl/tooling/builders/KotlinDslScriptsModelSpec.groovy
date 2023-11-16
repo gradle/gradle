@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.junit.Rule
 import org.junit.rules.RuleChain

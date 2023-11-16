@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders
+package org.gradle.kotlin.dsl.tooling.fixtures
 
 
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
