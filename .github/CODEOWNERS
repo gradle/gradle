@@ -81,9 +81,6 @@ platforms/software/                         @gradle/bt-jvm
 
 # Extensibility
 platforms/extensibility/        @gradle/bt-extensibility-maintainers
-subprojects/plugin-development/ @gradle/bt-extensibility-maintainers
-subprojects/plugin-use/         @gradle/bt-extensibility-maintainers
-subprojects/test-kit/           @gradle/bt-extensibility-maintainers
 
 # Native
 platforms/native/                   @gradle/bt-native-maintainers
