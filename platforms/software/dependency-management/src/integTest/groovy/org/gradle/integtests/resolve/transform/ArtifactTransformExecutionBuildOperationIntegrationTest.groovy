@@ -169,7 +169,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             hash != null
             classLoaderHash != null
             implementationClassName == 'MakeGreen'
-            inputValueHashes.keySet() ==~ ['inputArtifactPath', 'inputArtifactSnapshot', 'inputPropertiesHash']
+            inputValueHashes.keySet() ==~ ['inputArtifactPath', 'inputPropertiesHash']
             outputPropertyNames == ['outputDirectory', 'resultsFile']
             inputFileProperties.keySet() ==~ ['inputArtifact', 'inputArtifactDependencies']
             with(inputFileProperties.inputArtifactDependencies) {
