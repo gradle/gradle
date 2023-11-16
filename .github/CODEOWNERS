@@ -87,12 +87,6 @@ subprojects/test-kit/           @gradle/bt-extensibility-maintainers
 
 # Native
 platforms/native/                   @gradle/bt-native-maintainers
-subprojects/distributions-native/   @gradle/bt-native-maintainers
-subprojects/ide-native/             @gradle/bt-native-maintainers
-subprojects/language-native/        @gradle/bt-native-maintainers
-subprojects/platform-native/        @gradle/bt-native-maintainers
-subprojects/testing-native/         @gradle/bt-native-maintainers
-subprojects/tooling-native/         @gradle/bt-native-maintainers
 
 # gitStream files
 .cm/                                @tresat
@@ -106,6 +100,7 @@ platforms/ide/                    @gradle/bt-ide-experience
 # Eventually be moved to the core platform.
 # Currently heavily developed by the bt-ide-experience team.
 platforms/ide/problems/           @gradle/bt-ide-experience
+platforms/ide/ide-native/         @gradle/bt-ide-experience @gradle/bt-native-maintainers
 
 # Release coordination
 subprojects/core-platform/              @gradle/bt-support

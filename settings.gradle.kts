@@ -47,7 +47,6 @@ unassigned {
 unassigned {
     subproject("distributions-core")
     subproject("distributions-basics")
-    subproject("distributions-native")
     subproject("distributions-full")
 }
 
@@ -57,12 +56,8 @@ unassigned {
     subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
-    subproject("platform-native")
-    subproject("language-native")
-    subproject("tooling-native")
     subproject("plugin-use")
     subproject("plugin-development")
-    subproject("testing-native")
     subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
@@ -138,6 +133,14 @@ platform("ide") {
     subproject("problems-api")
     subproject("tooling-api")
     subproject("tooling-api-builders")
+}
+
+platform("native") {
+    subproject("distributions-native")
+    subproject("platform-native")
+    subproject("language-native")
+    subproject("tooling-native")
+    subproject("testing-native")
 }
 
 // Software Platform
