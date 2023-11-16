@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
+package org.gradle.integtests.tooling.r86
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.IntermediateModelListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 import java.util.concurrent.CopyOnWriteArrayList
 
+@ToolingApiVersion(">=8.6")
+@TargetGradleVersion(">=8.6")
 class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
     def "can send intermediate models and then receive them in the same order"() {
@@ -47,12 +51,11 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         intermediateModels.size() == 2
 
         and:
-        GradleProject gradleProject = intermediateModels.get(0)
+        def gradleProject = intermediateModels.get(0) as GradleProject
         gradleProject.name == "hello-world"
 
         and:
-        EclipseProject eclipseModel = intermediateModels.get(1)
+        def eclipseModel = intermediateModels.get(1) as EclipseProject
         eclipseModel.gradleProject.name == "hello-world"
     }
-
 }
