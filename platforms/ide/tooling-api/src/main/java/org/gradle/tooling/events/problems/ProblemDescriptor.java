@@ -34,13 +34,6 @@ import java.util.List;
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
-     * The problem properties in JSON format.
-     *
-     * @return the problem properties.
-     */
-    String getJson();
-
-    /**
      * Returns the problem category.
      *
      * @return the problem category
@@ -99,7 +92,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
      * Additional data associated with this problem.
-     * TODO: describe the possible value types.
      *
      * @return a map of additional data
      * @since 8.6

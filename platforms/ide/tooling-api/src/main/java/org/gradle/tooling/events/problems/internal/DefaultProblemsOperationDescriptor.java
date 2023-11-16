@@ -35,7 +35,6 @@ import java.util.List;
 
 @NonNullApi
 public class DefaultProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
-    private final String json;
     private final ProblemCategory category;
     private final Label label;
     private final Details details;
@@ -48,7 +47,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
-        String json,
         ProblemCategory category,
         Label label,
         @Nullable Details details,
@@ -59,7 +57,6 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         AdditionalData additionalData
     ) {
         super(internalDescriptor, parent);
-        this.json = json;
         this.category = category;
         this.label = label;
         this.details = details;
@@ -108,9 +105,5 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public AdditionalData getAdditionalData() {
         return additionalData;
-    }
-    @Override
-    public String getJson() {
-        return json;
     }
 }

@@ -16,17 +16,16 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.gson.Gson;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.locations.TaskPathLocation;
-import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
@@ -63,6 +62,11 @@ import java.util.stream.Collectors;
 
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
+
+    private static InternalSeverity ADVICE = new DefaultSeverity(0);
+    private static InternalSeverity WARNING = new DefaultSeverity(1);
+    private static InternalSeverity ERROR = new DefaultSeverity(2);
+
     private final BuildOperationIdFactory idFactory;
 
     public ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, BuildOperationIdFactory idFactory) {
@@ -83,44 +87,42 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         ),
                         buildOperationId),
                     new DefaultProblemDetails(
-                        new Gson().toJson(problem),
-                        mapCategory(problem.getProblemCategory()),
-                        mapLabel(problem.getLabel()),
-                        mapDetails(problem.getDetails()),
-                        mapSeverity(problem.getSeverity()),
-                        mapLocations(problem.getLocations()),
-                        mapDocumentationLink(problem.getDocumentationLink()),
-                        mapSolutions(problem.getSolutions()),
-                        mapEntries(problem.getAdditionalData())
+                        toInternalCategory(problem.getProblemCategory()),
+                        toInternalLabel(problem.getLabel()),
+                        toInternalDetails(problem.getDetails()),
+                        toInternalSeverity(problem.getSeverity()),
+                        toInternalLocations(problem.getLocations()),
+                        toInternalDocumentationLink(problem.getDocumentationLink()),
+                        toInternalSolutions(problem.getSolutions()),
+                        toInternalAdditionalData(problem.getAdditionalData())
                     )
                 )
             );
         }
     }
 
-    private static InternalProblemCategory mapCategory(ProblemCategory category) {
+    private static InternalProblemCategory toInternalCategory(ProblemCategory category) {
         return new DefaultProblemCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
     }
 
-    private static InternalLabel mapLabel(String label) {
+    private static InternalLabel toInternalLabel(String label) {
         return new DefaultLabel(label);
     }
 
-    private static @Nullable InternalDetails mapDetails(@Nullable String details) {
+    private static @Nullable InternalDetails toInternalDetails(@Nullable String details) {
         return details == null ? null : new DefaultDetails(details);
     }
 
-    private static InternalSeverity mapSeverity(Severity severity) {
-        // TODO we could probably send the same instance
+    private static InternalSeverity toInternalSeverity(Severity severity) {
         switch (severity) {
-            case ADVICE: return new DefaultSeverity(0);
-            case WARNING: return new DefaultSeverity(1);
-            case ERROR: return new DefaultSeverity(2);
+            case ADVICE: return ADVICE;
+            case WARNING: return WARNING;
+            case ERROR: return ERROR;
             default: return new DefaultSeverity(3); // should not happen
         }
     }
 
-    private static List<InternalLocation> mapLocations(List<ProblemLocation> locations) {
+    private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
         return locations.stream().map((Function<ProblemLocation, InternalLocation>) location -> {
             if (location instanceof FileLocation) {
                 FileLocation fileLocation = (FileLocation) location;
@@ -137,15 +139,15 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         }).collect(Collectors.toList());
     }
 
-    private static @Nullable InternalDocumentationLink mapDocumentationLink(@Nullable DocLink link) {
-        return link == null ? null : new DefaultDocumentationLink(link.getUrl());
+    private static @Nullable InternalDocumentationLink toInternalDocumentationLink(@Nullable DocLink link) {
+        return (link == null || link.getUrl() == null) ? null : new DefaultDocumentationLink(link.getUrl());
     }
 
-    private static List<InternalSolution> mapSolutions(List<String> solutions) {
+    private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
         return solutions.stream().map((Function<String, InternalSolution>) DefaultSolution::new).collect(Collectors.toList());
     }
 
-    private static InternalAdditionalData mapEntries(Map<String, Object> additionalData) {
+    private static InternalAdditionalData toInternalAdditionalData(Map<String, Object> additionalData) {
         return new DefaultAdditionalData(
             additionalData.entrySet().stream().filter(entry -> isSupportedType(entry.getValue())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
         );

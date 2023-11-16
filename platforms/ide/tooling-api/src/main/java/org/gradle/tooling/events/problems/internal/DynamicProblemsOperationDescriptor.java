@@ -84,9 +84,4 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
     public AdditionalData getAdditionalData() {
         throw new UnsupportedOperationException();
     }
-
-    @Override
-    public String getJson() {
-        return json;
-    }
 }

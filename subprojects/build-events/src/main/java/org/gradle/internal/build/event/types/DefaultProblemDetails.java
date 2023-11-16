@@ -33,7 +33,6 @@ import java.util.List;
 
 @NonNullApi
 public class DefaultProblemDetails implements InternalBasicProblemDetails, Serializable {
-    private final String json;
     private final InternalProblemCategory category;
     private final InternalLabel label;
     private final InternalDetails details;
@@ -44,7 +43,6 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     private final InternalAdditionalData additionalData;
 
     public DefaultProblemDetails(
-        String json,
         InternalProblemCategory category,
         InternalLabel label,
         @Nullable InternalDetails details,
@@ -54,7 +52,6 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         List<InternalSolution> solutions,
         InternalAdditionalData additionalData
     ) {
-        this.json = json;
         this.category = category;
         this.label = label;
         this.details = details;
@@ -66,7 +63,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     }
     @Override
     public String getJson() {
-        return json;
+        return "";
     }
     @Override
     public InternalProblemCategory getCategory() {

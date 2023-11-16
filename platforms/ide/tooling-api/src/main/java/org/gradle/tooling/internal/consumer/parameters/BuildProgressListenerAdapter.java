@@ -727,7 +727,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultProblemsOperationDescriptor(
                 descriptor,
                 parent,
-                details.getJson(),
                 toProblemCategory(category),
                 toProblemLabel(basicDetails.getLabel()),
                 toProblemDetails(basicDetails.getDetails()),
