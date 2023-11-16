@@ -56,6 +56,7 @@ public class DefaultLockOptions implements LockOptions {
         this.crossVersion = crossVersion;
         this.alternateLockDir = alternateLockDir;
         this.lockTargetType = lockTargetType;
+        assertValid();
     }
 
     @Override

@@ -27,7 +27,7 @@ class DefaultDecompressionCacheDeletionIntegrationTest extends AbstractIntegrati
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
     def setup() {
-        resources.maybeCopy('DefaultDecompressionCacheDeletionIntegrationTest/zip')
+        resources.maybeCopy("${DefaultDecompressionCacheDeletionIntegrationTest.class.simpleName}/zip")
     }
 
     def "clean after unzipping file to cache in task"() {

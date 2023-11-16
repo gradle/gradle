@@ -82,6 +82,17 @@ public interface LockOptions {
     }
 
     /**
+     * Ensures that the combination of options values is valid.
+     *
+     * @throws IllegalStateException if this instance is not valid
+     */
+    default void assertValid() {
+        if (getLockTargetType() == LockTargetType.CachePropertiesFile && getAlternateLockDir() != null) {
+            throw new IllegalStateException("Cannot use alternate lock directory with lock target type: " + getLockTargetType());
+        }
+    }
+
+    /**
      * The type of lock to use when generating a lock file for a {@link PersistentCache}.
      *
      * The default is {@link LockTargetType#DefaultTarget}, which generates a file with the same name as the cache,
