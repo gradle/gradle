@@ -454,7 +454,17 @@ public class ConsumerOperationParameters implements BuildParameters {
         return systemProperties;
     }
 
-    public void sendIntermediate(Object model) {
-        intermediateModelListener.onModel(model);
+    /**
+     * @since 8.6
+     */
+    public void sendIntermediate(String modelType, Object model) {
+        Class<?> type;
+        try {
+            type = getClass().getClassLoader().loadClass(modelType);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        Object adapted = new ProtocolToModelAdapter().adapt(type, model);
+        intermediateModelListener.onModel(adapted);
     }
 }

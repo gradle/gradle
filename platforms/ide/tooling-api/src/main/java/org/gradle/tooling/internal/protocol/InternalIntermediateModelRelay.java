@@ -16,7 +16,12 @@
 
 package org.gradle.tooling.internal.protocol;
 
+/**
+ * @since 8.6
+ */
 public interface InternalIntermediateModelRelay {
-
-    void sendIntermediate(Object model);
+    /**
+     * @since 8.6
+     */
+    void sendIntermediate(Class<?> modelType, Object model);
 }

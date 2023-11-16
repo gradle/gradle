@@ -25,18 +25,16 @@ import java.io.File;
 
 public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAwareBuildControllerAdapter {
     private final InternalIntermediateModelRelay relay;
+    private final ProtocolToModelAdapter adapter;
 
     public IntermediateModelAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
         super(buildController, adapter, modelMapping, rootDir);
         this.relay = (InternalIntermediateModelRelay) buildController;
+        this.adapter = adapter;
     }
 
     @Override
-    public void sendIntermediate(Object model) {
-        relay.sendIntermediate(unpack(model));
-    }
-
-    private Object unpack(Object model) {
-        return new ProtocolToModelAdapter().unpack(model);
+    public <T> void sendIntermediate(Class<T> modelType, T model) {
+        relay.sendIntermediate(modelType, adapter.unpack(model));
     }
 }

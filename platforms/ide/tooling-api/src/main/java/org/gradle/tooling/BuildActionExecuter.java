@@ -16,6 +16,8 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+
 /**
  * Used to execute a {@link BuildAction} in the build process.
  *
@@ -23,7 +25,13 @@ package org.gradle.tooling;
  * @since 1.8
  */
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
-
+    /**
+     * Sets the listener to use to handle intermediate results sent from the action via {@link BuildController#sendIntermediate(Class, Object)}.
+     * Replaces any existing listener.
+     *
+     * @since 8.6
+     */
+    @Incubating
     void setIntermediateModelListener(IntermediateModelListener intermediateModelListener);
 
     /**

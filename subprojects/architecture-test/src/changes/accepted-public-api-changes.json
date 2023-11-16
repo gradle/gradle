@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.sendIntermediate(org.gradle.tooling.BuildController,kotlin.reflect.KClass,java.lang.Object)",
+            "acceptation": "??",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }

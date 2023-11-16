@@ -51,11 +51,11 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         intermediateModels.size() == 2
 
         and:
-        def gradleProject = intermediateModels.get(0) as GradleProject
+        GradleProject gradleProject = intermediateModels.get(0)
         gradleProject.name == "hello-world"
 
         and:
-        def eclipseModel = intermediateModels.get(1) as EclipseProject
+        EclipseProject eclipseModel = intermediateModels.get(1)
         eclipseModel.gradleProject.name == "hello-world"
     }
 }

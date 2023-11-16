@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer {
 
@@ -33,9 +33,10 @@ public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer
 
     @Override
     public void dispatch(Object message) {
-        if (message instanceof SerializedPayload) {
-            Object deserializedMessage = payloadSerializer.deserialize((SerializedPayload) message);
-            providerParameters.sendIntermediate(deserializedMessage);
+        if (message instanceof IntermediateModel) {
+            IntermediateModel intermediateModel = (IntermediateModel) message;
+            Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
+            providerParameters.sendIntermediate(intermediateModel.getModelType(), deserializedMessage);
         }
     }
 }

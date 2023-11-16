@@ -35,6 +35,7 @@ import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -174,9 +175,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     @Override
-    public void sendIntermediate(Object model) {
-        SerializedPayload serializedResult = payloadSerializer.serialize(model);
-        buildEventConsumer.dispatch(serializedResult);
+    public void sendIntermediate(Class<?> modelType, Object model) {
+        SerializedPayload serializedModel = payloadSerializer.serialize(model);
+        buildEventConsumer.dispatch(new IntermediateModel(modelType.getName(), serializedModel));
     }
 
     private static class NestedAction<T> implements RunnableBuildOperation {

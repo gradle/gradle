@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling;
+@NonNullApi
+package org.gradle.tooling.internal.consumer.connection;
 
-// TODO: Consider renaming to StreamingModelListener
-
-import org.gradle.api.Incubating;
-
-/**
- * Receives an intermediate result sent via {@link BuildController#sendIntermediate(Class, Object)}.
- *
- * @since 8.6
- */
-@Incubating
-public interface IntermediateModelListener {
-    void onModel(Object model);
-}
+import org.gradle.api.NonNullApi;
