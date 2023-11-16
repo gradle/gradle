@@ -72,13 +72,21 @@ public class CallInterceptorRegistry {
      */
     @NonNullApi
     @VisibleForTesting
-    static class GroovyCallInterceptorInternalTesting {
+    static class GroovyJvmCallInterceptorInternalTesting {
         static CallSiteInterceptorSet getCurrentGroovyCallInterceptorSet() {
             return currentGroovyCallInterceptorSet;
         }
 
         static void setCurrentGroovyCallInterceptorSet(CallSiteInterceptorSet interceptorsSet) {
             CallInterceptorRegistry.setCurrentGroovyCallInterceptorSet(interceptorsSet);
+        }
+
+        static JvmBytecodeInterceptorFactorySet getCurrentJvmBytecodeInterceptorFactorySet() {
+            return currentJvmBytecodeFactorySet;
+        }
+
+        static void setCurrentJvmBytecodeInterceptorFactorySet(JvmBytecodeInterceptorFactorySet interceptorFactorySet) {
+            CallInterceptorRegistry.setCurrentJvmBytecodeFactorySet(interceptorFactorySet);
         }
     }
 }

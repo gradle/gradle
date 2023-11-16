@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
@@ -182,17 +181,11 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        // TODO: Pass InterceptorsRequest as a constructor parameter in artifact transform
-        this(CallInterceptorRegistry.getJvmBytecodeInterceptors(INSTRUMENTATION_ONLY));
+        this(INSTRUMENTATION_ONLY);
     }
 
-    /**
-     * This constructor can be used in tests with a set of call interceptors complemented by ones generated
-     * specifically for the tests.
-     */
-    @VisibleForTesting
-    public InstrumentingClassTransform(JvmBytecodeInterceptorSet externalInterceptors) {
-        this.externalInterceptors = externalInterceptors;
+    public InstrumentingClassTransform(BytecodeInterceptorRequest interceptorRequest) {
+        this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorRequest);
     }
 
     @Override

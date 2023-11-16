@@ -16,9 +16,9 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.internal.classpath.intercept.DefaultJvmBytecodeInterceptorFactorySet
 import org.gradle.internal.classpath.intercept.GroovyInterceptorsSubstitution
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
+import org.gradle.internal.classpath.intercept.JvmInterceptorsSubstitution
 import org.gradle.internal.classpath.types.InstrumentingTypeRegistry
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 import spock.lang.Specification
@@ -40,22 +40,25 @@ abstract class AbstractCallInterceptionTest extends Specification {
 
     protected InstrumentedClasses instrumentedClasses
 
+    private JvmInterceptorsSubstitution jvmInterceptorsSubstitution
     private GroovyInterceptorsSubstitution groovyInterceptorsSubstitution
 
     def setup() {
-        def jvmInterceptorSet = new DefaultJvmBytecodeInterceptorFactorySet(jvmBytecodeInterceptorSet())
-            .getJvmBytecodeInterceptorSet(bytecodeInterceptorRequest)
+        // Substitutions should be set before the InstrumentedClasses is constructed
+        jvmInterceptorsSubstitution = new JvmInterceptorsSubstitution(jvmBytecodeInterceptorSet())
+        jvmInterceptorsSubstitution.setupForCurrentThread()
+        groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
+        groovyInterceptorsSubstitution.setupForCurrentThread()
         instrumentedClasses = new InstrumentedClasses(
             getClass().classLoader,
             shouldInstrumentAndReloadClassByName(),
-            jvmInterceptorSet,
+            bytecodeInterceptorRequest,
             typeRegistry()
         )
-        groovyInterceptorsSubstitution = new GroovyInterceptorsSubstitution(groovyCallInterceptors())
-        groovyInterceptorsSubstitution.setupForCurrentThread()
     }
 
     def cleanup() {
+        jvmInterceptorsSubstitution.cleanupForCurrentThread()
         groovyInterceptorsSubstitution.cleanupForCurrentThread()
     }
 

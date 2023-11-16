@@ -16,108 +16,34 @@
 
 package org.gradle.internal.classpath.intercept
 
-
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider
-import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorRequest
 
-import javax.annotation.Nullable
-import java.util.concurrent.atomic.AtomicInteger
+class GroovyInterceptorsSubstitution extends TestInterceptorsSubstitution<CallSiteInterceptorSet> {
 
-/**
- * Provides support for replacing the Groovy interceptors for the current thread.
- * Make sure that the call sites that should be affected by the change are only reached after the interceptors have been substituted.
- *
- * The interceptors are substituted per-thread because other threads may be executing unrelated tests.
- */
-class GroovyInterceptorsSubstitution {
-    /**
-     * Ensures that the global Groovy call site decorator is replaced with an implementation that maintains call site decorators per thread.
-     * Then sets up the call site decorator for the current thread only.
-     */
-    void setupForCurrentThread() {
-        synchronized (Instrumented.class) {
-            maybeSetGlobalCallSiteDecorator()
-                .substituteForCurrentThread(
-                    new DefaultCallSiteInterceptorSet(substitutionProvider)
-                )
-        }
+    GroovyInterceptorsSubstitution(GroovyCallInterceptorsProvider testProvider) {
+        super(new DefaultCallSiteInterceptorSet(testProvider));
     }
 
-    /**
-     * Cancels the Groovy call site decorator substitution for the current thread.
-     * If the global implementation does not have any other active callsite decorators in the other threads, reverts the global call site
-     * decorator implementation.
-     */
-    static void cleanupForCurrentThread() {
-        synchronized (Instrumented.class) {
-            substitutionIfPresent()?.cancelSubstitutionForCurrentThread()
-            maybeRevertGlobalCallSiteDecorator()
-        }
+    @Override
+    ThreadLocalCallSiteInterceptorSet decorateWithThreadLocalImpl(CallSiteInterceptorSet original) {
+        return new ThreadLocalCallSiteInterceptorSet(original)
     }
 
-    private final GroovyCallInterceptorsProvider substitutionProvider
-
-    GroovyInterceptorsSubstitution(GroovyCallInterceptorsProvider substitutionProvider) {
-        this.substitutionProvider = substitutionProvider
+    @Override
+    void setCurrentInterceptorSet(CallSiteInterceptorSet newInterceptorSet) {
+        CallInterceptorRegistry.GroovyJvmCallInterceptorInternalTesting.currentGroovyCallInterceptorSet = newInterceptorSet
     }
 
-    @Nullable
-    private static ThreadLocalCallInterceptorSetDecorator substitutionIfPresent() {
-        def decorator = CallInterceptorRegistry.GroovyCallInterceptorInternalTesting.currentGroovyCallInterceptorSet
-        if (decorator instanceof ThreadLocalCallInterceptorSetDecorator) {
-            return decorator as ThreadLocalCallInterceptorSetDecorator
-        }
-        return null
+    @Override
+    CallSiteInterceptorSet getCurrentInterceptorSet() {
+        return CallInterceptorRegistry.GroovyJvmCallInterceptorInternalTesting.currentGroovyCallInterceptorSet;
     }
 
-    private static ThreadLocalCallInterceptorSetDecorator maybeSetGlobalCallSiteDecorator() {
-        def decorator = CallInterceptorRegistry.GroovyCallInterceptorInternalTesting.currentGroovyCallInterceptorSet
-        if (decorator !instanceof ThreadLocalCallInterceptorSetDecorator) {
-            decorator = new ThreadLocalCallInterceptorSetDecorator(decorator)
-            CallInterceptorRegistry.GroovyCallInterceptorInternalTesting.currentGroovyCallInterceptorSet = decorator
-        }
-        return decorator as ThreadLocalCallInterceptorSetDecorator
-    }
+    private static class ThreadLocalCallSiteInterceptorSet extends ThreadLocalInterceptorSet<CallSiteInterceptorSet> implements CallSiteInterceptorSet {
 
-    private static void maybeRevertGlobalCallSiteDecorator() {
-        def decorator = CallInterceptorRegistry.GroovyCallInterceptorInternalTesting.currentGroovyCallInterceptorSet
-        if (decorator instanceof ThreadLocalCallInterceptorSetDecorator) {
-            if (decorator.isEmpty()) {
-                CallInterceptorRegistry.GroovyCallInterceptorInternalTesting.currentGroovyCallInterceptorSet = decorator.original
-            }
-        }
-    }
-
-    private static class ThreadLocalCallInterceptorSetDecorator implements CallSiteInterceptorSet {
-
-        public final CallSiteInterceptorSet original
-
-        private final AtomicInteger substitutions = new AtomicInteger(0)
-        private final ThreadLocal<CallSiteInterceptorSet> threadLocalDecorators = ThreadLocal.withInitial { original }
-
-        boolean isEmpty() {
-            substitutions.get() == 0
-        }
-
-        ThreadLocalCallInterceptorSetDecorator(CallSiteInterceptorSet original) {
-            this.original = original
-        }
-
-        void substituteForCurrentThread(CallSiteInterceptorSet decorator) {
-            if (threadLocalDecorators.get() != original) {
-                throw new IllegalStateException("already substituted for the current thread; proper cleanup might have been missed")
-            }
-            substitutions.incrementAndGet()
-            threadLocalDecorators.set(decorator)
-        }
-
-        void cancelSubstitutionForCurrentThread() {
-            if (threadLocalDecorators.get() == original) {
-                throw new IllegalStateException("there was no substitution for the current thread")
-            }
-            substitutions.decrementAndGet()
-            threadLocalDecorators.remove()
+        ThreadLocalCallSiteInterceptorSet(CallSiteInterceptorSet original) {
+            super(original)
         }
 
         @Override
