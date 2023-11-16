@@ -368,7 +368,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
     protected abstract class TransformStepBuildOperation implements CallableBuildOperation<TransformStepSubject> {
 
-        @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Gradle Enterprise")
+        @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Develocity")
         private static final String TRANSFORMING_PROGRESS_PREFIX = "Transforming ";
 
         @Override

@@ -20,7 +20,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 /**
- * Auto-applied Gradle Enterprise plugin information.
+ * Auto-applied Develocity plugin information.
  *
  * Required by the {@code kotlin-dsl} module.
  */

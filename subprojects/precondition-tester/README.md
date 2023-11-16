@@ -1,7 +1,7 @@
 # Gradle / precondition Tester
 
 This project collections information about where test preconditions can be satisfied.
-We can use this information (i.e. by looking at the test results in Gradle Enterprise) to see if we have any preconditions or combinations of preconditions, which are never satisfied &ndash; a situation which we otherwise would hardly notice.
+We can use this information (i.e. by looking at the test results in Develocity) to see if we have any preconditions or combinations of preconditions, which are never satisfied &ndash; a situation which we otherwise would hardly notice.
 
 This project originates from a discussion about the [@Requires](https://github.com/gradle/gradle/blob/94ebe9eca6b9baf8c53a6033009298ec671de812/subprojects/internal-testing/src/main/groovy/org/gradle/util/Requires.java), which can define preconditions for tests.
 
