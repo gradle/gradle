@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.DependenciesAccessors
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -54,7 +54,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import java.io.File
 import java.io.PrintWriter
 import java.io.Serializable
@@ -94,16 +95,24 @@ data class StandardKotlinBuildScriptModel(
 
 
 internal
-object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
+class KotlinBuildScriptModelBuilder(
+    private val intermediateToolingModelProvider: IntermediateToolingModelProvider
+) : ParameterizedToolingModelBuilder<KotlinBuildScriptModelParameter> {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
+        modelName == KotlinBuildScriptModel::class.qualifiedName
+
+    override fun getParameterType(): Class<KotlinBuildScriptModelParameter> = KotlinBuildScriptModelParameter::class.java
+
+    override fun buildAll(modelName: String, parameter: KotlinBuildScriptModelParameter, modelRequestProject: Project): Any {
+        return kotlinBuildScriptModelFor(modelRequestProject as ProjectInternal, parameter)
+    }
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
         val timer = startTimer()
         val parameter = requestParameterOf(modelRequestProject)
         try {
-            return kotlinBuildScriptModelFor(modelRequestProject, parameter).also {
+            return kotlinBuildScriptModelFor(modelRequestProject as ProjectInternal, parameter).also {
                 log("$parameter => $it")
             }
         } catch (e: Exception) {
@@ -115,21 +124,27 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     }
 
     internal
-    fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
-        scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
+    fun kotlinBuildScriptModelFor(modelRequestProject: ProjectInternal, parameter: KotlinBuildScriptModelParameter): KotlinBuildScriptModel {
+
+        val scriptFile = parameter.scriptFile
+            ?: return projectScriptModelBuilder(null, modelRequestProject, intermediateToolingModelProvider).buildModel()
+
+        modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
+            return if (modelRequestProject == buildFileProject) {
+                return projectScriptModelBuilder(scriptFile, modelRequestProject, intermediateToolingModelProvider).buildModel()
+            } else {
+                intermediateToolingModelProvider.getModels(listOf(buildFileProject), KotlinBuildScriptModel::class.java).first()
+            }
+        }
+
+        return scriptModelBuilderFor(modelRequestProject, scriptFile).buildModel()
+    }
 
     private
     fun scriptModelBuilderFor(
         modelRequestProject: ProjectInternal,
-        parameter: KotlinBuildScriptModelParameter
+        scriptFile: File
     ): KotlinScriptTargetModelBuilder {
-
-        val scriptFile = parameter.scriptFile
-            ?: return projectScriptModelBuilder(null, modelRequestProject)
-
-        modelRequestProject.findProjectWithBuildFile(scriptFile)?.let { buildFileProject ->
-            return projectScriptModelBuilder(scriptFile, buildFileProject as ProjectInternal)
-        }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
             return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject)
@@ -242,7 +257,8 @@ fun hashOf(scriptFile: File) =
 private
 fun projectScriptModelBuilder(
     scriptFile: File?,
-    project: ProjectInternal
+    project: ProjectInternal,
+    intermediateToolingModelProvider: IntermediateToolingModelProvider
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = project,
@@ -251,9 +267,11 @@ fun projectScriptModelBuilder(
         val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) +
+            stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) +
+            AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
-    sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
+    sourcePathBuilder = ProjectScriptSourcePathBuilder(project, intermediateToolingModelProvider),
     enclosingScriptProjectDir = project.projectDir
 )
 
@@ -274,7 +292,7 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler)
+        sourcePathBuilder = ScriptHandlerSourcePathBuilder(scriptHandler),
     )
 }
 
@@ -286,7 +304,7 @@ fun settingsScriptModelBuilder(scriptFile: File, project: Project) = project.run
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = settings.scriptCompilationClassPath,
-        sourceLookupScriptHandlers = listOf(settings.buildscript),
+        sourcePathBuilder = ScriptHandlerSourcePathBuilder(settings.buildscript),
         enclosingScriptProjectDir = rootDir
     )
 }
@@ -308,7 +326,7 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler, settings.buildscript)
+        sourcePathBuilder = ScriptHandlerSourcePathBuilder(listOf(scriptHandler, settings.buildscript)),
     )
 }
 
@@ -319,7 +337,7 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = project,
         scriptFile = scriptFile,
-        baseScope = rootProject.baseClassLoaderScope,
+        baseScope = rootProject.baseClassLoaderScope, // TODO: is this an IP violation?
         scriptHandlerFactory = scriptHandlerFactoryOf(project),
         project = project,
         resourceDescription = "build file"
@@ -329,7 +347,7 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = scriptClassPath,
-        sourceLookupScriptHandlers = listOf(scriptHandler, buildscript)
+        sourcePathBuilder = ScriptHandlerSourcePathBuilder(listOf(scriptHandler, buildscript)),
     )
 }
 
@@ -383,23 +401,18 @@ fun textResourceScriptSource(description: String, scriptFile: File, resourceLoad
 
 
 private
-fun sourceLookupScriptHandlersFor(project: Project) =
-    project.hierarchy.map { it.buildscript }.toList()
-
-
-private
 data class KotlinScriptTargetModelBuilder(
     val scriptFile: File?,
     val project: Project,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
-    val sourceLookupScriptHandlers: List<ScriptHandler> = emptyList(),
+    val sourcePathBuilder: SourcePathBuilder = SourcePathBuilder { ClassPath.EMPTY },
     val enclosingScriptProjectDir: File? = null,
     val additionalImports: () -> List<String> = { emptyList() }
 ) {
 
     fun buildModel(): KotlinBuildScriptModel {
-        val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
+        val classpathSources = sourcePathBuilder.buildSourcePath()
         val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
         val accessorsClassPath =
             classPathModeExceptionCollector.ignoringErrors {
@@ -514,20 +527,13 @@ val Project.scriptImplicitImports
 
 
 private
-val Project.hierarchy: Sequence<Project>
-    get() = sequence {
-        var project = this@hierarchy
-        yield(project)
-        while (project != project.rootProject) {
-            project = project.parent!!
-            yield(project)
-        }
-    }
-
-
-private
 val Project.isLocationAwareEditorHintsEnabled: Boolean
-    get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
+    get() = if (project.serviceOf<BuildModelParameters>().isIsolatedProjects) {
+        // TODO(configuration): support with Isolated Projects
+        false
+    } else {
+        findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
+    }
 
 
 internal

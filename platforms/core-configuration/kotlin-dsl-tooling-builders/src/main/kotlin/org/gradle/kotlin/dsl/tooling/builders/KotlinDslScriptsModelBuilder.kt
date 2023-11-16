@@ -107,7 +107,9 @@ data class StandardEditorPosition(
 
 
 internal
-object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
+class KotlinDslScriptsModelBuilder(
+    private val kotlinBuildScriptModelBuilder: KotlinBuildScriptModelBuilder
+) : ToolingModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
         modelName == KotlinDslScriptsModel::class.qualifiedName
@@ -141,8 +143,8 @@ object KotlinDslScriptsModelBuilder : ToolingModelBuilder {
     private
     fun buildFor(parameter: KotlinDslScriptsParameter, project: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(
-                project,
+            kotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(
+                project as ProjectInternal,
                 KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
             )
         }
