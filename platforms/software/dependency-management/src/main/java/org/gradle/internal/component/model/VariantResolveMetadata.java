@@ -17,9 +17,9 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +41,7 @@ public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subv
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     boolean isExternalVariant();
 

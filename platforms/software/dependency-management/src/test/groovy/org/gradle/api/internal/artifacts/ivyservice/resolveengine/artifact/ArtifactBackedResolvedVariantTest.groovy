@@ -77,7 +77,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER) // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
@@ -86,7 +86,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -99,7 +99,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
@@ -128,7 +128,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
 
         then:
@@ -142,7 +142,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -160,7 +160,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, [], artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, attributes, ImmutableCapabilities.EMPTY, artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }

@@ -48,7 +48,7 @@ import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -133,7 +133,7 @@ public class JvmPluginsHelper {
         String variantName,
         @Nullable String featureName,
         String docsType,
-        List<Capability> capabilities,
+        Set<Capability> capabilities,
         String jarTaskName,
         Object artifactSource,
         ProjectInternal project

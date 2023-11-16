@@ -19,7 +19,6 @@ package org.gradle.internal.resolve.resolver;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
@@ -132,12 +131,12 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         }
     }
 
-    private static ImmutableCapabilities withImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, ComponentArtifactResolveMetadata component) {
+    private static ImmutableCapabilities withImplicitCapability(ImmutableCapabilities capabilities, ComponentArtifactResolveMetadata component) {
         // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
-        if (capabilitiesMetadata.getCapabilities().isEmpty()) {
+        if (capabilities.asSet().isEmpty()) {
             return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(component.getModuleVersionId()));
         } else {
-            return ImmutableCapabilities.of(capabilitiesMetadata);
+            return capabilities;
         }
     }
 

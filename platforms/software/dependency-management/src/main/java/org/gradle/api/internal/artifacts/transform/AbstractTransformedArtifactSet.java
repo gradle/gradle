@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -29,11 +28,10 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
-
-import java.util.List;
 
 /**
  * Transformed artifact set that performs the transform itself when visited.
@@ -45,7 +43,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
-        List<? extends Capability> capabilities,
+        ImmutableCapabilities capabilities,
         TransformChain transformChain,
         TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
@@ -105,9 +103,9 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
         private final ResolvedArtifactSet delegate;
         private final ImmutableList<BoundTransformStep> steps;
         private final ImmutableAttributes targetVariantAttributes;
-        private final List<? extends Capability> capabilities;
+        private final ImmutableCapabilities capabilities;
 
-        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformStep> steps) {
+        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, ImmutableCapabilities capabilities, ImmutableList<BoundTransformStep> steps) {
             this.ownerId = ownerId;
             this.delegate = delegate;
             this.steps = steps;
@@ -131,7 +129,7 @@ public abstract class AbstractTransformedArtifactSet implements TransformedArtif
             return targetVariantAttributes;
         }
 
-        public List<? extends Capability> getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return capabilities;
         }
 

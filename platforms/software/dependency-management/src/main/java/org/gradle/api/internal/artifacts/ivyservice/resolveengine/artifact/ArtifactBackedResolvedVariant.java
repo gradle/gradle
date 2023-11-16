@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -44,7 +44,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
-    private final CapabilitiesMetadata capabilities;
+    private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
     private final ComponentArtifactResolver componentArtifactResolver;
 
@@ -52,7 +52,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Nullable VariantResolveMetadata.Identifier identifier,
         DisplayName displayName,
         AttributeContainerInternal attributes,
-        CapabilitiesMetadata capabilities,
+        ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
         ComponentArtifactResolver componentArtifactResolver
     ) {
@@ -107,17 +107,17 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilities() {
+    public ImmutableCapabilities getCapabilities() {
         return capabilities;
     }
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
-        private final CapabilitiesMetadata capabilities;
+        private final ImmutableCapabilities capabilities;
         private final ResolvableArtifact artifact;
 
-        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, CapabilitiesMetadata capabilities, ResolvableArtifact artifact) {
+        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.capabilities = capabilities;
@@ -147,7 +147,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
                 visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
             } else {
-                visitor.visitArtifact(variantName, variantAttributes, capabilities.getCapabilities(), artifact);
+                visitor.visitArtifact(variantName, variantAttributes, capabilities, artifact);
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
             }
         }

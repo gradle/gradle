@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +38,7 @@ public interface VariantGraphResolveState extends HasAttributes {
 
     ImmutableAttributes getAttributes();
 
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     VariantGraphResolveMetadata getMetadata();
 

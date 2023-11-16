@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -30,7 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -104,7 +105,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         assert configuration != null;
         encoder.writeString(configuration.getName());
         attributeContainerSerializer.write(encoder, configuration.getAttributes());
-        writeCapabilities(encoder, configuration.getCapabilities().getCapabilities());
+        writeCapabilities(encoder, configuration.getCapabilities());
         encoder.writeBoolean(configuration.isExternalVariant());
     }
 
@@ -186,18 +187,18 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         return excludes;
     }
 
-    protected ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
+    protected static ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
         int capabilitiesCount = decoder.readSmallInt();
-        List<Capability> rawCapabilities = Lists.newArrayListWithCapacity(capabilitiesCount);
+        ImmutableSet.Builder<ImmutableCapability> rawCapabilities = ImmutableSet.builderWithExpectedSize(capabilitiesCount);
         for (int j = 0; j < capabilitiesCount; j++) {
             String appendix = decoder.readNullableString();
-            CapabilityInternal capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            ImmutableCapability capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
             if (appendix != null) {
                 capability = new ShadowedImmutableCapability(capability, appendix);
             }
             rawCapabilities.add(capability);
         }
-        return ImmutableCapabilities.of(rawCapabilities);
+        return new ImmutableCapabilities(rawCapabilities.build());
     }
 
     protected void writeFiles(Encoder encoder, ImmutableList<? extends ComponentArtifactMetadata> artifacts) throws IOException {
@@ -233,9 +234,10 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
 
-    private void writeCapabilities(Encoder encoder, List<? extends Capability> capabilities) throws IOException {
-        encoder.writeSmallInt(capabilities.size());
-        for (Capability capability: capabilities) {
+    private static void writeCapabilities(Encoder encoder, ImmutableCapabilities capabilities) throws IOException {
+        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
+        encoder.writeSmallInt(capabilitiesSet.size());
+        for (Capability capability : capabilitiesSet) {
             boolean shadowed = capability instanceof ShadowedCapability;
             if (shadowed) {
                 ShadowedCapability shadowedCapability = (ShadowedCapability) capability;

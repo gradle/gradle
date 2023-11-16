@@ -26,8 +26,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -93,15 +91,18 @@ public class VariantMetadataRules {
         return joined.asImmutable();
     }
 
-    public CapabilitiesMetadata applyCapabilitiesRules(VariantResolveMetadata variant, CapabilitiesMetadata capabilities) {
+    public ImmutableCapabilities applyCapabilitiesRules(VariantResolveMetadata variant, ImmutableCapabilities capabilities) {
         if (capabilitiesRules != null) {
-            List<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
-            if (descriptors.isEmpty()) {
+            DefaultMutableCapabilitiesMetadata mutableCapabilities;
+            if (capabilities.asSet().isEmpty()) {
                 // we must add the implicit capability here because it is assumed that if there's a rule
                 // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-                descriptors.add(new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
+                mutableCapabilities = new DefaultMutableCapabilitiesMetadata(ImmutableCapabilities.of(
+                    new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()))
+                );
+            } else {
+                mutableCapabilities = new DefaultMutableCapabilitiesMetadata(capabilities);
             }
-            DefaultMutableCapabilities mutableCapabilities = new DefaultMutableCapabilities(descriptors);
             return capabilitiesRules.execute(variant, mutableCapabilities);
         }
         return capabilities;

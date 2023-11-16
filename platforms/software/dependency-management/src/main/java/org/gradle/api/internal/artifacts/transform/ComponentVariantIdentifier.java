@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
-
-import java.util.List;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 /**
  * Identifier of a variant of a component.
@@ -29,9 +27,9 @@ public class ComponentVariantIdentifier {
 
     private final ComponentIdentifier componentId;
     private final AttributeContainer attributes;
-    private final List<? extends Capability> capabilities;
+    private final ImmutableCapabilities capabilities;
 
-    public ComponentVariantIdentifier(ComponentIdentifier componentId, AttributeContainer attributes, List<? extends Capability> capabilities) {
+    public ComponentVariantIdentifier(ComponentIdentifier componentId, AttributeContainer attributes, ImmutableCapabilities capabilities) {
         this.componentId = componentId;
         this.attributes = attributes;
         this.capabilities = capabilities;
@@ -45,7 +43,7 @@ public class ComponentVariantIdentifier {
         return attributes;
     }
 
-    public List<? extends Capability> getCapabilities() {
+    public ImmutableCapabilities getCapabilities() {
         return capabilities;
     }
 }

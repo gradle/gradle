@@ -283,7 +283,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         JvmFeatureInternal feature = new DefaultJvmFeature(
             JvmConstants.JAVA_MAIN_FEATURE_NAME,
             sourceSet,
-            Collections.emptyList(),
+            Collections.emptySet(),
             project,
             false,
             false

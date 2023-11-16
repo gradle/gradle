@@ -17,8 +17,8 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.List;
 import java.util.Set;
@@ -48,7 +48,7 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
 
     List<? extends ExcludeMetadata> getExcludes();
 
-    CapabilitiesMetadata getCapabilities();
+    ImmutableCapabilities getCapabilities();
 
     boolean isTransitive();
 
@@ -59,6 +59,6 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
 
         ImmutableAttributes getAttributes();
 
-        CapabilitiesMetadata getCapabilities();
+        ImmutableCapabilities getCapabilities();
     }
 }

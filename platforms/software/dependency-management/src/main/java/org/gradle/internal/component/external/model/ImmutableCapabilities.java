@@ -15,16 +15,13 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A deeply immutable implementation of {@link CapabilitiesMetadata}.
@@ -36,23 +33,20 @@ import java.util.List;
  * Note that while this class is not itself {@code final}, all fields are private, so
  * subclassing should not break the immutability contract.
  */
-public class ImmutableCapabilities implements CapabilitiesMetadataInternal {
-    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.of());
+public class ImmutableCapabilities {
+    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableSet.of());
 
-    private final ImmutableList<ImmutableCapability> capabilities;
+    private final ImmutableSet<ImmutableCapability> capabilities;
 
-    public static ImmutableCapabilities of(CapabilitiesMetadata capabilities) {
-        if (capabilities instanceof ImmutableCapabilities) {
-            return (ImmutableCapabilities) capabilities;
-        }
-        return of(capabilities.getCapabilities());
+    public ImmutableCapabilities(ImmutableSet<ImmutableCapability> capabilities) {
+        this.capabilities = capabilities;
     }
 
     public static ImmutableCapabilities of(@Nullable Capability capability) {
         if (capability == null) {
             return EMPTY;
         }
-        return new ImmutableCapabilities(Collections.singleton(capability));
+        return new ImmutableCapabilities(ImmutableSet.of(asImmutable(capability)));
     }
 
     public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
@@ -63,23 +57,40 @@ public class ImmutableCapabilities implements CapabilitiesMetadataInternal {
             Capability single = capabilities.iterator().next();
             return of(single);
         }
-        return new ImmutableCapabilities(capabilities);
+
+        ImmutableSet.Builder<ImmutableCapability> builder = ImmutableSet.builderWithExpectedSize(capabilities.size());
+        for (Capability capability : capabilities) {
+            builder.add(asImmutable(capability));
+        }
+        return new ImmutableCapabilities(builder.build());
     }
 
-    private ImmutableCapabilities(Collection<? extends Capability> capabilities) {
-        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<>();
-        for (Capability capability : capabilities) {
-            if (capability instanceof ImmutableCapability) {
-                builder.add((ImmutableCapability) capability);
-            } else {
-                builder.add(new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion()));
-            }
+    private static ImmutableCapability asImmutable(Capability capability) {
+        if (capability instanceof ImmutableCapability) {
+            return (ImmutableCapability) capability;
+        } else {
+            return new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion());
         }
-        this.capabilities = builder.build();
+    }
+
+    public ImmutableSet<ImmutableCapability> asSet() {
+        return capabilities;
     }
 
     @Override
-    public List<ImmutableCapability> getCapabilities() {
-        return capabilities;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ImmutableCapabilities that = (ImmutableCapabilities) o;
+        return capabilities.equals(that.capabilities);
+    }
+
+    @Override
+    public int hashCode() {
+        return capabilities.hashCode();
     }
 }

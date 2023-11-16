@@ -73,7 +73,7 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
             getArtifacts(),
             getExcludes(),
             getAttributes(),
-            ImmutableCapabilities.of(getCapabilities().getCapabilities()),
+            getCapabilities(),
             dependencies,
             addedByRule,
             isExternalVariant()

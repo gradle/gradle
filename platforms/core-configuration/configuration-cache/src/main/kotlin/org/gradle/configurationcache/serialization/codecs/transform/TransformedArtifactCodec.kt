@@ -31,6 +31,7 @@ import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -43,7 +44,7 @@ class TransformedArtifactCodec(
     override suspend fun WriteContext.encode(value: TransformingAsyncArtifactListener.TransformedArtifact) {
         write(value.variantName)
         write(value.target)
-        writeCollection(value.capabilities)
+        writeCollection(value.capabilities.asSet())
         write(value.artifact.id.componentIdentifier)
         write(value.artifact.file)
         write(unpackTransformSteps(value.transformSteps))
@@ -58,6 +59,6 @@ class TransformedArtifactCodec(
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
         val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformStep(it.transformStep, it.recreateDependencies()) }
-        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, capabilities, artifact, steps)
+        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, ImmutableCapabilities.of(capabilities), artifact, steps)
     }
 }

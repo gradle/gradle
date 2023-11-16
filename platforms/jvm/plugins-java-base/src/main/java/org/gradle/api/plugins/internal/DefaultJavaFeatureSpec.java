@@ -24,12 +24,12 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
-    private final List<Capability> capabilities = new ArrayList<>(1);
+    private final Set<Capability> capabilities = new LinkedHashSet<>(1);
     private final ProjectInternal project;
 
     private SourceSet sourceSet;

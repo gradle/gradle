@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -34,7 +35,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 
 public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     public static final String DEFAULT_TEST_VARIANT = "test variant";
@@ -68,7 +68,7 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     @Override
     public void visit(ArtifactVisitor visitor) {
         for (final ResolvedArtifact artifact : artifacts) {
-            visitor.visitArtifact(variantName, variant, Collections.emptyList(), new Adapter(artifact));
+            visitor.visitArtifact(variantName, variant, ImmutableCapabilities.EMPTY, new Adapter(artifact));
         }
     }
 

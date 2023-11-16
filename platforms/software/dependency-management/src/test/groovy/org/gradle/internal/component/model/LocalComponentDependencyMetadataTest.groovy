@@ -32,12 +32,12 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousGraphVariantsException
 import org.gradle.internal.component.ConfigurationNotFoundException
 import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -379,7 +379,7 @@ Configuration 'bar':
         def variant = Stub(VariantGraphResolveState) {
             getName() >> name
             getAttributes() >> attributes
-            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
+            getCapabilities() >> ImmutableCapabilities.EMPTY
         }
         return variant
     }

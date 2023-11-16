@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -180,7 +179,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilities() {
+    public ImmutableCapabilities getCapabilities() {
         return capabilities;
     }
 

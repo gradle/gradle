@@ -18,7 +18,6 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -35,6 +34,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import java.io.File
 
@@ -77,7 +77,7 @@ private
 data class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
     val variantAttributes: AttributeContainer,
-    val capabilities: List<Capability>,
+    val capabilities: ImmutableCapabilities,
     val variantDisplayName: DisplayName,
     val file: File
 )
@@ -109,7 +109,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         elements.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: List<Capability>, artifact: ResolvableArtifact) {
+    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: ImmutableCapabilities, artifact: ResolvableArtifact) {
         if (artifacts.add(artifact)) {
             elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
         }

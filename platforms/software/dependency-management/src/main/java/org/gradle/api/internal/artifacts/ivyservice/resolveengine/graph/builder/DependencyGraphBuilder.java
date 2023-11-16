@@ -237,7 +237,7 @@ public class DependencyGraphBuilder {
             }
 
             private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
-                return nodeState.getMetadata().getCapabilities().getCapabilities().isEmpty();
+                return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
             }
         });
     }

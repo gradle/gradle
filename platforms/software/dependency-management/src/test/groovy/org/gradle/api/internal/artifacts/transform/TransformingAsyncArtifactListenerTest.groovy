@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Deferrable
 import org.gradle.internal.Try
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
@@ -35,7 +36,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
     def invocation = Mock(Deferrable<TransformStepSubject>)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
+    def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, ImmutableCapabilities.EMPTY, result)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -57,7 +58,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, [], artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, ImmutableCapabilities.EMPTY, artifact) }
         0 * _
 
         when:
@@ -76,7 +77,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         artifacts.size() == 1
-        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, [], artifact) }
+        1 * artifacts.visit(_) >> { ArtifactVisitor visitor -> visitor.visitArtifact(null, null, ImmutableCapabilities.EMPTY, artifact) }
         0 * _
 
         when:

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.TransformChain;
@@ -268,7 +267,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            visitor.visitArtifact(variantName, variantAttributes, Collections.emptyList(), artifact);
+            visitor.visitArtifact(variantName, variantAttributes, ImmutableCapabilities.EMPTY, artifact);
             visitor.endVisitCollection(FileCollectionInternal.OTHER);
         }
 
@@ -283,7 +282,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return ImmutableCapabilities.EMPTY;
         }
     }
@@ -299,7 +298,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
                                                TransformChain transformChain,
                                                TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
+            super(delegate.getComponentId(), delegate, attributes, ImmutableCapabilities.EMPTY, transformChain, dependenciesResolverFactory, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
     }

@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -47,6 +46,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -294,7 +294,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final List<ComponentVariant.Dependency> dependencies = Lists.newArrayList();
         private final List<ComponentVariant.DependencyConstraint> dependencyConstraints = Lists.newArrayList();
         private final List<FileImpl> files = Lists.newArrayList();
-        private final List<Capability> capabilities = Lists.newArrayList();
+        private final Set<Capability> capabilities = new LinkedHashSet<>();
         private boolean availableExternally;
 
         private ImmutableAttributes attributes;
@@ -315,7 +315,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public List<Capability> getCapabilities() {
+        public Set<Capability> getCapabilities() {
             return capabilities;
         }
 
@@ -664,7 +664,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public CapabilitiesMetadata getCapabilities() {
+        public ImmutableCapabilities getCapabilities() {
             return capabilities;
         }
 

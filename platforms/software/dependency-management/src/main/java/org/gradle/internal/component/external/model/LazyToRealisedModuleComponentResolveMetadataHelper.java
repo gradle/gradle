@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -88,7 +87,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
                 isExternalVariant = false;
             } else {
                 attributes = baseVariant.getAttributes();
-                capabilities = (ImmutableCapabilities) baseVariant.getCapabilities();
+                capabilities = baseVariant.getCapabilities();
                 dependencies = baseVariant.getDependencies();
                 dependencyConstraints = baseVariant.getDependencyConstraints();
                 files = baseVariant.getFiles();
@@ -109,13 +108,13 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
 
     private static AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl applyRules(ComponentVariant variant, VariantMetadataRules variantMetadataRules, ModuleComponentIdentifier id) {
         ImmutableAttributes attributes = variantMetadataRules.applyVariantAttributeRules(variant, variant.getAttributes());
-        CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, variant.getCapabilities());
+        ImmutableCapabilities capabilities = variantMetadataRules.applyCapabilitiesRules(variant, variant.getCapabilities());
         ImmutableList<? extends ComponentVariant.File> files = variantMetadataRules.applyVariantFilesMetadataRulesToFiles(variant, variant.getFiles(), id);
         boolean force = PlatformSupport.hasForcedDependencies(variant);
         List<? extends ModuleDependencyMetadata> dependencies = variantMetadataRules.applyDependencyMetadataRules(variant, convertDependencies(variant.getDependencies(), variant.getDependencyConstraints(), force));
         return new AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl(id, variant.getName(), attributes,
             variant.getDependencies(), variant.getDependencyConstraints(), files,
-            ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), dependencies, variant.isExternalVariant());
+            capabilities, dependencies, variant.isExternalVariant());
     }
 
     private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {

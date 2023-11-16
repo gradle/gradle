@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -95,7 +94,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                         Cast.uncheckedCast(sourceVariant.getArtifacts()),
                         sourceVariant.getExcludes(),
                         sourceVariant.getAttributes(),
-                        (ImmutableCapabilities) sourceVariant.getCapabilities(),
+                        sourceVariant.getCapabilities(),
                         dependencies,
                         false,
                         sourceVariant.isExternalVariant()
@@ -139,7 +138,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                 artifacts = ImmutableList.of();
             } else {
                 attributes = baseConf.getAttributes();
-                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                capabilities = baseConf.getCapabilities();
                 dependencies = baseConf.getDependencies();
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
@@ -169,10 +168,10 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     ) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
-        CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
+        ImmutableCapabilities variantCapabilities = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
         List<? extends DependencyMetadata> dependenciesMetadata = variantMetadataRules.applyDependencyMetadataRules(variant, dependencies);
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
-        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), addedByRule, isExternalVariant);
+        return createConfiguration(id, configurationName, transitive, visible, hierarchy, artifactsMetadata, dependenciesMetadata, variantAttributes, variantCapabilities, addedByRule, isExternalVariant);
     }
 
     private static RealisedConfigurationMetadata createConfiguration(DefaultMavenModuleResolveMetadata metadata, String configurationName) {

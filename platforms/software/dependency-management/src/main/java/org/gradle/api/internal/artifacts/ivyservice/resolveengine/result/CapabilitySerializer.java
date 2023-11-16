@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -30,7 +31,7 @@ import java.io.IOException;
 public class CapabilitySerializer implements Serializer<Capability> {
 
     @Override
-    public Capability read(Decoder decoder) throws IOException {
+    public ImmutableCapability read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
         String version = decoder.readNullableString();

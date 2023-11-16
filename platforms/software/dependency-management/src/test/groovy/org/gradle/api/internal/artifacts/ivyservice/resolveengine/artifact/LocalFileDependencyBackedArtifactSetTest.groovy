@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -29,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.DisplayName
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
@@ -136,7 +136,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs1, [], { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, List<? extends Capability> capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
         }
@@ -144,7 +144,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs2, [], { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, List<? extends Capability> capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
         }
@@ -174,11 +174,11 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_, _, _, _) >> { ResolvedVariantSet variants, r, a, f -> variants.variants.first() }
         2 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs1, [], { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, List<? extends Capability> capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f1)
         }
-        1 * artifactVisitor.visitArtifact(_, attrs2, [], { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, List<? extends Capability> capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f2)
         }

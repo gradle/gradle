@@ -22,13 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -102,14 +101,12 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         artifactResolver.resolveArtifactsWithType(getResolveMetadata(), artifactType, result);
     }
 
-    protected List<? extends Capability> capabilitiesFor(CapabilitiesMetadata variantCapabilities) {
-        List<? extends Capability> capabilities = variantCapabilities.getCapabilities();
-        if (capabilities.isEmpty()) {
-            capabilities = ImmutableList.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
+    protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
+        if (capabilities.asSet().isEmpty()) {
+            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
         } else {
-            capabilities = ImmutableList.copyOf(capabilities);
+            return capabilities;
         }
-        return capabilities;
     }
 
     protected abstract class AbstractVariantGraphResolveState implements VariantGraphResolveState {
