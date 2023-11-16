@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Provides access to important locations for a Gradle build.
  * <p>
- * An instance of this type can be injected into a plugin or other object by
+ * An instance of this type can be injected into a settings plugin by
  * annotating a public constructor or method with {@code javax.inject.Inject}.
  * It is also available via {@link Settings#getLayout()}.
  * <p>
