@@ -16,8 +16,18 @@
 
 package org.gradle.tooling.events.problems;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+
 import java.util.Map;
 
+/**
+ * Additional data associated with a {@link ProblemEvent}.
+ *
+ * @since 8.6
+ */
+@Incubating
+@NonNullApi
 public interface AdditionalData {
 
     Map<String, Object> getAsMap();

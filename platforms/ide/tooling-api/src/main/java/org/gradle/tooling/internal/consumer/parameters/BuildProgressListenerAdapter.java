@@ -140,8 +140,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
@@ -187,6 +185,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
@@ -391,6 +391,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
         }
     }
+
     private void broadcastProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         ProblemEvent problemEvent = toProblemEvent(progressEvent, descriptor);
         if (problemEvent != null) {
@@ -525,7 +526,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         if (progressEvent instanceof InternalProblemEvent) {
-            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent)progressEvent, descriptor));
+            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent) progressEvent, descriptor));
             return new DefaultProblemEvent(progressEvent.getEventTime(), clientDescriptor);
         }
         return null;
@@ -717,7 +718,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toProblemLabel(basicDetails.getLabel()),
                 toProblemDetails(basicDetails.getDetails()),
                 toProblemSeverity(basicDetails.getSeverity()),
-                toAdditionalData(basicDetails.getAdditionalData())
+                toAdditionalData(basicDetails.getAdditionalData()),
+                basicDetails.getException()
             );
         }
     }

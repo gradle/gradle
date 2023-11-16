@@ -26,11 +26,11 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultProblemDetails implements InternalBasicProblemDetails, Serializable {
     private final String json;
+    private Throwable exception;
     private final InternalProblemCategory category;
     private final InternalLabel label;
     private final InternalDetails details;
@@ -44,7 +44,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         InternalLabel label,
         @Nullable InternalDetails details,
         InternalSeverity severity,
-        InternalAdditionalData additionalData
+        InternalAdditionalData additionalData,
+        Throwable exception
     ) {
         this.json = json;
         this.category = category;
@@ -52,6 +53,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         this.details = details;
         this.severity = severity;
         this.additionalData = additionalData;
+        this.exception = exception;
     }
     @Override
     public String getJson() {
@@ -80,5 +82,10 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     @Override
     public InternalAdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Override
+    public Throwable getException() {
+        return exception;
     }
 }

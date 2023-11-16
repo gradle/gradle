@@ -16,11 +16,13 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+@NonNullApi
 public class DefaultDetails implements InternalDetails, Serializable {
 
     private final String details;
@@ -30,6 +32,7 @@ public class DefaultDetails implements InternalDetails, Serializable {
     }
 
     @Override
+    @Nullable
     public String getDetails() {
         return details;
     }

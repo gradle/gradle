@@ -73,7 +73,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         mapLabel(problem.getLabel()),
                         mapDetails(problem.getDetails()),
                         mapSeverity(problem.getSeverity()),
-                        mapEntries(problem.getAdditionalData())
+                        mapEntries(problem.getAdditionalData()),
+                        problem.getException()
                     )
                 )
             );

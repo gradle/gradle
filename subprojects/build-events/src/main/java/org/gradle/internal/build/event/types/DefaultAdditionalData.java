@@ -16,12 +16,14 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
+@NonNullApi
 public class DefaultAdditionalData implements InternalAdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;

@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r85
 
 import groovy.json.JsonSlurper
 import org.gradle.api.problems.Problems
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -31,7 +32,7 @@ import org.gradle.tooling.events.problems.ProblemEvent
 class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
     def withSampleProject(boolean includeAdditionalMetadata = false) {
-        file('build.gradle') << """
+        buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
             import ${Problems.name}
@@ -62,6 +63,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
                             .undocumented()
                             .noLocation()
                             .category("testcategory")
+                            .withException(new RuntimeException("test"))
                             ${if (includeAdditionalMetadata) { ".additionalData(\"keyToString\", \"value\").additionalData(\"keyToInt\", 1)" }}
                     }.report()
                     return new CustomModel()
@@ -86,17 +88,23 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         ProblemProgressListener listener = new ProblemProgressListener()
 
         when:
-        withConnection { connection ->
-            connection.model(CustomModel)
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(javaHome)
+//                .setJavaHome(new File("/Users/reinholddegenfellner/.sdkman/candidates/java/21-amzn"))
+//                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,address=5005")
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { new JsonSlurper().parse(listener.problems[0].json.bytes) }
+        def problems = listener.problems.collect { new JsonSlurper().parseText(it.json) }
 
         then:
         problems.size() == 1
         problems[0].label == 'label'
         problems[0].problemCategory == 'testcategory'
+
+        where:
+        javaHome << [AvailableJavaHomes.jdk8.javaHome, AvailableJavaHomes.jdk17.javaHome, AvailableJavaHomes.jdk21.javaHome]
     }
 
     @ToolingApiVersion(">=8.6")
@@ -116,8 +124,8 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         then:
         listener.problems.size() == 1
         listener.problems[0].additionalData == [
-            'keyToString' : 'value',
-            'keyToInt' : 1
+            'keyToString': 'value',
+            'keyToInt': 1
         ]
     }
 

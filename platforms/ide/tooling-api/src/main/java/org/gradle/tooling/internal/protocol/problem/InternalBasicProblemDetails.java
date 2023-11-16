@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 @NonNullApi
 public interface InternalBasicProblemDetails extends InternalProblemDetails {
@@ -34,4 +33,6 @@ public interface InternalBasicProblemDetails extends InternalProblemDetails {
     InternalDetails getDetails();
 
     InternalSeverity getSeverity();
+
+    Throwable getException();
 }

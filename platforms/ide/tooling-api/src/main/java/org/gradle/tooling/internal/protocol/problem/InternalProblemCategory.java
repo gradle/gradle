@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import org.gradle.api.NonNullApi;
+
 import java.util.List;
 
+@NonNullApi
 public interface InternalProblemCategory {
 
     String getNamespace();

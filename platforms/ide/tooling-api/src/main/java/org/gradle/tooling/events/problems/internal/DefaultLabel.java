@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.Label;
 
+@NonNullApi
 public class DefaultLabel implements Label {
 
     private final String label;

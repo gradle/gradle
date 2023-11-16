@@ -66,6 +66,11 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Override
+    public Throwable getThrowable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public String getJson() {
         return json;
     }

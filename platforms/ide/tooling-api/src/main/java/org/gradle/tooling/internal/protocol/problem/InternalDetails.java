@@ -16,7 +16,13 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import org.gradle.api.NonNullApi;
+
+import javax.annotation.Nullable;
+
+@NonNullApi
 public interface InternalDetails {
 
+    @Nullable
     String getDetails();
 }

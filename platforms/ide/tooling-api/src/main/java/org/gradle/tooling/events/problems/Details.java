@@ -17,14 +17,18 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 
 /**
  * Represents a problem details.
  * @since 8.6
  */
 @Incubating
+@NonNullApi
 public interface Details {
     /**
+     * Returns the problem details.
+     *
      * @return the problem details
      */
     String getDetails();

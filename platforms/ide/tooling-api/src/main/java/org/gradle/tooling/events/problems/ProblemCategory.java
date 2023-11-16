@@ -16,8 +16,16 @@
 
 package org.gradle.tooling.events.problems;
 
+import org.gradle.api.Incubating;
+
 import java.util.List;
 
+/**
+ * A problem category.
+ *
+ * @since 8.6
+ */
+@Incubating
 public interface ProblemCategory {
     /**
      * TODO document

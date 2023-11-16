@@ -24,7 +24,7 @@ import org.gradle.tooling.events.problems.Severity;
 public class DefaultSeverity implements Severity {
     private final int severity;
     private final boolean known;
-    private static final LoadingCache<Integer, Severity> unknownEntries = CacheBuilder.newBuilder().build(new CacheLoader<Integer, Severity>() {
+    private static final LoadingCache<Integer, Severity> UNKNOWN_ENTRIES = CacheBuilder.newBuilder().build(new CacheLoader<Integer, Severity>() {
         @Override
         public Severity load(Integer key) {
             return new DefaultSeverity(key, false);
@@ -50,7 +50,7 @@ public class DefaultSeverity implements Severity {
         } else if (severity == Severity.ERROR.getSeverity()) {
             return Severity.ERROR;
         } else {
-            return unknownEntries.getUnchecked(severity);
+            return UNKNOWN_ENTRIES.getUnchecked(severity);
         }
     }
 }

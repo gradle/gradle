@@ -16,8 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.Details;
 
+@NonNullApi
 public class DefaultDetails implements Details {
 
     private final String label;

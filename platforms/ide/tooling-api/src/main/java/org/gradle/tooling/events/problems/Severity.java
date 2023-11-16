@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 
 /**
@@ -24,6 +25,7 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
  * @since 8.6
  */
 @Incubating
+@NonNullApi
 public interface Severity {
 
     // TODO add comment reference to class which this interface should be in sync
@@ -31,6 +33,8 @@ public interface Severity {
     Severity WARNING = new DefaultSeverity(1, true);
     Severity ERROR = new DefaultSeverity(2, true);
     /**
+     * returns the severity value.
+     *
      * @return the severity
      */
     int getSeverity();

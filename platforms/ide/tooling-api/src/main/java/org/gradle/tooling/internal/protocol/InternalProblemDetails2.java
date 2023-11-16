@@ -24,4 +24,6 @@ import java.util.Map;
 public interface InternalProblemDetails2 extends InternalProblemDetails {
 
     Map<String, Object> getAdditionalData();
+
+    Throwable getException();
 }

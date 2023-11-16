@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import org.gradle.api.NonNullApi;
+
+@NonNullApi
 public interface InternalLabel {
 
     String getLabel();

@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 
 import javax.annotation.Nullable;
@@ -30,6 +31,7 @@ import javax.annotation.Nullable;
  * @since 8.4
  */
 @Incubating
+@NonNullApi
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
@@ -59,7 +61,9 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * Returns the details string.
      *
      * @return the problem details
+     * @since 8.6
      */
+    @Incubating
     @Nullable
     Details getDetails();
 
@@ -67,7 +71,9 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * Returns the problem severity.
      *
      * @return the problem severity
+     * @since 8.6
      */
+    @Incubating
     Severity getSeverity();
 
     /**
@@ -77,5 +83,15 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return a map of additional data
      * @since 8.6
      */
+    @Incubating
     AdditionalData getAdditionalData();
+
+    /**
+     * The exception associated with this problem.
+     *
+     * @return the exception.
+     * @since 8.6
+     */
+    @Incubating
+    Throwable getThrowable();
 }

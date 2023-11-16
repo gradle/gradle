@@ -16,10 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 
 import java.io.Serializable;
 
+@NonNullApi
 public class DefaultLabel implements InternalLabel, Serializable {
 
     private final String label;

@@ -37,6 +37,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final Details details;
     private final Severity severity;
     private final AdditionalData additionalData;
+    private final Throwable throwable;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -46,7 +47,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         Label label,
         @Nullable Details details,
         Severity severity,
-        AdditionalData additionalData
+        AdditionalData additionalData,
+        Throwable throwable
     ) {
         super(internalDescriptor, parent);
         this.json = json;
@@ -55,6 +57,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.details = details;
         this.severity = severity;
         this.additionalData = additionalData;
+        this.throwable = throwable;
     }
     public ProblemCategory getCategory() {
         return category;
@@ -82,5 +85,10 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public String getJson() {
         return json;
+    }
+
+    @Override
+    public Throwable getThrowable() {
+        return throwable;
     }
 }
