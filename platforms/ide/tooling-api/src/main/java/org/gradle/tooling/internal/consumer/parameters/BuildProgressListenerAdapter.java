@@ -148,8 +148,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
@@ -195,6 +193,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
@@ -740,16 +740,19 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-        return new DefaultAdditionalData(additionalData.getAsMap());
-    }
-
     private static ProblemCategory toProblemCategory(InternalProblemCategory category) {
         return new DefaultCategory(category.getNamespace(), category.getCategory(), category.getSubCategories());
     }
 
     private static Label toProblemLabel(InternalLabel label) {
         return new DefaultLabel(label.getLabel());
+    }
+
+    private static Details toProblemDetails(InternalDetails details) {
+        if (details != null) {
+            return new DefaultDetails(details.getDetails());
+        }
+        return null;
     }
 
     private static Severity toProblemSeverity(InternalSeverity severity) {
@@ -785,11 +788,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result;
     }
 
-    private static Details toProblemDetails(InternalDetails details) {
-        if (details != null) {
-            return new DefaultDetails(details.getDetails());
-        }
-        return null;
+    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
+        return new DefaultAdditionalData(additionalData.getAsMap());
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

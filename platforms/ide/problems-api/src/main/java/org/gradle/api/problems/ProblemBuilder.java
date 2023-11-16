@@ -56,13 +56,11 @@ public interface ProblemBuilder {
 
     /**
      * Specifies arbitrary data associated with this problem.
-     * Currently supported value types:
-     * <ul>
-     *     <li>java.lang.String</li>
-     * </ul>
+     * <p>
+     * The only supported value type is {@link String}.
      *
      * @return this
-     * @throws RuntimeException for unsupported value types
+     * @throws RuntimeException for null values and for values with unsupported type.
      * @since 8.6
      */
     ProblemBuilder additionalData(String key, Object value);
