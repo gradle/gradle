@@ -799,10 +799,9 @@ key2=
         })
 
         def problems = collectedProblems
-        problems.size() == 1
-        def problem = problems[0]
-        problem["locations"][0].path == tomlFile.absolutePath
-        problem["locations"][1].path == tomlFile.absolutePath
+        problems.size() == 2
+        problems[0]["locations"][0].path == tomlFile.absolutePath
+        problems[1]["locations"][0].path == tomlFile.absolutePath
     }
 
     private String getUnexpectedErrorString(int line, int column) {
