@@ -23,13 +23,13 @@ import java.io.File;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 
-public class BuildLocations extends SettingsLocation {
+public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
     private final ScriptFileResolver scriptFileResolver;
 
     // Note: `null` for `settingsFile` means explicitly no settings
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLocations(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
+    public BuildLayout(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
         super(settingsDir, settingsFile);
         this.rootDirectory = rootDirectory;
         this.scriptFileResolver = scriptFileResolver;
