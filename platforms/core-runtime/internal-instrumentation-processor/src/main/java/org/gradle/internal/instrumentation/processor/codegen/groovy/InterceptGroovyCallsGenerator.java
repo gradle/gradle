@@ -112,7 +112,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
             .superclass(CALL_INTERCEPTOR_CLASS)
             .addSuperinterface(SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS)
-            .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
+            .addSuperinterface(interceptorType.getInterceptorMarkerInterface())
             .addJavadoc(interceptorClassJavadoc(requests))
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
