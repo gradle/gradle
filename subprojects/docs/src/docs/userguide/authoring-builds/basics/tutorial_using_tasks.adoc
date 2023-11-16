@@ -91,7 +91,7 @@ Many of these tasks, such as `assemble`, `build`, and `run`, should be familiar 
 
 == Task classification
 
-There are two classes of tasks can be executed:
+There are two classes of tasks that can be executed:
 
 1. *Actionable tasks* have some action(s) attached to do work in your build: `compileJava`.
 2. *Lifecycle tasks* are workflow tasks with no actions attached: `assemble`, `build`.
@@ -264,9 +264,9 @@ Hello world!
 [[sec:manipulating_existing_tasks]]
 == Task configuration
 
-Once tasks are registered, they can be accessed via the link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] API for further configuration.
+Once registered, tasks can be accessed via the link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[TaskProvider] API for further configuration.
 
-For instance, you can use this to dynamically add dependencies to a task at runtime:
+For instance, you can use this to add dependencies to a task at runtime dynamically:
 
 ====
 include::sample[dir="snippets/tutorial/dynamicDepends/kotlin", files="build.gradle.kts[]"]

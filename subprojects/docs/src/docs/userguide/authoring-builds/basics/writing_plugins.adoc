@@ -40,7 +40,7 @@ abstract class SamplePlugin : Plugin<Project> {
 
 == Script plugin
 
-The simplest plugin is a script plugin, which is coded in the build script.
+The simplest plugin is a script plugin coded in the build script.
 
 Let's take a look at an example:
 
@@ -179,10 +179,10 @@ apply<MyConventionPlugin>()
 
 == Binary Plugins
 
-A Gradle plugin that is resolved as a dependency rather than compiled from source is a binary plugin.
+A Gradle plugin resolved as a dependency rather than compiled from source is a binary plugin.
 
-For most use cases, convention plugins will need to be updated very infrequently.
-This means that having each developer execute the plugin build as part of their development process is needlessly wasteful, and we can instead just distribute them as binary dependencies.
+For most use cases, convention plugins must be updated infrequently.
+Having each developer execute the plugin build as part of their development process is wasteful, and we can instead distribute them as binary dependencies.
 
 There are two ways to update the example above into a binary plugin.
 
@@ -205,6 +205,3 @@ plugins {
 ----
 
 Consult the <<custom_plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.
-
-[.text-right]
-**Next Step:** <<plugins.adoc#plugins,Learn how to structure Multi-Project Builds>> >>

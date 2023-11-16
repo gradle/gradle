@@ -22,7 +22,7 @@ image::author-gradle-1.png[]
 Gradle guarantees that these tasks will execute in order of their dependencies.
 Your build scripts and plugins configure this dependency graph.
 
-For example, if your project tasks include `assemble`, `build`, `createDocs`, your build script(s) can make sure that they are executed in the order `assemble` -> `build` -> `createDoc`.
+For example, if your project tasks include `assemble`, `build`, `createDocs`, your build script(s) can ensure that they are executed in the order `assemble` -> `build` -> `createDoc`.
 
 == Task Graphs
 

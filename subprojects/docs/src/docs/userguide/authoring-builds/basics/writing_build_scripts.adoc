@@ -15,13 +15,13 @@
 [[writing_build_scripts]]
 = Writing Build Scripts
 
-In the Gradle Build lifecycle, the initialization phase finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
+The initialization phase in the Gradle Build lifecycle finds the root project and subprojects included in your <<directory_layout#dir:project_root,project root directory>> using the settings file.
 
-image::author-gradle-4.png[Build,500,63,align="left"]
+image::author-gradle-6.png[]
 
 Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
 
-Gradle then looks for a corresponding build script file which is used in the configuration phase.
+Gradle then looks for a corresponding build script file, which is used in the configuration phase.
 
 [[tutorial_using_tasks]]
 == Build Scripts
@@ -36,6 +36,8 @@ On the other hand, it might represent a thing to be done, such as deploying your
 Gradle scripts are written in either Groovy DSL or Kotlin DSL (domain-specific language).
 
 A *build script* configures a *project* and is associated with an object of type link:{javadocPath}org/gradle/api/Project.html[`Project`].
+
+image::author-gradle-4.png[Build,500,63,align="left"]
 
 As the build script executes, it configures `Project`.
 
@@ -127,11 +129,11 @@ The following table lists a few commonly used methods:
 
 == Build Script structure
 
-The Build script is composed of `{ ... }` which is a special object in both Groovy and Kotlin.
+The Build script is composed of `{ ... }`, a special object in both Groovy and Kotlin.
 This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
-It is short form for:
+It is the short form for:
 
 [source]
 ----
@@ -243,7 +245,7 @@ plugins {
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
 The Kotlin gradle plugin, version 1.9.0, has also been applied.
-This plugin is not included with Gradle and, therefore has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
+This plugin is not included with Gradle and, therefore, has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
 
 === 2. Define dependency location
 

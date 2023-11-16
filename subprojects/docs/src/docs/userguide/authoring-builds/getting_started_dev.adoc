@@ -34,14 +34,14 @@ _Reading time_: **35 minutes**
 The introduction covers:
 
 <<directory_layout.adoc#directory_layout,Part 1.>> Gradle Directories +
-<<build_lifecycle.adoc#build_lifecycle,Part 2.>> Gradle Build Lifecycle +
-<<writing_settings_files.adoc#writing_settings_files,Part 3.>> Writing Settings Files +
-<<writing_build_scripts.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
-<<tutorial_using_tasks.adoc#tutorial_using_tasks,Part 5.>> Using Tasks +
-<<writing_tasks.adoc#writing_tasks,Part 6.>> Writing Tasks +
-<<plugins.adoc#plugins,Part 7.>> Using Plugins +
-<<writing_plugins.adoc#writing_plugins,Part 8.>> Writing Plugins +
-<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 9.>> Multi-Project Builds +
+<<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 2.>> Multi-Project Builds +
+<<build_lifecycle.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
+<<writing_settings_files.adoc#writing_settings_files,Part 4.>> Writing Settings Files +
+<<writing_build_scripts.adoc#writing_build_scripts,Part 5.>> Writing Build Scripts +
+<<tutorial_using_tasks.adoc#tutorial_using_tasks,Part 6.>> Using Tasks +
+<<writing_tasks.adoc#writing_tasks,Part 7.>> Writing Tasks +
+<<plugins.adoc#plugins,Part 8.>> Using Plugins +
+<<writing_plugins.adoc#writing_plugins,Part 9.>> Writing Plugins +
 
 [[author_tutorial]]
 == 2. Authoring Gradle Tutorial

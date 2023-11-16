@@ -538,7 +538,7 @@ Furthermore, it is unnecessary to append `.class` to identify a class literal in
 When a project uses a version catalog, plugins can be referenced via aliases when applied.
 
 
-Let's take a look at a simple version catalog:
+Let's take a look at a simple Version Catalog:
 
 .gradle/libs.versions.toml
 [source,toml]

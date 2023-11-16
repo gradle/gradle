@@ -107,4 +107,4 @@ The anatomy of a typical project root directory looks as follows:
 Consult the <<directory_layout.adoc#directory_layout,Gradle Directories reference>> to learn more.
 
 [.text-right]
-**Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>
+**Next Step:** <<intro_multi_project_builds.adoc#intro_multi_project_builds,Learn how to structure Multi-Project Builds>> >>

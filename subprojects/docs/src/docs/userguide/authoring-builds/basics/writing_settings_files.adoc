@@ -17,7 +17,7 @@
 
 The settings file is the entry point of every Gradle project.
 
-image::author-gradle-3.png[Settings,500,63,align="left"]
+image::author-gradle-7.png[]
 
 Early in the Gradle Build lifecycle, the <<build_lifecycle.adoc#sec:initialization,initialization phase>> finds the settings file in your <<directory_layout#dir:project_root,project root directory>>.
 
@@ -31,6 +31,8 @@ One of the purposes of the `Settings` object is to allow you to declare all the 
 The settings script is either a `settings.gradle` file in Groovy or a `settings.gradle.kts` file in Kotlin.
 
 Before Gradle assembles the projects for a build, it creates a `Settings` instance and executes the settings file against it.
+
+image::author-gradle-3.png[Settings,500,63,align="left"]
 
 As the settings script executes, it configures this `Settings`.
 Therefore, the _settings file_ defines the `Settings` object.
@@ -105,11 +107,11 @@ The following table lists a few commonly used methods:
 
 == Settings Script structure
 
-The Settings script is composed of `{ ... }` which is a special object in both Groovy and Kotlin.
+The Settings script is composed of `{ ... }`, a special object in both Groovy and Kotlin.
 This object is called a _lambda_ in Kotlin or a _closure_ in Groovy.
 
 Simply put, the `plugins{ }` block is a method invocation in which a Kotlin _lambda_ object or Groovy _closure_ object is passed as the argument.
-It is short form for:
+It is the short form for:
 
 [source]
 ----
@@ -224,7 +226,7 @@ You can also include plugins and plugin dependency strategies in this block.
 
 === 2. Apply shared plugins
 
-The settings file can optionally define the link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[plugins] which are used as shared configurations among several builds / subprojects:
+The settings file can optionally define the link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[plugins], which are used as shared configurations among several builds / subprojects:
 
 [source]
 ----

@@ -25,7 +25,7 @@ The word "interdependent" is vital, as you typically want to link the many modul
 Gradle supports this scenario through _multi-project_ builds.
 This is sometimes referred to as a multi-module project.
 
-A multi-project build consists of one root project, and one or more subprojects.
+A multi-project build consists of one root project and one or more subprojects.
 
 [[sec:project_structure]]
 == Multi-Project structure
@@ -209,3 +209,6 @@ Any task you run in the root project folder will cause that same-named task to b
 You can run `gradle build` to build and test ALL projects.
 
 Consult the <<multi_project_builds.adoc#multi_project_builds,Structuring Builds chapter>> to learn more.
+
+[.text-right]
+**Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>
