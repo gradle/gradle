@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.tooling;
+package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
@@ -22,8 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
-import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
