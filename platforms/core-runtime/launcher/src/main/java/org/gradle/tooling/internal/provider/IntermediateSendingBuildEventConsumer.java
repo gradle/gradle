@@ -25,10 +25,12 @@ public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
+    private final BuildEventConsumer delegate;
 
-    public IntermediateSendingBuildEventConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer) {
+    public IntermediateSendingBuildEventConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
+        this.delegate = delegate;
     }
 
     @Override
@@ -37,6 +39,8 @@ public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer
             IntermediateModel intermediateModel = (IntermediateModel) message;
             Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
             providerParameters.sendIntermediate(intermediateModel.getModelType(), deserializedMessage);
+        } else {
+            delegate.dispatch(message);
         }
     }
 }
