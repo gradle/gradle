@@ -349,15 +349,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     private BuildLifecycleController buildController(SettingsInternal settings, GradleInternal gradle) {
         def buildController = Stub(BuildLifecycleController)
         def services = Stub(ServiceRegistry)
-        def buildLocations = Stub(BuildLayout)
+        def buildLayout = Stub(BuildLayout)
 
         _ * buildController.gradle >> gradle
         if (settings != null) {
             _ * gradle.settings >> settings
         }
         _ * gradle.services >> services
-        _ * services.get(BuildLayout) >> buildLocations
-        _ * buildLocations.rootDirectory >> tmpDir.file("root-dir")
+        _ * services.get(BuildLayout) >> buildLayout
+        _ * buildLayout.rootDirectory >> tmpDir.file("root-dir")
         _ * services.get(PublicBuildPath) >> Stub(PublicBuildPath)
 
         return buildController
