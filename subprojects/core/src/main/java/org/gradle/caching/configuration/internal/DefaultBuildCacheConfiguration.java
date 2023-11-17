@@ -20,33 +20,35 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheConfiguration.class);
 
-    private final Instantiator instantiator;
+    private final ObjectFactory instantiator;
 
     private DirectoryBuildCache local;
     private BuildCache remote;
 
     private Set<BuildCacheServiceRegistration> registrations;
 
-    public DefaultBuildCacheConfiguration(Instantiator instantiator, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
-        this.instantiator = instantiator;
+    @Inject
+    public DefaultBuildCacheConfiguration(ObjectFactory objectFactory, List<BuildCacheServiceRegistration> allBuiltInBuildCacheServices) {
+        this.instantiator = objectFactory;
         this.registrations = Sets.newHashSet(allBuiltInBuildCacheServices);
-        this.local = createLocalCacheConfiguration(instantiator, registrations);
+        this.local = createLocalCacheConfiguration(objectFactory, registrations);
     }
 
     @Override
@@ -120,24 +122,24 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.registrations = registrations;
     }
 
-    private static DirectoryBuildCache createLocalCacheConfiguration(Instantiator instantiator, Set<BuildCacheServiceRegistration> registrations) {
-        DirectoryBuildCache local = createBuildCacheConfiguration(instantiator, DirectoryBuildCache.class, registrations);
+    private static DirectoryBuildCache createLocalCacheConfiguration(ObjectFactory objectFactory, Set<BuildCacheServiceRegistration> registrations) {
+        DirectoryBuildCache local = createBuildCacheConfiguration(objectFactory, DirectoryBuildCache.class, registrations);
         // By default, we push to the local cache.
         local.setPush(true);
         return local;
     }
 
-    private static <T extends BuildCache> T createRemoteCacheConfiguration(Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
-        T remote = createBuildCacheConfiguration(instantiator, type, registrations);
+    private static <T extends BuildCache> T createRemoteCacheConfiguration(ObjectFactory objectFactory, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
+        T remote = createBuildCacheConfiguration(objectFactory, type, registrations);
         // By default, we do not push to the remote cache.
         remote.setPush(false);
         return remote;
     }
 
-    private static <T extends BuildCache> T createBuildCacheConfiguration(Instantiator instantiator, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
+    private static <T extends BuildCache> T createBuildCacheConfiguration(ObjectFactory objectFactory, Class<T> type, Set<BuildCacheServiceRegistration> registrations) {
         // ensure type is registered
         getBuildCacheServiceFactoryType(type, registrations);
-        return instantiator.newInstance(type);
+        return objectFactory.newInstance(type);
     }
 
     @Override

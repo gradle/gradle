@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
@@ -50,7 +51,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -91,10 +91,10 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new Object() {
 
             BuildCacheConfigurationInternal createBuildCacheConfiguration(
-                Instantiator instantiator,
+                ObjectFactory objectFactory,
                 List<BuildCacheServiceRegistration> allBuildCacheServiceFactories
             ) {
-                return instantiator.newInstance(DefaultBuildCacheConfiguration.class, instantiator, allBuildCacheServiceFactories);
+                return objectFactory.newInstance(DefaultBuildCacheConfiguration.class, objectFactory, allBuildCacheServiceFactories);
             }
 
             DirectoryBuildCacheFileStoreFactory createDirectoryBuildCacheFileStoreFactory(ChecksumService checksumService) {

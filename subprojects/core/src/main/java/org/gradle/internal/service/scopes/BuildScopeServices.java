@@ -89,7 +89,6 @@ import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
 import org.gradle.configuration.CompileOperationFactory;
@@ -229,7 +228,6 @@ public class BuildScopeServices extends ScopedServiceRegistry {
 
     public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
         super(Scopes.Build.class, parent);
-        addProvider(new BuildCacheServices());
         register(registration -> {
             registration.add(DefaultExecOperations.class);
             registration.add(DefaultFileOperations.class);
