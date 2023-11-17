@@ -35,12 +35,13 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
 
         when:
         Collection<Object> intermediateModels = new CopyOnWriteArrayList<Object>()
+        def listener = { model -> intermediateModels.add(model) } as IntermediateModelListener
+
         CustomModel customModel = withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
             collectOutputs(builder)
-            builder.setIntermediateModelListener({ model ->
-                intermediateModels.add(model)
-            } as IntermediateModelListener)
+            builder.addIntermediateModelListener(GradleProject, listener)
+            builder.addIntermediateModelListener(EclipseProject, listener)
             builder.run()
         }
 

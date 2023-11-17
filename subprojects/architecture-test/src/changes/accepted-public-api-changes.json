@@ -7,6 +7,12 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_es2mh4szzzdn7dl28x7mhwkksKt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_es2mh4szzzdn7dl28x7mhwkksKt",
+            "acceptation": "??",
+            "changes": []
         }
     ]
 }

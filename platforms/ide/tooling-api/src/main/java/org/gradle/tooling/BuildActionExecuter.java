@@ -26,15 +26,6 @@ import org.gradle.api.Incubating;
  */
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
     /**
-     * Sets the listener to use to handle intermediate results sent from the action via {@link BuildController#sendIntermediate(Class, Object)}.
-     * Replaces any existing listener.
-     *
-     * @since 8.6
-     */
-    @Incubating
-    void setIntermediateModelListener(IntermediateModelListener intermediateModelListener);
-
-    /**
      * Builder for a build action that hooks into different phases of the build.
      *
      * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
@@ -78,6 +69,14 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          */
         BuildActionExecuter<Void> build();
     }
+
+    /**
+     * Adds a listener to use to handle intermediate results of type {@code S} sent from the action via {@link BuildController#sendIntermediate(Class, Object)}.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    <S> void addIntermediateModelListener(Class<S> modelType, IntermediateModelListener<S> intermediateModelListener);
 
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>
