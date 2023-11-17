@@ -36,7 +36,7 @@ val tomljVersion = "1.0.0"
 val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.10.0"
+val sshdVersion = "2.11.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
