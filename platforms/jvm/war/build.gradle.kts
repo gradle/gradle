@@ -46,6 +46,8 @@ dependencies {
 
     testImplementation(project(":plugins-java-base"))
     testImplementation(testFixtures(project(":core")))
+    // TODO remove this
+    testImplementation(project(":plugins-java-base"))
 
     testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

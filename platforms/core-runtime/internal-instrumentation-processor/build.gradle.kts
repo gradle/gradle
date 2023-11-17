@@ -37,6 +37,8 @@ dependencies {
 
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))
+    // TODO remove this
+    testImplementation(libs.jetbrainsAnnotations)
 }
 
 tasks.named<Test>("test").configure {
