@@ -8,39 +8,53 @@ description = """This project contains the Build Init plugin, which is automatic
 This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
-    implementation(project(":model-core"))
-    implementation(project(":core"))
-    implementation(project(":file-collections"))
-    implementation(project(":dependency-management"))
-    implementation(project(":language-jvm"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
+    api(libs.inject)
+    api(libs.jsr305)
+    api(libs.maven3Core)
+    api(libs.maven3Settings)
+
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":core"))
+    api(project(":core-api"))
+    api(project(":dependency-management"))
+    api(project(":file-collections"))
+    api(project(":logging"))
+    api(project(":platform-jvm"))
+    api(project(":toolchains-jvm"))
+    api(project(":workers"))
+
+    implementation(project(":logging-api"))
     implementation(project(":platform-native"))
     implementation(project(":plugins")) {
         because("Needs access to StartScriptGenerator.")
     }
-    implementation(project(":plugins-java"))
+    implementation(project(":plugins-jvm-test-suite"))
     implementation(project(":resources"))
-    implementation(project(":workers"))
     implementation(project(":wrapper"))
     implementation(project(":wrapper-shared"))
-    implementation(project(":testing-base"))
-    implementation(project(":toolchains-jvm"))
-    implementation(project(":plugins-jvm-test-suite"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
     implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
     implementation(libs.maven3SettingsBuilder)
+    implementation(libs.maven3Artifact)
+    implementation(libs.maven3Model)
+    implementation(libs.mavenResolverApi)
+    implementation(libs.slf4jApi)
+    implementation(libs.plexusClassworlds)
+    implementation(libs.plexusUtils)
+    implementation(libs.eclipseSisuPlexus) {
+        exclude(module = "cdi-api")
+    }
 
     compileOnly(libs.maven3Compat)
     compileOnly(libs.maven3PluginApi)
+
+    compileOnly(project(":platform-base"))
+
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)
 

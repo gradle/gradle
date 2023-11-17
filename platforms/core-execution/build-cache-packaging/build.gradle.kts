@@ -6,22 +6,24 @@ plugins {
 description = "Package build cache results"
 
 dependencies {
+    api(libs.guava)
+
     api(project(":build-cache-base"))
-    api(project(":snapshots"))
-    api(project(":hashing"))
     api(project(":files"))
+    api(project(":hashing"))
+    api(project(":snapshots"))
 
     implementation(project(":base-annotations"))
-    implementation(libs.guava)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
+    implementation(libs.jsr305)
 
-    testImplementation(project(":process-services"))
     testImplementation(project(":file-collections"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":resources"))
 
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core-api")))
+    testImplementation(testFixtures(project(":snapshots")))
 }
