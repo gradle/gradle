@@ -130,6 +130,7 @@ fun addDependencies() {
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
         testImplementation(libs.gradleEnterpriseTestAnnotation)
+        testImplementation(libs.antJUnit)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
