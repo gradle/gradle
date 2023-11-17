@@ -20,6 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.IntermediateModelListener
+import org.gradle.tooling.IntermediateResultHandler
+import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -29,34 +31,75 @@ import java.util.concurrent.CopyOnWriteArrayList
 @TargetGradleVersion(">=8.6")
 class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpecification {
 
-    def "can send intermediate models and then receive them in the same order"() {
+    def "build action can send intermediate models and then receive them in the same order"() {
         given:
         file("settings.gradle") << 'rootProject.name="hello-world"'
 
         when:
-        Collection<Object> intermediateModels = new CopyOnWriteArrayList<Object>()
-        def listener = { model -> intermediateModels.add(model) } as IntermediateModelListener
+        def models = new CopyOnWriteArrayList<Object>()
+        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def handler = { model -> models.add(model) } as ResultHandler
 
-        CustomModel customModel = withConnection {
+        withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
             collectOutputs(builder)
             builder.addIntermediateModelListener(GradleProject, listener)
             builder.addIntermediateModelListener(EclipseProject, listener)
+            builder.run(handler)
+        }
+
+        then:
+        models.size() == 3
+
+        and:
+        GradleProject gradleProject = models.get(0)
+        gradleProject.name == "hello-world"
+
+        and:
+        EclipseProject eclipseModel = models.get(1)
+        eclipseModel.gradleProject.name == "hello-world"
+
+        and:
+        CustomModel result = models.get(2)
+        result.value == 42
+    }
+
+    def "phased build action can send intermediate models and then receive them in the same order"() {
+        given:
+        file("settings.gradle") << 'rootProject.name="hello-world"'
+
+        when:
+        def models = new CopyOnWriteArrayList<Object>()
+        def listener = { model -> models.add(model) } as IntermediateModelListener
+        def handler = { model -> models.add(model) } as IntermediateResultHandler
+
+        withConnection {
+            def builder = it.action()
+                .projectsLoaded(new CustomIntermediateModelSendingBuildAction(GradleProject, 1), handler)
+                .buildFinished(new CustomIntermediateModelSendingBuildAction(EclipseProject, 2), handler)
+                .build()
+            collectOutputs(builder)
+            builder.addIntermediateModelListener(CustomModel, listener)
             builder.run()
         }
 
         then:
-        customModel.value == 42
+        models.size() == 4
 
         and:
-        intermediateModels.size() == 2
+        CustomModel model1 = models.get(0)
+        model1.value == 1
 
         and:
-        GradleProject gradleProject = intermediateModels.get(0)
+        GradleProject gradleProject = models.get(1)
         gradleProject.name == "hello-world"
 
         and:
-        EclipseProject eclipseModel = intermediateModels.get(1)
+        CustomModel model2 = models.get(2)
+        model2.value == 2
+
+        and:
+        EclipseProject eclipseModel = models.get(3)
         eclipseModel.gradleProject.name == "hello-world"
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalIntermediateModelRelay;
 
 import java.io.File;
+import java.lang.reflect.Proxy;
 
 public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAwareBuildControllerAdapter {
     private final InternalIntermediateModelRelay relay;
@@ -35,6 +36,12 @@ public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAw
 
     @Override
     public <T> void sendIntermediate(Class<T> modelType, T model) {
-        relay.sendIntermediate(modelType, adapter.unpack(model));
+        Object unpacked;
+        if (Proxy.isProxyClass(model.getClass())) {
+            unpacked = adapter.unpack(model);
+        } else {
+            unpacked = model;
+        }
+        relay.sendIntermediate(modelType, unpacked);
     }
 }
