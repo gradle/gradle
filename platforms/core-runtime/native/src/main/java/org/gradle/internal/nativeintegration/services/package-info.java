@@ -14,8 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Package {@code org.gradle.internal.nativeintegration.services}.
- */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.nativeintegration.services;

@@ -14,8 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Package {@code org.gradle.internal.service}.
- */
 @org.gradle.api.NonNullApi
 package org.gradle.internal.service;
