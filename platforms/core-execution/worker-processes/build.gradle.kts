@@ -12,6 +12,7 @@ dependencies {
     api(project(":build-operations"))
     api(project(":logging-api"))
     api(project(":logging"))
+    api(project(":logging-api"))
     api(project(":messaging"))
     api(project(":problems-api"))
     api(project(":process-services"))

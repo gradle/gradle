@@ -9,6 +9,4 @@ dependencies {
     api(libs.guava)
 
     implementation(project(":base-annotations"))
-
-    testImplementation(libs.guava)
 }
