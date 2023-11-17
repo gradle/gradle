@@ -87,6 +87,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1940,6 +1941,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         java.lang.reflect.Type argument = ((ParameterizedType) type).getActualTypeArguments()[paramNum];
         if (argument instanceof Class) {
             return (Class<?>) argument;
+        }
+        if (argument instanceof WildcardType) {
+            throw new IllegalArgumentException("Declaration of property " + property.getName() + " must specify a non-wildcard type parameter in its property type " + type);
         }
         return (Class<?>) ((ParameterizedType) argument).getRawType();
     }

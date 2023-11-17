@@ -137,6 +137,31 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
+    def "can use file collection as convention for FileCollectionProperty"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @InputFiles abstract FileCollectionProperty<FileCollection> getFoo()
+                @Inject abstract ProjectLayout getProjectLayout()
+
+                public MyTask() {
+                    def fileCollection = projectLayout.files("file.txt")
+                    foo.convention(fileCollection)
+                }
+
+                @TaskAction
+                void useIt() {
+                    assert foo.get().files == projectLayout.files("file2.txt").files
+                }
+            }
+            tasks.register("mytask", MyTask) {
+                foo.convention(objects.fileCollection().from(["file2.txt"]))
+            }
+        """
+
+        expect:
+        run 'mytask'
+    }
+
     def "convention mapping works with Property in a ConventionTask"() {
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {

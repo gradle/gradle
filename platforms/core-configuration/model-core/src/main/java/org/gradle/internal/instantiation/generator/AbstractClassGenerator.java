@@ -38,6 +38,7 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
@@ -117,6 +118,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         MapProperty.class,
         RegularFileProperty.class,
         DirectoryProperty.class,
+        FileCollectionProperty.class,
         Property.class,
         NamedDomainObjectContainer.class,
         ExtensiblePolymorphicDomainObjectContainer.class,

@@ -24,12 +24,14 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
@@ -101,6 +103,9 @@ public class ManagedObjectFactory {
         }
         if (type.isAssignableFrom(ExtensiblePolymorphicDomainObjectContainer.class)) {
             return attachOwner(getObjectFactory().polymorphicDomainObjectContainer(paramType), owner, propertyName);
+        }
+        if (type.isAssignableFrom(FileCollectionProperty.class)) {
+            return attachOwner(getObjectFactory().fileCollectionProperty(Cast.uncheckedNonnullCast(paramType)), owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }

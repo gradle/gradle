@@ -29,6 +29,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -113,6 +115,11 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
     @Override
     public RegularFileProperty fileProperty() {
         return filePropertyFactory.newFileProperty();
+    }
+
+    @Override
+    public <T extends FileCollection> FileCollectionProperty<T> fileCollectionProperty(Class<T> elementType) {
+        return filePropertyFactory.newFileCollectionProperty(elementType);
     }
 
     @Override

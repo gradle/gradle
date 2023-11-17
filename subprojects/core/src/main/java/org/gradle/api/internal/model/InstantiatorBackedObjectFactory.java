@@ -25,6 +25,8 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultListProperty;
@@ -122,6 +124,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public RegularFileProperty fileProperty() {
+        return broken();
+    }
+
+    @Override
+    public <T extends FileCollection> FileCollectionProperty<T> fileCollectionProperty(Class<T> elementType) {
         return broken();
     }
 

@@ -19,15 +19,46 @@ package org.gradle.api.internal.file;
 import com.google.common.base.Objects;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class ManagedFactories {
+
+    public static class FileCollectionPropertyFactory implements ManagedFactory {
+        private static final Class<?> PUBLIC_TYPE = FileCollectionProperty.class;
+        private static final Class<?> IMPL_TYPE = DefaultFileCollectionProperty.class;
+        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
+        private final FilePropertyFactory filePropertyFactory;
+
+        public FileCollectionPropertyFactory(FilePropertyFactory factory) {
+            this.filePropertyFactory = factory;
+        }
+
+        @Nullable
+        @Override
+        public <T> T fromState(Class<T> type, Object state) {
+            if (!type.isAssignableFrom(PUBLIC_TYPE)) {
+                return null;
+            }
+            // TODO-RC - should retain display name
+            Provider<? extends FileCollection> asProvider = Cast.uncheckedNonnullCast(state);
+            return type.cast(filePropertyFactory.newFileCollectionProperty(FileCollection.class).value(asProvider));
+        }
+
+        @Override
+        public int getId() {
+            return FACTORY_ID;
+        }
+    }
 
     public static class RegularFileManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = RegularFile.class;

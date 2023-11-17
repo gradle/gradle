@@ -61,6 +61,7 @@ import org.gradle.internal.time.Time;
 
 import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
 import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
+import static org.gradle.api.internal.file.ManagedFactories.FileCollectionPropertyFactory;
 import static org.gradle.api.internal.file.ManagedFactories.RegularFileManagedFactory;
 import static org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory;
 import static org.gradle.api.internal.file.collections.ManagedFactories.ConfigurableFileCollectionManagedFactory;
@@ -134,6 +135,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
             new RegularFilePropertyManagedFactory(filePropertyFactory),
             new DirectoryManagedFactory(fileFactory),
             new DirectoryPropertyManagedFactory(filePropertyFactory),
+            new FileCollectionPropertyFactory(filePropertyFactory),
             new SetPropertyManagedFactory(propertyFactory),
             new ListPropertyManagedFactory(propertyFactory),
             new MapPropertyManagedFactory(propertyFactory),

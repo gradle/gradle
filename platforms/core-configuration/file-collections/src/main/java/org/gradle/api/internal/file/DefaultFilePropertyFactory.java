@@ -20,11 +20,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.file.collections.DefaultFileCollectionProperty;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.BiProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
@@ -54,6 +56,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         this.host = host;
         this.fileResolver = resolver;
         this.fileCollectionFactory = fileCollectionFactory;
+    }
+
+    @Override
+    public <T extends FileCollection> FileCollectionProperty<T> newFileCollectionProperty(Class<T> elementType) {
+        return new DefaultFileCollectionProperty<>(host, elementType);
     }
 
     @Override

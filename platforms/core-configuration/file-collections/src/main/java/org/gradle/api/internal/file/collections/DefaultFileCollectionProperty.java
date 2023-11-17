@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCollectionProperty;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 
-public interface FilePropertyFactory {
-    DirectoryProperty newDirectoryProperty();
-
-    RegularFileProperty newFileProperty();
-
-    <T extends FileCollection> FileCollectionProperty<T> newFileCollectionProperty(Class<T> elementType);
+public class DefaultFileCollectionProperty<T extends FileCollection> extends DefaultProperty<T> implements FileCollectionProperty<T> {
+    public DefaultFileCollectionProperty(PropertyHost propertyHost, Class<T> type) {
+        super(propertyHost, type);
+    }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -26,6 +27,8 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileCollectionProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.provider.ListProperty;
@@ -261,4 +264,22 @@ public interface ObjectFactory {
      * @since 5.0
      */
     RegularFileProperty fileProperty();
+
+    /**
+     * Creates a file collection property.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    <T extends FileCollection> FileCollectionProperty<T> fileCollectionProperty(Class<T> elementType);
+
+    /**
+     * Creates a file collection property.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    default FileCollectionProperty<FileCollection> fileCollectionProperty() {
+        return fileCollectionProperty(FileCollection.class);
+    }
 }

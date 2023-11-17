@@ -140,6 +140,33 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("merge.txt").text == "one,two"
     }
 
+    def "can connect the elements of a file collection to task input FileCollectionProperty"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputFileCollectionProperty()
+        buildFile """
+            task produce1(type: FileProducer) {
+                output = file("out1.txt")
+                content = "one"
+            }
+            task produce2(type: FileProducer) {
+                output = file("out2.txt")
+                content = "two"
+            }
+            def files = project.files(produce1, produce2)
+            task merge(type: InputFilesTask) {
+                inFiles.value(files)
+                outFile = file("merge.txt")
+            }
+        """
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":produce1", ":produce2", ":merge")
+        file("merge.txt").text == "one,two"
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "can use += convenience in Groovy DSL to add elements to file collection when property has legacy setter"() {
         taskTypeLogsInputFileCollectionContent()
