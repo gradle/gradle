@@ -41,11 +41,11 @@ Create a new directory called `tutorial` and `cd` into it:
 
 [source]
 ----
-$ mkdir tutorial
+$ mkdir authoring-tutorial
 ----
 [source]
 ----
-$ cd tutorial
+$ cd authoring-tutorial
 ----
 
 Run `gradle init` and continue with the prompt as indicated below:
@@ -70,7 +70,8 @@ Select implementation language:
   6: Swift
 Enter selection (default: Java) [1..6] 3
 
-Generate multiple subprojects for application? (default: no) [yes, no]
+Generate multiple subprojects for application? (default: no) [yes, no] no
+
 Select build script DSL:
   1: Kotlin
   2: Groovy
@@ -83,10 +84,13 @@ Select test framework:
   4: JUnit Jupiter
 Enter selection (default: JUnit Jupiter) [1..4] 4
 
-Project name (default: tutorial):
-Source package (default: tutorial):
+Project name (default: authoring-tutorial):
+
+Source package (default: authoring.tutorial):
+
 Enter target version of Java (min. 7) (default: 19):
-Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no] no
+
+Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
 ----
 
 NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project (as it is the default DSL starting in Gradle 8.2). All examples are macOS based.
@@ -136,7 +140,7 @@ The `settings.gradle.kts` file has two interesting lines:
 .settings.gradle.kts
 [source, kotlin]
 ----
-rootProject.name = "demo"
+rootProject.name = "authoring-tutorial"
 include("app")
 ----
 
@@ -166,26 +170,33 @@ dependencies {
     implementation("com.google.guava:guava:32.1.1-jre")             // <4>
 }
 
+java {                                                              // <5>
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(19))
+    }
+}
+
 application {
-    mainClass.set("demo.App")                                       // <5>
+    mainClass.set("authoring.tutorial.App")                         // <6>
 }
 
 tasks.named<Test>("test") {
-    useJUnitPlatform()                                              // <6>
+    useJUnitPlatform()                                              // <7>
 }
 ----
 <1> Apply the application plugin to add support for building a CLI application in Java.
 <2> Use Maven Central for resolving dependencies.
 <3> Use JUnit Jupiter for testing.
 <4> This dependency is used by the application.
-<5> Define the main class for the application.
-<6> Use JUnit Platform for unit tests.
+<5> Define the toolchain version.
+<6> Define the main class for the application.
+<7> Use JUnit Platform for unit tests.
 
 The build script in the `app` subproject directory includes the dependencies and components the `app` code will need to be assembled, tested, and published.
 
 == Step 4. Review the Code
 
-The file `src/main/java/demo/App.java` contains the main class and source code:
+The file `app/src/main/java/authoring/tutorial/App.java` contains the main class and source code:
 
 .App.java
 [source, java]
@@ -205,9 +216,9 @@ public class App {
 
 The code prints out a simple "Hello World" greeting to the screen.
 
-The generated test is available at `src/test/java/demo/App.java`:
+The generated test is available at `app/src/test/java/authoring/tutorial/AppTest.java`:
 
-.App.java
+.AppTest.java
 [source, java]
 ----
 package tutorial;
@@ -264,8 +275,22 @@ Run `./gradlew build`:
 ----
 $ ./gradlew build
 
-BUILD SUCCESSFUL in 876ms
-7 actionable tasks: 6 executed, 1 up-to-date
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 5s
 ----
 
 If you run a full build as shown above, Gradle will have produced the archive in two formats for you: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
@@ -278,6 +303,20 @@ To do so, run the `build` task again with the `--scan` flag.
 [source]
 ----
 $ ./gradlew build --scan
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :app:build UP-TO-DATE
 
 BUILD SUCCESSFUL in 1s
 7 actionable tasks: 7 up-to-date
@@ -288,7 +327,7 @@ Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms 
 Gradle Terms of Service accepted.
 
 Publishing build scan...
-https://gradle.com/s/5h7b7gi77dg7q
+https://gradle.com/s/7ee5saas3seo2
 ----
 
 Click the link and explore which tasks where executed, which dependencies where downloaded, and many more details:

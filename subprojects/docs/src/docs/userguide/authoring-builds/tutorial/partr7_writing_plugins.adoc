@@ -1,0 +1,102 @@
+// Copyright (C) 2023 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[partr7_writing_plugins]]
+= Part 7: Writing Plugins
+
+Learn the basics of using Gradle plugins and create a simple script plugin.
+
+****
+**In this section you will:**
+
+- Initialize a Java project
+****
+
+[[part7_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
+6. You authored a Task in <<partr6_writing_tasks.adoc#part6_begin,part 6>>.
+
+== Step 1. Develop the Plugin
+
+.plugin-license/LicensePlugin.kt
+[source,kotlin]
+----
+class LicensePlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        // Register a task
+        project.tasks.register("license") { task ->
+            task.doLast {
+                println("Hello from plugin 'com.gradle.license'")
+            }
+        }
+    }
+}
+----
+
+//Update all instances of greeting to license in kotlin files in license-plugin
+
+//Gradle Build license-plugin
+[source]
+----
+6:43:39 PM: Executing ':license-plugin:plugin:build'...
+
+SETTINGS FILE: This is executed during the initialization phase
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+
+> Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE
+> Task :license-plugin:plugin:processResources UP-TO-DATE
+> Task :license-plugin:plugin:processFunctionalTestResources NO-SOURCE
+> Task :license-plugin:plugin:processTestResources NO-SOURCE
+> Task :license-plugin:plugin:compileKotlin
+> Task :license-plugin:plugin:compileJava NO-SOURCE
+> Task :license-plugin:plugin:classes UP-TO-DATE
+> Task :license-plugin:plugin:jar
+> Task :license-plugin:plugin:assemble
+> Task :license-plugin:plugin:pluginUnderTestMetadata
+> Task :license-plugin:plugin:compileFunctionalTestKotlin
+> Task :license-plugin:plugin:compileFunctionalTestJava NO-SOURCE
+> Task :license-plugin:plugin:functionalTestClasses UP-TO-DATE
+> Task :license-plugin:plugin:compileTestKotlin
+> Task :license-plugin:plugin:functionalTest
+> Task :license-plugin:plugin:compileTestJava NO-SOURCE
+> Task :license-plugin:plugin:testClasses UP-TO-DATE
+> Task :license-plugin:plugin:test
+> Task :license-plugin:plugin:validatePlugins
+> Task :license-plugin:plugin:check
+> Task :license-plugin:plugin:build
+
+BUILD SUCCESSFUL in 14s
+10 actionable tasks: 8 executed, 2 up-to-date
+6:43:53 PM: Execution finished ':license-plugin:plugin:build'.
+----
+
+== Step 2. Apply the Plugin
+
+.app/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    application
+    id("com.gradle.license")
+}
+----

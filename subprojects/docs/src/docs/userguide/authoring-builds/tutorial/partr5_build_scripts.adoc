@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr4_build_scripts]]
-= Part 4: Writing a Build Script
+[[partr5_build_scripts]]
+= Part 5: Writing a Build Script
 
 Learn the basics of authoring Gradle by developing the Build Script.
 
@@ -25,12 +25,13 @@ Learn the basics of authoring Gradle by developing the Build Script.
 - How to use Build scripts
 ****
 
-[[part4_begin]]
+[[part5_begin]]
 == Step 0. Before you Begin
 
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
-3. You authored a Settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
 
 == Step 1. The `Project` object
 
@@ -54,23 +55,27 @@ For example:
 
 == Step 2. Update the Build script
 
+.license-plugin/build.gradle.kts
 [source]
 ----
-val file1 = File("src/main/java/tutorial/App.java")
-val file2 = File("src/test/java/tutorial/App.java")
+gradlePlugin {
+    // Define the plugin
+    val license by plugins.creating {
+        id = "com.gradle.license"
+        implementationClass = "com.gradle.LicensePlugin"
+    }
+}
+----
 
-val File.size get() = if (!exists()) 0.0 else length().toDouble()
-
-println(file1.size)
-println(file2.size)
-
-if (file1.size == file2.size) {
-    println("Files have the same size at ${file1.size} bytes.")
-} else {
-    var largestFile = if (file1.size > file2.size) file1 else file2
-    println("${largestFile.toString()} was the largest file at ${largestFile.size} bytes.")
+.app/build.gradle.kts
+[source]
+----
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    application
+    id("org.gradle.license")
 }
 ----
 
 [.text-right]
-**Next Step:** <<partr5_registering_tasks#partr5_registering_tasks,Registering Tasks>> >>
+**Next Step:** <<partr6_writing_tasks#partr6_writing_tasks,Writing Tasks>> >>

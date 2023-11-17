@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr6_using_plugins]]
-= Part 6: Using Plugins
+[[partr6_writing_tasks]]
+= Part 6: Writing Tasks
 
-Learn the basics of using Gradle plugins and create a simple script plugin.
+Learn the basics of authoring Gradle tasks by creating a simple one in your Build script.
 
 ****
 **In this section you will:**
@@ -28,33 +28,41 @@ Learn the basics of using Gradle plugins and create a simple script plugin.
 
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
-3. You authored a Settings file in <<partr3_settings_file.adoc#part3_begin,part 3>>.
-4. You authored a Build script in <<partr4_build_scripts.adoc#part4_begin,part 4>>.
-5. You authored a Task in <<partr5_registering_tasks.adoc#part5_begin,part 5>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
 
-== Step 1.
+== Step 2. Understand Tasks
 
-1. Apply a core plugin
+== Step 2. Register a Task
 
-2. Apply a community plugin
-
-3. Apply a local plugin
-script plugin
-[source, build.gradle.kts]
+.Plugin.kts
+[source,kotlin]
 ----
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.run {
-            tasks {
-                register("myCopyTask", Copy::class) {
-                    group = "sample"
-                    from("build.gradle.kts")
-                    into("build/copy")
-                }
-            }
-        }
+project.tasks.register("license") { task ->
+    task.description = "license"
+    task.group = "from my plugin"
+    task.doLast {
+        println("Hello from plugin 'com.gradle.license'")
     }
 }
-
-apply<MyPlugin>()
 ----
+
+== Step 3. Create a Task
+
+.build.gradle.kts
+[source,kotlin]
+----
+task.register
+----
+
+== Step 3. Configure a Task
+
+.build.gradle.kts
+[source,kotlin]
+----
+task.named
+----
+
+[.text-right]
+**Next Step:** <<partr7_writing_plugins#partr7_writing_plugins,Writing Plugins>> >>

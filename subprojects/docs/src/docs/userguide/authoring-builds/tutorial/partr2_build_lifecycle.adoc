@@ -47,7 +47,7 @@ image::gradle-build-lifecycle.png[]
 
 == Step 2. Update the Settings File
 
-Add the following line to the Settings file:
+Add the following line to the top of the Settings file:
 
 .settings.gradle.kts
 [source, kotlin]
@@ -57,9 +57,9 @@ println("SETTINGS FILE: This is executed during the initialization phase")
 
 == Step 3. Update the Build Script
 
-Add the following lines to the Build script:
+Add the following lines to the bottom of the Build script:
 
-.build.gradle.kts
+.app/build.gradle.kts
 [source, kotlin]
 ----
 println("BUILD SCRIPT: This is executed during the configuration phase")
@@ -108,7 +108,5 @@ BUILD SUCCESSFUL in 301ms
 <2> *Configuration*: Gradle configures each project by executing the `build.gradle.kts` files. It resolves dependencies and creates a dependency graph of all the available tasks.
 <3> *Execution*: Gradle executes the tasks passed on the command line as well as any dependent tasks.
 
-dfdsfsd
-
 [.text-right]
-**Next Step:** <<partr3_settings_file#partr3_settings_file,Settings File>> >>
+**Next Step:** <<partr3_multi_project_builds#partr3_multi_project_builds,Multi-Project Builds>> >>

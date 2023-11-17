@@ -59,7 +59,8 @@ The tutorial covers:
 
 <<partr1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
 <<partr2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
-<<partr3_settings_file#part3_begin,Part 3.>> Writing the Settings File +
-<<partr4_build_scripts#part4_begin,Part 4.>> Writing Build Script +
-<<partr5_registering_tasks#part5_begin,Part 5.>> Writing Tasks +
-<<partr6_using_plugins#part6_begin,Part 6.>> Writing Plugins +
+<<partr3_multi_project_builds#part3_begin,Part 3.>> Multi-Project Builds +
+<<partr4_settings_file#part4_begin,Part 6.>> Writing the Settings File +
+<<partr5_build_scripts#part5_begin,Part 5.>> Writing Build Script +
+<<partr6_writing_tasks#part6_begin,Part 6.>> Writing Tasks +
+<<partr7_writing_plugins#part7_begin,Part 7.>> Writing Plugins +

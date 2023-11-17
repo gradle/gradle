@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr3_settings_file]]
-= Part 3: Writing the Settings File
+[[partr4_settings_file]]
+= Part 4: Writing the Settings File
 
 Learn the basics of authoring Gradle by developing the Settings File.
 
@@ -25,11 +25,12 @@ Learn the basics of authoring Gradle by developing the Settings File.
 - How to use a Settings file
 ****
 
-[[part3_begin]]
+[[part4_begin]]
 == Step 0. Before you Begin
 
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
 
 == Step 1. The `Settings` object
 
@@ -53,44 +54,18 @@ For example:
 
 == Step 2. Update the Settings file
 
-[source,settings.gradle.kts]
+.settings.gradle.kts
+[source,kotlin]
 ----
-plugins {
-    // Apply the foojay-resolver plugin to allow automatic download of JDKs
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
-}
-
-rootProject.name = "temp"
 include("app")
+include("subproject")
 ----
 
-[source,settings.gradle.kts]
+.settings.gradle.kts
+[source,kotlin]
 ----
-pluginManagement {                                          // <1>
-    repositories {
-        gradlePluginPortal()
-        google()
-    }
-    includeBuild("../build-logic")
-}
-
-plugins {                                                   // <2>
-    id("org.gradle.toolchains.fake") version "0.6.0"
-}
-
-rootProject.name = "root-project"                           // <3>
-
-dependencyResolutionManagement {                            // <4>
-    repositories {
-        mavenCentral()
-    }
-    includeBuild("../other-project")
-}
-
-include("sub-project-a")                                    // <5>
-include("sub-project-b")
-include("sub-project-c")
+includeBuild("license-plugin")
 ----
 
 [.text-right]
-**Next Step:** <<partr4_build_scripts#partr4_build_scripts,Writing a Build Script>> >>
+**Next Step:** <<partr5_build_scripts#partr5_build_scripts,Writing a Build Script>> >>
