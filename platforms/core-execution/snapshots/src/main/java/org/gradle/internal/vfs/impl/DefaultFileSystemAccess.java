@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
@@ -85,7 +86,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
+        return readSnapshotFromLocation(
+            location,
+            Function.identity(),
+            () -> snapshot(location, SnapshottingFilter.EMPTY)
+        );
     }
 
     @Override
@@ -148,6 +153,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     private FileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
+        ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots = virtualFileSystem
+            .findRootSnapshotsUnder(location)
+            .collect(ImmutableMap.toImmutableMap(
+                FileSystemLocationSnapshot::getAbsolutePath,
+                Function.identity()
+            ));
+        FileSystemLocationSnapshot knownExactSnapshot = previouslyKnownSnapshots.get(location);
+        if (knownExactSnapshot != null) {
+            return knownExactSnapshot;
+        }
         return virtualFileSystem.store(location, vfsStorer -> {
             File file = new File(location);
             FileMetadata fileMetadata = this.stat.stat(file);
@@ -158,25 +173,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 case Missing:
                     return vfsStorer.store(new MissingFileSnapshot(location, fileMetadata.getAccessType()));
                 case Directory:
+                    // This will only store the captured snapshot in the VFS if the filter did not match anything
                     return directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
+                        previouslyKnownSnapshots,
                         vfsStorer::store);
                 default:
                     throw new UnsupportedOperationException();
             }
         });
-    }
-
-    private FileSystemLocationSnapshot readSnapshotFromLocation(
-        String location,
-        Supplier<FileSystemLocationSnapshot> readFromDisk
-    ) {
-        return readSnapshotFromLocation(
-            location,
-            Function.identity(),
-            readFromDisk
-        );
     }
 
     private <T> T readSnapshotFromLocation(
