@@ -49,6 +49,11 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
     String getAbsolutePath();
 
     /**
+     * Constructs a copy of this snapshot with a new absolute path.
+     */
+    FileSystemLocationSnapshot relocate(String targetPath);
+
+    /**
      * The hash of the snapshot.
      *
      * This makes it possible to uniquely identify the snapshot.

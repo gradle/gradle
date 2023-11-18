@@ -38,6 +38,11 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
+    public MissingFileSnapshot relocate(String targetPath) {
+        return new MissingFileSnapshot(targetPath, getName(), getAccessType());
+    }
+
+    @Override
     public FileType getType() {
         return FileType.Missing;
     }

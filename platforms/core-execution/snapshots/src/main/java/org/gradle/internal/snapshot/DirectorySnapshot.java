@@ -51,6 +51,14 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
+    public DirectorySnapshot relocate(String targetPath) {
+        ImmutableList<ChildMap.Entry<FileSystemLocationSnapshot>> relocatedChildren = children.stream()
+            .map(child -> child.map((relativePath, snapshot) -> snapshot.relocate(targetPath + "/" + relativePath)))
+            .collect(ImmutableList.toImmutableList());
+        return new DirectorySnapshot(targetPath, getName(), getAccessType(), contentHash, ChildMapFactory.childMapFromSorted(relocatedChildren));
+    }
+
+    @Override
     public HashCode getHash() {
         return contentHash;
     }

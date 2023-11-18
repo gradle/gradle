@@ -99,6 +99,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
+    public Stream<FileSystemLocationSnapshot> roots() {
+        return Stream.of(this);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

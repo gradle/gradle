@@ -38,6 +38,11 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
     }
 
     @Override
+    public RegularFileSnapshot relocate(String targetPath) {
+        return new RegularFileSnapshot(targetPath, getName(), contentHash, metadata);
+    }
+
+    @Override
     public FileType getType() {
         return FileType.RegularFile;
     }

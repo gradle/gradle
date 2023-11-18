@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public interface ChildMap<T> {
@@ -106,6 +107,10 @@ public interface ChildMap<T> {
             RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, T child);
             RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength);
             RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath);
+        }
+
+        public <R> Entry<R> map(BiFunction<String, ? super T, ? extends R> mapper) {
+            return new Entry<R>(path, mapper.apply(path, value));
         }
 
         public String getPath() {
