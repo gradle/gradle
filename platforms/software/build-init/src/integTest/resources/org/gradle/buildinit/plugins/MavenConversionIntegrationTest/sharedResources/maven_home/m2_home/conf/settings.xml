@@ -1,14 +1,12 @@
-<settings>
-    <profiles>
-        <profile>
-          <id>testprofile</id>
-          <properties>
-            <junit-version>4.13</junit-version>
-            <compiler-version>3.7.0</compiler-version>
-          </properties>
-        </profile>
-    </profiles>
-    <activeProfiles>
-        <activeProfile>testprofile</activeProfile>
-    </activeProfiles>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>forgxmas</id>
+      <username>forgxmas</username>
+      <password>[PERSONAL_ACCESS_TOKEN]</password>
+    </server>
+  </servers>
 </settings>
