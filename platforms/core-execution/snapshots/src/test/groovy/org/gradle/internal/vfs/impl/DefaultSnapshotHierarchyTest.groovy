@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
+
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileMetadata.AccessType
@@ -741,7 +742,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
-        directorySnapshotter.snapshot(dir.absolutePath, null) {}
+        directorySnapshotter.snapshot(dir.absolutePath, null, [:]) {}
     }
 
     private static FileSystemLocationSnapshot snapshotFile(File file) {

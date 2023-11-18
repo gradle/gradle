@@ -41,16 +41,16 @@ import java.util.function.Consumer;
  */
 public class FilteredTrackingMerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder {
     private final Deque<Boolean> isCurrentLevelUnfiltered = new ArrayDeque<>();
-    private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;
+    private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
     private final DirectorySnapshotBuilder delegate;
 
     public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
         return new FilteredTrackingMerkleDirectorySnapshotBuilder(unfilteredSnapshotConsumer);
     }
 
-    private FilteredTrackingMerkleDirectorySnapshotBuilder(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+    private FilteredTrackingMerkleDirectorySnapshotBuilder(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder) {
         this.delegate = MerkleDirectorySnapshotBuilder.sortingRequired();
-        this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
+        this.unfilteredSnapshotRecorder = unfilteredSnapshotRecorder;
         // The root starts out as unfiltered.
         isCurrentLevelUnfiltered.addLast(true);
     }
@@ -93,7 +93,7 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
                     if (isRoot) {
                         return SnapshotVisitResult.CONTINUE;
                     } else {
-                        unfilteredSnapshotConsumer.accept(snapshot);
+                        unfilteredSnapshotRecorder.accept(snapshot);
                     }
 
                     return SnapshotVisitResult.SKIP_SUBTREE;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl
 
+
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -445,7 +446,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     DirectorySnapshot snapshotDirectory(File directory) {
-        directorySnapshotter.snapshot(directory.absolutePath, null) {} as DirectorySnapshot
+        directorySnapshotter.snapshot(directory.absolutePath, null, [:]) {} as DirectorySnapshot
     }
 
     void addSnapshot(FileSystemLocationSnapshot snapshot) {

@@ -113,6 +113,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
+        1 * fileSystemAccess.write([temporaryWorkspace.absolutePath], _ as Runnable)
+
+        then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
             assert delegateContext.workspace == temporaryWorkspace
             temporaryWorkspace.file("output.txt").text = "output"
@@ -157,6 +160,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
             type >> FileType.Missing
         }
+
+        then:
+        1 * fileSystemAccess.write([temporaryWorkspace.absolutePath], _ as Runnable)
 
         then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
