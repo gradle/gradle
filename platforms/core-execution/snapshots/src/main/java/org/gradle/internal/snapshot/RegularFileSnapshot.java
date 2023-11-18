@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -35,6 +36,11 @@ public class RegularFileSnapshot extends AbstractFileSystemLocationSnapshot impl
         super(absolutePath, name, metadata.getAccessType());
         this.contentHash = contentHash;
         this.metadata = metadata;
+    }
+
+    @Override
+    protected RegularFileSnapshot doRelocate(String targetPath, String name, Interner<String> interner) {
+        return new RegularFileSnapshot(targetPath, name, contentHash, metadata);
     }
 
     @Override

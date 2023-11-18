@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.HashCode;
 
@@ -47,6 +48,11 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
      * The absolute path of the file.
      */
     String getAbsolutePath();
+
+    /**
+     * Constructs a copy of this snapshot with a new absolute path.
+     */
+    FileSystemLocationSnapshot relocate(String targetPath, Interner<String> interner);
 
     /**
      * The hash of the snapshot.

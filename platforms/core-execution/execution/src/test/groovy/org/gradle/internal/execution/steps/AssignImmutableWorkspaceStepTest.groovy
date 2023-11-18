@@ -29,19 +29,27 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace.TemporaryWorkspaceAction
+import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.vfs.FileSystemAccess
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.Duration
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
 class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
-    def workspace = Mock(ImmutableWorkspace)
     def immutableWorkspace = file("immutable-workspace")
     def temporaryWorkspace = file("temporary-workspace")
+    def workspace = Stub(ImmutableWorkspace) {
+        immutableLocation >> immutableWorkspace
+        withTemporaryWorkspace(_ as TemporaryWorkspaceAction) >> { TemporaryWorkspaceAction action ->
+            action.executeInTemporaryWorkspace(temporaryWorkspace)
+        }
+    }
 
     def fileSystemAccess = Mock(FileSystemAccess)
     def originMetadataFactory = Mock(OriginMetadataFactory)
@@ -61,7 +69,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         immutableWorkspace.file("origin.bin").createFile()
 
         def delegateOriginMetadata = Mock(OriginMetadata)
-        def existingWorkspaceSnapshot = Stub(DirectorySnapshot)
+        def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
+            type >> FileType.Directory
+        }
         def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot>of()
         def originReader = Stub(OriginReader) {
             execute(_ as InputStream) >> delegateOriginMetadata
@@ -77,7 +87,6 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         result.afterExecutionOutputState.get().outputFilesProducedByWork == existingOutputs
         result.reusedOutputOriginMetadata.get() == delegateOriginMetadata
 
-        1 * workspace.immutableLocation >> immutableWorkspace
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
 
         then:
@@ -99,12 +108,8 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         def result = step.execute(work, context)
 
         then:
-        1 * workspace.immutableLocation >> immutableWorkspace
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot)
-
-        then:
-        1 * workspace.withTemporaryWorkspace(_ as TemporaryWorkspaceAction) >> { TemporaryWorkspaceAction action ->
-            action.executeInTemporaryWorkspace(temporaryWorkspace)
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+            type >> FileType.Missing
         }
 
         then:
@@ -115,12 +120,12 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
-        1 * fileSystemAccess.write([immutableWorkspace.absolutePath], _ as Runnable) >> { Iterable<String> path, Runnable action ->
-            action.run()
-        }
+        1 * originMetadataFactory.createWriter(identity.uniqueId, _, delegateDuration) >> Stub(OriginWriter)
 
         then:
-        1 * originMetadataFactory.createWriter(identity.uniqueId, _, delegateDuration) >> Stub(OriginWriter)
+        1 * fileSystemAccess.moveAtomically(temporaryWorkspace.absolutePath, immutableWorkspace.absolutePath) >> { String from, String to ->
+            Files.move(Paths.get(from), Paths.get(to))
+        }
 
         then:
         immutableWorkspace.file("output.txt").text == "output"
@@ -149,12 +154,8 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         def result = step.execute(work, context)
 
         then:
-        1 * workspace.immutableLocation >> immutableWorkspace
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot)
-
-        then:
-        1 * workspace.withTemporaryWorkspace(_ as TemporaryWorkspaceAction) >> { TemporaryWorkspaceAction action ->
-            action.executeInTemporaryWorkspace(temporaryWorkspace)
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+            type >> FileType.Missing
         }
 
         then:

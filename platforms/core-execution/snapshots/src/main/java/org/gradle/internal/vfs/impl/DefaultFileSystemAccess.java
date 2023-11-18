@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -39,11 +39,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
@@ -198,6 +204,19 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     @Override
     public void record(FileSystemLocationSnapshot snapshot) {
         virtualFileSystem.store(snapshot.getAbsolutePath(), () -> snapshot);
+    }
+
+    @Override
+    public void moveAtomically(String sourceLocation, String targetLocation) {
+        FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
+        write(ImmutableList.of(sourceLocation), () -> {
+            try {
+                Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
+                record(sourceSnapshot.relocate(targetLocation, stringInterner));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
     }
 
     @Override
