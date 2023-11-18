@@ -25,6 +25,7 @@ import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -33,6 +34,7 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,17 +51,20 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
     private final BuildCacheController buildCache;
     private final Deleter deleter;
+    private final FileSystemAccess fileSystemAccess;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         Deleter deleter,
+        FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
         Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
+        this.fileSystemAccess = fileSystemAccess;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
@@ -75,7 +80,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
-                ? buildCache.load(cacheKey, cacheableWork)
+                ? tryLoadingFromCache(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
             )
             .map(successfulLoad -> successfulLoad
@@ -88,6 +93,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     Try<Execution> execution = Try.successful(Execution.skipped(FROM_CACHE, work));
                     ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, cacheHit.getResultingSnapshots(), originMetadata, true);
+                    // Record snapshots of loaded result
+                    afterExecutionOutputState.getOutputFilesProducedByWork().values().stream()
+                        .flatMap(FileSystemSnapshot::roots)
+                        .forEach(fileSystemAccess::record);
                     return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionOutputState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
@@ -102,6 +111,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     loadFailure
                 );
             });
+    }
+
+    private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
+        if (cacheableWork.shouldInvalidateOutputsBeforeLoad()) {
+            ImmutableList.Builder<String> roots = ImmutableList.builder();
+            cacheableWork.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
+            fileSystemAccess.write(roots.build(), () -> {});
+        }
+        return buildCache.load(cacheKey, cacheableWork);
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {
@@ -200,6 +218,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                     visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
+        }
+
+        // TODO Make this much more explicit
+        public boolean shouldInvalidateOutputsBeforeLoad() {
+            // We don't need to invalidate outputs for immutable work as it's executed in a unique temporary workspace
+            return work instanceof MutableUnitOfWork;
         }
     }
 }

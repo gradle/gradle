@@ -57,7 +57,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -180,7 +179,6 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 StartParameterInternal startParameter,
                 BuildOperationExecutor buildOperationExecutor,
                 TemporaryFileProvider temporaryFileProvider,
-                FileSystemAccess fileSystemAccess,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner
@@ -189,7 +187,6 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     startParameter,
                     buildOperationExecutor,
                     originMetadataFactory,
-                    fileSystemAccess,
                     stringInterner,
                     temporaryFileProvider,
                     packer

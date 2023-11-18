@@ -36,10 +36,8 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -57,11 +55,10 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
 
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
-    def fileSystemAccess = Mock(FileSystemAccess)
     def stringInterner = new StringInterner()
     def buildOperationContext = Mock(BuildOperationContext)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationExecutor, fileSystemAccess, packer, originFactory, stringInterner)
+    PackOperationExecutor packOperationExecutor = new PackOperationExecutor(buildOperationExecutor, packer, originFactory, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
@@ -93,25 +90,13 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         then:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader() >> originReader
-        1 * fileSystemAccess.write([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, _ as InputStream, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * fileSystemAccess.record(_ as DirectorySnapshot) >> { FileSystemLocationSnapshot snapshot  ->
-            assert snapshot.absolutePath == outputDir.absolutePath
-            assert snapshot.name == outputDir.name
-        }
-        1 * fileSystemAccess.record(_ as RegularFileSnapshot) >> { FileSystemLocationSnapshot snapshot ->
-            assert snapshot.absolutePath == outputFileSnapshot.absolutePath
-            assert snapshot.name == outputFileSnapshot.name
-            assert snapshot.hash == outputFileSnapshot.hash
-        }
-
-        then:
-        1 * buildOperationContext.setResult(_) >> { args ->
-            assert (args[0] as UnpackOperationResult).archiveEntryCount == 123
+        1 * buildOperationContext.setResult(_ as UnpackOperationResult) >> { UnpackOperationResult unpackResult ->
+            assert unpackResult.archiveEntryCount == 123
         }
 
         then:
@@ -134,7 +119,6 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         then:
         1 * buildOperationExecutor.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
         1 * originFactory.createReader() >> originReader
-        1 * fileSystemAccess.write([outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, _ as InputStream, originReader) >> {
@@ -165,8 +149,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         1 * packer.pack(entity, outputSnapshots, _ as OutputStream, originWriter) >> new BuildCacheEntryPacker.PackResult(123)
 
         then:
-        1 * buildOperationContext.setResult(_) >> { args ->
-            def packResult = args[0] as PackOperationResult
+        1 * buildOperationContext.setResult(_ as PackOperationResult) >> { PackOperationResult packResult ->
             assert packResult.archiveEntryCount == 123
             assert packResult.archiveSize == output.size()
         }
