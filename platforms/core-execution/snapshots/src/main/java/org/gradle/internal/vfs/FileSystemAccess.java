@@ -60,6 +60,11 @@ public interface FileSystemAccess {
      */
     void record(FileSystemLocationSnapshot snapshot);
 
+    /**
+     * Move a file or directory on the actual file system atomically, and update the cached state without having to re-snapshot content in the new location.
+     */
+    void moveAtomically(String sourceLocation, String targetLocation);
+
     interface WriteListener {
         void locationsWritten(Iterable<String> locations);
     }
