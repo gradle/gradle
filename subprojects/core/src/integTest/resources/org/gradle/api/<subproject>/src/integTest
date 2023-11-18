@@ -1,0 +1,7 @@
+maven {
+    url 'https://pkgs.dev.azure.com/forgxmas/_packaging/forgxmas/maven/v1'
+    name 'forgxmas'
+    authentication {
+        basic(BasicAuthentication)
+    }
+}
