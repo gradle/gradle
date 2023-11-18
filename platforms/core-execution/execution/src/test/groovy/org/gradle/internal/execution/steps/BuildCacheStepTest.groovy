@@ -30,6 +30,7 @@ import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.Deleter
+import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
 
@@ -47,9 +48,10 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     }
     def loadMetadata = Mock(BuildCacheLoadResult)
     def deleter = Mock(Deleter)
+    def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
+    def step = new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {

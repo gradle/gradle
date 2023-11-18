@@ -209,7 +209,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     @Override
     public void moveAtomically(String sourceLocation, String targetLocation) {
         FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
-        write(ImmutableList.of(sourceLocation), () -> {
+        write(ImmutableList.of(sourceLocation, targetLocation), () -> {
             try {
                 Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
                 record(sourceSnapshot.relocate(targetLocation, stringInterner));

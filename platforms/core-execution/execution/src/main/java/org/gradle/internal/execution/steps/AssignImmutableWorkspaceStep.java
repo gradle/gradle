@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
@@ -101,6 +102,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
             WorkspaceContext delegateContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
+            // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
+            // but we still want to record that this build is writing to the given location, so that
+            // file system watching won't care about it
+            fileSystemAccess.write(ImmutableList.of(temporaryWorkspace.getAbsolutePath()), () -> {});
             CachingResult delegateResult = delegate.execute(work, delegateContext);
             if (delegateResult.getExecution().isSuccessful()) {
                 storeOriginMetadata(work, temporaryWorkspace, context.getIdentity().getUniqueId(), delegateResult);

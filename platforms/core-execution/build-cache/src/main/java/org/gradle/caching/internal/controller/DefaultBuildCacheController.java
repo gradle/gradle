@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.Closer;
 import org.gradle.api.GradleException;
@@ -58,7 +57,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -92,7 +90,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         boolean logStackTraces,
         boolean emitDebugLogging,
         boolean disableRemoteOnError,
-        FileSystemAccess fileSystemAccess,
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
         StringInterner stringInterner
@@ -103,7 +100,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileProvider);
         this.packExecutor = new PackOperationExecutor(
             buildOperationExecutor,
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner
@@ -183,14 +179,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
     @VisibleForTesting
     static class PackOperationExecutor {
         private final BuildOperationExecutor buildOperationExecutor;
-        private final FileSystemAccess fileSystemAccess;
         private final BuildCacheEntryPacker packer;
         private final OriginMetadataFactory originMetadataFactory;
         private final StringInterner stringInterner;
 
-        PackOperationExecutor(BuildOperationExecutor buildOperationExecutor, FileSystemAccess fileSystemAccess, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, StringInterner stringInterner) {
+        PackOperationExecutor(BuildOperationExecutor buildOperationExecutor, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, StringInterner stringInterner) {
             this.buildOperationExecutor = buildOperationExecutor;
-            this.fileSystemAccess = fileSystemAccess;
             this.packer = packer;
             this.originMetadataFactory = originMetadataFactory;
             this.stringInterner = stringInterner;
@@ -218,10 +212,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         private BuildCacheLoadResult doUnpack(CacheableEntity entity, InputStream input) throws IOException {
-            ImmutableList.Builder<String> roots = ImmutableList.builder();
-            entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-            // TODO: Actually unpack the roots inside of the action
-            fileSystemAccess.write(roots.build(), () -> {});
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader());
             // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshotUnpackedData(entity, unpackResult.getSnapshots());
@@ -255,7 +245,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
                     }
                     resultingSnapshot = treeSnapshot;
                 }
-                fileSystemAccess.record(resultingSnapshot);
                 builder.put(treeName, resultingSnapshot);
             });
             return builder.build();
