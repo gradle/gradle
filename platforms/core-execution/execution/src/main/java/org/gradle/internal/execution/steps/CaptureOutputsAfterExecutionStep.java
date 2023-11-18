@@ -30,8 +30,11 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
+import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Capture the outputs of the unit of work after its execution finished.
@@ -72,7 +75,8 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext, B> ext
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();
-                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+                File snapshotLocation = context.getImmutableLocation() != null ? context.getImmutableLocation() : context.getWorkspace();
+                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, snapshotLocation);
                 ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, beforeExecutionState, unfilteredOutputSnapshotsAfterExecution);
                 long snapshotOutputDuration = timer.getElapsedMillis();
 

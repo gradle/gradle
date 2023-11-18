@@ -101,7 +101,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            WorkspaceContext delegateContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
+            WorkspaceContext delegateContext = new WorkspaceContext(context, temporaryWorkspace, workspace.getImmutableLocation(), null, true);
             // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
             // but we still want to record that this build is writing to the given location, so that
             // file system watching won't care about it

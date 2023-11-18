@@ -31,7 +31,7 @@ public class AssignMutableWorkspaceStep<C extends IdentityContext> implements St
         return ((MutableUnitOfWork) work).getWorkspaceProvider().withWorkspace(
             context.getIdentity().getUniqueId(),
             (workspace, history) -> {
-                WorkspaceContext delegateContext = new WorkspaceContext(context, workspace, history, history != null);
+                WorkspaceContext delegateContext = new WorkspaceContext(context, workspace, null, history, history != null);
                 CachingResult delegateResult = delegate.execute(work, delegateContext);
                 return new WorkspaceResult(delegateResult, workspace);
             });

@@ -26,20 +26,27 @@ public class WorkspaceContext extends IdentityContext {
     private final File workspace;
     private final ExecutionHistoryStore history;
     private final boolean captureBeforeExecutionState;
+    private final File immutableLocation;
 
-    public WorkspaceContext(IdentityContext parent, File workspace, @Nullable ExecutionHistoryStore history, boolean captureBeforeExecutionState) {
+    public WorkspaceContext(IdentityContext parent, File workspace, @Nullable File immutableLocation, @Nullable ExecutionHistoryStore history, boolean captureBeforeExecutionState) {
         super(parent);
         this.workspace = workspace;
         this.history = history;
         this.captureBeforeExecutionState = captureBeforeExecutionState;
+        this.immutableLocation = immutableLocation;
     }
 
     protected WorkspaceContext(WorkspaceContext parent) {
-        this(parent, parent.getWorkspace(), parent.getHistory().orElse(null), parent.shouldCaptureBeforeExecutionState());
+        this(parent, parent.getWorkspace(), parent.getImmutableLocation(), parent.getHistory().orElse(null), parent.shouldCaptureBeforeExecutionState());
     }
 
     public File getWorkspace() {
         return workspace;
+    }
+
+    @Nullable
+    public File getImmutableLocation() {
+        return immutableLocation;
     }
 
     public boolean shouldCaptureBeforeExecutionState() {
