@@ -50,6 +50,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefaultExcludesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
@@ -211,7 +212,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
         write(ImmutableList.of(sourceLocation, targetLocation), () -> {
             try {
-                Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
+                Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), REPLACE_EXISTING);
                 record(sourceSnapshot.relocate(targetLocation));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
