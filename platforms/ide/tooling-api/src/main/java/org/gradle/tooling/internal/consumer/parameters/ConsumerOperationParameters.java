@@ -471,9 +471,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         for (Map.Entry<Class<?>, List<IntermediateModelListener<Object>>> entry : intermediateModelListeners.entrySet()) {
             Class<?> type = entry.getKey();
             if (type.getName().equals(modelType)) {
-                Object adapted = new ProtocolToModelAdapter().adapt(type, model);
                 for (IntermediateModelListener<Object> listener : entry.getValue()) {
-                    listener.onModel(adapted);
+                    listener.onModel(model);
                 }
             }
         }
