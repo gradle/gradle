@@ -1,60 +1,46 @@
-/*
- * Copyright 2009 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.gradle.initialization;
+plugins {
+    base
+    `maven-publish`
+}
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectRegistry;
+group = "org.gradle.sample"
+version = "1.0"
 
-import java.io.File;
-import java.util.List;
+// tag::custom-artifact[]
+configurations {
+    create("conf")
+}
+val rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
+val rpmArtifact = artifacts.add("conf", rpmFile.get().asFile) {
+    type = "rpm"
+    builtBy("rpm")
+}
+// end::custom-artifact[]
 
-public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
-    private final File dir;
-
-    public ProjectDirectoryProjectSpec(File dir) {
-        this.dir = dir;
-    }
-
-    @Override
-    protected String formatNoMatchesMessage(String settings) {
-        return String.format("Project directory '%s' is not part of the build defined by %s.", dir, settings);
-    }
-
-    @Override
-    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
-        return String.format("Multiple projects in this build have project directory '%s': %s", dir, matches);
-    }
-
-    @Override
-    protected <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches) {
-        for (T candidate : candidates.getAllProjects()) {
-            if (candidate.getProjectDir().equals(dir)) {
-                matches.add(candidate);
-            }
-        }
-    }
-
-    @Override
-    protected void checkPreconditions(ProjectRegistry<?> registry) {
-        if (!dir.exists()) {
-            throw new InvalidUserDataException(String.format("Project directory '%s' does not exist.", dir));
-        }
-        if (!dir.isDirectory()) {
-            throw new InvalidUserDataException(String.format("Project directory '%s' is not a directory.", dir));
-        }
+tasks.register("rpm") {
+    // Reduce scope of property for compatibility with the configuration cache
+    val rpmFile = rpmFile
+    outputs.file(rpmFile)
+    doLast {
+        // produce real RPM here
+        rpmFile.get().asFile.writeText("file contents")
     }
 }
+
+// tag::custom-artifact-publication[]
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            artifact(rpmArtifact)
+        }
+    }
+// end::custom-artifact-publication[]
+    repositories {
+        // change URLs to point to your repo, e.g. http://my.org/repo
+        maven {
+            url = uri(layout.buildDirectory.dir("repo"))
+        }
+    }
+// tag::custom-artifact-publication[]
+}
+// end::custom-artifact-publication[]
