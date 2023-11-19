@@ -112,9 +112,10 @@ The typical example is that using a single dependency declaration `project(":myL
 
 To do this, we will add attributes to both the consumer and the producer.
 
-WARNING: It is important to understand that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
+It is important to understand that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
 In other words, the attributes set on the producer _must be consistent with the other variants produced on the same project_.
 They must not, in particular, introduce ambiguity for the existing selection.
+
 In practice, it means that the attribute set used on the configuration you create are likely to be dependent on the _ecosystem_ in use (Java, C++, ...) because the relevant plugins for those ecosystems often use different attributes.
 
 Let's enhance our previous example which happens to be a Java Library project.

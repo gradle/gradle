@@ -589,7 +589,6 @@ NOTE: There are two common issues people come across when using regular expressi
 1. If you use a slashy string (those delimited by '/') for the first argument, you _must_ include the parentheses for `rename()` as shown in the above example. +
 2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`. +
 The first is a minor inconvenience, but slashy strings have the advantage that you don't have to escape backslash ('\') characters in the regular expression. The second issue stems from Groovy's support for embedded expressions using `${ }` syntax in double-quoted and slashy strings.
-====
 
 The closure syntax for `rename()` is straightforward and can be used for any requirements that simple regular expressions can't handle. You're given the name of a file and you return a new name for that file, or `null` if you don't want to change the name. Do be aware that the closure will be executed for every file that's copied, so try to avoid expensive operations where possible.
 

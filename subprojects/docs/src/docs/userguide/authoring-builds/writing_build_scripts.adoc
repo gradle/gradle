@@ -20,14 +20,10 @@ that needs to be built, like a library or an application. Each build script is a
 with an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project].
 As the build script executes, it configures this `Project`.
 
-IMPORTANT: Build scripts_ define `Project` objects.
-
-Gradle uses other scripts as well:
-
-- <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>>
-  define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects.
-- <<init_scripts.adoc#init_scripts,Init scripts>>
-  define link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
+IMPORTANT: Build scripts_ define `Project` objects. +
+Gradle uses other scripts as well: +
+- <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>> define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects. +
+- <<init_scripts.adoc#init_scripts,Init scripts>> define link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
 
 == Properties
 

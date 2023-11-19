@@ -93,7 +93,8 @@ include::sample[dir="snippets/java-feature-variant/producer/kotlin",files="build
 include::sample[dir="snippets/java-feature-variant/producer/groovy",files="build.gradle[tags=variant_dependencies]"]
 ====
 
-NOTE: By convention, Gradle maps the feature name to a capability whose group and version are the same as the group and version of the main component, respectively, but whose name is the main component name followed by a `-` followed by the kebab-cased feature name. +
+By convention, Gradle maps the feature name to a capability whose group and version are the same as the group and version of the main component, respectively, but whose name is the main component name followed by a `-` followed by the kebab-cased feature name.
+
 For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
 If you choose the capability name yourself or add more capabilities to a variant, it is recommended to follow the same convention.
 
@@ -118,9 +119,10 @@ include::sample[dir="snippets/java-feature-variant/producer-separate-sourceset/g
 [[sec::publishing_feature_variants]]
 == Publishing feature variants
 
-WARNING: Depending on the metadata file format, publishing feature variants may be lossy: +
-- using {metadata-file-spec}[Gradle Module Metadata], everything is published and consumers will get the full benefit of feature variants +
-- using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_ +
+Depending on the metadata file format, publishing feature variants may be lossy:
+
+- using {metadata-file-spec}[Gradle Module Metadata], everything is published and consumers will get the full benefit of feature variants
+- using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_
 - using Ivy metadata, feature variants are published as extra configurations, which are _not_ extended by the `default` configuration
 
 Publishing feature variants is supported using the `maven-publish` and `ivy-publish` plugins only.
