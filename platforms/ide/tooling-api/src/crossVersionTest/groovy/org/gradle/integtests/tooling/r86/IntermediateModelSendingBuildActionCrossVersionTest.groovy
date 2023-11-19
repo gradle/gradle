@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.IntermediateModelListener
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ResultHandler
@@ -142,5 +143,24 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         models.size() == 2
         models[0] instanceof GradleProject
         models[1] instanceof CustomModel
+    }
+
+    def "intermediate model listener is isolated when it fails with an exception"() {
+        when:
+        def listener = { throw new RuntimeException("broken") } as IntermediateModelListener
+
+        withConnection {
+            def builder = it.action(new IntermediateModelSendingBuildAction())
+            collectOutputs(builder)
+            builder.setIntermediateModelListener(listener)
+            builder.run()
+        }
+
+        then:
+
+        def e = thrown(GradleConnectionException)
+        e.cause.cause.message == "broken"
+        // Report that the build was successful, as the failure was on the client side
+        assertHasConfigureSuccessfulLogging()
     }
 }

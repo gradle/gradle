@@ -17,17 +17,21 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.event.ListenerNotificationException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.IntermediateModel;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
-public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer {
+import java.util.Collections;
+
+public class IntermediateModelListenerAdapter implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
+    private Throwable failure;
 
-    public IntermediateSendingBuildEventConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public IntermediateModelListenerAdapter(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
@@ -36,11 +40,24 @@ public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer
     @Override
     public void dispatch(Object message) {
         if (message instanceof IntermediateModel) {
+            if (failure != null) {
+                return;
+            }
             IntermediateModel intermediateModel = (IntermediateModel) message;
             Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
-            providerParameters.sendIntermediate(deserializedMessage);
+            try {
+                providerParameters.sendIntermediate(deserializedMessage);
+            } catch (Throwable e) {
+                failure = e;
+            }
         } else {
             delegate.dispatch(message);
+        }
+    }
+
+    public void rethrowErrors() {
+        if (failure != null) {
+            throw new ListenerNotificationException(null, "Intermediate model listener failed with an exception.", Collections.singletonList(failure));
         }
     }
 }
