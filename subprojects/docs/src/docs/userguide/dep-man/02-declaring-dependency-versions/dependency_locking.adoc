@@ -38,12 +38,9 @@ It will cause Gradle to verify that resolution results do not change, resulting 
 Modifications to your build that would impact the resolved set of dependencies will cause it to fail.
 This makes sure that changes, either in published dependencies or build definitions, do not alter resolution without adapting the lock state.
 
-[NOTE]
-====
-Dependency locking makes sense only with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
+NOTE: Dependency locking makes sense only with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>.
 It will have no impact on <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (like `-SNAPSHOT`) whose coordinates remain the same, though the content may change.
 Gradle will even emit a warning when persisting lock state and changing dependencies are present in the resolution result.
-====
 
 == Enabling locking on configurations
 
@@ -55,11 +52,8 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-single]"]
 ====
 
-[NOTE]
-====
-Only configurations that can be resolved will have lock state attached to them.
+NOTE: Only configurations that can be resolved will have lock state attached to them.
 Applying locking on non resolvable-configurations is simply a no-op.
-====
 
 Or the following, as a way to lock all configurations:
 
@@ -69,10 +63,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllC
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=locking-all]"]
 ====
 
-[NOTE]
-====
-The above will lock all _project_ configurations, but not the _buildscript_ ones.
-====
+NOTE: The above will lock all _project_ configurations, but not the _buildscript_ ones.
 
 You can also disable locking on a specific configuration.
 This can be useful if a plugin configured locking on all configurations but you happen to add one that should not be locked.
@@ -100,11 +91,8 @@ In order to generate or update lock state, you specify the `--write-locks` comma
 This will cause the creation of lock state for each resolved configuration in that build execution.
 Note that if lock state existed previously, it is overwritten.
 
-[NOTE]
-====
-Gradle will not write lock state to disk if the build fails.
+NOTE: Gradle will not write lock state to disk if the build fails.
 This prevents persisting possibly invalid state.
-====
 
 [[lock_all_configurations_in_one_build_execution]]
 === Lock all configurations in one build execution
@@ -162,11 +150,8 @@ If your project uses the legacy lock file format of a file per locked configurat
 * Follow the documentation for <<#lock_all_configurations_in_one_build_execution, writing>> or <<#selectively_updating_lock_state_entries, updating>> dependency lock state.
 * Upon writing the single lock file per project, Gradle will also delete all lock files per configuration for which the state was transferred.
 
-[NOTE]
-====
-Migration can be done one configuration at a time.
+NOTE: Migration can be done one configuration at a time.
 Gradle will keep sourcing the lock state from the per configuration files as long as there is no information for that configuration in the single lock file.
-====
 
 [[configuring_the_per_project_lock_file_name_and_location]]
 === Configuring the per project lock file name and location
@@ -231,10 +216,7 @@ The following wildcard notation examples are valid:
 * `*:guava`: will let all modules named `guava`, whatever their group, update
 * `org.springframework.spring*:spring*`: will let all modules having their group starting with `org.springframework.spring` and name starting with `spring` update
 
-[NOTE]
-====
-The resolution may cause other module versions to update, as dictated by the Gradle resolution rules.
-====
+NOTE: The resolution may cause other module versions to update, as dictated by the Gradle resolution rules.
 
 == Disabling dependency locking
 
@@ -251,11 +233,8 @@ As a build author, you may want to have different frequency of dependency versio
 In that case, it might be convenient to ignore some dependencies because you always want to use the latest version for those.
 An example is the internal dependencies in an organization which should always use the latest version as opposed to third party dependencies which have a different upgrade cycle.
 
-[WARNING]
-====
-This feature can break reproducibility and should be used with caution.
+WARNING: This feature can break reproducibility and should be used with caution.
 There are scenarios that are better served with leveraging  <<#fine_tuning_dependency_locking_behaviour_with_lock_mode,different lock modes>> or <<#configuring_the_per_project_lock_file_name_and_location,using different names for lock files>>.
-====
 
 You can configure ignored dependencies in the `dependencyLocking` project extension:
 

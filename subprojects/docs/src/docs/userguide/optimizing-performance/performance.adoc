@@ -153,14 +153,10 @@ Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so i
 [[enable_configuration_cache]]
 == Enable the configuration cache
 
-[IMPORTANT]
-====
-This feature has the following limitations:
-
-* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
-* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>.
+IMPORTANT: This feature has the following limitations: +
+* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress. +
+* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>. +
 * IDE imports and syncs do not use the configuration cache.
-====
 
 You can cache the result of the configuration phase by enabling the configuration cache.
 When build configuration inputs remain the same across builds, the configuration cache

@@ -34,11 +34,8 @@ This means that running the same build on machines with different file encoding 
 Currently Gradle only tracks on a per-task basis that no file encoding has been specified, but it does not track the system encoding of the JVM in use.
 This can cause incorrect builds. You should always set the file system encoding to avoid these kind of problems.
 
-[NOTE]
-====
-Build scripts are compiled with the file encoding of the Gradle daemon.
+NOTE: Build scripts are compiled with the file encoding of the Gradle daemon.
 By default, the daemon uses the system file encoding, too.
-====
 
 Setting the file encoding for the Gradle daemon mitigates both above problems by making sure that the encoding is the same across builds.
 You can do so in your `gradle.properties`:
@@ -109,13 +106,9 @@ Gradle tracks only the major version of Java as an input for compilation and tes
 Currently, it does _not_ track the vendor nor the minor version.
 Still, the vendor and the minor version may influence the bytecode produced by compilation.
 
-[NOTE]
-====
-If you're using <<toolchains.adoc#toolchains,Java Toolchains>>, the Java major version,
+NOTE: If you're using <<toolchains.adoc#toolchains,Java Toolchains>>, the Java major version,
 the vendor (if specified) and implementation (if specified) will be tracked automatically
 as an input for compilation and test execution.
-====
-
 
 If you use different JVM vendors for compiling or running Java we strongly suggest that you add the vendor as an input to the corresponding tasks.
 This can be achieved by using the <<incremental_build.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
@@ -130,10 +123,7 @@ There are basically two situations when you may want to track the minor version 
 In the case of compilation, there can sometimes be differences in the produced bytecode for different minor versions.
 However, the bytecode should still result in the same runtime behavior.
 
-[NOTE]
-====
-<<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> will treat this bytecode the same since it extracts the ABI.
-====
+NOTE: <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>> will treat this bytecode the same since it extracts the ABI.
 
 Treating the minor number as an input can decrease the likelihood of a cache hit for developer builds.
 Depending on how standard development environments are across your team, it's common for many different Java minor version to be in use.
@@ -142,11 +132,8 @@ Even without tracking the Java minor version you may have cache misses for devel
 If these outputs made it into the local build cache on this developers machine even a clean will not solve the situation.
 Therefore, the choice for tracking the Java minor version is between sometimes or never re-using outputs between different Java minor versions for test execution.
 
-[NOTE]
-====
-The compiler infrastructure provided by the JVM used to run Gradle is also used by the Groovy compiler.
+NOTE: The compiler infrastructure provided by the JVM used to run Gradle is also used by the Groovy compiler.
 Therefore, you can expect differences in the bytecode of compiled Groovy classes for the same reasons as above and the same suggestions apply.
-====
 
 == Avoid changing inputs external to your build
 
@@ -280,9 +267,6 @@ Special care should also be taken for code generation tasks which may not have <
 This can happen if the code generator includes e.g. a timestamp in the generated files or depends on the order of the input files.
 Other pitfalls can be the use of ``HashMap``s or other data structures without order guarantees in the task's code.
 
-[WARNING]
-====
-Some third party plugins can even influence cacheability of Gradle's built-in tasks.
+WARNING: Some third party plugins can even influence cacheability of Gradle's built-in tasks.
 This can happen if they add inputs like absolute paths or volatile data to tasks via the runtime API.
 In the worst case this can lead to incorrect builds when the plugins try to depend on the <<logic_based_on_task_outcome,outcome of a task>> and do not take `FROM-CACHE` into account.
-====

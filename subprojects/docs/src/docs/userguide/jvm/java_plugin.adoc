@@ -19,12 +19,9 @@ The Java plugin adds Java compilation along with testing and bundling capabiliti
 It serves as the basis for many of the other JVM language Gradle plugins.
 You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects.adoc#building_java_projects,Building Java Projects>> chapter.
 
-[NOTE]
-====
-As indicated above, this plugin adds basic building blocks for working with JVM projects.
+NOTE: As indicated above, this plugin adds basic building blocks for working with JVM projects.
 Its feature set has been superseded by other plugins, offering more features based on your project type.
 Instead of applying it directly to your project, you should look into the `java-library` or `application` plugins or one of the supported alternative JVM language.
-====
 
 [[sec:java_usage]]
 == Usage
@@ -289,17 +286,12 @@ Tasks such as `compileJava` and `test` then use one or more of those configurati
 [[tab:configurations]]
 === Dependency configurations
 
-[NOTE]
-====
-
 For information on the `default` and `archives` configurations, please consult the
 <<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
 
 For information on the `api` or `compileOnlyApi` configurations, please consult the
 <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
 <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
-
-====
 
 `implementation`::
 Implementation only dependencies.
@@ -610,10 +602,7 @@ Gradle will always recompile any files the processor generates.
 
 === State of support in popular annotation processors
 
-[NOTE]
-====
-Many popular annotation processors support incremental annotation processing (see the table below). Check with the annotation processor project directly for the most up-to-date information and documentation.
-====
+NOTE: Many popular annotation processors support incremental annotation processing (see the table below). Check with the annotation processor project directly for the most up-to-date information and documentation.
 
 [cols="a,a,a", options="header"]
 |===

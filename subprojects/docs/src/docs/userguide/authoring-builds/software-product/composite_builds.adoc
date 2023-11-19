@@ -105,11 +105,8 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-pl
 include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 ====
 
-[NOTE]
-====
-You may also use the `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
+NOTE: You may also use the `includeBuild` mechanism outside `pluginManagement` to include plugin builds. +
 However, this does not support all use cases and including plugin builds like that might be deprecated in a future Gradle version.
-====
 
 [[included_builds]]
 === Restrictions on included builds
@@ -123,11 +120,8 @@ Every included build:
 * must not have a `rootProject.name` the same as a top-level project of the composite build.
 * must not have a `rootProject.name` the same as the composite build `rootProject.name`.
 
-[NOTE]
-====
-When a composite build is included into another composite build, then both included builds would have the same parent.
+NOTE: When a composite build is included into another composite build, then both included builds would have the same parent. +
 In other words, nested composite build structure is flattened.
-====
 
 [[interacting_with_composite_builds]]
 == Interacting with a composite build
@@ -155,10 +149,7 @@ $ ./gradlew :i-b:sA:cJ
 
 To <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,exclude a task from the command line>>, you also need to provide the fully qualified path to the task.
 
-[NOTE]
-====
-Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
-====
+NOTE: Included build tasks are automatically executed in order to generate required dependency artifacts, or the <<#included_build_task_dependencies,including build can declare a dependency on a task from an included build>>.
 
 [[composite_build_ide_integration]]
 === Importing into the IDE
@@ -176,7 +167,7 @@ Source dependencies are configured, providing cross-build navigation and refacto
 By default, Gradle will configure each included build in order to determine the dependencies it can provide.
 The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any external dependency matching `${project.group}:${project.name}`.
 
-NOTE: By default, substitutions are not registered for the _main_ build.
+NOTE: By default, substitutions are not registered for the _main_ build. +
 To make the (sub)projects of the main build addressable by `${project.group}:${project.name}`, you can tell Gradle to treat the main build like an included build by self-including it: `includeBuild(".")`.
 
 There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite.

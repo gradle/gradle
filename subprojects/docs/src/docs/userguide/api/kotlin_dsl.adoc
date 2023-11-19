@@ -23,11 +23,7 @@
 Gradle's Kotlin DSL provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 This chapter provides details of the main Kotlin DSL constructs and how to use it to interact with the Gradle API.
 
-[TIP]
-====
-If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#migrating_groovy_kotlin,migration section>>.
-====
-
+TIP: If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated <<migrating_from_groovy_to_kotlin_dsl.adoc#migrating_groovy_kotlin,migration section>>.
 
 [[kotdsl:prerequisites]]
 == Prerequisites
@@ -149,10 +145,7 @@ Just like the Groovy-based equivalent, the Kotlin DSL is implemented on top of G
 Everything you can read in a Kotlin DSL script is Kotlin code compiled and executed by Gradle.
 Many of the objects, functions and properties you use in your build scripts come from the Gradle API and the APIs of the applied plugins.
 
-[TIP]
-====
-You can use the link:{kotlinDslPath}/[Kotlin DSL reference] search functionality to drill through the available members.
-====
+TIP: You can use the link:{kotlinDslPath}/[Kotlin DSL reference] search functionality to drill through the available members.
 
 === Script file names
 
@@ -181,12 +174,8 @@ All Kotlin DSL build scripts have implicit imports consisting of:
 ** `org.gradle.kotlin.dsl.plugins.dsl`
 ** `org.gradle.kotlin.dsl.precompile`
 
-[CAUTION]
-.Avoid using internal Kotlin DSL APIs
-====
-Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
+CAUTION: Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
 The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the link:{kotlinDslPath}/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
-====
 
 [[sec:compilation_warnings]]
 === Compilation warnings
@@ -228,12 +217,9 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
 * Extensions on each of the above
 
-[IMPORTANT]
-====
-Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
+IMPORTANT: Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
 Initialization scripts, settings scripts, script plugins do not.
 These limitations will be removed in a future Gradle release.
-====
 
 The set of type-safe model accessors available is calculated right before evaluating the script body, immediately after the `plugins {}` block.
 Any model elements contributed after that point do not work with type-safe model accessors.
@@ -252,11 +238,8 @@ include::sample[dir="snippets/kotlinDsl/accessors/kotlin",files="build.gradle.kt
 <4> Uses an accessor to configure the `java` source for the `main` source set
 <5> Uses an accessor to configure the `test` task
 
-[TIP]
-====
-Your IDE knows about the type-safe accessors, so it will include them in its suggestions.
+TIP: Your IDE knows about the type-safe accessors, so it will include them in its suggestions. +
 This will happen both at the top level of your build scripts — most plugin extensions are added to the `Project` object — and within the blocks that configure an extension.
-====
 
 Note that accessors for elements of containers such as `configurations`, `tasks` and `sourceSets` leverage Gradle's <<lazy_configuration#lazy_configuration,configuration avoidance APIs>>.
 For example, on `tasks` they are of type `TaskProvider<T>` and provide a lazy reference and lazy configuration of the underlying task.
@@ -477,11 +460,8 @@ For example, the Android Plugin for Gradle is not published to the Gradle Plugin
 If your build is a multi-project build and you don't need to apply such a plugin to your _root_ project, then you can get round this issue using the technique <<kotlin_dsl#sec:multi_project_builds_applying_plugins,described above>>.
 For any other situation, keep reading.
 
-[TIP]
-====
-When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
+TIP: When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>. +
 It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
-====
 
 We will show you in this section how to apply the Android Plugin to a single-project build or the root project of a multi-project build.
 The goal is to instruct your build on how to map the `com.android.application` plugin identifier to a resolvable artifact.
@@ -537,11 +517,7 @@ Community plugins also contribute containers, like the `android.buildTypes` cont
 The Kotlin DSL provides several ways for build authors to interact with containers.
 We look at each of those ways next, using the `tasks` container as an example.
 
-[TIP]
-====
-Note that you can leverage the type-safe accessors described in <<kotdsl:accessor_applicability,another section>> if you are configuring existing elements on supported containers. That section also describes which containers support type-safe accessors.
-====
-
+TIP: Note that you can leverage the type-safe accessors described in <<kotdsl:accessor_applicability,another section>> if you are configuring existing elements on supported containers. That section also describes which containers support type-safe accessors.
 
 === Using the container API
 
@@ -564,10 +540,7 @@ include::sample[dir="snippets/kotlinDsl/containers-api/kotlin",files="build.grad
 <7> Gets a reference to the existing task named `test` of type `Test` and configures it — in this case you have access to the properties and methods of the specified type
 <8> Registers a new task named `myCopy2` of type `Copy` and configures it
 
-[NOTE]
-====
-The above sample relies on the configuration avoidance APIs. If you need or want to eagerly configure or register container elements, simply replace `named()` with `getByName()` and `register()` with `create()`.
-====
+NOTE: The above sample relies on the configuration avoidance APIs. If you need or want to eagerly configure or register container elements, simply replace `named()` with `getByName()` and `register()` with `create()`.
 
 === Using Kotlin delegated properties
 
@@ -584,10 +557,7 @@ include::sample[dir="snippets/kotlinDsl/containers-delegated-properties/kotlin",
 <1> Uses the reference to the `myTask1` task rather than a task path
 
 
-[NOTE]
-====
-The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html[`existing()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html[`getting()`] and link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html[`registering()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html[`creating()`].
-====
+NOTE: The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html[`existing()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html[`getting()`] and link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html[`registering()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html[`creating()`].
 
 === Configuring multiple container elements together
 
@@ -763,11 +733,7 @@ The plugin achieves this by doing the following:
  ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
  * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
 
-[CAUTION]
-.Avoid specifying a version for the `kotlin-dsl` plugin
-====
-Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
-====
+CAUTION: Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
 
 This is the basic configuration you need to use the plugin:
 
@@ -904,10 +870,7 @@ To call a Groovy function with default arguments from Kotlin, always pass values
 You may sometimes have to call Groovy methods that take link:https://groovy-lang.org/closures.html[Closure] arguments from Kotlin code.
 For example, some third-party plugins written in Groovy expect closure arguments.
 
-[NOTE]
-====
-Gradle plugins written in any language should prefer the type `Action<T>` type in place of closures. Groovy closures and Kotlin lambdas are automatically mapped to arguments of that type.
-====
+NOTE: Gradle plugins written in any language should prefer the type `Action<T>` type in place of closures. Groovy closures and Kotlin lambdas are automatically mapped to arguments of that type.
 
 In order to provide a way to construct closures while preserving Kotlin's strong typing, two helper methods exist:
 

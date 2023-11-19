@@ -33,12 +33,7 @@ include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gra
 If the Java plugin is also applied to your project, a new task named `jacocoTestReport` is created.
 By default, a HTML report is generated at `layout.buildDirectory.dir("reports/jacoco/test")`.
 
-[NOTE]
-====
-
-While tests should be executed before generation of the report, the `jacocoTestReport` task does not depend on the `test` task.
-
-====
+NOTE: While tests should be executed before generation of the report, the `jacocoTestReport` task does not depend on the `test` task.
 
 Depending on your usecases, you may want to always generate the `jacocoTestReport` or run the `test` task before generating the report explicitly.
 
@@ -83,12 +78,7 @@ image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
 == Enforcing code coverage metrics
 
 
-[NOTE]
-====
-
-This feature requires the use of JaCoCo version 0.6.3 or higher.
-
-====
+NOTE: This feature requires the use of JaCoCo version 0.6.3 or higher.
 
 The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules-org.gradle.api.Action-[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
 
@@ -114,11 +104,8 @@ include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gra
 include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration]"]
 ====
 
-[NOTE]
-====
-Tasks configured for running with the JaCoCo agent delete the destination file for the execution data when the task starts executing.
+NOTE: Tasks configured for running with the JaCoCo agent delete the destination file for the execution data when the task starts executing.
 This ensures that no stale coverage data is present in the execution data.
-====
 
 === Default values of the JaCoCo Task extension
 

@@ -173,11 +173,8 @@ include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=un
 <2> Remaps the path of the extracting files into the destination directory by dropping the `libs` segment from the file path
 <3> Ignores the empty directories resulting from the remapping, see Caution note below
 
-[CAUTION]
-====
-You can not change the destination path of empty directories with this technique.
+CAUTION: You can not change the destination path of empty directories with this technique. +
 You can learn more in https://github.com/gradle/gradle/issues/2940[this issue].
-====
 
 If you're a Java developer and are wondering why there is no `jarTree()` method, that's because `zipTree()` works perfectly well for JARs, WARs and EARs.
 
@@ -305,10 +302,7 @@ In addition, this example could be improved further by relying on the Java plugi
 Gradle provides the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method for specifying the location of a single file or directory.
 Relative paths are resolved relative to the project directory, while absolute paths remain unchanged.
 
-[CAUTION]
-====
-Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`. Otherwise this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
-====
+CAUTION: Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`. Otherwise this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
 
 Here are some examples of using the `file()` method with different types of argument:
 
@@ -344,10 +338,7 @@ This method is very flexible and allows you to pass multiple strings, `File` ins
 You can even pass in tasks as arguments if they have <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>>.
 Learn about all the supported argument types in the reference guide.
 
-[CAUTION]
-====
-`files()` properly handle relative paths and `File(relative path)` instances, resolving them relative to the project directory.
-====
+CAUTION: `files()` properly handle relative paths and `File(relative path)` instances, resolving them relative to the project directory.
 
 As with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
 
@@ -441,15 +432,9 @@ include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags
 include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=change-default-exclusions]"]
 ====
 
-[NOTE]
-====
-Currently, Gradle's default excludes are configured via Ant's `DirectoryScanner` class.
-====
+NOTE: Currently, Gradle's default excludes are configured via Ant's `DirectoryScanner` class.
 
-[NOTE]
-====
-Gradle does not support changing default excludes during the execution phase.
-====
+IMPORTANT: Gradle does not support changing default excludes during the execution phase.
 
 You can do many of the same things with file trees that you can with file collections:
 
@@ -600,13 +585,9 @@ include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=rename
 You can use any regular expression supported by the Java `{javaApi}/java/util/regex/Pattern.html[Pattern]` class and the substitution string (the second argument of `rename()` works on the same principles as the `{javaApi}/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,%20java.lang.String)[Matcher.appendReplacement()]` method.
 
 .Regular expressions in Groovy build scripts
-[NOTE]
-====
-There are two common issues people come across when using regular expressions in this context:
-
- 1. If you use a slashy string (those delimited by '/') for the first argument, you _must_ include the parentheses for `rename()` as shown in the above example.
- 2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`
-
+NOTE: There are two common issues people come across when using regular expressions in this context: +
+1. If you use a slashy string (those delimited by '/') for the first argument, you _must_ include the parentheses for `rename()` as shown in the above example. +
+2. It's safest to use single quotes for the second argument, otherwise you need to escape the '$' in group substitutions, i.e. `"\$1\$2"`. +
 The first is a minor inconvenience, but slashy strings have the advantage that you don't have to escape backslash ('\') characters in the regular expression. The second issue stems from Groovy's support for embedded expressions using `${ }` syntax in double-quoted and slashy strings.
 ====
 
@@ -685,12 +666,8 @@ include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=standa
 
 Both the `copyAssets` and `distApp` tasks will process the static resources under `src/main/webapp`, as specified by `webAssetsSpec`.
 
-[NOTE]
-====
-The configuration defined by `webAssetsSpec` will _not_ apply to the app classes included by the `distApp` task. That's because `from appClasses` is its own child specification independent of `with webAssetsSpec`.
-
+NOTE: The configuration defined by `webAssetsSpec` will _not_ apply to the app classes included by the `distApp` task. That's because `from appClasses` is its own child specification independent of `with webAssetsSpec`. +
 This can be confusing to understand, so it's probably best to treat `with()` as an extra `from()` specification in the task. Hence it doesn't make sense to define a standalone copy spec without at least one `from()` defined.
-====
 
 If you encounter a scenario in which you want to apply the same copy configuration to _different_ sets of files, then you can share the configuration block directly without using `copySpec()`. Here's an example that has two independent tasks that happen to want to process image files only:
 
@@ -724,8 +701,7 @@ Notice how the `src/dist` configuration has a nested inclusion specification: th
 
 The above example also demonstrates how you can copy files into a subdirectory of the destination either by using a child `into()` on a `from()` or a child `from()` on an `into()`. Both approaches are acceptable, but you may want to create and follow a convention to ensure consistency across your build files.
 
-[NOTE]
-Don't get your `into()` specifications mixed up! For a normal copy — one to the filesystem rather than an archive — there should always be _one_ "root" `into()` that simply specifies the overall destination directory of the copy. Any other `into()` should have a child spec attached and its path will be relative to the root `into()`.
+NOTE: Don't get your `into()` specifications mixed up! For a normal copy — one to the filesystem rather than an archive — there should always be _one_ "root" `into()` that simply specifies the overall destination directory of the copy. Any other `into()` should have a child spec attached and its path will be relative to the root `into()`.
 
 One final thing to be aware of is that a child copy spec inherits its destination path, include patterns, exclude patterns, copy actions, name mappings and filters from its parent. So be careful where you place your configuration.
 

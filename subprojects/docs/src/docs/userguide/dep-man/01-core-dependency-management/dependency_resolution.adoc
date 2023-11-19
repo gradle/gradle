@@ -58,8 +58,6 @@ A version conflict occurs when two components:
 Given the conflict above, there exist multiple ways to handle it, either by selecting a version or failing the resolution.
 Different tools that handle dependency management have different ways of handling these type of conflicts.
 
-[NOTE]
-====
 https://maven.apache.org/[Apache Maven] uses a nearest first strategy.
 
 Maven will take the _shortest_ path to a dependency and use that version.
@@ -72,15 +70,10 @@ Keeping order in a very large graph can be a challenge.
 For example, what if the new version of a dependency ends up having its own dependency declarations in a different order than the previous version?
 
 With Maven, this could have unwanted impact on resolved versions.
-====
 
-[NOTE]
-====
-https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
-It offers the possibility to customize dependency resolution, including conflict resolution.
-
+NOTE: https://ant.apache.org/ivy/[Apache Ivy] is a very flexible dependency management tool.
+It offers the possibility to customize dependency resolution, including conflict resolution. +
 This flexibility comes with the price of making it hard to reason about.
-====
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
 Out of these versions, it will select the _highest_ one. More information on version ordering
@@ -200,12 +193,9 @@ Given a required dependency, with a version, Gradle attempts to resolve the depe
 * All of the artifacts for the module are then requested from the _same repository_ that was chosen in the process above.
 * All of that data, including the repository source and potential misses are then stored in the <<#sec:dependency_cache>>.
 
-[NOTE]
-====
-The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+NOTE: The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
 As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
-====
 
 === Repository disabling
 

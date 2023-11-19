@@ -64,14 +64,8 @@ include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvid
 
 The `Greeting` task has a property of type `Property<String>` to represent the configurable greeting and a property of type `Provider<String>` to represent the calculated, read-only, message. The message `Provider` is created from the greeting `Property` using the `map()` method, and so its value is kept up-to-date as the value of the greeting property changes.
 
-[NOTE]
-====
-
-Note that Gradle Groovy DSL generates setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience.
-
+NOTE: Note that Gradle Groovy DSL generates setter methods for each `Property`-typed property in a task implementation. These setter methods allow you to configure the property using the assignment (`=`) operator as a convenience. +
 In Kotlin DSL, the `set()` method on the property needs to be used instead of `=`.
-
-====
 
 [[creating_property_provider]]
 == Creating a Property or Provider instance
@@ -83,14 +77,8 @@ Neither `Provider` nor its subtypes such as `Property` are intended to be implem
 
 A `Provider` can also be created by the factory method link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. You should prefer using `map()` instead, as this has some useful benefits, which we will see later.
 
-[NOTE]
-====
-
-There are no specific methods create a provider using a `groovy.lang.Closure`. When writing a plugin or build script with Groovy, you can use the `map(Transformer)` method with a closure and Groovy will take care of converting the closure to a `Transformer`. You can see this in action in the previous example.
-
+NOTE: There are no specific methods create a provider using a `groovy.lang.Closure`. When writing a plugin or build script with Groovy, you can use the `map(Transformer)` method with a closure and Groovy will take care of converting the closure to a `Transformer`. You can see this in action in the previous example. +
 Similarly, when writing a plugin or build script with Kotlin, the Kotlin compiler will take care of converting a Kotlin function into a `Transformer`.
-
-====
 
 [[connecting_properties_together]]
 == Connecting properties together

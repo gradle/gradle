@@ -54,13 +54,10 @@ $ gradle wrapper
 include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 ----
 
-[TIP]
-====
-To make the Wrapper files available to other developers and execution environments, you need to check them into version control.
-Wrapper files, including the JAR file, are small.
-Adding the JAR file to version control is expected.
+TIP: To make the Wrapper files available to other developers and execution environments, you need to check them into version control. +
+Wrapper files, including the JAR file, are small. +
+Adding the JAR file to version control is expected. +
 Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
-====
 
 The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties`, stores the information about the Gradle distribution:
 
@@ -203,10 +200,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 If the Gradle distribution is unavailable on the machine, the Wrapper will download it and store it in the local file system.
 Any subsequent build invocation will reuse the existing local distribution as long as the distribution URL in the Gradle properties doesn't change.
 
-[NOTE]
-====
-The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
-====
+NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
 
 [[sec:upgrading_wrapper]]
 == Upgrading the Gradle Wrapper
@@ -280,11 +274,8 @@ This enables you to host the Gradle distribution on a private protected server.
 You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`.
 Credentials in system properties take precedence over the ones embedded in `distributionUrl`.
 
-[TIP]
-====
-HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones.
+TIP: HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones. +
 With Basic Authentication, the user credentials are sent in clear text.
-====
 
 System properties can be specified in the `.gradle/gradle.properties` file in the user's home directory or by other <<build_environment.adoc#sec:gradle_configuration_properties,means>>.
 
@@ -336,11 +327,8 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 Gradle will report a build failure if the configured checksum does not match the checksum found on the server hosting the distribution.
 Checksum verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.
 
-[NOTE]
-====
-The `Wrapper` task fails if `gradle-wrapper.properties` contains `distributionSha256Sum`, but the task configuration does not define a sum.
+NOTE: The `Wrapper` task fails if `gradle-wrapper.properties` contains `distributionSha256Sum`, but the task configuration does not define a sum.
 Executing the `Wrapper` task preserves the `distributionSha256Sum` configuration when the Gradle version does not change.
-====
 
 [[wrapper_checksum_verification]]
 == Verifying the integrity of the Gradle Wrapper JAR

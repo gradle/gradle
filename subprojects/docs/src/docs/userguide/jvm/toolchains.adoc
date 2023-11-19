@@ -46,12 +46,9 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 3. Gradle chooses a toolchain matching the requirements (any Java 17 toolchain for the example above).
 4. If no matching toolchain is found, Gradle can automatically download a matching one based on the configured <<#sub:download_repositories,toolchain download repositories>>.
 
-[NOTE]
-====
-Toolchain support is available in the Java plugins and for the tasks they define.
+NOTE: Toolchain support is available in the Java plugins and for the tasks they define.
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
 For the Scala plugin, compilation and Scaladoc generation are supported.
-====
 
 [[sec:vendors]]
 === Selecting toolchains by vendor
@@ -94,11 +91,7 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 ====
 
-[NOTE]
-====
-The Java major version, the vendor (if specified) and implementation (if specified)
-will be tracked as an input for compilation and test execution.
-====
+NOTE: The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation and test execution.
 
 [[sec:configuring_toolchain_specifications]]
 === Configuring toolchain specifications
@@ -176,12 +169,8 @@ include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.g
 include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
 ====
 
-[WARNING]
-====
-The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
-
+WARNING: The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration. +
 Doing respectively `launcher.get().executablePath`, `launcher.get().metadata.installationPath` or `compiler.get().executablePath` instead will give you the full path for the given toolchain but note that this may realize (and provision) a toolchain eagerly.
-====
 
 [[sec:auto_detection]]
 == Auto detection of installed toolchains
@@ -198,11 +187,7 @@ JVM auto-detection knows how to work with:
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
-[NOTE]
-====
-Whether you are using toolchain auto-detection or you are configuring <<sec:custom_loc>>, installations that are
-non-existing or without a `bin/java` executable will be ignored with a warning, but they won't generate an error.
-====
+NOTE: Whether you are using toolchain auto-detection or you are configuring <<sec:custom_loc>>, installations that are non-existing or without a `bin/java` executable will be ignored with a warning, but they won't generate an error.
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
@@ -218,11 +203,8 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 If Gradle can't find a locally available toolchain that matches the requirements of the build, it can automatically download one (as long as a toolchain download repository has been configured; for detail, see <<#sub:download_repositories,relevant section>>).
 Gradle installs the downloaded JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>.
 
-[NOTE]
-====
-Gradle only downloads JDK versions for GA releases.
+NOTE: Gradle only downloads JDK versions for GA releases.
 There is no support for downloading early access versions.
-====
 
 Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>> and can be used by any subsequent builds, just like any other JDK installed on the system.
 
@@ -263,10 +245,7 @@ Use the `resolverClass` property to link these configurations to plugins.
 Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
 <4> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 
-[WARNING]
-====
-The `jvm` block in `toolchainManagement` only resolves after applying a toolchain resolver plugin.
-====
+WARNING: The `jvm` block in `toolchainManagement` only resolves after applying a toolchain resolver plugin.
 
 [[sub:viewing_toolchains]]
 === Viewing and debugging toolchains
@@ -350,12 +329,9 @@ Gradle will treat these directories as possible installations but will not desce
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 ----
 
-[NOTE]
-====
-Gradle does not prioritize custom toolchains over <<sec:auto_detection,auto-detected>> toolchains.
+NOTE: Gradle does not prioritize custom toolchains over <<sec:auto_detection,auto-detected>> toolchains.
 If you enable auto-detection in your build, custom toolchains extend the set of toolchain locations.
 Gradle picks a toolchain according to the <<sec:precedence,precedence rules>>.
-====
 
 [[sec:precedence]]
 == Toolchain installations precedence

@@ -37,12 +37,8 @@ Both `version` and `configurations {}` are part of link:{groovyDslPath}/org.grad
 
 This example reflects how every Groovy build script is backed by an implicit instance of `Project`. If you see an unqualified element and you don't know where it's defined, always check the `Project` API documentation to see if that's where it's coming from.
 
-[CAUTION]
-====
-Avoid using https://groovy-lang.org/metaprogramming.html#_metaclasses[Groovy MetaClass] programming techniques in your build scripts. Gradle provides its own API for adding <<writing_build_scripts#sec:extra_properties,dynamic runtime properties>>.
-
+CAUTION: Avoid using https://groovy-lang.org/metaprogramming.html#_metaclasses[Groovy MetaClass] programming techniques in your build scripts. Gradle provides its own API for adding <<writing_build_scripts#sec:extra_properties,dynamic runtime properties>>. +
 Use of Groovy-specific metaprogramming can cause builds to retain large amounts of memory between builds that will eventually cause the Gradle daemon to run out-of-memory.
-====
 
 [[groovy:properties]]
 == Properties
@@ -227,9 +223,5 @@ String errorMsg = 'Failed, because reasons'
 
 Local variables are a Groovy construct — unlike <<writing_build_scripts#sec:extra_properties,extra properties>> — that can be used to share values within a build script.
 
-[CAUTION]
-====
-Avoid using local variables in the root of the project, i.e. as pseudo project properties. They cannot be read outside of the build script and Gradle has no knowledge of them.
-
+CAUTION: Avoid using local variables in the root of the project, i.e. as pseudo project properties. They cannot be read outside of the build script and Gradle has no knowledge of them. +
 Within a narrower context — such as configuring a task — local variables can occasionally be helpful.
-====

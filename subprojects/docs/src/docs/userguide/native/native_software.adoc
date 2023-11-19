@@ -16,11 +16,8 @@
 = Building native software
 
 
-[CAUTION]
-====
-The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
+CAUTION: The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
 We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#building_cpp_projects,replacement plugins>>.
-====
 
 WARNING: The native plugins described in this chapter are not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
 
@@ -120,13 +117,7 @@ The following tool chains are unofficially supported. They generally work fine, 
 [[sec:tool_chain_installation]]
 == Tool chain installation
 
-
-[NOTE]
-====
-
-Note that if you are using GCC then you currently need to install support for C+\+, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
-
-====
+NOTE: Note that if you are using GCC then you currently need to install support for C+\+, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
 
 To build native software, you will need to have a compatible tool chain installed:
 
@@ -214,11 +205,7 @@ In the following example, the build file defines `OpenSSL` as a dependency of `l
 .Dependent Components Example
 image::nativeDependents.png[]
 
-[NOTE]
-====
-By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp` are _dependents_ of `libUtil`. When `libUtil` is changed, Gradle will need to recompile or relink `LinuxApp` and `WindowsApp`.
-====
-
+NOTE: By following the dependencies backwards, you can see `LinuxApp` and `WindowsApp` are _dependents_ of `libUtil`. When `libUtil` is changed, Gradle will need to recompile or relink `LinuxApp` and `WindowsApp`.
 
 When you _assemble_ dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's up-to-date checks are used to only compile or link if something has changed. For instance, if you have changed source files in a way that do not affect the headers of your project, Gradle will be able to skip compilation for dependent components and only need to re-link with the new library. Tests are not run when assembling a component.
 
@@ -249,10 +236,7 @@ Gradle provides a report that you can run from the command-line that shows a gra
 include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReport.out[]
 ----
 
-[NOTE]
-====
-See link:{groovyDslPath}/org.gradle.api.reporting.dependents.DependentComponentsReport.html[DependentComponentsReport] API documentation for more details.
-====
+NOTE: See link:{groovyDslPath}/org.gradle.api.reporting.dependents.DependentComponentsReport.html[DependentComponentsReport] API documentation for more details.
 
 By default, non-buildable binaries and test suites are hidden from the report. The `dependentComponents` task provides options that allow you to see all dependents by using the `--all` option:
 
@@ -746,21 +730,14 @@ For a build type, a Gradle project will typically define a set of compiler/linke
 include::{snippetsPath}/native-binaries/variants/groovy/build.gradle[tag=build-type-config]
 ----
 
-[NOTE]
-====
-At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build type, and may be aware of various levels of optimisation as well.
-====
-
+NOTE: At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build type, and may be aware of various levels of optimisation as well.
 
 [[native_binaries:platform]]
 === Platform
 
 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being produced for each platform. Gradle defines each OS/architecture combination as a link:{groovyDslPath}/org.gradle.nativeplatform.platform.NativePlatform.html[NativePlatform], and a project may define any number of platforms. If no platforms are defined in a project, then a single, default platform 'current' is added.
 
-[NOTE]
-====
-Presently, a `Platform` consists of a defined operating system and architecture. As we continue to develop the native binary support in Gradle, the concept of Platform will be extended to include things like C-runtime version, Windows SDK, ABI, etc. Sophisticated builds may use the extensibility of Gradle to apply additional attributes to each platform, which can then be queried to specify particular includes, preprocessor macros or compiler arguments for a native binary.
-====
+NOTE: Presently, a `Platform` consists of a defined operating system and architecture. As we continue to develop the native binary support in Gradle, the concept of Platform will be extended to include things like C-runtime version, Windows SDK, ABI, etc. Sophisticated builds may use the extensibility of Gradle to apply additional attributes to each platform, which can then be queried to specify particular includes, preprocessor macros or compiler arguments for a native binary.
 
 === Example: Defining platforms
 
@@ -854,10 +831,7 @@ Each tool chain implementation allows for a certain degree of configuration (see
 
 It is not necessary or possible to specify the tool chain that should be used to build. For a given variant, Gradle will attempt to locate a link:{javadocPath}/org/gradle/nativeplatform/toolchain/NativeToolChain.html[NativeToolChain] that is able to build for the target platform. Available tool chains are searched in the order defined.
 
-[NOTE]
-====
-When a platform does not define an architecture or operating system, the default target of the tool chain is assumed. So if a platform does not define a value for `operatingSystem`, Gradle will find the first available tool chain that can build for the specified `architecture`.
-====
+NOTE: When a platform does not define an architecture or operating system, the default target of the tool chain is assumed. So if a platform does not define a value for `operatingSystem`, Gradle will find the first available tool chain that can build for the specified `architecture`.
 
 The core Gradle tool chains are able to target the following architectures out of the box. In each case, the tool chain will target the current operating system. See the next section for information on cross-compiling for other operating systems.
 
@@ -937,11 +911,7 @@ Gradle initialises the CUnit test registry and executes the tests, utilising som
 include::{snippetsPath}/native-binaries/cunit/groovy/src/operatorsTest/c/suite_operators.c[]
 ----
 
-[NOTE]
-====
-Due to this mechanism, your CUnit sources may not contain a `main` method since this will clash with the method provided by Gradle.
-====
-
+NOTE: Due to this mechanism, your CUnit sources may not contain a `main` method since this will clash with the method provided by Gradle.
 
 [[sec:building_cunit_executables]]
 === Building CUnit executables
@@ -956,11 +926,7 @@ A link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec.h
 include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=configure-test-binary]
 ----
 
-[NOTE]
-====
-Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries. Presently, this library dependency must be provided by your project for each link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec.html[CUnitTestSuiteBinarySpec].
-====
-
+NOTE: Both the CUnit sources provided by your project and the generated launcher require the core CUnit headers and libraries. Presently, this library dependency must be provided by your project for each link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec.html[CUnitTestSuiteBinarySpec].
 
 [[sec:running_cunit_tests]]
 === Running CUnit tests
@@ -981,20 +947,11 @@ include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=complete-e
 include::{snippetsPath}/native-binaries/cunit/tests/completeCUnitExample.out[]
 ----
 
-
-
-[NOTE]
-====
-
-The current support for CUnit is quite rudimentary. Plans for future integration include:
-
-* Allow tests to be declared with Javadoc-style annotations.
-* Improved HTML reporting, similar to that available for JUnit.
-* Real-time feedback for test execution.
+NOTE: The current support for CUnit is quite rudimentary. Plans for future integration include: +
+* Allow tests to be declared with Javadoc-style annotations. +
+* Improved HTML reporting, similar to that available for JUnit. +
+* Real-time feedback for test execution. +
 * Support for additional test frameworks.
-
-====
-
 
 [[native_binaries:google_test]]
 == GoogleTest support
@@ -1020,24 +977,14 @@ A link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestS
 include::{snippetsPath}/native-binaries/google-test/groovy/build.gradle[tag=configure-test-binary]
 ----
 
-
-[NOTE]
-====
-The GoogleTest sources provided by your project require the core GoogleTest headers and libraries. Presently, this library dependency must be provided by your project for each link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec.html[GoogleTestTestSuiteBinarySpec].
-====
-
+NOTE: The GoogleTest sources provided by your project require the core GoogleTest headers and libraries. Presently, this library dependency must be provided by your project for each link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec.html[GoogleTestTestSuiteBinarySpec].
 
 [[sec:running_googletest_tests]]
 === Running GoogleTest tests
 
 For each link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec.html[GoogleTestTestSuiteBinarySpec], Gradle will create a task to execute this binary, which will run all of the registered GoogleTest tests. Test results will be found in the `__${build.dir}__/test-results` directory.
-[NOTE]
-====
 
-The current support for GoogleTest is quite rudimentary. Plans for future integration include:
-
-* Improved HTML reporting, similar to that available for JUnit.
-* Real-time feedback for test execution.
+NOTE: The current support for GoogleTest is quite rudimentary. Plans for future integration include: +
+* Improved HTML reporting, similar to that available for JUnit. +
+* Real-time feedback for test execution. +
 * Support for additional test frameworks.
-
-====

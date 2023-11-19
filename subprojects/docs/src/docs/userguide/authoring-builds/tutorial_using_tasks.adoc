@@ -66,13 +66,8 @@ include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 
 In a command-line shell, move to the containing directory and execute the build script with `gradle -q hello`:
 
-[TIP]
-.What does `-q` do?
-====
-
+TIP: What does `-q` do? +
 Most of the examples in this user guide are run with the `-q` command-line option. This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example output in this user guide a little clearer. You don't need to use this option if you don't want to. See <<logging.adoc#logging,Logging>> for more details about the command-line options which affect Gradle's output.
-
-====
 
 .Execution of a build script
 ====
@@ -269,7 +264,7 @@ This is equivalent to running `gradle clean run`. In a multi-project build every
 [[sec:build_script_external_dependencies]]
 == External dependencies for the build script
 
-NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#plugins,apply plugins>> that come with their own classpath.
+NOTE: Instead of manipulating the script classpath directly, it is recommended to <<plugins.adoc#plugins,apply plugins>> that come with their own classpath. +
 For custom build logic, the recommendation is to <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,use a custom plugin>>.
 
 If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a block which declares the build script classpath.
@@ -303,8 +298,8 @@ For multi-project builds, the dependencies declared with a project's `buildscrip
 
 Build script dependencies may be Gradle plugins. Please consult <<plugins.adoc#plugins,Using Gradle Plugins>> for more information on Gradle plugins.
 
-NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability.
-Some libraries may fail integrity self-checks because of this.
+NOTE: Gradle instruments the bytecode on the build script classpath to provide backward compatibility and improved usability. +
+Some libraries may fail integrity self-checks because of this. +
 In this case, the use of such libraries should be <<configuration_cache#config_cache:requirements:bytecode_modifications_and_isolation,isolated>>.
 
 Every project automatically has a `buildEnvironment` task of type link:{groovyDslPath}/org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.html[BuildEnvironmentReportTask] that can be invoked to report on the resolution of the build script dependencies.

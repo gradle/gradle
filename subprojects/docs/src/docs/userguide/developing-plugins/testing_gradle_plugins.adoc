@@ -183,10 +183,7 @@ the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-pl
 
 === Modeling test types
 
-[NOTE]
-====
-A new configuration DSL for modeling the below `integrationTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
-====
+NOTE: A new configuration DSL for modeling the below `integrationTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
 
 Gradle models source code directories with the help of the <<java_plugin.adoc#source_sets,source set concept>>.
 By pointing an instance of a source set to one or many source code directories, _Gradle will automatically create a corresponding compilation task out-of-the-box_.

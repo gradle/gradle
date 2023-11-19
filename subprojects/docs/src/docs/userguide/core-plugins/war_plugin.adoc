@@ -69,14 +69,11 @@ This configuration should be used for dependencies required at runtime but which
 Dependencies declared here are only visible to the `main` and `test` runtime classpaths.
 
 
-[NOTE]
-====
-It is important to note that these `provided` configurations work transitively.
+NOTE: It is important to note that these `provided` configurations work transitively.
 Let's say you add `commons-httpclient:commons-httpclient:3.0` to any of the provided configurations.
 This dependency has a dependency on `commons-codec`.
 Because this is a "provided" configuration, this means that neither of these dependencies will be added to your WAR, even if the `commons-codec` library is an explicit dependency of your `implementation` configuration.
 If you don't want this transitive behavior, simply declare your `provided` dependencies like `commons-httpclient:commons-httpclient:3.0@jar`.
-====
 
 [[sec:war_plugin_publishing]]
 == Publishing

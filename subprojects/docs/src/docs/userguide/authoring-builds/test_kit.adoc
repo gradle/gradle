@@ -80,12 +80,9 @@ It is a common practice to implement any custom build logic (like plugins and ta
 
 The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
 
-[NOTE]
-====
-GradleRunner supports the same range of Gradle versions as the Tooling API.
-The supported versions are defined in the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>.
+NOTE: GradleRunner supports the same range of Gradle versions as the Tooling API. +
+The supported versions are defined in the <<third_party_integration.adoc#sec:embedding_compatibility,compatibility matrix>>. +
 Builds with older Gradle versions _may_ still work but there are no guarantees.
-====
 
 Starting with version 2.13, Gradle provides a conventional mechanism to inject the code under test into the test build.
 
@@ -125,10 +122,7 @@ include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/groovy/src
 
 The following build script demonstrates how to reconfigure the conventions provided by the Java Gradle Plugin Development plugin for a project that uses a custom `Test` source set.
 
-[NOTE]
-====
-A new configuration DSL for modeling the below `functionalTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
-====
+NOTE: A new configuration DSL for modeling the below `functionalTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
 
 .Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
 ====

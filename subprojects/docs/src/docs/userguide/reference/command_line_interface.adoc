@@ -61,11 +61,8 @@ gradle --help
 gradle -h
 ----
 
-[NOTE]
-====
-Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed.
+NOTE: Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed.
 See the <<build_environment.adoc#sec:gradle_configuration_properties, Configuring build environment guide>> for details.
-====
 
 == Command-line usage
 
@@ -133,10 +130,7 @@ The following command runs the `test` task for all subprojects when invoked from
 $ gradle test
 ----
 
-[NOTE]
-====
-Some tasks selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects.
-====
+NOTE: Some tasks selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects.
 
 When invoking Gradle from within a subproject, the project name should be omitted:
 
@@ -147,10 +141,7 @@ $ cd subproject
 $ gradle taskName
 ----
 
-[TIP]
-====
-When executing the Gradle Wrapper from a subproject directory, reference `gradlew` relatively. For example: `../gradlew taskName`.
-====
+TIP: When executing the Gradle Wrapper from a subproject directory, reference `gradlew` relatively. For example: `../gradlew taskName`.
 
 === Executing multiple tasks
 You can also specify multiple tasks.
@@ -222,11 +213,8 @@ When executed with `--continue`, Gradle executes _every_ task in the build if al
 For example, tests do not run if there is a compilation error in the code under test because the `test` task depends on the `compilation` task.
 Gradle outputs each of the encountered failures at the end of the build.
 
-[NOTE]
-====
-If any tests fail, many test suites fail the entire `test` task.
+NOTE: If any tests fail, many test suites fail the entire `test` task.
 Code coverage and reporting tools frequently run after the test task, so "fail fast" behavior may halt execution before those tools run.
-====
 
 [[sec:name_abbreviation]]
 === Name abbreviation

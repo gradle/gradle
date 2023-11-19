@@ -15,14 +15,11 @@
 [[resolution_rules]]
 = Customizing resolution of a dependency directly
 
-[WARNING]
-====
-This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
+WARNING: This section covers mechanisms Gradle offers to directly influence the behavior of the dependency resolution engine.
 In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> or <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
 Because of this, they can be seen as _brute force_ solutions, that may hide future problems (e.g. if new dependencies are added).
 Therefore, the general advice is to only use the following mechanisms if other means are not sufficient.
 If you are authoring a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, you should always prefer <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> as they are published for your consumers.
-====
 
 [[sec:dependency_resolve_rules]]
 == Using dependency resolve rules
@@ -69,12 +66,9 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-resolut
 include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
-[NOTE]
-====
-There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
+NOTE: There's a difference with using the _reject_ directive of <<rich_versions.adoc#rich-version-constraints,rich version constraints>>: rich versions will cause the build to fail if a rejected version is found in the graph, or select a non rejected version when using dynamic dependencies.
 Here, we _manipulate the requested versions_ in order to select a different version when we find a rejected one.
 In other words, this is a _solution_ to rejected versions, while rich version constraints allow declaring the _intent_ (you should not use this version).
-====
 
 [[sec:module_replacement]]
 == Using module replacement rules
@@ -244,11 +238,8 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-attribu
 
 Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
 
-[WARNING]
-====
-In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes.
+WARNING: In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes.
 In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
-====
 
 [[sec:substitution_with_capabilities]]
 ==== Substituting a dependency with a dependency with capabilities
@@ -268,10 +259,7 @@ Capabilities which are declared in a substitution rule on the requested dependen
 
 Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
 
-[WARNING]
-====
-In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
-====
+WARNING: In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency capabilities is not applied: when using composites, Gradle will automatically match the requested capabilities. In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
 
 [[sec:substitution_with_classifier]]
 === Substituting a dependency with a classifier or artifact
@@ -343,10 +331,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
 ====
 
-[NOTE]
-====
-Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
-====
+NOTE: Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
 
 A project can decide to disable transitive dependency resolution completely.
 You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph.

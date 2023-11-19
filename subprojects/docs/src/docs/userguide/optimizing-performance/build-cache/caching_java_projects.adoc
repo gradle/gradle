@@ -42,12 +42,9 @@ The easiest way to avoid this performance penalty is to not use annotation proce
 However, if you need to use them, make sure you set the annotation processor classpath explicitly to include only the libraries needed for annotation processing.
 The <<java_plugin.adoc#sec:java_compile_avoidance,section on Java compile avoidance>> describes how to do this.
 
-[NOTE]
-====
-Some common Java dependencies (such as Log4j 2.x) come bundled with annotation processors.
+NOTE: Some common Java dependencies (such as Log4j 2.x) come bundled with annotation processors.
 If you use these dependencies, but do not leverage the features of the bundled annotation processors, it's best to disable annotation processing entirely.
 This can be done by setting the annotation processor classpath to an empty set.
-====
 
 == Unit test execution
 

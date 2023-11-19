@@ -87,10 +87,7 @@ include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradl
 include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=pmd-threads]"]
 ====
 
-[NOTE]
-====
-This configuration is internal to PMD and is not linked to <<performance#parallel_execution,the number of workers>> used by Gradle.
+NOTE: This configuration is internal to PMD and is not linked to <<performance#parallel_execution,the number of workers>> used by Gradle.
 It means that you have to pay attention to the value entered here and make sure it still makes sense in a multi project build.
 This is because parallel Gradle task execution could result in different PMD tasks from different projects running in parallel.
 If multiple PMD tasks execute simultaneously in n projects, then up to a maximum of (n * `thread`) PMD threads could run at the same time.
-====

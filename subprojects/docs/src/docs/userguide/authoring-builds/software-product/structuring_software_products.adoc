@@ -33,8 +33,7 @@ Still, to exemplify these features, we explore a sample project with the followi
 
 image::software_architecture.png[]
 
-[NOTE]
-You can download link:../samples/sample_structuring_software_projects.html[the full sample] to explore, build and run it.
+NOTE: You can download link:../samples/sample_structuring_software_projects.html[the full sample] to explore, build and run it.
 
 The structure follows a typical setup that can be found in similar form in many commonly used software architectures.
 
@@ -62,10 +61,8 @@ By that, it defines the constraints for the environments – that is, _the platf
 doing automated end-to-end testing as part of that.
 Basically, this is the part of the build that is not required on local development machines.
 
-[NOTE]
-The domain of our example is to build a tool to inform people about link:https://gradle.org/releases/[Gradle Build Tool releases].
-Concretely, the application lists Gradle releases with links to release notes (_user_ feature) and
-offers an administration interface for the range of releases to be listed (_admin_ feature).
+NOTE: The domain of our example is to build a tool to inform people about link:https://gradle.org/releases/[Gradle Build Tool releases]. +
+Concretely, the application lists Gradle releases with links to release notes (_user_ feature) and offers an administration interface for the range of releases to be listed (_admin_ feature).
 
 == Reflecting software architecture in project structure
 

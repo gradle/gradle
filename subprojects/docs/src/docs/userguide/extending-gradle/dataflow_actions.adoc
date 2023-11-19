@@ -15,10 +15,7 @@
 [[dataflow_action]]
 = Dataflow Actions
 
-[NOTE]
-====
-The dataflow actions support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
-====
+NOTE: The dataflow actions support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
 
 A preferred way of executing work in a Gradle build is using a task.
 However, there are some kinds of work that do not fit tasks well, for example, custom handling of the build failure.

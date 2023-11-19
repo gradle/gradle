@@ -63,10 +63,7 @@ In the event you still need to get access to a Task instance, you can use link:{
 [[sec:how_do_i_order_tasks]]
 === How do I order tasks with configuration avoidance in mind?
 
-[NOTE]
-====
-Calling ordering methods will not cause task creation by itself. All these methods do is declare relationships. However, it's important to note, that the existence of these relationships might indirectly cause task creation in later stages of the build process.
-====
+NOTE: Calling ordering methods will not cause task creation by itself. All these methods do is declare relationships. However, it's important to note, that the existence of these relationships might indirectly cause task creation in later stages of the build process.
 
 When task relationships need to be established (i.e. `dependsOn`, `finalizedBy`, `mustRunAfter`, `shouldRunAfter`), a distinction can be made between soft, and strong relationships, as their effects on task creation in configuration time differ:
 
@@ -189,10 +186,7 @@ The first part of the migration process is to go through the code and manually m
 The following explores the recommended steps for a successful migration.
 While going through these steps, keep in mind <<#sec:task_configuration_avoidance_general, the guidelines>> above.
 
-[NOTE]
-====
-Using the new API in a plugin will require users to use Gradle 4.9 or later. Plugin authors should refer to <<#sec:task_configuration_avoidance_backward_compatibility_migration>> section.
-====
+NOTE: Using the new API in a plugin will require users to use Gradle 4.9 or later. Plugin authors should refer to <<#sec:task_configuration_avoidance_backward_compatibility_migration>> section.
 
 1. **Migrate task configuration that affects all tasks (`tasks.all {}`) or subsets by type (`tasks.withType(...) {}`).**
 This will cause your build to eagerly create fewer tasks that are registered by plugins.
@@ -362,10 +356,7 @@ task anEagerTask {
 
 This section describes two ways to keep your plugin backward compatible with older version of Gradle if you must maintain compatibility with versions of Gradle older than 4.9. Most of the new API methods are available starting with Gradle 4.9.
 
-[NOTE]
-====
-Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner. This will reduce your maintenance burden.
-====
+NOTE: Although backward compatibility is good for users, we still recommended to upgrade to newer Gradle releases in a timely manner. This will reduce your maintenance burden.
 
 The first method to maintain compatibility is to compile your plugin against the Gradle 4.9 API and conditionally call the right APIs with Groovy (https://github.com/melix/jmh-gradle-plugin/blob/a034aa88805b7a06fa9c5a825d573554b2aa23e2/src/main/groovy/me/champeau/gradle/JMHPlugin.groovy#L289-L296[example]).
 
@@ -376,13 +367,10 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 [[sec:old_vs_new_configuration_api_overview]]
 == Old vs New API overview
 
-[NOTE]
-====
 * Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 * More convenience methods may be added in the future based on user feedback.
 * Some old API methods may never have a direct replacement in the new API.
 * Some APIs may be restricted when accessed in a configuration action registered via the configuration avoidance methods.
-====
 
 [cols="a,a", options="header"]
 |===

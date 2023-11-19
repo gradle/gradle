@@ -19,8 +19,6 @@ Working with external dependencies and plugins published on third-party reposito
 In particular, you need to be aware of what binaries are brought in transitively and if they are legit.
 To mitigate the security risks and avoid integrating compromised dependencies in your project, Gradle supports _dependency verification_.
 
-[IMPORTANT]
-====
 Dependency verification is, by nature, an inconvenient feature to use.
 It means that whenever you're going to update a dependency, builds are likely to fail.
 It means that merging branches are going to be harder because each branch can have different dependencies.
@@ -36,7 +34,6 @@ Dependency verification is meant to protect yourself from those attacks, by forc
 It is not meant, however, to prevent you from including _vulnerable_ dependencies.
 
 Finding the right balance between security and convenience is hard but Gradle will try to let you choose the "right level" for you.
-====
 
 Dependency verification consists of two different and complementary operations:
 
@@ -58,11 +55,8 @@ This feature can be used for:
 [[sub:verification-metadata]]
 === The verification metadata file
 
-[NOTE]
-====
-Currently the only source of dependency verification metadata is this XML configuration file.
+NOTE: Currently the only source of dependency verification metadata is this XML configuration file.
 Future versions of Gradle may include other sources (for example via external services).
-====
 
 Dependency verification is automatically enabled once the configuration file for dependency verification is discovered.
 This configuration file is located at `$PROJECT_ROOT/gradle/verification-metadata.xml`.
@@ -151,8 +145,6 @@ Executing this command line will cause Gradle to:
 
 As a consequence, the `verification-metadata.xml` file will be used in subsequent builds to verify dependencies.
 
-[WARNING]
-====
 There are dependencies that Gradle _cannot_ discover this way.
 In particular, you will notice that the CLI above uses the `help` task.
 If you don't specify any task, Gradle will automatically run the default task and generate a configuration file at the end of the build too.
@@ -164,7 +156,6 @@ A good way to start is just to use the simplest task, `help`, which will discove
 
 Gradle won't verify either checksums or signatures of plugins which use their own HTTP clients.
 Only plugins which use the infrastructure provided by Gradle for performing requests will see their requests verified.
-====
 
 [[sec:verification-update]]
 === Using generation for incremental updates
@@ -195,10 +186,7 @@ gradle --write-verification-metadata sha256 help --dry-run
 
 Then instead of generating the `verification-metadata.xml` file, a _new file_ will be generated, called `verification-metadata.dryrun.xml`.
 
-[NOTE]
-====
-Because `--dry-run` doesn't execute tasks, this would be much faster, but it will miss any resolution happening at task execution time.
-====
+NOTE: Because `--dry-run` doesn't execute tasks, this would be much faster, but it will miss any resolution happening at task execution time.
 
 [[sec:disabling-metadata-verification]]
 === Disabling metadata verification
@@ -331,13 +319,10 @@ Signatures are used to assess the _provenance_ of a dependency (it tells who sig
 
 As enabling signature verification usually means a higher level of security, you might want to replace checksum verification with signature verification.
 
-[WARNING]
-====
-Signatures _can_ also be used to assess the integrity of a dependency similarly to checksums.
+WARNING: Signatures _can_ also be used to assess the integrity of a dependency similarly to checksums.
 Signatures are signatures of the _hash_ of artifacts, not artifacts themselves.
 This means that if the signature is done on an _unsafe hash_ (even SHA1), then you're not correctly assessing the _integrity_ of a file.
 For this reason, if you care about both, you need to add both signatures _and_ checksums to your verification metadata.
-====
 
 However:
 
@@ -347,13 +332,9 @@ However:
 
 As a consequence, signature verification will often be used alongside checksum verification.
 
-[NOTE]
-.About expired keys
-====
-It's very common to find artifacts which are signed with an expired key.
+NOTE: It's very common to find artifacts which are signed with an expired key.
 This is not a problem for _verification_: key expiry is mostly used to avoid signing with a stolen key.
 If an artifact was signed before expiry, it's still valid.
-====
 
 === Enabling signature verification
 
@@ -404,15 +385,10 @@ In practice, it means you need to list the keys that you trust for each artifact
 </component>
 ----
 
-[WARNING]
-====
-For the `pgp` and `trusted-key` elements, Gradle _requires_ full fingerprint IDs (e.g. `b801e2f8ef035068ec1139cc29579f18fa8fd93b` instead of a long ID `29579f18fa8fd93b`) .
-This minimizes the chance of a https://en.wikipedia.org/wiki/Collision_attack[collision attack].
-
-At the time, https://www.rfc-editor.org/rfc/rfc4880#section-12.2[V4 key fingerprints] are of 160-bit (40 characters) length. We accept longer keys to be future-proof in case a longer key fingerprint is introduced.
-
+WARNING: For the `pgp` and `trusted-key` elements, Gradle _requires_ full fingerprint IDs (e.g. `b801e2f8ef035068ec1139cc29579f18fa8fd93b` instead of a long ID `29579f18fa8fd93b`).
+This minimizes the chance of a https://en.wikipedia.org/wiki/Collision_attack[collision attack]. +
+At the time, https://www.rfc-editor.org/rfc/rfc4880#section-12.2[V4 key fingerprints] are of 160-bit (40 characters) length. We accept longer keys to be future-proof in case a longer key fingerprint is introduced. +
 In `ignore-key` elements, either fingerprints or long (64-bit) IDs can be used. A shorter ID can only result in a bigger range of exclusion, therefore, it's safe to use.
-====
 
 This effectively means that you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with the key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
 
@@ -423,12 +399,9 @@ Without this, the build would fail with this error:
     - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
 ----
 
-[NOTE]
-====
-The key IDs that Gradle shows in error messages are the key IDs found in the signature file it tries to verify.
+NOTE: The key IDs that Gradle shows in error messages are the key IDs found in the signature file it tries to verify.
 It doesn't mean that it's necessarily the keys that you should trust.
 In particular, if the signature is correct but done by a malicious entity, Gradle wouldn't tell you.
-====
 
 [[sec:trusting-keys-globally]]
 === Trusting keys globally
@@ -464,9 +437,9 @@ The `trusted-key` element works similarly to the <<sec:trusting-artifacts,truste
 - `file`, the name of the artifact _file_ to trust
 - `regex`, a boolean saying if the `group`, `name`, `version` and `file` attributes need to be interpreted as regular expressions (defaults to `false`)
 
-[WARNING]
-====
-You should be careful when trusting a key globally: try to limit it to the appropriate groups or artifacts:
+WARNING: You should be careful when trusting a key globally.
+
+Try to limit it to the appropriate groups or artifacts:
 
 - a valid key may have been used to sign artifact `A` which you trust
 - later on, the key is stolen and used to sign artifact `B`
@@ -476,7 +449,6 @@ It means you can trust the key `A` for the first artifact, probably only up to t
 Remember that anybody can put an arbitrary name when generating a PGP key, so never trust the key solely based on the key name.
 Verify if the key is listed at the official site.
 For example, Apache projects typically provide a KEYS.txt file that you can trust.
-====
 
 [[sec:ignoring-keys]]
 === Specifying key servers and ignoring keys
@@ -608,8 +580,6 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
 ----
 
-[NOTE]
-====
 Unless `keyring-format` is specified, this command will generate *both* the binary version and the ASCII-armored file.
 Use this option to choose the preferred format.
 You should only pick one for your project.
@@ -621,26 +591,19 @@ If you use git and use the binary version, make sure to make it treat this file 
 *.gpg           binary
 ----
 
-====
-
 You can also ask Gradle to export all trusted keys without updating the verification metadata file:
 
 ----
 ./gradlew --export-keys
 ----
 
-[NOTE]
-====
-This command will not report verification errors, only export keys.
-====
+NOTE: This command will not report verification errors, only export keys.
+
 [[sec:bootstrapping-signature-verification]]
 === Bootstrapping and signature verification
 
-[WARNING]
-====
-Signature verification bootstrapping takes an _optimistic point of view_ that signature verification is _enough_.
+WARNING: Signature verification bootstrapping takes an _optimistic point of view_ that signature verification is _enough_.
 Therefore, if you also care about _integrity_, you **must** first bootstrap using checksum verification, _then_ with signature verification.
-====
 
 Similarly to bootstrapping for checksums, Gradle provides a convenience for bootstrapping a configuration file with signature verification enabled.
 For this, just add the `pgp` option to the list of verifications to generate.
@@ -951,11 +914,8 @@ org.gradle.dependency.verification=lenient
 You might want to trust some artifacts more than others.
 For example, it's legitimate to think that artifacts produced in your company and found in your internal repository only are safe, but you want to check every external component.
 
-[NOTE]
-====
-This is a typical _company policy_.
+NOTE: This is a typical _company policy_.
 In practice, **nothing** prevents your internal repository from being compromised, so it's a good idea to check your internal artifacts too!
-====
 
 For this purpose, Gradle offers a way to automatically trust some artifacts.
 You can trust all artifacts in a group by adding this to your configuration:
@@ -1074,12 +1034,9 @@ This will ensure, for example, that you trust all the plugins you use.
 However, the plugins themselves may need to resolve additional dependencies that it doesn't make sense to ask the user to accept.
 For this purpose, Gradle provides an API which allows _disabling dependency verification on some specific configurations_.
 
-[WARNING]
-====
-Disabling dependency verification, if you care about security, is not a good idea.
+WARNING: Disabling dependency verification, if you care about security, is not a good idea.
 This API mostly exist for cases where it doesn't make sense to check dependencies.
 However, in order to be on the safe side, Gradle will systematically print a warning whenever verification has been disabled for a specific configuration.
-====
 
 As an example, a plugin may want to check if there are _newer_ versions of a library available and list those versions.
 It doesn't make sense, in this context, to ask the user to put the checksums of the POM files of the newer releases because by definition, they don't know about them.

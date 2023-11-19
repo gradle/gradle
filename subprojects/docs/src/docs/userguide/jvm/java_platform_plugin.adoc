@@ -31,11 +31,8 @@ it is only used to reference other libraries, so that they play well together du
 
 Platforms can be published as {metadata-file-spec}[Gradle Module Metadata] and {maven-bom}[Maven BOMs].
 
-[NOTE]
-====
-The `java-platform` plugin cannot be used in combination with the `java` or `java-library` plugins in a given project.
+NOTE: The `java-platform` plugin cannot be used in combination with the `java` or `java-library` plugins in a given project.
 Conceptually a project is either a platform, with no binaries, _or_ produces binaries.
-====
 
 [[sec:java_platform_usage]]
 == Usage
@@ -68,11 +65,8 @@ Note that this example makes use of _constraints_ and not dependencies.
 In general, this is what you would like to do: constraints will only apply if such a component is added to the dependency graph, either directly or transitively.
 This means that all constraints listed in a platform would not add a dependency unless another component brings it in: they can be seen as _recommendations_.
 
-[NOTE]
-====
-For example, if a platform declares a constraint on `org:foo:1.1`, and that nothing else brings in a dependency on `foo`, `foo` will _not_ appear in the graph.
+NOTE: For example, if a platform declares a constraint on `org:foo:1.1`, and that nothing else brings in a dependency on `foo`, `foo` will _not_ appear in the graph.
 However, if `foo` appears, then usual conflict resolution would kick in. If a dependency brings in `org:foo:1.0`, then we would select `org:foo:1.1` to satisfy the platform constraint.
-====
 
 By default, in order to avoid the common mistake of adding a dependency in a platform instead of a constraint, Gradle will fail if you try to do so.
 If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:

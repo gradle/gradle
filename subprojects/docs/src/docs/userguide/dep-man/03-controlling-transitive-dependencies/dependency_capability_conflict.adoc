@@ -54,13 +54,10 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 Now the build is going to _fail_ whenever the two components are found in the same dependency graph.
 
-[NOTE]
-====
-At this stage, Gradle will _only_ make more builds fail.
+NOTE: At this stage, Gradle will _only_ make more builds fail.
 It will **not** automatically fix the problem for you, but it helps you realize that you have a problem.
 It is recommended to write such rules in _plugins_ which are then applied to your builds.
 Then, users _have to_ express their preferences, if possible, or fix the problem of having incompatible things on the classpath, as explained in the following section.
-====
 
 [[sub:selecting-between-candidates]]
 == Selecting between candidates
@@ -97,8 +94,6 @@ bindings are basically different logger implementations and you need only one.
 However, the selected implementation may depend on the configuration being resolved.
 For example, for tests, `slf4j-simple` may be enough but for production, `slf4-over-log4j` may be better.
 
-[NOTE]
-====
 Resolution can only be made in favor of a module _found_ in the graph.
 
 The `select` method only accepts a module found in the _current_ candidates.
@@ -108,6 +103,5 @@ It might be that another conflict exists in the graph for the same capability an
 If no resolution is given for all conflicts on a given capability, the build will fail given the module chosen for resolution was not part of the graph at all.
 
 In addition `select(null)` will result in an error and so should be avoided.
-====
 
 For more information, check out the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[the capabilities resolution API].

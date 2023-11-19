@@ -236,27 +236,19 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="setti
 In addition to plugins written as standalone projects, Gradle also allows you to provide build logic written in either Groovy or Kotlin DSLs as precompiled script plugins. You write these as `\*.gradle` files in `src/main/groovy`
 directory or `*.gradle.kts` files in `src/main/kotlin` directory.
 
-[WARNING]
-====
-Precompiled script plugin names have two important limitations:
-
-* They cannot start with `org.gradle`.
-* They cannot have the same name as a built-in plugin id.
-
+WARNING: Precompiled script plugin names have two important limitations: +
+* They cannot start with `org.gradle`. +
+* They cannot have the same name as a built-in plugin id. +
 This ensures that the precompiled script plugins won't be silently ignored.
-====
 
 Precompiled script plugins are compiled into class files and packaged into a jar. For all intents and purposes, they are binary plugins and can be applied by plugin ID, tested and published as binary plugins. In fact, the plugin metadata for
 them is generated using the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
-[NOTE]
-====
 Kotlin DSL precompiled script plugins built with Gradle 6.0 cannot be used with earlier versions of Gradle.
 This limitation will be lifted in a future version of Gradle.
 
 Groovy DSL precompiled script plugins are available starting with Gradle 6.4.
 Groovy DSL precompiled script plugins can be applied in projects that use Gradle 5.0 and later.
-====
 
 [.multi-language-text.lang-kotlin]
 To apply a precompiled script plugin, you need to know its ID which is derived from the plugin script's

@@ -129,10 +129,7 @@ If you run the command from the _services_ project directory, you will only exec
 The basic rule behind Gradle's behavior is to *execute all tasks down the hierarchy with _this_ name*.
 And *complain if there is _no_ such task found* in any of the subprojects traversed.
 
-[NOTE]
-====
-Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
-====
+NOTE: Some task selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects to reduce the amount of information printed on the screen.
 
 [[sec:executing_tasks_by_fully_qualified_name]]
 === Executing tasks by fully qualified name

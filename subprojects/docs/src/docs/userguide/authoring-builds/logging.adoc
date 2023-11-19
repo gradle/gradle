@@ -28,13 +28,7 @@ LIFECYCLE:: Progress information messages
 INFO:: Information messages
 DEBUG:: Debug messages
 
-[NOTE]
-====
-
-The rich components of the console (build status and work in progress area) are displayed regardless of the log level used. Before Gradle 4.0 those rich components were only displayed at log level `LIFECYCLE` or below.
-
-====
-
+NOTE: The rich components of the console (build status and work in progress area) are displayed regardless of the log level used. Before Gradle 4.0 those rich components were only displayed at log level `LIFECYCLE` or below.
 
 [[sec:choosing_a_log_level]]
 == Choosing a log level
@@ -53,12 +47,7 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 | `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
 
-[CAUTION]
-====
-
-The `DEBUG` log level can <<#sec:debug_security, expose security sensitive information to the console>>.
-
-====
+CAUTION: The `DEBUG` log level can <<#sec:debug_security, expose security sensitive information to the console>>.
 
 [[stacktraces]]
 
@@ -154,12 +143,10 @@ Gradle also provides integration with the Java Util Logging, Jakarta Commons Log
 
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
-[WARNING]
-====
-The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
+
+WARNING: The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
 The custom logger can only implement <<configuration_cache.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
 These interfaces do not receive events when the configuration cache entry is reused, because the whole configuration phase is skipped.
-====
 
 You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
 

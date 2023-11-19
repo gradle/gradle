@@ -54,10 +54,7 @@ Dependencies appearing in the `api` configurations will be transitively exposed 
 * less recompilations when implementation dependencies change: consumers would not need to be recompiled
 * cleaner publishing: when used in conjunction with the new `maven-publish` plugin, Java libraries produce POM files that distinguish exactly between what is required to compile against the library and what is required to use the library at runtime (in other words, don't mix what is needed to compile the library itself and what is needed to compile against the library).
 
-[NOTE]
-====
-The `compile` and `runtime` configurations have been removed with Gradle 7.0. Please refer to the <<upgrading_version_6.adoc#sec:configuration_removal, upgrade guide>> how to migrate to `implementation` and `api` configurations`.
-====
+NOTE: The `compile` and `runtime` configurations have been removed with Gradle 7.0. Please refer to the <<upgrading_version_6.adoc#sec:configuration_removal, upgrade guide>> how to migrate to `implementation` and `api` configurations`.
 
 If your build consumes a published module with POM metadata, the Java and Java Library plugins both honor api and implementation separation through the scopes used in the POM.
 Meaning that the compile classpath only includes Maven `compile` scoped dependencies, while the runtime classpath adds the Maven `runtime` scoped dependencies as well.
@@ -70,10 +67,7 @@ However, as mentioned above, if the library is published with Gradle, the produc
 
 If your build consumes modules with Ivy metadata, you might be able to activate api and implementation separation as described <<variant_model.adoc#sub:ivy-mapping-to-variants,here>> if all modules follow a certain structure.
 
-[NOTE]
-====
-Separating compile and runtime scope of modules is active by default in Gradle 5.0+. In Gradle 4.6+, you need to activate it by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
-====
+NOTE: Separating compile and runtime scope of modules is active by default in Gradle 5.0+. In Gradle 4.6+, you need to activate it by adding `enableFeaturePreview('IMPROVED_POM_SUPPORT')` in _settings.gradle_.
 
 [[sec:java_library_recognizing_dependencies]]
 == Recognizing API and implementation dependencies
@@ -389,12 +383,9 @@ include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kt
 include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
 ====
 
-[NOTE]
-====
-You can define an automatic module as part of a multi-project that otherwise defines real modules (e.g. as an adapter to another library).
+NOTE: You can define an automatic module as part of a multi-project that otherwise defines real modules (e.g. as an adapter to another library).
 While this works fine in the Gradle build, such automatic module projects are not correctly recognized by IDEA/Eclipse at the moment.
 You can work around it by manually adding the Jar built for the automatic module to the dependencies of the project that does not find it in the IDE's UI.
-====
 
 [[sec:java_library_classes_usage]]
 == Using classes instead of jar for compilation
@@ -402,11 +393,8 @@ You can work around it by manually adding the Jar built for the automatic module
 A feature of the `java-library` plugin is that projects which consume the library only require the classes folder for compilation, instead of the full JAR.
 This enables lighter inter-project dependencies as resources processing (`processResources` task) and archive construction (`jar` task) are no longer executed when only Java code compilation is performed during development.
 
-[NOTE]
-====
-The usage or not of the classes output instead of the JAR is a _consumer_ decision.
+NOTE: The usage or not of the classes output instead of the JAR is a _consumer_ decision.
 For example, Groovy consumers will request classes _and_ processed resources as these may be needed for executing AST transformation as part of the compilation process.
-====
 
 [[sub:java_library_known_issues_memory]]
 === Increased memory usage for consumers

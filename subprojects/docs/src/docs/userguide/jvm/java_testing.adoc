@@ -29,10 +29,7 @@ It explains:
 
 But first, let's look at the basics of JVM testing in Gradle.
 
-[NOTE]
-====
-A new configuration DSL for modeling test execution phases is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
-====
+NOTE: A new configuration DSL for modeling test execution phases is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
 
 [[sec:java_testing_basics]]
 == The basics
@@ -99,17 +96,12 @@ If this property is `true`, Gradle will simulate the execution of the tests with
 You can also enable this behavior by using the `--test-dry-run` command-line option, or disable it respectively with `--no-test-dry-run`.
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
-[NOTE]
-====
 
 The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start. Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.
 
 For example, issues may occur if a `{javaApi}/java/lang/SecurityManager.html[SecurityManager]` is modified in a test because
 Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. In this particular case, you should restore the original `SecurityManager` after the test so that the
 gradle test worker process can continue to function.
-
-====
-
 
 [[test_filtering]]
 == Test filtering
@@ -139,11 +131,8 @@ For more details and examples of declaring filters in the build script, please s
 
 The command-line option is especially useful to execute a single test method. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. It is also possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command-line option.
 
-[NOTE]
-====
-Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
+NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
 However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
-====
 
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
@@ -212,10 +201,7 @@ The `Test` task generates the following results by default:
 
 In most cases, you'll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
 
-[NOTE]
-====
-To aggregate test results across multiple subprojects, see the <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation Plugin>>.
-====
+NOTE: To aggregate test results across multiple subprojects, see the <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation Plugin>>.
 
 Unlike with many of the testing configuration options, there are several project-level <<java_plugin.adoc#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
@@ -343,10 +329,7 @@ If you don't want to use test class detection, you can disable it by setting the
 
 If `scanForTestClasses` is false and no include or exclude patterns are specified, Gradle defaults to running any class that matches the patterns `+**/*Tests.class+` and `+**/*Test.class+`, excluding those that match `+**/Abstract*.class+`.
 
-[NOTE]
-====
-With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes` and `excludes` are used to filter test classes — `scanForTestClasses` has no effect.
-====
+NOTE: With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes` and `excludes` are used to filter test classes — `scanForTestClasses` has no effect.
 
 [[sec:test_logging]]
 == Test logging
@@ -380,10 +363,7 @@ link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.htm
 
 JUnit, JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
-[NOTE]
-====
-This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).  For dividing test classes based upon their purpose, see the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
-====
+NOTE: This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).  For dividing test classes based upon their purpose, see the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
 
 JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useJUnit(org.gradle.api.Action)[Test.useJUnit(org.gradle.api.Action)] allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
 
@@ -533,10 +513,7 @@ This will set up a new source set called `intTest` that automatically creates:
  * `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <<java_plugin.adoc#java_source_set_configurations, a few others>> that are less commonly needed)
  * A `compileIntTestJava` task that will compile all the source files under _src/intTest/java_
 
-[NOTE]
-====
-If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in the <<idea_plugin.adoc#sec:idea_identify_additional_source_sets,Idea Plugin>> documentation.
-====
+NOTE: If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in the <<idea_plugin.adoc#sec:idea_identify_additional_source_sets,Idea Plugin>> documentation.
 
 The example also does the following, not all of which you may need for your specific integration tests:
 
@@ -586,14 +563,11 @@ This means, all dependencies, including Jars with module information, are put on
 The advantage is that all internal classes of your (or other) modules are then accessible directly in tests.
 This may be a totally valid setup for unit testing, where we do not care about the larger module structure, but only about testing single functions.
 
-[NOTE]
-====
-If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see <<#sec:java_testing_modular_patching,below>>).
+NOTE: If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see <<#sec:java_testing_modular_patching,below>>).
 In an imported Gradle project, unit testing a module with the Eclipse test runner might fail.
 You then need to manually adjust the classpath/module path in the test run configuration or delegate test execution to Gradle.
 This only concerns the test execution.
 Unit test compilation and development works fine in Eclipse.
-====
 
 === Blackbox integration testing
 
@@ -603,11 +577,8 @@ by adding a `module-info.java` file to the corresponding source set (e.g. `integ
 
 You can find a full example that includes blackbox integration tests link:../samples/sample_java_modules_multi_project_with_integration_tests.html[here].
 
-[NOTE]
-====
-In Eclipse, compiling multiple modules in one project is https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[currently not support].
+NOTE: In Eclipse, compiling multiple modules in one project is https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[currently not support].
 Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.
-====
 
 [[sec:java_testing_modular_patching]]
 === Whitebox test execution with module patching
@@ -630,11 +601,8 @@ include::sample[dir="snippets/testing/patch-module/kotlin",files="build.gradle.k
 include::sample[dir="snippets/testing/patch-module/groovy",files="build.gradle[tags=patchArgs]"]
 ====
 
-[NOTE]
-====
-If custom arguments are used for patching, these are not picked up by Eclipse and IDEA.
+NOTE: If custom arguments are used for patching, these are not picked up by Eclipse and IDEA.
 You will most likely see invalid compilation errors in the IDE.
-====
 
 [[sec:skipping_java_tests]]
 == Skipping the tests
@@ -778,10 +746,7 @@ include::{snippetsPath}/java/fixtures/tests/dependencyInsight.out[]
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
 That's because by convention, for projects that use the `java-test-fixtures` plugin, Gradle automatically creates test fixtures variants with a capability whose name is the name of the main component, with the appendix `-test-fixtures`.
 
-[NOTE]
-====
-If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
-====
+NOTE: If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
 
 .Disable publishing of test fixtures variants
 ====

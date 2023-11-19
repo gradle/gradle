@@ -44,10 +44,7 @@ There are now two ways to collect test results across multiple subprojects:
 
 Example 2 could also be used to aggregate results via the root project.
 
-[WARNING]
-====
-The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
-====
+WARNING: The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
 
 [[sec:test_report_aggregation_tasks]]
 == Tasks
@@ -73,10 +70,7 @@ More information about the variants produced by test execution are available in 
 
 == Reports
 
-[IMPORTANT]
-====
-By default, Gradle stops executing tasks when any task fails -- including test failures. To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command. For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
-====
+IMPORTANT: By default, Gradle stops executing tasks when any task fails -- including test failures. To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command. For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
 
 === Automatic report creation
 

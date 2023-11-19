@@ -262,10 +262,7 @@ This API differs from the top-level `dependencies` block in the following ways:
 The `dependencies` block within a test suite may not provide access to the same methods as the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[top-level `dependencies` block].
 To access these methods, you need to use the top-level `dependencies` block.
 
-[NOTE]
-====
-Adding dependencies via the test suite's own `dependencies` block is the preferred and recommended way. You can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite, but the exact names of the configurations used by test suites should be considered an implementation detail subject to change.
-====
+NOTE: Adding dependencies via the test suite's own `dependencies` block is the preferred and recommended way. You can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite, but the exact names of the configurations used by test suites should be considered an implementation detail subject to change.
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 

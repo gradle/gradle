@@ -178,11 +178,8 @@ Missing task outputs can cause build failures if Gradle does not completely capt
 Wrongly declared task inputs can lead to cache misses especially when containing volatile data or absolute paths.
 (See <<incremental_build.adoc#sec:task_inputs_outputs,the section called "Task inputs and outputs">> on what should be declared as inputs and outputs.)
 
-[NOTE]
-====
-The task path is _not_ an input to the build cache key.
+NOTE: The task path is _not_ an input to the build cache key.
 This means that tasks with different task paths can re-use each other's outputs as long as Gradle determines that executing them yields the same result.
-====
 
 In order to ensure that the inputs and outputs are properly declared use integration tests (for example using TestKit) to check that a task produces the same outputs for identical inputs and captures all output files for the task.
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive]).
@@ -198,11 +195,8 @@ You can signify that a task is not to be cached by adding the `@DisableCachingBy
 You can also give a human-readable reason for not caching the task by default.
 The annotation can be used on its own, or together with `@CacheableTask`.
 
-[NOTE]
-====
-This annotation is only for documenting the reason behind not caching the task by default.
+NOTE: This annotation is only for documenting the reason behind not caching the task by default.
 Build logic can override this decision via the runtime API (see below).
-====
 
 == Enable caching of non-cacheable tasks
 
@@ -415,10 +409,7 @@ This also applies to any `buildSrc` projects of any included builds.
 
 The <<organizing_gradle_projects.adoc#sec:build_sources,`buildSrc` directory>> is treated as an <<composite_builds.adoc#composite_build_intro,included build>>, and as such it inherits the build cache configuration from the top-level build.
 
-[NOTE]
-====
-This configuration precedence does not apply to <<composite_builds.adoc#included_plugin_builds,plugin builds>> included through `pluginManagement` as these are loaded _before_ the cache configuration itself.
-====
+NOTE: This configuration precedence does not apply to <<composite_builds.adoc#included_plugin_builds,plugin builds>> included through `pluginManagement` as these are loaded _before_ the cache configuration itself.
 
 [[sec:build_cache_setup_http_backend]]
 == How to set up an HTTP build cache backend

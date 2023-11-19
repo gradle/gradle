@@ -24,10 +24,7 @@ Alternatively, the module you request can change over time even for the same ver
 An example of this type of _changing module_ is a Maven `SNAPSHOT` module, which always points at the latest artifact published.
 In other words, a standard Maven snapshot is a module that is continually evolving, it is a "changing module".
 
-[NOTE]
-====
-Using dynamic versions and changing modules can lead to unreproducible builds. As new versions of a particular module are published, its API may become incompatible with your source code. Use this feature with caution!
-====
+NOTE: Using dynamic versions and changing modules can lead to unreproducible builds. As new versions of a particular module are published, its API may become incompatible with your source code. Use this feature with caution!
 
 [[sub:declaring_dependency_with_dynamic_version]]
 == Declaring a dynamic version
@@ -36,10 +33,7 @@ Projects might adopt a more aggressive approach for consuming dependencies to mo
 For example you might want to always integrate the latest version of a dependency to consume cutting edge features at any given time.
 A _dynamic version_ allows for resolving the latest version or the latest version of a version range for a given module.
 
-[NOTE]
-====
-Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
-====
+NOTE: Using dynamic versions in a build bears the risk of potentially breaking it. As soon as a new version of the dependency is released that contains an incompatible API change your source code might stop compiling.
 
 .Declaring a dependency with a dynamic version
 ====
@@ -82,10 +76,7 @@ All you need to do is to set the property link:{javadocPath}/org/gradle/api/arti
 
 By default, Gradle caches dynamic versions and changing modules for 24 hours. During that time frame Gradle does not contact any of the declared, remote repositories for new versions. If you want Gradle to check the remote repository more frequently or with every execution of your build, then you will need to change the time to live (TTL) threshold.
 
-[NOTE]
-====
-Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
-====
+NOTE: Using a short TTL threshold for dynamic or changing versions may result in longer build times due to the increased number of HTTP(s) calls.
 
 You can override the default cache modes using <<#sec:controlling_dependency_caching_command_line,command line options>>. You can also <<#sec:controlling_dependency_caching_programmatically,change the cache expiry times in your build programmatically>> using the resolution strategy.
 
@@ -137,8 +128,6 @@ This is done by comparing published SHA1 values in the repository with the SHA1 
 - new versions of dynamic dependencies
 - new versions of changing modules (modules which use the same version string but can have different contents)
 
-[NOTE]
-====
 Refreshing dependencies will cause Gradle to invalidate its listing caches.
 However:
 
@@ -150,7 +139,6 @@ In other words, refreshing dependencies _only_ has an impact if you actually use
 It's a common misconception to think that using `--refresh-dependencies` will force download of dependencies.
 This is **not** the case: Gradle will only perform what is strictly required to refresh the dynamic dependencies.
 This _may_ involve downloading new listing or metadata files, or even artifacts, but if nothing changed, the impact is minimal.
-====
 
 [[sec:component_selection_rules]]
 == Using component selection rules

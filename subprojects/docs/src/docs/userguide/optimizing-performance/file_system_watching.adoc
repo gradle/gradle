@@ -70,14 +70,8 @@ Gradle also supports VirtualBox's shared folders.
 
 Network file systems like Samba and NFS are not supported.
 
-[NOTE]
-.Symlinks
-====
-
-File system watching is not compatible with symlinks.
+NOTE: File system watching is not compatible with symlinks.
 If your project files include symlinks, you must disable `vfs.watch` by setting `org.gradle.vfs.watch=false` in `gradle.properties`.
-
-====
 
 == Unsupported File Systems
 

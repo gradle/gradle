@@ -66,13 +66,9 @@ Gradle defines a list of standard attributes used by Gradle's core plugins.
 |===
 
 [[sec:verification_category]]
-[WARNING]
-====
-When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.
-
+WARNING: When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant. +
 These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
 They are *not publishable*, and will produce an error if added to a component which is published.
-====
 
 .Ecosystem-independent standard component attributes
 [%header%autowidth,compact]

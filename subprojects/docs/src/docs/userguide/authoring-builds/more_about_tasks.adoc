@@ -59,10 +59,7 @@ Task did not need to execute its actions.
 
 We have already seen how to define tasks using strings for task names in <<tutorial_using_tasks.adoc#tutorial_using_tasks,this chapter>>. There are a few variations on this style, which you may need to use in certain situations.
 
-[NOTE]
-====
-The task configuration APIs are described in more detail in the <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance chapter>>.
-====
+NOTE: The task configuration APIs are described in more detail in the <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance chapter>>.
 
 .Defining tasks using strings for task names
 ====
@@ -81,12 +78,9 @@ include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",file
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",files="build.gradle[]"]
 ====
 
-[WARNING]
-====
-If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
+WARNING: If you look at the API of the _tasks_ container you may notice that there are additional methods to _create_ tasks.
 The use of these methods is discouraged and will be deprecated in future versions.
 These methods only exist for backward compatibility as they were introduced before <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> was added to Gradle.
-====
 
 [[sec:locating_tasks]]
 == Locating tasks
@@ -112,12 +106,9 @@ include::sample[dir="snippets/tasks/accessUsingType/kotlin",files="build.gradle.
 include::sample[dir="snippets/tasks/accessUsingType/groovy",files="build.gradle[]"]
 ====
 
-[WARNING]
-====
-The following shows how to access a task by path.
+WARNING: The following shows how to access a task by path.
 This is not a recommended practice anymore as it breaks <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>> and project isolation.
 Dependencies between projects <<declaring_dependencies_between_subprojects.adoc#declaring_dependencies_between_subprojects,should be declared as dependencies>>.
-====
 
 You can access tasks from any project using the task's path using the `tasks.getByPath()` method.
 You can call the `getByPath()` method with a task name, or a relative path, or an absolute path.
@@ -172,11 +163,8 @@ include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gra
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 
-[TIP]
-====
-If you use the _Kotlin DSL_ and the task you want to configure was added by a plugin, you can use a convenient accessor for the task.
+TIP: If you use the _Kotlin DSL_ and the task you want to configure was added by a plugin, you can use a convenient accessor for the task. +
 That is, instead of `tasks.named("test")` you can just write `tasks.test`.
-====
 
 You can also use a configuration block when you define a task.
 
@@ -186,11 +174,7 @@ include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.grad
 include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
-[TIP]
-.Don't forget about the build phases
-====
-A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> for more details about the build lifecycle.
-====
+TIP: A task has both configuration and actions. When using the `doLast`, you are simply using a shortcut to define an action. Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted. See <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> for more details about the build lifecycle.
 
 [[sec:passing_arguments_to_a_task_constructor]]
 == Passing arguments to a task constructor
@@ -212,10 +196,7 @@ include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",
 include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
 ====
 
-[NOTE]
-====
-It's recommended to use the <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs to improve configuration time.
-====
+NOTE: It's recommended to use the <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>> APIs to improve configuration time.
 
 In all circumstances, the values passed as constructor arguments must be non-null.
 If you attempt to pass a `null` value, Gradle will throw a `NullPointerException` indicating which runtime value is `null`.

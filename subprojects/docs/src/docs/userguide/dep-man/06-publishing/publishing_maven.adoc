@@ -88,10 +88,7 @@ include::sample[dir="snippets/maven-publish/customize-identity/kotlin/library",f
 include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
 ====
 
-[TIP]
-====
-Certain repositories will not be able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
-====
+TIP: Certain repositories will not be able to handle all supported characters. For example, the `:` character cannot be used as an identifier when publishing to a filesystem-backed repository on Windows.
 
 Maven restricts `groupId` and `artifactId` to a limited character set (`[A-Za-z0-9_\\-.]+`) and Gradle enforces this restriction. For `version` (as well as the artifact `extension` and `classifier` properties), Gradle will handle any valid Unicode character.
 
@@ -203,11 +200,8 @@ include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",f
 
 Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
 
-[TIP]
-====
-Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again.
+TIP: Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again. +
 A custom `message` allows explaining why the artifact coordinates have changed.
-====
 
 The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:2.0.0` to `com.new-example:lib:2.0.0`.
 
@@ -256,10 +250,7 @@ The result is that the following artifacts will be published:
 
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
 
-[TIP]
-====
-`publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`. If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
-====
+TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`. If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
 
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior

@@ -20,10 +20,7 @@ Measuring the impact is both important and complicated, as cache performance is 
 Performing measurements of the cache's impact can validate the extra effort (work, infrastructure) that is required to start using the cache.
 These measurements can later serve as baselines for future improvements, and to watch for signs of regressions.
 
-[NOTE]
-====
-Proper configuration and maintenance of a build can improve caching performance in a big way.
-====
+NOTE: Proper configuration and maintenance of a build can improve caching performance in a big way.
 
 == Fully cached builds
 
@@ -34,11 +31,8 @@ The most straightforward way to get a feel for what the cache can do for you is 
 3. Run the build again (e.g. `./gradlew --build-cache clean assemble`); depending on your build, you should see many of the tasks being retrieved from the cache.
 4. Compare the execution time for the two builds
 
-[NOTE]
-====
-You may encounter a few cached tasks even in the first of the two builds, where no previously cached results should be available.
+NOTE: You may encounter a few cached tasks even in the first of the two builds, where no previously cached results should be available.
 This can happen if you have tasks in your build that are configured to produce the same results from the same inputs; in such a case once one of these tasks has finished, Gradle will simply reuse its output for the rest of the tasks.
-====
 
 Normally, your _fully cached_ build should be significantly faster than the `clean` build: this is the theoretical limit of how much time using the build cache can save on your particular build.
 You usually don't get the achievable performance gains on the first try, see <<build_cache_debugging.adoc#finding_problems,finding problems with task output caching>>.

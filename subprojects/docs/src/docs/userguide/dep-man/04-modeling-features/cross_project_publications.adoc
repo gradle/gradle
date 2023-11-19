@@ -26,9 +26,6 @@ Gradle provides, for example, built-in support for depending on the <<java_testi
 
 In order to be _safe to share_ between projects and allow maximum performance (parallelism), such artifacts must be exposed via _outgoing configurations_.
 
-[WARNING]
-.Don't reference other project tasks directly
-====
 A frequent anti-pattern to declare cross-project dependencies is:
 
 [source,groovy]
@@ -41,7 +38,6 @@ dependencies {
 
 This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
 This section explains how to _properly create cross-project boundaries_ by defining "exchanges" between projects by using _variants_.
-====
 
 There are two, complementary, options to share artifacts between projects.
 The <<#sec:simple-sharing-artifacts-between-projects,simplified version>> is only suitable if what you need to share is a simple artifact that doesn't depend on the consumer.
@@ -92,12 +88,9 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=explicit-configuration-dependency]"]
 ====
 
-[WARNING]
-====
-Declaring a dependency on an explicit target configuration is _not recommended_ if you plan to publish the component which has this dependency:
-this would likely lead to broken metadata.
+WARNING: Declaring a dependency on an explicit target configuration is _not recommended_.
+If you plan to publish the component which has this dependency, this will likely lead to broken metadata.
 If you need to publish the component on a remote repository, follow the instructions of the <<#sec:variant-aware-sharing,variant-aware cross publication documentation>>.
-====
 
 In this case, we're adding the dependency to the _instrumentedClasspath_ configuration, which is a _consumer specific configuration_.
 In Gradle terminology, this is called a <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
@@ -119,14 +112,10 @@ The typical example is that using a single dependency declaration `project(":myL
 
 To do this, we will add attributes to both the consumer and the producer.
 
-[WARNING]
-====
-It is important to understand that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
+WARNING: It is important to understand that once configurations have attributes, they participate in _variant aware resolution_, which means that they are candidates considered whenever _any_ notation like `project(":myLib")` is used.
 In other words, the attributes set on the producer _must be consistent with the other variants produced on the same project_.
 They must not, in particular, introduce ambiguity for the existing selection.
-
 In practice, it means that the attribute set used on the configuration you create are likely to be dependent on the _ecosystem_ in use (Java, C++, ...) because the relevant plugins for those ecosystems often use different attributes.
-====
 
 Let's enhance our previous example which happens to be a Java Library project.
 Java libraries expose a couple of variants to their consumers, `apiElements` and `runtimeElements`. Now, we're adding a 3rd one, `instrumentedJars`.
@@ -161,14 +150,11 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 ====
 
-[NOTE]
-====
-Choosing the right attributes to set is the hardest thing in this process, because they carry the semantics of the variant.
+NOTE: Choosing the right attributes to set is the hardest thing in this process, because they carry the semantics of the variant.
 Therefore, before adding _new attributes_, you should always ask yourself if there isn't an attribute which carries the semantics you need.
 If there isn't, then you may add a new attribute.
 When adding new attributes, you must also be careful because it's possible that it creates ambiguity during selection.
 Often adding an attribute means adding it to _all_ existing variants.
-====
 
 What we have done here is that we have added a _new_ variant, which can be used _at runtime_, but contains instrumented classes instead of the normal classes.
 However, it now means that for runtime, the consumer has to choose between two variants:
@@ -240,15 +226,11 @@ And that's it! Now we have:
 Gradle therefore offers a powerful mechanism to select the right variants based on preferences and compatibility.
 More details can be found in the <<variant_attributes.adoc#variant_attributes, variant aware plugins section of the documentation>>.
 
-[WARNING]
-====
-By adding a value to an existing attribute like we have done, or by defining new attributes, we are extending the model.
+WARNING: By adding a value to an existing attribute like we have done, or by defining new attributes, we are extending the model.
 This means that _all consumers_ have to know about this extended model.
 For local consumers, this is usually not a problem because all projects understand and share the same schema, but if you had to publish this new variant to an external repository, it means that external consumers would have to add the same rules to their builds for them to pass.
-This is in general not a problem for _ecosystem plugins_ (e.g: the Kotlin plugin) where consumption is in any case not possible without applying the plugin, but it is a problem if you add custom values or attributes.
-
+This is in general not a problem for _ecosystem plugins_ (e.g: the Kotlin plugin) where consumption is in any case not possible without applying the plugin, but it is a problem if you add custom values or attributes. +
 So, **avoid publishing custom variants** if they are for internal use only.
-====
 
 [[targeting-different-platforms]]
 == Targeting different platforms
@@ -277,5 +259,4 @@ By default, the `org.gradle.jvm.version` is set to the value of the <<building_j
 While this attribute is automatically set, Gradle _will not_, by default, let you build a project for different JVMs.
 If you need to do this, then you will need to create additional variants following the <<#sec:variant-aware-sharing,instructions on variant-aware matching>>.
 
-[NOTE]
-Future versions of Gradle will provide ways to automatically build for different Java platforms.
+NOTE: Future versions of Gradle will provide ways to automatically build for different Java platforms.

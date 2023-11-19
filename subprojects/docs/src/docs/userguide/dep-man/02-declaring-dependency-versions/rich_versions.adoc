@@ -145,13 +145,10 @@ At the same time, used correctly, it will help consumers understand what combina
 See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for more information.
 
 
-[NOTE]
-====
-Rich version information will be preserved in the Gradle Module Metadata format.
+NOTE: Rich version information will be preserved in the Gradle Module Metadata format.
 However conversion to Ivy or Maven metadata formats will be lossy.
 The highest level will be published, that is `strictly` or `require` over `prefer`.
 In addition, any `reject` will be ignored.
-====
 
 Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration which gives access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint].
 

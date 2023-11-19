@@ -33,14 +33,10 @@ The build cache takes care of caching the outputs and intermediate files of the 
 The configuration cache takes care of caching the build configuration for a particular set of tasks.
 In other words, the configuration cache saves the output of the configuration phase, and the build cache saves the outputs of the execution phase.
 
-[IMPORTANT]
-====
-This feature is currently not enabled by default. This feature has the following limitations:
-
-- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
-- Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
+IMPORTANT: This feature is currently not enabled by default. This feature has the following limitations: +
+- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress. +
+- Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>. +
 - IDE imports and syncs do not yet use the configuration cache.
-====
 
 [[config_cache:intro:how_does_it_work]]
 === How does it work?
@@ -271,11 +267,8 @@ In this case, leave the `Templates > Gradle` configuration untouched and edit ea
 
 Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
 
-[TIP]
-====
-You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build.
+TIP: You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build. +
 This is a good way to enable the configuration cache only for the IDE.
-====
 
 [[config_cache:ide:eclipse]]
 === Eclipse IDEs
@@ -425,12 +418,8 @@ The report also includes a list of detected build configuration inputs, such as 
 
 image::configuration-cache/inputs-report.png[]
 
-[TIP]
-====
-Problems displayed in the report have links to the corresponding <<configuration_cache#config_cache:requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#config_cache:not_yet_implemented,not yet implemented>> feature.
-
+TIP: Problems displayed in the report have links to the corresponding <<configuration_cache#config_cache:requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#config_cache:not_yet_implemented,not yet implemented>> feature. +
 When changing your build or plugin to fix the problems you should consider <<configuration_cache#config_cache:testing, testing your build logic with TestKit>>.
-====
 
 At this stage, you can decide to either <<configuration_cache#config_cache:usage:ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
 
@@ -659,9 +648,7 @@ include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test
 
 If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
-[TIP]
-====
-A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled.
+TIP: A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled. +
 This requires testing the plugin with a supported Gradle version.
 
 If the plugin already supports a range of Gradle versions it might already have tests for multiple Gradle versions.

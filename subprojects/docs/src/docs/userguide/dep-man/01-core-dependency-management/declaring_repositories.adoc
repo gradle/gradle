@@ -86,23 +86,17 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
 ====
 
-[NOTE]
-====
-The order of declaration determines how Gradle will check for dependencies at runtime.
+NOTE: The order of declaration determines how Gradle will check for dependencies at runtime.
 If Gradle finds a module descriptor in a particular repository, it will attempt to download all of the artifacts for that module from _the same repository_.
 You can learn more about the inner workings of <<dependency_resolution.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
-====
 
 === Strict limitation to declared repositories
 
 Maven POM metadata can reference additional repositories.
 These will be _ignored_ by Gradle, which will only use the repositories declared in the build itself.
 
-[NOTE]
-====
-This is a reproducibility safe-guard but also a security protection.
+NOTE: This is a reproducibility safe-guard but also a security protection.
 Without it, an updated version of a dependency could pull artifacts from anywhere into your build.
-====
 
 [[sec:repository-types]]
 == Supported repository types
@@ -134,14 +128,9 @@ This adds repositories which look into one or more directories for finding depen
 This type of repository does not support any meta-data formats like Ivy XML or Maven POM files.
 Instead, Gradle will dynamically generate a module descriptor (without any dependency information) based on the presence of artifacts.
 
-[NOTE]
-====
-As Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories declared in the build.
-
-For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module.
-
+NOTE: As Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories declared in the build. +
+For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module. +
 For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory.
-====
 
 If you only work with flat directory repositories you don't need to set all attributes of a dependency.
 
@@ -200,16 +189,10 @@ See <<#sec:supported_transport_protocols>> for authentication options.
 Gradle can consume dependencies available in the link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
 Declaring this repository is beneficial for teams that publish to the local Maven repository with one project and consume the artifacts by Gradle in another project.
 
-[NOTE]
-====
-Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+NOTE: Gradle stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
 A build does not need to declare the local Maven repository even if you resolve dependencies from a Maven-based, remote repository.
-====
 
-[WARNING]
-====
-Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
-====
+WARNING: Before adding Maven local as a repository, you should <<#sec:case-for-maven-local, make sure this is really required>>.
 
 To declare the local Maven cache as a repository add this to your build script:
 
@@ -376,13 +359,9 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-filteri
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[InclusiveRepositoryContentDescriptor] for details.
 
-[NOTE]
-====
-If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
-In that case, the build configuration will fail.
-
+NOTE: If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
+In that case, the build configuration will fail. +
 Your options are either to declare all repositories in settings or to use non-exclusive content filtering.
-====
 
 === Maven repository filtering
 
@@ -447,13 +426,10 @@ The following metadata sources are supported:
 | yes
 |===
 
-[NOTE]
-====
-The defaults for Ivy and Maven repositories change with Gradle 6.0. Before 6.0, `artifact()` was included in the defaults.
+NOTE: The defaults for Ivy and Maven repositories change with Gradle 6.0. Before 6.0, `artifact()` was included in the defaults.
 Leading to some inefficiency when modules are missing completely.
 To restore this behavior, for example, for Maven central you can use `mavenCentral { metadataSources { mavenPom(); artifact() } }`.
 In a similar way, you can opt into the new behavior in older Gradle versions using `mavenCentral { metadataSources { mavenPom() } }`
-====
 
 Since Gradle 5.3, when parsing a metadata file, be it Ivy or Maven, Gradle will look for a marker indicating that a matching Gradle Module Metadata files exists.
 If it is found, it will be used instead of the Ivy or Maven file.
@@ -589,10 +565,7 @@ Maven and Ivy repositories support the use of various transport protocols. At th
 | <<#sec:gcs-repositories,Documentation>>
 |===
 
-[NOTE]
-====
-Username and password should never be checked in plain text into version control as part of your build file. You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
-====
+NOTE: Username and password should never be checked in plain text into version control as part of your build file. You can store the credentials in a local `gradle.properties` file and use one of the open source Gradle plugins for encrypting and consuming credentials e.g. the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin].
 
 The transport protocol is part of the URL definition for a repository.
 The following build script demonstrates how to create HTTP-based Maven and Ivy repositories:
@@ -758,8 +731,6 @@ Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requ
 s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
 ----
 
-[NOTE]
-====
 When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle will use the default AWS region (us-east-1) and the
 following warning will appear on the console:
 
@@ -770,7 +741,6 @@ Failing to specify the region-specific endpoint for buckets requiring V4 signatu
 * 3 round-trips to AWS, as opposed to one, for every file upload and download.
 * Depending on location - increased network latencies and slower builds.
 * Increased likelihood of transmission failures.
-====
 
 [[sub:s3_cross_account]]
 ==== AWS S3 Cross Account Access

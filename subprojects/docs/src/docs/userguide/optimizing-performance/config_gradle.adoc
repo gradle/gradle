@@ -39,14 +39,9 @@ JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
 ====
 
-[NOTE]
-====
-There is one case where the client VM can also serve as the build VM:
-
-If you deactivate the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> and the client VM has the same settings as required for the build VM, the client VM will run the build directly.
-
+NOTE: There is one case where the client VM can also serve as the build VM: +
+If you deactivate the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> and the client VM has the same settings as required for the build VM, the client VM will run the build directly. +
 Otherwise, the client VM will fork a new VM to run the actual build in order to honor the different settings.
-====
 
 Certain tasks, like the `test` task, also fork additional JVM processes.
 You can configure these through the tasks themselves.

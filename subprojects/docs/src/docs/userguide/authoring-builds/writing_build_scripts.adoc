@@ -20,17 +20,14 @@ that needs to be built, like a library or an application. Each build script is a
 with an object of type link:{groovyDslPath}/org.gradle.api.Project.html[Project].
 As the build script executes, it configures this `Project`.
 
-[IMPORTANT]
-.Build scripts, Settings scripts, and Init scripts
-====
-_Build scripts_ define `Project` objects.
+IMPORTANT: Build scripts_ define `Project` objects.
+
 Gradle uses other scripts as well:
 
 - <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>>
   define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects.
 - <<init_scripts.adoc#init_scripts,Init scripts>>
   define link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
-====
 
 == Properties
 
@@ -102,12 +99,8 @@ The following table lists a few commonly used properties:
 | An `AntBuilder` instance
 |===
 
-[IMPORTANT]
-.Script with other targets
-====
-The _build scripts_ described here target `Project` objects.
+IMPORTANT: The _build scripts_ described here target `Project` objects. +
 There are also <<organizing_gradle_projects.adoc#sec:settings_file,settings scripts>> and <<init_scripts.adoc#init_scripts,init scripts>> that respectively target link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] and link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.
-====
 
 [[sec:the_script_api]]
 == The Script API
@@ -199,12 +192,8 @@ include::{snippetsPath}/tutorial/configureObject/tests/configureObject.out[]
 
 You can also configure arbitrary objects using an external script:
 
-[CAUTION]
-.Not supported in Kotlin
-====
-The Kotlin DSL does not support arbitrary object configuration using an external script.
+CAUTION: The Kotlin DSL does not support arbitrary object configuration using an external script. +
 For more information, see link:https://github.com/gradle/kotlin-dsl/issues/659[gradle/kotlin-dsl#659].
-====
 
 .Configure arbitrary objects using a script
 ====
@@ -222,8 +211,7 @@ include::{snippetsPath}/tutorial/configureObjectUsingScript/tests/configureObjec
 
 https://docs.groovy-lang.org/latest/html/documentation/index.html[Groovy] provides many features to help create DSLs. These features can help you write more idiomatic build scripts, plugins, and tasks.
 
-[TIP]
-Looking for helpful Kotlin syntax? Check out the link:https://kotlinlang.org/docs/reference/[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans].
+TIP: Looking for helpful Kotlin syntax? Check out the link:https://kotlinlang.org/docs/reference/[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans].
 
 [[sec:groovy_jdk]]
 === Convenience Methods
@@ -335,5 +323,4 @@ include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy
 include::{snippetsPath}/tutorial/groovyScope/tests/scope.out[]
 ----
 
-[TIP]
-For more information about Groovy syntax, see https://docs.groovy-lang.org/latest/html/documentation/index.html[the Groovy documentation].
+TIP: For more information about Groovy syntax, see https://docs.groovy-lang.org/latest/html/documentation/index.html[the Groovy documentation].

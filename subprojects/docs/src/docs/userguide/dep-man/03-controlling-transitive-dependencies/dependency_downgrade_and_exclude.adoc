@@ -21,12 +21,9 @@
 Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
-[WARNING]
-====
-Forcing a version of a dependency requires a conscious decision.
+WARNING: Forcing a version of a dependency requires a conscious decision.
 Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 Consider upgrading your source code to use a newer version of the library as an alternative approach.
-====
 
 In general, forcing dependencies is done to downgrade a dependency.
 There might be different use cases for downgrading:
@@ -38,14 +35,10 @@ There might be different use cases for downgrading:
 In all situations, this is best expressed saying that your code _strictly depends on_ a version of a transitive.
 Using <<rich_versions.adoc#sec:strict-version,strict versions>>, you will effectively depend on the version you declare, even if a transitive dependency says otherwise.
 
-[NOTE]
-====
-Strict dependencies are to some extent similar to Maven's _nearest first_ strategy, but there are subtle differences:
-
-- _strict dependencies_ don't suffer an ordering problem: they are applied transitively to the subgraph, and it doesn't matter in which order dependencies are declared.
-- conflicting strict dependencies will trigger a build failure that you have to resolve
+NOTE: Strict dependencies are to some extent similar to Maven's _nearest first_ strategy, but there are subtle differences: +
+- _strict dependencies_ don't suffer an ordering problem: they are applied transitively to the subgraph, and it doesn't matter in which order dependencies are declared. +
+- conflicting strict dependencies will trigger a build failure that you have to resolve +
 - strict dependencies can be used with rich versions, meaning that <<#sec:strict-version-consequences,it's better to express the requirement in terms of a _strict range_ combined with a single _preferred version_>>.
-====
 
 Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10.
 However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore.
@@ -94,12 +87,9 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 While the previous section showed how you can enforce a certain version of a transitive dependency, this section covers _excludes_ as a way to remove a transitive dependency completely.
 
-[WARNING]
-====
-Similar as forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
+WARNING: Similar as forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
 Excluding a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 If you use excludes, make sure that you do not utilise any code path requiring the excluded dependency by sufficient test coverage.
-====
 
 Transitive dependencies can be excluded on the level of a declared dependency.
 Exclusions are spelled out as a key/value pair via the attributes `group` and/or `module` as shown in the example below.

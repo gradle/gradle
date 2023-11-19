@@ -51,14 +51,9 @@ Gradle differentiates between two kind of components:
 For local components, <<#sec:abm_configuration_attributes, variants are mapped to consumable configurations>>.
 For external components, variants are defined by published Gradle Module Metadata or <<#sec:mapping-maven-ivy-to-variants,are derived from Ivy/Maven metadata>>.
 
-[NOTE]
-.Variants vs configurations
-====
-Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons.
-
+NOTE: Variants and configurations are sometimes used interchangeably in the documentation, DSL or API for historical reasons. +
 All components provide _variants_ and those variants may be backed by a consumable configuration.
 Not all configurations are variants because they may be used for declaring or resolving dependencies.
-====
 
 [[sec:abm_configuration_attributes]]
 == Variant attributes
@@ -77,12 +72,8 @@ It is not unusual for a variant to have more attributes than the consumer needs 
 [[sec:variant-aware-matching]]
 == Variant attribute matching
 
-[NOTE]
-.About producer variants
-====
-The variant _name_ is mostly for debugging purposes and error messages.
+NOTE: The variant _name_ is mostly for debugging purposes and error messages.
 The name does not participate variant matching--only its attributes do.
-====
 
 There are no restrictions on the number of variants a component can define.
 Usually, a component has at least an implementation variant, but it could also expose test fixtures, documentation or source code.
@@ -90,12 +81,9 @@ A component may also expose _different variants_ for different consumers for the
 
 Gradle performs _variant aware selection_ by matching the attributes requested by the consumer against attributes defined by the producer. The <<variant_attributes.adoc#sec:abm_algorithm, selection algorithm>> is detailed in another section.
 
-[NOTE]
-====
-There are two exceptions to this rule that bypass variant aware resolution:
-- when a producer has no variants, a default artifact is chosen.
+NOTE: There are two exceptions to this rule that bypass variant aware resolution: +
+- when a producer has no variants, a default artifact is chosen. +
 - when a consumer _explicitly selects a configuration by name_, the artifacts of the configuration are chosen.
-====
 
 == A simple example
 
@@ -160,16 +148,12 @@ Finally, Gradle selects the best matching variant by looking at all of the attri
 
 Gradle provides the artifacts and dependencies from the `runtime8Elements` variant to the consumer.
 
-[NOTE]
-.Compatibility of variants
-====
 What if the consumer sets `org.gradle.jvm.version` to 7?
 
 Dependency resolution would _fail_ with an error message explaining that there's no suitable variant.
 Gradle recognizes that the consumer wants a Java 7 compatible library and the _minimal_ version of Java available on the producer is 8.
 
 If the consumer requested `org.gradle.jvm.version=15`, then Gradle knows either the Java 8 or Java 11 variants could work. Gradle select the highest compatible Java version (11).
-====
 
 [[sec:variant-select-errors]]
 == Variant selection errors
@@ -542,14 +526,9 @@ From this you can see the two main configurations used to resolve dependencies, 
 Neither Maven nor Ivy have the concept of _variants_, which are only natively supported by Gradle Module Metadata.
 Gradle can still work with Maven and Ivy by using different variant derivation strategies.
 
-[NOTE]
-.Relationship with Gradle Module Metadata
-====
-Gradle Module Metadata is a metadata format for modules published on Maven, Ivy and other kinds of repositories.
-It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format contains details about variants.
-
+NOTE: Gradle Module Metadata is a metadata format for modules published on Maven, Ivy and other kinds of repositories.
+It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format contains details about variants. +
 See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
-====
 
 [[sub:maven-mapping-to-variants]]
 === Mapping of Maven POM metadata to variants

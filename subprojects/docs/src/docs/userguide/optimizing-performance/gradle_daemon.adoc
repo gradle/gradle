@@ -228,10 +228,7 @@ The following JVM attributes controlled by startup arguments are also immutable:
 If the requested build environment requirements for any of these properties and attributes
 differ from the Daemon's JVM requirements, the Daemon is not compatible.
 
-[NOTE]
-====
-For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
-====
+NOTE: For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
 
 [[sec:why_the_daemon]]
 == Performance Impact

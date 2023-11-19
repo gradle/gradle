@@ -15,12 +15,9 @@
 [[rule_source]]
 = Implementing model rules in a plugin
 
-[CAUTION]
-====
-Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated].
+CAUTION: Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated].
 New plugins should not use this concept.
 Instead, use the standard approach described in the <<custom_plugins.adoc#custom_plugins, Writing Custom Plugins>> chapter.
-====
 
 A plugin can define rules by extending link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] and adding methods that define the rules. The plugin class can either extend link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] directly or can implement link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] and include a nested link:{javadocPath}/org/gradle/model/RuleSource.html[RuleSource] subclass.
 

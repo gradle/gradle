@@ -147,13 +147,9 @@ This is a task action method that has a single link:{groovyDslPath}/org.gradle.w
 That parameter tells Gradle that the action only wants to process the changed inputs.
 In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[@Incremental] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty].
 
-[IMPORTANT]
-====
-To query incremental changes for an input file property, that property always needs to return the same instance.
-The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection].
-
+IMPORTANT: To query incremental changes for an input file property, that property always needs to return the same instance.
+The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]. +
 You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#working_with_files_in_lazy_properties,lazy file properties>>.
-====
 
 The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
 The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
@@ -181,10 +177,7 @@ In this case, Gradle automatically removes the previous outputs, so the incremen
 
 For a simple transformer task like the above example, the task action simply needs to generate output files for any out-of-date inputs and delete output files for any removed inputs.
 
-[IMPORTANT]
-====
-A task may only contain a single incremental task action.
-====
+IMPORTANT: A task may only contain a single incremental task action.
 
 [[sec:which_inputs_are_considered_out_of_date]]
 === Which inputs are considered out of date?
@@ -409,10 +402,7 @@ Describes an option with a file system element. Passing the option on the comman
 
 In theory, an option for a property type `String` or `List<String>` can accept any arbitrary value. Expected values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]. This annotation may be assigned to any method that returns a `List` of one of the supported data types. In addition, you have to provide the option identifier to indicate the relationship between option and available values.
 
-[NOTE]
-====
-Passing a value on the command line that is not supported by the option does not fail the build or throw an exception. You'll have to implement custom logic for such behavior in the task action.
-====
+NOTE: Passing a value on the command line that is not supported by the option does not fail the build or throw an exception. You'll have to implement custom logic for such behavior in the task action.
 
 This example demonstrates the use of multiple options for a single task. The task implementation provides a list of available values for the option `output-type`.
 
@@ -456,10 +446,7 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 [[using-the-worker-api]]
 === Using the Worker API
 
-[NOTE]
-====
-A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
-====
+NOTE: A step-by-step description of converting a normal task action to use the worker API can be found in the section on <<worker_api.adoc#tasks_parallel_worker,developing parallel tasks>>.
 
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
 
@@ -492,12 +479,7 @@ If any failures occur while executing the asynchronous work, the task will fail 
 
 In some cases, however, it might be desirable to wait for work to complete before exiting the task action. This is possible using the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method. As in the case of allowing the work to complete asynchronously, any failures that occur while executing an item of work will be surfaced as a link:{javadocPath}/org/gradle/workers/WorkerExecutionException.html[WorkerExecutionException] thrown from the link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] method.
 
-[NOTE]
-====
-
-Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
-
-====
+NOTE: Note that Gradle will only begin running other independent tasks in parallel when a task has exited a task action and returned control of execution to Gradle. When link:{javadocPath}/org/gradle/workers/WorkQueue.html#await--[WorkQueue.await()] is used, execution does not leave the task action. This means that Gradle will not allow other tasks to begin executing and will wait for the task action to complete before doing so.
 
 .Waiting for asynchronous work to complete
 ====

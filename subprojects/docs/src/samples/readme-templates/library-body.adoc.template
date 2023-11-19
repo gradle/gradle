@@ -33,11 +33,8 @@ ${subprojectName.raw}/Library.class
 
 You should see the required manifest file —`MANIFEST.MF`— and the compiled `Library` class.
 
-[NOTE]
-====
-All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
+NOTE: All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
 You can customize the project layout if you wish link:{userManualPath}/java_plugin.html#sec:changing_java_project_layout[as described in the user manual].
-====
 
 Congratulations, you have just completed the first step of creating a ${language.raw} ${componentType.raw}!
 You can now customize this to your own project needs.
@@ -60,14 +57,11 @@ version = '0.1.0'
 ----
 
 
-[NOTE]
-====
-Next to the version, other important identity properties of a library are it's _name_ and _group_.
+NOTE: Next to the version, other important identity properties of a library are it's _name_ and _group_.
 The name is directly derived from the subproject name that represents the library.
 It's `lib` in the example so you probably want to adjust it by changing the name of the `lib` folder and the corresponding `include(...)` statement in the `settings.gradle(.kts)` file.
 The _group_ is used to give your library full coordinates when published.
 You can define it directly in the build script by setting the `group` property similar to how you set the version (shown above).
-====
 
 Now run the `jar` task:
 

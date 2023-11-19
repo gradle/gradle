@@ -73,9 +73,5 @@ include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gr
 include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
 ====
 
-[NOTE]
-====
-If a project property is referenced but does not exist, an exception will be thrown, and the build will fail.
-
+NOTE: If a project property is referenced but does not exist, an exception will be thrown, and the build will fail.
 You should check for the existence of optional project properties before you access them using the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:hasProperty(java.lang.String)[Project.hasProperty(java.lang.String)] method.
-====

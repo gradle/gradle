@@ -71,9 +71,7 @@ You can also import components independently in the IDE.
 This allows you to focus only on the parts important for the component you work on in your IDE's workspace.
 It might also speed up the IDE performance in the case of a very large code base.
 
-[NOTE]
-====
-If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the root of the repository.
+NOTE: If all components live in the same repository, you should only have one <<gradle_wrapper.adoc#sec:adding_wrapper,Gradle wrapper>> in the root of the repository. +
 If you have an umbrella build there, you can use that to manage the wrapper.
 
 However, if you import an individual component in an IDE, it might have issues finding the wrapper and you might need to configure a Gradle installation manually.

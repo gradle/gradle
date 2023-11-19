@@ -15,8 +15,5 @@
 [[play_plugin]]
 = Building Play applications
 
-[CAUTION]
-====
-Play web application support was deprecated in Gradle 5 and replaced by an external Play plugin in Gradle 6.
+CAUTION: Play web application support was deprecated in Gradle 5 and replaced by an external Play plugin in Gradle 6.
 Please use the new https://gradle.github.io/playframework[Gradle Play Plugin], available from the plugin portal, instead.
-====

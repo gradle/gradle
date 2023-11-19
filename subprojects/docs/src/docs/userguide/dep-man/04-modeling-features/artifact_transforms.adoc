@@ -59,17 +59,11 @@ Of all the found transform chains, Gradle tries to select the best one:
 - If there is a shortest transform chain, then it is selected.
 - In all other cases, the selection fails and an error is reported.
 
-[NOTE]
-====
-Gradle does not try to select artifact transforms when there is already a variant of the dependency matching the requested attributes.
-====
+IMPORTANT: Gradle does not try to select artifact transforms when there is already a variant of the dependency matching the requested attributes.
 
-[NOTE]
-====
-The `artifactType` attribute is special, since it is only present on resolved artifacts and not on dependencies.
+NOTE: The `artifactType` attribute is special, since it is only present on resolved artifacts and not on dependencies.
 As a consequence, any transform which is only mutating `artifactType` will never be selected when resolving a configuration with only the `artifactType` as requested attribute.
 It will only be considered when using an link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[ArtifactView].
-====
 
 After selecting the required artifact transforms, Gradle resolves the variants of the dependencies which are necessary for the initial transform in the chain.
 As soon as Gradle finishes resolving the artifacts for the variant, either by downloading an external dependency or executing a task producing the artifact, Gradle starts transforming the artifacts of the variant with the selected chain of artifact transforms.

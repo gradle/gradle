@@ -203,8 +203,6 @@ If you are still using the `java` plugin for a Java library, you will need to ap
 
 You can find more details about the benefits of the new configurations and which one to use in place of `compile` and `runtime` by reading the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> documentation.
 
-[WARNING]
-====
 When using the Groovy DSL, you need to watch out for a particular upgrade problem when dealing with the removed configurations.
 
 If you were creating custom configurations that extend one of the removed configurations, Gradle may silently create configurations that do not exist.
@@ -219,7 +217,6 @@ configurations {
 
 The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before.
 You may notice missing dependencies or artifacts.
-====
 
 ==== Location of temporary project files for `ProjectBuilder`
 
