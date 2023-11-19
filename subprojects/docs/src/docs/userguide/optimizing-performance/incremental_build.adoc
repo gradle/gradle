@@ -179,7 +179,7 @@ The following kinds of changes to the classpath will be ignored:
 * Changes to debug information, for example when a change to a comment affects the line numbers in class debug information.
 * Changes to directories, including directory entries in Jars.
 
-NOTE: The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
+*NOTE* - The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compatible with Gradle 3.3 and 3.2, compile classpath properties should also be annotated with `@Classpath`. For compatibility with Gradle versions before 3.2 the property should also be annotated with `@InputFiles`.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/OutputFile.html[OutputFile]`
 | `File`*
