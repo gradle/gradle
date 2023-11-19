@@ -15,7 +15,7 @@ System_Ext(ide, "IntelliJ IDE", "IDEA or Android Studio with the Kotlin plugin e
 
 System_Ext(kotlinTools, "Kotlin Toolchain", "kotlinc, Gradle plugin etc...")
 
-System_Ext(buildCache, "Gradle Build Cache", "Local, Gradle Enterprise Build Cache Node, etc...")
+System_Ext(buildCache, "Gradle Build Cache", "Local, Develocity Build Cache Node, etc...")
 
 Rel(dev, gradle, "Uses", "Command Line")
 Rel(gradleKotlinDsl, kotlinTools, "Uses")

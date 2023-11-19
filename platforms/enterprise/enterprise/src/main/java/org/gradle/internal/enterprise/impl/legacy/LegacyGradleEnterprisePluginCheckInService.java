@@ -70,8 +70,8 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         } else if (buildModelParameters.isConfigurationCache()) {
-            return "Build scans have been disabled due to incompatibility between your Gradle Enterprise plugin version (" + pluginVersion.toString() + ") and configuration caching. " +
-                "Please use Gradle Enterprise plugin version 3.4 or later for compatibility with configuration caching.";
+            return "Build scans have been disabled due to incompatibility between your Develocity plugin version (" + pluginVersion.toString() + ") and configuration caching. " +
+                "Please use Develocity plugin version 3.4 or later for compatibility with configuration caching.";
         } else {
             return null;
         }
