@@ -659,14 +659,14 @@
   },
   {
     "name": "plugin-development",
-    "path": "subprojects/plugin-development",
+    "path": "platforms/extensibility/plugin-development",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
     "name": "plugin-use",
-    "path": "subprojects/plugin-use",
+    "path": "platforms/extensibility/plugin-use",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -862,7 +862,7 @@
   },
   {
     "name": "test-kit",
-    "path": "subprojects/test-kit",
+    "path": "platforms/extensibility/test-kit",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

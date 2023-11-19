@@ -28,7 +28,7 @@ plugins {
 dependencyResolutionManagement {
     repositories {
         maven {
-            name = "Gradle Enterprise release candidates"
+            name = "Develocity release candidates"
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"

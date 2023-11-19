@@ -56,9 +56,6 @@ unassigned {
     subproject("plugins")
     subproject("build-events")
     subproject("diagnostics")
-    subproject("plugin-use")
-    subproject("plugin-development")
-    subproject("test-kit")
     subproject("installation-beacon")
     subproject("composite-builds")
     subproject("core-api")
@@ -123,6 +120,13 @@ platform("core-execution") {
     subproject("workers")
 }
 
+// Extensibility Platform
+platform("extensibility") {
+    subproject("plugin-use")
+    subproject("plugin-development")
+    subproject("test-kit")
+}
+
 // IDE Platform
 platform("ide") {
     subproject("base-ide-plugins")
@@ -135,6 +139,7 @@ platform("ide") {
     subproject("tooling-api-builders")
 }
 
+// Native Platform
 platform("native") {
     subproject("distributions-native")
     subproject("platform-native")
@@ -196,7 +201,7 @@ platform("jvm") {
     subproject("war")
 }
 
-// Gradle Enterprise Platform
+// Develocity Platform
 platform("enterprise") {
     subproject("enterprise")
     subproject("enterprise-logging")
