@@ -38,7 +38,7 @@ public class IntermediateSendingBuildEventConsumer implements BuildEventConsumer
         if (message instanceof IntermediateModel) {
             IntermediateModel intermediateModel = (IntermediateModel) message;
             Object deserializedMessage = payloadSerializer.deserialize(intermediateModel.getSerializedModel());
-            providerParameters.sendIntermediate(intermediateModel.getModelType(), deserializedMessage);
+            providerParameters.sendIntermediate(deserializedMessage);
         } else {
             delegate.dispatch(message);
         }

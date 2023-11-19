@@ -22,16 +22,10 @@ import java.io.Serializable;
  * A model object sent back to the client from a client provided {@link org.gradle.tooling.BuildAction} running in the build process.
  */
 public class IntermediateModel implements Serializable {
-    private final String modelType;
     private final SerializedPayload serializedModel;
 
-    public IntermediateModel(String modelType, SerializedPayload serializedModel) {
-        this.modelType = modelType;
+    public IntermediateModel(SerializedPayload serializedModel) {
         this.serializedModel = serializedModel;
-    }
-
-    public String getModelType() {
-        return modelType;
     }
 
     public SerializedPayload getSerializedModel() {

@@ -23,5 +23,5 @@ public interface InternalIntermediateModelRelay {
     /**
      * @since 8.6
      */
-    void sendIntermediate(Class<?> modelType, Object model);
+    void sendIntermediate(Object model);
 }

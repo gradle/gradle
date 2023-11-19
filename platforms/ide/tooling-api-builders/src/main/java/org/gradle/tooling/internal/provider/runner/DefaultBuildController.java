@@ -175,9 +175,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     @Override
-    public void sendIntermediate(Class<?> modelType, Object model) {
+    public void sendIntermediate(Object model) {
         SerializedPayload serializedModel = payloadSerializer.serialize(model);
-        buildEventConsumer.dispatch(new IntermediateModel(modelType.getName(), serializedModel));
+        buildEventConsumer.dispatch(new IntermediateModel(serializedModel));
     }
 
     private static class NestedAction<T> implements RunnableBuildOperation {

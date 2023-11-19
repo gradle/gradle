@@ -32,7 +32,7 @@ public class IntermediateModelAwareBuildControllerAdapter extends NestedActionAw
     }
 
     @Override
-    public <T> void sendIntermediate(Class<T> modelType, T model) {
-        relay.sendIntermediate(modelType, model);
+    public <T> void sendIntermediate(T model) {
+        relay.sendIntermediate(model);
     }
 }

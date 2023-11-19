@@ -29,7 +29,7 @@ class CustomIntermediateModelSendingBuildAction<T> implements BuildAction<T> {
     }
 
     public T execute(BuildController controller) {
-        controller.sendIntermediate(CustomModel.class, new CustomModel(value));
+        controller.sendIntermediate(new CustomModel(value));
         return controller.getModel(type);
     }
 }

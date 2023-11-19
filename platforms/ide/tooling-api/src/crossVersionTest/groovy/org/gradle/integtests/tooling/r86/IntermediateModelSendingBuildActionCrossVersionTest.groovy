@@ -43,8 +43,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
         withConnection {
             def builder = it.action(new IntermediateModelSendingBuildAction())
             collectOutputs(builder)
-            builder.addIntermediateModelListener(GradleProject, listener)
-            builder.addIntermediateModelListener(EclipseProject, listener)
+            builder.setIntermediateModelListener(listener)
             builder.run(handler)
         }
 
@@ -79,7 +78,7 @@ class IntermediateModelSendingBuildActionCrossVersionTest extends ToolingApiSpec
                 .buildFinished(new CustomIntermediateModelSendingBuildAction(EclipseProject, 2), handler)
                 .build()
             collectOutputs(builder)
-            builder.addIntermediateModelListener(CustomModel, listener)
+            builder.setIntermediateModelListener(listener)
             builder.run()
         }
 

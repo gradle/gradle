@@ -218,5 +218,5 @@ public interface BuildController {
      * @since 8.6
      */
     @Incubating
-    <T> void sendIntermediate(Class<T> modelType, T model);
+    <T> void sendIntermediate(T model);
 }

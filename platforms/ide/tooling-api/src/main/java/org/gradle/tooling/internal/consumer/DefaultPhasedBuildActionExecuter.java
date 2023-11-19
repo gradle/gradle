@@ -46,8 +46,8 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
     }
 
     @Override
-    public <T> void addIntermediateModelListener(Class<T> modelType, IntermediateModelListener<T> intermediateModelListener) {
-        operationParamsBuilder.addIntermediateModelListener(modelType, intermediateModelListener);
+    public void setIntermediateModelListener(IntermediateModelListener intermediateModelListener) {
+        operationParamsBuilder.setIntermediateModelListener(intermediateModelListener);
     }
 
     @Override

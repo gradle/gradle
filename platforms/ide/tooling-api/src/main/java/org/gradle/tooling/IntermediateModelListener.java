@@ -21,12 +21,11 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Receives an intermediate result sent via {@link BuildController#sendIntermediate(Class, Object)}.
+ * Receives an intermediate result sent via {@link BuildController#sendIntermediate(Object)}.
  *
- * @param <T> The result type.
  * @since 8.6
  */
 @Incubating
-public interface IntermediateModelListener<T> {
-    void onModel(T model);
+public interface IntermediateModelListener {
+    void onModel(Object model);
 }

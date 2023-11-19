@@ -173,5 +173,5 @@ public interface ProviderOperationParameters {
     /**
      * @since 8.6
      */
-    void sendIntermediate(String modelType, Object model);
+    void sendIntermediate(Object model);
 }

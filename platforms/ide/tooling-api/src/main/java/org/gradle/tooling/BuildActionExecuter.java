@@ -71,12 +71,13 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     }
 
     /**
-     * Adds a listener to use to handle intermediate results of type {@code S} sent from the action via {@link BuildController#sendIntermediate(Class, Object)}.
+     * Sets the listener to use to handle intermediate results of type {@code S} sent from the action via {@link BuildController#sendIntermediate(Object)}.
+     * Replaces the current listener.
      *
      * @since 8.6
      */
     @Incubating
-    <S> void addIntermediateModelListener(Class<S> modelType, IntermediateModelListener<S> intermediateModelListener);
+    void setIntermediateModelListener(IntermediateModelListener intermediateModelListener);
 
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>
