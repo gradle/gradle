@@ -22,8 +22,13 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteListener {
+    private final FileHierarchySet cacheLocations;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(FileHierarchySet.empty());
     private volatile boolean buildRunning;
+
+    public LocationsWrittenByCurrentBuild(FileHierarchySet cacheLocations) {
+        this.cacheLocations = cacheLocations;
+    }
 
     @Override
     public void locationsWritten(Iterable<String> locations) {
@@ -43,12 +48,12 @@ public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteLis
     }
 
     public void buildStarted() {
-        producedByCurrentBuild.set(FileHierarchySet.empty());
+        producedByCurrentBuild.set(cacheLocations);
         buildRunning = true;
     }
 
     public void buildFinished() {
         buildRunning = false;
-        producedByCurrentBuild.set(FileHierarchySet.empty());
+        producedByCurrentBuild.set(cacheLocations);
     }
 }

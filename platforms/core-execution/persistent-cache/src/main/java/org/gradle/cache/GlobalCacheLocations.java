@@ -16,6 +16,8 @@
 
 package org.gradle.cache;
 
+import org.gradle.internal.file.FileHierarchySet;
+
 /**
  * Identifies if a path is underneath one of Gradle's global caches.
  *
@@ -29,4 +31,9 @@ public interface GlobalCacheLocations {
      * Checks if a given path is inside one of Gradle's global caches.
      */
     boolean isInsideGlobalCache(String path);
+
+    /**
+     * Returns the cache locations.
+     */
+    FileHierarchySet getCacheRoots();
 }
