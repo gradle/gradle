@@ -19,11 +19,9 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionInputState;
-import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
@@ -42,25 +40,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
+public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final OutputSnapshotter outputSnapshotter;
-    private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
-    public CaptureStateBeforeExecutionStep(
+    public AbstractCaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        OutputSnapshotter outputSnapshotter,
-        OverlappingOutputDetector overlappingOutputDetector,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.outputSnapshotter = outputSnapshotter;
-        this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
     }
 
@@ -75,8 +67,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     @Nonnull
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
-                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
-                unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
 
                 OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
 
@@ -90,20 +81,13 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         );
     }
 
+    abstract protected ImmutableSortedMap<String, FileSystemSnapshot> captureOutputSnapshots(UnitOfWork work, WorkspaceContext context);
+
     @Nullable
-    private OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
-        if (work.getOverlappingOutputHandling() == UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS) {
-            return null;
-        }
-        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = context.getPreviousExecutionState()
-            .map(PreviousExecutionState::getOutputFilesProducedByWork)
-            .orElse(ImmutableSortedMap.of());
-        return overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
-    }
+    abstract protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots);
 
     private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
-        Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
-
+        // TODO We should probably capture these during identify step
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
         ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
@@ -114,6 +98,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
+        Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
         ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
             .map(ExecutionInputState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
