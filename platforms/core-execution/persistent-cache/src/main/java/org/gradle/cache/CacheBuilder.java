@@ -17,6 +17,7 @@
 package org.gradle.cache;
 
 import org.gradle.api.Action;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 
 import java.util.Map;
 
@@ -47,6 +48,18 @@ public interface CacheBuilder {
      * Note that not every combination of cache type and lock options is supported.
      */
     CacheBuilder withLockOptions(LockOptions lockOptions);
+
+    /**
+     * Convienience method that forwards to {@link #withLockOptions(LockOptions)}, passing a
+     * new {@link DefaultLockOptions} instance
+     * with the specified mode and default values for everything else.
+     *
+     * @param mode the lock mode to use
+     * @return the result of calling {@link #withLockOptions(LockOptions)}
+     */
+    default CacheBuilder withLockMode(FileLockManager.LockMode mode) {
+        return withLockOptions(new DefaultLockOptions(mode));
+    }
 
     /**
      * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent

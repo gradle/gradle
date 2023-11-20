@@ -25,7 +25,6 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
-import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
@@ -223,7 +222,7 @@ class ConfigurationCacheRepository(
 
     private
     fun CacheBuilder.withOnDemandLockMode() =
-        withLockOptions(DefaultLockOptions(FileLockManager.LockMode.OnDemand))
+        withLockMode(FileLockManager.LockMode.OnDemand)
 
     private
     fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =

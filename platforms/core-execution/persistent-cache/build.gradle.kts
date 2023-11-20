@@ -29,3 +29,7 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
+
+packageCycles {
+    excludePatterns.add("org/gradle/cache/internal/filelock")
+}
