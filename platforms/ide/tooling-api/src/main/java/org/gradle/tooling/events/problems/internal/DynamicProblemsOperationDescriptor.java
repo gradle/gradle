@@ -91,9 +91,4 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
     public RuntimeException getException() {
         throw new UnsupportedOperationException();
     }
-
-    @Override
-    public String getJson() {
-        return json;
-    }
 }
