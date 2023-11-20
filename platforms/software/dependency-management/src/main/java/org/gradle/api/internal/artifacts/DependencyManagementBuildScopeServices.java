@@ -114,10 +114,10 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
-import org.gradle.internal.execution.steps.BeforeExecutionContext;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CachingContext;
 import org.gradle.internal.execution.steps.CachingResult;
+import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
@@ -125,7 +125,6 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
-import org.gradle.internal.execution.steps.PreviousExecutionContext;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
@@ -135,6 +134,7 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -475,16 +475,17 @@ class DependencyManagementBuildScopeServices {
     ExecutionEngine createExecutionEngine(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
         OriginMetadataFactory originMetadataFactory,
         OutputSnapshotter outputSnapshotter,
+        Problems problems,
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem,
-        Problems problems
+        VirtualFileSystem virtualFileSystem
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
         // @formatter:off
@@ -492,7 +493,7 @@ class DependencyManagementBuildScopeServices {
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
-            new NoBeforeExecutionStateStep<>(
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(
             new NeverUpToDateStep<>(
@@ -505,23 +506,6 @@ class DependencyManagementBuildScopeServices {
             new ExecuteStep<>(buildOperationExecutor
         ))))))))))))));
         // @formatter:on
-    }
-
-    private static class NoBeforeExecutionStateStep<C extends PreviousExecutionContext, R extends CachingResult> implements Step<C, R> {
-
-        private final Step<? super BeforeExecutionContext, ? extends R> delegate;
-
-        public NoBeforeExecutionStateStep(
-            Step<? super BeforeExecutionContext, ? extends R> delegate
-        ) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public R execute(UnitOfWork work, C context) {
-            BeforeExecutionContext noBeforeExecutionContext = new BeforeExecutionContext(context, null);
-            return delegate.execute(work, noBeforeExecutionContext);
-        }
     }
 
     private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
