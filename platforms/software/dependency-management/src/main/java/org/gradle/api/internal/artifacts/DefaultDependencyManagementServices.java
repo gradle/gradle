@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -492,8 +493,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
-        ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-            return new ResolutionFailureHandler(problems);
+        ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry) {
+            return new ResolutionFailureHandler(problems, documentationRegistry);
         }
 
         GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
