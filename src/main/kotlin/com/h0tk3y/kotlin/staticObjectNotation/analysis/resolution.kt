@@ -27,6 +27,7 @@ sealed interface ErrorReason {
     data class AssignmentTypeMismatch(val expected: DataType, val actual: DataType) : ErrorReason
 
     data object UnusedConfigureLambda : ErrorReason
+    data object MissingConfigureLambda : ErrorReason
     data class DuplicateLocalValue(val name: String) : ErrorReason
     data object UnresolvedAssignmentLhs : ErrorReason // TODO: report candidate with rejection reasons
     data object UnresolvedAssignmentRhs : ErrorReason // TODO: resolution trace here, too?

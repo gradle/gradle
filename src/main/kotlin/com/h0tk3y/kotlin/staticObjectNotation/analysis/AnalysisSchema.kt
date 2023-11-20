@@ -147,7 +147,10 @@ sealed interface FunctionSemantics {
             }
     }
 
-    class AddAndConfigure(private val objectType: DataTypeRef) : NewObjectFunctionSemantics, ConfigureSemantics {
+    class AddAndConfigure(
+        private val objectType: DataTypeRef,
+        val acceptsConfigureBlock: Boolean
+    ) : NewObjectFunctionSemantics, ConfigureSemantics {
         override val returnValueType: DataTypeRef
             get() = objectType
     }

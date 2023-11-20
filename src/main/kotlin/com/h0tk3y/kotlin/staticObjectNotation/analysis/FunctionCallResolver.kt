@@ -129,8 +129,15 @@ class FunctionCallResolverImpl(
         result: ObjectOrigin.FunctionOrigin,
         newFunctionCallId: Long
     ) {
-        call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()?.let { configuringLambda ->
-            if (semantics is FunctionSemantics.ConfigureSemantics) {
+        if (semantics !is FunctionSemantics.ConfigureSemantics)
+            return
+
+        val expectsConfigureLambda = semantics is FunctionSemantics.AccessAndConfigure ||
+            semantics is FunctionSemantics.AddAndConfigure && semantics.acceptsConfigureBlock
+
+        val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
+        if (expectsConfigureLambda) {
+            if (lambda != null) {
                 val configureReceiver = when (semantics) {
                     is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
                         semantics,
@@ -140,12 +147,14 @@ class FunctionCallResolverImpl(
                     )
                     is FunctionSemantics.AddAndConfigure -> result
                 }
-                withScope(AnalysisScope(currentScopes.last(), configureReceiver, configuringLambda)) {
-                    codeAnalyzer.analyzeCodeInProgramOrder(this, configuringLambda.block.statements)
+                withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
+                    codeAnalyzer.analyzeCodeInProgramOrder(this, lambda.block.statements)
                 }
             } else {
-                errorCollector(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
+                errorCollector(ResolutionError(call, ErrorReason.MissingConfigureLambda))
             }
+        } else if (lambda != null) {
+            errorCollector(ResolutionError(call, ErrorReason.UnusedConfigureLambda))
         }
     }
 
