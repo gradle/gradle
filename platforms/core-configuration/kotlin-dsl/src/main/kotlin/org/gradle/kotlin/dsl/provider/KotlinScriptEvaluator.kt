@@ -107,6 +107,7 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val gradlePropertiesController: GradlePropertiesController,
+    private val restrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -119,6 +120,11 @@ class StandardKotlinScriptEvaluator(
         options: EvalOptions
     ) {
         withOptions(options) {
+            val result = restrictedKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)
+            when (result) {
+                is RestrictedKotlinScriptEvaluator.EvaluationResult.Evaluated -> return@withOptions
+                is RestrictedKotlinScriptEvaluator.EvaluationResult.NotEvaluated -> Unit
+            }
 
             interpreter.eval(
                 target,

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.initialization;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
+
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
@@ -33,6 +35,7 @@ public interface ProjectDescriptor {
      *
      * @return The name of the project. Never returns null.
      */
+    @Restricted
     String getName();
 
     /**
@@ -40,6 +43,7 @@ public interface ProjectDescriptor {
      *
      * @param name The new name for the project. Should not be null
      */
+    @Restricted
     void setName(String name);
 
     /**

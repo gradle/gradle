@@ -101,6 +101,7 @@ object BuildServices {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         gradlePropertiesController: GradlePropertiesController,
+        restrictedKotlinScriptEvaluator: RestrictedKotlinScriptEvaluator
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -123,7 +124,15 @@ object BuildServices {
             fileCollectionFactory,
             inputFingerprinter,
             gradlePropertiesController,
+            restrictedKotlinScriptEvaluator
         )
+
+    @Suppress("unused")
+    fun createRestrictedKotlinScriptEvaluator(gradlePropertiesController: GradlePropertiesController) =
+        when (gradlePropertiesController.gradleProperties.find("org.gradle.internal.restricted.dsl")) {
+            "true" -> DefaultRestrictedKotlinScriptEvaluator(DefaultRestrictedScriptSchemaBuilder())
+            else -> NoopRestrictedKotlinScriptEvaluator()
+        }
 
     @Suppress("unused")
     fun createCompileClasspathHasher(
