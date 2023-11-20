@@ -63,9 +63,9 @@ import java.util.stream.Collectors;
 @NonNullApi
 public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener implements BuildOperationListener {
 
-    private static InternalSeverity ADVICE = new DefaultSeverity(0);
-    private static InternalSeverity WARNING = new DefaultSeverity(1);
-    private static InternalSeverity ERROR = new DefaultSeverity(2);
+    private static final InternalSeverity ADVICE = new DefaultSeverity(0);
+    private static final InternalSeverity WARNING = new DefaultSeverity(1);
+    private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
     private final BuildOperationIdFactory idFactory;
 
