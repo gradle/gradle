@@ -92,6 +92,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
     private final ServiceProvider parentServices;
+    @Nullable
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
