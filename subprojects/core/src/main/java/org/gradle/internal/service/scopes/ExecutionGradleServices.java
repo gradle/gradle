@@ -160,7 +160,7 @@ public class ExecutionGradleServices {
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(fileSystemAccess, originMetadataFactory, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
             // TODO Remove this as it's not used
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(

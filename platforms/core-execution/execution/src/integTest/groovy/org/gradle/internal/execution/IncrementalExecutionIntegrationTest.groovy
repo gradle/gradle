@@ -65,10 +65,9 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
-
         @Override
         void invalidateCachesFor(Iterable<String> affectedOutputPaths) {
-            fileSystemAccess.write(affectedOutputPaths) {}
+            fileSystemAccess.invalidate(affectedOutputPaths)
         }
     }
     def buildId = UniqueId.generate()

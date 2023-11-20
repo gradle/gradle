@@ -26,6 +26,7 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoRunnable;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -201,9 +201,14 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
-    public void write(Iterable<String> locations, Runnable action) {
+    public void invalidate(Iterable<String> locations) {
         writeListener.locationsWritten(locations);
         virtualFileSystem.invalidate(locations);
+    }
+
+    @Override
+    public void write(Iterable<String> locations, IoRunnable action) throws IOException {
+        invalidate(locations);
         action.run();
     }
 
@@ -213,15 +218,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     }
 
     @Override
-    public void moveAtomically(String sourceLocation, String targetLocation) {
+    public void moveAtomically(String sourceLocation, String targetLocation) throws IOException {
         FileSystemLocationSnapshot sourceSnapshot = read(sourceLocation);
         write(ImmutableList.of(sourceLocation, targetLocation), () -> {
-            try {
-                Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
-                record(sourceSnapshot.relocate(targetLocation, stringInterner));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            Files.move(Paths.get(sourceLocation), Paths.get(targetLocation), ATOMIC_MOVE);
+            record(sourceSnapshot.relocate(targetLocation, stringInterner));
         });
     }
 

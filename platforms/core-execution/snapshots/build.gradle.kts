@@ -7,6 +7,7 @@ description = "Tools to take immutable, comparable snapshots of files and other 
 
 dependencies {
     api(project(":files"))
+    api(project(":functional"))
     api(project(":hashing"))
 
     implementation(project(":base-annotations"))

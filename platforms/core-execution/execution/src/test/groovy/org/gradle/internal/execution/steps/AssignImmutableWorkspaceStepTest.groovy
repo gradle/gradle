@@ -29,6 +29,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace.TemporaryWorkspaceAction
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -51,6 +52,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
     }
 
+    def deleter = Mock(Deleter)
     def fileSystemAccess = Mock(FileSystemAccess)
     def originMetadataFactory = Mock(OriginMetadataFactory)
     def outputSnapshotter = Mock(OutputSnapshotter)
@@ -58,7 +60,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         getWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(fileSystemAccess, originMetadataFactory, outputSnapshotter, delegate)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter, delegate)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
@@ -113,7 +115,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
-        1 * fileSystemAccess.write([temporaryWorkspace.absolutePath], _ as Runnable)
+        1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
 
         then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
@@ -162,7 +164,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
-        1 * fileSystemAccess.write([temporaryWorkspace.absolutePath], _ as Runnable)
+        1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
 
         then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext delegateContext ->
