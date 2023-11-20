@@ -289,7 +289,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
-        public @Nullable Object propertyMissing(String name) {
+        @Nullable
+        public Object propertyMissing(String name) {
             return getProperty(name);
         }
 
@@ -333,7 +334,8 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
-        public @Nullable Object methodMissing(String name, Object args) {
+        @Nullable
+        public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[]) args);
         }
 
@@ -411,8 +413,9 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return delegate;
         }
 
+        @Nullable
         @Override
-        public @Nullable Object get(@Nullable Object key) {
+        public Object get(@Nullable Object key) {
             logConventionDeprecation();
             return super.get(key);
         }
@@ -423,8 +426,9 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return super.getOrDefault(key, defaultValue);
         }
 
+        @Nullable
         @Override
-        public @Nullable Object remove(@Nullable Object key) {
+        public Object remove(@Nullable Object key) {
             logConventionDeprecation();
             return super.remove(key);
         }
@@ -441,8 +445,9 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             super.forEach(action);
         }
 
+        @Nullable
         @Override
-        public @Nullable Object replace(String key, Object value) {
+        public Object replace(String key, Object value) {
             logConventionDeprecation();
             return super.replace(key, value);
         }

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -27,7 +28,8 @@ public interface ServiceMethod {
 
     Type[] getParameterTypes();
 
-    Object invoke(Object target, Object... args);
+    @Nullable
+    Object invoke(Object target, @Nullable Object... args);
 
     Method getMethod();
 }

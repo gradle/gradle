@@ -330,11 +330,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return index.get(name) != null || index.getPending(name) != null;
     }
 
-    protected @Nullable T findByNameWithoutRules(String name) {
+    @Nullable
+    protected T findByNameWithoutRules(String name) {
         return index.get(name);
     }
 
-    protected @Nullable ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
+    @Nullable
+    protected ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
         return index.getPending(name);
     }
 
@@ -636,8 +638,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return new FilteredIndex<>(this, nameFilter, elementFilter);
         }
 
+        @Nullable
         @Override
-        public @Nullable ProviderInternal<? extends T> getPending(String name) {
+        public ProviderInternal<? extends T> getPending(String name) {
             return pendingMap.get(name);
         }
 
@@ -729,8 +732,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             );
         }
 
+        @Nullable
         @Override
-        public @Nullable ProviderInternal<? extends T> getPending(String name) {
+        public ProviderInternal<? extends T> getPending(String name) {
             ProviderInternal<?> provider = delegate.getPending(name);
             if (isPendingSatisfyingFilters(name, provider)) {
                 return Cast.uncheckedCast(provider);
@@ -826,7 +830,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    private @Nullable NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
         NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
         // Run the rules and try to find something again.
         if (provider == null) {
@@ -838,7 +843,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return provider;
     }
 
-    private @Nullable NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
         // Look for a realized object
         T object = findByNameWithoutRules(name);
         if (object != null) {
@@ -869,8 +875,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             this.type = type;
         }
 
+        @Nullable
         @Override
-        public @Nullable Class<I> getType() {
+        public Class<I> getType() {
             return type;
         }
 

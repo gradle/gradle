@@ -116,11 +116,11 @@ public class JavaMethod<T, R> {
         return Modifier.isStatic(method.getModifiers());
     }
 
-    public R invokeStatic(Object... args) {
+    public R invokeStatic(@Nullable Object... args) {
         return invoke(null, args);
     }
 
-    public R invoke(@Nullable T target, Object... args) {
+    public R invoke(@Nullable T target, @Nullable Object... args) {
         try {
             Object result = method.invoke(target, args);
             return returnType.cast(result);
@@ -135,7 +135,7 @@ public class JavaMethod<T, R> {
         return method;
     }
 
-    public Class<?>[] getParameterTypes(){
+    public Class<?>[] getParameterTypes() {
         return method.getParameterTypes();
     }
 
