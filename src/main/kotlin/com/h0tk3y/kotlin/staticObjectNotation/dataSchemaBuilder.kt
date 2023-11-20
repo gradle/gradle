@@ -1,9 +1,37 @@
 package com.h0tk3y.kotlin.staticObjectNotation
 
-import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.AnalysisSchema
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ConfigureAccessor
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataConstructorSignature
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataMemberFunction
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataParameter
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataProperty
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTopLevelFunction
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataType
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.DataTypeRef
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ExternalObjectProviderKey
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FqName
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.FunctionSemantics
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ParameterSemantics
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.fqName
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.ref
+import com.h0tk3y.kotlin.staticObjectNotation.types.isConfigureLambda
+import java.util.Locale
+import kotlin.reflect.KCallable
+import kotlin.reflect.KClass
+import kotlin.reflect.KClassifier
+import kotlin.reflect.KFunction
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
+import kotlin.reflect.KType
+import kotlin.reflect.KVisibility
+import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.typeOf
 
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
@@ -17,7 +45,7 @@ fun schemaFromTypes(
     val dataTypes = types.map { createDataType(it, preIndex) }
 
     val extFunctions = externalFunctions.map { dataTopLevelFunction(it, preIndex) }.associateBy { it.fqName }
-    val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(typeToRef(value)) }.toMap()
+    val extObjects = externalObjects.map { (key, value) -> key to ExternalObjectProviderKey(value.toDataTypeRef()) }.toMap()
     return AnalysisSchema(
         dataTypes.single { it.kClass == topLevelReceiver },
         dataTypes.associateBy { FqName.parse(it.kClass.qualifiedName!!) },
@@ -49,8 +77,8 @@ fun createPreIndex(types: List<KClass<*>>): PreIndex {
     return PreIndex().apply {
         types.forEach { type ->
             addType(type)
-            val properties = dataPropertiesOf(type)
-            properties.forEach { addProperty(type, it) }
+            val properties = extractProperties(type)
+            properties.forEach { addProperty(type, DataProperty(it.name, it.returnType, it.isReadOnly, it.hasDefaultValue)) }
         }
     }
 }
@@ -73,29 +101,55 @@ private fun constructors(kClass: KClass<*>, preIndex: PreIndex): List<DataConstr
     kClass.constructors.filter { it.isIncluded }.map { constructor ->
         val params = constructor.parameters
         val dataParams = params.map { param ->
-            dataParameter(constructor, param, kClass, FunctionSemantics.Pure(typeToRef(kClass)), preIndex)
+            dataParameter(constructor, param, kClass, FunctionSemantics.Pure(kClass.toDataTypeRef()), preIndex)
         }
         DataConstructorSignature(dataParams)
     }
 
-private fun dataPropertiesOf(kClass: KClass<*>) = kClass.memberProperties
+private fun extractProperties(kClass: KClass<*>) =
+    (propertiesFromAccessorsOf(kClass) + memberPropertiesOf(kClass)).distinctBy { it }
+
+private fun memberPropertiesOf(kClass: KClass<*>): List<CollectedPropertyInformation> = kClass.memberProperties
     .filter { property ->
         (property.isIncluded || kClass.primaryConstructor?.parameters.orEmpty()
             .any { it.name == property.name && it.type == property.returnType })
                 && property.visibility == KVisibility.PUBLIC
+    }.map { property -> kPropertyInformation(property) }
+
+private fun propertiesFromAccessorsOf(kClass: KClass<*>): List<CollectedPropertyInformation> {
+    val functionsByName = kClass.memberFunctions.groupBy { it.name }
+    val getters = functionsByName
+        .filterKeys { it.startsWith("get") && it.substringAfter("get").first().isUpperCase() }
+        .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
+        .filterValues { it != null && it.isIncluded }
+    return getters.map { (name, getter) ->
+        checkNotNull(getter)
+        val nameAfterGet = name.substringAfter("get")
+        val propertyName = nameAfterGet.decapitalize()
+        val type = getter.returnType.toDataTypeRefOrError()
+        val hasSetter = functionsByName["set$nameAfterGet"].orEmpty().any { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
+        CollectedPropertyInformation(propertyName, type, !hasSetter, true)
     }
-    .map { property ->
-        val typeClassifier = property.returnType.classifier
-            ?: error("cannot get a classifier for property return type")
-        val constructor = kClass.primaryConstructor 
-            ?: error("classes with no primary constructor are not supported yet")
-        val isReadOnly = property !is KMutableProperty<*>
-        // TODO: a better predicate
-        val hasDefaultValue =
-            property.annotations.any { it is HasDefaultValue } ||
-                    isReadOnly && constructor.parameters.none { it.name == property.name }
-        DataProperty(property.name, typeToRef(typeClassifier), isReadOnly, hasDefaultValue)
-    }
+}
+
+private fun kPropertyInformation(property: KProperty<*>): CollectedPropertyInformation {
+    val isReadOnly = property !is KMutableProperty<*>
+    return CollectedPropertyInformation(
+        property.name,
+        property.returnType.toDataTypeRefOrError(),
+        isReadOnly,
+        hasDefaultValue = run {
+            isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
+        }
+    )
+}
+
+private data class CollectedPropertyInformation(
+    val name: String,
+    val returnType: DataTypeRef,
+    val isReadOnly: Boolean,
+    val hasDefaultValue: Boolean
+)
 
 private fun dataTopLevelFunction(
     function: KFunction<*>,
@@ -106,13 +160,13 @@ private fun dataTopLevelFunction(
     val returnType = function.returnType
     checkInScope(returnType, preIndex)
 
-    val returnTypeClassifier = function.returnType.classifier as KClass<*>
-    val semanticsFromSignature = FunctionSemantics.Pure(typeToRef(returnTypeClassifier))
+    val returnTypeClassifier = function.returnType
+    val semanticsFromSignature = FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
 
     val fnParams = function.parameters
     val params = fnParams.filterIndexed { index, it ->
         index != fnParams.lastIndex || !isConfigureLambda(it, returnTypeClassifier)
-    }.map { dataParameter(function, it, returnTypeClassifier, semanticsFromSignature, preIndex) }
+    }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
     return DataTopLevelFunction(
         function.javaMethod!!.declaringClass.packageName,
@@ -127,26 +181,25 @@ private fun dataMemberFunction(
     function: KFunction<*>,
     preIndex: PreIndex
 ): DataMemberFunction {
-    val thisTypeRef = typeToRef(inType)
-    
+    val thisTypeRef = inType.toDataTypeRef()
+
     val returnType = function.returnType
-    val returnTypeClassifier = function.returnType.classifier
 
     checkInScope(returnType, preIndex)
-    val returnClass = returnTypeClassifier as KClass<*>
+    val returnClass = function.returnType.classifier as KClass<*>
     val fnParams = function.parameters
 
-    val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, returnTypeClassifier, inType, preIndex)
+    val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex)
     val maybeConfigureType = if (semanticsFromSignature is FunctionSemantics.AccessAndConfigure) {
         // TODO: be careful with non-class types?
-        inType.memberProperties.find { it.name == function.name }?.returnType?.classifier as? KClass<*>
+        inType.memberProperties.find { it.name == function.name }?.returnType
     } else null
 
     val params = fnParams
         .filterIndexed { index, it ->
             it != function.instanceParameter && run {
-                index != fnParams.lastIndex || !isConfigureLambda(it, maybeConfigureType ?: returnTypeClassifier)
-            }        
+                index != fnParams.lastIndex || !isConfigureLambda(it, maybeConfigureType ?: function.returnType)
+            }
         }
         .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
@@ -160,36 +213,35 @@ private fun dataMemberFunction(
 
 private fun inferFunctionSemanticsFromSignature(
     function: KFunction<*>,
-    returnTypeClassifier: KClassifier?,
+    returnTypeClassifier: KType,
     inType: KClass<*>?,
     preIndex: PreIndex
 ): FunctionSemantics {
-    val returnDataType = typeToRef(returnTypeClassifier as KClassifier)
     return when {
         function.annotations.any { it is Builder } -> {
             check(inType != null)
-            FunctionSemantics.Builder(returnDataType)
+            FunctionSemantics.Builder(returnTypeClassifier.toDataTypeRefOrError())
         }
 
         function.annotations.any { it is Adding } -> {
             check(inType != null)
-            FunctionSemantics.AddAndConfigure(returnDataType)
+            val hasConfigureLambda =
+                isConfigureLambda(function.parameters[function.parameters.lastIndex], function.returnType)
+            FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), hasConfigureLambda)
         }
         function.annotations.any { it is Configuring } -> {
             check(inType != null)
-            
+
             val annotation = function.annotations.filterIsInstance<Configuring>().singleOrNull()
             check(annotation != null)
             val propertyName = annotation.propertyName.ifEmpty { function.name }
             val kProperty = inType.memberProperties.find { it.name == propertyName }
             check(kProperty != null)
-            val propertyTypeClassifier = kProperty.returnType.classifier as KClass<*>
             val property = preIndex.getProperty(inType, propertyName)
             check(property != null)
 
-            val hasConfigureLambda = function.parameters.withIndex().any { (index, it) ->
-                index == function.parameters.lastIndex && isConfigureLambda(it, propertyTypeClassifier)
-            }
+            val hasConfigureLambda =
+                isConfigureLambda(function.parameters[function.parameters.lastIndex], kProperty.returnType)
 
             check(hasConfigureLambda)
             val returnType = when (function.returnType) {
@@ -197,31 +249,31 @@ private fun inferFunctionSemanticsFromSignature(
                 kProperty.returnType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
                 else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
             }
-            FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(typeToRef(inType), property), returnType)
+            FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Property(inType.toDataTypeRef(), property), returnType)
         }
 
-        else -> FunctionSemantics.Pure(returnDataType)
+        else -> FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
     }
 }
 
 private fun dataParameter(
     function: KFunction<*>,
     fnParam: KParameter,
-    returnClass: KClass<*>,
+    ownerClass: KClass<*>,
     functionSemantics: FunctionSemantics,
     preIndex: PreIndex
 ): DataParameter {
     val paramType = fnParam.type
     checkInScope(paramType, preIndex)
-    val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
-    return DataParameter(fnParam.name, typeToRef(paramType.classifier as KClass<*>), fnParam.isOptional, paramSemantics)
+    val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, ownerClass, preIndex)
+    return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
 }
 
 private fun getParameterSemantics(
     functionSemantics: FunctionSemantics,
     function: KFunction<*>,
     fnParam: KParameter,
-    returnClass: KClass<*>,
+    ownerClass: KClass<*>,
     preIndex: PreIndex
 ): ParameterSemantics {
     val propertyNamesToCheck = buildList {
@@ -230,31 +282,18 @@ private fun getParameterSemantics(
     }
     propertyNamesToCheck.forEach { propertyName ->
         val isPropertyLike =
-            returnClass.memberProperties.any {
+            ownerClass.memberProperties.any {
                 it.visibility == KVisibility.PUBLIC &&
                         it.name == propertyName &&
                         it.returnType == fnParam.type
             }
         if (isPropertyLike) {
-            val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
+            val storeProperty = checkNotNull(preIndex.getProperty(ownerClass, propertyName))
             return ParameterSemantics.StoreValueInProperty(storeProperty)
         }
     }
     return ParameterSemantics.Unknown
 }
-
-private fun isConfigureLambda(kParam: KParameter, returnTypeClassifier: KClass<*>): Boolean {
-    val paramType = kParam.type
-    return paramType.isSubtypeOf(configureLambdaTypeFor(returnTypeClassifier))
-}
-
-private fun configureLambdaTypeFor(returnTypeClassifier: KClass<*>) =
-    Function1::class.createType(
-        listOf(
-            KTypeProjection(KVariance.INVARIANT, returnTypeClassifier.createType()),
-            KTypeProjection(KVariance.INVARIANT, Unit::class.createType())
-        )
-    )
 
 private fun checkInScope(
     type: KType,
@@ -281,15 +320,39 @@ val KFunction<*>.isIgnored: Boolean
         else -> false
     }
 
-fun typeToRef(kType: KClassifier): DataTypeRef = when (kType) {
-    Int::class -> DataType.IntDataType.ref
-    String::class -> DataType.StringDataType.ref
-    Boolean::class -> DataType.BooleanDataType.ref
-    Long::class -> DataType.LongDataType.ref
-    is KClass<*> -> DataTypeRef.Name(FqName.parse(kType.java.name))
-    else -> error("unexpected type")
+private fun KType.toDataTypeRef(): DataTypeRef? = when {
+    // isMarkedNullable -> TODO: support nullable types
+    arguments.isNotEmpty() -> null // TODO: support for some particular generic types
+    else -> when (val classifier = classifier) {
+        null -> null
+        else -> classifier.toDataTypeRef()
+    }
 }
 
+private fun KType.toDataTypeRefOrError() =
+    toDataTypeRef()
+        ?: error("failed to convert type $this to data type")
+
+private fun KClassifier.toDataTypeRef(): DataTypeRef =
+    when (this) {
+        Unit::class -> DataType.UnitType.ref
+        Int::class -> DataType.IntDataType.ref
+        String::class -> DataType.StringDataType.ref
+        Boolean::class -> DataType.BooleanDataType.ref
+        Long::class -> DataType.LongDataType.ref
+        is KClass<*> -> DataTypeRef.Name(FqName.parse(java.name))
+        else -> error("unexpected type")
+    }
+
 val KCallable<*>.isIncluded
-    get() =
-        this.annotations.any { it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue }
+    get() = this.annotationsWithGetters.any {
+        it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
+    }
+
+val KCallable<*>.annotationsWithGetters: List<Annotation>
+    get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
+
+private fun String.decapitalize() = first().lowercase(Locale.ENGLISH) + drop(1)
+
+fun KType.toKClass() = (classifier ?: error("unclassifiable type $this is used in the schema")) as? KClass<*>
+    ?: error("type $this classified as a non-class is used in the schema")
