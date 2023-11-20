@@ -105,4 +105,15 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @since 8.6
      */
     AdditionalData getAdditionalData();
+
+    /**
+     * Returns the exception associated with this problem.
+     * @return the exception associated with this problem.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    @Nullable
+    RuntimeException getException();
+
 }

@@ -462,7 +462,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        def failure = runAndFail("reportProblem")
+        def failure = fails("reportProblem")
 
         then:
         failure.assertHasCause('ProblemBuilder.additionalData() supports values of type String, but java.util.ArrayList as given.')
@@ -477,20 +477,20 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    RuntimeException exception = new RuntimeException("test")
                     problems.throwing {
                         spec -> spec
                             .label("label")
                             .undocumented()
                             .noLocation()
                             .category("type")
-                            .withException(exception)
+                            .withException(new RuntimeException("test"))
                     }
                 }
             }
             """
 
         when:
+
         fails("reportProblem")
 
         then:

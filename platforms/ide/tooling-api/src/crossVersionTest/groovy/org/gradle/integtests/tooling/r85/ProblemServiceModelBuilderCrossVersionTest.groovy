@@ -82,6 +82,8 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         """
     }
 
+    @TargetGradleVersion(">=8.6")
+    @ToolingApiVersion(">=8.6")
     def "Can use problems service in model builder"() {
         given:
         withSampleProject()
@@ -91,8 +93,36 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         withConnection {
             it.model(CustomModel)
                 .setJavaHome(javaHome)
-//                .setJavaHome(new File("/Users/reinholddegenfellner/.sdkman/candidates/java/21-amzn"))
-//                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,address=5005")
+                .addProgressListener(listener)
+                .get()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        problems[0].label.label == 'label'
+        problems[0].category.category== 'testcategory'
+        problems[0].exception.message == 'test'
+
+        where:
+        javaHome << [
+            AvailableJavaHomes.jdk8.javaHome,
+            AvailableJavaHomes.jdk17.javaHome,
+            AvailableJavaHomes.jdk21.javaHome
+        ]
+    }
+
+    @ToolingApiVersion("<8.6")
+    @TargetGradleVersion("<8.6")
+    def "Can use problems service in model builder before 8"() {
+        given:
+        withSampleProject()
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.model(CustomModel)
+                .setJavaHome(javaHome)
                 .addProgressListener(listener)
                 .get()
         }
@@ -102,9 +132,6 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         problems.size() == 1
         problems[0].label == 'label'
         problems[0].problemCategory == 'testcategory'
-
-        where:
-        javaHome << [AvailableJavaHomes.jdk8.javaHome, AvailableJavaHomes.jdk17.javaHome, AvailableJavaHomes.jdk21.javaHome]
     }
 
     @ToolingApiVersion(">=8.6")
@@ -123,31 +150,9 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
 
         then:
         listener.problems.size() == 1
-        listener.problems[0].additionalData == [
+        listener.problems[0].additionalData.asMap == [
             'keyToString': 'value',
             'keyToInt': 1
-        ]
-    }
-
-    @ToolingApiVersion(">=8.6")
-    @TargetGradleVersion(">=8.6")
-    def "Can add additional metadata"() {
-        given:
-        withSampleProject(true)
-        ProblemProgressListener listener = new ProblemProgressListener()
-
-        when:
-        withConnection { connection ->
-            connection.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        listener.problems.size() == 1
-        listener.problems[0].additionalData == [
-            'keyToString' : 'value',
-            'keyToInt' : 1
         ]
     }
 

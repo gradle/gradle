@@ -177,8 +177,15 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
     }
 
     public UnboundBasicProblemBuilder additionalData(String key, Object value) {
+        validateAdditionalDataValueType(value);
         this.getAdditionalData().put(key, value);
         return this;
+    }
+
+    private void validateAdditionalDataValueType(Object value) {
+            if (!(value instanceof String)) {
+                throw new RuntimeException("ProblemBuilder.additionalData() supports values of type String, but " + value.getClass().getName() + " as given.");
+            }
     }
 
     @Override

@@ -44,6 +44,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final DocumentationLink documentationLink;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
+    @Nullable
+    private final RuntimeException exception;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -56,7 +58,8 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         List<Location> locations,
         @Nullable DocumentationLink documentationLink,
         List<Solution> solutions,
-        AdditionalData additionalData
+        AdditionalData additionalData,
+        @Nullable RuntimeException exception
     ) {
         super(internalDescriptor, parent);
         this.json = json;
@@ -68,6 +71,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
+        this.exception = exception;
     }
 
     public ProblemCategory getCategory() {
@@ -112,5 +116,10 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     @Override
     public String getJson() {
         return json;
+    }
+
+    @Nullable
+    public RuntimeException getException() {
+        return exception;
     }
 }

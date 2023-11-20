@@ -23,10 +23,10 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.locations.TaskPathLocation;
-import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
@@ -91,7 +91,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                         mapLocations(problem.getLocations()),
                         mapDocumentationLink(problem.getDocumentationLink()),
                         mapSolutions(problem.getSolutions()),
-                        mapEntries(problem.getAdditionalData())
+                        mapEntries(problem.getAdditionalData()),
+                        problem.getException()
                     )
                 )
             );

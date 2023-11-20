@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
 
@@ -88,7 +89,7 @@ public class DefaultProblemCategory implements ProblemCategory {
 
     @Override
     public List<String> getSubCategories() {
-        return category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount());
+        return ImmutableList.copyOf(category.segments().subList(NAMESPACE_START_INDEX + (hasPluginId() ? 3 : 1), category.segmentCount()));
     }
 
     @Override

@@ -30,6 +30,7 @@ import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 @NonNullApi
@@ -82,6 +83,12 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
 
     @Override
     public AdditionalData getAdditionalData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    @Override
+    public RuntimeException getException() {
         throw new UnsupportedOperationException();
     }
 

@@ -42,6 +42,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     private final InternalDocumentationLink documentationLink;
     private final List<InternalSolution> solutions;
     private final InternalAdditionalData additionalData;
+    private final RuntimeException exception;
 
     public DefaultProblemDetails(
         String json,
@@ -52,7 +53,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         List<InternalLocation> locations,
         @Nullable InternalDocumentationLink documentationLink,
         List<InternalSolution> solutions,
-        InternalAdditionalData additionalData
+        InternalAdditionalData additionalData,
+        @Nullable RuntimeException exception
     ) {
         this.json = json;
         this.category = category;
@@ -63,6 +65,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
         this.documentationLink = documentationLink;
         this.solutions = solutions;
         this.additionalData = additionalData;
+        this.exception = exception;
     }
     @Override
     public String getJson() {
@@ -102,6 +105,12 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     @Override
     public List<InternalSolution> getSolutions() {
         return solutions;
+    }
+
+    @Nullable
+    @Override
+    public RuntimeException getException() {
+        return exception;
     }
 
     @Override

@@ -148,8 +148,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
@@ -195,6 +193,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEv
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalFileLocation;
@@ -724,12 +724,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             );
         } else {
             InternalBasicProblemDetails basicDetails = (InternalBasicProblemDetails) details;
-            InternalProblemCategory category = basicDetails.getCategory();
             return new DefaultProblemsOperationDescriptor(
                 descriptor,
                 parent,
                 details.getJson(),
-                toProblemCategory(category),
+                toProblemCategory(basicDetails.getCategory()),
                 toProblemLabel(basicDetails.getLabel()),
                 toProblemDetails(basicDetails.getDetails()),
                 toProblemSeverity(basicDetails.getSeverity()),
