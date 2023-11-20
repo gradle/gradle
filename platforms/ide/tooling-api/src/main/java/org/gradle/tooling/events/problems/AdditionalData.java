@@ -22,7 +22,7 @@ import org.gradle.api.NonNullApi;
 import java.util.Map;
 
 /**
- * Additional data associated with a {@link ProblemEvent}.
+ * Additional data for a problem
  *
  * @since 8.6
  */

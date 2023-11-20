@@ -17,10 +17,10 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Describes a problem operation.
@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
  * @since 8.4
  */
 @Incubating
-@NonNullApi
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
@@ -63,7 +62,6 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the problem details
      * @since 8.6
      */
-    @Incubating
     @Nullable
     Details getDetails();
 
@@ -73,8 +71,31 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return the problem severity
      * @since 8.6
      */
-    @Incubating
     Severity getSeverity();
+
+    /**
+     * Returns the locations associated with this problem.
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    List<Location> getLocations();
+
+    /**
+     * Returns the link to the documentation
+     *
+     * @return the locations
+     * @since 8.6
+     */
+    @Nullable
+    DocumentationLink getDocumentationLink();
+
+    /**
+     * Returns the list of solutions
+     * @return the solutions
+     * @since 8.6
+     */
+    List<Solution> getSolutions();
 
     /**
      * Additional data associated with this problem.
@@ -83,15 +104,5 @@ public interface ProblemDescriptor extends OperationDescriptor {
      * @return a map of additional data
      * @since 8.6
      */
-    @Incubating
     AdditionalData getAdditionalData();
-
-    /**
-     * The exception associated with this problem.
-     *
-     * @return the exception.
-     * @since 8.6
-     */
-    @Incubating
-    Throwable getThrowable();
 }

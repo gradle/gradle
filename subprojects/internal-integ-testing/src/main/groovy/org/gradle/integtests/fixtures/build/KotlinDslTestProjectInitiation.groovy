@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream
 import static org.gradle.util.internal.TextUtil.escapeString
 
 @CompileStatic
-trait TestProjectInitiation {
+trait KotlinDslTestProjectInitiation {
 
     abstract TestFile file(Object... path)
 
@@ -226,13 +226,19 @@ trait TestProjectInitiation {
                     "runtimeOnly"(project(it.path))
                 }
             }
-
-            allprojects {
-                $repositoriesBlock
-            }
         """)
-        withFile("buildSrc/b/$defaultBuildKotlinFileName", """dependencies { implementation(project(":c")) }""")
-        withFile("buildSrc/c/$defaultBuildKotlinFileName", "plugins { java }")
+
+        withFile("buildSrc/a/$defaultBuildKotlinFileName", """
+            $repositoriesBlock
+        """)
+        withFile("buildSrc/b/$defaultBuildKotlinFileName", """
+            $repositoriesBlock
+            dependencies { implementation(project(":c")) }
+        """)
+        withFile("buildSrc/c/$defaultBuildKotlinFileName", """
+            plugins { java }
+            $repositoriesBlock
+        """)
 
         return [
             withMainSourceSetJavaIn("buildSrc"),

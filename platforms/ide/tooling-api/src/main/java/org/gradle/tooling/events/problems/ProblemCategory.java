@@ -21,8 +21,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * A problem category.
- *
+ * Represents a problem category
  * @since 8.6
  */
 @Incubating
@@ -34,7 +33,7 @@ public interface ProblemCategory {
      * - problems emitted by gradle plugins: value = plugin-id // TODO we should do this to some extent
      *
      * @return the problem namespace
-     * @since 8.6
+
      */
     String getNamespace();
 

@@ -87,7 +87,7 @@ public interface Problem {
      * @since 8.5
      */
     @Nullable
-    Throwable getException();
+    RuntimeException getException();
 
     /**
      * Additional Data about the problem.
@@ -96,4 +96,12 @@ public interface Problem {
      * TODO (donat) add (non-javadoc) comment on how to extend the supported value types
      */
     Map<String, Object> getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     *
+     * @since 8.6
+     */
+    @Incubating
+    UnboundBasicProblemBuilder toBuilder();
 }

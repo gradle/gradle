@@ -36,6 +36,4 @@ public class DefaultAdditionalData implements InternalAdditionalData, Serializab
     public Map<String, Object> getAsMap() {
         return additionalData;
     }
-
-    //TODO delete
 }

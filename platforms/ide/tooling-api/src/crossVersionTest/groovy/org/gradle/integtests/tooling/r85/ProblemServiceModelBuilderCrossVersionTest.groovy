@@ -96,7 +96,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
                 .addProgressListener(listener)
                 .get()
         }
-        def problems = listener.problems.collect { new JsonSlurper().parseText(it.json) }
+        def problems = listener.problems.collect { new JsonSlurper().parse(listener.problems[0].json.bytes) }
 
         then:
         problems.size() == 1
@@ -126,6 +126,28 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         listener.problems[0].additionalData == [
             'keyToString': 'value',
             'keyToInt': 1
+        ]
+    }
+
+    @ToolingApiVersion(">=8.6")
+    @TargetGradleVersion(">=8.6")
+    def "Can add additional metadata"() {
+        given:
+        withSampleProject(true)
+        ProblemProgressListener listener = new ProblemProgressListener()
+
+        when:
+        withConnection { connection ->
+            connection.model(CustomModel)
+                .addProgressListener(listener)
+                .get()
+        }
+
+        then:
+        listener.problems.size() == 1
+        listener.problems[0].additionalData == [
+            'keyToString' : 'value',
+            'keyToInt' : 1
         ]
     }
 

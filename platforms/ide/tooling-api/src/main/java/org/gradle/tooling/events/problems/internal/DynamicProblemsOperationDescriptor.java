@@ -21,11 +21,16 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
+import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.Label;
+import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
 import org.gradle.tooling.events.problems.ProblemDescriptor;
 import org.gradle.tooling.events.problems.Severity;
+import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+
+import java.util.List;
 
 @NonNullApi
 public class DynamicProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
@@ -61,12 +66,22 @@ public class DynamicProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Override
-    public AdditionalData getAdditionalData() {
+    public List<Location> getLocations() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Throwable getThrowable() {
+    public List<Solution> getSolutions() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DocumentationLink getDocumentationLink() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AdditionalData getAdditionalData() {
         throw new UnsupportedOperationException();
     }
 

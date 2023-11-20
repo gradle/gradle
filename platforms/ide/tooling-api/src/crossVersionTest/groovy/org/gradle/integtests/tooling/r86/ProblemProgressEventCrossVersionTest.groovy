@@ -16,12 +16,13 @@
 
 package org.gradle.integtests.tooling.r86
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.FileLocation
+import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.Severity
@@ -39,6 +40,26 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             import org.gradle.api.problems.Severity
             import org.gradle.internal.deprecation.Documentation
 
+
+            class TestDocLink implements DocLink {
+
+                private final String url;
+
+                public TestDocLink(String url) {
+                    this.url = url
+                }
+
+                @Override
+                String getUrl() {
+                    return url;
+                }
+
+                @Override
+                String getConsultDocumentationMessage() {
+                    return "consult " + url;
+                }
+            }
+
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
@@ -47,12 +68,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 void run() {
                     problems.create {
                         it.label("shortProblemMessage")
-                        .undocumented()
-                        .noLocation()
+                        .documentedAt(new TestDocLink("https://docs.example.org"))
+                        .fileLocation("/tmp/foo", 1, 2, 3)
                         .category("main", "sub", "id")
                         .details("long message")
                         .additionalData("aKey", "aValue")
                         .severity(Severity.WARNING)
+                        .solution("try this instead")
                     }.report()
                 }
             }
@@ -78,6 +100,17 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].label.label == 'shortProblemMessage'
         problems[0].details.details == 'long message' // TODO test coverage for null value
         problems[0].severity == Severity.WARNING
+        problems[0].locations.size() == 2 // TODO test coverage for null values
+        problems[0].locations[0] instanceof FileLocation
+        (problems[0].locations[0] as FileLocation).path == '/tmp/foo'
+        (problems[0].locations[0] as FileLocation).line == 1
+        (problems[0].locations[0] as FileLocation).column == 2
+        (problems[0].locations[0] as FileLocation).length == 3
+        problems[0].locations[1] instanceof TaskPathLocation
+        (problems[0].locations[1] as TaskPathLocation).identityPath == ':reportProblem'
+        problems[0].documentationLink.url == 'https://docs.example.org' // TODO it's really hard to define doc urls from the plugin authors perspective. We should have a generic documentedAt(URL) method on the problem builder
+        problems[0].solutions.size() == 1
+        problems[0].solutions[0].solution == 'try this instead'
     }
 
     class ProblemProgressListener implements ProgressListener {

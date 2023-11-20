@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-@NonNullApi
 public interface InternalBasicProblemDetails extends InternalProblemDetails {
 
     InternalProblemCategory getCategory();
 
     InternalAdditionalData getAdditionalData();
+
     InternalLabel getLabel();
 
     @Nullable
@@ -34,5 +34,10 @@ public interface InternalBasicProblemDetails extends InternalProblemDetails {
 
     InternalSeverity getSeverity();
 
-    Throwable getException();
+    List<InternalLocation> getLocations();
+
+    @Nullable
+    InternalDocumentationLink getDocumentationLink();
+
+    List<InternalSolution> getSolutions();
 }

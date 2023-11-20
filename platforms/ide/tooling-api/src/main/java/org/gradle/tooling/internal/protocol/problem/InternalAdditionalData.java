@@ -16,11 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.NonNullApi;
-
 import java.util.Map;
 
-@NonNullApi
 public interface InternalAdditionalData {
 
     Map<String, Object> getAsMap();

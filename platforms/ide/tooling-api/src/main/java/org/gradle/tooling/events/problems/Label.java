@@ -17,18 +17,16 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 
 /**
  * Represents a problem label.
  * @since 8.6
  */
 @Incubating
-@NonNullApi
 public interface Label {
 
     /**
-     * Returns the label.
+     * Returns the brief description of a problem.
      *
      * @return the label
      */
