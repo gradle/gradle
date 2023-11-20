@@ -46,7 +46,7 @@ public class WatchableHierarchies {
     public static final String INVALIDATING_HIERARCHY_MESSAGE = "Invalidating hierarchy because watch probe hasn't been triggered";
 
     private final FileWatcherProbeRegistry probeRegistry;
-    private final Predicate<String> watchFilter;
+    private final Predicate<String> immutableLocationsFilter;
 
     /**
      * Files that can be watched.
@@ -70,15 +70,15 @@ public class WatchableHierarchies {
 
     public WatchableHierarchies(
         FileWatcherProbeRegistry probeRegistry,
-        Predicate<String> watchFilter
+        Predicate<String> immutableLocationsFilter
     ) {
         this.probeRegistry = probeRegistry;
-        this.watchFilter = watchFilter;
+        this.immutableLocationsFilter = immutableLocationsFilter;
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
-        if (!watchFilter.test(watchableHierarchyPath)) {
+        if (immutableLocationsFilter.test(watchableHierarchyPath)) {
             throw new IllegalStateException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
                 watchableHierarchyPath
@@ -247,7 +247,7 @@ public class WatchableHierarchies {
     }
 
     public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {
-        return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || !watchFilter.test(snapshot.getAbsolutePath());
+        return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || immutableLocationsFilter.test(snapshot.getAbsolutePath());
     }
 
     public boolean isInWatchableHierarchy(String path) {
@@ -297,9 +297,8 @@ public class WatchableHierarchies {
         }
 
         private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
-            //noinspection UnnecessaryParentheses
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
-                (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
+                (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && !immutableLocationsFilter.test(snapshot.getAbsolutePath()));
         }
 
         private void invalidateUnwatchedFile(FileSystemLocationSnapshot snapshot) {
