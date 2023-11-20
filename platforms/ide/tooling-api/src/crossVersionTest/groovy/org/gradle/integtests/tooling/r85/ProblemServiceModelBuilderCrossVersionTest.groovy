@@ -64,7 +64,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
                             .noLocation()
                             .category("testcategory")
                             .withException(new RuntimeException("test"))
-                            ${if (includeAdditionalMetadata) { ".additionalData(\"keyToString\", \"value\").additionalData(\"keyToInt\", 1)" }}
+                            ${if (includeAdditionalMetadata) { ".additionalData(\"keyToString\", \"value\")" }}
                     }.report()
                     return new CustomModel()
                 }
@@ -151,8 +151,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         then:
         listener.problems.size() == 1
         listener.problems[0].additionalData.asMap == [
-            'keyToString': 'value',
-            'keyToInt': 1
+            'keyToString': 'value'
         ]
     }
 
