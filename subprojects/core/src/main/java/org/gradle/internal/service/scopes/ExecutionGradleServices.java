@@ -161,8 +161,6 @@ public class ExecutionGradleServices {
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
-            // TODO Remove this as it's not used
-            new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyNonIncrementalWorkStep(workInputListeners,
             // TODO Remove this as it's not used
@@ -176,7 +174,7 @@ public class ExecutionGradleServices {
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
-        )))))))))))));
+        ))))))))))));
 
         Step<IdentityContext,WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
