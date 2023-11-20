@@ -50,7 +50,7 @@ public interface CacheBuilder {
     CacheBuilder withLockOptions(LockOptions lockOptions);
 
     /**
-     * Convienience method that forwards to {@link #withLockOptions(LockOptions)}, passing a
+     * Convenience method that forwards to {@link #withLockOptions(LockOptions)}, passing a
      * new {@link DefaultLockOptions} instance
      * with the specified mode and default values for everything else.
      *

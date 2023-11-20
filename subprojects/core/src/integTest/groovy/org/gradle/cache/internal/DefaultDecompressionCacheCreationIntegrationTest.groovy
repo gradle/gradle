@@ -61,25 +61,32 @@ class DefaultDecompressionCacheCreationIntegrationTest extends AbstractIntegrati
         file("build/tmp/.cache/expanded").assertDoesNotExist() // Cache content shouldn't be created if we can't create the lock
     }
 
-    // TODO: This seems like a general caching problem, not specific to decompression.  Shouldn't this build fail somehow?
-    @Ignore
+    /*
+     * This is a pre-existing issue: What do you do if creating a cache using a pre-existing directory
+     * happens to contain content with the same name as content you're trying to cache?  You'll use the
+     * pre-existing content, even if the data in those files doesn't match at all.  This test is ignored
+     * because it demonstrates the issue, but we don't have a good solution for it yet.
+     */
+    @Ignore("Demonstrates latent caching issue without solution")
     def "pre-existing content in cache dir with same hash is okay"() {
         FileHasher hasher = new DefaultFileHasher(new DefaultStreamHasher())
         String hash = hasher.hash(file("hello.zip"))
 
-        given:
+        given: "pre-existing content in cache dir with same name (based on hash)"
         File preExpandedContent = file("build/tmp/.cache/expanded/zip_${hash}/Test.txt")
         GFileUtils.parentMkdirs(preExpandedContent)
         GFileUtils.touch(preExpandedContent)
         preExpandedContent << "some incorrect pre-existing pre-expanded content"
 
+        when: "we try to cache the same content"
         buildFile << addUnzipAndVerifyTask()
 
-        expect:
+        then: "the pre-existing content is used, instead of the actual zip file we're trying to cache"
         succeeds "verify"
         File afterExpansion = file("build/tmp/.cache/expanded/zip_${hash}/Test.txt")
 
-        // This is the expected contents of the actual zip file that we expect to find via the cache, instead we get the incorrect content
+        // This is the expected contents of the actual zip file that we expect to find via the cache, instead we get the
+        // incorrect content of the pre-existing files which fails this comparison
         afterExpansion.text == """Test zip file
 Zip me
 Zip me now!
