@@ -42,8 +42,9 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
     public void requireCapability(Object capabilityNotation) {
         if (capabilityNotation instanceof Provider) {
             getRequestedCapabilities().add(((Provider<?>) capabilityNotation).map(capabilityNotationParser::parseNotation));
+        } else {
+            getRequestedCapabilities().add(capabilityNotationParser.parseNotation(capabilityNotation));
         }
-        getRequestedCapabilities().add(capabilityNotationParser.parseNotation(capabilityNotation));
     }
 
     @Override
