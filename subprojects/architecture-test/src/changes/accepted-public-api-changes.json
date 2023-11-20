@@ -1,3 +1,60 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Class org.gradle.testfixtures.ProjectBuilder",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.build()",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.builder()",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.withGradleUserHomeDir(java.io.File)",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.withName(java.lang.String)",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.withParent(org.gradle.api.Project)",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Method org.gradle.testfixtures.ProjectBuilder.withProjectDir(java.io.File)",
+            "acceptation": "moving test fixtures from core/main to core/testfixtures",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
