@@ -120,6 +120,10 @@ public interface Settings extends PluginAware, ExtensionAware {
     default void include(String... projectPaths) {
         include(Arrays.asList(projectPaths));
     }
+    
+    default void include(String projectPath) {
+        include(new String[] { projectPath });
+    }
 
     /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to
