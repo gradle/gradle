@@ -847,4 +847,64 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
 </verification-metadata>
 """
     }
+
+    @Issue(["https://github.com/gradle/gradle/issues/24822", "https://github.com/gradle/gradle/issues/26289"])
+    def "previous dry-run files are ignored on dry-run"() {
+        def keyring = newKeyRing()
+        def keyring2 = newKeyRing(keyring.publicKey)
+        assert keyring.publicKey != keyring2.publicKey
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:baz:1.0.0", SigningFixtures.validPublicKeyHexString) // to check that it is read on first invocation
+        }
+
+        file("gradle/verification-keyring.dryrun.keys") << "trash"
+        file("gradle/verification-keyring.dryrun.gpg") << "trash"
+        file("gradle/verification-metadata.dryrun.xml") << "trash"
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(keyring.secretKey): keyring.password])
+            }
+        }
+        uncheckedModule("org", "bar", "1.0") {
+            withSignature {
+                keyring2.sign(it, [(keyring2.secretKey): keyring2.password])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+            dependencies {
+                implementation("org:bar:1.0")
+            }
+            repositories {
+                maven {
+                    url = uri("${mavenHttpRepo.uri}")
+                }
+            }
+        """
+        keyServerFixture.registerPublicKey(SigningFixtures.validPublicKey)
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        keyServerFixture.registerPublicKey(keyring2.publicKey)
+
+        when:
+        writeVerificationMetadata()
+        succeeds(":help", "--dry-run", "--export-keys")
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.dryrun.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 3
+    }
 }

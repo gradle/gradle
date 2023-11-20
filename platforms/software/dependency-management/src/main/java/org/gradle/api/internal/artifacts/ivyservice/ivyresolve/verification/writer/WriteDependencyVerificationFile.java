@@ -137,6 +137,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.isDryRun = isDryRun;
         this.generatePgpInfo = checksums.contains(PGP);
         this.isExportKeyring = exportKeyRing;
+        maybeCleanupDryRunFiles();
     }
 
     private boolean isWriteVerificationFile() {
@@ -176,6 +177,21 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     @Override
     public ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
+    }
+
+    private void maybeCleanupDryRunFiles() {
+        if (isDryRun) {
+            boolean removed = false;
+            removed |= mayBeDryRunFile(verificationFile).delete() || removed;
+            if (isExportKeyring) {
+                BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
+                removed |= mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile()).delete();
+                removed |= mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile()).delete();
+            }
+            if (removed) {
+                LOGGER.lifecycle("Removed dry-run verification files from the previous run");
+            }
+        }
     }
 
     @Override
