@@ -16,6 +16,8 @@
 
 package org.gradle.api.initialization;
 
+import com.h0tk3y.kotlin.staticObjectNotation.Adding;
+import com.h0tk3y.kotlin.staticObjectNotation.Restricted;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -120,7 +122,8 @@ public interface Settings extends PluginAware, ExtensionAware {
     default void include(String... projectPaths) {
         include(Arrays.asList(projectPaths));
     }
-    
+
+    @Adding // TODO: support varargs and remove the workaround
     default void include(String projectPath) {
         include(new String[] { projectPath });
     }
@@ -239,6 +242,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The root project. Never returns null.
      */
+    @Restricted
     ProjectDescriptor getRootProject();
 
     /**
