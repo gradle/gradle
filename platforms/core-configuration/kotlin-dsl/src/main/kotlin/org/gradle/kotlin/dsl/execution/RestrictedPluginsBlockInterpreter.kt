@@ -84,6 +84,7 @@ private fun pluginSpecsFromReflection(reflection: ObjectReflection): PluginsBloc
     val plugins = reflection.asObject().properties[pluginsProperty]?.asObject() ?: return null
     val addedPlugins = plugins.addedObjects
     val specs = addedPlugins.map { addedObject ->
+        check(addedObject is ObjectReflection.DataObjectReflection)
         val id = addedObject.properties[idProperty].constantOrDefault { error("expected id to be present") } as? String ?: return null
         val version = (addedObject.properties[versionProperty].constantOrDefault { null } as? String?)
         val apply = addedObject.properties[applyProperty].constantOrDefault { null } as? Boolean
