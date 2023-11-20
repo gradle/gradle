@@ -135,7 +135,7 @@ public class JavaMethod<T, R> {
         return method;
     }
 
-    public Class<?>[] getParameterTypes(){
+    public Class<?>[] getParameterTypes() {
         return method.getParameterTypes();
     }
 
