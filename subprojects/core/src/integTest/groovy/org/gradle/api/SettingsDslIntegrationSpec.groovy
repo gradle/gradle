@@ -104,17 +104,17 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
                 "Can access inside buildscript"
             }
         }
-        
+
         assert(settings.extra["aValue"] == "hello") {
             "Can access outside buildscript"
         }
-        
+
         val hamlet: String by settings.extra
-        
+
         assert(hamlet == "To be or not to be") {
             "Can access delegate outside buildscript"
         }
-        
+
         apply(from = "$answerFile")
 
         val theAnswer: () -> Int by settings.extra
@@ -134,10 +134,27 @@ buildscript {
         def value = attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
         assert value.name == Usage.JAVA_RUNTIME
     }
-}    
+}
 """
         expect:
         succeeds()
+    }
+
+    def "can interpret the settings file with the restricted DSL"() {
+        given:
+        file("gradle.properties") << "org.gradle.internal.restricted.dsl=true"
+        settingsKotlinFile << """
+            rootProject.name = "test-value"
+            include(":a")
+            include(":b")
+        """
+        buildFile << "println('name = ' + rootProject.name)"
+        file("a/build.gradle") << ""
+        file("b/build.gradle") << ""
+
+        expect:
+        succeeds(":help", ":a:help", ":b:help")
+        outputContains("name = test-value")
     }
 
 }
