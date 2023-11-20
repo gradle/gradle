@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.buildtree.BuildModelNestedActionRunner
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -54,13 +54,13 @@ class VintageBuildTreeLifecycleControllerFactory(
 
     internal
     fun createModelCreator(targetBuild: BuildLifecycleController) =
-        DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createModelActionRunner())
+        DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createIntermediateActionRunner())
 
     internal
     fun createWorkPreparer(targetBuild: BuildLifecycleController) =
         DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
 
     private
-    fun createModelActionRunner() =
-        BuildModelNestedActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API client action")
+    fun createIntermediateActionRunner() =
+        IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API client action")
 }

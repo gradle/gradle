@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-import org.gradle.internal.buildtree.BuildModelNestedActionRunner
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationQueue
@@ -25,11 +25,11 @@ import spock.lang.Specification
 
 import java.util.function.Supplier
 
-class BuildModelNestedActionRunnerTest extends Specification {
+class IntermediateBuildActionRunnerTest extends Specification {
 
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def buildModelParameters = Mock(BuildModelParameters)
-    def runner = new BuildModelNestedActionRunner(buildOperationExecutor, buildModelParameters, "Test operation")
+    def runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Test operation")
 
     def "parallelism is defined by Tooling API parallel actions"() {
         when:

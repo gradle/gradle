@@ -30,14 +30,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+/**
+ * Executor for batches of intermediate build actions that can be initiated
+ * from the top-level build action or from model builders.
+ * <p>
+ * All actions are always executed, and <b>may run in {@link #isParallel() parallel}</b>.
+ * An action failure does not prevent the execution of the rest of the actions.
+ * <p>
+ * Action failures (if any) are aggregated into {@link MultipleBuildOperationFailures}.
+ * Batch execution succeeds only if all action finish without exceptions.
+ */
 @NonNullApi
-public class BuildModelNestedActionRunner {
+public class IntermediateBuildActionRunner {
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildModelParameters buildModelParameters;
     private final String buildOperationDescription;
 
-    public BuildModelNestedActionRunner(
+    public IntermediateBuildActionRunner(
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         String buildOperationDescription

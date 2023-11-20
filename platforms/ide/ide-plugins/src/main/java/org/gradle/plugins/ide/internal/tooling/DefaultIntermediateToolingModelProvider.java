@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.buildtree.BuildModelNestedActionRunner;
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
@@ -38,10 +38,10 @@ import static java.util.stream.Collectors.toList;
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
 
-    private final BuildModelNestedActionRunner nestedActionRunner;
+    private final IntermediateBuildActionRunner actionRunner;
 
-    public DefaultIntermediateToolingModelProvider(BuildModelNestedActionRunner nestedActionRunner) {
-        this.nestedActionRunner = nestedActionRunner;
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner) {
+        this.actionRunner = actionRunner;
     }
 
     @Override
@@ -133,6 +133,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
-        return nestedActionRunner.run(actions);
+        return actionRunner.run(actions);
     }
 }
