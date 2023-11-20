@@ -37,9 +37,11 @@ import spock.lang.Ignore
  * These tests demonstrate the behavior of the [ResolutionFailureHandler] when a project has various
  * variant selection failures.
  *
- * It can also build a text report demonstrating all these errors in a single place.
+ * It can also build a text report demonstrating all these errors in a single place by running
+ * the [generateFailureShowcase] method, which is marked with [spock.lang.Ignore] so it doesn't
+ * run as part of a typical test run.  It is useful for viewing and comparing the behavior of
+ * different types of failures.
  */
-// TODO: consolidate error checking/switch to checking text blocks
 class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // region resolution failures
     // region Graph Variant failures
@@ -53,8 +55,16 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::")
-
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ::
+          - blueRoundElements
+          - blueSquareElements
+        All of them match the consumer attributes:
+          - Variant 'blueRoundElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+              - Unmatched attribute:
+                  - Provides shape 'round' but the consumer didn't ask for it
+          - Variant 'blueSquareElements' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified declares attribute 'color' with value 'blue':
+              - Unmatched attribute:
+                  - Provides shape 'square' but the consumer didn't ask for it""")
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Ambiguity errors are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:variant-ambiguity.")
@@ -71,7 +81,30 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':forceResolution'")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
-        assertFullMessageCorrect("The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. However we cannot choose between the following variants of com.squareup.okhttp3:okhttp:4.4.0:")
+        assertFullMessageCorrect("""   > Could not resolve com.squareup.okhttp3:okhttp:4.4.0.
+     Required by:
+         project :
+      > The consumer was configured to find attribute 'org.gradle.category' with value 'documentation'. However we cannot choose between the following variants of com.squareup.okhttp3:okhttp:4.4.0:
+          - javadocElements
+          - sourcesElements
+        All of them match the consumer attributes:
+          - Variant 'javadocElements' capability com.squareup.okhttp3:okhttp:4.4.0 declares attribute 'org.gradle.category' with value 'documentation':
+              - Unmatched attributes:
+                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
+                  - Provides org.gradle.docstype 'javadoc' but the consumer didn't ask for it
+                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
+          - Variant 'sourcesElements' capability com.squareup.okhttp3:okhttp:4.4.0 declares attribute 'org.gradle.category' with value 'documentation':
+              - Unmatched attributes:
+                  - Provides org.gradle.dependency.bundling 'external' but the consumer didn't ask for it
+                  - Provides org.gradle.docstype 'sources' but the consumer didn't ask for it
+                  - Provides org.gradle.status 'release' but the consumer didn't ask for it
+                  - Provides org.gradle.usage 'java-runtime' but the consumer didn't ask for it
+        The following variants were also considered but didn't match the requested attributes:
+          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'
+          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'documentation'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -88,7 +121,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'")
+        assertFullMessageCorrect("""   > Could not resolve project :.
+     Required by:
+         project :
+      > No matching variant of project : was found. The consumer was configured to find attribute 'color' with value 'green' but:
+          - Variant 'default' capability :${temporaryFolder.getTestDirectory().getName()}:unspecified:
+              - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -106,7 +144,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all files for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve com.squareup.okhttp3:okhttp:4.4.0.")
-        assertFullMessageCorrect("No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:")
+        assertFullMessageCorrect("""      > No matching variant of com.squareup.okhttp3:okhttp:4.4.0 was found. The consumer was configured to find attribute 'org.gradle.category' with value 'non-existent-format' but:
+          - Variant 'apiElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'javadocElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'runtimeElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'library' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'
+          - Variant 'sourcesElements' capability com.squareup.okhttp3:okhttp:4.4.0:
+              - Incompatible because this component declares attribute 'org.gradle.category' with value 'documentation' and the consumer needed attribute 'org.gradle.category' with value 'non-existent-format'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -123,7 +169,12 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("Configuration 'mismatch' in project : does not match the consumer attributes")
+        assertFullMessageCorrect("""     Required by:
+         project :
+      > Configuration 'mismatch' in project : does not match the consumer attributes
+        Configuration 'mismatch':
+          - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
+""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -141,7 +192,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.")
+        assertFullMessageCorrect("""     Required by:
+         project :
+      > A dependency was declared on configuration 'absent' which is not declared in the descriptor for project :.""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -180,7 +233,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
         failure.assertHasCause("Could not resolve project :.")
-        assertFullMessageCorrect("Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:")
+        assertFullMessageCorrect("""     Required by:
+         project :
+      > Multiple incompatible variants of org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 were selected:
+           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant blueElementsCapability1 has attributes {color=blue}
+           - Variant org.example:${temporaryFolder.getTestDirectory().getName()}:1.0 variant greenElementsCapability2 has attributes {color=green}""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -196,7 +253,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("No variants of project : match the consumer attributes:")
+        assertFullMessageCorrect("""   > No variants of project : match the consumer attributes:
+       - Configuration ':myElements' declares attribute 'color' with value 'blue':
+           - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+       - Configuration ':myElements' variant secondary declares attribute 'color' with value 'blue':
+           - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -212,7 +273,24 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("Found multiple transforms that can produce a variant of project : with requested attributes:")
+        assertFullMessageCorrect("""   > Found multiple transforms that can produce a variant of project : with requested attributes:
+       - color 'red'
+       - shape 'round'
+     Found the following transforms:
+       - From 'configuration ':roundBlueLiquidElements'':
+           - With source attributes:
+               - color 'blue'
+               - shape 'round'
+               - state 'liquid'
+           - Candidate transform(s):
+               - Transform 'BrokenTransform' producing attributes:
+                   - color 'red'
+                   - shape 'round'
+                   - state 'gas'
+               - Transform 'BrokenTransform' producing attributes:
+                   - color 'red'
+                   - shape 'round'
+                   - state 'solid'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -228,7 +306,9 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("More than one variant of project : matches the consumer attributes:")
+        assertFullMessageCorrect("""   > More than one variant of project : matches the consumer attributes:
+       - Configuration ':default' variant v1
+       - Configuration ':default' variant v2""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -250,7 +330,15 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5."""
-        String fullOutput = "          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:"
+        String fullOutput = """          - Unable to find a variant of com.google.code.gson:gson:2.8.5 providing the requested capability com.google.code.gson:gson-test-fixtures:
+               - Variant compile provides com.google.code.gson:gson:2.8.5
+               - Variant runtime provides com.google.code.gson:gson:2.8.5
+               - Variant sources provides com.google.code.gson:gson:2.8.5
+               - Variant javadoc provides com.google.code.gson:gson:2.8.5
+               - Variant platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
+               - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
+               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-enforced-platform:2.8.5
+               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-enforced-platform:2.8.5"""
 
         outputContains(basicOutput)
         outputContains(fullOutput)
@@ -258,7 +346,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     // endregion dependencyInsight failures
 
     // region error showcase
-    //@spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
+    @spock.lang.Ignore("This test is used to generate a summary of all possible errors, it shouldn't usually be run as part of testing")
     def "generate resolution failure showcase report"() {
         given:
         // Escape to the root of the dependency-management project, to put these reports in build output dir so it isn't auto-deleted when test completes
