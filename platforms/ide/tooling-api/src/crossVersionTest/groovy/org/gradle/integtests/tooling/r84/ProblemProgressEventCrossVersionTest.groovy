@@ -28,7 +28,7 @@ import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
 @ToolingApiVersion(">=8.5")
-@TargetGradleVersion(">=8.5")
+@TargetGradleVersion("=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     class MyProgressListener implements ProgressListener {
@@ -42,6 +42,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
+    // TODO move this test to a proper package
+    // TODO make a variant for Gradle 8.6+ where structural information is exposed
     def "test failure context"() {
         setup:
         buildFile << """

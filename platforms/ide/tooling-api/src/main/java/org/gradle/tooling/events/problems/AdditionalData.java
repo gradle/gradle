@@ -22,13 +22,13 @@ import org.gradle.api.NonNullApi;
 import java.util.Map;
 
 /**
- * Additional data for a problem
- *
+ * Additional data attached to the problem.
+ * <p>
+ * The only supported value type is {@link String}.
  * @since 8.6
  */
 @Incubating
 @NonNullApi
 public interface AdditionalData {
-
     Map<String, Object> getAsMap();
 }

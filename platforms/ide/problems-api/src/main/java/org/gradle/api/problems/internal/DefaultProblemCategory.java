@@ -19,10 +19,9 @@ package org.gradle.api.problems.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.util.Path;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
-
-import static java.lang.String.join;
 
 /**
  * Default implementation for {@link ProblemCategory}
@@ -52,7 +51,7 @@ public class DefaultProblemCategory implements ProblemCategory {
         if (details.length == 0) {
             return new DefaultProblemCategory(category);
         }
-        return new DefaultProblemCategory(category + SEPARATOR + join(SEPARATOR, details));
+        return new DefaultProblemCategory(category + SEPARATOR + CollectionUtils.join(SEPARATOR, details));
     }
 
     public String segment(int i) {

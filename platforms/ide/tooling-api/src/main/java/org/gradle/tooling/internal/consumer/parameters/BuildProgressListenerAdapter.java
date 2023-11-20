@@ -541,7 +541,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
         if (progressEvent instanceof InternalProblemEvent) {
-            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent) progressEvent, descriptor));
+            ProblemDescriptor clientDescriptor = addDescriptor(progressEvent.getDescriptor(), toProblemDescriptor((InternalProblemEvent)progressEvent, descriptor));
             return new DefaultProblemEvent(progressEvent.getEventTime(), clientDescriptor);
         }
         return null;
