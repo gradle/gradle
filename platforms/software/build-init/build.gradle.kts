@@ -74,3 +74,5 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/tasks/wrapper/internal/*")
 }
+
+integTest.testJvmXmx = "1g"
