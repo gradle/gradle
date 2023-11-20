@@ -30,6 +30,7 @@ import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -39,12 +40,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
+    private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
 
     private final OriginMetadataFactory originMetadataFactory;
@@ -52,11 +56,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
 
     public AssignImmutableWorkspaceStep(
+        Deleter deleter,
         FileSystemAccess fileSystemAccess,
         OriginMetadataFactory originMetadataFactory,
         OutputSnapshotter outputSnapshotter,
         Step<? super WorkspaceContext, ? extends CachingResult> delegate
     ) {
+        this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.originMetadataFactory = originMetadataFactory;
         this.outputSnapshotter = outputSnapshotter;
@@ -66,17 +72,22 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
         ImmutableWorkspaceProvider workspaceProvider = ((ImmutableUnitOfWork) work).getWorkspaceProvider();
-        ImmutableWorkspace workspace = workspaceProvider.getWorkspace(context.getIdentity().getUniqueId());
+        String uniqueId = context.getIdentity().getUniqueId();
+        ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
-        File immutableWorkspace = workspace.getImmutableLocation();
-        FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableWorkspace.getAbsolutePath());
+        return returnImmutableWorkspaceOr(work, workspace.getImmutableLocation(),
+            () -> executeInTemporaryWorkspace(work, context, workspace));
+    }
+
+    private WorkspaceResult returnImmutableWorkspaceOr(UnitOfWork work, File immutableLocation, Supplier<WorkspaceResult> missingImmutableWorkspaceAction) {
+        FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
         switch (workspaceSnapshot.getType()) {
             case Directory:
-                return returnUpToDateImmutableWorkspace(work, immutableWorkspace);
+                return returnUpToDateImmutableWorkspace(work, immutableLocation);
             case RegularFile:
-                throw new IllegalStateException("Immutable workspace is occupied by a file: " + immutableWorkspace.getAbsolutePath());
+                throw new IllegalStateException("Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath());
             case Missing:
-                return executeInTemporaryWorkspace(work, context, workspace);
+                return missingImmutableWorkspaceAction.get();
             default:
                 throw new AssertionError();
         }
@@ -105,22 +116,39 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
             // but we still want to record that this build is writing to the given location, so that
             // file system watching won't care about it
-            fileSystemAccess.write(ImmutableList.of(temporaryWorkspace.getAbsolutePath()), () -> {});
+            fileSystemAccess.invalidate(ImmutableList.of(temporaryWorkspace.getAbsolutePath()));
             CachingResult delegateResult = delegate.execute(work, delegateContext);
             if (delegateResult.getExecution().isSuccessful()) {
                 storeOriginMetadata(work, temporaryWorkspace, context.getIdentity().getUniqueId(), delegateResult);
                 // TODO Store output hashes for validation when the workspace is returned as up-to-date
-                // TODO Handle if move failed because there's something there already;
-                //      it's probably a race condition, and we should return the now existing immutable directory
-                //      and remove the temporary one
                 File immutableLocation = workspace.getImmutableLocation();
-                fileSystemAccess.moveAtomically(temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath());
+                try {
+                    fileSystemAccess.moveAtomically(temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath());
+                } catch (FileSystemException e) {
+                    // `Files.move()` says it would throw DirectoryNotEmptyException, but it's a lie, so this is the best we can catch here
+                    return returnUpToDateResult(work, temporaryWorkspace, immutableLocation);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Could not move temporary workspace to immutable cache: " + temporaryWorkspace.getAbsolutePath(), e);
+                }
                 return new WorkspaceResult(delegateResult, immutableLocation);
             } else {
                 // TODO Do not try to capture the workspace in case of a failure
                 return new WorkspaceResult(delegateResult, null);
             }
         });
+    }
+
+    private WorkspaceResult returnUpToDateResult(UnitOfWork work, File temporaryWorkspace, File immutableLocation) {
+        WorkspaceResult upToDateResult = returnImmutableWorkspaceOr(work, immutableLocation,
+            () -> {
+                throw new IllegalStateException("Immutable workspace gone missing again");
+            });
+        try {
+            deleter.deleteRecursively(temporaryWorkspace);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not remove temporary workspace: " + temporaryWorkspace.getAbsolutePath(), e);
+        }
+        return upToDateResult;
     }
 
     private void storeOriginMetadata(UnitOfWork work, File temporaryWorkspace, String identity, Result delegateResult) {

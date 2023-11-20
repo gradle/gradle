@@ -340,8 +340,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             );
 
             listenerManager.addListener(buildSessionsScopedVirtualFileSystem);
-            listenerManager.addListener((OutputChangeListener) affectedOutputPaths -> buildSessionsScopedVirtualFileSystem.write(affectedOutputPaths, () -> {
-            }));
+            listenerManager.addListener((OutputChangeListener) buildSessionsScopedVirtualFileSystem::invalidate);
 
             return buildSessionsScopedVirtualFileSystem;
         }

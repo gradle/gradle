@@ -117,7 +117,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         if (cacheableWork.shouldInvalidateOutputsBeforeLoad()) {
             ImmutableList.Builder<String> roots = ImmutableList.builder();
             cacheableWork.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-            fileSystemAccess.write(roots.build(), () -> {});
+            fileSystemAccess.invalidate(roots.build());
         }
         return buildCache.load(cacheKey, cacheableWork);
     }

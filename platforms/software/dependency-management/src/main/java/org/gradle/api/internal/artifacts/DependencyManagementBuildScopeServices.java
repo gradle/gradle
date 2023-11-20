@@ -133,6 +133,7 @@ import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.ValidationFinishedContext;
 import org.gradle.internal.execution.steps.WorkspaceContext;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
@@ -476,6 +477,7 @@ class DependencyManagementBuildScopeServices {
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         CurrentBuildOperationRef currentBuildOperationRef,
+        Deleter deleter,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
         OriginMetadataFactory originMetadataFactory,
@@ -490,7 +492,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignImmutableWorkspaceStep<>(fileSystemAccess, originMetadataFactory, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
             new NoBeforeExecutionStateStep<>(
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(

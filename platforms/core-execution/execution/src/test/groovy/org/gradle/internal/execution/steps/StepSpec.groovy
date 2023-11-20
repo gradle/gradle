@@ -16,70 +16,21 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableCollection
-import com.google.common.collect.ImmutableMap
-import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import org.spockframework.mock.EmptyOrDummyResponse
-import org.spockframework.mock.IDefaultResponse
-import org.spockframework.mock.IMockInvocation
-import spock.lang.Specification
 
-import java.lang.reflect.ParameterizedType
 import java.util.function.Consumer
 
-abstract class StepSpec<C extends Context> extends Specification {
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+abstract class StepSpec<C extends Context> extends StepSpecBase<C> {
     final buildOperationExecutor = new TestBuildOperationExecutor()
 
-    final workId = ":test"
-    final displayName = "job '$workId'"
-    final identity = Stub(UnitOfWork.Identity) {
-        uniqueId >> workId
-    }
     final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
-    final C context = createContext()
-
-    /**
-     * Spock helper to mock Guava's immutable collections and maps with empty instances.
-     */
-    static class GuavaImmutablesResponse implements IDefaultResponse {
-        static final IDefaultResponse INSTANCE = new GuavaImmutablesResponse()
-
-        @Override
-        Object respond(IMockInvocation invocation) {
-            if (ImmutableCollection.isAssignableFrom(invocation.method.returnType)
-                || ImmutableMap.isAssignableFrom(invocation.method.returnType)) {
-                return InvokerHelper.invokeStaticMethod(invocation.method.returnType, "of", null)
-            } else {
-                return EmptyOrDummyResponse.INSTANCE.respond(invocation);
-            }
-        }
-    }
-
-    /**
-     * Create a stub context based on the type parameter of the extended StepSpec.
-     */
-    private C createContext() {
-        def contextType = (getClass().getGenericSuperclass() as ParameterizedType).actualTypeArguments[0] as Class<C>
-        return Stub(contextType, defaultResponse: GuavaImmutablesResponse.INSTANCE) as C
-    }
 
     def setup() {
-        _ * context.identity >> identity
         _ * work.displayName >> displayName
         _ * work.identify(_, _) >> identity
-    }
-
-    protected TestFile file(Object... path) {
-        return temporaryFolder.file(path)
     }
 
     protected void assertNoOperation() {
