@@ -46,6 +46,12 @@ sealed interface ObjectReflection {
         override val objectOrigin: ObjectOrigin.FunctionOrigin,
         val parameterResolution: Map<DataParameter, ObjectReflection>
     ) : ObjectReflection
+
+    data class AddedByUnitInvocation(
+        override val objectOrigin: ObjectOrigin
+    ) : ObjectReflection {
+        override val type = DataType.UnitType
+    }
 }
 
 fun reflect(
@@ -71,12 +77,18 @@ fun reflect(
         is ObjectOrigin.PropertyDefaultValue -> reflectDefaultValue(objectOrigin, context)
         is ObjectOrigin.FunctionInvocationOrigin -> context.functionCall(objectOrigin.invocationId) {
             when (objectOrigin.function.semantics) {
-                is FunctionSemantics.AddAndConfigure -> reflectData(
-                    objectOrigin.invocationId,
-                    type as DataType.DataClass<*>,
-                    objectOrigin,
-                    context
-                )
+                is FunctionSemantics.AddAndConfigure -> {
+                    if (type == DataType.UnitType) {
+                        ObjectReflection.AddedByUnitInvocation(objectOrigin)
+                    } else {
+                        reflectData(
+                            objectOrigin.invocationId,
+                            type as DataType.DataClass<*>,
+                            objectOrigin,
+                            context
+                        )
+                    }
+                }
 
                 is FunctionSemantics.Pure -> ObjectReflection.PureFunctionInvocation(
                     type,
@@ -99,11 +111,10 @@ fun reflectDefaultValue(
     objectOrigin: ObjectOrigin.PropertyDefaultValue,
     context: ReflectionContext
 ): ObjectReflection {
-    val type = context.typeRefContext.getDataType(objectOrigin)
-    return when (type) {
-        is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type)
+    return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
+        is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataType.DataClass<*> -> reflectData(-1L, type, objectOrigin, context)
-        DataType.NullType -> ObjectReflection.Null
+        DataType.NullType -> error("Null type can't appear in property types")
         DataType.UnitType -> error("Unit can't appear in property types")
     }
 }
@@ -130,7 +141,7 @@ fun reflectData(
             } else null
         }
     }.toMap()
-    val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) as ObjectReflection.DataObjectReflection }
+    val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) }
     return ObjectReflection.DataObjectReflection(identity, type, objectOrigin, propertiesWithValue, added)
 }
 
