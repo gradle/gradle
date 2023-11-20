@@ -106,6 +106,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":file-temp"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":kotlin-dsl-tooling-builders"))
