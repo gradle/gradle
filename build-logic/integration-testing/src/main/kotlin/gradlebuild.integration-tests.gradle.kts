@@ -30,6 +30,7 @@ plugins {
 
 extensions.create<IntegrationTestExtension>("integTest").apply {
     usesJavadocCodeSnippets.convention(false)
+    testJvmXmx.convention("512m")
 }
 
 val sourceSet = addSourceSet(TestType.INTEGRATION)
