@@ -90,7 +90,7 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
-import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
+import org.gradle.internal.watch.vfs.impl.FileWatchingFilter;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
 import org.slf4j.Logger;
@@ -170,20 +170,22 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        LocationsWrittenByCurrentBuild createLocationsUpdatedByCurrentBuild(GlobalCacheLocations globalCacheLocations, ListenerManager listenerManager) {
-            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild = new LocationsWrittenByCurrentBuild(globalCacheLocations.getCacheRoots());
+        FileWatchingFilter createFileWatchingFilter(GlobalCacheLocations globalCacheLocations, ListenerManager listenerManager) {
+            // All the changes in global caches should be done by Gradle itself, so in order
+            // to minimize the number of watches we don't watch anything within the global caches.
+            FileWatchingFilter fileWatchingFilter = new FileWatchingFilter(globalCacheLocations.getCacheRoots());
             listenerManager.addListener(new RootBuildLifecycleListener() {
                 @Override
                 public void afterStart() {
-                    locationsWrittenByCurrentBuild.buildStarted();
+                    fileWatchingFilter.buildStarted();
                 }
 
                 @Override
                 public void beforeComplete() {
-                    locationsWrittenByCurrentBuild.buildFinished();
+                    fileWatchingFilter.buildFinished();
                 }
             });
-            return locationsWrittenByCurrentBuild;
+            return fileWatchingFilter;
         }
 
         WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
@@ -191,30 +193,26 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
-            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
+            FileWatchingFilter fileWatchingFilter,
             DocumentationRegistry documentationRegistry,
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileChangeListeners fileChangeListeners,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations,
             WatchableFileSystemDetector watchableFileSystemDetector
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(caseSensitivity);
-            // All the changes in global caches should be done by Gradle itself, so in order
-            // to minimize the number of watches we don't watch anything within the global caches.
-            Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
 
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
-                watchFilter)
+                fileWatchingFilter.getImmutableLocations()::contains)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     root,
                     sectionId -> documentationRegistry.getDocumentationRecommendationFor("details", "gradle_daemon", sectionId),
-                    locationsWrittenByCurrentBuild,
+                    fileWatchingFilter,
                     watchableFileSystemDetector,
                     fileChangeListeners
                 ))
@@ -253,16 +251,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
-            Predicate<String> watchFilter
+            Predicate<String> immutableLocationsFilter
         ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(immutableLocationsFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(immutableLocationsFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(immutableLocationsFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.debug("Native file system watching is not available for this operating system.", e);
@@ -393,8 +391,4 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
         }
     }
-
-    interface WatchFilter extends Predicate<String> {
-    }
-
 }
