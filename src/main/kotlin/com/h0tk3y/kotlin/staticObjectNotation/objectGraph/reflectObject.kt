@@ -1,41 +1,49 @@
 package com.h0tk3y.kotlin.staticObjectNotation.objectGraph
 
 import com.h0tk3y.kotlin.staticObjectNotation.analysis.*
+import com.h0tk3y.kotlin.staticObjectNotation.analysis.getDataType
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.AssignmentResolutionResult.Unassigned
 import com.h0tk3y.kotlin.staticObjectNotation.objectGraph.AssignmentResolver.ExpressionResolutionProgress.Ok
 
 sealed interface ObjectReflection {
     val type: DataType
+    val objectOrigin: ObjectOrigin
 
     data class DataObjectReflection(
         val identity: Long,
-        override val type: DataType,
+        override val type: DataType.DataClass<*>,
+        override val objectOrigin: ObjectOrigin,
         val properties: Map<DataProperty, ObjectReflection>,
-        val addedObjects: List<DataObjectReflection>
+        val addedObjects: List<ObjectReflection>
     ) : ObjectReflection
 
     data class ConstantValue(
         override val type: DataType.ConstantType<*>,
-        val objectOrigin: ObjectOrigin,
+        override val objectOrigin: ObjectOrigin.ConstantOrigin,
         val value: Any
     ) : ObjectReflection
 
     data class External(
         override val type: DataType,
-        val externalObjectProviderKey: ExternalObjectProviderKey
-    ) : ObjectReflection
+        override val objectOrigin: ObjectOrigin.External,
+    ) : ObjectReflection {
+        val key: ExternalObjectProviderKey get() = objectOrigin.key
+    }
 
-    data object Null : ObjectReflection {
+    data class Null(override val objectOrigin: ObjectOrigin) : ObjectReflection {
         override val type: DataType
             get() = DataType.NullType
     }
-    
-    data class DefaultValue(override val type: DataType) : ObjectReflection
+
+    data class DefaultValue(
+        override val type: DataType,
+        override val objectOrigin: ObjectOrigin
+    ) : ObjectReflection
 
     data class PureFunctionInvocation(
         override val type: DataType,
-        val objectOrigin: ObjectOrigin.FunctionOrigin,
+        override val objectOrigin: ObjectOrigin.FunctionOrigin,
         val parameterResolution: Map<DataParameter, ObjectReflection>
     ) : ObjectReflection
 }
@@ -54,9 +62,9 @@ fun reflect(
             objectOrigin.literal.value
         )
 
-        is ObjectOrigin.External -> ObjectReflection.External(type, objectOrigin.key)
+        is ObjectOrigin.External -> ObjectReflection.External(type, objectOrigin)
 
-        is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null
+        is ObjectOrigin.NullObjectOrigin -> ObjectReflection.Null(objectOrigin)
 
         is ObjectOrigin.TopLevelReceiver -> reflectData(0, type as DataType.DataClass<*>, objectOrigin, context)
 
@@ -123,7 +131,7 @@ fun reflectData(
         }
     }.toMap()
     val added = context.additionsByResolvedContainer[objectOrigin].orEmpty().map { reflect(it, context) as ObjectReflection.DataObjectReflection }
-    return ObjectReflection.DataObjectReflection(identity, type, propertiesWithValue, added)
+    return ObjectReflection.DataObjectReflection(identity, type, objectOrigin, propertiesWithValue, added)
 }
 
 fun ReflectionContext.resolveAssignment(

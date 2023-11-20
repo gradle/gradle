@@ -285,7 +285,7 @@ class FunctionCallResolverImpl(
         newFunctionCallId: Long
     ) = when (function.receiver) {
         is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
-            function.schemaFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
+            function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
         )
         null -> ObjectOrigin.NewObjectFromTopLevelFunction(
             function.schemaFunction, valueBinding, functionCall, newFunctionCallId

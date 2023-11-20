@@ -64,7 +64,7 @@ sealed interface ObjectOrigin {
     }
 
     data class NewObjectFromMemberFunction(
-        override val function: SchemaFunction,
+        override val function: SchemaMemberFunction,
         override val receiver: ObjectOrigin,
         override val parameterBindings: ParameterValueBinding,
         override val originElement: FunctionCall,
