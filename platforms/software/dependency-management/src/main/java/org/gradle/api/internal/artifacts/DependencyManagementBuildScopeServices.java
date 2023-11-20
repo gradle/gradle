@@ -131,7 +131,6 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.ValidationFinishedContext;
-import org.gradle.internal.execution.steps.WorkspaceContext;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -510,7 +509,7 @@ class DependencyManagementBuildScopeServices {
         // @formatter:on
     }
 
-    private static class NoBeforeExecutionStateStep<C extends WorkspaceContext, R extends CachingResult> implements Step<C, R> {
+    private static class NoBeforeExecutionStateStep<C extends PreviousExecutionContext, R extends CachingResult> implements Step<C, R> {
 
         private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
@@ -522,8 +521,7 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public R execute(UnitOfWork work, C context) {
-            PreviousExecutionContext noHistoryContext = new PreviousExecutionContext(context, null);
-            BeforeExecutionContext noBeforeExecutionContext = new BeforeExecutionContext(noHistoryContext, null);
+            BeforeExecutionContext noBeforeExecutionContext = new BeforeExecutionContext(context, null);
             return delegate.execute(work, noBeforeExecutionContext);
         }
     }

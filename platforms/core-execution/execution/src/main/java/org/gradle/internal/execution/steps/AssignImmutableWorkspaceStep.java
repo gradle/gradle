@@ -53,14 +53,14 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private final OriginMetadataFactory originMetadataFactory;
     private final OutputSnapshotter outputSnapshotter;
-    private final Step<? super WorkspaceContext, ? extends CachingResult> delegate;
+    private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public AssignImmutableWorkspaceStep(
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         OriginMetadataFactory originMetadataFactory,
         OutputSnapshotter outputSnapshotter,
-        Step<? super WorkspaceContext, ? extends CachingResult> delegate
+        Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
@@ -112,12 +112,17 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            WorkspaceContext delegateContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
+            WorkspaceContext workspaceContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
+
             // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
             // but we still want to record that this build is writing to the given location, so that
             // file system watching won't care about it
             fileSystemAccess.invalidate(ImmutableList.of(temporaryWorkspace.getAbsolutePath()));
-            CachingResult delegateResult = delegate.execute(work, delegateContext);
+
+            // There is no previous execution in the immutable case
+            PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
+            CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
+
             if (delegateResult.getExecution().isSuccessful()) {
                 storeOriginMetadata(work, temporaryWorkspace, context.getIdentity().getUniqueId(), delegateResult);
                 // TODO Store output hashes for validation when the workspace is returned as up-to-date
