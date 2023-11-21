@@ -109,7 +109,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
             CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing(), scriptHandler);
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
@@ -123,7 +123,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE, scriptHandler);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 BasicScript script = runner.getScript();
                 script.init(scriptTarget, scriptServices);

@@ -19,6 +19,7 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -79,11 +80,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     @Override
-    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
-                                                              final ClassLoaderScope targetScope,
-                                                              final CompileOperation<M> operation,
-                                                              final Class<T> scriptBaseClass,
-                                                              final Action<? super ClassNode> verifier) {
+    public <T extends Script, M> CompiledScript<T, M> compile(
+        final ScriptSource source,
+        final ClassLoaderScope targetScope,
+        final CompileOperation<M> operation,
+        final Class<T> scriptBaseClass,
+        final Action<? super ClassNode> verifier,
+        final ScriptHandler scriptHandler
+    ) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
             return emptyCompiledScript(operation);
@@ -120,7 +124,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         try {
             File genericClassesDir = classesDir(cache, operation);
             File metadataDir = metadataDir(cache);
-            ClassPath remappedClasses = remapClasses(genericClassesDir, remapped);
+            ClassPath remappedClasses = remapClasses(genericClassesDir, remapped, scriptHandler);
             return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClasses, metadataDir, operation, scriptBaseClass);
         } finally {
             cache.close();
@@ -131,7 +135,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return new EmptyCompiledScript<>(operation);
     }
 
-    private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source) {
+    private ClassPath remapClasses(File genericClassesDir, RemappingScriptSource source, ScriptHandler scriptHandler) {
         ScriptSource origin = source.getSource();
         String className = origin.getClassName();
         return classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), BuildLogic, new ClassTransform() {
