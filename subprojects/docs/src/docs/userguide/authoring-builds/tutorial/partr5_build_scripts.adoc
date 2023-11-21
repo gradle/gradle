@@ -22,7 +22,8 @@ Learn the basics of authoring Gradle by developing the Build Script.
 
 - Understand the Project object
 - Update the Build script
-- How to use Build scripts
+- Update and apply a Plugin
+- Run new Plugin task
 ****
 
 [[part5_begin]]
@@ -53,7 +54,7 @@ For example:
  reportsDir = file('reports')   // Delegates to Project.file() and the Java Plugin
 ----
 
-== Step 2. Update the Build script
+== Step 2. Update the Build scripts
 
 .license-plugin/build.gradle.kts
 [source]
@@ -67,14 +68,81 @@ gradlePlugin {
 }
 ----
 
+== Step 3. Apply the Plugin
 .app/build.gradle.kts
 [source]
 ----
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
     application
     id("org.gradle.license")
 }
+----
+
+== Step 4. Update the Plugin
+
+When you ran `gradle init` and added the `license-plugin` build to the project, Gradle added a "hello-world" example:
+
+.license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+[source,kotlin]
+----
+class OtherPluginPlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        // Register a task
+        project.tasks.register("greeting") { task ->
+            task.description = "greeting" // Add description
+            task.group = "from my plugin" // Add group
+            task.doLast {
+                println("Hello from plugin 'com.gradle.greeting'")
+            }
+        }
+    }
+}
+----
+
+== Step 4. View Plugin Tasks
+
+When the license-plugin is applied to the `app` project, its tasks become available:
+
+In the root, run:
+
+[source]
+----
+$ ./gradlew tasks
+
+------------------------------------------------------------
+Tasks runnable from root project 'authoring-tutorial'
+------------------------------------------------------------
+
+From my plugin tasks
+--------------------
+greeting - greeting
+
+BUILD SUCCESSFUL in 12s
+5 actionable tasks: 3 executed, 2 up-to-date
+----
+
+And you can run them:
+
+[source]
+----
+$ ./gradlew greeting
+
+SETTINGS FILE: This is executed during the initialization phase
+> Task :license-plugin:plugin:compileKotlin UP-TO-DATE
+> Task :license-plugin:plugin:compileJava NO-SOURCE
+> Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE
+> Task :license-plugin:plugin:processResources UP-TO-DATE
+> Task :license-plugin:plugin:classes UP-TO-DATE
+> Task :license-plugin:plugin:jar UP-TO-DATE
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+
+> Task :app:greeting
+Hello from plugin 'com.gradle.greeting'
+
+BUILD SUCCESSFUL in 1s
+5 actionable tasks: 1 executed, 4 up-to-date
 ----
 
 [.text-right]

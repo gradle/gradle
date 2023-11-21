@@ -20,8 +20,10 @@ Learn the basics of structuring large Gradle projects using subprojects and comp
 ****
 **In this section you will:**
 
+- Understand Multi-Project builds
+- Understand Composite Builds
 - Add a subproject to your Build
-- Add a separate Build to your Build
+- Add a build to your Build
 ****
 
 [[part3_begin]]
@@ -30,30 +32,94 @@ Learn the basics of structuring large Gradle projects using subprojects and comp
 1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
 2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
 
-== Step 1. Multi-Project Builds
+== Step 1. About Multi-Project Builds
 A multi-project build consists of:
 
-- settings.gradle(.kts) file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
-- build.gradle(.kts) and source code for each subproject in corresponding subdirectories
+- `settings.gradle(.kts)` file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
+- `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
 
-== Step 2. Add a Subproject
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+
+== Step 2. Add a Subproject to the Build
+// FIX me - how do you want to organize a growing / more complex project
+// CHeck the calc old example
 [source]
 ----
-mkdir subproject
+mkdir lib
 ----
 
-// Add additional steps
-// Add dependency of subproject to app and run
+[source]
+----
+cd lib
+----
 
-== Step 3. Composite Builds
+Create a file called `build.gradle.kts` and add the following lines to it:
+
+.subproject/build.gradle.kts
+[source,kotlin]
+----
+tasks.register("sublifecycle"){
+    println("REGISTER TASK IN SUB: This is executed during the configuration phase")
+}
+
+tasks.named("sublifecycle"){
+    println("NAMED TASK IN SUB: This is executed during the configuration phase")
+    doFirst {
+        println("NAMED TASK IN SUB - doFirst: This is executed during the execution phase")
+    }
+    doLast {
+        println("NAMED TASK IN SUB - doLast: This is executed during the execution phase")
+    }
+}
+----
+
+Your project should look like this:
+
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+
+The subproject will not belong to the build, and you won't be able to the `sublifecycle` task until it is added to the `settings.gradle.kts` file.
+
+To add `lib` to the build, update the `settings.gradle.kts` file accordingly:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+println("SETTINGS FILE: This is executed during the initialization phase")
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+}
+
+rootProject.name = "authoring-tutorial"
+
+include("app")
+
+include("lib") // Add new subproject to the root project // FIX ME!!!
+----
+
+== Step 3. Understand Composite Builds
 A composite build is simply a build that includes other builds.
 
 Composite builds allow you to:
 
-– combine builds that are usually developed independently (such as a plugin and an application)
-– decompose a large build into smaller, more isolated chunks
+– Combine builds that are usually developed independently (such as a plugin and an application)
+– Decompose a large build into smaller, more isolated chunks
 
-== Step 4. Add a Build
+== Step 4. Add build to the Build
 
 [source]
 ----
@@ -101,7 +167,66 @@ BUILD SUCCESSFUL in 20s
 2 actionable tasks: 2 executed
 ----
 
-// Look into directory structure after all this
+Your project should look like this:
+
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── subproject
+│   └── build.gradle.kts
+├── gradle/license-plugin // FIX ME!!!
+│    ├── build.gradle.kts
+│    └── src
+│        ├── main
+│        │   └── kotlin
+│        │       └── com.gradle
+│        │           └── LicensePlugin.kt
+│        └── test
+│            └── kotlin
+│                └── com.gradle
+│                    └── LicencePluginTest.kt
+└── settings.gradle.kts
+----
+
+To add our `license-plugin` project to the build, update the `settings.gradle.kts` file accordingly:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+println("SETTINGS FILE: This is executed during the initialization phase")
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
+}
+
+rootProject.name = "authoring-tutorial"
+
+include("app")
+include("subproject")
+
+includeBuild("license-plugin") // Add the new build
+----
+
+[source]
+----
+$ ./gradlew projects
+
+------------------------------------------------------------
+Root project 'authoring-tutorial'
+------------------------------------------------------------
+
+Root project 'authoring-tutorial'
++--- Project ':app'
+\--- Project ':subproject'
+
+Included builds
+\--- Included build ':license-plugin'
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
 
 [.text-right]
 **Next Step:** <<partr4_settings_file#partr4_settings_file,Settings File>> >>

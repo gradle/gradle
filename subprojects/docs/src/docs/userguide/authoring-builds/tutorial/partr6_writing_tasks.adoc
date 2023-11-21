@@ -20,7 +20,10 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 ****
 **In this section you will:**
 
-- Initialize a Java project
+- Understand Tasks
+- Update the Plugin with a new task
+- Analyze Task code
+- Run new Plugin task
 ****
 
 [[part6_begin]]
@@ -32,7 +35,10 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 4. You authored a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
 5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
 
-== Step 2. Understand Tasks
+== Step 1. Understand Tasks
+A Task is an executable piece of code that contains sequences of actions.
+Actions are added to a Task via the doFirst{} and doLast{} closures.
+A Task can depend on other tasks
 
 == Step 2. Register a Task
 

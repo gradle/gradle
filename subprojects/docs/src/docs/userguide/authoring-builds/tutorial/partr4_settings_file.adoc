@@ -21,8 +21,8 @@ Learn the basics of authoring Gradle by developing the Settings File.
 **In this section you will:**
 
 - Understand the Settings object
-- Update the Settings file
-- How to use a Settings file
+- Understand the Settings file
+- Run tasks in subprojects
 ****
 
 [[part4_begin]]
@@ -52,19 +52,99 @@ For example:
  reportsDir = findProject("/myInternalProject")     // Delegates to Settings.findProject()
 ----
 
-== Step 2. Update the Settings file
+== Step 2. The Settings file
 
 .settings.gradle.kts
 [source,kotlin]
 ----
-include("app")
+println("SETTINGS FILE: This is executed during the initialization phase")
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"  // <1>
+}
+
+rootProject.name = "authoring-tutorial"                                     // <2>
+
+include("app")                                                              // <3>
 include("subproject")
+
+includeBuild("license-plugin")                                              // <4>
+----
+<1> PluginDependenciesSpec
+
+public open fun getRootProject(): ProjectDescriptor
+From interface:
+org.gradle.api.initialization.Settings
+Returns the root project of the build.
+Specified by:
+getRootProject in interface Settings
+
+ org.gradle.api.initialization.Settings
+public void include(     String... projectPaths )
+
+public open fun includeBuild(
+rootProject: Any
+): Unit
+From interface:
+org.gradle.api.initialization.Settings Includes a build at the specified path to the composite build.
+Specified by:
+includeBuild in interface Settings
+
+== Step 3. Build structure and Tasks
+
+[source]
+----
+$ ./gradlew tasks --all
+
+------------------------------------------------------------
+Tasks runnable from root project 'authoring-tutorial'
+------------------------------------------------------------
+
+Other tasks
+-----------
+app:lifecycle
+subproject:sublifecycle
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
 ----
 
-.settings.gradle.kts
-[source,kotlin]
+[source]
 ----
-includeBuild("license-plugin")
+$ ./gradlew app:lifecycle
+
+SETTINGS FILE: This is executed during the initialization phase
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+REGISTER TASK: This is executed during the configuration phase
+NAMED TASK: This is executed during the configuration phase
+
+> Task :app:lifecycle
+NAMED TASK - doFirst: This is executed during the execution phase
+NAMED TASK - doLast: This is executed during the execution phase
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+----
+
+[source]
+----
+$ ./gradlew subproject:sublifecycle
+
+SETTINGS FILE: This is executed during the initialization phase
+
+> Configure project :app
+BUILD SCRIPT: This is executed during the configuration phase
+REGISTER TASK IN SUB: This is executed during the configuration phase
+NAMED TASK IN SUB: This is executed during the configuration phase
+
+> Task :subproject:sublifecycle
+NAMED TASK IN SUB - doFirst: This is executed during the execution phase
+NAMED TASK IN SUB - doLast: This is executed during the execution phase
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
 ----
 
 [.text-right]

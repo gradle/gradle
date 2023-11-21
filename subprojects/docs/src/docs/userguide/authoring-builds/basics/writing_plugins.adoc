@@ -49,7 +49,7 @@ Let's take a look at an example:
 ----
 abstract class CreateFileTask : DefaultTask() {                                     // <1>
     @get:Input
-    abstract val fileText: Property<String>
+    abstract val fileText: Property<String>                                         // <2>
 
     @Input
     val fileName = "myfile.txt"
@@ -64,7 +64,7 @@ abstract class CreateFileTask : DefaultTask() {                                 
     }
 }
 
-abstract class MyPlugin : Plugin<Project> {                                                  // <2>
+abstract class MyPlugin : Plugin<Project> {                                         // <3>
     override fun apply(project: Project) {
         tasks {
             register("createFileTask", CreateFileTask::class) {
@@ -76,11 +76,12 @@ abstract class MyPlugin : Plugin<Project> {                                     
     }
 }
 
-apply<MyPlugin>()                                                                   // <3>
+apply<MyPlugin>()                                                                   // <4>
 ----
 <1> Subclass `DefaultTask()`.
-<2> Extend the `org.gradle.api.Plugin` interface.
-<3> Apply the script plugin.
+<2> Use lazy configuration.
+<3> Extend the `org.gradle.api.Plugin` interface.
+<4> Apply the script plugin.
 
 === Subclass `DefaultTask()`
 First, build a task by subclassing `DefaultTask()`.
@@ -91,6 +92,18 @@ abstract class CreateFileTask : DefaultTask() { }
 ----
 
 This simple task adds a file to our application’s root directory.
+
+=== Use Lazy Configuration
+Gradle has a concept called _lazy configuration_, which allows task inputs and outputs to be referenced before they are actually set.
+This is done via the link:{javadocPath}/org/gradle/api/provider/Property.html[`Property`] class type.
+
+[source,kotlin]
+----
+abstract val fileText: Property<String>
+----
+
+One advantages of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
+The `Property` class also knows which task it’s linked to, enabling Gradle to automatically add the required task dependency.
 
 === Extend the `org.gradle.api.Plugin` interface
 Next, create a new class that extends the `org.gradle.api.Plugin` interface.
@@ -140,11 +153,11 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 abstract class CreateFileTask : DefaultTask() {
-@get:Input
-abstract val fileText: Property<String>
+    @get:Input
+    abstract val fileText: Property<String>
 
     @Input
-    val fileName = project.rootDir.toString() + "myfile.txt"
+    val fileName = project.rootDir.toString() + "/myfile.txt"
 
     @OutputFile
     val myFile: File = File(fileName)
@@ -167,14 +180,31 @@ class MyConventionPlugin : Plugin<Project> {
 }
 ----
 
-Which can then be applied in other build scripts accordingly:
+The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
+
+.buildSrc/build.gradle.kts
+[source,kotlin]
+----
+gradlePlugin {
+    plugins {
+        create("my-convention-plugin") {
+            id = "com.gradle.plugin.my-convention-plugin"
+            implementationClass = "com.gradle.plugin.MyConventionPlugin"
+        }
+    }
+}
+----
+
+The `gradlePlugin{}` block defines the plugins being built by the project.
+With the newly created `id`, the plugin can be applied in other build scripts accordingly:
 
 .build.gradle.kts
 [source,kotlin]
 ----
-import com.gradle.plugin.MyConventionPlugin
-
-apply<MyConventionPlugin>()
+plugins {
+    application
+    id("com.gradle.plugin.my-convention-plugin") // Apply the new plugin
+}
 ----
 
 == Binary Plugins

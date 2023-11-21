@@ -150,12 +150,15 @@ abstract class CreateFileTask : DefaultTask() {
 tasks.register<CreateFileTask>("createFileTask") {
     group = "custom"
     description = "Create myfile.txt in the current directory"
+    fileText.convention("HELLO FROM THE CREATE FILE TASK METHOD") // Set convention
 }
 
 tasks.named<CreateFileTask>("createFileTask") {
-    fileText.set("HELLO FROM THE NAMED METHOD")
+    fileText.set("HELLO FROM THE NAMED METHOD") // Override with custom message
 }
 ----
+
+// Add a small excerpt about properties
 
 In the `named()` method, we find the `createFileTask` task and set the text that will be written to the file.
 

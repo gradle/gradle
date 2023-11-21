@@ -37,7 +37,7 @@ The Community Edition is a free version of IntelliJ IDEA.
 
 == Step 1. Initializing the Project
 
-Create a new directory called `tutorial` and `cd` into it:
+Create a new directory called `authoring-tutorial` and `cd` into it:
 
 [source]
 ----
@@ -85,11 +85,9 @@ Select test framework:
 Enter selection (default: JUnit Jupiter) [1..4] 4
 
 Project name (default: authoring-tutorial):
-
 Source package (default: authoring.tutorial):
 
 Enter target version of Java (min. 7) (default: 19):
-
 Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
 ----
 
@@ -102,6 +100,7 @@ The *project root directory* contains all source files from your project.
 When you are done with Gradle `init`, the directory should look as follows:
 
 ----
+authoring-tutorial
 ├── gradle                              // <1>
 │   └── wrapper
 ├── gradlew                             // <2>
@@ -126,7 +125,7 @@ When you are done with Gradle `init`, the directory should look as follows:
 <5> Default Java source folder
 <6> Default Java test source folder
 
-The `tutorial` folder is the *root project directory*.
+The `authoring-tutorial` folder is the *root project directory*.
 Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
 
 While the Gradle Wrapper is local to the root project, the Gradle executable is found in the `GRADLE_USER_HOME`.
@@ -201,7 +200,7 @@ The file `app/src/main/java/authoring/tutorial/App.java` contains the main class
 .App.java
 [source, java]
 ----
-package tutorial;
+package authoring.tutorial;
 
 public class App {
     public String getGreeting() {
@@ -221,7 +220,7 @@ The generated test is available at `app/src/test/java/authoring/tutorial/AppTest
 .AppTest.java
 [source, java]
 ----
-package tutorial;
+package authoring.tutorial;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
