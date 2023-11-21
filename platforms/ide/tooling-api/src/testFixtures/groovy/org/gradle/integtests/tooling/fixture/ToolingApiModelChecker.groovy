@@ -46,7 +46,7 @@ class ToolingApiModelChecker {
     }
 
     static void checkDomainObjectSet(DomainObjectSet<?> actual, DomainObjectSet<?> expected, Closure checker) {
-        actual.size() == expected.size()
+        assert actual.size() == expected.size()
         [actual, expected].collect { it.all }
             .transpose()
             .each { actualItem, expectedItem ->
@@ -59,7 +59,7 @@ class ToolingApiModelChecker {
             def getter = spec as Closure
             assert getter(actual) == getter(expected)
         } else if (spec instanceof List) {
-            assert spec.size() == 2, "spec in the form of a list must have 2 items: a getter and a sub-spec"
+            assert spec.size() == 2
             def getter = spec[0] as Closure
             def checker = spec[1]
             def actualValue = getter(actual)
@@ -68,6 +68,8 @@ class ToolingApiModelChecker {
                 if (expectedValue instanceof DomainObjectSet) {
                     assert actualValue instanceof DomainObjectSet
                     checkDomainObjectSet(actualValue, expectedValue, checker)
+                } else {
+                    checker(actualValue, expectedValue)
                 }
             } else if (checker instanceof List) {
                 def subSpecs = checker as List
