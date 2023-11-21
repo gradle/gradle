@@ -66,7 +66,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetails, Seria
     }
     @Override
     public String getJson() {
-        return "";
+        return "{}";
     }
     @Override
     public InternalProblemCategory getCategory() {

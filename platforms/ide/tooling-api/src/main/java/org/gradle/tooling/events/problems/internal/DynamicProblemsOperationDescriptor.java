@@ -36,12 +36,20 @@ import java.util.List;
 
 @NonNullApi
 public class DynamicProblemsOperationDescriptor extends DefaultOperationDescriptor implements ProblemDescriptor {
+    private final String json;
+
     public DynamicProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
         OperationDescriptor parent,
         String json
     ) {
         super(internalDescriptor, parent);
+        this.json = json;
+    }
+
+    @Override
+    public String getJson() {
+        return json;
     }
 
     @Override

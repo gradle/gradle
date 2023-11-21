@@ -34,6 +34,14 @@ import java.util.List;
 public interface ProblemDescriptor extends OperationDescriptor {
 
     /**
+     * Mock for the problem properties in JSON format.
+     * not functional anymore
+     *
+     * @return the problem properties.
+     */
+    String getJson();
+
+    /**
      * Returns the problem category.
      *
      * @return the problem category

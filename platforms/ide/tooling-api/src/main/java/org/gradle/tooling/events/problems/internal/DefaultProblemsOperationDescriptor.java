@@ -72,6 +72,11 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         this.exception = exception;
     }
 
+    @Override
+    public String getJson() {
+        return "{}";
+    }
+
     public ProblemCategory getCategory() {
         return category;
     }

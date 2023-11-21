@@ -27,7 +27,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 
-@ToolingApiVersion(">=8.5")
+@ToolingApiVersion("=8.5")
 @TargetGradleVersion("=8.5")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 

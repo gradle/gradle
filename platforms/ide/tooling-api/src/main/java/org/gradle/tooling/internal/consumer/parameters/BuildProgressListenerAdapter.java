@@ -718,13 +718,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         InternalProblemDetails details = progressEvent.getDetails();
 
-        if (!(details instanceof InternalBasicProblemDetails)) {
-            return new DynamicProblemsOperationDescriptor(
-                descriptor,
-                parent,
-                details.getJson()
-            );
-        } else {
+        if (details instanceof InternalBasicProblemDetails) {
             InternalBasicProblemDetails basicDetails = (InternalBasicProblemDetails) details;
             return new DefaultProblemsOperationDescriptor(
                 descriptor,
@@ -738,6 +732,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toSolutions(basicDetails.getSolutions()),
                 toAdditionalData(basicDetails.getAdditionalData()),
                 toExceptionContainer(basicDetails.getException())
+            );
+        } else {
+            return new DynamicProblemsOperationDescriptor(
+                descriptor,
+                parent,
+                details.getJson()
             );
         }
     }

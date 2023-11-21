@@ -16,23 +16,56 @@
 
 package org.gradle.integtests.tooling.r86
 
+import groovy.json.JsonSlurper
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.FileLocation
-import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.ProblemDescriptor
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.Severity
+import org.gradle.tooling.events.problems.TaskPathLocation
 
-@ToolingApiVersion(">=8.6")
+@ToolingApiVersion(">=8.5")
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
-    // TODO add test coverage for events coming from older Gradle versions
+    @ToolingApiVersion("=8.5")
+    def "test failure context"() {
+        setup:
+        buildFile << """
+            plugins {
+              id 'java-library'
+            }
+            repositories.jcenter()
+            task bar {}
+            task baz {}
+        """
 
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks(":ba")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        thrown(BuildException)
+        def problems = listener.problems.collect {new JsonSlurper().parseText(it.json) }
+        problems.size() == 2
+    }
+
+    // TODO add test coverage for events coming from older Gradle versions
+    @ToolingApiVersion(">=8.6")
     def "Problems expose details via Tooling API events"() {
         given:
         buildFile << """
