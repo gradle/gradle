@@ -50,11 +50,6 @@ public interface DomainObjectCollectionFactory {
     <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> type, Closure factoryClosure);
 
     /**
-     * Creates a {@link DomainObjectCollection} for managing objects of the specified type.
-     */
-    <T> DomainObjectCollection<T> newDomainObjectCollection(Class<T> elementType);
-
-    /**
      * Creates a {@link DomainObjectSet} for managing objects of the specified type.
      */
     <T> DomainObjectSet<T> newDomainObjectSet(Class<T> elementType);

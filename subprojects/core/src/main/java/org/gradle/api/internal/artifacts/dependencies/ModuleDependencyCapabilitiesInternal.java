@@ -17,10 +17,12 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.provider.SetProperty;
+import org.gradle.api.provider.Provider;
+
+import java.util.Set;
 
 public interface ModuleDependencyCapabilitiesInternal extends ModuleDependencyCapabilitiesHandler {
-    SetProperty<Capability> getRequestedCapabilities();
+    Provider<Set<Capability>> getRequestedCapabilities();
 
     ModuleDependencyCapabilitiesInternal copy();
 }

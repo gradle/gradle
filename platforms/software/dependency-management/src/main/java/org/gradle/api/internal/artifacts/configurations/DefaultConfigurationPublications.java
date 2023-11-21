@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -63,7 +63,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final TaskDependencyFactory taskDependencyFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
-    private DomainObjectCollection<Capability> capabilities;
+    private DomainObjectSet<Capability> capabilities;
     private boolean canCreate = true;
 
     public DefaultConfigurationPublications(
@@ -212,7 +212,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     public void capability(Object notation) {
         if (canCreate) {
             if (capabilities == null) {
-                capabilities = domainObjectCollectionFactory.newDomainObjectCollection(Capability.class);
+                capabilities = domainObjectCollectionFactory.newDomainObjectSet(Capability.class);
             }
             if (notation instanceof Provider) {
                 capabilities.addLater(((Provider<?>) notation).map(capabilityNotationParser::parseNotation));
