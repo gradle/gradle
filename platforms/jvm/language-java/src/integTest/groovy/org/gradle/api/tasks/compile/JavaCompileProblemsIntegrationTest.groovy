@@ -34,7 +34,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             tasks {
                 compileJava {
                     options.compilerArgs += ["-Xlint:all"]
-//                    options.forkOptions.jvmArgs += ["-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006"]
                 }
             }
         """
