@@ -56,6 +56,13 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 A new [`named(Spec<String>)` method](javadoc/org/gradle/api/NamedDomainObjectCollection.html#named-org.gradle.api.specs.Spec-) has been added to all NamedDomainObject containers, which simplifies name-based filtering and eliminates the need to touch any of the values, may they be realized or unrealized.
 
+#### Allow Providers to be used with capabilities
+
+[`Providers`](javadoc/org/gradle/api/provider/Provider.html) can now be passed to capability methods
+[`ConfigurationPublications#capability(Object)`](javadoc/org/gradle/api/artifacts/ConfigurationPublications.html#capability-java.lang.Object-),
+[`ModuleDependencyCapabilitiesHandler#requireCapability(Object)`](javadoc/org/gradle/api/artifacts/ModuleDependencyCapabilitiesHandler.html#requireCapability-java.lang.Object-),
+and [`CapabilitiesResolution#withCapability(Object, Action)`](javadoc/org/gradle/api/artifacts/CapabilitiesResolution.html#withCapability-java.lang.Object-org.gradle.api.Action-).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

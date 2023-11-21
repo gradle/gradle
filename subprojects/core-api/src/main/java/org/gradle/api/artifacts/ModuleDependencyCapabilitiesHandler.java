@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -30,14 +31,14 @@ import org.gradle.internal.HasInternalProtocol;
 public interface ModuleDependencyCapabilitiesHandler {
     /**
      * Requires a single capability.
-     * @param capabilityNotation the capability notation (eg. group:name:version)
+     * @param capabilityNotation the capability notation (e.g. group:name:version), {@linkplain Provider Providers} are also accepted
      */
     void requireCapability(Object capabilityNotation);
 
     /**
      * Requires multiple capabilities. The selected variants MUST provide ALL of them
      * to be selected.
-     * @param capabilityNotations the capability notations (eg. group:name:version)
+     * @param capabilityNotations the capability notations (e.g. group:name:version), {@linkplain Provider Providers} are also accepted
      */
     void requireCapabilities(Object... capabilityNotations);
 }

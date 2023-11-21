@@ -230,9 +230,10 @@ class DependencyManagementBuildScopeServices {
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
         TaskDependencyFactory taskDependencyFactory,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory
     ) {
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory);
     }
 
     DependencyFactoryInternal createDependencyFactory(
@@ -244,7 +245,8 @@ class DependencyManagementBuildScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -253,7 +255,7 @@ class DependencyManagementBuildScopeServices {
             DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            capabilityNotationParser, projectDependencyFactory,
+            capabilityNotationParser, objectFactory, projectDependencyFactory,
             attributesFactory);
     }
 
