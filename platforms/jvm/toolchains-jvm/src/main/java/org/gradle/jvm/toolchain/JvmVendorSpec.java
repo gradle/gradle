@@ -84,7 +84,7 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
 
     /**
-     * A constant for using <a href="https://github.com/Tencent/TencentKona-8">Tencent Kona JDK</a> as the JVM vendor.
+     * A constant for using <a href="https://tencent.github.io/konajdk">Tencent Kona JDK</a> as the JVM vendor.
      *
      * @since 8.6
      */
