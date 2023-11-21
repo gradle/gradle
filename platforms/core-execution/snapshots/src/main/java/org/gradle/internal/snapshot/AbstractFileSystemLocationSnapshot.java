@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadata.AccessType;
 
 import java.util.Optional;
@@ -45,6 +46,18 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     public String getName() {
         return name;
     }
+
+    @Override
+    public FileSystemLocationSnapshot relocate(String targetPath, Interner<String> interner) {
+        String internedTargetPath = interner.intern(targetPath);
+        String targetName = PathUtil.getFileName(internedTargetPath);
+        String internedTargetName = targetName.equals(name)
+            ? name
+            : interner.intern(targetName);
+        return doRelocate(internedTargetPath, internedTargetName, interner);
+    }
+
+    protected abstract FileSystemLocationSnapshot doRelocate(String targetPath, String internedTargetName, Interner<String> interner);
 
     @Override
     public AccessType getAccessType() {
@@ -96,6 +109,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
 
     protected FileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
+    }
+
+    @Override
+    public Stream<FileSystemLocationSnapshot> roots() {
+        return Stream.of(this);
     }
 
     @Override

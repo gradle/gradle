@@ -25,7 +25,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.InputExecutionState;
+import org.gradle.internal.execution.history.ExecutionInputState;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -68,7 +68,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     @Nullable
     public Map<String, byte[]> getInputValueHashesBytes() {
         return getBeforeExecutionState()
-            .map(InputExecutionState::getInputProperties)
+            .map(ExecutionInputState::getInputProperties)
             .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
             .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
                 .collect(toLinkedHashMap(valueSnapshot -> {
@@ -82,7 +82,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     @Nullable
     public byte[] getClassLoaderHashBytes() {
         return getBeforeExecutionState()
-            .map(InputExecutionState::getImplementation)
+            .map(ExecutionInputState::getImplementation)
             .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull)
             .orElse(null);
     }
@@ -90,7 +90,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     @Nullable
     public String getImplementationClassName() {
         return getBeforeExecutionState()
-            .map(InputExecutionState::getImplementation)
+            .map(ExecutionInputState::getImplementation)
             .map(ImplementationSnapshot::getClassIdentifier)
             .orElse(null);
     }

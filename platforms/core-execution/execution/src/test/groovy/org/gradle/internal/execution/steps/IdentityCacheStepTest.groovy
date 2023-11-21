@@ -21,31 +21,23 @@ import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
 import org.gradle.internal.execution.UnitOfWork
 
-import static org.gradle.internal.execution.ExecutionEngine.Execution
-
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
 
-
     def "executes when no cached output exists"() {
         def delegateOutput = Mock(Object)
-        def delegateResult = Stub(CachingResult) {
-
-            getExecution() >> Try.successful(Stub(Execution) {
-                getOutput() >> delegateOutput
-            })
-        }
+        def delegateResult = Mock(WorkspaceResult)
 
         def execution = step.executeDeferred(work, context, cache)
-
 
         when:
         def actualResult = execution.completeAndGet()
 
         then:
         actualResult.get() == delegateOutput
+        delegateResult.resolveOutputFromWorkspaceAs(_ as Class) >> Try.successful(delegateOutput)
 
         1 * delegate.execute(work, context) >> delegateResult
         0 * _
@@ -62,7 +54,6 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
 
         then:
         actualResult == cachedResult
-
         0 * _
     }
 }

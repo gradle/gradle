@@ -270,6 +270,62 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26996")
+    def "BOMs are not published multiple times"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            group = 'group'
+            version = '1.0'
+
+            repositories { maven { url "${mavenRepo.uri}" } }
+            dependencies {
+                api platform("org:foo:1.0")
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        repoModule.assertPublished()
+        def depMan = (repoModule.parsedPom.dependencyManagement.get("dependencies"))[0] as Node
+        depMan.children().size() == 1
+        with(depMan.children().first()) {
+            groupId.text() == "org"
+            artifactId.text() == "foo"
+            version.text() == "1.0"
+            type.text() == "pom"
+            scope.text() == "import"
+        }
+
+        ["apiElements", "runtimeElements"].each {
+            repoModule.parsedModuleMetadata.variant(it) {
+                dependency("org:foo:1.0") {
+                    exists()
+                    isLast()
+                }
+            }
+        }
+    }
+
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         given:
         settingsFile << "rootProject.name = 'root'"

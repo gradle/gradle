@@ -371,6 +371,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "input-tracking",
+    "path": "platforms/core-configuration/input-tracking",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "installation-beacon",
     "path": "subprojects/installation-beacon",
     "unitTests": false,

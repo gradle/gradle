@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
@@ -53,6 +54,7 @@ import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -96,7 +98,7 @@ public class DirectorySnapshotter {
     }
 
     /**
-     * Snapshots a directory.
+     * Snapshots a directory, reusing existing previously known snapshots.
      *
      * Follows symlinks and includes them in the returned snapshot.
      * Snapshots of followed symlinks are marked with {@link AccessType#VIA_SYMLINK}.
@@ -104,22 +106,27 @@ public class DirectorySnapshotter {
      * @param absolutePath The absolute path of the directory to snapshot.
      * @param predicate A predicate that determines which files to include in the snapshot.
      *                  {@code null} means to include everything.
-     * @param unfilteredSnapshotConsumer If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
-     *                                   then this consumer will receive all the unfiltered snapshots within the snapshot directory.
-     *                                   For example, if an element of a directory is filtered out, the consumer will receive all the non-filtered out
-     *                                   file snapshots and all the non-filtered directory snapshots in the directory.
-     *
+     * @param previouslyKnownSnapshots Snapshots already known to exist in the file system.
+     * @param unfilteredSnapshotRecorder If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
+     * then this consumer will receive all the unfiltered snapshots within the snapshot directory.
+     * For example, if an element of a directory is filtered out, the consumer will receive all the non-filtered out
+     * file snapshots and all the non-filtered directory snapshots in the directory.
      * @return The (possible filtered) snapshot of the directory.
      */
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+    public FileSystemLocationSnapshot snapshot(
+        String absolutePath,
+        @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+        Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
+        Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder
+    ) {
         try {
             AtomicBoolean hasBeenFiltered = new AtomicBoolean();
             Path rootPath = Paths.get(absolutePath);
-            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, unfilteredSnapshotConsumer);
+            PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, previouslyKnownSnapshots, unfilteredSnapshotRecorder);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             FileSystemLocationSnapshot result = visitor.getResult();
             if (!hasBeenFiltered.get()) {
-                unfilteredSnapshotConsumer.accept(result);
+                unfilteredSnapshotRecorder.accept(result);
             }
             return result;
         } catch (IOException e) {
@@ -129,8 +136,10 @@ public class DirectorySnapshotter {
 
     private interface SymbolicLinkMapping {
         String remapAbsolutePath(Path path);
+
         @CheckReturnValue
         SymbolicLinkMapping withNewMapping(String source, String target, RelativePathTracker currentPathTracker);
+
         Iterable<String> getRemappedSegments(Iterable<String> segments);
     }
 
@@ -255,7 +264,8 @@ public class DirectorySnapshotter {
         private final SymbolicLinkMapping symbolicLinkMapping;
         private final Deque<String> parentDirectories = new ArrayDeque<>();
         private final Set<FileSystemLocationSnapshot> filteredDirectorySnapshots = new HashSet<>();
-        private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer;
+        private final ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots;
+        private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
 
         public PathVisitor(
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
@@ -265,26 +275,24 @@ public class DirectorySnapshotter {
             DefaultExcludes defaultExcludes,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
             SymbolicLinkMapping symbolicLinkMapping,
-            Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer
+            Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
+            Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder
         ) {
             super(statisticsCollector);
-            this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired(this::consumeUnfilteredSnapshot);
+            this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired(this::recordUnfilteredSnapshot);
             this.predicate = predicate;
             this.hasBeenFiltered = hasBeenFiltered;
             this.hasher = hasher;
             this.stringInterner = stringInterner;
             this.defaultExcludes = defaultExcludes;
             this.symbolicLinkMapping = symbolicLinkMapping;
-            this.unfilteredSnapshotConsumer = unfilteredSnapshotConsumer;
+            this.previouslyKnownSnapshots = ImmutableMap.copyOf(previouslyKnownSnapshots);
+            this.unfilteredSnapshotRecorder = unfilteredSnapshotRecorder;
         }
 
-        private void consumeUnfilteredSnapshot(FileSystemLocationSnapshot snapshot) {
-            if (snapshot.getType() == FileType.Directory) {
-                if (!filteredDirectorySnapshots.contains(snapshot)) {
-                    unfilteredSnapshotConsumer.accept(snapshot);
-                }
-            } else {
-                unfilteredSnapshotConsumer.accept(snapshot);
+        private void recordUnfilteredSnapshot(FileSystemLocationSnapshot snapshot) {
+            if (snapshot.getType() != FileType.Directory || !filteredDirectorySnapshots.contains(snapshot)) {
+                unfilteredSnapshotRecorder.accept(snapshot);
             }
         }
 
@@ -293,7 +301,21 @@ public class DirectorySnapshotter {
             String fileName = getInternedFileName(dir);
             pathTracker.enter(fileName);
             if (shouldVisitDirectory(dir, fileName)) {
-                builder.enterDirectory(AccessType.DIRECT, intern(symbolicLinkMapping.remapAbsolutePath(dir)), fileName, INCLUDE_EMPTY_DIRS);
+                String internedRemappedAbsolutePath = intern(symbolicLinkMapping.remapAbsolutePath(dir));
+
+                // TODO Reuse previous directory snapshot even when filtering is enabled
+                if (predicate == null) {
+                    FileSystemLocationSnapshot previouslyKnownSnapshot = previouslyKnownSnapshots.get(internedRemappedAbsolutePath);
+                    if (previouslyKnownSnapshot instanceof DirectorySnapshot) {
+                        builder.visitDirectory((DirectorySnapshot) previouslyKnownSnapshot);
+                        pathTracker.leave();
+                        return FileVisitResult.SKIP_SUBTREE;
+                    } else if (previouslyKnownSnapshot != null) {
+                        throw new IllegalStateException("Expected a previously known directory snapshot at " + internedRemappedAbsolutePath + " but got " + previouslyKnownSnapshot);
+                    }
+                }
+
+                builder.enterDirectory(AccessType.DIRECT, internedRemappedAbsolutePath, fileName, INCLUDE_EMPTY_DIRS);
                 parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
@@ -305,7 +327,7 @@ public class DirectorySnapshotter {
         @Override
         protected FileVisitResult doPostVisitDirectory(Path dir, IOException exc) {
             pathTracker.leave();
-            // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
+            // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue,
             // so we include all the other files apart from the loop.
             // This way, we include each file only once.
             if (isNotFileSystemLoopException(exc)) {
@@ -372,7 +394,8 @@ public class DirectorySnapshotter {
                         defaultExcludes,
                         collector,
                         symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, pathTracker),
-                        unfilteredSnapshotConsumer);
+                        previouslyKnownSnapshots,
+                        unfilteredSnapshotRecorder);
                     Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, subtreeVisitor);
                     return (DirectorySnapshot) subtreeVisitor.getResult();
                 } else {
@@ -402,7 +425,7 @@ public class DirectorySnapshotter {
             return shouldVisit(file, internedName, false);
         }
 
-        private BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
+        private static BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
             try {
                 return Files.readAttributes(symlink, BasicFileAttributes.class);
             } catch (IOException ioe) {
@@ -414,6 +437,13 @@ public class DirectorySnapshotter {
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
             String internedRemappedAbsoluteFilePath = intern(symbolicLinkMapping.remapAbsolutePath(absoluteFilePath));
+            FileSystemLocationSnapshot previouslyKnownSnapshot = previouslyKnownSnapshots.get(internedRemappedAbsoluteFilePath);
+            if (previouslyKnownSnapshot != null) {
+                if (!(previouslyKnownSnapshot instanceof FileSystemLeafSnapshot)) {
+                    throw new IllegalStateException("Expected a previously known leaf snapshot at " + internedRemappedAbsoluteFilePath + ", but found " + previouslyKnownSnapshot);
+                }
+                return (FileSystemLeafSnapshot) previouslyKnownSnapshot;
+            }
             if (attrs.isSymbolicLink()) {
                 return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
             } else if (!attrs.isRegularFile()) {
@@ -426,13 +456,15 @@ public class DirectorySnapshotter {
             return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
         }
 
-        /** unlistable directories (and maybe some locked files) will stop here */
+        /**
+         * unlistable directories (and maybe some locked files) will stop here
+         */
         @Override
         protected FileVisitResult doVisitFileFailed(Path file, IOException exc) {
             String internedFileName = getInternedFileName(file);
             pathTracker.enter(internedFileName);
             try {
-                // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue
+                // File loop exceptions are ignored. When we encounter a loop (via symbolic links), we continue,
                 // so we include all the other files apart from the loop.
                 // This way, we include each file only once.
                 if (isNotFileSystemLoopException(exc)) {
@@ -447,7 +479,7 @@ public class DirectorySnapshotter {
             }
         }
 
-        private boolean isNotFileSystemLoopException(@Nullable IOException e) {
+        private static boolean isNotFileSystemLoopException(@Nullable IOException e) {
             return e != null && !(e instanceof FileSystemLoopException);
         }
 

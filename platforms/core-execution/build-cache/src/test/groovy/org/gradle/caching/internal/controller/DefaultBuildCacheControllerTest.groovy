@@ -33,7 +33,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -45,7 +44,10 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     def key = new DefaultBuildCacheKey(TestHashCodes.hashCodeFrom(12345678))
 
-    CacheableEntity cacheableEntity = Stub(CacheableEntity)
+    CacheableEntity cacheableEntity = Stub(CacheableEntity) {
+        identity >> ":test"
+        type >> CacheableEntity
+    }
     Duration executionTime = Duration.ofMillis(123)
     Map<String, FileSystemSnapshot> snapshots = [:]
 
@@ -57,7 +59,6 @@ class DefaultBuildCacheControllerTest extends Specification {
     def localPush = true
     def remote = Mock(BuildCacheService)
     def remotePush = true
-    FileSystemAccess fileSystemAccess = Stub(FileSystemAccess)
     BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
     StringInterner stringInterner = Stub(StringInterner)
@@ -82,7 +83,6 @@ class DefaultBuildCacheControllerTest extends Specification {
             false,
             false,
             disableRemoteOnError,
-            fileSystemAccess,
             packer,
             originMetadataFactory,
             stringInterner

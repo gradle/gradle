@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.internal.configuration.inputs.InstrumentedInputs
+import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,12 +27,11 @@ class InstrumentedTest extends Specification {
     final SetSystemProperties systemProperties = new SetSystemProperties()
 
     def cleanup() {
-        Instrumented.discardListener()
+        InstrumentedInputs.discardListener()
     }
 
     def "notifies listener when system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "value")
 
@@ -52,8 +53,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when default value for system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         when:
         def result = Instrumented.systemProperty("not-set", "default", "consumer")
@@ -65,8 +65,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when integer system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "123")
 
@@ -98,8 +97,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when default value for integer system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         when:
         def result = Instrumented.getInteger("prop", 123 as int, "consumer")
@@ -119,8 +117,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when long system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "123")
 
@@ -152,8 +149,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when default value for long system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         when:
         def result = Instrumented.getLong("prop", 123 as long, "consumer")
@@ -173,8 +169,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when boolean system property is used"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "true")
 
@@ -196,8 +191,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when system property is used via properties map"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "value")
 
@@ -220,8 +214,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when default value for system property is used via properties map"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         when:
         def properties = Instrumented.systemProperties("consumer")
@@ -242,8 +235,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when system properties map is iterated"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         System.setProperty("prop", "value")
 
@@ -263,8 +255,7 @@ class InstrumentedTest extends Specification {
     }
 
     def "notifies listener when file is opened with absolute file path"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
+        def listener = withInstrumentedInputsListener()
 
         def userDir = System.getProperty('user.dir')
 
@@ -276,5 +267,11 @@ class InstrumentedTest extends Specification {
         1 * listener.fileOpened(new File(userDir, 'foo.txt'), 'consumer')
         1 * listener.fileOpened(new File(userDir, 'bar.txt'), 'consumer')
         0 * listener._
+    }
+
+    private InstrumentedInputsListener withInstrumentedInputsListener() {
+        def listener = Mock(InstrumentedInputsListener)
+        InstrumentedInputs.setListener(listener)
+        return listener
     }
 }

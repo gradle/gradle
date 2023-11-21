@@ -17,11 +17,10 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
-import spock.lang.Specification
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapshot> extends Specification {
+abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapshot> extends AbstractFileSystemLocationSnapshotTest {
 
     abstract protected T createInitialRootNode(String absolutePath);
 
@@ -81,6 +80,20 @@ abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapsh
         then:
         childSnapshot.type == FileType.Missing
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
+    }
+
+    def "can be relocated"() {
+        def sourceFile = temporaryFolder.file("source.txt")
+        def targetFile = temporaryFolder.file("target.txt")
+        def sourceSnapshot = createInitialRootNode(sourceFile.absolutePath)
+
+        when:
+        def targetSnapshot = sourceSnapshot.relocate(targetFile.absolutePath, stringInterner)
+
+        then:
+        targetSnapshot.absolutePath == targetFile.absolutePath
+        targetSnapshot.name == targetFile.name
+        assertInterned(targetSnapshot)
     }
 
     private VfsRelativePath childAbsolutePath(String relativePath) {

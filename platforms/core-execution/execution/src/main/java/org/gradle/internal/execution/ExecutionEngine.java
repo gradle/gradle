@@ -24,9 +24,10 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Optional;
 
 public interface ExecutionEngine {
@@ -65,6 +66,9 @@ public interface ExecutionEngine {
 
         CachingState getCachingState();
 
+        // TODO Parametrize UnitOfWork with this type
+        <T> Try<T> resolveOutputFromWorkspaceAs(Class<T> type);
+
         /**
          * A list of messages describing the first few reasons encountered that caused the work to be executed.
          * An empty list means the work was up-to-date and hasn't been executed.
@@ -80,10 +84,9 @@ public interface ExecutionEngine {
          * State after execution.
          */
         @VisibleForTesting
-        Optional<AfterExecutionState> getAfterExecutionState();
+        Optional<ExecutionOutputState> getAfterExecutionOutputState();
     }
 
-    // TOOD Make this a class
     interface Execution {
         /**
          * Get how the outputs have been produced.
@@ -96,13 +99,28 @@ public interface ExecutionEngine {
          */
         // TODO Parametrize UnitOfWork with this generated result
         @Nullable
-        Object getOutput();
+        Object getOutput(File workspace);
 
         /**
          * Whether the outputs of this execution should be stored in the build cache.
          */
         default boolean canStoreOutputsInCache() {
             return true;
+        }
+
+        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work) {
+            return new Execution() {
+                @Override
+                public ExecutionOutcome getOutcome() {
+                    return outcome;
+                }
+
+                @Nullable
+                @Override
+                public Object getOutput(File workspace) {
+                    return work.loadAlreadyProducedOutput(workspace);
+                }
+            };
         }
     }
 

@@ -881,7 +881,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "transform is run again and old output is removed after it failed in previous build"() {
+    def "immutable transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
 
@@ -909,10 +909,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         isTransformed("lib2.jar", "lib2.jar.txt")
         isTransformed("lib3.jar", "lib3.jar.txt")
         isTransformed("lib4-1.0.jar", "lib4-1.0.jar.txt")
-        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") == outputDir1
-        gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt") == outputDir2
-        gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") == outputDir3
-        gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") == outputDir4
+        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir1
+        gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt") != outputDir2
+        gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") != outputDir3
+        gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") != outputDir4
 
         when:
         succeeds ":app:resolve"
@@ -1497,9 +1497,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    def "transform is rerun when output is #action between builds"() {
+    def "incremental transform is rerun when output is #action between builds"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withFileLibDependency()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(incremental: true) << withClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1507,19 +1507,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
-        output.count("Transformed") == 2
+        output.count("Transformed") == 1
         isTransformed("dir1.classes", "dir1.classes.dir")
-        isTransformed("lib1.jar", "lib1.jar.txt")
-        def outputDir1 = outputDir("dir1.classes", "dir1.classes.dir")
-        def outputDir2 = outputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir1 = outputDir("dir1.classes", "dir1.classes.dir").assertIsDir()
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
 
@@ -1527,15 +1525,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         switch (action) {
             case 'removed':
                 outputDir1.deleteDir()
-                outputDir2.deleteDir()
                 break
             case 'changed':
                 outputDir1.file("dir1.classes.dir/child.txt") << "different"
-                outputDir2.file("lib1.jar.txt") << "different"
                 break
             case 'added':
                 outputDir1.file("some-unrelated-file.txt") << "added"
-                outputDir2.file("some-unrelated-file.txt") << "added"
                 break
             default:
                 throw new IllegalStateException("Unknown action: ${action}")
@@ -1544,19 +1539,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
-        output.count("Transformed") == 2
+        output.count("Transformed") == 1
         isTransformed("dir1.classes", "dir1.classes.dir")
-        isTransformed("lib1.jar", "lib1.jar.txt")
         outputDir("dir1.classes", "dir1.classes.dir") == outputDir1
-        outputDir("lib1.jar", "lib1.jar.txt") == outputDir2
 
         when:
         succeeds ":util:resolve", ":app:resolve"
 
         then:
-        output.count("files: [dir1.classes.dir, lib1.jar.txt]") == 2
+        output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
 
@@ -1798,8 +1791,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -1832,8 +1825,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -1867,8 +1860,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -1908,8 +1901,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -2030,8 +2023,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -2069,8 +2062,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
         journal.assertExists()
 
         when:
@@ -2121,9 +2114,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     def multiProjectWithJarSizeTransform(Map options = [:]) {
-        def paramValue = options.paramValue ?: "1"
-        def fileValue = options.fileValue ?: "String.valueOf(input.length())"
-        def incremental = options.incremental ?: false
+        String paramValue = options.paramValue ?: "1"
+        String fileValue = options.fileValue ?: "String.valueOf(input.length())"
+        boolean incremental = options.incremental ?: false
 
         """
             ext.paramValue = $paramValue
@@ -2319,6 +2312,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir(from, to, this.&projectOutputDirs, stream)
     }
 
+    TestFile immutableOutputDir(String from, String to, Closure<String> stream = { output }) {
+        def temporaryOutputDir = gradleUserHomeOutputDir(from, to, stream)
+        // Remove UUID suffix for temporary directory
+        def immutablePath = temporaryOutputDir.absolutePath.replaceAll(/\/(\w{32})(?:-[\w-]+)?\//, "/\$1/")
+        return new TestFile(immutablePath)
+    }
+
     TestFile gradleUserHomeOutputDir(String from, String to, Closure<String> stream = { output }) {
         outputDir(from, to, this.&gradleUserHomeOutputDirs, stream)
     }
@@ -2328,12 +2328,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "\\w+", "transformed"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "[\\w-]+", "transformed"]
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.absolutePath), "\\w+", "transformed"]
+        def parts = [Pattern.quote(cacheDir.absolutePath), "[\\w-]+", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 

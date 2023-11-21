@@ -19,14 +19,14 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
 
-public class CachingResult extends UpToDateResult implements ExecutionEngine.Result {
+public class CachingResult extends UpToDateResult {
 
     private final CachingState cachingState;
 
@@ -35,9 +35,17 @@ public class CachingResult extends UpToDateResult implements ExecutionEngine.Res
         this.cachingState = cachingState;
     }
 
-    public CachingResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata, CachingState cachingState) {
-        super(duration, execution, afterExecutionState, executionReasons, reusedOutputOriginMetadata);
+    public CachingResult(Duration duration, Try<Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata, CachingState cachingState) {
+        super(duration, execution, afterExecutionOutputState, executionReasons, reusedOutputOriginMetadata);
         this.cachingState = cachingState;
+    }
+
+    protected CachingResult(CachingResult parent) {
+        this(parent, parent.getCachingState());
+    }
+
+    public static CachingResult shortcutResult(Duration duration, Execution execution, @Nullable ExecutionOutputState afterExecutionOutputState, @Nullable String executionReason, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+        return new CachingResult(duration, Try.successful(execution), afterExecutionOutputState, executionReason == null ? ImmutableList.of() : ImmutableList.of(executionReason), reusedOutputOriginMetadata, CachingState.NOT_DETERMINED);
     }
 
     public CachingState getCachingState() {
