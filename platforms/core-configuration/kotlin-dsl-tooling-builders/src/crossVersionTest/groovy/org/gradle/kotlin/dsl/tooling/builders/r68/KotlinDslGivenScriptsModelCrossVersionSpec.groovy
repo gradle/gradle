@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
-import static org.gradle.kotlin.dsl.tooling.builders.KotlinScriptModelParameters.setModelParameters
+import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
 @TargetGradleVersion(">=6.8")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
