@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
+import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 import gradlebuild.integrationtests.tasks.DistributionTest
 
@@ -87,7 +88,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
 }
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
-    jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
+    jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
     if (!javaVersion.isJava8Compatible) {
         jvmArgs("-XX:MaxPermSize=768m")
     }
