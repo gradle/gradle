@@ -22,6 +22,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.LinksStrategy
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
@@ -36,8 +37,8 @@ import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.internal.Factory
 import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 
 
@@ -63,6 +64,7 @@ class DefaultCopySpecCodec(
             writeNullableSmallInt(value.filePermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeCollection(value.copyActions)
             writeCollection(value.children)
+            write(value.linksStrategy.orNull)
         }
     }
 
@@ -79,6 +81,7 @@ class DefaultCopySpecCodec(
             val fileMode = readNullableSmallInt()
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
+            val linksStrategy = read() as LinksStrategy?
             val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
@@ -90,6 +93,7 @@ class DefaultCopySpecCodec(
             if (fileMode != null) {
                 copySpec.filePermissions.set(fileSystemOperations.permissions(fileMode))
             }
+            linksStrategy?.let { copySpec.linksStrategy.set(it) }
             isolate.identities.putInstance(id, copySpec)
             copySpec
         }
