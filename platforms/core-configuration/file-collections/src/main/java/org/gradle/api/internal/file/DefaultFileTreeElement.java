@@ -48,6 +48,17 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
         this.linkDetails = linkDetails;
     }
 
+    @Deprecated
+    //Backward compatibility with shadow plugin, to be removed after the plugin is updated
+    public DefaultFileTreeElement(
+        File file,
+        RelativePath relativePath,
+        Chmod chmod,
+        Stat stat
+    ) {
+        this(file, relativePath, chmod, stat, null);
+    }
+
     @Override
     public File getFile() {
         return file;
