@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":base-services"))
+    implementation(project(":logging"))
     implementation(project(":enterprise-operations")) {
         because("ExecuteTaskBuildOperationType is used in the problem reporting infrastructure")
     }

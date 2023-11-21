@@ -17,6 +17,8 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemEmitter;
 import org.gradle.api.problems.internal.DefaultProblem;
@@ -31,6 +33,8 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 @Incubating
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
+    private static final Logger LOGGER = Logging.getLogger(BuildOperationBasedProblemEmitter.class);
+
     private final BuildOperationProgressEventEmitter eventEmitter;
 
     public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
@@ -42,13 +46,14 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
         if (problem instanceof DefaultProblem) {
             DefaultProblem defaultProblem = (DefaultProblem) problem;
 
-            // TODO: Decide to emit a different problem, log, or throw
-            // If the problem is not associated with a build operation, we should not emit it
             if (defaultProblem.getBuildOperationRef() != null) {
                 eventEmitter.emitNow(
                     defaultProblem.getBuildOperationRef(),
                     new DefaultProblemProgressDetails(problem)
                 );
+            } else {
+                // If the problem is not associated with a build operation, we cannot emit it as a build operation progress event.
+                LOGGER.error("Problem '{}' is not associated with a build operation, it will not be reported", problem.getLabel());
             }
         }
     }
