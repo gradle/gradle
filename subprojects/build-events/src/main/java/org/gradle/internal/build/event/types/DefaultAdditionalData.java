@@ -16,11 +16,11 @@
 
 package org.gradle.internal.build.event.types;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 
 @NonNullApi
@@ -29,7 +29,7 @@ public class DefaultAdditionalData implements InternalAdditionalData, Serializab
     private final Map<String, Object> additionalData;
 
     public DefaultAdditionalData(Map<String, Object> additionalData) {
-        this.additionalData = Collections.unmodifiableMap(additionalData);
+        this.additionalData = ImmutableMap.copyOf(additionalData);
     }
 
     @Override

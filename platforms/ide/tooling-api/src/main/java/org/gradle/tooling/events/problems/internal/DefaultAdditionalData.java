@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.tooling.events.problems.AdditionalData;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 
 public class DefaultAdditionalData implements AdditionalData, Serializable {
@@ -27,7 +27,7 @@ public class DefaultAdditionalData implements AdditionalData, Serializable {
     private final Map<String, Object> additionalData;
 
     public DefaultAdditionalData(Map<String, Object> additionalData) {
-        this.additionalData = Collections.unmodifiableMap(additionalData);
+        this.additionalData = ImmutableMap.copyOf(additionalData);
     }
 
     @Override

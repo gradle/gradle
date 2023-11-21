@@ -145,7 +145,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     }
 
     private static List<InternalSolution> toInternalSolutions(List<String> solutions) {
-        return solutions.stream().map((Function<String, InternalSolution>) DefaultSolution::new).collect(Collectors.toList());
+        return solutions.stream().map(DefaultSolution::new).collect(Collectors.toList());
     }
 
     private static InternalAdditionalData toInternalAdditionalData(Map<String, Object> additionalData) {
