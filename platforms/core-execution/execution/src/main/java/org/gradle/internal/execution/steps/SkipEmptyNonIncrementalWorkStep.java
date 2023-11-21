@@ -17,11 +17,14 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.time.Duration;
@@ -29,11 +32,15 @@ import java.time.Duration;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED;
 
 public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<PreviousExecutionContext> {
+    private final UniqueId buildInvocationScopeId;
+
     public SkipEmptyNonIncrementalWorkStep(
+        UniqueId buildInvocationScopeId,
         WorkInputListeners workInputListeners,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         super(workInputListeners, delegate);
+        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
     @Override
@@ -58,6 +65,8 @@ public class SkipEmptyNonIncrementalWorkStep extends AbstractSkipEmptyWorkStep<P
 
     @Override
     protected CachingResult performSkip(UnitOfWork work, PreviousExecutionContext context) {
-        return CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(SHORT_CIRCUITED, work), null, null, null);
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), Duration.ZERO);
+        DefaultExecutionOutputState emptyOutputState = new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false);
+        return CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(SHORT_CIRCUITED, work), emptyOutputState, null, null);
     }
 }

@@ -16,11 +16,22 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.id.UniqueId
+
 class SkipEmptyNonIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> {
+
+    def buildId = UniqueId.generate()
+
     @Override
     protected AbstractSkipEmptyWorkStep createStep() {
         new SkipEmptyNonIncrementalWorkStep(
+            buildId,
             workInputListeners,
             delegate)
+    }
+
+    @Override
+    void assertExecutionStateWhenSkipped(CachingResult result) {
+        assert result.afterExecutionOutputState.get().originMetadata.buildInvocationId == buildId.asString()
     }
 }

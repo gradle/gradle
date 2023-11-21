@@ -81,6 +81,7 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedS
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -150,7 +151,9 @@ public class ExecutionGradleServices {
         VirtualFileSystem virtualFileSystem,
         Problems problems
     ) {
+        UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
+
         // @formatter:off
         // CHECKSTYLE:OFF
         Step<ChangingOutputsContext,Result> sharedExecutionPipeline =
@@ -163,14 +166,15 @@ public class ExecutionGradleServices {
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyNonIncrementalWorkStep(workInputListeners,
+            // TODO Consider not supporting skip-when-empty for immutable work entirely
+            new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
@@ -191,7 +195,7 @@ public class ExecutionGradleServices {
             new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, new OverlappingOutputsFilter(),
+            new CaptureOutputsAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             sharedExecutionPipeline

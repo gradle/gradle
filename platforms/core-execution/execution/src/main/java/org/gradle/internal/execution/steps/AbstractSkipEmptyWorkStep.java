@@ -33,8 +33,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.function.Predicate;
 
-// TODO Make this non-generic
-public abstract class AbstractSkipEmptyWorkStep<C extends IdentityContext> implements Step<C, CachingResult> {
+public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
     private final WorkInputListeners workInputListeners;
     protected final Step<? super C, ? extends CachingResult> delegate;
 

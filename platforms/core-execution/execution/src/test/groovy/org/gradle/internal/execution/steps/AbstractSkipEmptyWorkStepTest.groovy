@@ -145,6 +145,8 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends IdentityContext> extends 
 
         then:
         result.execution.get().outcome == SHORT_CIRCUITED
-        !result.afterExecutionOutputState.present
+        assertExecutionStateWhenSkipped(result)
     }
+
+    abstract void assertExecutionStateWhenSkipped(CachingResult result)
 }

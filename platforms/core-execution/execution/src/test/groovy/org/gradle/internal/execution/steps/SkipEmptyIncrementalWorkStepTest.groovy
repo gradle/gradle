@@ -65,7 +65,7 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
 
         then:
         result.execution.get().outcome == outcome
-        !result.afterExecutionOutputState.present
+        assertExecutionStateWhenSkipped(result)
 
         where:
         didWork | outcome
@@ -97,6 +97,11 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
         def ex = thrown Exception
         ex.message.contains("Couldn't delete file")
         ex.cause == ioException
+    }
+
+    @Override
+    void assertExecutionStateWhenSkipped(CachingResult result) {
+        assert !result.afterExecutionOutputState.present
     }
 
     private void emptySourcesWithPreviousOutputs(FileSystemSnapshot outputFileSnapshot) {
