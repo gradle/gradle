@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
@@ -48,14 +50,14 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             final FileCollectionFactory fileCollectionFactory,
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
-            BuildFeatures buildFeatures,
+            BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
                 @Override
                 public void execute(ToolingModelBuilderRegistry registry) {
-                    boolean isolatedProjects = buildFeatures.getIsolatedProjects().getActive().get();
+                    boolean isolatedProjects = buildModelParameters.isIsolatedProjects();
                     GradleProjectBuilderInternal gradleProjectBuilder = createGradleProjectBuilder(isolatedProjects);
                     IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
                     registry.register(new RunBuildDependenciesTaskBuilder());
@@ -77,8 +79,12 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
             };
         }
 
-        protected IntermediateToolingModelProvider createIntermediateToolingProvider() {
-            return new DefaultIntermediateToolingModelProvider();
+        protected IntermediateToolingModelProvider createIntermediateToolingProvider(
+            BuildOperationExecutor buildOperationExecutor,
+            BuildModelParameters buildModelParameters
+        ) {
+            IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
+            return new DefaultIntermediateToolingModelProvider(runner);
         }
     }
 }

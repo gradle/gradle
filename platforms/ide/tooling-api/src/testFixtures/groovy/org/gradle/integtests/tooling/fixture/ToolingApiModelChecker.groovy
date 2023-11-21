@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.isolated
+package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
@@ -24,7 +24,7 @@ import org.gradle.tooling.model.ProjectIdentifier
 /**
  * Fixture to structurally match models returned by the Tooling API.
  */
-class ToolingModelChecker {
+class ToolingApiModelChecker {
 
     static <T> void checkModel(T actual, T expected, List<Object> specs) {
         assert (actual == null) == (expected == null)
@@ -46,7 +46,7 @@ class ToolingModelChecker {
     }
 
     static void checkDomainObjectSet(DomainObjectSet<?> actual, DomainObjectSet<?> expected, Closure checker) {
-        actual.size() == expected.size()
+        assert actual.size() == expected.size()
         [actual, expected].collect { it.all }
             .transpose()
             .each { actualItem, expectedItem ->
@@ -59,7 +59,7 @@ class ToolingModelChecker {
             def getter = spec as Closure
             assert getter(actual) == getter(expected)
         } else if (spec instanceof List) {
-            assert spec.size() == 2, "spec in the form of a list must have 2 items: a getter and a sub-spec"
+            assert spec.size() == 2
             def getter = spec[0] as Closure
             def checker = spec[1]
             def actualValue = getter(actual)
@@ -68,6 +68,8 @@ class ToolingModelChecker {
                 if (expectedValue instanceof DomainObjectSet) {
                     assert actualValue instanceof DomainObjectSet
                     checkDomainObjectSet(actualValue, expectedValue, checker)
+                } else {
+                    checker(actualValue, expectedValue)
                 }
             } else if (checker instanceof List) {
                 def subSpecs = checker as List

@@ -22,17 +22,27 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.util.stream.Collectors.toList;
 
 @NonNullApi
 public class DefaultIntermediateToolingModelProvider implements IntermediateToolingModelProvider {
+
+    private final IntermediateBuildActionRunner actionRunner;
+
+    public DefaultIntermediateToolingModelProvider(IntermediateBuildActionRunner actionRunner) {
+        this.actionRunner = actionRunner;
+    }
 
     @Override
     public <T> List<T> getModels(List<Project> targets, Class<T> modelType) {
@@ -44,7 +54,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return getModelsImpl(targets, modelType, modelBuilderParameter);
     }
 
-    private static <T> List<T> getModelsImpl(List<Project> targets, Class<T> modelType, @Nullable Object modelBuilderParameter) {
+    private <T> List<T> getModelsImpl(List<Project> targets, Class<T> modelType, @Nullable Object modelBuilderParameter) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
@@ -54,19 +64,25 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return ensureModelTypes(modelType, rawModels);
     }
 
-    private static List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
+    private List<Object> getModels(List<Project> targets, String modelName, @Nullable Object modelBuilderParameter) {
         BuildState buildState = extractSingleBuildState(targets);
         Function<Class<?>, Object> parameterFactory = modelBuilderParameter == null ? null : createParameterFactory(modelBuilderParameter);
-        return buildState.withToolingModels(controller -> {
-            ArrayList<Object> models = new ArrayList<>();
-            for (Project targetProject : targets) {
-                ProjectState builderTarget = ((ProjectInternal) targetProject).getOwner();
-                ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
-                Object model = toolingModelScope.getModel(modelName, parameterFactory);
-                models.add(model);
-            }
-            return models;
-        });
+        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, parameterFactory));
+    }
+
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable Function<Class<?>, Object> parameterFactory) {
+        List<Supplier<Object>> fetchActions = targets.stream()
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameterFactory))
+            .collect(toList());
+
+        return runFetchActions(fetchActions);
+    }
+
+    @Nullable
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable Function<Class<?>, Object> parameterFactory) {
+        ProjectState builderTarget = targetProject.getOwner();
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameterFactory != null);
+        return toolingModelScope.getModel(modelName, parameterFactory);
     }
 
     private static Function<Class<?>, Object> createParameterFactory(Object modelBuilderParameter) {
@@ -114,5 +130,9 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         }
 
         return Cast.uncheckedCast(rawModels);
+    }
+
+    private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
+        return actionRunner.run(actions);
     }
 }
