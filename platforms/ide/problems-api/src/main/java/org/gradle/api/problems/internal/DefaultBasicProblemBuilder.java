@@ -24,6 +24,9 @@ import org.gradle.api.problems.locations.FileLocation;
 import org.gradle.api.problems.locations.PluginIdLocation;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.api.problems.locations.TaskPathLocation;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -75,7 +78,19 @@ public class DefaultBasicProblemBuilder implements UnboundBasicProblemBuilder {
             getSolutions(),
             getExceptionForProblemInstantiation(), // TODO: don't create exception if already reported often
             getProblemCategory(),
-            getAdditionalMetadata());
+            getAdditionalMetadata(),
+            getCurrentOperationId()
+        );
+    }
+
+    @Nullable
+    public OperationIdentifier getCurrentOperationId() {
+        BuildOperationRef buildOperationRef = CurrentBuildOperationRef.instance().get();
+        if (buildOperationRef == null) {
+            return null;
+        } else {
+            return buildOperationRef.getId();
+        }
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
