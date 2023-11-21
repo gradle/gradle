@@ -70,7 +70,7 @@ Gradle automatically cleans its user home directory.
 
 By default, the cleanup runs in the background when the Gradle daemon is stopped or shut down.
 
-If using `--no-daemon`, it runs in the foreground after the build session with a visual progress indicator.
+If using `--no-daemon`, it runs in the foreground after the build session.
 
 The following cleanup strategies are applied periodically (by default, once every 24 hours):
 

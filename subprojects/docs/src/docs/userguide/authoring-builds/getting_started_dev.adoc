@@ -33,7 +33,7 @@ _Reading time_: **35 minutes**
 
 The introduction covers:
 
-<<directory_layout.adoc#directory_layout,Part 1.>> Gradle Directories +
+<<gradle_directories.adoc#directory_layout,Part 1.>> Gradle Directories +
 <<intro_multi_project_builds.adoc#intro_multi_project_builds,Part 2.>> Multi-Project Builds +
 <<build_lifecycle.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
 <<writing_settings_files.adoc#writing_settings_files,Part 4.>> Writing Settings Files +

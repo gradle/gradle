@@ -105,7 +105,7 @@ application {
 
 In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
 
-Consult the writing_build_scripts.adoc#writing_build_scripts,Writing Settings File page to learn more.
+Consult the <<writing_build_scripts.adoc#writing_build_scripts,Writing Settings File>> page to learn more.
 
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>

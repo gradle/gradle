@@ -92,7 +92,7 @@ include("business-logic")
 include("data-model")
 ----
 
-Consult the writing_settings_files.adoc#writing_settings_files,Writing Settings File page to learn more.
+Consult the <<writing_settings_files.adoc#writing_settings_files,Writing Settings File>> page to learn more.
 
 [.text-right]
 **Next Step:** <<build_file_basics.adoc#build_file_basics,Learn about the Build scripts>> >>

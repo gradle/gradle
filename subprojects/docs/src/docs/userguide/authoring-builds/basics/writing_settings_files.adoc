@@ -15,7 +15,7 @@
 [[writing_settings_files]]
 = Writing Settings Files
 
-The settings file is the entry point of every Gradle project.
+The settings file is the entry point of every Gradle build.
 
 image::author-gradle-7.png[]
 
@@ -44,7 +44,7 @@ IMPORTANT: There is a one-to-one correspondence between a `Settings` instance an
 The `Settings` object is part of the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Gradle API].
 
 - In the Groovy DSL, the `Settings` object documentation is found link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[here].
-- In the Kotlin DSL, the `Settings` object documentation is found link:{kotlinDslPath}/org.gradle.api.initialization/-settings/index.html[here].
+- In the Kotlin DSL, the `Settings` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[here].
 
 Many top-level properties and blocks in a settings script are part of the Settings API.
 
@@ -55,7 +55,7 @@ For example, we can set the root project name in the settings script using the `
 settings.rootProject.name = "root"
 ----
 
-Which can be shortened to:
+Which is usually shortened to:
 
 [source]
 ----
@@ -77,7 +77,7 @@ The following table lists a few commonly used properties:
 | The build cache configuration.
 
 | `plugins`
-| The container of plugins that have been applied to this object.
+| The container of plugins that have been applied to the settings.
 
 | `rootDir`
 | The root directory of the build. The root directory is the project directory of the root project.
@@ -94,9 +94,6 @@ The following table lists a few commonly used methods:
 [%autowidth.stretch]
 |===
 | Name | Description
-
-| `apply()`
-| Applies zero or more plugins or scripts.
 
 | `include()`
 | Adds the given projects to the build.
@@ -222,7 +219,7 @@ pluginManagement {
 }
 ----
 
-You can also include plugins and plugin dependency strategies in this block.
+You can also include plugins and plugin dependency resolution strategies in this block.
 
 === 2. Apply plugins
 
@@ -248,7 +245,7 @@ The settings file defines your project name using the link:{javadocPath}/org/gra
 rootProject.name = "root-project"
 ----
 
-There is only one root per project.
+There is only one root project per build.
 
 === 4. Define build-wide repositories
 
@@ -301,7 +298,7 @@ For example, instead of using `include` many times to add subprojects, you can i
 
 [source]
 ----
-rootDir.listFiles().filter { it.name!="gradle" && it.isDirectory && !it.isHidden }.forEach {
+rootDir.listFiles().filter { it.isDirectory && (new File(it, "build.gradle.kts").exists()) }.forEach {
     include(it.name)
 }
 ----

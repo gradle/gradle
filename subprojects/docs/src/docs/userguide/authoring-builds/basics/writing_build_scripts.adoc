@@ -50,7 +50,7 @@ IMPORTANT: _Build scripts_ configure `Project` objects and their children.
 The `Project` object is part of the link:{javadocPath}org/gradle/api/Project.html[Gradle API].
 
 - In the Groovy DSL, the `Project` object documentation is found link:{groovyDslPath}/org.gradle.api.Project.html[here].
-- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/org.gradle.api.initialization/-settings/index.html[here].
+- In the Kotlin DSL, the `Project` object documentation is found link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/index.html[here].
 
 Many top-level properties and blocks in a build script are part of the Project API.
 
@@ -79,7 +79,7 @@ The following table lists a few commonly used properties:
 
 [%header%autowidth,compact]
 |===
-| Name | Type | Default Value
+| Name | Type | Description
 
 | `name`
 | `String`
@@ -87,7 +87,7 @@ The following table lists a few commonly used properties:
 
 | `path`
 | `String`
-| The absolute path of the project.
+| The fully qualified name of the project.
 
 | `description`
 | `String`
@@ -107,11 +107,11 @@ The following table lists a few commonly used properties:
 
 | `group`
 | `Object`
-| `unspecified`
+| The group of this project.
 
 | `version`
 | `Object`
-| `unspecified`
+| The version of this project.
 |===
 
 The following table lists a few commonly used methods:
