@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ReportableProblem;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.UnboundReportableProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -39,7 +40,7 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,
-        @Nullable Throwable cause,
+        @Nullable RuntimeException cause,
         String problemCategory,
         Map<String, String> additionalMetadata,
         @Nullable InternalProblems problemService,
@@ -67,5 +68,26 @@ public class DefaultReportableProblem extends DefaultProblem implements Reportab
     @Override
     public void report() {
         problemService.report(this);
+    }
+
+    @Override
+    public UnboundReportableProblemBuilder toBuilder() {
+        return new DefaultReportableProblemBuilder(problemService, this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        return this.problemService == ((DefaultReportableProblem) o).problemService && super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return problemService.hashCode() + super.hashCode();
     }
 }

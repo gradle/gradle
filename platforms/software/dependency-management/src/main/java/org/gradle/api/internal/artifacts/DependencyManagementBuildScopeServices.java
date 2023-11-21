@@ -141,7 +141,6 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
@@ -162,6 +161,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -377,8 +377,8 @@ class DependencyManagementBuildScopeServices {
         };
     }
 
-    ResolutionFailureHandler createVariantSelectionFailureProcessor(Problems problems) {
-        return new ResolutionFailureHandler(problems);
+    ResolutionFailureHandler createResolutionFailureProcessor(Problems problems, DocumentationRegistry documentationRegistry) {
+        return new ResolutionFailureHandler(problems, documentationRegistry);
     }
 
     GraphVariantSelector createGraphVariantSelector(ResolutionFailureHandler resolutionFailureHandler) {
@@ -475,6 +475,7 @@ class DependencyManagementBuildScopeServices {
      * Currently used for running artifact transforms in buildscript blocks.
      */
     ExecutionEngine createExecutionEngine(
+        BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
         CurrentBuildOperationRef currentBuildOperationRef,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -486,12 +487,9 @@ class DependencyManagementBuildScopeServices {
         TimeoutHandler timeoutHandler,
         ValidateStep.ValidationWarningRecorder validationWarningRecorder,
         VirtualFileSystem virtualFileSystem,
-        DocumentationRegistry documentationRegistry,
         Problems problems
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-        // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
-        UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(
             problems, new IdentifyStep<>(buildOperationExecutor,
@@ -506,7 +504,7 @@ class DependencyManagementBuildScopeServices {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter, outputChangeListener,
+            new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter, outputChangeListener,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

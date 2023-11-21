@@ -19,14 +19,9 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.MultipleBuildOperationFailures;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
@@ -44,7 +39,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -122,26 +116,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     public <T> List<T> run(List<Supplier<T>> actions) {
         assertCanQuery();
-        List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
-        for (Supplier<T> action : actions) {
-            wrappers.add(new NestedAction<>(action));
-        }
-        controller.runQueryModelActions(wrappers);
-
-        List<T> results = new ArrayList<>(actions.size());
-        List<Throwable> failures = new ArrayList<>();
-        for (NestedAction<T> wrapper : wrappers) {
-            Try<T> value = wrapper.value();
-            if (value.isSuccessful()) {
-                results.add(value.get());
-            } else {
-                failures.add(value.getFailure().get());
-            }
-        }
-        if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(failures, null);
-        }
-        return results;
+        return controller.runQueryModelActions(actions);
     }
 
     private Function<Class<?>, Object> parameterFactory(Object parameter)
@@ -191,34 +166,6 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private void assertCanQuery() {
         if (!workerThreadRegistry.isWorkerThread()) {
             throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
-        }
-    }
-
-    private static class NestedAction<T> implements RunnableBuildOperation {
-        private final Supplier<T> action;
-        private Try<T> result;
-
-        public NestedAction(Supplier<T> action) {
-            this.action = action;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            try {
-                T value = action.get();
-                result = Try.successful(value);
-            } catch (Throwable t) {
-                result = Try.failure(t);
-            }
-        }
-
-        public Try<T> value() {
-            return result;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Tooling API client action");
         }
     }
 }

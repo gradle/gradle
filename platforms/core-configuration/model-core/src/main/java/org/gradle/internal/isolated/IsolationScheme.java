@@ -192,7 +192,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             Object result = find(serviceType);
             if (result == null) {
-                notFound(serviceType);
+                return notFound(serviceType);
             }
             return result;
         }

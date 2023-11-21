@@ -21,7 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
-import org.gradle.integtests.fixtures.build.TestProjectInitiation
+import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -66,7 +66,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiVersion('>=7.0')
 @TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification implements TestProjectInitiation {
+abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -88,6 +88,8 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
     TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     @Delegate
     final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
+
+    // TODO: react to the isolatedProejcts prop coming from build settings
 
     @Rule
     public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
@@ -128,13 +130,13 @@ abstract class ToolingApiSpecification extends Specification implements TestProj
     @Override
     TestFile getBuildFileKts() {
         validateKotlinCompatibility()
-        TestProjectInitiation.super.getBuildFileKts()
+        KotlinDslTestProjectInitiation.super.getBuildFileKts()
     }
 
     @Override
     TestFile getSettingsFileKts() {
         validateKotlinCompatibility()
-        TestProjectInitiation.super.getSettingsFileKts()
+        KotlinDslTestProjectInitiation.super.getSettingsFileKts()
     }
 
 

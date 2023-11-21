@@ -18,8 +18,10 @@ package org.gradle.internal.buildtree
 
 
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.id.UniqueId
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.ProjectParallelExecutionController
@@ -30,6 +32,7 @@ import java.util.function.Function
 class BuildTreeStateTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.BuildSession)
     def actionExecutor = Mock(BuildTreeActionExecutor)
+    def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     BuildTreeState state
 
     def setup() {
@@ -39,7 +42,7 @@ class BuildTreeStateTest extends Specification {
         services.add(Mock(ProjectParallelExecutionController))
         services.add(BuildTreeActionExecutor, actionExecutor)
         services.add(listenerManager)
-        state = new BuildTreeState(services, Stub(BuildTreeModelControllerServices.Supplier))
+        state = new BuildTreeState(buildInvocationScopeId, services, Stub(BuildTreeModelControllerServices.Supplier))
     }
 
     def "does nothing when function does nothing"() {

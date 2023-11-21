@@ -16,12 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.BuildableProblemBuilder;
+import org.gradle.api.problems.BasicProblemBuilder;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemBuilderDefiningLabel;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ReportableProblem;
-import org.gradle.problems.buildtree.ProblemStream;
 
 public interface InternalProblems extends Problems {
 
@@ -30,14 +29,11 @@ public interface InternalProblems extends Problems {
      * <p>
      * The builder uses a stepwise builder pattern forcing the clients to define all mandatory fields in a specific order.
      * <p>
-     * Once all mandatory fields are set, the returned type will allow clients to call {@link BuildableProblemBuilder#build()} to create a new Problem instance.
-     * The {@link BuildableProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
+     * Once all mandatory fields are set, the returned type will allow clients to call {@link BasicProblemBuilder#build()} to create a new Problem instance.
+     * The {@link BasicProblemBuilder#build()} method doesn't have any side effects, it just creates a new instance. Problems should be reported separately with {@link ReportableProblem#report()}.
      *
      * @return a new problem builder
      */
     ProblemBuilderDefiningLabel createProblemBuilder();
-
-    ProblemStream getProblemStream();
-
     void report(Problem problem);
 }

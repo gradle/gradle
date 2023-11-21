@@ -33,11 +33,10 @@ public class ProblemsBuildTreeServices {
 
     Problems createProblemsService(
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
-        List<ProblemTransformer> transformers,
-        ProblemDiagnosticsFactory problemDiagnosticsFactory
+        List<ProblemTransformer> transformers
     ) {
         BuildOperationBasedProblemEmitter emitter = new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
-        return new DefaultProblems(emitter, transformers, problemDiagnosticsFactory.newStream());
+        return new DefaultProblems(emitter, transformers);
     }
 
     ProblemTransformer createPluginIdLocationTransformer(BuildOperationAncestryTracker buildOperationAncestryTracker, OperationListener operationListener) {

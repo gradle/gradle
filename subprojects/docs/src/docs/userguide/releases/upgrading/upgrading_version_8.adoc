@@ -38,6 +38,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to JaCoCo 0.8.11
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
+
+
 === Deprecations
 
 [[deprecated_artifact_identifier]]
@@ -616,12 +623,12 @@ dependencies {
 =====
 
 [[unsupported_ge_plugin_3.13]]
-==== Earliest supported Gradle Enterprise plugin version is 3.13.1
+==== Earliest supported Develocity plugin version is 3.13.1
 
-Starting in Gradle 9.0, the earliest supported Gradle Enterprise plugin version is 3.13.1.
+Starting in Gradle 9.0, the earliest supported Develocity plugin version is 3.13.1.
 The plugin versions from 3.0 up to 3.13 will be ignored when applied.
 
-Upgrade to version 3.13.1 or later of the Gradle Enterprise plugin.
+Upgrade to version 3.13.1 or later of the Develocity plugin.
 You can find the link:https://plugins.gradle.org/plugin/com.gradle.enterprise[latest available version on the Gradle Plugin Portal].
 More information on the compatibility can be found link:https://docs.gradle.com/enterprise/compatibility/#build_scans[here].
 

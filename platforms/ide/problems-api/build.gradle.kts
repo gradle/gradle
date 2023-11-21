@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    testImplementation(project(":logging"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":logging")))
     integTestDistributionRuntimeOnly(project(":distributions-core"))

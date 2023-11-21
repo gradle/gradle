@@ -398,11 +398,11 @@ public class DependencyGraphBuilder {
         if (!incomingRootEdges.isEmpty()) {
             String rootNodeName = resolveState.getRoot().getResolvedConfigurationId().getConfiguration();
             DeprecationLogger.deprecate(
-                String.format(
-                    "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
-                    "Depending on the resolved configuration in this manner",
-                    rootNodeName
-                ))
+                    String.format(
+                        "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
+                            "Depending on the resolved configuration in this manner",
+                        rootNodeName
+                    ))
                 .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "depending_on_root_configuration")

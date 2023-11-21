@@ -18,6 +18,7 @@ package org.gradle.internal.service;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 
 class ReflectionBasedServiceMethod extends AbstractServiceMethod {
@@ -29,7 +30,7 @@ class ReflectionBasedServiceMethod extends AbstractServiceMethod {
     }
 
     @Override
-    public Object invoke(Object target, Object... args) {
+    public Object invoke(Object target, @Nullable Object... args) {
         try {
             return javaMethod.invoke(target, args);
         } catch (Exception e) {

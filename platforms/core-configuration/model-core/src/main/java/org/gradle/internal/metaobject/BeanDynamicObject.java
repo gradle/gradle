@@ -166,8 +166,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return bean.toString();
     }
 
+    @Nullable
     @Override
-    public @Nullable Class<?> getPublicType() {
+    public Class<?> getPublicType() {
         return publicType != null ? publicType : bean.getClass();
     }
 
@@ -299,7 +300,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return DynamicInvokeResult.notFound();
         }
 
-        private @Nullable MetaMethod findGetPropertyMissingMethod(MetaClass metaClass) {
+        @Nullable
+        private MetaMethod findGetPropertyMissingMethod(MetaClass metaClass) {
             if (metaClass instanceof MetaClassImpl) {
                 // Reach into meta class to avoid lookup
                 try {
@@ -318,7 +320,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return null;
         }
 
-        private @Nullable MetaMethod findSetPropertyMissingMethod(MetaClass metaClass) {
+        @Nullable
+        private MetaMethod findSetPropertyMissingMethod(MetaClass metaClass) {
             if (metaClass instanceof MetaClassImpl) {
                 // Reach into meta class to avoid lookup
                 try {
@@ -337,7 +340,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return null;
         }
 
-        private @Nullable MetaMethod findMethodMissingMethod(MetaClass metaClass) {
+        @Nullable
+        private MetaMethod findMethodMissingMethod(MetaClass metaClass) {
             if (metaClass instanceof MetaClassImpl) {
                 // Reach into meta class to avoid lookup
                 try {
@@ -362,7 +366,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
          * Since we do this in a hot code path, we also reuse the argument array used for the
          * reflective call to save memory.
          */
-        protected @Nullable MetaProperty lookupProperty(MetaClass metaClass, String name) {
+        @Nullable
+        protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             boolean isInstrumented = metaClass instanceof InstrumentedMetaClass
                 && ((InstrumentedMetaClass) metaClass).interceptsPropertyAccess(name);
 
@@ -563,7 +568,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return invokeOpaqueMethod(metaClass, name, arguments);
         }
 
-        protected @Nullable MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
+        @Nullable
+        protected MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
             return metaClass.pickMethod(name, arguments);
         }
 
@@ -681,8 +687,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             classMetaData = GroovySystem.getMetaClassRegistry().getMetaClass(cl);
         }
 
+        @Nullable
         @Override
-        protected @Nullable MetaProperty lookupProperty(MetaClass metaClass, String name) {
+        protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             MetaProperty metaProperty = super.lookupProperty(metaClass, name);
             if (metaProperty != null) {
                 return metaProperty;
@@ -694,8 +701,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return null;
         }
 
+        @Nullable
         @Override
-        protected @Nullable MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
+        protected MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
             MetaMethod metaMethod = super.lookupMethod(metaClass, name, arguments);
             if (metaMethod != null) {
                 return metaMethod;

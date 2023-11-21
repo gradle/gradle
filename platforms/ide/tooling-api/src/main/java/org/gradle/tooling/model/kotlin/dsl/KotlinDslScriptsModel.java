@@ -22,17 +22,17 @@ import java.util.Map;
 
 /**
  * Editor model for a set of Kotlin DSL scripts.
- *
+ * <p>
  * Can only be requested on the root project, the builder will throw otherwise.
- *
+ * <p>
  * Requires the <code>prepareKotlinBuildScriptModel</code> task to be executed before building the model.
  * See {@link KotlinDslModelsParameters#PREPARATION_TASK_NAME}
- *
+ * <p>
  * The set of scripts can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.scripts</code>,
  * as a list of absolute paths separated by <code>|</code>.
  * If none are provided, then the model is built for all the Kotlin DSL scripts known to belong to this build.
  * See {@link KotlinDslScriptsModel#SCRIPTS_GRADLE_PROPERTY_NAME}.
- *
+ * <p>
  * The Gradle Kotlin DSL script provider must be running in "classpath" mode.
  * This is done by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
  * See {@link KotlinDslModelsParameters#CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
@@ -40,7 +40,7 @@ import java.util.Map;
  * exceptions will be returned in the built model.
  * Optionally, it can also be set in a strict mode by providing the system property value <code>-Dorg.gradle.kotlin.dsl.provider.mode=strict-classpath</code>.
  * See {@link KotlinDslModelsParameters#STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
- *
+ * <p>
  * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
  * it can then be used to correlate Gradle and TAPI client log statements.
  * See {@link KotlinDslModelsParameters#CORRELATION_ID_GRADLE_PROPERTY_NAME}.

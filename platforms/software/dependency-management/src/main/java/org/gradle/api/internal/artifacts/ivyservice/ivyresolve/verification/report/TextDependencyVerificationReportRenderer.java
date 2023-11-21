@@ -50,7 +50,7 @@ class TextDependencyVerificationReportRenderer extends AbstractTextDependencyVer
 
     @Override
     public void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action) {
-        formatter.node("On artifact " + key + " ");
+        formatter.node("On artifact " + key.getDisplayName() + " ");
         action.run();
     }
 

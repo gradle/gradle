@@ -18,13 +18,12 @@ package org.gradle.internal.component.external.model;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
 
-public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier, DisplayName {
+public class DefaultModuleComponentArtifactIdentifier implements ModuleComponentArtifactIdentifier {
     private final ModuleComponentIdentifier componentIdentifier;
     private final IvyArtifactName name;
     private final int hashCode;
@@ -52,9 +51,7 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public String getDisplayName() {
-        String name = this.getFileName();
-        String componentIdentifier = this.componentIdentifier.toString();
-        return name + " (" + componentIdentifier + ")";
+        return getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
     }
 
     @Override

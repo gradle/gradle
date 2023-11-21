@@ -30,7 +30,6 @@ import static com.google.common.collect.Sets.newHashSet
 class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
-    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     def meta = new IvyModuleResolveMetaDataBuilder(md, new IvyModuleDescriptorConverter(new DefaultImmutableModuleIdentifierFactory()), ivyMetadataFactory)
 
@@ -80,8 +79,8 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def testArtifacts = resolveMetaData.getConfiguration("testUtil").artifacts
 
-        runtimeArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
-        testArtifacts*.toString() as Set == ["foo-all-1.0.zip (org:foo:1.0)"] as Set
+        runtimeArtifacts*.id.displayName as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
+        testArtifacts*.id.displayName as Set == ["foo-all-1.0.zip (org:foo:1.0)"] as Set
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
@@ -101,7 +100,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def archivesArtifacts = resolveMetaData.getConfiguration("archives").artifacts
 
-        runtimeArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
-        archivesArtifacts*.toString() as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
+        runtimeArtifacts*.id.displayName as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
+        archivesArtifacts*.id.displayName as Set == ["foo-1.0.jar (org:foo:1.0)"] as Set
     }
 }

@@ -16,57 +16,59 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemCategory;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.UnboundBasicProblemBuilder;
 import org.gradle.api.problems.locations.ProblemLocation;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Problem, Serializable {
-    private String label;
+    private final String label;
     private Severity severity;
-    private List<ProblemLocation> where;
-    private DocLink documentationLink;
-    private String description;
-    private List<String> solutions;
-    private Throwable cause;
-    private String problemCategory;
-    private Map<String, String> additionalMetadata;
+    private final List<ProblemLocation> where;
+    private final DocLink documentationLink;
+    private final String description;
+    private final List<String> solutions;
+    private final RuntimeException cause;
+    private final String problemCategory;
+    private final Map<String, String> additionalMetadata;
 
     @Nullable
     private OperationIdentifier buildOperationId;
 
-    public DefaultProblem(
+    protected DefaultProblem(
         String label,
         Severity severity,
         List<ProblemLocation> locations,
         @Nullable DocLink documentationUrl,
         @Nullable String description,
         @Nullable List<String> solutions,
-        @Nullable Throwable cause,
+        @Nullable RuntimeException cause,
         String problemCategory,
         Map<String, String> additionalMetadata,
         @Nullable OperationIdentifier buildOperationId
     ) {
         this.label = label;
         this.severity = severity;
-        this.where = locations;
+        this.where = ImmutableList.copyOf(locations);
         this.documentationLink = documentationUrl;
         this.description = description;
-        this.solutions = solutions == null ? Collections.<String>emptyList() : solutions;
+        this.solutions = solutions == null ? ImmutableList.<String>of() : ImmutableList.copyOf(solutions);
         this.cause = cause;
         this.problemCategory = problemCategory;
-        this.additionalMetadata = additionalMetadata;
+        this.additionalMetadata = ImmutableMap.copyOf(additionalMetadata);
         this.buildOperationId = buildOperationId;
     }
 
@@ -102,7 +104,7 @@ public class DefaultProblem implements Problem, Serializable {
     }
 
     @Override
-    public Throwable getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
+    public RuntimeException getException() { // TODO (donat) Investigate why this is represented as List<StackTraceElement> on DefaultDeprecatedUsageProgressDetails.
         return cause;
     }
 
@@ -127,6 +129,11 @@ public class DefaultProblem implements Problem, Serializable {
 
     public void setSeverity(Severity severity) {
         this.severity = severity;
+    }
+
+    @Override
+    public UnboundBasicProblemBuilder toBuilder() {
+        return new DefaultBasicProblemBuilder(this);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
