@@ -106,6 +106,5 @@ public interface ProblemDescriptor extends OperationDescriptor {
      */
     @Incubating
     @Nullable
-    RuntimeException getException();
-
+    ExceptionContainer getException();
 }

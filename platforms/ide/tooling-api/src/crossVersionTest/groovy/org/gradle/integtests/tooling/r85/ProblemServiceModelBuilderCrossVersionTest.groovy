@@ -102,7 +102,7 @@ class ProblemServiceModelBuilderCrossVersionTest extends ToolingApiSpecification
         problems.size() == 1
         problems[0].label.label == 'label'
         problems[0].category.category== 'testcategory'
-        problems[0].exception.message == 'test'
+        problems[0].exception.exception.message == 'test'
 
         where:
         javaHome << [

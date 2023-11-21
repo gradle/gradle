@@ -67,6 +67,7 @@ import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
+import org.gradle.tooling.events.problems.ExceptionContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
@@ -78,6 +79,7 @@ import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
 import org.gradle.tooling.events.problems.internal.DefaultCategory;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
+import org.gradle.tooling.events.problems.internal.DefaultExceptionContainer;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultLabel;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
@@ -735,9 +737,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toDocumentationLink(basicDetails.getDocumentationLink()),
                 toSolutions(basicDetails.getSolutions()),
                 toAdditionalData(basicDetails.getAdditionalData()),
-                basicDetails.getException()
+                toExceptionContainer(basicDetails.getException())
             );
         }
+    }
+
+    private ExceptionContainer toExceptionContainer(RuntimeException exception) {
+        return new DefaultExceptionContainer(exception);
     }
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {

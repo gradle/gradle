@@ -22,6 +22,7 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
+import org.gradle.tooling.events.problems.ExceptionContainer;
 import org.gradle.tooling.events.problems.Label;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemCategory;
@@ -44,7 +45,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     @Nullable
-    private final RuntimeException exception;
+    private final ExceptionContainer exception;
 
     public DefaultProblemsOperationDescriptor(
         InternalOperationDescriptor internalDescriptor,
@@ -57,7 +58,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
         @Nullable DocumentationLink documentationLink,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable RuntimeException exception
+        @Nullable ExceptionContainer exception
     ) {
         super(internalDescriptor, parent);
         this.category = category;
@@ -112,7 +113,7 @@ public class DefaultProblemsOperationDescriptor extends DefaultOperationDescript
     }
 
     @Nullable
-    public RuntimeException getException() {
+    public ExceptionContainer getException() {
         return exception;
     }
 }
