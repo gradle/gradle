@@ -16,12 +16,17 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.caching.internal.origin.OriginMetadataFactory
+import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
+import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 
@@ -36,10 +41,15 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
 
     def deleter = TestFiles.deleter()
     def fileSystemAccess = TestFiles.fileSystemAccess()
-    def originMetadataFactory = Stub(OriginMetadataFactory)
+    def immutableWorkspaceMetadataStore = Stub(ImmutableWorkspaceMetadataStore) {
+        loadWorkspaceMetadata(_ as File) >> Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> Stub(OriginMetadata)
+            getOutputPropertyHashes() >> ImmutableListMultimap.of()
+        }
+    }
     def outputSnapshotter = new DefaultOutputSnapshotter(TestFiles.fileCollectionSnapshotter())
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter, delegate)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
 
     def temporaryWorkspace1 = workspacesRoot.file("temporary-workspace-1")
     def temporaryWorkspace2 = workspacesRoot.file("temporary-workspace-2")
@@ -47,9 +57,11 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     def work = Stub(ImmutableUnitOfWork) {
         getWorkspaceProvider() >> immutableWorkspaceProvider
     }
+    def originMetadata = Stub(OriginMetadata)
     def delegateResult = Stub(CachingResult) {
         getDuration() >> Duration.ofSeconds(1)
         getExecution() >> Try.successful(Stub(ExecutionEngine.Execution))
+        getAfterExecutionOutputState() >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false))
     }
 
     def work1Started = new CountDownLatch(1)

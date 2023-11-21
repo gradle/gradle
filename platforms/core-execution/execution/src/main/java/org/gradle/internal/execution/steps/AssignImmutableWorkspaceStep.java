@@ -17,54 +17,55 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.apache.commons.io.input.BufferedFileChannelInputStream;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Map;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
+import static com.google.common.collect.Maps.immutableEntry;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
 
-    private final OriginMetadataFactory originMetadataFactory;
+    private final ImmutableWorkspaceMetadataStore workspaceMetadataStore;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public AssignImmutableWorkspaceStep(
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
-        OriginMetadataFactory originMetadataFactory,
+        ImmutableWorkspaceMetadataStore workspaceMetadataStore,
         OutputSnapshotter outputSnapshotter,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
-        this.originMetadataFactory = originMetadataFactory;
+        this.workspaceMetadataStore = workspaceMetadataStore;
         this.outputSnapshotter = outputSnapshotter;
         this.delegate = delegate;
     }
@@ -94,20 +95,18 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private WorkspaceResult returnUpToDateImmutableWorkspace(UnitOfWork work, File immutableWorkspace) {
-        // TODO Validate workspace
-        OriginMetadata originMetadata = loadOriginMetadata(immutableWorkspace);
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFiles = outputSnapshotter.snapshotOutputs(work, immutableWorkspace);
-        ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputFiles, originMetadata, true);
-        return new WorkspaceResult(CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(UP_TO_DATE, work), afterExecutionOutputState, null, originMetadata), immutableWorkspace);
-    }
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableWorkspace);
 
-    private OriginMetadata loadOriginMetadata(File immutableWorkspace) {
-        File originFile = getOriginFile(immutableWorkspace);
-        try (InputStream originInput = new BufferedFileChannelInputStream(originFile)) {
-            return originMetadataFactory.createReader().execute(originInput);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not read origin metadata from " + originFile, e);
+        // Verify output hashes
+        ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
+        ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace);
+        if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
+            throw new IllegalStateException("Workspace has been changed: " + immutableWorkspace.getAbsolutePath());
         }
+
+        OriginMetadata originMetadata = metadata.getOriginMetadata();
+        ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
+        return new WorkspaceResult(CachingResult.shortcutResult(Duration.ZERO, Execution.skipped(UP_TO_DATE, work), afterExecutionOutputState, null, originMetadata), immutableWorkspace);
     }
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
@@ -124,8 +123,14 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
 
             if (delegateResult.getExecution().isSuccessful()) {
-                storeOriginMetadata(work, temporaryWorkspace, context.getIdentity().getUniqueId(), delegateResult);
-                // TODO Store output hashes for validation when the workspace is returned as up-to-date
+                // Store workspace metadata
+                // TODO Capture in the type system the fact that we always have an after-execution output state here
+                @SuppressWarnings("OptionalGetWithoutIsPresent")
+                ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
+                ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
+                ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
+                workspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, metadata);
+
                 File immutableLocation = workspace.getImmutableLocation();
                 try {
                     fileSystemAccess.moveAtomically(temporaryWorkspace.getAbsolutePath(), immutableLocation.getAbsolutePath());
@@ -156,21 +161,14 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         return upToDateResult;
     }
 
-    private void storeOriginMetadata(UnitOfWork work, File temporaryWorkspace, String identity, Result delegateResult) {
-        File originFile = getOriginFile(temporaryWorkspace);
-        try {
-            UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream(4096);
-            originMetadataFactory.createWriter(identity, work.getClass(), delegateResult.getDuration())
-                .execute(data);
-            try (OutputStream outputStream = Files.newOutputStream(originFile.toPath())) {
-                data.writeTo(outputStream);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not write origin metadata to " + originFile, e);
-        }
-    }
-
-    private static File getOriginFile(File immutableWorkspace) {
-        return new File(immutableWorkspace, "origin.bin");
+    private static ImmutableListMultimap<String, HashCode> calculateOutputHashes(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
+        return outputSnapshots.entrySet().stream()
+            .flatMap(entry ->
+                entry.getValue().roots()
+                    .map(locationSnapshot -> immutableEntry(entry.getKey(), locationSnapshot.getHash())))
+            .collect(toImmutableListMultimap(
+                Map.Entry::getKey,
+                Map.Entry::getValue
+            ));
     }
 }

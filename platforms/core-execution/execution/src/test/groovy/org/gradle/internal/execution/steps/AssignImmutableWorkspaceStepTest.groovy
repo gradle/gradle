@@ -16,16 +16,17 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
-import org.gradle.caching.internal.origin.OriginMetadataFactory
-import org.gradle.caching.internal.origin.OriginReader
-import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.ExecutionOutputState
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace.TemporaryWorkspaceAction
@@ -34,6 +35,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.nio.file.Files
@@ -42,7 +44,7 @@ import java.time.Duration
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
-class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
+class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
     def immutableWorkspace = file("immutable-workspace")
     def temporaryWorkspace = file("temporary-workspace")
     def workspace = Stub(ImmutableWorkspace) {
@@ -54,13 +56,13 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
 
     def deleter = Mock(Deleter)
     def fileSystemAccess = Mock(FileSystemAccess)
-    def originMetadataFactory = Mock(OriginMetadataFactory)
+    def immutableWorkspaceMetadataStore = Mock(ImmutableWorkspaceMetadataStore)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def workspaceProvider = Stub(ImmutableWorkspaceProvider) {
         getWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter, delegate)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
@@ -68,16 +70,17 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
     }
 
     def "returns immutable workspace when already exists"() {
-        immutableWorkspace.file("origin.bin").createFile()
+        def outputFile = immutableWorkspace.file("output.txt")
+        def outputFileSnapshot = regularFile(outputFile.absolutePath)
 
         def delegateOriginMetadata = Mock(OriginMetadata)
         def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
             type >> FileType.Directory
         }
-        def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot>of()
-        def originReader = Stub(OriginReader) {
-            execute(_ as InputStream) >> delegateOriginMetadata
-        }
+
+        def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
+            "output", outputFileSnapshot
+        )
 
         when:
         def result = step.execute(work, context)
@@ -93,16 +96,28 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
 
         then:
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
-        1 * originMetadataFactory.createReader() >> originReader
+
+        then:
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", outputFileSnapshot.hash)
+        }
         0 * _
     }
 
     def "runs in temporary workspace when immutable workspace doesn't exist"() {
         def delegateExecution = Mock(ExecutionEngine.Execution)
         def delegateDuration = Duration.ofSeconds(1)
+        def delegateOriginMetadata = Stub(OriginMetadata)
+        def delegateOutputFiles = ImmutableSortedMap.of()
+        def delegateOutputState = Stub(ExecutionOutputState) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputFilesProducedByWork() >> delegateOutputFiles
+        }
         def delegateResult = Stub(CachingResult) {
-            execution >> Try.successful(delegateExecution)
-            duration >> delegateDuration
+            getExecution() >> Try.successful(delegateExecution)
+            getDuration() >> delegateDuration
+            getAfterExecutionOutputState() >> Optional.of(delegateOutputState)
         }
         def resolvedDelegateResult = Stub(Object)
 
@@ -125,7 +140,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         }
 
         then:
-        1 * originMetadataFactory.createWriter(identity.uniqueId, _, delegateDuration) >> Stub(OriginWriter)
+        1 * immutableWorkspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, _) >> { File workspace, ImmutableWorkspaceMetadata metadata ->
+            metadata.originMetadata == delegateOriginMetadata
+        }
 
         then:
         1 * fileSystemAccess.moveAtomically(temporaryWorkspace.absolutePath, immutableWorkspace.absolutePath) >> { String from, String to ->
@@ -134,7 +151,6 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
 
         then:
         immutableWorkspace.file("output.txt").text == "output"
-        immutableWorkspace.file("origin.bin").assertIsFile()
         0 * _
 
         when:
@@ -184,6 +200,42 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> {
 
         then:
         resolvedResult.failure.get() == delegateFailure
+        0 * _
+    }
+
+    def "fails when immutable workspace has been tampered with"() {
+        def outputFile = immutableWorkspace.file("output.txt")
+        def originalOutputFileSnapshot = regularFile(outputFile.absolutePath, 1234L)
+        def changedOutputFileSnapshot = regularFile(outputFile.absolutePath, 5678L)
+        def delegateOriginMetadata = Stub(OriginMetadata)
+
+        def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
+            type >> FileType.Directory
+        }
+
+        def originalOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
+            "output", originalOutputFileSnapshot
+        )
+        def changedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
+            "output", changedOutputFileSnapshot
+        )
+
+        when:
+        step.execute(work, context)
+
+        then:
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
+
+        then:
+        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> changedOutputs
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", originalOutputFileSnapshot.hash)
+        }
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message.startsWith("Workspace has been changed")
         0 * _
     }
 }

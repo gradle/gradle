@@ -91,7 +91,6 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
@@ -112,6 +111,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
@@ -482,7 +482,7 @@ class DependencyManagementBuildScopeServices {
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         ListenerManager listenerManager,
-        OriginMetadataFactory originMetadataFactory,
+        ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
         OutputSnapshotter outputSnapshotter,
         Problems problems,
         TimeoutHandler timeoutHandler,
@@ -490,11 +490,12 @@ class DependencyManagementBuildScopeServices {
         VirtualFileSystem virtualFileSystem
     ) {
         OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
+
         // @formatter:off
         return new DefaultExecutionEngine(problems,
             new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep<>(

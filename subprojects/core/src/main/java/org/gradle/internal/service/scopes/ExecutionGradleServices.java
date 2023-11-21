@@ -24,7 +24,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
@@ -35,6 +34,7 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
@@ -141,7 +141,7 @@ public class ExecutionGradleServices {
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
         FileSystemAccess fileSystemAccess,
-        OriginMetadataFactory originMetadataFactory,
+        ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
@@ -164,7 +164,7 @@ public class ExecutionGradleServices {
         ))));
 
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, originMetadataFactory, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
             // TODO Consider not supporting skip-when-empty for immutable work entirely
             new SkipEmptyNonIncrementalWorkStep(buildId, workInputListeners,
